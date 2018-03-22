@@ -1,6 +1,6 @@
-﻿namespace ServiceControl.Monitoring
+﻿namespace Particular.HealthMonitoring.Uptime
 {
-    public enum HeartbeatStatus
+    enum HeartbeatStatus
     {
         Unknown,
         Alive,

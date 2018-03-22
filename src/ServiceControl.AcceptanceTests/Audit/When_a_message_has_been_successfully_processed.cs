@@ -10,7 +10,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Endpoints;
+    using Particular.HealthMonitoring.Uptime;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
 

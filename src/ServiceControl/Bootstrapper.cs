@@ -6,9 +6,11 @@ namespace Particular.ServiceControl
     using System.Net.Http;
     using System.Net.Http.Headers;
     using Autofac;
+    using global::ServiceControl.Api;
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
@@ -24,6 +26,7 @@ namespace Particular.ServiceControl
         private static HttpClient httpClient;
         private BusConfiguration configuration;
         private LoggingSettings loggingSettings;
+        readonly IComponent[] components;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
@@ -32,9 +35,10 @@ namespace Particular.ServiceControl
         private IContainer container;
         private BusInstance bus;
         public IDisposable WebApp;
+        DomainEvents domainEvents;
 
         // Windows Service
-        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings)
+        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings, IComponent[] components)
         {
             if (configuration == null)
             {
@@ -43,6 +47,7 @@ namespace Particular.ServiceControl
             this.onCriticalError = onCriticalError;
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
+            this.components = components;
             this.settings = settings;
             Initialize();
         }
@@ -71,13 +76,13 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
 
-            var domainEvents = new DomainEvents();
+            domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
+            containerBuilder.RegisterInstance(timeKeeper).AsSelf().AsImplementedInterfaces().ExternallyOwned();
             containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
@@ -92,6 +97,16 @@ namespace Particular.ServiceControl
         public BusInstance Start(bool isRunningAcceptanceTests = false)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
+
+            RavenBootstrapper.StartRaven(documentStore, settings, false);
+
+            var componentContainerBuilder = new ContainerBuilder();
+            foreach (var component in components)
+            {
+                var output = component.Initialize(new ComponentInput(domainEvents, documentStore)).GetAwaiter().GetResult();
+                componentContainerBuilder.RegisterInstance(output).ExternallyOwned().AsImplementedInterfaces().AsSelf();
+            }
+            componentContainerBuilder.Update(container.ComponentRegistry);
 
             if (!isRunningAcceptanceTests)
             {
@@ -115,6 +130,11 @@ namespace Particular.ServiceControl
             documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
+
+            foreach (var component in components)
+            {
+                component.TearDown().GetAwaiter().GetResult();
+            }
         }
 
         private long DataSize()

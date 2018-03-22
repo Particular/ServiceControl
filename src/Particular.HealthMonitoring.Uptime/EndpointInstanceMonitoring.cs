@@ -1,72 +1,93 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using Particular.Operations.Heartbeats.Api;
-    using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
+    using Particular.HealthMonitoring.Uptime.Api;
     using ServiceControl.Infrastructure.DomainEvents;
 
-    public class EndpointInstanceMonitoring
+    class EndpointInstanceMonitoring
     {
-        IDomainEvents domainEvents;
         ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
         ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
         EndpointMonitoringStats previousStats;
 
-        internal EndpointInstanceMonitoring(IDomainEvents domainEvents)
-        {
-            this.domainEvents = domainEvents;
-        }
 
-        public void RecordHeartbeat(EndpointHeartbeat message)
+        public void Initialize(IEnumerable<IHeartbeatEvent> events)
         {
-            var endpointInstanceId = new EndpointInstanceId(message.EndpointName, message.Host, message.HostId);
-
-            heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor()).MarkAlive(message.ExecutedAt);
-        }
-
-        internal void CheckEndpoints(DateTime threshold)
-        {
-            foreach (var entry in heartbeats)
+            foreach (var @event in events)
             {
-                var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
-
-                var instanceId = entry.Key;
-
-                var monitor = GetOrCreateMonitor(instanceId.LogicalName, instanceId.HostName, instanceId.HostGuid, true);
-
-                monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp);
+                var monitor = GetOrCreateMonitor(@event.Endpoint.Name, @event.Endpoint.Host, @event.Endpoint.HostId);
+                monitor.TryApply(@event);
             }
-
-            var stats = GetStats();
-
-            Update(stats);
         }
 
-        public EndpointInstanceMonitor GetOrCreateMonitor(string name, string host, Guid hostId, bool monitorIfNew)
+        public void RecordHeartbeat(string name, string host, Guid hostId, DateTime timestamp)
         {
             var endpointInstanceId = new EndpointInstanceId(name, host, hostId);
 
-            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew, domainEvents));
+            var heartbeatMonitor = heartbeats.GetOrAdd(endpointInstanceId, id => new HeartbeatMonitor());
+            heartbeatMonitor.MarkAlive(timestamp);
         }
 
-        void Update(EndpointMonitoringStats stats)
+        public IHeartbeatEvent StartTrackingEndpoint(string name, string host, Guid hostId)
+        {
+            var monitor = GetOrCreateMonitor(name, host, hostId);
+            return monitor.StartTrackingEndpoint();
+        }
+
+        public IEnumerable<IDomainEvent> CheckEndpoints(DateTime threshold, DateTime currentTime)
+        {
+            var events = new List<IDomainEvent>();
+            foreach (var entry in heartbeats)
+            {
+                var instanceId = entry.Key;
+
+                var monitor = GetOrCreateMonitor(instanceId.LogicalName, instanceId.HostName, instanceId.HostGuid);
+
+                var newState = entry.Value.MarkDeadIfOlderThan(threshold);
+
+                var update = monitor.UpdateStatus(newState.Status, newState.Timestamp, currentTime);
+                if (update != null)
+                {
+                    events.Add(update);
+                }
+            }
+
+            var stats = GetStats();
+            var statsUpdate = Update(stats);
+            if (statsUpdate != null)
+            {
+                events.Add(statsUpdate);
+            }
+
+            return events;
+        }
+
+        EndpointInstanceMonitor GetOrCreateMonitor(string name, string host, Guid hostId)
+        {
+            var endpointInstanceId = new EndpointInstanceId(name, host, hostId);
+
+            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId));
+        }
+
+        IDomainEvent Update(EndpointMonitoringStats stats)
         {
             var previousActive = previousStats?.Active ?? 0;
             var previousDead = previousStats?.Failing ?? 0;
             if (previousActive != stats.Active || previousDead != stats.Failing)
             {
-                domainEvents.Raise(new HeartbeatsUpdated
+                previousStats = stats;
+                return new HeartbeatsUpdated
                 {
                     Active = stats.Active,
                     Failing = stats.Failing,
                     RaisedAt = DateTime.UtcNow
-                });
-                previousStats = stats;
+                };
             }
+
+            return null;
         }
 
         internal EndpointMonitoringStats GetStats()
@@ -79,9 +100,17 @@ namespace ServiceControl.Monitoring
             return stats;
         }
 
-        public void EnableMonitoring(Guid id) => endpoints[id]?.EnableMonitoring();
-        public void DisableMonitoring(Guid id) => endpoints[id]?.DisableMonitoring();
-        public bool IsMonitored(Guid id) => endpoints[id]?.Monitored ?? false;
+        public IHeartbeatEvent EnableMonitoring(Guid id)
+        {
+            EndpointInstanceMonitor monitor;
+            return !endpoints.TryGetValue(id, out monitor) ? null : monitor.EnableMonitoring();
+        }
+
+        public IHeartbeatEvent DisableMonitoring(Guid id)
+        {
+            EndpointInstanceMonitor monitor;
+            return !endpoints.TryGetValue(id, out monitor) ? null : monitor.DisableMonitoring();
+        }
 
         internal EndpointsView[] GetEndpoints()
         {
@@ -99,9 +128,5 @@ namespace ServiceControl.Monitoring
             return list.ToArray();
         }
 
-        internal List<KnownEndpointsView> GetKnownEndpoints()
-        {
-            return endpoints.Values.Select(endpoint => endpoint.GetKnownView()).ToList();
-        }
     }
 }

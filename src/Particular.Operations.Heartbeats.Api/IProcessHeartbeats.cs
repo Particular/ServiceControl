@@ -1,8 +1,10 @@
 ﻿namespace Particular.Operations.Heartbeats.Api
 {
+    using System.Threading.Tasks;
+
     public interface IProcessHeartbeats
     {
-        void Handle(RegisterEndpointStartup endpointStartup);
-        void Handle(EndpointHeartbeat heartbeat);
+        Task Handle(RegisterEndpointStartup endpointStartup);
+        Task Handle(EndpointHeartbeat heartbeat);
     }
 }

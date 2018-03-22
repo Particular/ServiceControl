@@ -1,9 +1,8 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
-    using ServiceControl.Infrastructure;
 
-    public class EndpointInstanceId : IEquatable<EndpointInstanceId>
+    class EndpointInstanceId : IEquatable<EndpointInstanceId>
     {
         public readonly string LogicalName;
         public readonly string HostName;

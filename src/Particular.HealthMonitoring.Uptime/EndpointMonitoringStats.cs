@@ -1,8 +1,8 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System.Threading;
 
-    public class EndpointMonitoringStats
+    class EndpointMonitoringStats
     {
         private int active;
         private int failing;

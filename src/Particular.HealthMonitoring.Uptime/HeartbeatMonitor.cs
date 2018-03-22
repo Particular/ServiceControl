@@ -1,4 +1,4 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
     using System.Threading;
@@ -44,7 +44,6 @@ namespace ServiceControl.Monitoring
                     done = true;
                 }
             }
-
             return heartbeat;
         }
 

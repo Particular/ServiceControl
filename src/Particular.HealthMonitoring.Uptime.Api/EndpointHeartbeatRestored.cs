@@ -1,11 +1,11 @@
-namespace ServiceControl.Contracts.HeartbeatMonitoring
+namespace Particular.HealthMonitoring.Uptime.Api
 {
     using System;
-    using Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Contracts.Operations;
 
-    public class EndpointHeartbeatRestored : IDomainEvent
+    public class EndpointHeartbeatRestored : IHeartbeatEvent
     {
+        public Guid EndpointInstanceId { get; set; }
         public EndpointDetails Endpoint { get; set; }
         public DateTime RestoredAt { get; set; }
     }

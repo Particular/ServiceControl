@@ -1,51 +1,29 @@
 ﻿namespace Particular.HealthMonitoring.Uptime
 {
-    using System;
-    using System.Threading;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Monitoring;
+    using System.Threading.Tasks;
+    using ServiceControl.Api;
 
-    public class UptimeMonitoring
+    public class UptimeMonitoring : IComponent
     {
-        public EndpointInstanceMonitoring Monitoring { get; }
-
-        ITimeKeeper timeKeeper;
-        TimeSpan gracePeriod;
-        Timer timer;
-
-        public UptimeMonitoring(TimeSpan gracePeriod, IDomainEvents domainEvents, ITimeKeeper timeKeeper)
+        public async Task<ComponentOutput> Initialize(ComponentInput input)
         {
-            this.timeKeeper = timeKeeper;
-            this.gracePeriod = gracePeriod;
+            var monitoring = new EndpointInstanceMonitoring();
 
-            Monitoring = new EndpointInstanceMonitoring(domainEvents);
+            var persister = new EndpointUptimeInformationPersister(input.DocumentStore);
+            var events = await persister.Load().ConfigureAwait(false);
+            monitoring.Initialize(events);
+            
+            var apiModule = new UptimeApiModule(monitoring, persister);
+            var failureDetector = new HeartbeatFailureDetector(monitoring, input.DomainEvents, persister);
+            var heartbeatProcessor = new HeartbeatProcessor(monitoring, input.DomainEvents, persister);
+            var endpointDetector = new EndpointDetectingProcessor(monitoring, input.DomainEvents, persister);
+
+            return new Output(endpointDetector, endpointDetector, heartbeatProcessor, apiModule, failureDetector);
         }
 
-        public void Start()
+        public Task TearDown()
         {
-            timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            return Task.FromResult(0);
         }
-
-        void CheckEndpoints()
-        {
-            try
-            {
-                var inactivityThreshold = DateTime.UtcNow - gracePeriod;
-                //log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
-                Monitoring.CheckEndpoints(inactivityThreshold);
-            }
-            catch (Exception exception)
-            {
-                //log.Error("Exception occurred when monitoring endpoint instances", exception);
-            }
-        }
-
-        public void Stop()
-        {
-            timeKeeper.Release(timer);
-        }
-
-        //private static ILog log = LogManager.GetLogger<UptimeMonitoring>();
     }
 }

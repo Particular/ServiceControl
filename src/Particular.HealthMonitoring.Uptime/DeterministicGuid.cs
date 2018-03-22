@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure
+﻿namespace Particular.HealthMonitoring.Uptime
 {
     using System;
     using System.Security.Cryptography;

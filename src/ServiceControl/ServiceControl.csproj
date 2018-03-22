@@ -261,9 +261,10 @@
     <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
     <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
     <Compile Include="App_Packages\StackTraceParser\StackTraceParser.cs" />
-    <Compile Include="CompositeViews\Endpoints\GetKnownEndpointsApi.cs" />
+    <Compile Include="EndpointControl\GetKnownEndpointsApi.cs" />
     <Compile Include="CompositeViews\Endpoints\KnownEndpointIndex.cs" />
-    <Compile Include="CompositeViews\Endpoints\EnableEndpointMonitoring.cs" />
+    <Compile Include="EndpointControl\Legacy\DisableEndpointMonitoring.cs" />
+    <Compile Include="EndpointControl\Legacy\EnableEndpointMonitoring.cs" />
     <Compile Include="CompositeViews\Messages\GetAllMessagesApi.cs" />
     <Compile Include="CompositeViews\Messages\GetAllMessagesForEndpointApi.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByQuery.cs" />
@@ -299,8 +300,10 @@
     <Compile Include="DbMigrations\MigrationsManager.cs" />
     <Compile Include="DbMigrations\MigrationsModule.cs" />
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
-    <Compile Include="HeartbeatMonitoring\InMemoryMonitoring.cs" />
-    <Compile Include="HeartbeatMonitoring\LegacyHandler.cs" />
+    <Compile Include="EndpointControl\KnownEndpointsView.cs" />
+    <Compile Include="Infrastructure\RavenDB\RavenPersistenceConfigurator.cs" />
+    <Compile Include="Operations\ProcessorExecutorFeature.cs" />
+    <Compile Include="EndpointControl\Legacy\LegacyHandler.cs" />
     <Compile Include="Hosting\Commands\ImportFailedAuditsCommand.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
@@ -323,7 +326,6 @@
     <Compile Include="Infrastructure\RavenDB\Subscriptions\Subscription.cs" />
     <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionPersister.cs" />
     <Compile Include="Infrastructure\RavenDB\Subscriptions\SubscriptionStorage.cs" />
-    <Compile Include="Infrastructure\Settings\ConfigFileSettingsReader.cs" />
     <Compile Include="Infrastructure\Settings\InstanceIdGenerator.cs" />
     <Compile Include="Infrastructure\Settings\RemoteInstanceSetting.cs" />
     <Compile Include="Infrastructure\SignalR\ServicePulseNotifierFeature.cs" />
@@ -375,9 +377,9 @@
     <Compile Include="ExternalIntegrations\IEventPublisher.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedConverter.cs" />
     <Compile Include="ExternalIntegrations\MessageFailedPublisher.cs" />
-    <Compile Include="HeartbeatMonitoring\InternalMessages\EndpointHeartbeat.cs" />
-    <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterEndpointStartup.cs" />
-    <Compile Include="HeartbeatMonitoring\InternalMessages\RegisterPotentiallyMissingHeartbeats.cs" />
+    <Compile Include="HeartbeatMonitoring\Messages\EndpointHeartbeat.cs" />
+    <Compile Include="HeartbeatMonitoring\Messages\RegisterEndpointStartup.cs" />
+    <Compile Include="EndpointControl\Legacy\RegisterPotentiallyMissingHeartbeats.cs" />
     <Compile Include="Hosting\Commands\AbstractCommand.cs" />
     <Compile Include="Hosting\Commands\CommandRunner.cs" />
     <Compile Include="Hosting\Commands\MaintCommand.cs" />
@@ -402,7 +404,6 @@
     <Compile Include="Infrastructure\Settings\NullableRegistryReader.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiryProcessedMessageIndex.cs" />
     <Compile Include="Infrastructure\TimeKeeper.cs" />
-    <Compile Include="Infrastructure\Settings\RegistryReader.cs" />
     <Compile Include="Infrastructure\Settings\NullableSettingsReader.cs" />
     <Compile Include="Infrastructure\SignalR\SerializationSettingsFactoryForSignalR.cs" />
     <Compile Include="MessageFailures\Api\QueueAddressModule.cs" />
@@ -414,15 +415,16 @@
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
-    <Compile Include="Monitoring\Web\ApiModule.cs" />
-    <Compile Include="Monitoring\Transport\HeartbeatHandler.cs" />
-    <Compile Include="Monitoring\MonitoringDataPersister.cs" />
+    <Compile Include="EndpointControl\ApiModule.cs" />
+    <Compile Include="HeartbeatMonitoring\HeartbeatHandler.cs" />
+    <Compile Include="EndpointControl\KnownEndpointsPersister.cs" />
     <Compile Include="Operations\AuditImporter.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyByIdApi.cs" />
     <Compile Include="Operations\FailedTransportMessage.cs" />
     <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
     <Compile Include="Operations\FailedAuditImportCustomCheck.cs" />
+    <Compile Include="Operations\StartableExecutorFeature.cs" />
     <Compile Include="Recoverability\API\UnacknowledgedGroupsApi.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveDocumentManager.cs" />
     <Compile Include="Recoverability\Archiving\Raven\ArchiveOperation.cs" />
@@ -458,7 +460,7 @@
     <Compile Include="CustomChecks\DeleteCustomCheckHandler.cs" />
     <Compile Include="EndpointControl\DetectNewEndpointsFromImportsEnricher.cs" />
     <Compile Include="EndpointControl\KnownEndpoint.cs" />
-    <Compile Include="EndpointControl\InternalMessages\RegisterEndpoint.cs" />
+    <Compile Include="EndpointControl\Legacy\RegisterEndpoint.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckDeletedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\CustomCheckSucceededDefinition.cs" />
@@ -529,7 +531,6 @@
     <Compile Include="Infrastructure\Nancy\Modules\RootModule.cs" />
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
-    <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
     <Compile Include="Operations\AuditQueueImport.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByConversation.cs" />
     <Compile Include="Bootstrapper.cs" />
@@ -546,7 +547,6 @@
     <Compile Include="Operations\FailedAuditImport.cs" />
     <Compile Include="Operations\FailedErrorImport.cs" />
     <Compile Include="Operations\FailedMessageFactory.cs" />
-    <Compile Include="Operations\IEnrichImportedMessages.cs" />
     <Compile Include="Operations\ImportEnricher.cs" />
     <Compile Include="Operations\LicenseStatusKeeper.cs" />
     <Compile Include="Operations\SatelliteImportFailuresHandler.cs" />
@@ -644,7 +644,9 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Hosting\Help.txt" />
@@ -681,6 +683,14 @@
     <ProjectReference Include="..\Particular.HealthMonitoring.Uptime\Particular.HealthMonitoring.Uptime.csproj">
       <Project>{ca2e1704-e47e-466a-98eb-76ab72418397}</Project>
       <Name>Particular.HealthMonitoring.Uptime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Particular.Operations.Audits.Api\Particular.Operations.Audits.Api.csproj">
+      <Project>{5f673e60-d2e9-446a-80e6-b02b5db050e4}</Project>
+      <Name>Particular.Operations.Audits.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Particular.Operations.Errors.Api\Particular.Operations.Errors.Api.csproj">
+      <Project>{1be3ceec-9263-479b-9e2b-b21e1af7f714}</Project>
+      <Name>Particular.Operations.Errors.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\Particular.Operations.Heartbeats.Api\Particular.Operations.Heartbeats.Api.csproj">
       <Project>{4E0F1C48-722E-45CC-B1F9-4BE45E2C14DF}</Project>

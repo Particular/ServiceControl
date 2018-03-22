@@ -1,10 +1,9 @@
-namespace ServiceControl.EndpointControl.Contracts
+namespace Particular.HealthMonitoring.Uptime.Api
 {
     using System;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class MonitoringEnabledForEndpoint : IDomainEvent
+    public class MonitoringEnabledForEndpoint : IHeartbeatEvent
     {
         public Guid EndpointInstanceId { get; set; }
 

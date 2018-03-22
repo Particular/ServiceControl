@@ -3,6 +3,7 @@
     using System;
     using System.ServiceProcess;
     using NServiceBus;
+    using Particular.HealthMonitoring.Uptime;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class Host : ServiceBase
@@ -36,7 +37,10 @@
 
             var loggingSettings = new LoggingSettings(ServiceName);
 
-            bootstrapper = new Bootstrapper(Stop, new Settings(ServiceName), busConfiguration, loggingSettings);
+            bootstrapper = new Bootstrapper(Stop, new Settings(ServiceName), busConfiguration, loggingSettings, new[]
+            {
+                new UptimeMonitoring()
+            });
             bootstrapper.Start();
         }
 

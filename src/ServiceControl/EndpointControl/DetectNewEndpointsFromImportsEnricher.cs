@@ -5,7 +5,6 @@
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
-    using Particular.HealthMonitoring.Uptime;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.Monitoring;
 
@@ -18,8 +17,25 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.Container.ConfigureComponent<KnownEndpointsPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<DetectNewEndpointsFromImportsEnricher>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<EnrichWithEndpointDetails>(DependencyLifecycle.SingleInstance);
+            RegisterStartupTask<KnownEndpointsPersisterWarmupTask>();
+        }
+
+        class KnownEndpointsPersisterWarmupTask : FeatureStartupTask
+        {
+            KnownEndpointsPersister persister;
+
+            public KnownEndpointsPersisterWarmupTask(KnownEndpointsPersister persister)
+            {
+                this.persister = persister;
+            }
+
+            protected override void OnStart()
+            {
+                persister.WarmupMonitoringFromPersistence();
+            }
         }
 
         class EnrichWithEndpointDetails : ImportEnricher
@@ -46,12 +62,11 @@
 
         class DetectNewEndpointsFromImportsEnricher : ImportEnricher
         {
-            EndpointInstanceMonitoring monitoring;
-            MonitoringDataPersister persister;
+            KnownEndpointsPersister persister;
 
-            public DetectNewEndpointsFromImportsEnricher(UptimeMonitoring uptimeMonitoring)
+            public DetectNewEndpointsFromImportsEnricher(KnownEndpointsPersister persister)
             {
-                this.monitoring = uptimeMonitoring.Monitoring;
+                this.persister = persister;
             }
 
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
@@ -85,8 +100,6 @@
                 {
                     return;
                 }
-
-                monitoring.GetOrCreateMonitor(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId, false);
 
                 persister.RegisterEndpoint(new EndpointDetails
                 {

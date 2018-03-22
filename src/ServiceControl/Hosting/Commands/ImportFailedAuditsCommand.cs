@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading;
+    using global::ServiceControl.Api;
     using global::ServiceControl.Operations;
     using Hosting;
     using NLog;
@@ -30,7 +31,7 @@
             var tokenSource = new CancellationTokenSource();
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
-            var bootstrapper = new Bootstrapper(() => { tokenSource.Cancel();}, settings, busConfiguration, loggingSettings);
+            var bootstrapper = new Bootstrapper(() => { tokenSource.Cancel();}, settings, busConfiguration, loggingSettings, new IComponent[0]);
             var bus = (UnicastBus)bootstrapper.Start().Bus;
 
             Console.CancelKeyPress += (sender, eventArgs) =>

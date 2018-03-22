@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.EventLog.Definitions
 {
-    using Contracts.HeartbeatMonitoring;
+    using Particular.HealthMonitoring.Uptime.Api;
 
     public class EndpointFailedToHeartbeatDefinition : EventLogMappingDefinition<EndpointFailedToHeartbeat>
     {

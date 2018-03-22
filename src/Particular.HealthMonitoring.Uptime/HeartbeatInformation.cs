@@ -1,7 +1,6 @@
-namespace ServiceControl.CompositeViews.Endpoints
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
-    using HeartbeatMonitoring;
 
     public class HeartbeatInformation
     {

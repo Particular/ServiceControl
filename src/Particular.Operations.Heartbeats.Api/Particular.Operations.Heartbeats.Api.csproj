@@ -42,8 +42,11 @@
   <ItemGroup>
     <Compile Include="EndpointHeartbeat.cs" />
     <Compile Include="IProcessHeartbeats.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IProvideHeartbeatProcessor.cs" />
     <Compile Include="RegisterEndpointStartup.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

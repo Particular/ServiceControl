@@ -1,72 +1,97 @@
-namespace ServiceControl.Monitoring
+namespace Particular.HealthMonitoring.Uptime
 {
     using System;
-    using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
+    using Particular.HealthMonitoring.Uptime.Api;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.EndpointControl.Contracts;
-    using ServiceControl.HeartbeatMonitoring;
     using ServiceControl.Infrastructure.DomainEvents;
 
-    public class EndpointInstanceMonitor
+    class EndpointInstanceMonitor
     {
-        IDomainEvents domainEvents;
-
         public EndpointInstanceId Id { get; }
-        private DateTime? lastSeen;
-        private HeartbeatStatus status;
+        DateTime? lastSeen;
+        HeartbeatStatus status;
 
         public bool Monitored { get; private set; }
 
-        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, IDomainEvents domainEvents)
+        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId)
         {
             Id = endpointInstanceId;
-            Monitored = monitored;
-            this.domainEvents = domainEvents;
         }
 
-        public void EnableMonitoring()
+        public bool TryApply(IHeartbeatEvent @event)
         {
-            domainEvents.Raise(new MonitoringEnabledForEndpoint { Endpoint = Convert(Id) });
-            Monitored = true;
+            return TryApply<MonitoringEnabledForEndpoint>(@event, Apply)
+                   || TryApply<MonitoringDisabledForEndpoint>(@event, Apply)
+                   || TryApply<HeartbeatingEndpointDetected>(@event, Apply)
+                   || TryApply<EndpointHeartbeatRestored>(@event, Apply)
+                   || TryApply<EndpointFailedToHeartbeat>(@event, Apply);
         }
 
-        public void DisableMonitoring()
+        static bool TryApply<T>(IHeartbeatEvent @event, Func<T, IDomainEvent> applyFunc)
+            where T : class, IHeartbeatEvent
         {
-            domainEvents.Raise(new MonitoringDisabledForEndpoint { Endpoint = Convert(Id) });
-            Monitored = false;
-        }
-
-        public void UpdateStatus(HeartbeatStatus newStatus, DateTime? latestTimestamp)
-        {
-            if (newStatus != status)
+            var typed = @event as T;
+            if (typed != null)
             {
-                RaiseStateChangeEvents(newStatus, latestTimestamp);
+                applyFunc(typed);
+                return true;
+            }
+            return false;
+        }
+
+        public IHeartbeatEvent EnableMonitoring()
+        {
+            return Apply(new MonitoringEnabledForEndpoint
+            {
+                EndpointInstanceId = Id.UniqueId,
+                Endpoint = Convert(Id)
+            });
+        }
+
+        public IHeartbeatEvent DisableMonitoring()
+        {
+            return Apply(new MonitoringDisabledForEndpoint
+            {
+                EndpointInstanceId = Id.UniqueId,
+                Endpoint = Convert(Id)
+            });
+        }
+
+        public IHeartbeatEvent StartTrackingEndpoint()
+        {
+            return Apply(new EndpointDetected
+            {
+                EndpointInstanceId = Id.UniqueId,
+                Endpoint = Convert(Id)
+            });
+        }
+
+        public IHeartbeatEvent UpdateStatus(HeartbeatStatus newStatus, DateTime? latestTimestamp, DateTime currentTime)
+        {
+            if (newStatus == status)
+            {
+                return null;
             }
 
-            lastSeen = latestTimestamp;
-            status = newStatus;
-        }
-
-        private void RaiseStateChangeEvents(HeartbeatStatus newStatus, DateTime? latestTimestamp)
-        {
             if (newStatus == HeartbeatStatus.Alive)
             {
                 if (status == HeartbeatStatus.Unknown)
                 {
                     // NOTE: If an endpoint starts randomly sending heartbeats we monitor it by default
                     // NOTE: This means we'll start monitoring endpoints sending heartbeats after a restart
-                    Monitored = true;
-                    domainEvents.Raise(new HeartbeatingEndpointDetected
+                    return Apply(new HeartbeatingEndpointDetected
                     {
+                        EndpointInstanceId = Id.UniqueId,
                         Endpoint = Convert(Id),
                         DetectedAt = latestTimestamp ?? DateTime.UtcNow
                     });
                 }
-                else if (status == HeartbeatStatus.Dead && Monitored)
+
+                if (status == HeartbeatStatus.Dead && Monitored)
                 {
-                    domainEvents.Raise(new EndpointHeartbeatRestored
+                    return Apply(new EndpointHeartbeatRestored
                     {
+                        EndpointInstanceId = Id.UniqueId,
                         Endpoint = Convert(Id),
                         RestoredAt = latestTimestamp ?? DateTime.UtcNow
                     });
@@ -74,13 +99,57 @@ namespace ServiceControl.Monitoring
             }
             else if (newStatus == HeartbeatStatus.Dead && Monitored)
             {
-                domainEvents.Raise(new EndpointFailedToHeartbeat
+                return Apply(new EndpointFailedToHeartbeat
                 {
+                    EndpointInstanceId = Id.UniqueId,
                     Endpoint = Convert(Id),
-                    DetectedAt = DateTime.UtcNow,
+                    DetectedAt = currentTime,
                     LastReceivedAt = latestTimestamp ?? DateTime.MinValue
                 });
             }
+
+            return null;
+        }
+
+        IHeartbeatEvent Apply(EndpointDetected @event)
+        {
+            return @event;
+        }
+
+        IHeartbeatEvent Apply(HeartbeatingEndpointDetected @event)
+        {
+            Monitored = true;
+            status = HeartbeatStatus.Alive;
+            lastSeen = @event.DetectedAt;
+            return @event;
+        }
+
+        IHeartbeatEvent Apply(EndpointHeartbeatRestored @event)
+        {
+            Monitored = true;
+            status = HeartbeatStatus.Alive;
+            lastSeen = @event.RestoredAt;
+            return @event;
+        }
+
+        IHeartbeatEvent Apply(EndpointFailedToHeartbeat @event)
+        {
+            Monitored = true;
+            status = HeartbeatStatus.Dead;
+            lastSeen = @event.LastReceivedAt;
+            return @event;
+        }
+
+        IHeartbeatEvent Apply(MonitoringEnabledForEndpoint @event)
+        {
+            Monitored = true;
+            return @event;
+        }
+
+        IHeartbeatEvent Apply(MonitoringDisabledForEndpoint @event)
+        {
+            Monitored = false;
+            return @event;
         }
 
         public void AddTo(EndpointMonitoringStats stats)
@@ -94,7 +163,7 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        private EndpointDetails Convert(EndpointInstanceId endpointInstanceId)
+        EndpointDetails Convert(EndpointInstanceId endpointInstanceId)
         {
             return new EndpointDetails
             {
@@ -118,16 +187,6 @@ namespace ServiceControl.Monitoring
                     ReportedStatus = status == HeartbeatStatus.Alive ? Status.Beating : Status.Dead,
                     LastReportAt = lastSeen ?? DateTime.MinValue
                 }
-            };
-        }
-
-        public KnownEndpointsView GetKnownView()
-        {
-            return new KnownEndpointsView
-            {
-                Id = Id.UniqueId,
-                HostDisplayName = Id.HostName,
-                EndpointDetails = Convert(Id)
             };
         }
     }

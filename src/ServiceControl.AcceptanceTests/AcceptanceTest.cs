@@ -29,11 +29,13 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.MessageInterfaces;
     using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NUnit.Framework;
+    using Particular.HealthMonitoring.Uptime;
     using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Api;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
@@ -644,7 +646,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
                 {
                     var loggingSettings = new LoggingSettings(settings.ServiceName);
-                    bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings);
+                    bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings, new IComponent[]{ new UptimeMonitoring() });
                     bootstrappers[instanceName] = bootstrapper;
                     bootstrapper.HttpClientFactory = HttpClientFactory;
                 }

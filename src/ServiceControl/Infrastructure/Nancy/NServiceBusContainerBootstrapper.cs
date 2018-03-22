@@ -13,6 +13,8 @@
     using global::Nancy.Bootstrappers.Autofac;
     using global::Nancy.Diagnostics;
     using global::Nancy.Responses;
+    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.Api;
 
     public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
@@ -86,7 +88,17 @@
 
             foreach (var moduleRegistrationType in moduleRegistrationTypes)
             {
-                builder.RegisterType(moduleRegistrationType.ModuleType).As<INancyModule>().PropertiesAutowired();
+                //Only auto-wire modules that derive from BaseModule
+                if (typeof(BaseModule).IsAssignableFrom(moduleRegistrationType.ModuleType))
+                {
+                    builder.RegisterType(moduleRegistrationType.ModuleType).As<INancyModule>().PropertiesAutowired();
+                }
+            }
+
+            var componentModules = container.Resolve<IEnumerable<IProvideNancyModule>>();
+            foreach (var module in componentModules)
+            {
+                builder.RegisterInstance(module.NancyModule).AsImplementedInterfaces();
             }
 
             builder.Update(container.ComponentRegistry);
@@ -94,12 +106,16 @@
 
         protected override INancyModule GetModule(ILifetimeScope container, Type moduleType)
         {
-            var builder = new ContainerBuilder();
+            if (typeof(BaseModule).IsAssignableFrom(moduleType))
+            {
+                var builder = new ContainerBuilder();
 
-            builder.RegisterType(moduleType).As<INancyModule>().PropertiesAutowired();
-            builder.Update(container.ComponentRegistry);
+                builder.RegisterType(moduleType).As<INancyModule>().PropertiesAutowired();
+                builder.Update(container.ComponentRegistry);
 
-            return container.Resolve<INancyModule>();
+                return container.Resolve<INancyModule>();
+            }
+            return (INancyModule) container.Resolve(moduleType);
         }
 
         static ILog Logger = LogManager.GetLogger(typeof(NServiceBusContainerBootstrapper));

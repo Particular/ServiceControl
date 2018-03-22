@@ -4,10 +4,7 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
-    using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
-    using NServiceBus.Persistence;
     using Particular.ServiceControl.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
@@ -16,9 +13,8 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl;
-    using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 
-    public class RavenBootstrapper : INeedInitialization
+    public class RavenBootstrapper
     {
         public static string ReadLicense()
         {
@@ -29,22 +25,11 @@
             }
         }
 
-        public void Customize(BusConfiguration configuration)
-        {
-            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
-            var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
+        public static Settings Settings { get; private set; }
 
+        public static void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
+        {
             Settings = settings;
-
-            StartRaven(documentStore, settings, false);
-
-            configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
-        }
-
-        public static Settings Settings { get; set; }
-
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
-        {
             Directory.CreateDirectory(settings.DbPath);
 
             documentStore.DataDirectory = settings.DbPath;
@@ -79,7 +64,7 @@
             documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 
-            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(typeof(RavenBootstrapper).Assembly));
 
             documentStore.Initialize();
 
