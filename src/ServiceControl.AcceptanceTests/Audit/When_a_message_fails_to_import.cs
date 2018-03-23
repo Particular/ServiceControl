@@ -23,7 +23,7 @@
                 if (!Context.FailedImport)
                 {
                     Console.WriteLine("Simulating message processing failure");
-                    throw new Exception("Boom!");
+                    throw new MessageDeserializationException("ID", null);
                 }
                 Console.WriteLine("Message processed correctly");
             }
