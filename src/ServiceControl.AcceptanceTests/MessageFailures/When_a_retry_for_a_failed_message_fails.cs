@@ -100,13 +100,17 @@
 
                 public void Handle(MyMessage message)
                 {
+                    Console.WriteLine("Attempting to process message");
+
                     Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().Queue;
                     Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
 
                     if (!Context.Succeed) //simulate that the exception will be resolved with the retry
                     {
+                        Console.WriteLine("Message processing failure");
                         throw new Exception("Simulated exception");
                     }
+                    Console.WriteLine("Message processing success");
                 }
             }
         }
