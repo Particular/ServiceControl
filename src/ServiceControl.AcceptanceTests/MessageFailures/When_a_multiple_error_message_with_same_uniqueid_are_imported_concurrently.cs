@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Error
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
@@ -11,9 +12,28 @@
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations;
 
     class When_a_multiple_error_message_with_same_uniqueid_are_imported_concurrently : AcceptanceTest
     {
+        class CounterEnricher : ImportEnricher
+        {
+            public MyContext Context { get; set; }
+
+            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
+                string counter;
+                if (headers.TryGetValue("Counter", out counter))
+                {
+                    Context.OnMessage(counter);
+                }
+                else
+                {
+                    Console.WriteLine("No Counter header found");
+                }
+            }
+        }
+
         [Test]
         public void The_import_should_support_it()
         {
@@ -25,6 +45,7 @@
             CustomConfiguration = config =>
             {
                 config.DefineCriticalErrorAction((s, exception) => context.CriticalErrorExecuted = true);
+                config.RegisterComponents(c => c.ConfigureComponent<CounterEnricher>(DependencyLifecycle.SingleInstance));
             };
 
             FailedMessage failure = null;
@@ -37,7 +58,11 @@
                         return false;
                     }
 
-                    return c.CriticalErrorExecuted || TryGet($"/api/errors/{c.UniqueId}", out failure, m => m.ProcessingAttempts.Count == 10);
+                    return c.CriticalErrorExecuted || TryGet($"/api/errors/{c.UniqueId}", out failure, m =>
+                    {
+                        Console.WriteLine("Processing attempts: " + m.ProcessingAttempts.Count);
+                        return m.ProcessingAttempts.Count == 10;
+                    });
                 })
                 .Run();
 
@@ -80,7 +105,8 @@
                             ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                             ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
                             ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
-                            ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z"
+                            ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                            ["Counter"] = i.ToString()
                         };
                         var message = new TransportMessage(messageId, headers);
                         sendMessages.Send(message, new SendOptions("error"));
@@ -95,6 +121,15 @@
 
         public class MyContext : ScenarioContext
         {
+            ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
+
+            public void OnMessage(string counter)
+            {
+                receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
+            }
+
+            public string ReceivedMessages => string.Join(",", receivedMessages.Keys);
+
             public string UniqueId { get; set; }
             public bool CriticalErrorExecuted { get; set; }
         }

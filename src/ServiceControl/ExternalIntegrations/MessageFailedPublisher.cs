@@ -21,6 +21,11 @@ namespace ServiceControl.ExternalIntegrations
         {
             var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
             var failedMessageData = session.Load<FailedMessage>(documentIds);
+            foreach (var entity in failedMessageData)
+            {
+                session.Advanced.Evict(entity);
+            }
+
             return failedMessageData.Where(p => p != null).Select(x => x.ToEvent());
         }
 

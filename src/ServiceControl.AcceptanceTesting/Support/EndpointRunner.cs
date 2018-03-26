@@ -17,7 +17,6 @@
         IStartableBus bus;
         ISendOnlyBus sendOnlyBus;
         EndpointConfiguration configuration;
-        Task executeWhens;
         ScenarioContext scenarioContext;
         BusConfiguration busConfiguration;
         CancellationToken stopToken;
@@ -66,54 +65,59 @@
             }
         }
 
-        public Task ExecuteWhens()
+        public async Task ExecuteWhens()
         {
             stopToken = stopSource.Token;
 
-            if (behavior.Whens.Count == 0)
+            try
             {
-                executeWhens = Task.FromResult(0);
-            }
-            else
-            {
-                executeWhens = Task.Run(() =>
+                if (behavior.Whens.Count != 0)
                 {
-                    var executedWhens = new List<Guid>();
-
-                    while (!stopToken.IsCancellationRequested)
+                    await Task.Run(async () =>
                     {
-                        if (executedWhens.Count == behavior.Whens.Count)
-                        {
-                            break;
-                        }
+                        var executedWhens = new HashSet<Guid>();
 
-                        if (stopToken.IsCancellationRequested)
+                        while (!stopToken.IsCancellationRequested)
                         {
-                            break;
-                        }
+                            if (executedWhens.Count == behavior.Whens.Count)
+                            {
+                                break;
+                            }
 
-                        foreach (var when in behavior.Whens)
-                        {
                             if (stopToken.IsCancellationRequested)
                             {
-                                return;
+                                break;
                             }
 
-                            if (executedWhens.Contains(when.Id))
+                            foreach (var when in behavior.Whens)
                             {
-                                continue;
+                                if (stopToken.IsCancellationRequested)
+                                {
+                                    break;
+                                }
+
+                                if (executedWhens.Contains(when.Id))
+                                {
+                                    continue;
+                                }
+
+                                if (when.ExecuteAction(scenarioContext, bus))
+                                {
+                                    executedWhens.Add(when.Id);
+                                }
                             }
 
-                            if (when.ExecuteAction(scenarioContext, bus))
-                            {
-                                executedWhens.Add(when.Id);
-                            }
+                            await Task.Yield(); // enforce yield current context, tight loop could introduce starvation
                         }
-                    }
-                });
+                    }, stopToken).ConfigureAwait(false);
+                }
             }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to execute Whens on endpoint{configuration.EndpointName}", ex);
 
-            return executeWhens;
+                throw;
+            }
         }
 
         public Result Start()
@@ -155,15 +159,6 @@
             try
             {
                 stopSource.Cancel();
-
-                try
-                {
-                    executeWhens.Wait();
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error("Failed to execute whens", ex);
-                }
 
                 if (configuration.SendOnly)
                 {

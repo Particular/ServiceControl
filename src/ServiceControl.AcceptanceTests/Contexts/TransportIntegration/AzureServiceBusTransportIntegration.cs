@@ -43,7 +43,8 @@
                     DefaultMessageTimeToLive = (long)TimeSpan.FromMinutes(15).TotalMilliseconds,
                     LockDuration = (int)TimeSpan.FromSeconds(30).TotalMilliseconds,
                     ServerWaitTime = 2,
-                    BatchSize = 5
+                    BatchSize = 5,
+                    MaxDeliveryCount = 100
                 };
             }
         }

@@ -22,8 +22,10 @@
             {
                 if (!Context.FailedImport)
                 {
-                    throw new Exception("Boom!");
+                    Console.WriteLine("Simulating message processing failure");
+                    throw new MessageDeserializationException("ID", null);
                 }
+                Console.WriteLine("Message processed correctly");
             }
         }
 
