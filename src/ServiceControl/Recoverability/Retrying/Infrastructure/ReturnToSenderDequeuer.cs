@@ -1,9 +1,9 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Concurrent;
     using System.IO;
     using System.Threading;
-    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Faults;
     using NServiceBus.Logging;
@@ -30,6 +30,8 @@ namespace ServiceControl.Recoverability
         readonly ISendMessages sender;
         CaptureIfMessageSendingFails faultManager;
         IBodyStorage bodyStorage;
+        Thread stopThread;
+        BlockingCollection<Action> stopThreadQueue = new BlockingCollection<Action>();
 
         public ReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IDomainEvents domainEvents, Configure configure)
         {
@@ -48,9 +50,20 @@ namespace ServiceControl.Recoverability
                 }
             };
 
+            stopThread = new Thread(ProessStopThreadQueue);
+
             faultManager = new CaptureIfMessageSendingFails(store, domainEvents, executeOnFailure);
             timer = new Timer(state => StopInternal());
             InputAddress = Address.Parse(configure.Settings.EndpointName()).SubScope("staging");
+        }
+
+        void ProessStopThreadQueue()
+        {
+            var reader = stopThreadQueue.GetConsumingEnumerable();
+            foreach (var action in reader)
+            {
+                action();
+            }
         }
 
         public bool Handle(TransportMessage message)
@@ -169,13 +182,15 @@ namespace ServiceControl.Recoverability
             if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
             {
                 Log.DebugFormat("Target count reached. Shutting down forwarder");
+
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
-                Task.Factory.StartNew(StopInternal);
+                stopThreadQueue.Add(StopInternal);
             }
         }
 
         public void Start()
         {
+            stopThread.Start();
         }
 
         public virtual void Run(Predicate<TransportMessage> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
@@ -220,6 +235,9 @@ namespace ServiceControl.Recoverability
             timer.Dispose();
             endedPrematurelly = true;
             resetEvent.Set();
+
+            stopThreadQueue.CompleteAdding();
+            stopThread.Join();
         }
 
         void StopInternal()
