@@ -2,6 +2,7 @@ namespace ServiceControl.Monitoring
 {
     using System;
     using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EndpointControl.Contracts;
@@ -23,6 +24,8 @@ namespace ServiceControl.Monitoring
             Id = endpointInstanceId;
             Monitored = monitored;
             this.domainEvents = domainEvents;
+
+            domainEvents.Raise(new NewEndpointDetected { DetectedAt = DateTime.UtcNow, Endpoint = Convert(Id)});
         }
 
         public void EnableMonitoring()
