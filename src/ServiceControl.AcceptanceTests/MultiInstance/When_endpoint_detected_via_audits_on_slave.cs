@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -9,6 +10,7 @@
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.Monitoring;
 
     public class When_endpoint_detected_via_audits_on_slave : AcceptanceTest
     {
@@ -35,6 +37,43 @@
                    bus.SendLocal(new MyMessage());
                 }))
                 .Done(c => TryGetMany("/api/endpoints/", out response, instanceName: Master) && response.Count == 1)
+                .Run(TimeSpan.FromSeconds(40));
+        }
+
+        [Test]
+        public void Should_be_discarted_if_known_on_the_master()
+        {
+            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+
+            var context = new MyContext();
+            List<EndpointsView> response;
+
+            Define(context, Slave, Master)
+                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                {
+                    bus.SendLocal(new MyMessage());
+                }))
+                .Done(c =>
+                {
+                    if (c.EndpointKnownOnMaster == false)
+                    {
+                        if (TryGetMany("/api/endpoints/", out response, instanceName: Master) && response.Count > 0)
+                        {
+                            var endpointId = response.First().Id;
+
+                            Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
+                            {
+                                MonitorHeartbeat = true
+                            }, Master);
+
+                            c.EndpointKnownOnMaster = true;
+                        }
+
+                        return false;
+                    }
+
+                    return TryGetMany("/api/endpoints/", out response, instanceName: Master) && response.Count == 1;
+                })
                 .Run(TimeSpan.FromSeconds(40));
         }
 
@@ -92,6 +131,7 @@
 
         public class MyContext : ScenarioContext
         {
+            public bool EndpointKnownOnMaster { get; set; }
         }
     }
 }
