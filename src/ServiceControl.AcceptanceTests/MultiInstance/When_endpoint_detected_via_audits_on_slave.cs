@@ -41,12 +41,12 @@
         }
 
         [Test]
-        public void Should_be_discarted_if_known_on_the_master()
+        public void Should_be_configurable_on_master()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
-            List<EndpointsView> response;
+            List<EndpointsView> response = null;
 
             Define(context, Slave, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
@@ -55,26 +55,29 @@
                 }))
                 .Done(c =>
                 {
-                    if (c.EndpointKnownOnMaster == false)
+                    if (TryGetMany("/api/endpoints/", out response, instanceName: Master) && response.Count > 0)
                     {
-                        if (TryGetMany("/api/endpoints/", out response, instanceName: Master) && response.Count > 0)
-                        {
-                            var endpointId = response.First().Id;
-
-                            Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
-                            {
-                                MonitorHeartbeat = true
-                            }, Master);
-
-                            c.EndpointKnownOnMaster = true;
-                        }
-
-                        return false;
+                        c.EndpointKnownOnMaster = true;
                     }
 
-                    return TryGetMany("/api/endpoints/", out response, instanceName: Master) && response.Count == 1;
+                    if (c.EndpointKnownOnMaster)
+                    {
+                        var endpointId = response.First().Id;
+
+                        Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
+                        {
+                            MonitorHeartbeat = true
+                        }, Master);
+
+                        return TryGetMany("/api/endpoints/", out response, instanceName: Master);
+                    }
+
+                    return false;
                 })
                 .Run(TimeSpan.FromSeconds(40));
+
+            Assert.IsNotNull(response.First());
+            Assert.IsTrue(response.First().MonitorHeartbeat);
         }
 
         public class Sender : EndpointConfigurationBuilder
