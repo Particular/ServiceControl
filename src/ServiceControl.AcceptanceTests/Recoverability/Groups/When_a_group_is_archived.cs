@@ -130,18 +130,34 @@
                         c.ArchiveIssued = true;
                     }
 
-                    if (!TryGet("/api/errors/" + c.FirstMessageId, out firstFailure, e => e.Status == FailedMessageStatus.Archived))
+                    if (!GetFailedMessage(c.FirstMessageId, out firstFailure, e => e.Status == FailedMessageStatus.Archived))
+                    {
                         return false;
-
-                    if (!TryGet("/api/errors/" + c.SecondMessageId, out secondFailure, e => e.Status == FailedMessageStatus.Resolved))
+                    }
+                    if (!GetFailedMessage(c.SecondMessageId, out secondFailure, e => e.Status == FailedMessageStatus.Resolved))
+                    {
                         return false;
-
+                    }
                     return true;
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(FailedMessageStatus.Archived, firstFailure.Status, "Non retried message should be archived");
             Assert.AreNotEqual(FailedMessageStatus.Archived, secondFailure.Status, "Retried Message should not be set to Archived when group is archived");
+        }
+
+        bool GetFailedMessage(string messageId, out FailedMessage failure, Predicate<FailedMessage> condition = null)
+        {
+            failure = null;
+
+            if (String.IsNullOrEmpty(messageId) || !TryGet("/api/errors/" + messageId, out failure, condition))
+            {
+                return false;
+            }
+
+            Console.WriteLine($"Message {messageId} status: {failure.Status}");
+
+            return true;
         }
 
         public class Receiver : EndpointConfigurationBuilder

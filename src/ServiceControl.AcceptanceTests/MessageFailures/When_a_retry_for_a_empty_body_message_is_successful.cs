@@ -49,6 +49,9 @@
             {
                 return false;
             }
+
+            Console.WriteLine("Status: " + failure.Status);
+
             return true;
         }
 

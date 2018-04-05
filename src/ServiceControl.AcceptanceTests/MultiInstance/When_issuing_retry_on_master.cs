@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -39,20 +38,18 @@
                 .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
                 .Done(c =>
                 {
-                    if (!GetFailedMessage(c, Remote1, out failure) && !c.RetryIssued)
+                    if (!c.RetryIssued)
                     {
-                        Thread.Sleep(500);
+                        if (GetFailedMessage(c, Remote1, FailedMessageStatus.Unresolved, out failure))
+                        {
+                            c.RetryIssued = true;
+                            Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
+                        }
+
                         return false;
                     }
 
-                    if (failure.Status == FailedMessageStatus.Unresolved && !c.RetryIssued)
-                    {
-                        c.RetryIssued = true;
-                        Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
-                        return false;
-                    }
-
-                    return failure.Status == FailedMessageStatus.Resolved;
+                    return GetFailedMessage(c, Remote1, FailedMessageStatus.Resolved, out failure);
                 })
                 .Run(TimeSpan.FromMinutes(2));
         }
@@ -81,7 +78,7 @@
             }
         }
 
-        bool GetFailedMessage(MyContext c, string instance, out FailedMessage failure)
+        bool GetFailedMessage(MyContext c, string instance, FailedMessageStatus expectedStatus, out FailedMessage failure)
         {
             failure = null;
             if (c.MessageId == null)
@@ -89,7 +86,7 @@
                 return false;
             }
 
-            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure, null, instance))
+            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure, f => f.Status == expectedStatus, instance))
             {
                 return false;
             }
