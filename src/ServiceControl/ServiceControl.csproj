@@ -343,6 +343,7 @@
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="LoggingConfigurator.cs" />
     <Compile Include="MaintenanceBootstrapper.cs" />
+    <Compile Include="Infrastructure\MetadataExtensions.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
     <Compile Include="MessageFailures\Api\RetryMessagesApi.cs" />
     <Compile Include="MessageFailures\InternalMessages\MarkPendingRetryAsResolved.cs" />
