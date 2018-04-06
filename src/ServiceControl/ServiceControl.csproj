@@ -428,6 +428,7 @@
     <Compile Include="MessageFailures\FailedMessageViewIndexNotifications.cs" />
     <Compile Include="MessageFailures\FailedMessagesFeature.cs" />
     <Compile Include="MessageFailures\Handlers\UnArchiveMessagesHandler.cs" />
+    <Compile Include="Monitoring\EndpointDetailsExtensions.cs" />
     <Compile Include="Monitoring\Handler\NewEndpointDetectedHandler.cs" />
     <Compile Include="Monitoring\Web\ApiModule.cs" />
     <Compile Include="Monitoring\EndpointInstanceId.cs" />

@@ -23,7 +23,6 @@
                 Name = message.Endpoint
             };
             monitoring.DetectEndpointFromHeartbeatStartup(endpointDetails, message.StartedAt);
-
         }
     }
 }

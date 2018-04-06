@@ -30,8 +30,8 @@ namespace ServiceControl.Monitoring
             {
                 var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
 
-                var monitor = GetOrCreateMonitor(entry.Key, true);
-
+                EndpointInstanceId endpointInstanceId = entry.Key;
+                var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
                 monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp);
             }
 
@@ -42,45 +42,35 @@ namespace ServiceControl.Monitoring
 
         public void DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
         {
-            GetOrCreateMonitor(
-                new EndpointInstanceId(newEndpointDetails.Name, newEndpointDetails.Host, newEndpointDetails.HostId),
-                false
-            );
-            domainEvents.Raise(new NewEndpointDetected { DetectedAt = DateTime.UtcNow, Endpoint = newEndpointDetails });
+            var endpointInstanceId = newEndpointDetails.ToInstanceId();
+            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))
+            {
+                domainEvents.Raise(new NewEndpointDetected { DetectedAt = DateTime.UtcNow, Endpoint = newEndpointDetails });
+            }
         }
 
         public void DetectEndpointFromRemoteAudit(EndpointDetails newEndpointDetails)
         {
-            GetOrCreateMonitor(
-                new EndpointInstanceId(newEndpointDetails.Name, newEndpointDetails.Host, newEndpointDetails.HostId),
-                false
-            );
+            var endpointInstanceId = newEndpointDetails.ToInstanceId();
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents));
         }
 
         public void DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt)
         {
-            GetOrCreateMonitor(
-                new EndpointInstanceId(newEndpointDetails.Name, newEndpointDetails.Host, newEndpointDetails.HostId),
-                true
-            );
+            var endpointInstanceId = newEndpointDetails.ToInstanceId();
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
 
             domainEvents.Raise(new EndpointStarted
             {
                 EndpointDetails = newEndpointDetails,
                 StartedAt = startedAt
             });
-
         }
 
         public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
         {
             var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
-            GetOrCreateMonitor(endpointInstanceId, monitored);
-        }
-
-        private EndpointInstanceMonitor GetOrCreateMonitor(EndpointInstanceId endpointInstanceId, bool monitorIfNew)
-        {
-            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew, domainEvents));
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
         }
 
         private void Update(EndpointMonitoringStats stats)
