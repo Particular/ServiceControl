@@ -14,9 +14,7 @@
 
         public void Handle(NewEndpointDetected message)
         {
-            var endpointInstanceId = new EndpointInstanceId(message.Endpoint.Name, message.Endpoint.Host, message.Endpoint.HostId);
-
-            endpointInstanceMonitoring.GetOrCreateMonitor(endpointInstanceId, false);
+            endpointInstanceMonitoring.DetectEndpointFromRemoteAudit(message.Endpoint);
         }
     }
 }

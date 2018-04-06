@@ -5,7 +5,9 @@ namespace ServiceControl.Monitoring
     using System.Collections.Generic;
     using System.Linq;
     using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.HeartbeatMonitoring;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.DomainEvents;
 
     public class EndpointInstanceMonitoring
@@ -38,7 +40,45 @@ namespace ServiceControl.Monitoring
             Update(stats);
         }
 
-        public EndpointInstanceMonitor GetOrCreateMonitor(EndpointInstanceId endpointInstanceId, bool monitorIfNew)
+        public void DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
+        {
+            GetOrCreateMonitor(
+                new EndpointInstanceId(newEndpointDetails.Name, newEndpointDetails.Host, newEndpointDetails.HostId),
+                false
+            );
+            domainEvents.Raise(new NewEndpointDetected { DetectedAt = DateTime.UtcNow, Endpoint = newEndpointDetails });
+        }
+
+        public void DetectEndpointFromRemoteAudit(EndpointDetails newEndpointDetails)
+        {
+            GetOrCreateMonitor(
+                new EndpointInstanceId(newEndpointDetails.Name, newEndpointDetails.Host, newEndpointDetails.HostId),
+                false
+            );
+        }
+
+        public void DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt)
+        {
+            GetOrCreateMonitor(
+                new EndpointInstanceId(newEndpointDetails.Name, newEndpointDetails.Host, newEndpointDetails.HostId),
+                true
+            );
+
+            domainEvents.Raise(new EndpointStarted
+            {
+                EndpointDetails = newEndpointDetails,
+                StartedAt = startedAt
+            });
+
+        }
+
+        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
+        {
+            var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+            GetOrCreateMonitor(endpointInstanceId, monitored);
+        }
+
+        private EndpointInstanceMonitor GetOrCreateMonitor(EndpointInstanceId endpointInstanceId, bool monitorIfNew)
         {
             return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew, domainEvents));
         }

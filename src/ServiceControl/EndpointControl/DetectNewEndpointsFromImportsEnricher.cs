@@ -60,10 +60,8 @@
                     return;
                 }
 
-                monitoring.GetOrCreateMonitor(
-                    new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId),
-                    false
-                );
+                monitoring.DetectEndpointFromLocalAudit(endpointDetails);
+
             }
         }
     }
