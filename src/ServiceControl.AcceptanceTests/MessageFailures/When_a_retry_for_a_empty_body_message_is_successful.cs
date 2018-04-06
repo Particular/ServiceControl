@@ -34,11 +34,11 @@
                         return false;
                     }
 
-                    return c.Done && GetFailedMessage(c, out failure, x => x.Status == FailedMessageStatus.RetryIssued);
+                    return c.Done && GetFailedMessage(c, out failure, x => x.Status == FailedMessageStatus.Resolved);
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.RetryIssued, failure.Status);
+            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
         }
 
         bool GetFailedMessage(MyContext c, out FailedMessage failure, Predicate<FailedMessage> condition = null)
@@ -50,21 +50,14 @@
                 return false;
             }
 
-            Console.WriteLine("Status: " + failure.Status);
-
             return true;
         }
 
         void IssueRetry(MyContext c, Action retryAction)
         {
-            if (c.RetryIssued)
-            {
-                Thread.Sleep(1000);
-            }
-            else
+            if (!c.RetryIssued)
             {
                 c.RetryIssued = true;
-
                 retryAction();
             }
         }

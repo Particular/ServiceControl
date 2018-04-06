@@ -78,7 +78,6 @@
                         return true;
                     }
 
-                    Thread.Sleep(1000);
                     return false;
                 }, (bus, ctx) =>
                 {
@@ -124,7 +123,6 @@
                         return true;
                     }
 
-                    Thread.Sleep(1000);
                     return false;
                 }, (bus, ctx) =>
                 {
@@ -172,7 +170,6 @@
                         return true;
                     }
 
-                    Thread.Sleep(1000);
                     return false;
                 }, (bus, ctx) =>
                 {
@@ -193,7 +190,6 @@
                         return true;
                     }
 
-                    Thread.Sleep(1000);
                     return false;
                 })
                 .Run();
@@ -232,7 +228,6 @@
                         return true;
                     }
 
-                    Thread.Sleep(1000);
                     return false;
                 }, (bus, ctx) =>
                 {
@@ -251,7 +246,6 @@
                         return true;
                     }
 
-                    Thread.Sleep(1000);
                     return false;
                 })
                 .Run();
@@ -299,7 +293,6 @@
                         return true;
                     }
 
-                    Thread.Sleep(1000);
                     return false;
                 }, (bus, ctx) =>
                 {
@@ -319,7 +312,6 @@
                         return true;
                     }
 
-                    Thread.Sleep(1000);
                     return false;
                 })
                 .Run();

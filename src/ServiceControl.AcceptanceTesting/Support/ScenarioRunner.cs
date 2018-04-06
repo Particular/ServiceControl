@@ -229,7 +229,7 @@
                             throw new ScenarioException(GenerateTestTimedOutMessage(maxTime));
                         }
                     }
-
+                    Thread.Sleep(500);
                     await Task.Yield();
                 }
             }

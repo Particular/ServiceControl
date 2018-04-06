@@ -53,9 +53,6 @@
                                 }
                             }
                         }
-
-                        Thread.Sleep(1000);
-
                         return false;
 
                     }, (bus, ctx) =>

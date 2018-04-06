@@ -50,7 +50,6 @@
 
                     if (defaultGroups.Count != 2)
                     {
-                        Thread.Sleep(1000);
                         return false;
                     }
 

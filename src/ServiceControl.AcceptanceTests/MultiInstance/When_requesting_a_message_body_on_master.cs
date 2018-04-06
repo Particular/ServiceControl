@@ -48,7 +48,6 @@
                 {
                     if (string.IsNullOrWhiteSpace(context.Remote1MessageId))
                     {
-                        Thread.Sleep(500);
                         return false;
                     }
 
@@ -57,7 +56,6 @@
                         List<MessagesView> messages;
                         if (!TryGetMany("/api/messages", out messages, msg => msg.MessageId == c.Remote1MessageId, Master))
                         {
-                            Thread.Sleep(500);
                             return false;
                         }
                         c.Remote1MessageAudited = true;
@@ -66,10 +64,6 @@
 
                     response = GetRaw($"/api/{capturedMessage.BodyUrl}", Master).GetAwaiter().GetResult();
                     Console.WriteLine($"GetRaw for {c.Remote1MessageId} resulted in {response.StatusCode}");
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        Thread.Sleep(1000);
-                    }
                     return response.StatusCode == HttpStatusCode.OK;
                 })
                 .Run(TimeSpan.FromMinutes(2));

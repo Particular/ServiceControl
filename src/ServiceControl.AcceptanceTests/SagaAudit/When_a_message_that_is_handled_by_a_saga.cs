@@ -28,11 +28,6 @@
                     {
                         if (TryGetMany("/api/messages", out messages))
                         {
-                            if (messages.Count != 5)
-                            {
-                                Thread.Sleep(1000);
-                            }
-
                             return messages.Count == 5;
                         }
                     }

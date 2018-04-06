@@ -46,7 +46,6 @@
 
                     if (exceptionTypeAndStackTraceGroups.Any(x => x.Count != 2))
                     {
-                        Thread.Sleep(1000);
                         return false;
                     }
 

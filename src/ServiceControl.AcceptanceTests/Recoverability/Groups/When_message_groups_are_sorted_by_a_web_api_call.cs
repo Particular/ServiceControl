@@ -63,7 +63,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     if (groups.Count != 1)
                     {
-                        Thread.Sleep(1000);
                         return false;
                     }
 
@@ -74,7 +73,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     if (localErrors.Count != 3)
                     {
-                        Thread.Sleep(1000);
                         return false;
                     }
 

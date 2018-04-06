@@ -38,8 +38,6 @@
                     if (messages.Count < 100)
                     {
                         Console.Out.WriteLine("Messages found: " + messages.Count);
-
-                        Thread.Sleep(1000);
                     }
 
                     return messages.Count >= 100;

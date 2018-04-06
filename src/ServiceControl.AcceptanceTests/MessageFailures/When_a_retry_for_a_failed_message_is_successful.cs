@@ -186,11 +186,7 @@
 
         void IssueRetry(MyContext c, Action retryAction)
         {
-            if (c.RetryIssued)
-            {
-                Thread.Sleep(1000); //todo: add support for a "default" delay when Done() returns false
-            }
-            else
+            if (!c.RetryIssued)
             {
                 c.RetryIssued = true;
 

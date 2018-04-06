@@ -136,7 +136,6 @@
                             return TryGetMany("/api/errors/queues/addresses?search=failing", out searchResults);
                         }
 
-                        Thread.Sleep(1000);
                         return false;
                     }, _ => { });
                 })
@@ -171,7 +170,6 @@
                 {
                     if (c.FailedMessageCount < 3)
                     {
-                        Thread.Sleep(1000);
                         return false;
                     }
                     return TryGetMany($"/api/errors/queues/addresses/search/{searchTerm}", out searchResults);
