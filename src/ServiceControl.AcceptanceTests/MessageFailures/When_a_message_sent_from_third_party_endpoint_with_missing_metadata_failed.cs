@@ -33,6 +33,21 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             Assert.IsNull(failure.TimeSent);
         }
 
+        [Test]
+        public void Should_be_able_to_get_the_message_by_id()
+        {
+            FailedMessageView failure = null;
+
+            var context = new MyContext();
+
+            Define(context)
+                .WithEndpoint<FailureEndpoint>()
+                .Done(c => c.UniqueMessageId != null & TryGet($"/api/errors/last/{c.UniqueMessageId}", out failure))
+                .Run();
+
+            Assert.IsNotNull(failure);
+        }
+
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
