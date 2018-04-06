@@ -1,6 +1,7 @@
 namespace Particular.ServiceControl
 {
     using Autofac;
+    using global::ServiceControl.Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
     using Particular.ServiceControl.DbMigrations;
@@ -31,6 +32,9 @@ namespace Particular.ServiceControl
             }
 
             var containerBuilder = new ContainerBuilder();
+
+            var domainEvents = new DomainEvents();
+            containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings);
             var documentStore = new EmbeddableDocumentStore();
