@@ -105,6 +105,10 @@
                                 {
                                     executedWhens.Add(when.Id);
                                 }
+                                else
+                                {
+                                    Thread.Sleep(100);
+                                }
                             }
 
                             await Task.Yield(); // enforce yield current context, tight loop could introduce starvation

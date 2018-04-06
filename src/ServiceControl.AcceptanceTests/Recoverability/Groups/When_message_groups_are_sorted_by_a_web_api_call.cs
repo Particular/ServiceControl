@@ -2,7 +2,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;

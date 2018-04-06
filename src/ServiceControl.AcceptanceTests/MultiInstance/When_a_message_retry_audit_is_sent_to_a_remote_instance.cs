@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Threading;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
