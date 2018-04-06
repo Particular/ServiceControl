@@ -494,7 +494,6 @@
     <Compile Include="EventLog\Definitions\MessageFailedDefinition.cs" />
     <Compile Include="EventLog\Definitions\MessageFailureResolvedByRetryDefinition.cs" />
     <Compile Include="EventLog\Definitions\EndpointStartedDefinition.cs" />
-    <Compile Include="EventLog\Definitions\NewEndpointDetectedDefinition.cs" />
     <Compile Include="EventLog\EventLogApiModule.cs" />
     <Compile Include="EventLog\EventLogMappingDefinition.cs" />
     <Compile Include="EventLog\EventLogMappings.cs" />
