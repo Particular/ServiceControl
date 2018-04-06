@@ -318,24 +318,26 @@ namespace ServiceControl.Recoverability
 
         internal class DequeueMessagesWrapper : IDequeueMessages
         {
-            private readonly IDequeueMessages _realDequeuer;
-            private int maximumConcurrencyLevel;
-            private int disposeSignaled;
+            IDequeueMessages realDequeuer;
+            int maximumConcurrencyLevel;
+            object startStopLock = new object();
 
             public DequeueMessagesWrapper(IDequeueMessages realDequeuer)
             {
-                _realDequeuer = realDequeuer;
+                this.realDequeuer = realDequeuer;
             }
 
             public void Init(Address address, TransactionSettings transactionSettings, Func<TransportMessage, bool> tryProcessMessage, Action<TransportMessage, Exception> endProcessMessage)
             {
-                _realDequeuer.Init(address, transactionSettings, tryProcessMessage, endProcessMessage);
+                realDequeuer.Init(address, transactionSettings, tryProcessMessage, endProcessMessage);
             }
 
             public void StartInternal()
             {
-                Interlocked.Exchange(ref disposeSignaled, 0);
-                _realDequeuer.Start(maximumConcurrencyLevel);
+                lock (startStopLock)
+                {
+                    realDequeuer.Start(maximumConcurrencyLevel);
+                }
             }
 
             public void Start(int maximumConcurrencyLevel)
@@ -349,21 +351,9 @@ namespace ServiceControl.Recoverability
 
             public void StopInternal()
             {
-                if (Interlocked.Exchange(ref disposeSignaled, 1) != 0)
+                lock (startStopLock)
                 {
-                    return;
-                }
-
-                try
-                {
-                    _realDequeuer.Stop();
-                }
-                catch (Exception)
-                {
-                    // Making build go green.
-                    var r = 1 + 1;
-                    Interlocked.Increment(ref r);
-                    // We are shutting down, race condition can result in an exception in the real dequeuer.
+                    realDequeuer.Stop();
                 }
             }
         }
