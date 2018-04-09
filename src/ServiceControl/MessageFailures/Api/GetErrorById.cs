@@ -59,12 +59,12 @@
             return new FailedMessageView
             {
                 Id = message.UniqueMessageId,
-                MessageType = metadata.MaybeGetAsString("MessageType"),
-                IsSystemMessage = metadata.MaybeGet<bool>("IsSystemMessage"),
-                SendingEndpoint = metadata.MaybeGet<EndpointDetails>("SendingEndpoint"),
-                ReceivingEndpoint = metadata.MaybeGet<EndpointDetails>("ReceivingEndpoint"),
-                TimeSent = metadata.MaybeGetAsString("TimeSent").AsMaybeDateTime(),
-                MessageId = metadata.MaybeGetAsString("MessageId"),
+                MessageType = metadata.GetAsStringOrNull("MessageType"),
+                IsSystemMessage = metadata.GetOrDefault<bool>("IsSystemMessage"),
+                SendingEndpoint = metadata.GetOrDefault<EndpointDetails>("SendingEndpoint"),
+                ReceivingEndpoint = metadata.GetOrDefault<EndpointDetails>("ReceivingEndpoint"),
+                TimeSent = metadata.GetOrDefault<DateTime?>("TimeSent"),
+                MessageId = metadata.GetAsStringOrNull("MessageId"),
                 Exception = failureDetails.Exception,
                 QueueAddress = failureDetails.AddressOfFailingEndpoint,
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
