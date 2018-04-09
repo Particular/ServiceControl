@@ -44,31 +44,34 @@
                     var result = Map(message, session);
 
                     return Negotiate.WithModel(result);
+
                 }
             };
         }
 
         private static FailedMessageView Map(FailedMessage message, IAsyncDocumentSession session)
-         {
-             var processingAttempt = message.ProcessingAttempts.Last();
+        {
+            var processingAttempt = message.ProcessingAttempts.Last();
 
-             return new FailedMessageView
-             {
-                 Id = message.UniqueMessageId,
-                 MessageType = processingAttempt.MessageMetadata["MessageType"].ToString(),
-                 IsSystemMessage = (bool)processingAttempt.MessageMetadata["IsSystemMessage"],
-                 SendingEndpoint = (EndpointDetails)processingAttempt.MessageMetadata["SendingEndpoint"],
-                 ReceivingEndpoint = (EndpointDetails)processingAttempt.MessageMetadata["ReceivingEndpoint"],
-                 TimeSent = DateTime.Parse(processingAttempt.MessageMetadata["TimeSent"].ToString()),
-                 MessageId = processingAttempt.MessageMetadata["MessageId"].ToString(),
-                 Exception = processingAttempt.FailureDetails.Exception,
-                 QueueAddress = processingAttempt.FailureDetails.AddressOfFailingEndpoint,
-                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
-                 Status = message.Status,
-                 TimeOfFailure = processingAttempt.FailureDetails.TimeOfFailure,
-                 LastModified = session.Advanced.GetMetadataFor(message)["Last-Modified"].Value<DateTime>()
-             };
-         }
+            var metadata = processingAttempt.MessageMetadata;
+            var failureDetails = processingAttempt.FailureDetails;
+
+            return new FailedMessageView
+            {
+                Id = message.UniqueMessageId,
+                MessageType = metadata.GetAsStringOrNull("MessageType"),
+                IsSystemMessage = metadata.GetOrDefault<bool>("IsSystemMessage"),
+                SendingEndpoint = metadata.GetOrDefault<EndpointDetails>("SendingEndpoint"),
+                ReceivingEndpoint = metadata.GetOrDefault<EndpointDetails>("ReceivingEndpoint"),
+                TimeSent = metadata.GetOrDefault<DateTime?>("TimeSent"),
+                MessageId = metadata.GetAsStringOrNull("MessageId"),
+                Exception = failureDetails.Exception,
+                QueueAddress = failureDetails.AddressOfFailingEndpoint,
+                NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
+                Status = message.Status,
+                TimeOfFailure = failureDetails.TimeOfFailure,
+                LastModified = session.Advanced.GetMetadataFor(message)["Last-Modified"].Value<DateTime>()
+            };
+        }
     }
-
 }
