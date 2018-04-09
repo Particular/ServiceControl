@@ -3,11 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Net;
-    using System.Threading;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
@@ -101,13 +99,9 @@
 
                 public IBus Bus { get; set; }
 
-                public ReadOnlySettings Settings { get; set; }
-
                 public void Handle(MyMessage message)
                 {
                     Context.MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }

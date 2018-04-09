@@ -107,7 +107,7 @@
                                 }
                                 else
                                 {
-                                    Thread.Sleep(100);
+                                    await Task.Delay(100, CancellationToken.None).ConfigureAwait(false);
                                 }
                             }
 
