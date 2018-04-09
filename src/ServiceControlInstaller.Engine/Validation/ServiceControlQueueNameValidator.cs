@@ -60,14 +60,14 @@
             {
                 PropertyName = "AuditLogQueue",
                 ConnectionString = connectionString,
-                QueueName = string.IsNullOrWhiteSpace(auditLog) ? audit + "log" : auditLog
+                QueueName = string.IsNullOrWhiteSpace(auditLog) ? audit + ".log" : auditLog
             };
 
             var errorLogQueueInfo = new QueueInfo
             {
                 PropertyName = "ErrorLogQueue",
                 ConnectionString = connectionString,
-                QueueName = string.IsNullOrWhiteSpace(errorLog) ? error + "log" : errorLog
+                QueueName = string.IsNullOrWhiteSpace(errorLog) ? error + ".log" : errorLog
             };
 
             queues = new List<QueueInfo>
@@ -101,7 +101,15 @@
                 allQueues.AddRange(new ServiceControlQueueNameValidator(instance).queues);
             }
 
-            var duplicates = (from queue in queues where allQueues.Any(p => string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) && string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase)) select queue.PropertyName).ToList();
+            var duplicates = (
+                from queue in queues
+                where allQueues.Any(p => 
+                      string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) && 
+                      string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase) &&
+                      string.Compare("!disable", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0 &&
+                      string.Compare("!disable.log", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0)
+                select queue.PropertyName
+            ).ToList();
 
             if (duplicates.Count == 1)
             {

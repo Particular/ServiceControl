@@ -42,7 +42,8 @@ namespace ServiceControl.Config.Validation
                     p.ErrorQueue,
                     p.AuditQueue,
                     p.AuditLogQueue
-                }).Where(queuename => string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0)
+                }).Where(queuename => string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
+                                      string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0)
                 .Distinct()
                 .ToList();
         }

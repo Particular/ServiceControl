@@ -12,11 +12,13 @@
     public class Settings
     {
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
+        public const string Disabled = "!disable";
 
         private const int ExpirationProcessTimerInSecondsDefault = 600;
         private const int ExpirationProcessBatchSizeDefault = 65512;
         private const int ExpirationProcessBatchSizeMinimum = 10240;
         private const int MaxBodySizeToStoreDefault = 102400; //100 kb
+
 
         private ILog logger = LogManager.GetLogger(typeof(Settings));
         private int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
@@ -205,7 +207,7 @@
                 return Address.Undefined;
             }
 
-            if (value.Equals("!disable", StringComparison.OrdinalIgnoreCase))
+            if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Audit ingestion disabled.");
                 return null; // needs to be null to not create the queues
@@ -223,7 +225,7 @@
                 return Address.Undefined;
             }
 
-            if (value.Equals("!disable", StringComparison.OrdinalIgnoreCase))
+            if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Error ingestion disabled.");
                 return null; // needs to be null to not create the queues
