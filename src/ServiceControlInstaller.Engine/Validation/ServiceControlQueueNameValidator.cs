@@ -60,14 +60,14 @@
             {
                 PropertyName = "AuditLogQueue",
                 ConnectionString = connectionString,
-                QueueName = string.IsNullOrWhiteSpace(auditLog) ? audit + "log" : auditLog
+                QueueName = string.IsNullOrWhiteSpace(auditLog) ? audit + ".log" : auditLog
             };
 
             var errorLogQueueInfo = new QueueInfo
             {
                 PropertyName = "ErrorLogQueue",
                 ConnectionString = connectionString,
-                QueueName = string.IsNullOrWhiteSpace(errorLog) ? error + "log" : errorLog
+                QueueName = string.IsNullOrWhiteSpace(errorLog) ? error + ".log" : errorLog
             };
 
             queues = new List<QueueInfo>
