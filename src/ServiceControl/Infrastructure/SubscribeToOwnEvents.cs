@@ -10,6 +10,7 @@ namespace ServiceControl.Infrastructure
     using NServiceBus.Unicast;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
+    using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.MessageFailures;
 
     class SubscribeToOwnEvents
@@ -19,7 +20,11 @@ namespace ServiceControl.Infrastructure
             var localAddress = Settings.LocalAddress();
             var eventTypes = Settings.GetAvailableTypes().Implementing<IEvent>();
 
-            var messageFailureResolvedByRetryType = typeof(MessageFailureResolvedByRetry);
+            var typesToSubscribeTo = new[]
+            {
+                typeof(MessageFailureResolvedByRetry),
+                typeof(NewEndpointDetected)
+            };
 
             if (TransportDefinition.HasNativePubSubSupport)
             {
@@ -27,7 +32,7 @@ namespace ServiceControl.Infrastructure
 
                 foreach (var remote in ServiceControlSettings.RemoteInstances)
                 {
-                    SubscribeForBrokers(Address.Parse(remote.QueueAddress), new []{ messageFailureResolvedByRetryType });
+                    SubscribeForBrokers(Address.Parse(remote.QueueAddress), typesToSubscribeTo);
                 }
             }
             else
@@ -36,17 +41,20 @@ namespace ServiceControl.Infrastructure
 
                 foreach (var remote in ServiceControlSettings.RemoteInstances)
                 {
-                    MessageSender.Send(
-                        message: new TransportMessage(
-                            existingId: Guid.NewGuid().ToString(),
-                            existingHeaders: new Dictionary<string, string>
-                            {
-                                { Headers.ControlMessageHeader, string.Empty },
-                                { Headers.MessageIntent, MessageIntentEnum.Subscribe.ToString() },
-                                { Headers.SubscriptionMessageType, $"{messageFailureResolvedByRetryType.FullName}, Version=1.0.0" }, // keep version stable
-                                { Headers.ReplyToAddress, localAddress.ToString() }
-                            }),
-                        sendOptions: new SendOptions(Address.Parse(remote.QueueAddress)));
+                    foreach (var typeToSubscribeTo in typesToSubscribeTo)
+                    {
+                        MessageSender.Send(
+                            message: new TransportMessage(
+                                existingId: Guid.NewGuid().ToString(),
+                                existingHeaders: new Dictionary<string, string>
+                                {
+                                    {Headers.ControlMessageHeader, string.Empty},
+                                    {Headers.MessageIntent, MessageIntentEnum.Subscribe.ToString()},
+                                    {Headers.SubscriptionMessageType, $"{typeToSubscribeTo.FullName}, Version=1.0.0"}, // keep version stable
+                                    {Headers.ReplyToAddress, localAddress.ToString()}
+                                }),
+                            sendOptions: new SendOptions(Address.Parse(remote.QueueAddress)));
+                    }
                 }
             }
         }

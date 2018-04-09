@@ -94,7 +94,7 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        private EndpointDetails Convert(EndpointInstanceId endpointInstanceId)
+        private static EndpointDetails Convert(EndpointInstanceId endpointInstanceId)
         {
             return new EndpointDetails
             {

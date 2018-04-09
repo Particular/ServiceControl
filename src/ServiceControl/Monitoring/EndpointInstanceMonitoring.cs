@@ -5,7 +5,9 @@ namespace ServiceControl.Monitoring
     using System.Collections.Generic;
     using System.Linq;
     using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.HeartbeatMonitoring;
+    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure.DomainEvents;
 
     public class EndpointInstanceMonitoring
@@ -28,8 +30,8 @@ namespace ServiceControl.Monitoring
             {
                 var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
 
-                var monitor = GetOrCreateMonitor(entry.Key, true);
-
+                EndpointInstanceId endpointInstanceId = entry.Key;
+                var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
                 monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp);
             }
 
@@ -38,9 +40,37 @@ namespace ServiceControl.Monitoring
             Update(stats);
         }
 
-        public EndpointInstanceMonitor GetOrCreateMonitor(EndpointInstanceId endpointInstanceId, bool monitorIfNew)
+        public void DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
         {
-            return endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitorIfNew, domainEvents));
+            var endpointInstanceId = newEndpointDetails.ToInstanceId();
+            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))
+            {
+                domainEvents.Raise(new NewEndpointDetected { DetectedAt = DateTime.UtcNow, Endpoint = newEndpointDetails });
+            }
+        }
+
+        public void DetectEndpointFromRemoteAudit(EndpointDetails newEndpointDetails)
+        {
+            var endpointInstanceId = newEndpointDetails.ToInstanceId();
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents));
+        }
+
+        public void DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt)
+        {
+            var endpointInstanceId = newEndpointDetails.ToInstanceId();
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
+
+            domainEvents.Raise(new EndpointStarted
+            {
+                EndpointDetails = newEndpointDetails,
+                StartedAt = startedAt
+            });
+        }
+
+        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
+        {
+            var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
         }
 
         private void Update(EndpointMonitoringStats stats)

@@ -86,8 +86,7 @@
                     while (endpointsEnumerator.MoveNext())
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
-                        var endpointInstanceId = new EndpointInstanceId(endpoint.EndpointDetails.Name, endpoint.EndpointDetails.Host, endpoint.EndpointDetails.HostId);
-                        monitoring.GetOrCreateMonitor(endpointInstanceId, endpoint.Monitored);
+                        monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
                     }
                 }
             }
