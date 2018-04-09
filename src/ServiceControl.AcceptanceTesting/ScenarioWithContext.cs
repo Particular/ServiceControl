@@ -62,7 +62,7 @@ namespace NServiceBus.AcceptanceTesting
             var sw = new Stopwatch();
 
             sw.Start();
-            ScenarioRunner.Run(runDescriptors, behaviors, shoulds, done, limitTestParallelismTo, reports, allowedExceptions);
+            ScenarioRunner.Run(runDescriptors, behaviors, shoulds, done, reports, allowedExceptions);
 
             sw.Stop();
 
@@ -86,13 +86,6 @@ namespace NServiceBus.AcceptanceTesting
             }
 
             allowedExceptions = filter;
-            return this;
-        }
-
-        public IAdvancedScenarioWithEndpointBehavior<TContext> MaxTestParallelism(int maxParallelism)
-        {
-            limitTestParallelismTo = maxParallelism;
-
             return this;
         }
 
@@ -121,7 +114,6 @@ namespace NServiceBus.AcceptanceTesting
         }
 
 
-        int limitTestParallelismTo;
         readonly IList<EndpointBehavior> behaviors = new List<EndpointBehavior>();
         Action<RunDescriptorsBuilder> runDescriptorsBuilderAction = builder => builder.For(Conventions.DefaultRunDescriptor());
         IList<IScenarioVerification> shoulds = new List<IScenarioVerification>();

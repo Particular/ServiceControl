@@ -13,43 +13,27 @@
 
     public class ScenarioRunner
     {
-        public static IEnumerable<RunSummary> Run(IList<RunDescriptor> runDescriptors, IList<EndpointBehavior> behaviorDescriptors, IList<IScenarioVerification> shoulds, Func<ScenarioContext, bool> done, int limitTestParallelismTo, Action<RunSummary> reports, Func<Exception, bool> allowedExceptions)
+        public static IEnumerable<RunSummary> Run(IList<RunDescriptor> runDescriptors, IList<EndpointBehavior> behaviorDescriptors, IList<IScenarioVerification> shoulds, Func<ScenarioContext, bool> done, Action<RunSummary> reports, Func<Exception, bool> allowedExceptions)
         {
-            var totalRuns = runDescriptors.Count();
+            var totalRuns = runDescriptors.Count;
 
             var cts = new CancellationTokenSource();
-
-            var po = new ParallelOptions
-            {
-                CancellationToken = cts.Token
-            };
-
-            var maxParallelismSetting = Environment.GetEnvironmentVariable("max_test_parallelism");
-            int maxParallelism;
-            if (int.TryParse(maxParallelismSetting, out maxParallelism))
-            {
-                Console.Out.WriteLine($"Parallelism limited to: {maxParallelism}");
-
-                po.MaxDegreeOfParallelism = maxParallelism;
-            }
-
-            if (limitTestParallelismTo > 0)
-                po.MaxDegreeOfParallelism = limitTestParallelismTo;
 
             var results = new ConcurrentBag<RunSummary>();
 
             try
             {
-                Parallel.ForEach(runDescriptors, po, runDescriptor =>
+                var runs = runDescriptors.Select(runDescriptor => Task.Run(async () =>
                 {
-                    if (po.CancellationToken.IsCancellationRequested)
+                    if (cts.Token.IsCancellationRequested)
                     {
                         return;
                     }
 
                     Console.Out.WriteLine($"{runDescriptor.Key} - Started @ {DateTime.Now}");
 
-                    var runResult = PerformTestRun(behaviorDescriptors, shoulds, runDescriptor, done, allowedExceptions);
+                    var runResult = await PerformTestRun(behaviorDescriptors, shoulds, runDescriptor, done, allowedExceptions)
+                        .ConfigureAwait(false);
 
                     Console.Out.WriteLine($"{runDescriptor.Key} - Finished @ {DateTime.Now}");
 
@@ -64,7 +48,9 @@
                     {
                         cts.Cancel();
                     }
-                });
+                }));
+
+                Task.WaitAll(runs.ToArray());
             }
             catch (OperationCanceledException)
             {
@@ -133,7 +119,7 @@
             Console.Out.WriteLine("------------------------------------------------------");
         }
 
-        static RunResult PerformTestRun(IList<EndpointBehavior> behaviorDescriptors, IList<IScenarioVerification> shoulds, RunDescriptor runDescriptor, Func<ScenarioContext, bool> done, Func<Exception, bool> allowedExceptions)
+        static async Task<RunResult> PerformTestRun(IList<EndpointBehavior> behaviorDescriptors, IList<IScenarioVerification> shoulds, RunDescriptor runDescriptor, Func<ScenarioContext, bool> done, Func<Exception, bool> allowedExceptions)
         {
             var runResult = new RunResult
             {
@@ -150,7 +136,7 @@
 
                 runResult.ActiveEndpoints = runners.Select(r => r.EndpointName).ToList();
 
-                PerformScenarios(runDescriptor, runners, () =>
+                await PerformScenarios(runDescriptor, runners, () =>
                 {
                     if (!string.IsNullOrEmpty(runDescriptor.ScenarioContext.Exceptions))
                     {
@@ -161,17 +147,17 @@
                         }
                     }
                     return done(runDescriptor.ScenarioContext);
-                }).GetAwaiter().GetResult();
+                }).ConfigureAwait(false);
 
                 runTimer.Stop();
 
-                Parallel.ForEach(runners, runner =>
+                await Task.WhenAll(runners.Select(runner => Task.Run(() =>
                 {
                     foreach (var v in shoulds.Where(s => s.ContextType == runDescriptor.ScenarioContext.GetType()))
                     {
                         v.Verify(runDescriptor.ScenarioContext);
                     }
-                });
+                }))).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -212,7 +198,7 @@
             var endpoints = runners.Select(r => r.Instance).ToList();
             try
             {
-                StartEndpoints(endpoints);
+                await StartEndpoints(endpoints).ConfigureAwait(false);
 
                 runDescriptor.ScenarioContext.EndpointsStarted = true;
 
@@ -230,12 +216,13 @@
                         }
                     }
 
-                    await Task.Delay(500).ConfigureAwait(false);
+                    await Task.Delay(500).ConfigureAwait(false); // slow down to prevent hammering of SC APIs
+                    await Task.Yield(); // yield to give some freedom
                 }
             }
             finally
             {
-                StopEndpoints(endpoints);
+                await StopEndpoints(endpoints).ConfigureAwait(false);
             }
         }
 
@@ -278,9 +265,9 @@
             return sb.ToString();
         }
 
-        static void StartEndpoints(IEnumerable<EndpointRunner> endpoints)
+        static Task StartEndpoints(IEnumerable<EndpointRunner> endpoints)
         {
-            var tasks = endpoints.Select(endpoint => Task.Factory.StartNew(() =>
+            return endpoints.Select(endpoint => Task.Run(() =>
             {
                 var result = endpoint.Start();
 
@@ -288,17 +275,12 @@
                 {
                     throw new ScenarioException("Endpoint failed to start", result.Exception);
                 }
-            })).ToArray();
-
-            if (!Task.WaitAll(tasks, TimeSpan.FromMinutes(2)))
-            {
-                throw new Exception("Starting endpoints took longer than 2 minutes");
-            }
+            })).Timebox(TimeSpan.FromMinutes(2), "Starting endpoints took longer than 2 minutes");
         }
 
-        static void StopEndpoints(IEnumerable<EndpointRunner> endpoints)
+        static Task StopEndpoints(IEnumerable<EndpointRunner> endpoints)
         {
-            var tasks = endpoints.Select(endpoint => Task.Factory.StartNew(() =>
+            return endpoints.Select(endpoint => Task.Run(() =>
             {
                 Console.Out.WriteLine("Stopping endpoint: {0}", endpoint.Name());
                 var sw = new Stopwatch();
@@ -310,10 +292,7 @@
                     throw new ScenarioException("Endpoint failed to stop", result.Exception);
 
                 Console.Out.WriteLine("Endpoint: {0} stopped ({1}s)", endpoint.Name(), sw.Elapsed);
-            })).ToArray();
-
-            if (!Task.WaitAll(tasks, TimeSpan.FromMinutes(2)))
-                throw new Exception("Stopping endpoints took longer than 2 minutes");
+            })).Timebox(TimeSpan.FromMinutes(2), "Stopping endpoints took longer than 2 minutes");
         }
 
         static List<ActiveRunner> InitializeRunners(RunDescriptor runDescriptor, IList<EndpointBehavior> behaviorDescriptors)
@@ -391,5 +370,49 @@
         public RunDescriptor RunDescriptor { get; set; }
 
         public IEnumerable<EndpointBehavior> Endpoints { get; set; }
+    }
+    
+    static class TaskExtensions
+    {
+        //this method will not timeout a task if the debugger is attached.
+        public static Task Timebox(this IEnumerable<Task> tasks, TimeSpan timeoutAfter, string messageWhenTimeboxReached)
+        {
+            var taskCompletionSource = new TaskCompletionSource<object>();
+            var tokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(timeoutAfter);
+            var registration = tokenSource.Token.Register(s =>
+            {
+                var tcs = (TaskCompletionSource<object>) s;
+                tcs.TrySetException(new TimeoutException(messageWhenTimeboxReached));
+            }, taskCompletionSource);
+
+            Task.WhenAll(tasks)
+                .ContinueWith((t, s) =>
+                {
+                    var state = (Tuple<TaskCompletionSource<object>, CancellationTokenSource, CancellationTokenRegistration>) s;
+                    var source = state.Item2;
+                    var reg = state.Item3;
+                    var tcs = state.Item1;
+
+                    if (t.IsFaulted && t.Exception != null)
+                    {
+                        tcs.TrySetException(t.Exception.GetBaseException());
+                    }
+
+                    if (t.IsCanceled)
+                    {
+                        tcs.TrySetCanceled();
+                    }
+
+                    if (t.IsCompleted)
+                    {
+                        tcs.TrySetResult(null);
+                    }
+
+                    reg.Dispose();
+                    source.Dispose();
+                }, Tuple.Create(taskCompletionSource, tokenSource, registration), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+            return taskCompletionSource.Task;
+        }
     }
 }
