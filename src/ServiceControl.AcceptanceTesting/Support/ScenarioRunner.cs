@@ -229,8 +229,8 @@
                             throw new ScenarioException(GenerateTestTimedOutMessage(maxTime));
                         }
                     }
-                    Thread.Sleep(500);
-                    await Task.Yield();
+
+                    await Task.Delay(500).ConfigureAwait(false);
                 }
             }
             finally
