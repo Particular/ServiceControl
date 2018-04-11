@@ -46,7 +46,7 @@
             var docQuery = indexQuery
                 .Where(failure => failure.FailureGroupId == groupId)
                 .Where(failure => failure.Status == FailedMessageStatus.Unresolved)
-                .AsProjection<FailureGroupMessageView>()
+                .ProjectFromIndexFieldsInto<FailureGroupMessageView>()
                 .Select(document => document.Id);
 
             var docs = StreamResults(session, docQuery).ToArray();
@@ -133,7 +133,7 @@
 
                 var docQuery = indexQuery
                     .Where(failure => failure.FailureGroupId == requestId)
-                    .AsProjection<FailureGroupMessageView>();
+                    .ProjectFromIndexFieldsInto<FailureGroupMessageView>();
 
                 try
                 {

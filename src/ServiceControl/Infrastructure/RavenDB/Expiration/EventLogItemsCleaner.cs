@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -41,7 +42,6 @@
                 };
                 var indexName = new ExpiryEventLogItemsIndex().IndexName;
                 database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    null,
                     doc =>
                     {
                         var id = doc.Value<string>("__document_id");
@@ -66,7 +66,7 @@
             Chunker.ExecuteInChunks(items.Count, (s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1));
+                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents completed.", s, e);
 
                 deletionCount += results.Count(x => x.Deleted == true);

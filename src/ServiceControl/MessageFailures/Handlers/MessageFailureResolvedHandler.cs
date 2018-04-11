@@ -57,7 +57,7 @@
             using (var session = store.OpenSession())
             {
                 var prequery = session.Advanced
-                    .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .WhereEquals("Status", (int) FailedMessageStatus.RetryIssued)
                     .AndAlso()
                     .WhereBetweenOrEqual("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);

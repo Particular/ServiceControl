@@ -20,7 +20,9 @@
 
         public string Apply(IDocumentStore store)
         {
+#pragma warning disable 618
             store.Conventions.DefaultQueryingConsistency = ConsistencyOptions.AlwaysWaitForNonStaleResultsAsOfLastWrite;
+#pragma warning restore 618
 
             var stats = new MigrationStats();
 
