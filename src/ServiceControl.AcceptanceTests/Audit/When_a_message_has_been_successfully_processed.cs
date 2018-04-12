@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Text;
     using Contexts;
+    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -50,6 +51,7 @@
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
+            Console.WriteLine(JsonConvert.SerializeObject(auditedMessage));
 
             Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
             Assert.AreEqual(MessageStatus.Successful, auditedMessage.Status);
