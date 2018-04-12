@@ -32,8 +32,8 @@
                     return TryGet($"/api/errors/{ctx.UniqueMessageId}", out failedMessage);
                 }, (bus, ctx) =>
                 {
+                    ctx.AboutToSendRetry = true;
                     Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                    ctx.RetrySent = true;
                 }))
                 .Done(ctx => ctx.Retried)
                 .Run();
@@ -65,57 +65,22 @@
                 }
             }
 
-            public class MyMessageHandler : IHandleMessages<When_a_pending_retry_is_retried_again.MyMessage>
+            public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public When_a_pending_retry_is_retried_again.Context Context { get; set; }
+                public Context Context { get; set; }
                 public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(When_a_pending_retry_is_retried_again.MyMessage message)
+                public void Handle(MyMessage message)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.RetrySent)
+                    if (Context.AboutToSendRetry)
                     {
-                        Context.RetryCount++;
                         Context.Retried = true;
                     }
                     else
                     {
-                        Context.FromAddress = Settings.LocalAddress().ToString();
                         Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
-                        throw new Exception("Simulated Exception");
-                    }
-                }
-            }
-        }
-
-        public class DecoyFailingEndpoint : EndpointConfigurationBuilder
-        {
-            public DecoyFailingEndpoint()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
-            }
-
-            public class MyMessageHandler : IHandleMessages<When_a_pending_retry_is_retried_again.MyMessage>
-            {
-                public When_a_pending_retry_is_retried_again.Context Context { get; set; }
-                public IBus Bus { get; set; }
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Handle(When_a_pending_retry_is_retried_again.MyMessage message)
-                {
-                    Console.WriteLine("Message Handled");
-                    if (Context.RetrySent)
-                    {
-                        Context.DecoyRetried = true;
-                    }
-                    else
-                    {
-                        Context.DecoyProcessed = true;
                         throw new Exception("Simulated Exception");
                     }
                 }
@@ -126,11 +91,7 @@
         {
             public string UniqueMessageId { get; set; }
             public bool Retried { get; set; }
-            public bool RetrySent { get; set; }
-            public int RetryCount { get; set; }
-            public string FromAddress { get; set; }
-            public bool DecoyProcessed { get; set; }
-            public bool DecoyRetried { get; set; }
+            public bool AboutToSendRetry { get; set; }
         }
 
         public class MyMessage : ICommand
