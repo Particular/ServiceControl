@@ -35,10 +35,10 @@
                         return false;
                     }
 
-                    if (!ctx.RetrySent)
+                    if (!ctx.RetryAboutToBeSent)
                     {
+                        ctx.RetryAboutToBeSent = true;
                         Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                        ctx.RetrySent = true;
                         return false;
                     }
 
@@ -103,7 +103,7 @@
                 public void Handle(MyMessage message)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.RetrySent)
+                    if (Context.RetryAboutToBeSent)
                     {
                         Context.RetryCount++;
                         Context.Retried = true;
@@ -118,48 +118,13 @@
             }
         }
 
-        public class DecoyFailingEndpoint : EndpointConfigurationBuilder
-        {
-            public DecoyFailingEndpoint()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public Context Context { get; set; }
-                public IBus Bus { get; set; }
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Handle(MyMessage message)
-                {
-                    Console.WriteLine("Message Handled");
-                    if (Context.RetrySent)
-                    {
-                        Context.DecoyRetried = true;
-                    }
-                    else
-                    {
-                        Context.DecoyProcessed = true;
-                        throw new Exception("Simulated Exception");
-                    }
-                }
-            }
-        }
-
         public class Context : ScenarioContext
         {
             public string UniqueMessageId { get; set; }
             public bool Retried { get; set; }
-            public bool RetrySent { get; set; }
+            public bool RetryAboutToBeSent { get; set; }
             public int RetryCount { get; set; }
             public string FromAddress { get; set; }
-            public bool DecoyProcessed { get; set; }
-            public bool DecoyRetried { get; set; }
         }
 
         public class MyMessage : ICommand

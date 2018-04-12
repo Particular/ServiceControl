@@ -43,10 +43,10 @@
                         return false;
                     }
 
-                    if (!ctx.RetrySent)
+                    if (!ctx.RetryAboutToBeSent)
                     {
+                        ctx.RetryAboutToBeSent = true;
                         Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                        ctx.RetrySent = true;
                         return false;
                     }
 
@@ -112,7 +112,7 @@
                 public void Handle(MyMessage message)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.RetrySent)
+                    if (Context.RetryAboutToBeSent)
                     {
                         Context.RetryCount++;
                         Context.Retried = true;
@@ -147,7 +147,7 @@
                 public void Handle(MyMessage message)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.RetrySent)
+                    if (Context.RetryAboutToBeSent)
                     {
                         Context.DecoyRetried = true;
                     }
@@ -164,7 +164,7 @@
         {
             public string UniqueMessageId { get; set; }
             public bool Retried { get; set; }
-            public bool RetrySent { get; set; }
+            public bool RetryAboutToBeSent { get; set; }
             public int RetryCount { get; set; }
             public string FromAddress { get; set; }
             public bool DecoyProcessed { get; set; }
