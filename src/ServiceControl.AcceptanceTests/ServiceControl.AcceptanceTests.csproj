@@ -206,6 +206,12 @@
     <Compile Include="Audit\Audit_Messages_That_Big_Bodies_Audit_Test.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Audit\When_message_successfully_processed.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_debugsession.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_messageBody.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_messageid.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_messagetype.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_msgid_for_endpoint.cs" />
     <Compile Include="Contexts\DefaultServerWithoutAudit.cs" />
     <Compile Include="Audit\When_a_message_sent_from_third_party_endpoint_with_missing_metadata.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
@@ -295,7 +301,7 @@
     <Compile Include="TraceIncomingBehavior.cs" />
     <Compile Include="TraceOutgoingBehavior.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
-    <Compile Include="Audit\When_a_message_has_been_successfully_processed.cs" />
+    <Compile Include="Audit\When_processed_message_is_imported.cs" />
     <Compile Include="AcceptanceTest.cs" />
   </ItemGroup>
   <ItemGroup>
