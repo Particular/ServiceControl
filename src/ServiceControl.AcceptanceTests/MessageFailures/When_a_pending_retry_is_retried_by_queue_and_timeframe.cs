@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Linq;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -43,7 +44,11 @@
 
                     if (failedMessage.Status == FailedMessageStatus.RetryIssued)
                     {
-                        return true;
+                        FailedMessage[] failedMessages;
+                        if (TryGet("/api/errors", out failedMessages))
+                        {
+                            return failedMessages.Any(fm => fm.Id == ctx.UniqueMessageId);
+                        }
                     }
 
                     return false;
