@@ -30,8 +30,6 @@
 
             ServicePointManager.DefaultConnectionLimit = 100;
 
-            var settings = runDescriptor.Settings;
-
             NServiceBus.Logging.LogManager.Use<NLogFactory>();
 
             SetupLogging(endpointConfiguration);
@@ -68,13 +66,6 @@
             builder.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
             builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
             builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-
-            var serializer = settings.GetOrNull("Serializer");
-
-            if (serializer != null)
-            {
-                builder.UseSerialization(Type.GetType(serializer));
-            }
 
             builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
             builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
@@ -166,7 +157,7 @@
 
             types = types.Union(endpointConfiguration.TypesToInclude);
 
-            var typesScopedByTestClass = types.Where(t => !endpointConfiguration.TypesToExclude.Contains(t)).ToList();
+            var typesScopedByTestClass = types.ToList();
             return typesScopedByTestClass;
         }
 
