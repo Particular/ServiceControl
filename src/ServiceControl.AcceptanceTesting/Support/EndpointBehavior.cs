@@ -46,8 +46,7 @@
             {
                 return false;
             }
-
-
+            
             if (busAction != null)
             {
                 await busAction(bus).ConfigureAwait(false);
