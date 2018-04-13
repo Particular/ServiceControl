@@ -8,15 +8,12 @@
         public EndpointConfiguration()
         {
             UserDefinedConfigSections = new Dictionary<Type, object>();
-            TypesToExclude = new List<Type>();
             TypesToInclude = new List<Type>();
             GetBus = () => null;
             StopBus = null;
         }
 
         public IDictionary<Type, Type> EndpointMappings { get; set; }
-
-        public List<Type> TypesToExclude { get; set; }
 
         public List<Type> TypesToInclude { get; set; }
 
@@ -26,18 +23,7 @@
 
         internal Action StopBus { get; set; }
 
-        public string EndpointName
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(CustomEndpointName))
-                {
-                    return CustomEndpointName;
-                }
-                return endpointName;
-            }
-            set { endpointName = value; }
-        }
+        public string EndpointName { get; set; }
 
         public Type BuilderType { get; set; }
 
@@ -45,20 +31,5 @@
         public Address AddressOfErrorQueue { get; set; }
 
         public IDictionary<Type, object> UserDefinedConfigSections { get; }
-
-        public string CustomMachineName { get; set; }
-
-        public string CustomEndpointName { get; set; }
-
-        public Type AuditEndpoint { get; set; }
-        public bool SendOnly { get; set; }
-
-        public void SelfHost(Func<IStartableBus> getBus, Action stopBus)
-        {
-            GetBus = getBus;
-            StopBus = stopBus;
-        }
-
-        string endpointName;
     }
 }

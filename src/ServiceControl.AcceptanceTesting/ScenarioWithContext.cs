@@ -3,11 +3,10 @@ namespace NServiceBus.AcceptanceTesting
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
-    using Customization;
+    using System.Threading.Tasks;
     using Support;
 
-    public class ScenarioWithContext<TContext> : IScenarioWithEndpointBehavior<TContext>, IAdvancedScenarioWithEndpointBehavior<TContext> where TContext : ScenarioContext, new()
+    public class ScenarioWithContext<TContext> : IScenarioWithEndpointBehavior<TContext> where TContext : ScenarioContext, new()
     {
         public ScenarioWithContext(Func<TContext> factory)
         {
@@ -21,7 +20,6 @@ namespace NServiceBus.AcceptanceTesting
 
         public IScenarioWithEndpointBehavior<TContext> WithEndpoint<T>(Action<EndpointBehaviorBuilder<TContext>> defineBehavior) where T : EndpointConfigurationBuilder
         {
-
             var builder = new EndpointBehaviorBuilder<TContext>(typeof(T));
 
             defineBehavior(builder);
@@ -38,89 +36,35 @@ namespace NServiceBus.AcceptanceTesting
             return this;
         }
 
-
-        public IEnumerable<TContext> Run(TimeSpan? testExecutionTimeout = null)
+        private async Task<TContext> Run(TimeSpan? testExecutionTimeout = null)
         {
-            var builder = new RunDescriptorsBuilder();
-
-            runDescriptorsBuilderAction(builder);
-
-            var runDescriptors = builder.Build();
-
-            if (!runDescriptors.Any())
+            var runDescriptor = new RunDescriptor
             {
-                Console.Out.WriteLine("No active rundescriptors was found for this test, test will not be executed");
-                return new List<TContext>();
-            }
-
-            foreach (var runDescriptor in runDescriptors)
-            {
-                runDescriptor.ScenarioContext = contextFactory();
-                runDescriptor.TestExecutionTimeout = testExecutionTimeout ?? TimeSpan.FromSeconds(90);
-            }
+                Key = "Default",
+                ScenarioContext = contextFactory(),
+                TestExecutionTimeout = testExecutionTimeout ?? TimeSpan.FromSeconds(90)
+            };
 
             var sw = new Stopwatch();
 
             sw.Start();
-            ScenarioRunner.Run(runDescriptors, behaviors, shoulds, done, reports, allowedExceptions);
+            await ScenarioRunner.Run(runDescriptor, behaviors, done).ConfigureAwait(false);
 
             sw.Stop();
 
             Console.Out.WriteLine("Total time for testrun: {0}", sw.Elapsed);
 
-            return runDescriptors.Select(r => (TContext)r.ScenarioContext);
+            return (TContext)runDescriptor.ScenarioContext;
         }
-
-        public IAdvancedScenarioWithEndpointBehavior<TContext> Repeat(Action<RunDescriptorsBuilder> action)
-        {
-            runDescriptorsBuilderAction = action;
-
-            return this;
-        }
-
-        public IScenarioWithEndpointBehavior<TContext> AllowExceptions(Func<Exception, bool> filter = null)
-        {
-            if (filter == null)
-            {
-                filter = exception => true;
-            }
-
-            allowedExceptions = filter;
-            return this;
-        }
-
 
         TContext IScenarioWithEndpointBehavior<TContext>.Run(TimeSpan? testExecutionTimeout)
         {
-            return Run(testExecutionTimeout).Single();
+            return Run(testExecutionTimeout).GetAwaiter().GetResult();
         }
-
-        public IAdvancedScenarioWithEndpointBehavior<TContext> Should(Action<TContext> should)
-        {
-            shoulds.Add(new ScenarioVerification<TContext>
-            {
-                ContextType = typeof(TContext),
-                Should = should
-            });
-
-            return this;
-        }
-
-
-        public IAdvancedScenarioWithEndpointBehavior<TContext> Report(Action<RunSummary> reportActions)
-        {
-            reports = reportActions;
-            return this;
-        }
-
 
         readonly IList<EndpointBehavior> behaviors = new List<EndpointBehavior>();
-        Action<RunDescriptorsBuilder> runDescriptorsBuilderAction = builder => builder.For(Conventions.DefaultRunDescriptor());
-        IList<IScenarioVerification> shoulds = new List<IScenarioVerification>();
-        public Func<ScenarioContext, bool> done = context => true;
+        private Func<ScenarioContext, bool> done = context => true;
 
         Func<TContext> contextFactory;
-        Action<RunSummary> reports;
-        Func<Exception, bool> allowedExceptions = exception => false;
     }
 }

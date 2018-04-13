@@ -53,13 +53,10 @@
   <ItemGroup>
     <Compile Include="Customization\Conventions.cs" />
     <Compile Include="EndpointConfigurationBuilder.cs" />
-    <Compile Include="IScenarioVerification.cs" />
     <Compile Include="ScenarioContext.cs" />
-    <Compile Include="ScenarioVerification.cs" />
     <Compile Include="ScenarioWithContext.cs" />
     <Compile Include="Support\ActiveRunner.cs" />
     <Compile Include="Support\BehaviourFactory.cs" />
-    <Compile Include="Support\DefaultScenarioDescriptor.cs" />
     <Compile Include="Support\EndpointBehavior.cs" />
     <Compile Include="Support\EndpointBehaviorBuilder.cs" />
     <Compile Include="Support\EndpointConfiguration.cs" />
@@ -69,9 +66,7 @@
     <Compile Include="Support\IEndpointSetupTemplate.cs" />
     <Compile Include="Support\IScenarioWithEndpointBehavior.cs" />
     <Compile Include="Support\RunDescriptor.cs" />
-    <Compile Include="Support\RunDescriptorsBuilder.cs" />
     <Compile Include="Support\ScenarioConfigSource.cs" />
-    <Compile Include="Support\ScenarioDescriptor.cs" />
     <Compile Include="Support\ScenarioException.cs" />
     <Compile Include="Support\ScenarioRunner.cs" />
   </ItemGroup>

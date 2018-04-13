@@ -1,7 +1,6 @@
 ﻿namespace NServiceBus.AcceptanceTesting.Support
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -13,82 +12,38 @@
 
     public class ScenarioRunner
     {
-        public static IEnumerable<RunSummary> Run(IList<RunDescriptor> runDescriptors, IList<EndpointBehavior> behaviorDescriptors, IList<IScenarioVerification> shoulds, Func<ScenarioContext, bool> done, Action<RunSummary> reports, Func<Exception, bool> allowedExceptions)
+        public static async Task Run(RunDescriptor runDescriptor, IList<EndpointBehavior> behaviorDescriptors, Func<ScenarioContext, bool> done)
         {
-            var totalRuns = runDescriptors.Count;
+            Console.Out.WriteLine($"{runDescriptor.Key} - Started @ {DateTime.Now}");
 
-            var cts = new CancellationTokenSource();
+            var runResult = await PerformTestRun(behaviorDescriptors, runDescriptor, done)
+                .ConfigureAwait(false);
 
-            var results = new ConcurrentBag<RunSummary>();
+            Console.Out.WriteLine($"{runDescriptor.Key} - Finished @ {DateTime.Now}");
 
-            try
+            var result = new RunSummary
             {
-                var runs = runDescriptors.Select(runDescriptor => Task.Run(async () =>
-                {
-                    if (cts.Token.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                Result = runResult,
+                RunDescriptor = runDescriptor,
+                Endpoints = behaviorDescriptors
+            };
 
-                    Console.Out.WriteLine($"{runDescriptor.Key} - Started @ {DateTime.Now}");
+            DisplayRunResult(result);
 
-                    var runResult = await PerformTestRun(behaviorDescriptors, shoulds, runDescriptor, done, allowedExceptions)
-                        .ConfigureAwait(false);
-
-                    Console.Out.WriteLine($"{runDescriptor.Key} - Finished @ {DateTime.Now}");
-
-                    results.Add(new RunSummary
-                    {
-                        Result = runResult,
-                        RunDescriptor = runDescriptor,
-                        Endpoints = behaviorDescriptors
-                    });
-
-                    if (runResult.Failed)
-                    {
-                        cts.Cancel();
-                    }
-                }));
-
-                Task.WaitAll(runs.ToArray());
-            }
-            catch (OperationCanceledException)
+            if (result.Result.Failed)
             {
-                Console.Out.WriteLine("Test run aborted due to test failures");
+                throw new Exception("Test run failed due to one or more exception", result.Result.Exception);
             }
-
-            var failedRuns = results.Where(s => s.Result.Failed).ToList();
-
-            foreach (var runSummary in failedRuns)
-            {
-                DisplayRunResult(runSummary, totalRuns);
-            }
-
-            if (failedRuns.Any())
-                throw new AggregateException("Test run failed due to one or more exception", failedRuns.Select(f => f.Result.Exception));
-
-            foreach (var runSummary in results.Where(s => !s.Result.Failed))
-            {
-                DisplayRunResult(runSummary, totalRuns);
-
-                reports?.Invoke(runSummary);
-            }
-
-            return results;
         }
 
-        static void DisplayRunResult(RunSummary summary, int totalRuns)
+        static void DisplayRunResult(RunSummary summary)
         {
             var runDescriptor = summary.RunDescriptor;
             var runResult = summary.Result;
 
             Console.Out.WriteLine("------------------------------------------------------");
             Console.Out.WriteLine($"Test summary for: {runDescriptor.Key}");
-            if (totalRuns > 1)
-                Console.Out.WriteLine($" - Permutation: {runDescriptor.Permutation}({totalRuns})");
             Console.Out.WriteLine(String.Empty);
-
-            PrintSettings(runDescriptor.Settings);
 
             Console.WriteLine(String.Empty);
             Console.WriteLine("Endpoints:");
@@ -119,7 +74,7 @@
             Console.Out.WriteLine("------------------------------------------------------");
         }
 
-        static async Task<RunResult> PerformTestRun(IList<EndpointBehavior> behaviorDescriptors, IList<IScenarioVerification> shoulds, RunDescriptor runDescriptor, Func<ScenarioContext, bool> done, Func<Exception, bool> allowedExceptions)
+        static async Task<RunResult> PerformTestRun(IList<EndpointBehavior> behaviorDescriptors, RunDescriptor runDescriptor, Func<ScenarioContext, bool> done)
         {
             var runResult = new RunResult
             {
@@ -136,28 +91,9 @@
 
                 runResult.ActiveEndpoints = runners.Select(r => r.EndpointName).ToList();
 
-                await PerformScenarios(runDescriptor, runners, () =>
-                {
-                    if (!string.IsNullOrEmpty(runDescriptor.ScenarioContext.Exceptions))
-                    {
-                        var ex = new Exception(runDescriptor.ScenarioContext.Exceptions);
-                        if (!allowedExceptions(ex))
-                        {
-                            throw new Exception("Failures in endpoints");
-                        }
-                    }
-                    return done(runDescriptor.ScenarioContext);
-                }).ConfigureAwait(false);
+                await PerformScenarios(runDescriptor, runners, () => done(runDescriptor.ScenarioContext)).ConfigureAwait(false);
 
                 runTimer.Stop();
-
-                await Task.WhenAll(runners.Select(runner => Task.Run(() =>
-                {
-                    foreach (var v in shoulds.Where(s => s.ContextType == runDescriptor.ScenarioContext.GetType()))
-                    {
-                        v.Verify(runDescriptor.ScenarioContext);
-                    }
-                }))).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -371,7 +307,7 @@
 
         public IEnumerable<EndpointBehavior> Endpoints { get; set; }
     }
-    
+
     static class TaskExtensions
     {
         //this method will not timeout a task if the debugger is attached.
@@ -381,14 +317,14 @@
             var tokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(timeoutAfter);
             var registration = tokenSource.Token.Register(s =>
             {
-                var tcs = (TaskCompletionSource<object>) s;
+                var tcs = (TaskCompletionSource<object>)s;
                 tcs.TrySetException(new TimeoutException(messageWhenTimeboxReached));
             }, taskCompletionSource);
 
             Task.WhenAll(tasks)
                 .ContinueWith((t, s) =>
                 {
-                    var state = (Tuple<TaskCompletionSource<object>, CancellationTokenSource, CancellationTokenRegistration>) s;
+                    var state = (Tuple<TaskCompletionSource<object>, CancellationTokenSource, CancellationTokenRegistration>)s;
                     var source = state.Item2;
                     var reg = state.Item3;
                     var tcs = state.Item1;

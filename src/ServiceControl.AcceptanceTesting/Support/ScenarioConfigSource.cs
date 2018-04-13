@@ -38,19 +38,16 @@
 
             if (type == typeof(MessageForwardingInCaseOfFaultConfig))
             {
-                if (!configuration.SendOnly)
+                var errorQueue = "error";
+                if (configuration.AddressOfErrorQueue != null)
                 {
-                    var errorQueue = "error";
-                    if (configuration.AddressOfErrorQueue != null)
-                    {
-                        errorQueue = configuration.AddressOfErrorQueue.ToString();
-                    }
-
-                    return new MessageForwardingInCaseOfFaultConfig
-                    {
-                        ErrorQueue = errorQueue
-                    } as T;
+                    errorQueue = configuration.AddressOfErrorQueue.ToString();
                 }
+
+                return new MessageForwardingInCaseOfFaultConfig
+                {
+                    ErrorQueue = errorQueue
+                } as T;
             }
 
             if (type == typeof(UnicastBusConfig))
@@ -65,17 +62,9 @@
 
             if (type == typeof(AuditConfig))
             {
-                if (!configuration.SendOnly)
+                if (configuration.AddressOfAuditQueue != null)
                 {
-                    if (configuration.AddressOfAuditQueue != null)
-                    {
-                        return new AuditConfig { QueueName = configuration.AddressOfAuditQueue.ToString() } as T;
-                    }
-
-                    if (configuration.AuditEndpoint != null)
-                    {
-                        return new AuditConfig { QueueName = routingTable[configuration.AuditEndpoint] } as T;
-                    }
+                    return new AuditConfig { QueueName = configuration.AddressOfAuditQueue.ToString() } as T;
                 }
             }
 
