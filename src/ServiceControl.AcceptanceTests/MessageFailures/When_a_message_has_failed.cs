@@ -271,7 +271,7 @@
                 public void Handle(MyMessage message)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress().ToString();
+                    Context.LocalAddress = Settings.LocalAddress().Queue;
                     Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
@@ -315,7 +315,7 @@
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, Address.Parse(LocalAddress).Queue).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, LocalAddress).ToString();
 
             public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrEventReceived { get; set; }
