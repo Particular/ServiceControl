@@ -17,7 +17,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
-    public class When_messages_have_been_successfully_processed_by_multiple_instances_4 : AcceptanceTest
+    public class When_processed_message_multi_instance_searched_by_conversationId : AcceptanceTest
     {
         private const string Master = "master";
         private static string AuditMaster = $"{Master}.audit";
@@ -30,7 +30,7 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_found_in_query_by_conversationId()
+        public void Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 

@@ -20,7 +20,7 @@
     using ServiceControl.Infrastructure.Settings;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_messages_have_been_successfully_processed_by_multiple_instances_6 : AcceptanceTest
+    public class When_proessed_message_multi_instance_endpoint_by_messages : AcceptanceTest
     {
         private const string Master = "master";
         private static string AuditMaster = $"{Master}.audit";
@@ -33,7 +33,7 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_found_in_endpoint_search_by_messageType()
+        public void Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -42,16 +42,13 @@
 
             var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
 
-            //search for the message type
-            var searchString = typeof(MyMessage).Name;
-
             Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => TryGetMany($"/api/endpoints/{endpointName}/messages/search/" + searchString, out response, instanceName: Master) && response.Count == 1)
+                .Done(c => TryGetMany($"/api/endpoints/{endpointName}/messages/", out response, instanceName: Master) && response.Count == 1)
                 .Run(TimeSpan.FromSeconds(40));
 
             var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);

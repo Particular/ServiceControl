@@ -18,8 +18,9 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_messages_have_been_successfully_processed_by_multiple_instances_2 : AcceptanceTest
+    public class When_processed_message_multi_instance_endpoint_by_messagetype : AcceptanceTest
     {
         private const string Master = "master";
         private static string AuditMaster = $"{Master}.audit";
@@ -32,12 +33,14 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_found_in_search_by_messageType()
+        public void Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
             List<MessagesView> response = new List<MessagesView>();
+
+            var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
 
             //search for the message type
             var searchString = typeof(MyMessage).Name;
@@ -46,19 +49,12 @@
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
-                    bus.SendLocal(new MyMessage());
                 }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => TryGetMany("/api/messages/search/" + searchString, out response, instanceName: Master) && response.Count == 2)
+                .Done(c => TryGetMany($"/api/endpoints/{endpointName}/messages/search/" + searchString, out response, instanceName: Master) && response.Count == 1)
                 .Run(TimeSpan.FromSeconds(40));
 
-            var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Master].ApiUrl);
             var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
-
-            var masterMessage = response.SingleOrDefault(msg => msg.MessageId == context.MasterMessageId);
-
-            Assert.NotNull(masterMessage, "Master message not found");
-            Assert.AreEqual(expectedMasterInstanceId, masterMessage.InstanceId, "Master instance id mismatch");
 
             var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
 
@@ -98,23 +94,6 @@
                     .AuditTo(Address.Parse(AuditMaster))
                     .ErrorTo(Address.Parse(ErrorMaster))
                     .AddMapping<MyMessage>(typeof(ReceiverRemote));
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Handle(MyMessage message)
-                {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MasterMessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
-                }
             }
         }
 
@@ -186,7 +165,6 @@
 
         public class MyContext : ScenarioContext
         {
-            public string MasterMessageId { get; set; }
             public string Remote1MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }

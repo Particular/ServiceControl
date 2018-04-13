@@ -19,7 +19,7 @@
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
 
-    public class When_messages_have_been_successfully_processed_by_multiple_instances_1 : AcceptanceTest
+    public class When_processed_message_multi_instance_by_messages : AcceptanceTest
     {
         private const string Master = "master";
         private static string AuditMaster = $"{Master}.audit";
@@ -32,7 +32,7 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_reported_by_get_messages_api()
+        public void Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 

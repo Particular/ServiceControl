@@ -2,8 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Net.Http;
     using System.Reflection;
     using System.Security.Cryptography;
     using System.Text;
@@ -17,9 +15,9 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.CompositeViews.Messages;
 
-    public class When_messages_have_been_successfully_processed_by_multiple_instances_7 : AcceptanceTest
+    public class When_processed_message_multi_instance_searched_by_messageid : AcceptanceTest
     {
         private const string Master = "master";
         private static string AuditMaster = $"{Master}.audit";
@@ -32,37 +30,18 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_list_the_endpoints_in_the_list_of_known_endpoints()
+        public void Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
-            List<KnownEndpointsView> knownEndpoints = null;
-            HttpResponseMessage httpResponseMessage = null;
+            List<MessagesView> response;
 
             Define(context, Remote1, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    bus.Send(new MyMessage());
-                }))
+                .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.Send(new MyMessage()); }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c =>
-                {
-                    if (TryGetMany("/api/endpoints/known", out knownEndpoints, m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master))
-                    {
-                        httpResponseMessage = GetRaw("/api/endpoints/known", Master).GetAwaiter().GetResult();
-
-                        return true;
-                    }
-                    return false;
-                })
-                .Run(TimeSpan.FromSeconds(20));
-
-            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).EndpointDetails.Name);
-            Assert.AreEqual(ReceiverHostDisplayName, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
-
-            Assert.NotNull(httpResponseMessage);
-            Assert.False(httpResponseMessage.Headers.Contains("ETag"), "Expected not to contain ETag header, but it was found.");
+                .Done(c => c.Remote1MessageId != null && TryGetMany("/api/messages/search/" + c.Remote1MessageId, out response, instanceName: Master))
+                .Run(TimeSpan.FromSeconds(40));
         }
 
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
@@ -97,23 +76,6 @@
                     .AuditTo(Address.Parse(AuditMaster))
                     .ErrorTo(Address.Parse(ErrorMaster))
                     .AddMapping<MyMessage>(typeof(ReceiverRemote));
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Handle(MyMessage message)
-                {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MasterMessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
-                }
             }
         }
 
@@ -185,12 +147,9 @@
 
         public class MyContext : ScenarioContext
         {
-            public string MasterMessageId { get; set; }
             public string Remote1MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string ConversationId { get; set; }
         }
     }
 }

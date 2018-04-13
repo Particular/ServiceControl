@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Reflection;
     using System.Security.Cryptography;
     using System.Text;
@@ -16,11 +17,9 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Infrastructure.Settings;
-    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
+    using ServiceControl.CompositeViews.Endpoints;
 
-    public class When_messages_have_been_successfully_processed_by_multiple_instances_5 : AcceptanceTest
+    public class When_processed_message_multi_instance_endpoint_processing : AcceptanceTest
     {
         private const string Master = "master";
         private static string AuditMaster = $"{Master}.audit";
@@ -33,14 +32,13 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_reported_by_endpoint_get_messages_api()
+        public void Should_be_listed_in_known_endpoints()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
-            List<MessagesView> response = new List<MessagesView>();
-
-            var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
+            List<KnownEndpointsView> knownEndpoints = null;
+            HttpResponseMessage httpResponseMessage = null;
 
             Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
@@ -48,15 +46,23 @@
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => TryGetMany($"/api/endpoints/{endpointName}/messages/", out response, instanceName: Master) && response.Count == 1)
-                .Run(TimeSpan.FromSeconds(40));
+                .Done(c =>
+                {
+                    if (TryGetMany("/api/endpoints/known", out knownEndpoints, m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master))
+                    {
+                        httpResponseMessage = GetRaw("/api/endpoints/known", Master).GetAwaiter().GetResult();
 
-            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+                        return true;
+                    }
+                    return false;
+                })
+                .Run(TimeSpan.FromSeconds(20));
 
-            var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).EndpointDetails.Name);
+            Assert.AreEqual(ReceiverHostDisplayName, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
 
-            Assert.NotNull(remote1Message, "Remote1 message not found");
-            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
+            Assert.NotNull(httpResponseMessage);
+            Assert.False(httpResponseMessage.Headers.Contains("ETag"), "Expected not to contain ETag header, but it was found.");
         }
 
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
@@ -91,6 +97,23 @@
                     .AuditTo(Address.Parse(AuditMaster))
                     .ErrorTo(Address.Parse(ErrorMaster))
                     .AddMapping<MyMessage>(typeof(ReceiverRemote));
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public IBus Bus { get; set; }
+
+                public ReadOnlySettings Settings { get; set; }
+
+                public void Handle(MyMessage message)
+                {
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.MasterMessageId = Bus.CurrentMessageContext.Id;
+
+                    Thread.Sleep(200);
+                }
             }
         }
 
@@ -162,9 +185,12 @@
 
         public class MyContext : ScenarioContext
         {
+            public string MasterMessageId { get; set; }
             public string Remote1MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
+
+            public string ConversationId { get; set; }
         }
     }
 }
