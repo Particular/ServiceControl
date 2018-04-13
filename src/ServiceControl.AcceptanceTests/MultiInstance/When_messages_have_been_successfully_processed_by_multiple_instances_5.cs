@@ -90,37 +90,7 @@
                 EndpointSetup<DefaultServerWithAudit>()
                     .AuditTo(Address.Parse(AuditMaster))
                     .ErrorTo(Address.Parse(ErrorMaster))
-                    .AddMapping<MyMessage>(typeof(ReceiverRemote))
-                    .AddMapping<TriggeredMessage>(typeof(ReceiverRemote));
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Handle(MyMessage message)
-                {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MasterMessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
-                }
-            }
-
-            public class TriggeringMessageHandler : IHandleMessages<TriggeringMessage>
-            {
-                public MyContext Context { get; set; }
-                public IBus Bus { get; set; }
-                public void Handle(TriggeringMessage message)
-                {
-                    Context.ConversationId = Bus.CurrentMessageContext.Headers[Headers.ConversationId];
-                    Bus.Send(new TriggeredMessage());
-                    Thread.Sleep(200);
-                }
+                    .AddMapping<MyMessage>(typeof(ReceiverRemote));
             }
         }
 
@@ -145,19 +115,6 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
-                }
-            }
-
-            public class TriggeredMessageHandler : IHandleMessages<TriggeredMessage>
-            {
-                public MyContext Context { get; set; }
-                public IBus Bus { get; set; }
-
-                public void Handle(TriggeredMessage message)
-                {
-                    Context.ConversationId = Bus.CurrentMessageContext.Headers[Headers.ConversationId];
 
                     Thread.Sleep(200);
                 }
@@ -203,24 +160,11 @@
         {
         }
 
-        public class TriggeringMessage : ICommand
-        {
-
-        }
-
-        public class TriggeredMessage : ICommand
-        {
-
-        }
-
         public class MyContext : ScenarioContext
         {
-            public string MasterMessageId { get; set; }
             public string Remote1MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string ConversationId { get; set; }
         }
     }
 }
