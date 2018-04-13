@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System.Net;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,7 +13,7 @@
         const int MAX_BODY_SIZE = 20536;
 
         [Test]
-        public void Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
+        public async Task Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
         {
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
@@ -21,7 +22,7 @@
             byte[] body = null;
 
             //Act
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
@@ -29,21 +30,21 @@
                     }))
                 )
                 .Done(
-                    c =>
+                    async c =>
                         {
-                            MessagesView auditMessage;
-
                             if (c.MessageId == null)
                             {
                                 return false;
                             }
 
-                            if (!TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
+                            var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                            MessagesView auditMessage = result;
+                            if (!result)
                             {
                                 return false;
                             }
 
-                            body = DownloadData(auditMessage.BodyUrl);
+                            body = await DownloadData(auditMessage.BodyUrl);
 
                             return true;
                         })
@@ -54,7 +55,7 @@
         }
 
         [Test]
-        public void Should_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_less_then_message_size()
+        public async Task Should_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_less_then_message_size()
         {
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
@@ -63,7 +64,7 @@
             byte[] body = null;
 
             //Act
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
@@ -71,17 +72,20 @@
                     }))
                 )
                 .Done(
-                    c =>
+                    async c =>
                     {
-                        MessagesView auditMessage;
-
-                        if (c.MessageId == null) return false;
-                        if (!TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
+                        if (c.MessageId == null)
+                        {
+                            return false;
+                        }
+                        var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                        MessagesView auditMessage = result;
+                        if (!result)
                         {
                             return false;
                         }
 
-                        body = DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
+                        body = await DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
 
                         return true;
                     })

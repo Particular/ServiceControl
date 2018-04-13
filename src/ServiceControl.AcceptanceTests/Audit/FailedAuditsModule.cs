@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
-    using System.Linq;
     using System.Threading;
     using Nancy;
     using NServiceBus;
@@ -21,16 +20,15 @@
 
         public FailedAuditsModule()
         {
-            Get["/failedaudits/count"] = _ =>
+            Get["/failedaudits/count", true] = async (_, token) =>
             {
-                using (var session = Store.OpenSession())
+                using (var session = Store.OpenAsyncSession())
                 {
                     RavenQueryStatistics stats;
                     var query =
                         session.Query<FailedAuditImport, FailedAuditImportIndex>().Statistics(out stats);
 
-                    var count = query
-                        .Count();
+                    var count = await query.CountAsync();
 
                     return Negotiate
                         .WithModel(new FailedAuditsCountReponse
@@ -41,12 +39,10 @@
                 }
             };
 
-            Post["/failedaudits/import"] = _ =>
+            Post["/failedaudits/import", true] = async (_, token) =>
             {
-                var tokenSource = new CancellationTokenSource();
-                var task = ImportFailedAudits.Run(tokenSource);
-                
-                task.GetAwaiter().GetResult();
+                var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+                await ImportFailedAudits.Run(tokenSource);
                 return HttpStatusCode.OK;
             };
         }

@@ -5,6 +5,7 @@
     using System.Configuration;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -48,16 +49,21 @@
         }
 
         [Test]
-        public void Saga_history_can_be_fetched_on_master()
+        public async Task Saga_history_can_be_fetched_on_master()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
-                .Done(c => c.Done && TryGet("/api/sagas/" + c.SagaId, out sagaHistory, instanceName: Master))
+                .Done(async c =>
+                {
+                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
+                    sagaHistory = result;
+                    return c.Done && result;
+                })
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(sagaHistory);

@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
@@ -13,20 +14,20 @@
     public class When_a_group_is_retried : AcceptanceTest
     {
         [Test]
-        public void Only_unresolved_issues_should_be_retried()
+        public async Task Only_unresolved_issues_should_be_retried()
         {
             var context = new MyContext();
 
             FailedMessage messageToBeRetriedAsPartOfGroupRetry = null;
             FailedMessage messageToBeArchived = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
                     bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
                     bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (c.MessageToBeRetriedByGroupId == null || c.MessageToBeArchivedId == null)
                     {
@@ -36,12 +37,14 @@
                     //First we are going to issue an archive to one of the messages
                     if (!c.ArchiveIssued)
                     {
-                        if (!TryGet("/api/errors/" + c.MessageToBeArchivedId, out messageToBeArchived, e => e.Status == FailedMessageStatus.Unresolved))
+                        var messageToBeArchivedUnresolvedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Unresolved);
+                        messageToBeArchived = messageToBeArchivedUnresolvedResult;
+                        if (!messageToBeArchivedUnresolvedResult)
                         {
                             return false;
                         }
 
-                        Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
+                        await Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
 
                         c.ArchiveIssued = true;
 
@@ -52,29 +55,30 @@
                     if (!c.RetryIssued)
                     {
                         // Ensure message is being retried
-                        if (!TryGet("/api/errors/" + c.MessageToBeRetriedByGroupId, out messageToBeRetriedAsPartOfGroupRetry, e => e.Status == FailedMessageStatus.Unresolved))
+                        var messageToBeRetriedAsPartOfGroupUnresolvedRetryResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedByGroupId, e => e.Status == FailedMessageStatus.Unresolved);
+                        messageToBeRetriedAsPartOfGroupRetry = messageToBeRetriedAsPartOfGroupUnresolvedRetryResult;
+                        if (!messageToBeRetriedAsPartOfGroupUnresolvedRetryResult)
                         {
                             return false;
                         }
 
                         c.RetryIssued = true;
 
-                        Post<object>($"/api/recoverability/groups/{messageToBeRetriedAsPartOfGroupRetry.FailureGroups[0].Id}/errors/retry");
+                        await Post<object>($"/api/recoverability/groups/{messageToBeRetriedAsPartOfGroupRetry.FailureGroups[0].Id}/errors/retry");
 
                         return false;
                     }
 
-                    if (!TryGet("/api/errors/" + c.MessageToBeRetriedByGroupId, out messageToBeRetriedAsPartOfGroupRetry, e => e.Status == FailedMessageStatus.Resolved))
+                    var messageToBeRetriedAsPartOfGroupResolvedRetryResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedByGroupId, e => e.Status == FailedMessageStatus.Resolved);
+                    messageToBeRetriedAsPartOfGroupRetry = messageToBeRetriedAsPartOfGroupResolvedRetryResult;
+                    if (!messageToBeRetriedAsPartOfGroupResolvedRetryResult)
                     {
                         return false;
                     }
 
-                    if (!TryGet("/api/errors/" + c.MessageToBeArchivedId, out messageToBeArchived, e => e.Status == FailedMessageStatus.Archived))
-                    {
-                        return false;
-                    }
-
-                    return true;
+                    var messageToBeArchivedArchivedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Archived);
+                    messageToBeArchived = messageToBeArchivedArchivedResult;
+                    return messageToBeArchivedArchivedResult;
                 })
                 .Run(TimeSpan.FromMinutes(2));
 

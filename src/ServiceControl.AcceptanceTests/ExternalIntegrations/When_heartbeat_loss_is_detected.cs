@@ -1,6 +1,7 @@
 namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -18,7 +19,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     public class When_heartbeat_loss_is_detected : AcceptanceTest
     {
         [Test]
-        public void Notification_is_published_on_a_bus()
+        public async Task Notification_is_published_on_a_bus()
         {
             var context = new MyContext();
 
@@ -43,7 +44,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
             }));
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
                     bus.Subscribe<HeartbeatStopped>();

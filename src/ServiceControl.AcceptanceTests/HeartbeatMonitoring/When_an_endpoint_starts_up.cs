@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -15,14 +16,19 @@
     public class When_an_endpoint_starts_up : AcceptanceTest
     {
         [Test]
-        public void Should_result_in_a_startup_event()
+        public async Task Should_result_in_a_startup_event()
         {
             var context = new MyContext();
             EventLogItem entry = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<StartingEndpoint>()
-                .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.RelatedTo.Any(r => r.Contains(typeof(StartingEndpoint).Name)) && e.EventType == typeof(EndpointStarted).Name))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(typeof(StartingEndpoint).Name)) && e.EventType == typeof(EndpointStarted).Name);
+                    entry = result;
+                    return result;
+                })
                 .Run();
 
             Assert.AreEqual(Severity.Info, entry.Severity, "Endpoint startup should be treated as info");

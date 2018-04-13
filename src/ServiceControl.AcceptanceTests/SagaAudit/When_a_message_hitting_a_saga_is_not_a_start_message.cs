@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
 {
     using System;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -10,11 +11,11 @@
     public class When_a_message_hitting_a_saga_is_not_a_start_message : AcceptanceTest
     {
         [Test]
-        public void Saga_info_should_not_be_available_through_the_http_api()
+        public async Task Saga_info_should_not_be_available_through_the_http_api()
         {
             var context = new MyContext();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MyMessage{OrderId = 1})))
                 .Done(c => c.SagaNotFound)
                 .Run(TimeSpan.FromSeconds(40));

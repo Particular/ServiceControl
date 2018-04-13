@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -13,14 +14,14 @@
     public class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
     {
         [Test]
-        public void The_reply_should_go_to_the_correct_endpoint()
+        public async Task The_reply_should_go_to_the_correct_endpoint()
         {
             var context = new RetryReplyContext();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<OriginatingEndpoint>(c => c.Given(bus => bus.Send(new OriginalMessage())))
                 .WithEndpoint<ReceivingEndpoint>()
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (string.IsNullOrWhiteSpace(c.UniqueMessageId))
                     {
@@ -29,11 +30,12 @@
 
                     if (!c.RetryIssued)
                     {
-                        object failure;
-                        if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure))
+                        if (!await TryGet<object>($"/api/errors/{c.UniqueMessageId}"))
+                        {
                             return false;
+                        }
                         c.RetryIssued = true;
-                        Post<object>($"/api/errors/{c.UniqueMessageId}/retry");
+                        await Post<object>($"/api/errors/{c.UniqueMessageId}/retry");
                         return false;
                     }
 

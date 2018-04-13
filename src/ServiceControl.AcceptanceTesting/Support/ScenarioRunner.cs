@@ -12,7 +12,7 @@
 
     public class ScenarioRunner
     {
-        public static async Task Run(RunDescriptor runDescriptor, IList<EndpointBehavior> behaviorDescriptors, Func<ScenarioContext, bool> done)
+        public static async Task Run(RunDescriptor runDescriptor, IList<EndpointBehavior> behaviorDescriptors, Func<ScenarioContext, Task<bool>> done)
         {
             Console.Out.WriteLine($"{runDescriptor.Key} - Started @ {DateTime.Now}");
 
@@ -74,7 +74,7 @@
             Console.Out.WriteLine("------------------------------------------------------");
         }
 
-        static async Task<RunResult> PerformTestRun(IList<EndpointBehavior> behaviorDescriptors, RunDescriptor runDescriptor, Func<ScenarioContext, bool> done)
+        static async Task<RunResult> PerformTestRun(IList<EndpointBehavior> behaviorDescriptors, RunDescriptor runDescriptor, Func<ScenarioContext, Task<bool>> done)
         {
             var runResult = new RunResult
             {
@@ -129,7 +129,7 @@
             Console.WriteLine();
         }
 
-        static async Task PerformScenarios(RunDescriptor runDescriptor, IEnumerable<ActiveRunner> runners, Func<bool> done)
+        static async Task PerformScenarios(RunDescriptor runDescriptor, IEnumerable<ActiveRunner> runners, Func<Task<bool>> done)
         {
             var endpoints = runners.Select(r => r.Instance).ToList();
             try
@@ -142,7 +142,7 @@
                 await ExecuteWhens(maxTime, endpoints).ConfigureAwait(false);
 
                 var startTime = DateTime.UtcNow;
-                while (!done())
+                while (!await done().ConfigureAwait(false))
                 {
                     if (!Debugger.IsAttached)
                     {

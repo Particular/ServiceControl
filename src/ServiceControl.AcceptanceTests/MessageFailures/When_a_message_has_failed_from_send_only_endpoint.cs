@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,7 +13,7 @@
     public class When_a_message_has_failed_from_send_only_endpoint : AcceptanceTest
     {
         [Test]
-        public void Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_not_present()
+        public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_not_present()
         {
             var context = new MyContext
             {
@@ -21,16 +22,21 @@
             };
 
             FailedMessageView failure = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<SendOnlyEndpoint>()
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
             Assert.IsNotNull(failure);
             Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
          }
 
         [Test]
-        public void Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_present()
+        public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_present()
         {
             var context = new MyContext
             {
@@ -39,9 +45,14 @@
             };
 
             FailedMessageView failure = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<SendOnlyEndpoint>()
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
             Assert.IsNotNull(failure);
             Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");

@@ -36,13 +36,13 @@
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;
             
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<RemoteEndpoint>(b => b.Given(bus =>
                 {
                     context.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);
                     bus.SendLocal(new MyMessage());
                 }))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (string.IsNullOrWhiteSpace(context.Remote1MessageId))
                     {
@@ -51,8 +51,9 @@
 
                     if (!c.Remote1MessageAudited)
                     {
-                        List<MessagesView> messages;
-                        if (!TryGetMany("/api/messages", out messages, msg => msg.MessageId == c.Remote1MessageId, Master))
+                        var result = await TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.Remote1MessageId, Master);
+                        List<MessagesView> messages = result;
+                        if (!result)
                         {
                             return false;
                         }
@@ -60,7 +61,7 @@
                         capturedMessage = messages.Single(msg => msg.MessageId == c.Remote1MessageId);
                     }
 
-                    response = GetRaw($"/api/{capturedMessage.BodyUrl}", Master).GetAwaiter().GetResult();
+                    response = await GetRaw($"/api/{capturedMessage.BodyUrl}", Master);
                     Console.WriteLine($"GetRaw for {c.Remote1MessageId} resulted in {response.StatusCode}");
                     return response.StatusCode == HttpStatusCode.OK;
                 })

@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -26,7 +27,7 @@
 
 
         [Test]
-        public void Should_be_forwarded_and_resolved_on_remote()
+        public async Task Should_be_forwarded_and_resolved_on_remote()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -34,22 +35,24 @@
 
             FailedMessage failure;
 
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (!c.RetryIssued)
                     {
-                        if (GetFailedMessage(c, Remote1, FailedMessageStatus.Unresolved, out failure))
+                        var result = await GetFailedMessage(c, Remote1, FailedMessageStatus.Unresolved);
+                        failure = result;
+                        if (result)
                         {
                             c.RetryIssued = true;
-                            Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
+                            await Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
                         }
 
                         return false;
                     }
 
-                    return GetFailedMessage(c, Remote1, FailedMessageStatus.Resolved, out failure);
+                    return await GetFailedMessage(c, Remote1, FailedMessageStatus.Resolved);
                 })
                 .Run(TimeSpan.FromMinutes(2));
         }
@@ -78,19 +81,14 @@
             }
         }
 
-        bool GetFailedMessage(MyContext c, string instance, FailedMessageStatus expectedStatus, out FailedMessage failure)
+        Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, string instance, FailedMessageStatus expectedStatus)
         {
-            failure = null;
             if (c.MessageId == null)
             {
-                return false;
+                return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure, f => f.Status == expectedStatus, instance))
-            {
-                return false;
-            }
-            return true;
+            return TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

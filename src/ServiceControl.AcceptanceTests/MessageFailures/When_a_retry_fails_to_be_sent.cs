@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -22,49 +23,50 @@
     public class When_a_retry_fails_to_be_sent : AcceptanceTest
     {
         [Test]
-        public void SubsequentBatchesShouldBeProcessed()
+        public async Task SubsequentBatchesShouldBeProcessed()
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
             CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(b.Build<IBodyStorage>(), new SendMessagesWrapper(b.Build<ISendMessages>(), b.Build<MyContext>()), b.Build<IDocumentStore>(), b.Build<IDomainEvents>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
 
-            Define<MyContext>()
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.Given((bus, ctx) =>
                 {
                     ctx.DecommissionedEndpointName = "DecommissionedEndpoint";
                     ctx.DecommissionedEndpointMessageId = Guid.NewGuid().ToString();
                     ctx.DecommissionedEndpointUniqueMessageId = DeterministicGuid.MakeId(ctx.DecommissionedEndpointMessageId, ctx.DecommissionedEndpointName).ToString();
                 })
-                    .When(ctx =>
+                    .When(async ctx =>
                     {
-                        FailedMessage failure;
-                        return !ctx.RetryForInvalidAddressIssued && TryGetSingle("/api/errors/", out failure, m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
+                        return !ctx.RetryForInvalidAddressIssued && await TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
                     },
-                        (bus, ctx) =>
+                        async (bus, ctx) =>
                         {
-                            Post<object>($"/api/errors/{ctx.DecommissionedEndpointUniqueMessageId}/retry");
+                            await Post<object>($"/api/errors/{ctx.DecommissionedEndpointUniqueMessageId}/retry");
                             bus.SendLocal(new MessageThatWillFail());
                             ctx.RetryForInvalidAddressIssued = true;
                         })
-                    .When(ctx =>
+                    .When(async ctx =>
                     {
-                        FailedMessage failure;
-                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && TryGetSingle("/api/errors/", out failure, m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
+                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
                     },
-                        (bus, ctx) =>
+                        async (bus, ctx) =>
                         {
-                            Post<object>($"/api/errors/{ctx.MessageThatWillFailUniqueMessageId}/retry");
+                            await Post<object>($"/api/errors/{ctx.MessageThatWillFailUniqueMessageId}/retry");
                             ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued = true;
                         }))
-                .Done(ctx =>
+                .Done(async ctx =>
                 {
                     if (!ctx.Done)
                     {
                         return false;
                     }
 
-                    return TryGetSingle("/api/errors/", out decomissionedFailure, m => m.Id == ctx.DecommissionedEndpointUniqueMessageId && m.Status == FailedMessageStatus.Unresolved) &&
-                           TryGetSingle("/api/errors/", out successfullyRetried, m => m.Id == ctx.MessageThatWillFailUniqueMessageId && m.Status == FailedMessageStatus.Resolved);
+                    var decomissionedFailureResult = await TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId && m.Status == FailedMessageStatus.Unresolved);
+                    decomissionedFailure = decomissionedFailureResult;
+                    var successfullyRetriedResult = await TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId && m.Status == FailedMessageStatus.Resolved);
+                    successfullyRetried = successfullyRetriedResult;
+                    return decomissionedFailureResult && successfullyRetriedResult;
                 })
                 .Run(TimeSpan.FromMinutes(3));
 

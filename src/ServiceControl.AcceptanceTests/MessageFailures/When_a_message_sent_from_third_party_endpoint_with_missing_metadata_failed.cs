@@ -4,6 +4,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
@@ -18,15 +19,20 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed : AcceptanceTest
     {
         [Test]
-        public void Null_TimeSent_should_not_be_cast_to_DateTimeMin()
+        public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()
         {
             FailedMessageView failure = null;
 
             var context = new MyContext();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailureEndpoint>()
-                .Done(c => TryGetSingle("/api/errors/", out failure, m => m.Id == c.UniqueMessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
 
             Assert.IsNotNull(failure);
@@ -34,15 +40,20 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         }
 
         [Test]
-        public void Should_be_able_to_get_the_message_by_id()
+        public async Task Should_be_able_to_get_the_message_by_id()
         {
             FailedMessageView failure = null;
 
             var context = new MyContext();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailureEndpoint>()
-                .Done(c => c.UniqueMessageId != null & TryGet($"/api/errors/last/{c.UniqueMessageId}", out failure))
+                .Done(async c =>
+                {
+                    var result = await TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
+                    failure = result;
+                    return c.UniqueMessageId != null & result;
+                })
                 .Run();
 
             Assert.IsNotNull(failure);

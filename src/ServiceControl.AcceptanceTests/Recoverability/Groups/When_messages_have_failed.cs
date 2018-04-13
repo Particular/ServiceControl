@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -18,7 +19,7 @@
     public class When_messages_have_failed : AcceptanceTest
     {
         [Test]
-        public void Should_be_grouped()
+        public async Task Should_be_grouped()
         {
             var context = new MyContext();
 
@@ -29,20 +30,22 @@
             FailedMessage failedMessageA = null;
             FailedMessage failedMessageB = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
                     bus.SendLocal(new MyMessageA());
                     bus.SendLocal(new MyMessageB());
                 }))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (c.MessageIdA == null || c.MessageIdB == null)
                     {
                         return false;
                     }
 
-                    if (!TryGetMany("/api/recoverability/groups/", out defaultGroups))
+                    var defaultGroupsResult = await TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    defaultGroups = defaultGroupsResult;
+                    if (!defaultGroupsResult)
                     {
                         return false;
                     }
@@ -52,10 +55,14 @@
                         return false;
                     }
 
-                    TryGetMany("/api/recoverability/groups/Message%20Type", out messageTypeGroups);
-                    TryGetMany("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace", out exceptionTypeAndStackTraceGroups);
+                    messageTypeGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
+                    exceptionTypeAndStackTraceGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
 
-                    if (!TryGet("/api/errors/" + c.UniqueMessageIdA, out failedMessageA, msg => msg.FailureGroups.Any()) || !TryGet("/api/errors/" + c.UniqueMessageIdB, out failedMessageB, msg => msg.FailureGroups.Any()))
+                    var failedMessageAResult = await TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdA}", msg => msg.FailureGroups.Any());
+                    failedMessageA = failedMessageAResult;
+                    var failedMessageBResult = await TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdB}", msg => msg.FailureGroups.Any());
+                    failedMessageB = failedMessageBResult;
+                    if (!failedMessageAResult || !failedMessageBResult)
                     {
                         return false;
                     }

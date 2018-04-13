@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -15,23 +16,33 @@
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(MyEndpoint));
 
         [Test]
-        public void Should_be_marked_as_monitored()
+        public async Task Should_be_marked_as_monitored()
         {
             var context = new MyContext();
             List<EndpointsView> endpoints = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<MyEndpoint>()
-                .Done(c => TryGetMany("/api/endpoints/", out endpoints, e => e.Name == EndpointName))
+                .Done(async c =>
+                {
+                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
+                    endpoints = result;
+                    return result;
+                })
                 .Run();
 
             var myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);
             Assert.NotNull(myEndpoint);
             Assert.IsFalse(myEndpoint.Monitored);
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<MyEndpointWithHeartbeat>()
-                .Done(c => TryGetMany("/api/endpoints/", out endpoints, e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats))
+                .Done(async c =>
+                {
+                    var result =  await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
+                    endpoints = result;
+                    return result;
+                })
                 .Run();
 
             myEndpoint = endpoints.SingleOrDefault(e => e.Name == EndpointName);

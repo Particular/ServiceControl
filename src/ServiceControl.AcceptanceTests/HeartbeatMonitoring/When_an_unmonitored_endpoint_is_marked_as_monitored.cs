@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -22,22 +23,24 @@
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(MyEndpoint));
 
         [Test]
-        public void It_is_shown_as_inactive_if_it_does_not_send_heartbeats()
+        public async Task It_is_shown_as_inactive_if_it_does_not_send_heartbeats()
         {
             var context = new MyContext();
             List<EndpointsView> endpoints = null;
             var state = State.WaitingForEndpointDetection;
-            Define(context)
+
+            await Define(context)
                 .WithEndpoint<MyEndpoint>()
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (state == State.WaitingForEndpointDetection)
                     {
-                        var found = TryGetMany("/api/endpoints/", out endpoints, e => e.Name == EndpointName && !e.Monitored);
-                        if (found)
+                        var intermediateResult = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && !e.Monitored);
+                        endpoints = intermediateResult;
+                        if (intermediateResult)
                         {
                             var endpointId = endpoints.First(e => e.Name == EndpointName).Id;
-                            Patch($"/api/endpoints/{endpointId}",new EndpointUpdateModel
+                            await Patch($"/api/endpoints/{endpointId}",new EndpointUpdateModel
                             {
                                 MonitorHeartbeat = true
                             });
@@ -46,7 +49,10 @@
                         }
                         return false;
                     }
-                    return state == State.WaitingForHeartbeatFailure && TryGetMany("/api/endpoints/", out endpoints, e => e.Name == EndpointName && e.MonitorHeartbeat && e.Monitored && !e.IsSendingHeartbeats);
+
+                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.MonitorHeartbeat && e.Monitored && !e.IsSendingHeartbeats);
+                    endpoints = result;
+                    return state == State.WaitingForHeartbeatFailure && result;
                 })
                 .Run();
 

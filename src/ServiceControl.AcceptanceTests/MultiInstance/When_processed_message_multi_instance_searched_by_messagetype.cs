@@ -6,7 +6,7 @@
     using System.Reflection;
     using System.Security.Cryptography;
     using System.Text;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -32,7 +32,7 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_found()
+        public async Task Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -42,14 +42,19 @@
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
                     bus.SendLocal(new MyMessage());
                 }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => TryGetMany("/api/messages/search/" + searchString, out response, instanceName: Master) && response.Count == 2)
+                .Done(async c =>
+                {
+                    var result = await TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: Master);
+                    response = result;
+                    return result && response.Count == 2;
+                })
                 .Run(TimeSpan.FromSeconds(40));
 
             var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Master].ApiUrl);
@@ -112,8 +117,6 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MasterMessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }
@@ -139,8 +142,6 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }

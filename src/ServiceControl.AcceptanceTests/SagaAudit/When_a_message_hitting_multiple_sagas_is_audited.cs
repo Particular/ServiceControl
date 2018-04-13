@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -13,21 +14,23 @@
     class When_a_message_hitting_multiple_sagas_is_audited : AcceptanceTest
     {
         [Test]
-        public void Saga_info_should_be_available_through_the_http_api()
+        public async Task Saga_info_should_be_available_through_the_http_api()
         {
             var context = new MyContext();
             MessagesView auditedMessage = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (c.SagaId == Guid.Empty)
                     {
                         return false;
                     }
 
-                    return TryGetSingle("/api/messages", out auditedMessage, m => m.MessageId == c.MessageId);
+                    var result = await TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
+                    auditedMessage = result;
+                    return result;
                 })
                 .Run(TimeSpan.FromSeconds(40));
 

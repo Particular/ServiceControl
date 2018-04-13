@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -14,7 +15,7 @@
     class Audit_Messages_Have_Proper_IsSystemMessage_Tests: AcceptanceTest
     {
         [Test]
-        public void Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
+        public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
         {
             var context = new SystemMessageTestContext
             {
@@ -24,16 +25,22 @@
             };
 
             MessagesView auditMessage = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                    auditMessage = result;
+                    return result;
+                })
                 .Run();
+
             Assert.IsNotNull(auditMessage);
             Assert.IsFalse(auditMessage.IsSystemMessage);
         }
 
         [Test]
-        public void Scheduled_task_messages_should_set_IsSystemMessage()
+        public async Task Scheduled_task_messages_should_set_IsSystemMessage()
         {
             var context = new SystemMessageTestContext
             {
@@ -43,16 +50,21 @@
             };
 
             MessagesView auditMessage = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/messages?include_system_messages=true&sort=id", out auditMessage, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<MessagesView>("/api/messages?include_system_messages=true&sort=id", r => r.MessageId == c.MessageId);
+                    auditMessage = result;
+                    return result;
+                })
                 .Run();
             Assert.IsNotNull(auditMessage);
             Assert.IsTrue(auditMessage.IsSystemMessage);
         }
 
         [Test]
-        public void Control_messages_should_not_be_audited()
+        public async Task Control_messages_should_not_be_audited()
         {
             var context = new SystemMessageTestContext
             {
@@ -64,18 +76,18 @@
 
             var containsItem = true;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (!c.QueryForMessages)
                     {
                         return false;
                     }
 
-                    List<MessagesView> messages;
-
-                    if (!TryGet("/api/messages", out messages))
+                    var result = await TryGet<List<MessagesView>>("/api/messages");
+                    List<MessagesView> messages = result;
+                    if (!result)
                     {
                         return false;
                     }
@@ -92,7 +104,7 @@
         }
 
         [Test]
-        public void Should_set_the_IsSystemMessage_for_integration_scenario()
+        public async Task Should_set_the_IsSystemMessage_for_integration_scenario()
         {
             var context = new SystemMessageTestContext
             {
@@ -102,10 +114,16 @@
             };
 
             MessagesView auditMessage = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/messages", out auditMessage, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                    auditMessage = result;
+                    return result;
+                })
                 .Run();
+
             Assert.IsNotNull(auditMessage);
             Assert.IsFalse(auditMessage.IsSystemMessage);
         }

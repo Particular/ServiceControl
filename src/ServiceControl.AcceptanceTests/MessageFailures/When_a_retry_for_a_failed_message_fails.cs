@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
@@ -13,21 +14,26 @@
     public class When_a_retry_for_a_failed_message_fails : AcceptanceTest
     {
         [Test]
-        public void It_should_be_marked_as_unresolved()
+        public async Task It_should_be_marked_as_unresolved()
         {
             var context = new MyContext { Succeed = false };
 
             FailedMessage failure = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailureEndpoint>(b =>
                     b.Given(bus => bus.SendLocal(new MyMessage()))
-                     .When(ctx => CheckProcessingAttemptsIs(ctx, 1),
-                        (bus, ctx) => IssueRetry(ctx))
-                     .When(ctx => CheckProcessingAttemptsIs(ctx, 2),
-                        (bus, ctx) => IssueRetry(ctx))
+                        .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
+                            (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                        .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
+                            (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                 )
-                .Done(ctx => GetFailedMessage(ctx, out failure, f => f.ProcessingAttempts.Count == 3))
+                .Done(async ctx =>
+                {
+                    var result = await GetFailedMessage(ctx, f => f.ProcessingAttempts.Count == 3);
+                    failure = result;
+                    return result;
+                })
                 .Run(TimeSpan.FromMinutes(4));
 
             Assert.IsNotNull(failure, "Failure should not be null");
@@ -35,53 +41,51 @@
         }
 
         [Test]
-        public void It_should_be_able_to_be_retried_successfully()
+        public async Task It_should_be_able_to_be_retried_successfully()
         {
             var context = new MyContext { Succeed = false };
 
             FailedMessage failure = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailureEndpoint>(b =>
                     b.Given(bus => bus.SendLocal(new MyMessage()))
-                     .When(ctx => CheckProcessingAttemptsIs(ctx, 1),
-                          (bus, ctx) => IssueRetry(ctx))
-                     .When(ctx => CheckProcessingAttemptsIs(ctx, 2),
-                          (bus, ctx) => IssueRetry(ctx))
-                     .When(ctx => CheckProcessingAttemptsIs(ctx, 3),
-                         (bus, ctx) =>
+                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
+                          (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
+                          (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 3),
+                         async (bus, ctx) =>
                          {
                              ctx.Succeed = true;
-                             IssueRetry(ctx);
+                             await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                          })
                     )
-                .Done(ctx => GetFailedMessage(ctx, out failure, f => f.Status == FailedMessageStatus.Resolved))
+                .Done(async ctx =>
+                {
+                    var result = await GetFailedMessage(ctx, f => f.Status == FailedMessageStatus.Resolved);
+                    failure = result;
+                    return result;
+                })
                 .Run(TimeSpan.FromMinutes(4));
 
             Assert.IsNotNull(failure, "Failure should not be null");
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
         }
 
-        bool CheckProcessingAttemptsIs(MyContext ctx, int count)
+        Task<SingleResult<FailedMessage>> CheckProcessingAttemptsIs(MyContext ctx, int count)
         {
-            FailedMessage failure;
-            return GetFailedMessage(ctx, out failure, f => f.ProcessingAttempts.Count == count);
+            return GetFailedMessage(ctx, f => f.ProcessingAttempts.Count == count);
         }
 
-        bool GetFailedMessage(MyContext c, out FailedMessage failure, Predicate<FailedMessage> condition)
+        async Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, Predicate<FailedMessage> condition)
         {
-            failure = null;
             if (c.UniqueMessageId == null)
             {
-                return false;
+                return SingleResult<FailedMessage>.Empty;
             }
 
-            return TryGet("/api/errors/" + c.UniqueMessageId, out failure, condition);
-        }
-
-        void IssueRetry(MyContext c)
-        {
-            Post<object>($"/api/errors/{c.UniqueMessageId}/retry");
+            return await TryGet($"/api/errors/{c.UniqueMessageId}", condition);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

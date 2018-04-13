@@ -5,7 +5,7 @@
     using System.Reflection;
     using System.Security.Cryptography;
     using System.Text;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -30,17 +30,21 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_found()
+        public async Task Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
-            List<MessagesView> response;
 
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.SendLocal(new TriggeringMessage()); }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => c.ConversationId != null && TryGetMany($"/api/conversations/{c.ConversationId}", out response, instanceName: Master) && response.Count == 2)
+                .Done(async c =>
+                {
+                    var result = await TryGetMany<MessagesView>($"/api/conversations/{c.ConversationId}", instanceName: Master);
+                    List<MessagesView> response = result;
+                    return c.ConversationId != null && result && response.Count == 2;
+                })
                 .Run(TimeSpan.FromSeconds(40));
         }
 
@@ -86,7 +90,6 @@
                 {
                     Context.ConversationId = Bus.CurrentMessageContext.Headers[Headers.ConversationId];
                     Bus.Send(new TriggeredMessage());
-                    Thread.Sleep(200);
                 }
             }
         }
@@ -108,8 +111,6 @@
                 public void Handle(TriggeredMessage message)
                 {
                     Context.ConversationId = Bus.CurrentMessageContext.Headers[Headers.ConversationId];
-
-                    Thread.Sleep(200);
                 }
             }
         }

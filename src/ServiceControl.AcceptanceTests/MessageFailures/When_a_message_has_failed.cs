@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -26,15 +27,20 @@
     public class When_a_message_has_failed : AcceptanceTest
     {
         [Test]
-        public void Should_be_imported_and_accessible_via_the_rest_api()
+        public async Task Should_be_imported_and_accessible_via_the_rest_api()
         {
             var context = new MyContext();
 
             FailedMessage failedMessage = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => c.MessageId != null && TryGet("/api/errors/" + c.UniqueMessageId, out failedMessage))
+                .Done(async c =>
+                {
+                    var result = await TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
+                    failedMessage = result;
+                    return c.MessageId != null && result;
+                })
                 .Run();
 
             Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
@@ -49,15 +55,20 @@
         }
 
         [Test]
-        public void Should_be_listed_in_the_error_list()
+        public async Task Should_be_listed_in_the_error_list()
         {
             var context = new MyContext();
 
             FailedMessageView failure = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
 
             // The message Ids may contain a \ if they are from older versions.
@@ -67,15 +78,20 @@
         }
 
         [Test]
-        public void Should_be_listed_in_the_messages_list()
+        public async Task Should_be_listed_in_the_messages_list()
         {
             var context = new MyContext();
 
             var failure = new MessagesView();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetSingle("/api/messages", out failure,m=>m.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<MessagesView>("/api/messages", m=>m.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(context.UniqueMessageId, failure.Id, "The unique id should be returned");
@@ -86,15 +102,20 @@
         }
 
         [Test]
-        public void Should_add_an_event_log_item()
+        public async Task Should_add_an_event_log_item()
         {
             var context = new MyContext();
 
             EventLogItem entry = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
+                    entry = result;
+                    return result;
+                })
                 .Run();
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failures should be treated as errors");
@@ -104,14 +125,14 @@
         }
 
         [Test]
-        public void Should_raise_a_signalr_event()
+        public async Task Should_raise_a_signalr_event()
         {
             var context = new MyContext
             {
                 Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
             };
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -121,18 +142,20 @@
         }
 
         [Test]
-        public void Should_be_able_to_search_queueaddresses()
+        public async Task Should_be_able_to_search_queueaddresses()
         {
             var searchResults = new List<QueueAddress>();
 
-            Define<QueueSearchContext>()
+            await Define<QueueSearchContext>()
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.Given(bus => bus.SendLocal(new MyMessage())).When(c =>
+                    b.Given(bus => bus.SendLocal(new MyMessage())).When(async c =>
                     {
                         if (c.FailedMessageCount >= 1)
                         {
-                            return TryGetMany("/api/errors/queues/addresses?search=failing", out searchResults);
+                            var result = await TryGetMany<QueueAddress>("/api/errors/queues/addresses?search=failing");
+                            searchResults = result;
+                            return result;
                         }
 
                         return false;
@@ -145,13 +168,13 @@
         }
 
         [Test]
-        public void Should_only_return_queueaddresses_that_startswith_search()
+        public async Task Should_only_return_queueaddresses_that_startswith_search()
         {
             var searchResults = new List<QueueAddress>();
             const string searchTerm = "another";
             const string searchEndpointName = "AnotherFailingEndpoint";
 
-            Define<QueueSearchContext>()
+            await Define<QueueSearchContext>()
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
                     b.Given(bus => bus.SendLocal(new MyMessage()));
@@ -165,13 +188,15 @@
                 {
                     b.CustomConfig(configuration => configuration.EndpointName("YetAnotherEndpoint"));
                     b.Given(bus => bus.SendLocal(new MyMessage()));
-                }).Done(c =>
+                }).Done(async c =>
                 {
                     if (c.FailedMessageCount < 3)
                     {
                         return false;
                     }
-                    return TryGetMany($"/api/errors/queues/addresses/search/{searchTerm}", out searchResults);
+                    var result = await TryGetMany<QueueAddress>($"/api/errors/queues/addresses/search/{searchTerm}");
+                    searchResults = result;
+                    return result;
                 })
                 .Run();
 

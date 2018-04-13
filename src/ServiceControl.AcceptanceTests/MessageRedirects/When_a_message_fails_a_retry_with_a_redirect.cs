@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -18,36 +19,35 @@
     class When_a_message_fails_a_retry_with_a_redirect : AcceptanceTest
     {
         [Test]
-        public void The_original_failed_message_record_is_updated()
+        public async Task The_original_failed_message_record_is_updated()
         {
-            FailedMessage failedMessage;
             List<FailedMessageView> failedMessages = null;
 
-            Define<Context>()
+            await Define<Context>()
                 .WithEndpoint<OriginalEndpoint>(b =>
                         b.Given(bus => bus.SendLocal(new MessageToRetry()))
                             .When( // Failed Message Received
-                                ctx => ctx.UniqueMessageId != null && TryGet($"/api/errors/{ctx.UniqueMessageId}", out failedMessage),
-                                (bus, ctx) =>
+                                async ctx => ctx.UniqueMessageId != null && await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}"),
+                                async (bus, ctx) =>
                                 {
                                     // Create Redirect
-                                    Post("/api/redirects", new RedirectRequest
+                                    await Post("/api/redirects", new RedirectRequest
                                     {
                                         fromphysicaladdress = ctx.FromAddress,
                                         tophysicaladdress = ctx.ToAddress
                                     }, status => status != HttpStatusCode.Created);
 
                                     // Retry Failed Message
-                                    Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                                    await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                                 })
                 )
                 .WithEndpoint<NewEndpoint>()
-                .Done(ctx => ctx.ProcessedAgain
-                             && TryGetMany("/api/errors",
-                                 out failedMessages,
-                                 msg => msg.Exception.Message.Contains("Message Failed In New Endpoint Too")
-                             )
-                )
+                .Done(async ctx =>
+                {
+                    var result = await TryGetMany<FailedMessageView>("/api/errors", msg => msg.Exception.Message.Contains("Message Failed In New Endpoint Too"));
+                    failedMessages = result;
+                    return ctx.ProcessedAgain&& result;
+                })
                 .Run();
 
             Assert.IsNotNull(failedMessages);

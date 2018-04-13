@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
+    using System.Threading.Tasks;
     using Contexts;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -15,7 +16,7 @@
     public class When_a_message_has_failed : AcceptanceTest
     {
         [Test]
-        public void Notification_should_be_published_on_the_bus()
+        public async Task Notification_should_be_published_on_the_bus()
         {
             var context = new MyContext();
 
@@ -27,7 +28,7 @@
                 }
             });
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {

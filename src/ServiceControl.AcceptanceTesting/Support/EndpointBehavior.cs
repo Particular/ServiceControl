@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     public class EndpointBehavior
     {
@@ -21,14 +22,14 @@
 
     public class WhenDefinition<TContext> : IWhenDefinition where TContext : ScenarioContext
     {
-        public WhenDefinition(Predicate<TContext> condition, Action<IBus> action)
+        public WhenDefinition(Func<TContext, Task<bool>> condition, Func<IBus, Task> action)
         {
             Id = Guid.NewGuid();
             this.condition = condition;
             busAction = action;
         }
 
-        public WhenDefinition(Predicate<TContext> condition, Action<IBus, TContext> actionWithContext)
+        public WhenDefinition(Func<TContext, Task<bool>> condition, Func<IBus, TContext, Task> actionWithContext)
         {
             Id = Guid.NewGuid();
             this.condition = condition;
@@ -37,11 +38,11 @@
 
         public Guid Id { get; }
 
-        public bool ExecuteAction(ScenarioContext context, IBus bus)
+        public async Task<bool> ExecuteAction(ScenarioContext context, IBus bus)
         {
             var c = context as TContext;
 
-            if (!condition(c))
+            if (!await condition(c))
             {
                 return false;
             }
@@ -49,19 +50,19 @@
 
             if (busAction != null)
             {
-                busAction(bus);
+                await busAction(bus).ConfigureAwait(false);
             }
             else
             {
-                busAndContextAction(bus, c);
+                await busAndContextAction(bus, c).ConfigureAwait(false);
             }
 
             return true;
         }
 
-        readonly Predicate<TContext> condition;
-        readonly Action<IBus> busAction;
-        readonly Action<IBus, TContext> busAndContextAction;
+        readonly Func<TContext, Task<bool>> condition;
+        readonly Func<IBus, Task> busAction;
+        readonly Func<IBus, TContext, Task> busAndContextAction;
     }
 
     public interface IGivenDefinition
@@ -72,7 +73,7 @@
 
     public interface IWhenDefinition
     {
-        bool ExecuteAction(ScenarioContext context, IBus bus);
+        Task<bool> ExecuteAction(ScenarioContext context, IBus bus);
 
         Guid Id { get; }
     }

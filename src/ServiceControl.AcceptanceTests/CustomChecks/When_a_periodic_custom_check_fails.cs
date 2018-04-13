@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading.Tasks;
     using Contexts;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
@@ -19,7 +20,7 @@
     public class When_a_periodic_custom_check_fails : AcceptanceTest
     {
         [Test]
-        public void Should_result_in_a_custom_check_failed_event()
+        public async Task Should_result_in_a_custom_check_failed_event()
         {
             var context = new MyContext
             {
@@ -27,9 +28,14 @@
             };
             EventLogItem entry = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
-                .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.EventType == typeof(CustomCheckFailed).Name))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    entry = result;
+                    return result;
+                })
                 .Run();
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
@@ -38,9 +44,9 @@
         }
 
         [Test]
-        public void Should_raise_a_signalr_event()
+        public async Task Should_raise_a_signalr_event()
         {
-            var context = Define(() => new MyContext
+            var context = await Define(() => new MyContext
             {
                 Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
             })

@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -14,11 +15,11 @@
     public class When_a_pending_retry_is_resolved_by_queue_and_timeframe : AcceptanceTest
     {
         [Test]
-        public void Should_succeed()
+        public async Task Should_succeed()
         {
             FailedMessage failedMessage;
 
-            var context = Define<Context>()
+            var context = await Define<Context>()
                 .WithEndpoint<DecoyFailingEndpoint>(b => b.Given(bus =>
                 {
                     bus.SendLocal(new MyMessage());
@@ -26,7 +27,7 @@
                 .WithEndpoint<FailingEndpoint>(b => b.Given(bus =>
                 {
                     bus.SendLocal(new MyMessage());
-                }).When(ctx =>
+                }).When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
@@ -38,7 +39,9 @@
                         return false;
                     }
 
-                    if (!TryGet($"/api/errors/{ctx.UniqueMessageId}", out failedMessage))
+                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    failedMessage = result;
+                    if (!result)
                     {
                         return false;
                     }
@@ -46,7 +49,7 @@
                     if (!ctx.RetryAboutToBeSent)
                     {
                         ctx.RetryAboutToBeSent = true;
-                        Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         return false;
                     }
 
@@ -56,18 +59,19 @@
                     }
 
                     return false;
-                }, (bus, ctx) =>
+                }, async (bus, ctx) =>
                 {
-                    Patch("/api/pendingretries/queues/resolve", new
+                    await Patch("/api/pendingretries/queues/resolve", new
                     {
                         queueaddress = ctx.FromAddress,
                         from = DateTime.UtcNow.AddHours(-1).ToString("o"),
                         to = DateTime.UtcNow.ToString("o")
                     });
                 }))
-                .Done(ctx =>
+                .Done(async ctx =>
                 {
-                    TryGet($"/api/errors/{ctx.UniqueMessageId}", out failedMessage);
+                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    failedMessage = result;
 
                     if (failedMessage.Status == FailedMessageStatus.Resolved)
                     {

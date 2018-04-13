@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -14,18 +15,20 @@
     public class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
     {
         [Test]
-        public void Message_should_be_enriched_with_saga_state_changes()
+        public async Task Message_should_be_enriched_with_saga_state_changes()
         {
             var context = new MyContext();
             var messages = new List<MessagesView>();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointThatIsHostingSagas>(b => b.Given((bus, c) => bus.SendLocal(new InitiateSaga())))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (c.Saga1Complete && c.Saga2Complete)
                     {
-                        if (TryGetMany("/api/messages", out messages))
+                        var result = await TryGetMany<MessagesView>("/api/messages");
+                        messages = result;
+                        if (result)
                         {
                             return messages.Count == 5;
                         }

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -15,22 +16,24 @@
     public class When_a_pending_retry_is_retried_by_queue_and_timeframe : AcceptanceTest
     {
         [Test]
-        public void Should_succeed()
+        public async Task Should_succeed()
         {
             FailedMessage failedMessage;
 
-            Define<Context>()
+            await Define<Context>()
                 .WithEndpoint<FailingEndpoint>(b => b.Given(bus =>
                 {
                     bus.SendLocal(new MyMessage());
-                }).When(ctx =>
+                }).When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
                         return false;
                     }
 
-                    if (!TryGet($"/api/errors/{ctx.UniqueMessageId}", out failedMessage))
+                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    failedMessage = result;
+                    if (!result)
                     {
                         return false;
                     }
@@ -38,23 +41,24 @@
                     if (!ctx.RetryAboutToBeSent)
                     {
                         ctx.RetryAboutToBeSent = true;
-                        Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         return false;
                     }
 
                     if (failedMessage.Status == FailedMessageStatus.RetryIssued)
                     {
-                        FailedMessage[] failedMessages;
-                        if (TryGet("/api/errors", out failedMessages))
+                        var failedMessagesResult = await TryGet<FailedMessage[]>("/api/errors");
+                        FailedMessage[] failedMessages = failedMessagesResult;
+                        if (failedMessagesResult)
                         {
                             return failedMessages.Any(fm => fm.Id == ctx.UniqueMessageId);
                         }
                     }
 
                     return false;
-                }, (bus, ctx) =>
+                }, async (bus, ctx) =>
                 {
-                    Post<object>("/api/pendingretries/queues/retry", new
+                    await Post<object>("/api/pendingretries/queues/retry", new
                     {
                         queueaddress = ctx.FromAddress,
                         from = DateTime.UtcNow.AddHours(-1).ToString("o"),

@@ -1,6 +1,7 @@
 namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
@@ -8,7 +9,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
     class When_a_redirect_is_removed : AcceptanceTest
     {
         [Test]
-        public void Should_be_successfully_deleted()
+        public async Task Should_be_successfully_deleted()
         {
             var redirect = new RedirectRequest
             {
@@ -18,15 +19,14 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             var messageRedirectId = DeterministicGuid.MakeId(redirect.fromphysicaladdress);
 
-            List<MessageRedirectFromJson> response;
-
             Define<Context>();
 
-            Post("/api/redirects", redirect);
+            await Post("/api/redirects", redirect);
 
-            Delete($"/api/redirects/{messageRedirectId}/");
+            await Delete($"/api/redirects/{messageRedirectId}/");
 
-            TryGetMany("/api/redirects", out response);
+            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            List<MessageRedirectFromJson> response = result;
 
             Assert.AreEqual(0, response.Count, "Expected no redirects after delete");
         }

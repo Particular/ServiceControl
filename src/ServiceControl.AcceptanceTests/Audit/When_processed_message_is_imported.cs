@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Text;
+    using System.Threading.Tasks;
     using Contexts;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -15,14 +16,14 @@
     public class When_processed_message_is_imported : AcceptanceTest
     {
         [Test]
-        public void Should_be_accessible_via_the_rest_api()
+        public async Task Should_be_accessible_via_the_rest_api()
         {
             const string Payload = "PAYLOAD";
             var context = new MyContext();
             MessagesView auditedMessage = null;
             byte[] body = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage
@@ -31,18 +32,21 @@
                     });
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (c.MessageId == null)
                     {
                         return false;
                     }
-                    if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
+
+                    var result = await TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    auditedMessage = result;
+                    if (!result)
                     {
                         return false;
                     }
 
-                    body = DownloadData(auditedMessage.BodyUrl);
+                    body = await DownloadData(auditedMessage.BodyUrl);
 
                     return true;
 

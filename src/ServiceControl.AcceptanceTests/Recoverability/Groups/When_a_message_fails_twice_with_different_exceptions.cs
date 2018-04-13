@@ -3,6 +3,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using System;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using System.Web;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -17,16 +18,16 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     public class When_a_message_fails_twice_with_different_exceptions : AcceptanceTest
     {
         [Test]
-        public void Only_the_second_groups_should_apply()
+        public async Task Only_the_second_groups_should_apply()
         {
             var context = new MeowContext();
 
             FailedMessage originalMessage = null;
             FailedMessage retriedMessage = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<MeowReceiver>(b => b.Given(bus => bus.SendLocal(new Meow())))
-                .Done(ctx =>
+                .Done(async ctx =>
                 {
                     if (String.IsNullOrWhiteSpace(ctx.UniqueMessageId))
                     {
@@ -35,21 +36,20 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     if (!ctx.Retrying)
                     {
-                        FailedMessage originalMessageTemp;
-                        if (TryGet($"/api/errors/{ctx.UniqueMessageId}", out originalMessageTemp))
+                        var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        FailedMessage originalMessageTemp = result;
+                        if (result)
                         {
                             originalMessage = originalMessageTemp;
                             ctx.Retrying = true;
-                            Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                            await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         }
                     }
                     else
                     {
-                        return TryGet(
-                            $"/api/errors/{ctx.UniqueMessageId}",
-                            out retriedMessage,
-                            err => err.ProcessingAttempts.Count == 2
-                            );
+                        var retriedMessageResult = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", err => err.ProcessingAttempts.Count == 2);
+                        retriedMessage = retriedMessageResult;
+                        return retriedMessageResult;
                     }
 
                     return false;

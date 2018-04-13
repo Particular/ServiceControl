@@ -5,7 +5,7 @@
     using System.Reflection;
     using System.Security.Cryptography;
     using System.Text;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -30,17 +30,16 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_found()
+        public async Task Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
-            List<MessagesView> response;
 
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.Send(new MyMessage()); }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => c.Remote1MessageId != null && TryGetMany("/api/messages/search/" + c.Remote1MessageId, out response, instanceName: Master))
+                .Done(async c => c.Remote1MessageId != null && await TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
         }
 
@@ -100,8 +99,6 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }

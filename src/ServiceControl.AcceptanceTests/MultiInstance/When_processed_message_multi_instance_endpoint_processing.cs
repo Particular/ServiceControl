@@ -7,7 +7,7 @@
     using System.Reflection;
     using System.Security.Cryptography;
     using System.Text;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -32,7 +32,7 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_listed_in_known_endpoints()
+        public async Task Should_be_listed_in_known_endpoints()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -40,17 +40,19 @@
             List<KnownEndpointsView> knownEndpoints = null;
             HttpResponseMessage httpResponseMessage = null;
 
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c =>
+                .Done(async c =>
                 {
-                    if (TryGetMany("/api/endpoints/known", out knownEndpoints, m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master))
+                    var result = await TryGetMany<KnownEndpointsView>("/api/endpoints/known", m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master);
+                    knownEndpoints = result;
+                    if (result)
                     {
-                        httpResponseMessage = GetRaw("/api/endpoints/known", Master).GetAwaiter().GetResult();
+                        httpResponseMessage = await GetRaw("/api/endpoints/known", Master);
 
                         return true;
                     }
@@ -111,8 +113,6 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MasterMessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }
@@ -138,8 +138,6 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }

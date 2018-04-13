@@ -31,12 +31,18 @@ namespace NServiceBus.AcceptanceTesting
 
         public IScenarioWithEndpointBehavior<TContext> Done(Func<TContext, bool> func)
         {
-            done = c => func((TContext)c);
+            done = c => Task.FromResult(func((TContext) c));
 
             return this;
         }
 
-        private async Task<TContext> Run(TimeSpan? testExecutionTimeout = null)
+        public IScenarioWithEndpointBehavior<TContext> Done(Func<TContext, Task<bool>> func)
+        {
+            done = c => func((TContext)c);
+            return this;
+        }
+
+        public async Task<TContext> Run(TimeSpan? testExecutionTimeout = null)
         {
             var runDescriptor = new RunDescriptor
             {
@@ -48,6 +54,7 @@ namespace NServiceBus.AcceptanceTesting
             var sw = new Stopwatch();
 
             sw.Start();
+
             await ScenarioRunner.Run(runDescriptor, behaviors, done).ConfigureAwait(false);
 
             sw.Stop();
@@ -57,13 +64,8 @@ namespace NServiceBus.AcceptanceTesting
             return (TContext)runDescriptor.ScenarioContext;
         }
 
-        TContext IScenarioWithEndpointBehavior<TContext>.Run(TimeSpan? testExecutionTimeout)
-        {
-            return Run(testExecutionTimeout).GetAwaiter().GetResult();
-        }
-
         readonly IList<EndpointBehavior> behaviors = new List<EndpointBehavior>();
-        private Func<ScenarioContext, bool> done = context => true;
+        private Func<ScenarioContext, Task<bool>> done = context => Task.FromResult(true);
 
         Func<TContext> contextFactory;
     }

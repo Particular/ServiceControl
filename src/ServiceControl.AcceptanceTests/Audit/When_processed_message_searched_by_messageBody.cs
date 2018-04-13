@@ -1,7 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -12,16 +12,14 @@
     public class When_processed_message_searched_by_messageBody : AcceptanceTest
     {
         [Test]
-        public void Should_be_found_()
+        public async Task Should_be_found_()
         {
             var context = new MyContext
             {
                 PropertyToSearchFor = Guid.NewGuid().ToString()
             };
 
-            List<MessagesView> response;
-
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage
@@ -30,7 +28,7 @@
                     });
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/messages/search/" + c.PropertyToSearchFor, out response))
+                .Done(async c => await TryGetMany<MessagesView>("/api/messages/search/" + c.PropertyToSearchFor))
                 .Run(TimeSpan.FromSeconds(40));
         }
         

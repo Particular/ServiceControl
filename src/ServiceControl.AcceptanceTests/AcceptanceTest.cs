@@ -214,7 +214,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return new ScenarioWithContext<T>(() => (T) scenarioContext);
         }
 
-        public Task<HttpResponseMessage> GetRaw(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected Task<HttpResponseMessage> GetRaw(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
@@ -225,51 +225,24 @@ namespace ServiceBus.Management.AcceptanceTests
             return httpClient.GetAsync(url);
         }
 
-        private async Task<T> GetInternal<T>(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            var response = await GetRaw(url, instanceName);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
-
-            //for now
-            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
-            {
-                await Task.Delay(1000);
-                return null;
-            }
-
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase}");
-            }
-
-            using (var stream = await response.Content.ReadAsStreamAsync())
-            {
-                var serializer = JsonSerializer.Create(serializerSettings);
-
-                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
-            }
-        }
-
-        protected bool TryGetMany<T>(string url, out List<T> response, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        protected async Task<ManyResult<T>> TryGetMany<T>(string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            response = GetInternal<List<T>>(url, instanceName).GetAwaiter().GetResult();
+            var response = await GetInternal<List<T>>(url, instanceName).ConfigureAwait(false);
 
             if (response == null || !response.Any(m => condition(m)))
             {
-                Task.Delay(1000).GetAwaiter().GetResult();
-                return false;
+                return ManyResult<T>.Empty;
             }
 
-            return true;
+            return ManyResult<T>.New(true, response);
         }
 
-        protected HttpStatusCode Patch<T>(string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        protected async Task<HttpStatusCode> Patch<T>(string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
@@ -278,46 +251,45 @@ namespace ServiceBus.Management.AcceptanceTests
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
             var httpClient = httpClients[instanceName];
-            var response = httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
+            var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
 
             Console.WriteLine($"PATCH - {url} - {(int) response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
 
             return response.StatusCode;
         }
 
-        protected bool TryGet<T>(string url, out T response, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        protected async Task<SingleResult<T>> TryGet<T>(string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            response = GetInternal<T>(url, instanceName).GetAwaiter().GetResult();
+            var response = await GetInternal<T>(url, instanceName).ConfigureAwait(false);
 
             if (response == null || !condition(response))
             {
-                Task.Delay(1000).GetAwaiter().GetResult();
-                return false;
+                return SingleResult<T>.Empty;
             }
 
-            return true;
+            return SingleResult<T>.New(response);
         }
 
-        protected bool TryGetSingle<T>(string url, out T item, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        protected async Task<SingleResult<T>> TryGetSingle<T>(string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            var response = GetInternal<List<T>>(url, instanceName).GetAwaiter().GetResult();
-            item = null;
+            var response = await GetInternal<List<T>>(url, instanceName);
+            T item = null;
             if (response != null)
             {
                 var items = response.Where(i => condition(i)).ToList();
@@ -332,15 +304,13 @@ namespace ServiceBus.Management.AcceptanceTests
 
             if (item != null)
             {
-                return true;
+                return SingleResult<T>.New(item);
             }
 
-            Task.Delay(1000).GetAwaiter().GetResult();
-
-            return false;
+            return SingleResult<T>.Empty;
         }
 
-        protected HttpStatusCode Get(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected async Task<HttpStatusCode> Get(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
@@ -348,14 +318,14 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             var httpClient = httpClients[instanceName];
-            var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
+            var response = await httpClient.GetAsync(url).ConfigureAwait(false);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
             return response.StatusCode;
         }
 
-        protected void Post<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        protected async Task Post<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
@@ -364,7 +334,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
             var httpClient = httpClients[instanceName];
-            var response = httpClient.PostAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
+            var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
 
@@ -379,12 +349,12 @@ namespace ServiceBus.Management.AcceptanceTests
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
         }
 
-        protected void Delete(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected async Task Delete(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
@@ -392,18 +362,18 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             var httpClient = httpClients[instanceName];
-            var response = httpClient.DeleteAsync(url).GetAwaiter().GetResult();
+            var response = await httpClient.DeleteAsync(url);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                var body = await response.Content.ReadAsStringAsync();
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
         }
 
-        protected void Put<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        protected async Task Put<T>(string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
@@ -417,7 +387,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             var json = JsonConvert.SerializeObject(payload, serializerSettings);
             var httpClient = httpClients[instanceName];
-            var response = httpClient.PutAsync(url, new StringContent(json, null, "application/json")).GetAwaiter().GetResult();
+            var response = await httpClient.PutAsync(url, new StringContent(json, null, "application/json"));
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
@@ -427,7 +397,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected byte[] DownloadData(string url, HttpStatusCode successCode = HttpStatusCode.OK, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected async Task<byte[]> DownloadData(string url, HttpStatusCode successCode = HttpStatusCode.OK, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
@@ -435,14 +405,39 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             var httpClient = httpClients[instanceName];
-            var response = httpClient.GetAsync(url).GetAwaiter().GetResult();
+            var response = await httpClient.GetAsync(url);
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
             if (response.StatusCode != successCode)
             {
                 throw new Exception($"Expected status code of {successCode}, but instead got {response.StatusCode}.");
             }
 
-            return response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+
+        private async Task<T> GetInternal<T>(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        {
+            var response = await GetRaw(url, instanceName).ConfigureAwait(false);
+
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
+
+            //for now
+            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            {
+                return null;
+            }
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase}");
+            }
+
+            using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+            {
+                var serializer = JsonSerializer.Create(serializerSettings);
+
+                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
+            }
         }
 
         private static int FindAvailablePort(int startPort)

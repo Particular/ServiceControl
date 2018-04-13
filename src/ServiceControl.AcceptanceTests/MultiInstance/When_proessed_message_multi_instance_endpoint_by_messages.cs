@@ -6,7 +6,7 @@
     using System.Reflection;
     using System.Security.Cryptography;
     using System.Text;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -33,7 +33,7 @@
         private string addressOfRemote;
 
         [Test]
-        public void Should_be_found()
+        public async Task Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -42,13 +42,18 @@
 
             var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
 
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(c => TryGetMany($"/api/endpoints/{endpointName}/messages/", out response, instanceName: Master) && response.Count == 1)
+                .Done(async c =>
+                {
+                    var result = await TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/", instanceName: Master);
+                    response = result;
+                    return result && response.Count == 1;
+                })
                 .Run(TimeSpan.FromSeconds(40));
 
             var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
@@ -115,8 +120,6 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }

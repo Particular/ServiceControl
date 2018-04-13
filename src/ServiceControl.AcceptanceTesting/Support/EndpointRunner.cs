@@ -87,7 +87,7 @@
                                     continue;
                                 }
 
-                                if (when.ExecuteAction(scenarioContext, bus))
+                                if (await when.ExecuteAction(scenarioContext, bus).ConfigureAwait(false))
                                 {
                                     executedWhens.Add(when.Id);
                                 }

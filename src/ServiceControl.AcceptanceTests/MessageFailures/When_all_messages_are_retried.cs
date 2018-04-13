@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
@@ -13,20 +14,20 @@
     public class When_all_messages_are_retried : AcceptanceTest
     {
         [Test]
-        public void Only_unresolved_issues_should_be_retried()
+        public async Task Only_unresolved_issues_should_be_retried()
         {
             var context = new MyContext();
 
             FailedMessage messageToBeRetriedAsPartOfRetryAll = null;
             FailedMessage messageToBeArchived = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
                     bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
                     bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (c.MessageToBeRetriedAsPartOfRetryAllId == null || c.MessageToBeArchivedId == null)
                     {
@@ -36,12 +37,14 @@
                     //First we are going to issue an archive to one of the messages
                     if (!c.ArchiveIssued)
                     {
-                        if (!TryGet("/api/errors/" + c.MessageToBeArchivedId, out messageToBeArchived, e => e.Status == FailedMessageStatus.Unresolved))
+                        var result = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Unresolved);
+                        messageToBeArchived = result;
+                        if (!result)
                         {
                             return false;
                         }
 
-                        Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
+                        await Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
 
                         c.ArchiveIssued = true;
 
@@ -52,29 +55,30 @@
                     if (!c.RetryAllIssued)
                     {
                         // Ensure message is being retried
-                        if (!TryGet("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, out messageToBeRetriedAsPartOfRetryAll, e => e.Status == FailedMessageStatus.Unresolved))
+                        var unresolvedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Unresolved);
+                        messageToBeRetriedAsPartOfRetryAll = unresolvedResult;
+                        if (!unresolvedResult)
                         {
                             return false;
                         }
 
                         c.RetryAllIssued = true;
 
-                        Post<object>("/api/errors/retry/all");
+                        await Post<object>("/api/errors/retry/all");
 
                         return false;
                     }
 
-                    if (!TryGet("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, out messageToBeRetriedAsPartOfRetryAll, e => e.Status == FailedMessageStatus.Resolved))
+                    var resolvedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Resolved);
+                    messageToBeRetriedAsPartOfRetryAll = resolvedResult;
+                    if (!resolvedResult)
                     {
                         return false;
                     }
 
-                    if (!TryGet("/api/errors/" + c.MessageToBeArchivedId, out messageToBeArchived, e => e.Status == FailedMessageStatus.Archived))
-                    {
-                        return false;
-                    }
-
-                    return true;
+                    var archivedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Archived);
+                    messageToBeArchived = archivedResult;
+                    return archivedResult;
                 })
                 .Run(TimeSpan.FromMinutes(3));
 

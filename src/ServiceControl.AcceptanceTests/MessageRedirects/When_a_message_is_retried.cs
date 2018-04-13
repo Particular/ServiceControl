@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -15,31 +16,29 @@
     class When_a_message_is_retried_with_a_redirect : AcceptanceTest
     {
         [Test]
-        public void It_should_be_sent_to_the_correct_endpoint()
+        public async Task It_should_be_sent_to_the_correct_endpoint()
         {
-            FailedMessage failedMessage;
-
-            var context = Define<Context>()
+            var context = await Define<Context>()
                 .WithEndpoint<FromEndpoint>(b => b.Given(bus =>
                 {
                     bus.SendLocal(new MessageToRetry());
-                }).When(ctx =>
+                }).When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
                         return false;
                     }
 
-                    return TryGet($"/api/errors/{ctx.UniqueMessageId}", out failedMessage);
-                }, (bus, ctx) =>
+                    return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                }, async (bus, ctx) =>
                 {
-                    Post("/api/redirects", new RedirectRequest
+                    await Post("/api/redirects", new RedirectRequest
                     {
                         fromphysicaladdress = ctx.FromAddress,
                         tophysicaladdress = ctx.ToAddress
                     }, status => status != HttpStatusCode.Created);
 
-                    Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                 }))
                 .WithEndpoint<ToNewEndpoint>()
                 .Done(ctx => ctx.Received)

@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,7 +13,7 @@
     class Is_System_Message_Tests: AcceptanceTest
     {
         [Test]
-        public void Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
+        public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
         {
             var context = new SystemMessageTestContext
             {
@@ -22,16 +23,22 @@
             };
 
             FailedMessageView failure = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
+
             Assert.IsNotNull(failure);
             Assert.IsFalse(failure.IsSystemMessage);
         }
 
         [Test]
-        public void Should_set_the_IsSystemMessage_when_message_type_is_a_scheduled_task()
+        public async Task Should_set_the_IsSystemMessage_when_message_type_is_a_scheduled_task()
         {
             var context = new SystemMessageTestContext
             {
@@ -41,16 +48,21 @@
             };
 
             FailedMessageView failure = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
             Assert.IsNotNull(failure);
             Assert.IsTrue(failure.IsSystemMessage);
         }
 
         [Test]
-        public void Should_set_the_IsSystemMessage_when_control_message_header_is_true()
+        public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_true()
         {
             var context = new SystemMessageTestContext
             {
@@ -61,16 +73,21 @@
             };
 
             FailedMessageView failure = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
             Assert.IsNotNull(failure);
             Assert.IsTrue(failure.IsSystemMessage);
         }
 
         [Test]
-        public void Should_set_the_IsSystemMessage_when_control_message_header_is_null()
+        public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_null()
         {
             var context = new SystemMessageTestContext
             {
@@ -81,16 +98,22 @@
             };
 
             FailedMessageView failure = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
+
             Assert.IsNotNull(failure);
             Assert.IsTrue(failure.IsSystemMessage);
         }
 
         [Test]
-        public void Should_set_the_IsSystemMessage_for_integration_scenario()
+        public async Task Should_set_the_IsSystemMessage_for_integration_scenario()
         {
             var context = new SystemMessageTestContext
             {
@@ -100,9 +123,14 @@
             };
 
             FailedMessageView failure = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ServerEndpoint>()
-                .Done(c => TryGetSingle("/api/errors", out failure, r => r.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
             Assert.IsNotNull(failure);
             Assert.IsFalse(failure.IsSystemMessage);

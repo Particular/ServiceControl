@@ -3,6 +3,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
     using System;
     using System.Collections.Generic;
     using System.Net;
+    using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
@@ -10,7 +11,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
     public class When_a_redirect_is_changed : AcceptanceTest
     {
         [Test]
-        public void Should_be_successfully_updated()
+        public async Task Should_be_successfully_updated()
         {
             var redirect = new RedirectRequest
             {
@@ -22,24 +23,24 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             const string newTo = "endpointC@machine3";
 
-            List<MessageRedirectFromJson> response;
-
             var context = new Context();
 
             Define(context);
 
-            Post("/api/redirects", redirect);
+            await Post("/api/redirects", redirect);
 
-            TryGetMany("/api/redirects", out response);
+            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            List<MessageRedirectFromJson> response = result;
 
             context.CreatedAt = response[0].last_modified;
 
-            Put($"/api/redirects/{messageRedirectId}/", new
+            await Put($"/api/redirects/{messageRedirectId}/", new
             {
                 tophysicaladdress = newTo
             }, status => status != HttpStatusCode.NoContent);
 
-            TryGetMany("/api/redirects", out response);
+            result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            response = result;
 
             Assert.AreEqual(1, response.Count, "Expected only 1 redirect");
             Assert.AreEqual(messageRedirectId, response[0].message_redirect_id, "Message Redirect Id mismatch");
@@ -49,7 +50,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
         }
 
         [Test]
-        public void Should_fail_validation_with_blank_tophysicaladdress()
+        public async Task Should_fail_validation_with_blank_tophysicaladdress()
         {
             var redirect = new RedirectRequest
             {
@@ -61,29 +62,29 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             Define<Context>();
 
-            Post("/api/redirects", redirect);
+            await Post("/api/redirects", redirect);
 
-            Put($"/api/redirects/{messageRedirectId}/", new
+            await Put($"/api/redirects/{messageRedirectId}/", new
             {
                 tophysicaladdress = string.Empty
             }, status => status != HttpStatusCode.BadRequest);
         }
 
         [Test]
-        public void Should_return_not_found_if_it_does_not_exist()
+        public async Task Should_return_not_found_if_it_does_not_exist()
         {
             const string newTo = "endpointC@machine3";
 
             Define<Context>();
 
-            Put($"/api/redirects/{Guid.Empty}/", new
+            await Put($"/api/redirects/{Guid.Empty}/", new
             {
                 tophysicaladdress = newTo
             }, status => status != HttpStatusCode.NotFound);
         }
 
         [Test]
-        public void Should_return_conflict_when_it_will_create_a_dependency()
+        public async Task Should_return_conflict_when_it_will_create_a_dependency()
         {
             var updateRedirect = new RedirectRequest
             {
@@ -101,11 +102,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             Define<Context>();
 
-            Post("/api/redirects", updateRedirect);
+            await Post("/api/redirects", updateRedirect);
 
-            Post("/api/redirects", conflictRedirect);
+            await Post("/api/redirects", conflictRedirect);
 
-            Put($"/api/redirects/{messageRedirectId}/", new
+            await Put($"/api/redirects/{messageRedirectId}/", new
             {
                 tophysicaladdress = conflictRedirect.fromphysicaladdress
             }, status => status != HttpStatusCode.Conflict);

@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -14,14 +15,20 @@
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
 
         [Test]
-        public void Should_not_be_monitored()
+        public async Task Should_not_be_monitored()
         {
             var context = new MyContext();
             List<EndpointsView> endpoints = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<StartingEndpoint>()
-                .Done(c => TryGetMany("/api/endpoints/", out endpoints, e => e.Name == EndpointName))
+                .Done(async c =>
+                {
+                    
+                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
+                    endpoints = result;
+                    return result;
+                })
                 .Run();
 
             var myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);

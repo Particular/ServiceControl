@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -13,19 +14,24 @@
     public class When_message_successfully_processed : AcceptanceTest
     {
         [Test]
-        public void Should_list_the_endpoint_in_the_list_of_known_endpoints()
+        public async Task Should_list_the_endpoint_in_the_list_of_known_endpoints()
         {
             var context = new MyContext();
 
             List<EndpointsView> knownEndpoints = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c => TryGetMany("/api/endpoints", out knownEndpoints, m => m.Name == context.EndpointNameOfReceivingEndpoint))
+                .Done(async c =>
+                {
+                    var result = await TryGetMany<EndpointsView>("/api/endpoints", m => m.Name == context.EndpointNameOfReceivingEndpoint);
+                    knownEndpoints = result;
+                    return result;
+                })
                 .Run(TimeSpan.FromSeconds(20));
 
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Name);

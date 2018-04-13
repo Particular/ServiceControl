@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,22 +13,22 @@
     public class When_a_message_is_imported_twice : AcceptanceTest
     {
         [Test]
-        public void Should_register_a_new_endpoint()
+        public async Task Should_register_a_new_endpoint()
         {
             var context = new MyContext();
-            EndpointsView auditedMessage = null;
+            EndpointsView endpoint = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c =>
+                .Done(async c =>
                 {
-                    if (
-                        !TryGetSingle("/api/endpoints", out auditedMessage,
-                            m => m.Name == c.EndpointNameOfSendingEndpoint))
+                    var result = await TryGetSingle<EndpointsView>("/api/endpoints", m => m.Name == c.EndpointNameOfSendingEndpoint);
+                    endpoint = result;
+                    if (!result)
                     {
                         return false;
                     }
@@ -37,7 +38,7 @@
                 })
                 .Run(TimeSpan.FromSeconds(30));
 
-            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, auditedMessage.Name);
+            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, endpoint.Name);
         }
 
         public class Sender : EndpointConfigurationBuilder
