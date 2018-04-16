@@ -40,6 +40,31 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         }
 
         [Test]
+        public async Task TimeSent_should_not_be_casted()
+        {
+            FailedMessageView failure = null;
+
+            var sentTime = DateTime.Parse("2014-11-11 02:26:58:000462 Z");
+            var context = new MyContext
+            {
+                TimeSent = sentTime
+            };
+
+            await Define(context)
+                .WithEndpoint<FailureEndpoint>()
+                .Done(async c =>
+                {
+                    var result = await TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
+                    failure = result;
+                    return c.UniqueMessageId != null & result;
+                })
+                .Run();
+
+            Assert.IsNotNull(failure);
+            Assert.AreEqual(sentTime, failure.TimeSent);
+        }
+
+        [Test]
         public async Task Should_be_able_to_get_the_message_by_id()
         {
             FailedMessageView failure = null;
@@ -98,6 +123,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                     transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
                     transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
 
+                    if (context.TimeSent.HasValue)
+                    {
+                        transportMessage.Headers["NServiceBus.TimeSent"] = DateTimeExtensions.ToWireFormattedString(context.TimeSent.Value);
+                    }
+
                     sendMessages.Send(transportMessage, new SendOptions("error"));
                 }
 
@@ -115,6 +145,8 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
             public string UniqueMessageId { get; set; }
+
+            public DateTime? TimeSent { get; set; }
         }
     }
 }
