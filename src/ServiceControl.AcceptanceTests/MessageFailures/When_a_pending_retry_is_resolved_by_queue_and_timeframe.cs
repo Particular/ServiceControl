@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -53,9 +54,16 @@
                         return false;
                     }
 
+                    //We can't just return true here because the index might not have been updated yet.
+                    //Following code ensures that the failed message index contains the message
                     if (failedMessage.Status == FailedMessageStatus.RetryIssued)
                     {
-                        return true;
+                        var failedMessagesResult = await TryGet<FailedMessage[]>("/api/errors");
+                        FailedMessage[] failedMessages = failedMessagesResult;
+                        if (failedMessagesResult)
+                        {
+                            return failedMessages.Any(fm => fm.Id == ctx.UniqueMessageId);
+                        }
                     }
 
                     return false;
