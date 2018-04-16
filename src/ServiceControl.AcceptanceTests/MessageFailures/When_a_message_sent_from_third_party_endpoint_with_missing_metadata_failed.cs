@@ -4,7 +4,6 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -45,7 +44,6 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             FailedMessageView failure = null;
 
-            
             var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
             var context = new MyContext
             {
