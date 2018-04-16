@@ -63,7 +63,7 @@
 
                     RavenQueryStatistics stats;
                     var results = await session.Advanced
-                        .AsyncLuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                        .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .AndAlso()
