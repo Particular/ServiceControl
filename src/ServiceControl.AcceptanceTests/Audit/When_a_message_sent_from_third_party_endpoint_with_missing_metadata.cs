@@ -3,6 +3,7 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -15,7 +16,7 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
     public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata : AcceptanceTest
     {
         [Test]
-        public void Null_TimeSent_should_not_be_cast_to_DateTimeMin()
+        public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()
         {
             MessagesView auditedMessage = null;
             var context = new MyContext
@@ -23,9 +24,14 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                 MessageId = Guid.NewGuid().ToString()
             };
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ThirdPartyEndpoint>()
-                .Done(c => TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    auditedMessage = result;
+                    return result;
+                })
                 .Run();
 
             Assert.IsNotNull(auditedMessage);

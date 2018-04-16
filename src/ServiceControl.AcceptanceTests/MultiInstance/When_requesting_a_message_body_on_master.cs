@@ -5,12 +5,10 @@
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
-    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -38,38 +36,33 @@
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;
             
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<RemoteEndpoint>(b => b.Given(bus =>
                 {
                     context.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);
                     bus.SendLocal(new MyMessage());
                 }))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (string.IsNullOrWhiteSpace(context.Remote1MessageId))
                     {
-                        Thread.Sleep(500);
                         return false;
                     }
 
                     if (!c.Remote1MessageAudited)
                     {
-                        List<MessagesView> messages;
-                        if (!TryGetMany("/api/messages", out messages, msg => msg.MessageId == c.Remote1MessageId, Master))
+                        var result = await TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.Remote1MessageId, Master);
+                        List<MessagesView> messages = result;
+                        if (!result)
                         {
-                            Thread.Sleep(500);
                             return false;
                         }
                         c.Remote1MessageAudited = true;
                         capturedMessage = messages.Single(msg => msg.MessageId == c.Remote1MessageId);
                     }
 
-                    response = GetRaw($"/api/{capturedMessage.BodyUrl}", Master).GetAwaiter().GetResult();
+                    response = await GetRaw($"/api/{capturedMessage.BodyUrl}", Master);
                     Console.WriteLine($"GetRaw for {c.Remote1MessageId} resulted in {response.StatusCode}");
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        Thread.Sleep(1000);
-                    }
                     return response.StatusCode == HttpStatusCode.OK;
                 })
                 .Run(TimeSpan.FromMinutes(2));
@@ -152,13 +145,9 @@
 
                 public IBus Bus { get; set; }
 
-                public ReadOnlySettings Settings { get; set; }
-
                 public void Handle(MyMessage message)
                 {
                     Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }

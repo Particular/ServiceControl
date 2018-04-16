@@ -35,7 +35,7 @@
         }
 
         [Test]
-        public void The_import_should_support_it()
+        public async Task The_import_should_support_it()
         {
             var context = new MyContext();
             SetSettings = settings =>
@@ -49,20 +49,22 @@
             };
 
             FailedMessage failure = null;
-            Define(context)
+            await Define(context)
                 .WithEndpoint<SourceEndpoint>()
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (c.UniqueId == null)
                     {
                         return false;
                     }
 
-                    return c.CriticalErrorExecuted || TryGet($"/api/errors/{c.UniqueId}", out failure, m =>
+                    var result = await TryGet<FailedMessage>($"/api/errors/{c.UniqueId}", m =>
                     {
                         Console.WriteLine("Processing attempts: " + m.ProcessingAttempts.Count);
                         return m.ProcessingAttempts.Count == 10;
                     });
+                    failure = result;
+                    return c.CriticalErrorExecuted || result;
                 })
                 .Run();
 

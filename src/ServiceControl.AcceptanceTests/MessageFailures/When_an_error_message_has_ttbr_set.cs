@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Error
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
@@ -12,7 +13,7 @@
     class When_an_error_message_has_ttbr_set : AcceptanceTest
     {
         [Test]
-        public void Ttbr_is_stripped_before_being_forwarded_to_error_queue()
+        public async Task Ttbr_is_stripped_before_being_forwarded_to_error_queue()
         {
             var context = new MyContext();
             SetSettings = settings =>
@@ -21,7 +22,7 @@
                 settings.ForwardErrorMessages = true;
             };
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<SourceEndpoint>()
                 .WithEndpoint<LogPeekEndpoint>()
                 .Done(c => c.Done)

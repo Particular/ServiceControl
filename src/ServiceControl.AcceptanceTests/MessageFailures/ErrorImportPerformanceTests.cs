@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
@@ -14,32 +13,30 @@
     public class ErrorImportPerformanceTests : AcceptanceTest
     {
         [Test]
-        public void Should_import_all_messages()
+        public async Task Should_import_all_messages()
         {
             var context = new MyContext();
 
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
                     Parallel.For(0, 100, i =>
                         bus.SendLocal(new MyMessage())
                     );
                 }))
-                .Done(c =>
+                .Done(async c =>
                 {
-                    List<MessagesView> messages;
-
-                    if (!TryGetMany("/api/messages?per_page=150", out messages))
+                    var result = await TryGetMany<MessagesView>("/api/messages?per_page=150");
+                    if (!result)
                     {
                         return false;
                     }
 
+                    List<MessagesView> messages = result;
                     if (messages.Count < 100)
                     {
                         Console.Out.WriteLine("Messages found: " + messages.Count);
-
-                        Thread.Sleep(1000);
                     }
 
                     return messages.Count >= 100;

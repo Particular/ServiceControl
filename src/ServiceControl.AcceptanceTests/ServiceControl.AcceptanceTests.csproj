@@ -206,6 +206,12 @@
     <Compile Include="Audit\Audit_Messages_That_Big_Bodies_Audit_Test.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Audit\When_message_successfully_processed.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_debugsession.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_messageBody.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_messageid.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_messagetype.cs" />
+    <Compile Include="Audit\When_processed_message_searched_by_msgid_for_endpoint.cs" />
     <Compile Include="Contexts\DefaultServerWithoutAudit.cs" />
     <Compile Include="Audit\When_a_message_sent_from_third_party_endpoint_with_missing_metadata.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
@@ -234,12 +240,17 @@
     <Compile Include="MessageFailures\Is_System_Message_Tests.cs" />
     <Compile Include="MessageFailures\When_all_messages_are_retried.cs" />
     <Compile Include="MessageFailures\When_an_event_with_multiple_subscribers_fails.cs" />
+    <Compile Include="MessageFailures\When_a_failed_message_is_pending_retry.cs" />
+    <Compile Include="MessageFailures\When_a_pending_retry_is_resolved_by_queue_and_timeframe.cs" />
+    <Compile Include="MessageFailures\When_a_pending_retry_is_resolved_by_timeframe.cs" />
+    <Compile Include="MessageFailures\When_a_pending_retry_is_retried_again.cs" />
     <Compile Include="MessageFailures\When_a_multiple_error_message_with_same_uniqueid_are_imported_concurrently.cs" />
     <Compile Include="MessageFailures\When_an_error_message_has_ttbr_set.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
     <Compile Include="MessageFailures\When_a_invalid_id_is_sent_to_retry.cs" />
-    <Compile Include="MessageFailures\When_a_retry_has_been_sent.cs" />
+    <Compile Include="MessageFailures\When_a_pending_retry_is_retried_by_queue_and_timeframe.cs" />
+    <Compile Include="MessageFailures\When_a_pending_retry_is_resolved_by_selection.cs" />
     <Compile Include="MessageFailures\When_a_SagaComplete_message_fails.cs" />
     <Compile Include="MessageFailures\When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed.cs" />
     <Compile Include="MessageFailures\When_a_retry_fails_to_be_sent.cs" />
@@ -260,9 +271,15 @@
     <Compile Include="MultiInstance\When_a_message_retry_audit_is_sent_to_a_remote_instance.cs" />
     <Compile Include="MultiInstance\When_endpoint_detected_via_audits_on_slave.cs" />
     <Compile Include="MultiInstance\When_issuing_retry_on_master.cs" />
+    <Compile Include="MultiInstance\When_processed_message_multi_instance_by_messages.cs" />
+    <Compile Include="MultiInstance\When_processed_message_multi_instance_searched_by_messagetype.cs" />
+    <Compile Include="MultiInstance\When_processed_message_multi_instance_searched_by_messageid.cs" />
+    <Compile Include="MultiInstance\When_processed_message_multi_instance_searched_by_conversationId.cs" />
+    <Compile Include="MultiInstance\When_proessed_message_multi_instance_endpoint_by_messages.cs" />
+    <Compile Include="MultiInstance\When_processed_message_multi_instance_endpoint_by_messagetype.cs" />
     <Compile Include="MultiInstance\When_multiple_messages_are_emitted_by_a_saga.cs" />
     <Compile Include="MultiInstance\When_remote_instance_is_not_reachable.cs" />
-    <Compile Include="MultiInstance\When_messages_have_been_successfully_processed_by_multiple_instances.cs" />
+    <Compile Include="MultiInstance\When_processed_message_multi_instance_endpoint_processing.cs" />
     <Compile Include="MultiInstance\When_requesting_a_message_body_on_master.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_retried.cs" />
     <Compile Include="Recoverability\Groups\When_a_group_is_archived.cs" />
@@ -275,6 +292,7 @@
     <Compile Include="Recoverability\When_a_message_is_retried_and_succeeds_with_a_reply.cs" />
     <Compile Include="Recoverability\When_a_message_is_retried_with_a_replyTo_header.cs" />
     <Compile Include="Recoverability\When_a_message_without_a_correlationid_header_is_retried.cs" />
+    <Compile Include="ManyResult.cs" />
     <Compile Include="SagaAudit\When_multiple_messages_are_emitted_by_a_saga.cs" />
     <Compile Include="SagaAudit\When_a_message_emitted_by_a_saga_is_audited.cs" />
     <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_not_a_start_message.cs" />
@@ -286,11 +304,12 @@
     <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_audited.cs" />
     <Compile Include="SessionCopBehavior.cs" />
     <Compile Include="SignalRHttpClient.cs" />
+    <Compile Include="SingleResult.cs" />
     <Compile Include="SubscriptionBehavior.cs" />
     <Compile Include="TraceIncomingBehavior.cs" />
     <Compile Include="TraceOutgoingBehavior.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
-    <Compile Include="Audit\When_a_message_has_been_successfully_processed.cs" />
+    <Compile Include="Audit\When_processed_message_is_imported.cs" />
     <Compile Include="AcceptanceTest.cs" />
   </ItemGroup>
   <ItemGroup>

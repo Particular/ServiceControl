@@ -12,12 +12,6 @@
             configuration.EndpointMappings = new Dictionary<Type, Type>();
         }
 
-        public EndpointConfigurationBuilder AuditTo<T>()
-        {
-            configuration.AuditEndpoint = typeof(T);
-            return this;
-        }
-
         public EndpointConfigurationBuilder AuditTo(Address addressOfAuditQueue)
         {
             configuration.AddressOfAuditQueue = addressOfAuditQueue;
@@ -27,20 +21,6 @@
         public EndpointConfigurationBuilder ErrorTo(Address addressOfErrorQueue)
         {
             configuration.AddressOfErrorQueue = addressOfErrorQueue;
-            return this;
-        }
-
-        public EndpointConfigurationBuilder CustomMachineName(string customMachineName)
-        {
-            configuration.CustomMachineName = customMachineName;
-
-            return this;
-        }
-
-        public EndpointConfigurationBuilder CustomEndpointName(string customEndpointName)
-        {
-            configuration.CustomEndpointName = customEndpointName;
-
             return this;
         }
 
@@ -98,30 +78,9 @@
             return this;
         }
 
-        public EndpointConfigurationBuilder ExcludeType<T>()
-        {
-            configuration.TypesToExclude.Add(typeof(T));
-
-            return this;
-        }
-
-        public EndpointConfigurationBuilder IncludeType<T>()
-        {
-            configuration.TypesToInclude.Add(typeof(T));
-
-            return this;
-        }
-
         public EndpointConfigurationBuilder IncludeAssembly(Assembly assembly)
         {
             configuration.TypesToInclude.AddRange(assembly.GetTypes());
-
-            return this;
-        }
-
-        public EndpointConfigurationBuilder SendOnly()
-        {
-            configuration.SendOnly = true;
 
             return this;
         }

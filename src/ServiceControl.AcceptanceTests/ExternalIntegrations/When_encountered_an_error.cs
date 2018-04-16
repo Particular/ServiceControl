@@ -2,6 +2,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -22,7 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     public class When_encountered_an_error : AcceptanceTest
     {
         [Test]
-        public void Dispatched_thread_is_restarted()
+        public async Task Dispatched_thread_is_restarted()
         {
             var context = new MyContext();
 
@@ -52,7 +53,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
             }));
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
                     bus.Subscribe<HeartbeatStopped>();

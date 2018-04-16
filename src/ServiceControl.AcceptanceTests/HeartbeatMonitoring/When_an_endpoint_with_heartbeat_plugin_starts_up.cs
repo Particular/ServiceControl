@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -15,14 +16,19 @@
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
 
         [Test]
-        public void Should_be_monitored_and_active()
+        public async Task Should_be_monitored_and_active()
         {
             var context = new MyContext();
             List<EndpointsView> endpoints = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<StartingEndpoint>()
-                .Done(c => TryGetMany("/api/endpoints/", out endpoints, e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats))
+                .Done(async c =>
+                {
+                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
+                    endpoints = result;
+                    return result;
+                })
                 .Run();
 
             var myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);

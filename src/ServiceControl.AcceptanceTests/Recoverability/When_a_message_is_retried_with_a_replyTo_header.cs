@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
@@ -16,23 +17,21 @@
     {
         // TODO: Add these transports back if/when then are updated to match this behavior
         [Test, IgnoreTransports("AzureServiceBus", "AzureStorageQueues", "RabbitMq")]
-        public void The_header_should_not_be_changed()
+        public async Task The_header_should_not_be_changed()
         {
             var context = new ReplyToContext
             {
                 ReplyToAddress = "ReplyToAddress@SOMEMACHINE"
             };
 
-            List<FailedMessageView> failedMessages;
-
-            Define(context)
+            await Define(context)
                 .WithEndpoint<VerifyHeaderEndpoint>()
-                .Done(x =>
+                .Done(async x =>
                 {
-                    if (!x.RetryIssued && TryGetMany("/api/errors", out failedMessages))
+                    if (!x.RetryIssued && await TryGetMany<FailedMessageView>("/api/errors"))
                     {
                         x.RetryIssued = true;
-                        Post<object>("/api/errors/retry/all");
+                        await Post<object>("/api/errors/retry/all");
                     }
 
                     return x.Done;

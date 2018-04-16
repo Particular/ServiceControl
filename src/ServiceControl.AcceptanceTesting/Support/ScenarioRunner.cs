@@ -1,7 +1,6 @@
 ﻿namespace NServiceBus.AcceptanceTesting.Support
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -13,96 +12,38 @@
 
     public class ScenarioRunner
     {
-        public static IEnumerable<RunSummary> Run(IList<RunDescriptor> runDescriptors, IList<EndpointBehavior> behaviorDescriptors, IList<IScenarioVerification> shoulds, Func<ScenarioContext, bool> done, int limitTestParallelismTo, Action<RunSummary> reports, Func<Exception, bool> allowedExceptions)
+        public static async Task Run(RunDescriptor runDescriptor, IList<EndpointBehavior> behaviorDescriptors, Func<ScenarioContext, Task<bool>> done)
         {
-            var totalRuns = runDescriptors.Count();
+            Console.Out.WriteLine($"{runDescriptor.Key} - Started @ {DateTime.Now}");
 
-            var cts = new CancellationTokenSource();
+            var runResult = await PerformTestRun(behaviorDescriptors, runDescriptor, done)
+                .ConfigureAwait(false);
 
-            var po = new ParallelOptions
+            Console.Out.WriteLine($"{runDescriptor.Key} - Finished @ {DateTime.Now}");
+
+            var result = new RunSummary
             {
-                CancellationToken = cts.Token
+                Result = runResult,
+                RunDescriptor = runDescriptor,
+                Endpoints = behaviorDescriptors
             };
 
-            var maxParallelismSetting = Environment.GetEnvironmentVariable("max_test_parallelism");
-            int maxParallelism;
-            if (int.TryParse(maxParallelismSetting, out maxParallelism))
+            DisplayRunResult(result);
+
+            if (result.Result.Failed)
             {
-                Console.Out.WriteLine($"Parallelism limited to: {maxParallelism}");
-
-                po.MaxDegreeOfParallelism = maxParallelism;
+                throw new Exception("Test run failed due to one or more exception", result.Result.Exception);
             }
-
-            if (limitTestParallelismTo > 0)
-                po.MaxDegreeOfParallelism = limitTestParallelismTo;
-
-            var results = new ConcurrentBag<RunSummary>();
-
-            try
-            {
-                Parallel.ForEach(runDescriptors, po, runDescriptor =>
-                {
-                    if (po.CancellationToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
-                    Console.Out.WriteLine($"{runDescriptor.Key} - Started @ {DateTime.Now}");
-
-                    var runResult = PerformTestRun(behaviorDescriptors, shoulds, runDescriptor, done, allowedExceptions);
-
-                    Console.Out.WriteLine($"{runDescriptor.Key} - Finished @ {DateTime.Now}");
-
-                    results.Add(new RunSummary
-                    {
-                        Result = runResult,
-                        RunDescriptor = runDescriptor,
-                        Endpoints = behaviorDescriptors
-                    });
-
-                    if (runResult.Failed)
-                    {
-                        cts.Cancel();
-                    }
-                });
-            }
-            catch (OperationCanceledException)
-            {
-                Console.Out.WriteLine("Test run aborted due to test failures");
-            }
-
-            var failedRuns = results.Where(s => s.Result.Failed).ToList();
-
-            foreach (var runSummary in failedRuns)
-            {
-                DisplayRunResult(runSummary, totalRuns);
-            }
-
-            if (failedRuns.Any())
-                throw new AggregateException("Test run failed due to one or more exception", failedRuns.Select(f => f.Result.Exception));
-
-            foreach (var runSummary in results.Where(s => !s.Result.Failed))
-            {
-                DisplayRunResult(runSummary, totalRuns);
-
-                reports?.Invoke(runSummary);
-            }
-
-            return results;
         }
 
-        static void DisplayRunResult(RunSummary summary, int totalRuns)
+        static void DisplayRunResult(RunSummary summary)
         {
             var runDescriptor = summary.RunDescriptor;
             var runResult = summary.Result;
 
             Console.Out.WriteLine("------------------------------------------------------");
             Console.Out.WriteLine($"Test summary for: {runDescriptor.Key}");
-            if (totalRuns > 1)
-                Console.Out.WriteLine($" - Permutation: {runDescriptor.Permutation}({totalRuns})");
             Console.Out.WriteLine(String.Empty);
-
-            PrintSettings(runDescriptor.Settings);
 
             Console.WriteLine(String.Empty);
             Console.WriteLine("Endpoints:");
@@ -133,7 +74,7 @@
             Console.Out.WriteLine("------------------------------------------------------");
         }
 
-        static RunResult PerformTestRun(IList<EndpointBehavior> behaviorDescriptors, IList<IScenarioVerification> shoulds, RunDescriptor runDescriptor, Func<ScenarioContext, bool> done, Func<Exception, bool> allowedExceptions)
+        static async Task<RunResult> PerformTestRun(IList<EndpointBehavior> behaviorDescriptors, RunDescriptor runDescriptor, Func<ScenarioContext, Task<bool>> done)
         {
             var runResult = new RunResult
             {
@@ -150,28 +91,9 @@
 
                 runResult.ActiveEndpoints = runners.Select(r => r.EndpointName).ToList();
 
-                PerformScenarios(runDescriptor, runners, () =>
-                {
-                    if (!string.IsNullOrEmpty(runDescriptor.ScenarioContext.Exceptions))
-                    {
-                        var ex = new Exception(runDescriptor.ScenarioContext.Exceptions);
-                        if (!allowedExceptions(ex))
-                        {
-                            throw new Exception("Failures in endpoints");
-                        }
-                    }
-                    return done(runDescriptor.ScenarioContext);
-                }).GetAwaiter().GetResult();
+                await PerformScenarios(runDescriptor, runners, () => done(runDescriptor.ScenarioContext)).ConfigureAwait(false);
 
                 runTimer.Stop();
-
-                Parallel.ForEach(runners, runner =>
-                {
-                    foreach (var v in shoulds.Where(s => s.ContextType == runDescriptor.ScenarioContext.GetType()))
-                    {
-                        v.Verify(runDescriptor.ScenarioContext);
-                    }
-                });
             }
             catch (Exception ex)
             {
@@ -207,12 +129,12 @@
             Console.WriteLine();
         }
 
-        static async Task PerformScenarios(RunDescriptor runDescriptor, IEnumerable<ActiveRunner> runners, Func<bool> done)
+        static async Task PerformScenarios(RunDescriptor runDescriptor, IEnumerable<ActiveRunner> runners, Func<Task<bool>> done)
         {
             var endpoints = runners.Select(r => r.Instance).ToList();
             try
             {
-                StartEndpoints(endpoints);
+                await StartEndpoints(endpoints).ConfigureAwait(false);
 
                 runDescriptor.ScenarioContext.EndpointsStarted = true;
 
@@ -220,7 +142,7 @@
                 await ExecuteWhens(maxTime, endpoints).ConfigureAwait(false);
 
                 var startTime = DateTime.UtcNow;
-                while (!done())
+                while (!await done().ConfigureAwait(false))
                 {
                     if (!Debugger.IsAttached)
                     {
@@ -230,12 +152,13 @@
                         }
                     }
 
-                    await Task.Yield();
+                    await Task.Delay(500).ConfigureAwait(false); // slow down to prevent hammering of SC APIs
+                    await Task.Yield(); // yield to give some freedom
                 }
             }
             finally
             {
-                StopEndpoints(endpoints);
+                await StopEndpoints(endpoints).ConfigureAwait(false);
             }
         }
 
@@ -278,9 +201,9 @@
             return sb.ToString();
         }
 
-        static void StartEndpoints(IEnumerable<EndpointRunner> endpoints)
+        static Task StartEndpoints(IEnumerable<EndpointRunner> endpoints)
         {
-            var tasks = endpoints.Select(endpoint => Task.Factory.StartNew(() =>
+            return endpoints.Select(endpoint => Task.Run(() =>
             {
                 var result = endpoint.Start();
 
@@ -288,17 +211,12 @@
                 {
                     throw new ScenarioException("Endpoint failed to start", result.Exception);
                 }
-            })).ToArray();
-
-            if (!Task.WaitAll(tasks, TimeSpan.FromMinutes(2)))
-            {
-                throw new Exception("Starting endpoints took longer than 2 minutes");
-            }
+            })).Timebox(TimeSpan.FromMinutes(2), "Starting endpoints took longer than 2 minutes");
         }
 
-        static void StopEndpoints(IEnumerable<EndpointRunner> endpoints)
+        static Task StopEndpoints(IEnumerable<EndpointRunner> endpoints)
         {
-            var tasks = endpoints.Select(endpoint => Task.Factory.StartNew(() =>
+            return endpoints.Select(endpoint => Task.Run(() =>
             {
                 Console.Out.WriteLine("Stopping endpoint: {0}", endpoint.Name());
                 var sw = new Stopwatch();
@@ -310,10 +228,7 @@
                     throw new ScenarioException("Endpoint failed to stop", result.Exception);
 
                 Console.Out.WriteLine("Endpoint: {0} stopped ({1}s)", endpoint.Name(), sw.Elapsed);
-            })).ToArray();
-
-            if (!Task.WaitAll(tasks, TimeSpan.FromMinutes(2)))
-                throw new Exception("Stopping endpoints took longer than 2 minutes");
+            })).Timebox(TimeSpan.FromMinutes(2), "Stopping endpoints took longer than 2 minutes");
         }
 
         static List<ActiveRunner> InitializeRunners(RunDescriptor runDescriptor, IList<EndpointBehavior> behaviorDescriptors)
@@ -391,5 +306,49 @@
         public RunDescriptor RunDescriptor { get; set; }
 
         public IEnumerable<EndpointBehavior> Endpoints { get; set; }
+    }
+
+    static class TaskExtensions
+    {
+        //this method will not timeout a task if the debugger is attached.
+        public static Task Timebox(this IEnumerable<Task> tasks, TimeSpan timeoutAfter, string messageWhenTimeboxReached)
+        {
+            var taskCompletionSource = new TaskCompletionSource<object>();
+            var tokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(timeoutAfter);
+            var registration = tokenSource.Token.Register(s =>
+            {
+                var tcs = (TaskCompletionSource<object>)s;
+                tcs.TrySetException(new TimeoutException(messageWhenTimeboxReached));
+            }, taskCompletionSource);
+
+            Task.WhenAll(tasks)
+                .ContinueWith((t, s) =>
+                {
+                    var state = (Tuple<TaskCompletionSource<object>, CancellationTokenSource, CancellationTokenRegistration>)s;
+                    var source = state.Item2;
+                    var reg = state.Item3;
+                    var tcs = state.Item1;
+
+                    if (t.IsFaulted && t.Exception != null)
+                    {
+                        tcs.TrySetException(t.Exception.GetBaseException());
+                    }
+
+                    if (t.IsCanceled)
+                    {
+                        tcs.TrySetCanceled();
+                    }
+
+                    if (t.IsCompleted)
+                    {
+                        tcs.TrySetResult(null);
+                    }
+
+                    reg.Dispose();
+                    source.Dispose();
+                }, Tuple.Create(taskCompletionSource, tokenSource, registration), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+            return taskCompletionSource.Task;
+        }
     }
 }

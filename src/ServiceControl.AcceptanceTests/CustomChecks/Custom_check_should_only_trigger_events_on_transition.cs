@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -14,15 +15,20 @@
     public class Custom_check_should_only_trigger_events_on_transition : AcceptanceTest
     {
         [Test]
-        public void Should_result_in_a_custom_check_failed_event()
+        public async Task Should_result_in_a_custom_check_failed_event()
         {
             var context = new MyContext();
 
             EventLogItem entry = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
-                .Done(c => TryGetSingle("/api/eventlogitems/", out entry, e => e.EventType == typeof(CustomCheckFailed).Name))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    entry = result;
+                    return result;
+                })
                 .Run();
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");

@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
@@ -10,7 +11,7 @@
     class When_an_audit_message_has_ttbr_set : AcceptanceTest
     {
         [Test]
-        public void Ttbr_is_stripped_before_being_forwarded_to_audit_queue()
+        public async Task Ttbr_is_stripped_before_being_forwarded_to_audit_queue()
         {
             var context = new MyContext();
             SetSettings = settings =>
@@ -19,7 +20,7 @@
                 settings.AuditLogQueue = Address.Parse("Audit.LogPeekEndpoint");
             };
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<SourceEndpoint>(
                     c => c.Given(bus => bus.SendLocal(new MessageWithTtbr()))
                 )

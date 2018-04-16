@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using Logging;
     using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Support;
     using NServiceBus.Unicast;
     using Transports;
 
@@ -15,7 +14,6 @@
         static ILog Logger = LogManager.GetLogger<EndpointRunner>();
         EndpointBehavior behavior;
         IStartableBus bus;
-        ISendOnlyBus sendOnlyBus;
         EndpointConfiguration configuration;
         ScenarioContext scenarioContext;
         BusConfiguration busConfiguration;
@@ -34,27 +32,15 @@
                         .Get();
                 configuration.EndpointName = endpointName;
 
-                if (!string.IsNullOrEmpty(configuration.CustomMachineName))
-                {
-                    RuntimeEnvironment.MachineNameAction = () => configuration.CustomMachineName;
-                }
-
                 //apply custom config settings
                 busConfiguration = configuration.GetConfiguration(run, routingTable);
 
                 endpointBehavior.CustomConfig.ForEach(customAction => customAction(busConfiguration));
 
-                if (configuration.SendOnly)
-                {
-                    sendOnlyBus = Bus.CreateSendOnly(busConfiguration);
-                }
-                else
-                {
-                    bus = configuration.GetBus() ?? Bus.Create(busConfiguration);
-                    var transportDefinition = ((UnicastBus)bus).Settings.Get<TransportDefinition>();
+                bus = configuration.GetBus() ?? Bus.Create(busConfiguration);
+                var transportDefinition = ((UnicastBus)bus).Settings.Get<TransportDefinition>();
 
-                    scenarioContext.HasNativePubSubSupport = transportDefinition.HasNativePubSubSupport;
-                }
+                scenarioContext.HasNativePubSubSupport = transportDefinition.HasNativePubSubSupport;
 
                 return Result.Success();
             }
@@ -101,9 +87,13 @@
                                     continue;
                                 }
 
-                                if (when.ExecuteAction(scenarioContext, bus))
+                                if (await when.ExecuteAction(scenarioContext, bus).ConfigureAwait(false))
                                 {
                                     executedWhens.Add(when.Id);
+                                }
+                                else
+                                {
+                                    await Task.Delay(100, CancellationToken.None).ConfigureAwait(false);
                                 }
                             }
 
@@ -128,21 +118,10 @@
                 {
                     var action = given.GetAction(scenarioContext);
 
-                    if (configuration.SendOnly)
-                    {
-                        action(new IBusAdapter(sendOnlyBus));
-                    }
-                    else
-                    {
-
-                        action(bus);
-                    }
+                    action(bus);
                 }
 
-                if (!configuration.SendOnly)
-                {
-                    bus.Start();
-                }
+                bus.Start();
 
                 return Result.Success();
             }
@@ -160,20 +139,13 @@
             {
                 stopSource.Cancel();
 
-                if (configuration.SendOnly)
+                if (configuration.StopBus != null)
                 {
-                    sendOnlyBus.Dispose();
+                    configuration.StopBus();
                 }
                 else
                 {
-                    if (configuration.StopBus != null)
-                    {
-                        configuration.StopBus();
-                    }
-                    else
-                    {
-                        bus.Dispose();
-                    }
+                    bus.Dispose();
                 }
 
                 Cleanup();

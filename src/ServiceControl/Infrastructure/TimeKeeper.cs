@@ -19,9 +19,12 @@
         {
             ThrowIfDisposed();
 
-            Timer timer = null;
+            Timer[] timer =
+            {
+                null
+            };
 
-            timer = new Timer(_ =>
+            timer[0] = new Timer(_ =>
             {
                 var reschedule = false;
 
@@ -33,11 +36,13 @@
                 {
                     log.Error("Reoccurring timer task failed.", ex);
                 }
-                if (reschedule && timers.ContainsKey(timer))
+
+                var timerSelf = timer[0];
+                if (reschedule && timers.ContainsKey(timerSelf))
                 {
                     try
                     {
-                        timer.Change(period, Timeout.InfiniteTimeSpan);
+                        timerSelf.Change(period, Timeout.InfiniteTimeSpan);
                     }
                     catch (ObjectDisposedException)
                     {
@@ -46,8 +51,8 @@
                 }
             }, null, dueTime, Timeout.InfiniteTimeSpan);
 
-            timers.TryAdd(timer, null);
-            return timer;
+            timers.TryAdd(timer[0], null);
+            return timer[0];
         }
 
         public Timer NewTimer(Func<bool> callback, TimeSpan dueTime, TimeSpan period)

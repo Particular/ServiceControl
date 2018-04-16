@@ -1,6 +1,7 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -13,19 +14,18 @@ namespace ServiceBus.Management.AcceptanceTests
     public class When_a_message_has_been_successfully_processed_from_sendonly: AcceptanceTest
     {
         [Test]
-        public void Should_import_messages_from_sendonly_endpoint()
+        public async Task Should_import_messages_from_sendonly_endpoint()
         {
             var context = new MyContext
             {
                 MessageId = Guid.NewGuid().ToString()
             };
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<SendOnlyEndpoint>()
-                .Done(c =>
+                .Done(async c =>
                 {
-                    MessagesView auditedMessage;
-                    if (!TryGetSingle("/api/messages?include_system_messages=false&sort=id", out auditedMessage, m => m.MessageId == c.MessageId))
+                    if (!await TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId))
                     {
                         return false;
                     }

@@ -4,6 +4,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
@@ -18,15 +19,20 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     public class When_a_SagaComplete_message_fails : AcceptanceTest
     {
         [Test]
-        public void No_SagaType_Header_Is_Ok()
+        public async Task No_SagaType_Header_Is_Ok()
         {
             FailedMessageView failure = null;
 
             var context = new MyContext();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailureEndpoint>()
-                .Done(c => TryGetSingle("/api/errors/", out failure, m => m.Id == c.UniqueMessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
+                    failure = result;
+                    return result;
+                })
                 .Run();
 
             Assert.IsNotNull(failure);

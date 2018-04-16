@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -15,13 +15,13 @@
     class When_an_event_with_multiple_subscribers_fails : AcceptanceTest
     {
         [Test]
-        public void There_should_be_a_FailedMessage_for_each_subscriber()
+        public async Task There_should_be_a_FailedMessage_for_each_subscriber()
         {
             var context = new FailingEventContext();
 
             var failedMessages = new List<FailedMessageView>();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailingSubscriber1>(behavior => behavior.Given((bus, ctx) =>
                 {
                     bus.Subscribe<SampleEvent>();
@@ -60,14 +60,11 @@
                             ctx => ctx.Subscriber1Subscribed && ctx.Subscriber2Subscribed,
                             bus => bus.Publish<SampleEvent>()
                         )
-                ).Done(ctx =>
+                ).Done(async ctx =>
                 {
-                    if (TryGetMany("/api/errors", out failedMessages) && failedMessages.Sum(x => x.NumberOfProcessingAttempts) >= 2)
-                    {
-                        return true;
-                    }
-                    Thread.Sleep(1000);
-                    return false;
+                    var result = await TryGetMany<FailedMessageView>("/api/errors");
+                    failedMessages = result;
+                    return result && failedMessages.Sum(x => x.NumberOfProcessingAttempts) >= 2;
                 })
                 .Run();
 

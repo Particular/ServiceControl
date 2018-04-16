@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -15,17 +16,21 @@
     {
 
         [Test]
-        public void Saga_audit_trail_should_contain_the_state_change()
+        public async Task Saga_audit_trail_should_contain_the_state_change()
         {
             var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
-                .Done(c =>
-                    c.ReceivedInitiatingMessage &&
-                  //  c.ReceivedEvent &&
-                    TryGet("/api/sagas/" + c.SagaId, out sagaHistory))
+                .Done(async c =>
+                {
+                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
+                    sagaHistory = result;
+                    return c.ReceivedInitiatingMessage &&
+                           //  c.ReceivedEvent &&
+                           result;
+                })
                 .Run();
 
             Assert.NotNull(sagaHistory);

@@ -1,7 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -26,7 +26,7 @@
 
 
         [Test]
-        public void Should_mark_as_resolved_on_master()
+        public async Task Should_mark_as_resolved_on_master()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
@@ -34,18 +34,20 @@
 
             FailedMessage failure;
 
-            Define(context, Remote1, Master)
+            await Define(context, Remote1, Master)
                 .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(c =>
+                .Done(async c =>
                 {
-                    if (!GetFailedMessage(c, out failure))
+                    var result = await GetFailedMessage(c);
+                    failure = result;
+                    if (!result)
                     {
                         return false;
                     }
 
                     if (failure.Status == FailedMessageStatus.Unresolved)
                     {
-                        IssueRetry(c, () => Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
+                        await IssueRetry(c, () => Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
                         return false;
                     }
 
@@ -78,32 +80,22 @@
             }
         }
 
-        bool GetFailedMessage(MyContext c, out FailedMessage failure)
+        Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c)
         {
-            failure = null;
             if (c.MessageId == null)
             {
-                return false;
+                return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            if (!TryGet("/api/errors/" + c.UniqueMessageId, out failure, null, Master))
-            {
-                return false;
-            }
-            return true;
+            return TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, null, Master);
         }
 
-        void IssueRetry(MyContext c, Action retryAction)
+        async Task IssueRetry(MyContext c, Func<Task> retryAction)
         {
-            if (c.RetryIssued)
-            {
-                Thread.Sleep(1000); //todo: add support for a "default" delay when Done() returns false
-            }
-            else
+            if (!c.RetryIssued)
             {
                 c.RetryIssued = true;
-
-                retryAction();
+                await retryAction();
             }
         }
 

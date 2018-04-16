@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Net;
+    using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
@@ -10,7 +11,7 @@
     public class When_a_redirect_is_created : AcceptanceTest
     {
         [Test]
-        public void Should_be_added_and_accessible_via_the_api()
+        public async Task Should_be_added_and_accessible_via_the_api()
         {
             var redirect = new RedirectRequest
             {
@@ -18,14 +19,12 @@
                 tophysicaladdress = "endpointB@machine2"
             };
 
-            List<MessageRedirectFromJson> response;
-
             Define<Context>();
 
-            Post("/api/redirects", redirect);
+            await Post("/api/redirects", redirect);
 
-            TryGetMany("/api/redirects", out response);
-
+            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            List<MessageRedirectFromJson> response = result;
 
             Assert.AreEqual(1, response.Count, "Expected 1 redirect to be created");
             Assert.AreEqual(DeterministicGuid.MakeId(redirect.fromphysicaladdress), response[0].message_redirect_id, "Message Redirect Id mismatch");
@@ -35,7 +34,7 @@
         }
 
         [Test]
-        public void Should_fail_validation_with_blank_fromphysicaladdress()
+        public async Task Should_fail_validation_with_blank_fromphysicaladdress()
         {
             var redirect = new RedirectRequest
             {
@@ -45,11 +44,11 @@
 
             Define<Context>();
 
-            Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
+            await Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
         }
 
         [Test]
-        public void Should_fail_validation_with_blank_tophysicaladdress()
+        public async Task Should_fail_validation_with_blank_tophysicaladdress()
         {
             var redirect = new RedirectRequest
             {
@@ -59,11 +58,11 @@
 
             Define<Context>();
 
-            Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
+            await Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
         }
 
         [Test]
-        public void Should_fail_validation_with_different_tophysicaladdress()
+        public async Task Should_fail_validation_with_different_tophysicaladdress()
         {
             var redirect = new RedirectRequest
             {
@@ -73,15 +72,15 @@
 
             Define<Context>();
 
-            Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
+            await Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
 
             redirect.tophysicaladdress = "endpointC@machine3";
 
-            Post("/api/redirects", redirect, status => status != HttpStatusCode.Conflict);
+            await Post("/api/redirects", redirect, status => status != HttpStatusCode.Conflict);
         }
 
         [Test]
-        public void Should_ignore_exact_copies()
+        public async Task Should_ignore_exact_copies()
         {
             var redirect = new RedirectRequest
             {
@@ -89,22 +88,21 @@
                 tophysicaladdress = "endpointB@machine2"
             };
 
-            List<MessageRedirectFromJson> response;
-
             Define<Context>();
 
-            Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
+            await Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
 
-            Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
+            await Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
 
-            TryGetMany("/api/redirects", out response);
+            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            List<MessageRedirectFromJson> response = result;
 
             Assert.AreEqual(1, response.Count, "Expected only 1 redirect to be created");
         }
 
 
         [Test]
-        public void Should_fail_validation_with_dependent_redirects()
+        public async Task Should_fail_validation_with_dependent_redirects()
         {
             var toAddress = "endpointTo@machineTo";
             var dependentCount = 3;
@@ -120,10 +118,10 @@
                     fromphysicaladdress = $"endpoint{i}@machine{i}",
                     tophysicaladdress = toAddress
                 };
-                Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
+                await Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
             }
 
-            Post("/api/redirects", new RedirectRequest
+            await Post("/api/redirects", new RedirectRequest
             {
                 fromphysicaladdress = toAddress,
                 tophysicaladdress = "endpointX@machineX"

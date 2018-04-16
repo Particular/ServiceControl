@@ -1,8 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Collections.Generic;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -21,19 +20,18 @@
 
 
         [Test]
-        public void Should_not_fail()
+        public async Task Should_not_fail()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
             var context = new MyContext();
-            List<MessagesView> response;
 
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            Define(context, Master)
+            await Define(context, Master)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.SendLocal(new MyMessage()); }))
-                .Done(c => TryGetMany("/api/messages/search/" + searchString, out response, instanceName: Master))
+                .Done(async c => await TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
         }
 
@@ -73,8 +71,6 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }

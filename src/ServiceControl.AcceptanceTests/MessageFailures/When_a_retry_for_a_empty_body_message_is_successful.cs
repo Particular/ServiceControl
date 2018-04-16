@@ -1,7 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Threading;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -17,52 +17,51 @@
     public class When_a_retry_for_a_empty_body_message_is_successful : AcceptanceTest
     {
         [Test]
-        public void Should_show_up_as_resolved_when_doing_a_single_retry()
+        public async Task Should_show_up_as_resolved_when_doing_a_single_retry()
         {
             FailedMessage failure = null;
 
             var context = new MyContext();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailureEndpoint>()
-                .Done(c =>
+                .Done(async c =>
                 {
-                    if (!c.RetryIssued && GetFailedMessage(c, out failure))
+                    var result = await GetFailedMessage(c);
+                    failure = result;
+                    if (!c.RetryIssued && result)
                     {
-                        IssueRetry(c, () => Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
+                        await IssueRetry(c, () => Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
 
                         return false;
                     }
 
-                    return c.Done && GetFailedMessage(c, out failure, x => x.Status == FailedMessageStatus.RetryIssued);
+                    var afterRetryResult = await GetFailedMessage(c, x => x.Status == FailedMessageStatus.Resolved);
+                    failure = afterRetryResult;
+                    return c.Done && afterRetryResult;
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(FailedMessageStatus.RetryIssued, failure.Status);
+            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
         }
 
-        bool GetFailedMessage(MyContext c, out FailedMessage failure, Predicate<FailedMessage> condition = null)
+        async Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, Predicate<FailedMessage> condition = null)
         {
-            failure = null;
-
-            if (String.IsNullOrEmpty(c.UniqueMessageId) || !TryGet("/api/errors/" + c.UniqueMessageId, out failure, condition))
+            var result = await TryGet("/api/errors/" + c.UniqueMessageId, condition);
+            if (string.IsNullOrEmpty(c.UniqueMessageId) || !result)
             {
-                return false;
+                return SingleResult<FailedMessage>.Empty;
             }
-            return true;
+
+            return result;
         }
 
-        void IssueRetry(MyContext c, Action retryAction)
+        async Task IssueRetry(MyContext c, Func<Task> retryAction)
         {
-            if (c.RetryIssued)
-            {
-                Thread.Sleep(1000);
-            }
-            else
+            if (!c.RetryIssued)
             {
                 c.RetryIssued = true;
-
-                retryAction();
+                await retryAction().ConfigureAwait(false);
             }
         }
 

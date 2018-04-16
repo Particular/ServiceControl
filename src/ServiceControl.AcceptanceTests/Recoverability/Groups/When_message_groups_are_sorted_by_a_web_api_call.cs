@@ -2,7 +2,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -21,11 +21,9 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         const string MessageId = "014b048-2b7b-4f94-8eda-d5be0fe50e92";
 
         [Test]
-        public void All_messages_in_group_should_be_sorted_by_time_sent()
+        public async Task All_messages_in_group_should_be_sorted_by_time_sent()
         {
-            List<FailedMessageView> errors;
-
-            SortTest("time_sent", out errors);
+            var errors = await SortTest("time_sent");
 
             Assert.IsTrue(errors[0].MessageId.StartsWith("1"));
             Assert.IsTrue(errors[1].MessageId.StartsWith("2"));
@@ -33,48 +31,46 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         }
 
         [Test]
-        public void All_messages_in_group_should_be_sorted_by_message_type()
+        public async Task All_messages_in_group_should_be_sorted_by_message_type()
         {
-            List<FailedMessageView> errors;
-
-            SortTest("message_type", out errors);
+            var errors = await SortTest("message_type");
 
             Assert.IsTrue(errors[0].MessageId.StartsWith("1"));
             Assert.IsTrue(errors[1].MessageId.StartsWith("2"));
             Assert.IsTrue(errors[2].MessageId.StartsWith("3"));
         }
 
-        void SortTest(string sortProperty, out List<FailedMessageView> errors)
+        async Task<List<FailedMessageView>> SortTest(string sortProperty)
         {
             var context = new MyContext();
 
             List<FailedMessageView> localErrors = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>()
-                .Done(c =>
+                .Done(async c =>
                 {
-                    List<FailedMessage.FailureGroup> groups;
-
-                    if (!TryGetMany("/api/recoverability/groups", out groups))
+                    var result = await TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups");
+                    List<FailedMessage.FailureGroup> groups = result;
+                    if (!result)
                     {
                         return false;
                     }
 
                     if (groups.Count != 1)
                     {
-                        Thread.Sleep(1000);
                         return false;
                     }
 
-                    if (!TryGetMany("/api/recoverability/groups/" + groups[0].Id + "/errors?page=1&direction=asc&sort=" + sortProperty, out localErrors))
+                    var errorResult = await TryGetMany<FailedMessageView>("/api/recoverability/groups/" + groups[0].Id + "/errors?page=1&direction=asc&sort=" + sortProperty);
+                    localErrors = errorResult;
+                    if (!errorResult)
                     {
                         return false;
                     }
 
                     if (localErrors.Count != 3)
                     {
-                        Thread.Sleep(1000);
                         return false;
                     }
 
@@ -82,7 +78,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 })
                 .Run();
 
-            errors = localErrors;
+            return localErrors;
         }
 
         public class Receiver : EndpointConfigurationBuilder

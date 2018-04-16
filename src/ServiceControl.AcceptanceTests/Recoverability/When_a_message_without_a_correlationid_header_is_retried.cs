@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -15,11 +16,11 @@
     public class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
     {
         [Test]
-        public void The_successful_retry_should_succeed()
+        public async Task The_successful_retry_should_succeed()
         {
-            var context = Define<MyContext>()
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
-                .Done(ctx =>
+                .Done(async ctx =>
                 {
                     if (string.IsNullOrWhiteSpace(ctx.UniqueMessageId))
                     {
@@ -28,14 +29,13 @@
 
                     if (!ctx.RetryIssued)
                     {
-                        object _;
-                        if (!TryGet($"/api/errors/{ctx.UniqueMessageId}", out _))
+                        if (!await TryGet<object>($"/api/errors/{ctx.UniqueMessageId}"))
                         {
                             return false;
                         }
 
                         ctx.RetryIssued = true;
-                        Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         return false;
                     }
 

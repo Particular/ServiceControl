@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -15,14 +16,19 @@
     public class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
         [Test]
-        public void All_outgoing_message_intents_should_be_captured()
+        public async Task All_outgoing_message_intents_should_be_captured()
         {
             var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
-                .Done(c => c.Done && TryGet("/api/sagas/" + c.SagaId, out sagaHistory))
+                .Done(async c =>
+                {
+                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
+                    sagaHistory = result;
+                    return c.Done && result;
+                })
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(sagaHistory);

@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
 {
     using System;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,14 +13,19 @@
     {
 
         [Test]
-        public void Info_on_emitted_saga_should_be_available_through_the_http_api()
+        public async Task Info_on_emitted_saga_should_be_available_through_the_http_api()
         {
             var context = new MyContext();
             MessagesView auditedMessage = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
-                .Done(c => TryGetSingle("/api/messages", out auditedMessage, m => m.MessageId == c.MessageId))
+                .Done(async c =>
+                {
+                    var result = await TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
+                    auditedMessage = result;
+                    return result;
+                })
                 .Run(TimeSpan.FromSeconds(40));
 
             Assert.NotNull(auditedMessage.OriginatesFromSaga);

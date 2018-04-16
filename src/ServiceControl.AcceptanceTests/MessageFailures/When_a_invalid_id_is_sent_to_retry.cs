@@ -3,6 +3,7 @@
 namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -15,19 +16,19 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     public class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
     {
         [Test]
-        public void SubsequentBatchesShouldBeProcessed()
+        public async Task SubsequentBatchesShouldBeProcessed()
         {
             var context = new MyContext();
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<FailureEndpoint>(cfg => cfg
-                    .When(bus =>
+                    .When(async bus =>
                     {
                         while (true)
                         {
                             try
                             {
-                                Post<object>("/api/errors/1785201b-5ccd-4705-b14e-f9dd7ef1386e/retry");
+                                await Post<object>("/api/errors/1785201b-5ccd-4705-b14e-f9dd7ef1386e/retry");
                                 break;
                             }
                             catch (InvalidOperationException)
@@ -38,11 +39,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 
                         bus.SendLocal(new MessageThatWillFail());
                     })
-                    .When(ctx =>
-                    {
-                        object failure;
-                        return ctx.IssueRetry && TryGet("/api/errors/" + ctx.UniqueMessageId, out failure);
-                    }, (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
+                    .When(async ctx => ctx.IssueRetry && await TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
                 .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 

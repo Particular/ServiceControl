@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     public class EndpointBehaviorBuilder<TContext> where TContext : ScenarioContext
     {
@@ -35,7 +36,52 @@
             return When(c => true, action);
         }
 
+        public EndpointBehaviorBuilder<TContext> When(Func<IBus, Task> action)
+        {
+            return When(c => true, action);
+        }
+
         public EndpointBehaviorBuilder<TContext> When(Predicate<TContext> condition, Action<IBus> action)
+        {
+            behavior.Whens.Add(new WhenDefinition<TContext>(ctx => Task.FromResult(condition(ctx)), bus =>
+            {
+                action(bus);
+                return Task.FromResult(0);
+            }));
+
+            return this;
+        }
+
+        public EndpointBehaviorBuilder<TContext> When(Func<TContext, Task<bool>> condition, Action<IBus> action)
+        {
+            behavior.Whens.Add(new WhenDefinition<TContext>(condition, bus =>
+            {
+                action(bus);
+                return Task.FromResult(0);
+            }));
+
+            return this;
+        }
+
+        public EndpointBehaviorBuilder<TContext> When(Predicate<TContext> condition, Func<IBus, Task> action)
+        {
+            behavior.Whens.Add(new WhenDefinition<TContext>(ctx => Task.FromResult(condition(ctx)), action));
+
+            return this;
+        }
+
+        public EndpointBehaviorBuilder<TContext> When(Func<TContext, Task<bool>> condition, Action<IBus, TContext> action)
+        {
+            behavior.Whens.Add(new WhenDefinition<TContext>(condition, (bus, ctx) =>
+            {
+                action(bus, ctx);
+                return Task.FromResult(0);
+            }));
+
+            return this;
+        }
+
+        public EndpointBehaviorBuilder<TContext> When(Func<TContext, Task<bool>> condition, Func<IBus, TContext, Task> action)
         {
             behavior.Whens.Add(new WhenDefinition<TContext>(condition, action));
 
@@ -44,7 +90,18 @@
 
         public EndpointBehaviorBuilder<TContext> When(Predicate<TContext> condition, Action<IBus, TContext> action)
         {
-            behavior.Whens.Add(new WhenDefinition<TContext>(condition, action));
+            behavior.Whens.Add(new WhenDefinition<TContext>(ctx => Task.FromResult(condition(ctx)), (bus, ctx) =>
+            {
+                action(bus, ctx);
+                return Task.FromResult(0);
+            }));
+
+            return this;
+        }
+
+        public EndpointBehaviorBuilder<TContext> When(Predicate<TContext> condition, Func<IBus, TContext, Task> action)
+        {
+            behavior.Whens.Add(new WhenDefinition<TContext>(ctx => Task.FromResult(condition(ctx)), action));
 
             return this;
         }

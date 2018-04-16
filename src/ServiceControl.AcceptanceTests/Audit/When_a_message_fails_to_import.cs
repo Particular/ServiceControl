@@ -3,11 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Net;
-    using System.Threading;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
@@ -30,7 +29,7 @@
         }
 
         [Test]
-        public void It_can_be_reimported()
+        public async Task It_can_be_reimported()
         {
             //Make sure the audit import attempt fails
             CustomConfiguration = config =>
@@ -39,16 +38,15 @@
             };
 
             var context = new MyContext();
-            List<MessagesView> response;
             FailedAuditsCountReponse failedAuditsCountReponse;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Sender>(b => b.Given((bus, c) =>
                 {
                     bus.Send(new MyMessage());
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (c.MessageId == null)
                     {
@@ -56,12 +54,14 @@
                     }
                     if (!c.WasReimported)
                     {
-                        if (TryGet("/api/failedaudits/count", out failedAuditsCountReponse))
+                        var result = await TryGet<FailedAuditsCountReponse>("/api/failedaudits/count");
+                        failedAuditsCountReponse = result;
+                        if (result)
                         {
                             if (failedAuditsCountReponse.Count > 0)
                             {
                                 c.FailedImport = true;
-                                Post<object>("/api/failedaudits/import", null, code =>
+                                await Post<object>("/api/failedaudits/import", null, code =>
                                 {
                                     if (code == HttpStatusCode.OK)
                                     {
@@ -74,7 +74,8 @@
                         }
                         return false;
                     }
-                    return TryGetMany("/api/messages/search/" + c.MessageId, out response);
+
+                    return await TryGetMany<MessagesView>("/api/messages/search/" + c.MessageId);
                 })
                 .Run(TimeSpan.FromSeconds(40));
         }
@@ -101,13 +102,9 @@
 
                 public IBus Bus { get; set; }
 
-                public ReadOnlySettings Settings { get; set; }
-
                 public void Handle(MyMessage message)
                 {
                     Context.MessageId = Bus.CurrentMessageContext.Id;
-
-                    Thread.Sleep(200);
                 }
             }
         }

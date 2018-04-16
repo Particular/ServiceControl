@@ -3,6 +3,7 @@
     using System;
     using System.Net.Http;
     using System.Threading;
+    using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -17,14 +18,14 @@
     public class Custom_check_transition_should_trigger_signalr_event : AcceptanceTest
     {
         [Test]
-        public void Should_result_in_a_custom_check_failed_event()
+        public async Task Should_result_in_a_custom_check_failed_event()
         {
             var context = new MyContext
             {
                 Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
             };
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)

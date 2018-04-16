@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -18,7 +19,7 @@
     public class When_two_similar_messages_have_failed : AcceptanceTest
     {
         [Test]
-        public void They_should_be_grouped_together()
+        public async Task They_should_be_grouped_together()
         {
             var context = new MyContext();
 
@@ -27,36 +28,45 @@
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<Receiver>(b => b.Given(bus =>
                 {
                     bus.SendLocal<MyMessage>(m => m.IsFirst = true);
                     Thread.Sleep(TimeSpan.FromSeconds(1));
                     bus.SendLocal<MyMessage>(m => m.IsFirst = false);
                 }))
-                .Done(c =>
+                .Done(async c =>
                 {
                     if (!c.FirstDone || !c.SecondDone)
                         return false;
 
-                    if (!TryGetMany("/api/recoverability/groups/", out exceptionTypeAndStackTraceGroups))
+                    var result = await TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    exceptionTypeAndStackTraceGroups = result;
+                    if (!result)
                     {
                         return false;
                     }
 
                     if (exceptionTypeAndStackTraceGroups.Any(x => x.Count != 2))
                     {
-                        Thread.Sleep(1000);
                         return false;
                     }
 
-                    TryGetMany("/api/recoverability/groups/Message%20Type", out messageTypeGroups);
+                    messageTypeGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
 
-                    if (!TryGet("/api/errors/" + c.FirstMessageId, out firstFailure))
+                    var firstFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId);
+                    firstFailure = firstFailureResult;
+                    if (!firstFailureResult)
+                    {
                         return false;
+                    }
 
-                    if (!TryGet("/api/errors/" + c.SecondMessageId, out secondFailure))
+                    var secondFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId);
+                    secondFailure = secondFailureResult;
+                    if (!secondFailureResult)
+                    {
                         return false;
+                    }
 
                     return true;
                 })

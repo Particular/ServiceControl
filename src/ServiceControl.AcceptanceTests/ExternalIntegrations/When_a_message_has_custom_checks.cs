@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Config;
@@ -13,7 +14,7 @@
     public class When_a_message_has_custom_checks : AcceptanceTest
     {
         [Test]
-        public void Notification_should_be_published_on_the_bus()
+        public async Task Notification_should_be_published_on_the_bus()
         {
             var context = new MyContext();
 
@@ -54,7 +55,7 @@
                 });
             });
 
-            Define(context)
+            await Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
                 {
                     bus.Subscribe<CustomCheckSucceeded>();
