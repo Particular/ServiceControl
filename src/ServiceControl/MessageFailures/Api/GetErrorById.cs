@@ -63,7 +63,7 @@
                 IsSystemMessage = metadata.GetOrDefault<bool>("IsSystemMessage"),
                 SendingEndpoint = metadata.GetOrDefault<EndpointDetails>("SendingEndpoint"),
                 ReceivingEndpoint = metadata.GetOrDefault<EndpointDetails>("ReceivingEndpoint"),
-                TimeSent = metadata.GetOrDefault<DateTime?>("TimeSent"),
+                TimeSent = metadata.GetAsNullableDatetime("TimeSent"),
                 MessageId = metadata.GetAsStringOrNull("MessageId"),
                 Exception = failureDetails.Exception,
                 QueueAddress = failureDetails.AddressOfFailingEndpoint,

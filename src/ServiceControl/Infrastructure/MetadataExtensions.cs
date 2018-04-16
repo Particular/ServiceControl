@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl
 {
+    using System;
     using System.Collections.Generic;
 
     static class MetadataExtensions
@@ -22,6 +23,17 @@
                 return foundValue?.ToString();
             }
 
+            return null;
+        }
+
+        public static DateTime? GetAsNullableDatetime(this IDictionary<string, object> metadata, string key)
+        {
+            var datetimeAsString = metadata.GetAsStringOrNull(key);
+            DateTime dt;
+            if (datetimeAsString != null && DateTime.TryParse(datetimeAsString, out dt))
+            {
+                return dt;
+            }
             return null;
         }
     }
