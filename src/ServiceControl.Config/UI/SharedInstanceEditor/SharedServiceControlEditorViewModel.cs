@@ -75,6 +75,8 @@
 
         public string PortNumber { get; set; }
 
+        public string MaintenancePortNumber { get; set; }
+
         public string Description { get; set; }
 
         public string ServiceAccount

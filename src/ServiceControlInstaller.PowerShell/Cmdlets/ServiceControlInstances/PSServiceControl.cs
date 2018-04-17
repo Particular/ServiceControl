@@ -16,6 +16,7 @@ namespace ServiceControlInstaller.PowerShell
                 Url = instance.Url,
                 HostName = instance.HostName,
                 Port = instance.Port,
+                MaintenancePort = instance.MaintenancePort,
                 InstallPath = instance.InstallPath,
                 LogPath = instance.LogPath,
                 DBPath = instance.DBPath,
@@ -36,6 +37,7 @@ namespace ServiceControlInstaller.PowerShell
         public string Url { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
+        public int MaintenancePort { get; set; }
 
         public string InstallPath { get; set; }
         public string DBPath { get; set; }

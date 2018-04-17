@@ -45,6 +45,7 @@
             var version = details.Version;
             settings.Set(SettingsList.VirtualDirectory, details.VirtualDirectory);
             settings.Set(SettingsList.Port, details.Port.ToString());
+            settings.Set(SettingsList.MaintenancePort, details.MaintenancePort.ToString());
             settings.Set(SettingsList.HostName, details.HostName);
             settings.Set(SettingsList.LogPath, details.LogPath);
             settings.Set(SettingsList.DBPath, details.DBPath);

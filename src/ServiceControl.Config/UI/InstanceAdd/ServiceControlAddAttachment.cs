@@ -66,6 +66,7 @@
                 InstallPath = viewModel.DestinationPath,
                 HostName = viewModel.HostName,
                 Port = Convert.ToInt32(viewModel.PortNumber),
+                MaintenancePort = Convert.ToInt32(viewModel.MaintenancePortNumber),
                 VirtualDirectory = null, // TODO
                 AuditLogQueue = viewModel.AuditForwarding.Value ? viewModel.AuditForwardingQueueName  : null,
                 AuditQueue = viewModel.AuditQueueName,

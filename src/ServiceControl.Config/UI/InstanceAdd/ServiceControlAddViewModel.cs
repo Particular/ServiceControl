@@ -27,6 +27,7 @@
             {
                 InstanceName = "Particular.ServiceControl";
                 PortNumber = "33333";
+                MaintenancePortNumber = "33334";
             }
             else
             {

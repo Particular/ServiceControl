@@ -41,6 +41,10 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateRange(1, 49151)]
         public int Port { get; set; }
 
+        [Parameter(Mandatory = true, HelpMessage = "Specify the maintance port number to listen on. If this is the only ServiceControl instance then 33334 is recommended")]
+        [ValidateRange(1, 49151)]
+        public int MaintenancePort { get; set; }
+
         [Parameter(Mandatory = false, HelpMessage = "Specify ErrorQueue name to consume messages from. Default is error")]
         [ValidateNotNullOrEmpty]
         public string ErrorQueue { get; set; }
@@ -157,6 +161,7 @@ namespace ServiceControlInstaller.PowerShell
                 ServiceAccountPwd = ServiceAccountPassword,
                 HostName = HostName,
                 Port = Port,
+                MaintenancePort = MaintenancePort,
                 VirtualDirectory = VirtualDirectory,
                 AuditQueue = AuditQueue,
                 ErrorQueue = ErrorQueue,

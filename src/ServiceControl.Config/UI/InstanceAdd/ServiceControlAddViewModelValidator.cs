@@ -22,6 +22,14 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
                 .When(x => x.SubmitAttempted);
 
+            RuleFor(x => x.MaintenancePortNumber)
+                .NotEmpty()
+                .ValidPort()
+                .PortAvailable()
+                .MustNotBeIn(x => UsedMaintenancePorts(x.InstanceName))
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .When(x => x.SubmitAttempted);
+
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
                 .ValidPath()
