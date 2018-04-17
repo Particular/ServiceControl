@@ -312,19 +312,8 @@ namespace ServiceControlInstaller.Engine.Instances
         
         public void RemoveUrlAcl()
         {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase)))
-            {
-                try
-                {
-                    urlReservation.Delete();
-                }
-                catch
-                {
-                    ReportCard.Warnings.Add($"Failed to remove the URLACL for {Url} - Please remove manually via Netsh.exe");
-                }
-            }
-
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase)))
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) || 
+                                                                              p.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 try
                 {
