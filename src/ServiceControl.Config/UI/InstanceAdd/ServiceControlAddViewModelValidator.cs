@@ -27,7 +27,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEmpty()
                 .ValidPort()
                 .PortAvailable()
-                .MustNotBeIn(x => UsedMaintenancePorts(x.InstanceName))
+                .MustNotBeIn(x => UsedPorts(x.InstanceName))
                 .NotEqual(x => x.PortNumber)
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
                 .When(x => x.SubmitAttempted);

@@ -53,19 +53,9 @@ namespace ServiceControl.Config.Validation
         {
             return ServiceControlInstances
                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-               .Select(p => p.Port.ToString())
+               .SelectMany(p => new[] { p.Port.ToString(), p.MaintenancePort.ToString() })
                .Distinct()
                .ToList();
-        }
-
-        // We need this to ignore the instance that represents the edit screen
-        protected List<string> UsedMaintenancePorts(string instanceName = null)
-        {
-            return ServiceControlInstances
-                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-                .Select(p => p.MaintenancePort.ToString())
-                .Distinct()
-                .ToList();
         }
 
         protected SharedServiceControlEditorViewModelValidator()
@@ -91,7 +81,7 @@ namespace ServiceControl.Config.Validation
             RuleFor(x => x.MaintenancePortNumber)
                 .NotEmpty()
                 .ValidPort()
-                .MustNotBeIn(x => UsedMaintenancePorts(x.InstanceName))
+                .MustNotBeIn(x => UsedPorts(x.InstanceName))
                 .NotEqual(x => x.PortNumber)
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
                 .When(x => x.SubmitAttempted);
