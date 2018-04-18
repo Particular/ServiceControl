@@ -25,6 +25,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string DBPath { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
+        public int DatabaseMaintenancePort { get; set; }
         public string VirtualDirectory { get; set; }
         public string ErrorQueue { get; set; }
         public string AuditQueue { get; set; }
@@ -53,6 +54,7 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");
             Port = AppConfig.Read(SettingsList.Port, 33333);
+            DatabaseMaintenancePort = AppConfig.Read(SettingsList.DatabaseMaintenancePort, 33334);
             VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
             LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
@@ -111,11 +113,7 @@ namespace ServiceControlInstaller.Engine.Instances
                         host = HostName;
                         break;
                 }
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return $"http://{host}:{Port}/storage/";
-                }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? String.Empty : "/")}storage/";
+                return $"http://{host}:{DatabaseMaintenancePort}/";
             }
         }
 
@@ -156,6 +154,15 @@ namespace ServiceControlInstaller.Engine.Instances
                     return baseUrl;
                 }
                 return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
+            }
+        }
+
+        public string AclMaintenanceUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+                return baseUrl;
             }
         }
 
@@ -216,6 +223,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var version = Version;
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
+            settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString());
             settings.Set(SettingsList.LogPath, LogPath);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
@@ -271,6 +279,9 @@ namespace ServiceControlInstaller.Engine.Instances
             oldSettings.RemoveUrlAcl();
             var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
+
+            var maintanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            maintanceReservation.Create();
         }
 
         string DefaultDBPath()
@@ -301,7 +312,8 @@ namespace ServiceControlInstaller.Engine.Instances
         
         public void RemoveUrlAcl()
         {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase)))
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) || 
+                                                                              p.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 try
                 {

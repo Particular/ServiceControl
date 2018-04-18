@@ -69,6 +69,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.Description = viewModel.Description;
             instance.HostName = viewModel.HostName;
             instance.Port = Convert.ToInt32(viewModel.PortNumber);
+            instance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.DatabaseMaintenancePortNumber);
             instance.VirtualDirectory = null;
             instance.AuditLogQueue = viewModel.AuditForwardingQueueName;
             instance.AuditQueue = viewModel.AuditQueueName;

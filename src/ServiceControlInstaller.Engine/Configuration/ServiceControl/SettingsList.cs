@@ -8,6 +8,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
     {
         public static SettingInfo VirtualDirectory = new SettingInfo{Name = "ServiceControl/VirtualDirectory"};
         public static SettingInfo Port = new SettingInfo { Name =  "ServiceControl/Port" };
+        public static SettingInfo DatabaseMaintenancePort = new SettingInfo { Name =  "ServiceControl/DatabaseMaintenancePort" };
         public static SettingInfo HostName = new SettingInfo { Name = "ServiceControl/HostName" };
         public static SettingInfo LogPath = new SettingInfo { Name = "ServiceControl/LogPath" };
         public static SettingInfo DBPath = new SettingInfo { Name = "ServiceControl/DBPath" };

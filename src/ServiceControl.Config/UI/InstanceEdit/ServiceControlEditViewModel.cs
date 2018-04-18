@@ -34,6 +34,7 @@
 
             HostName = instance.HostName;
             PortNumber = instance.Port.ToString();
+            DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
 
             LogPath = instance.LogPath;
 
