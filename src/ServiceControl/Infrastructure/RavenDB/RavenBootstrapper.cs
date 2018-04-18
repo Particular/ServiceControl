@@ -64,7 +64,7 @@
             }
 
             //This is affects only remote access to the database in maintenace mode and enables access without authentication
-            documentStore.Configuration.Settings["Raven/Raven/AnonymousAccess"] = "Admin";
+            documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
             documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
 
             if (!maintenanceMode)
