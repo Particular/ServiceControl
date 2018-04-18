@@ -62,8 +62,6 @@
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
-        public int MaximumMessageThroughputPerSecond => SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
-
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
         public bool SkipQueueCreation { get; set; }
