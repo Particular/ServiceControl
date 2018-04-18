@@ -19,11 +19,11 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPort()
                 .PortAvailable()
                 .MustNotBeIn(x => UsedPorts(x.InstanceName))
-                .NotEqual(x => x.MaintenancePortNumber)
+                .NotEqual(x => x.DatabaseMaintenancePortNumber)
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
                 .When(x => x.SubmitAttempted);
 
-            RuleFor(x => x.MaintenancePortNumber)
+            RuleFor(x => x.DatabaseMaintenancePortNumber)
                 .NotEmpty()
                 .ValidPort()
                 .PortAvailable()

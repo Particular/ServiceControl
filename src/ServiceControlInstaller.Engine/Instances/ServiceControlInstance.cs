@@ -25,7 +25,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string DBPath { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
-        public int MaintenancePort { get; set; }
+        public int DatabaseMaintenancePort { get; set; }
         public string VirtualDirectory { get; set; }
         public string ErrorQueue { get; set; }
         public string AuditQueue { get; set; }
@@ -54,7 +54,7 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");
             Port = AppConfig.Read(SettingsList.Port, 33333);
-            MaintenancePort = AppConfig.Read(SettingsList.MaintenancePort, 33334);
+            DatabaseMaintenancePort = AppConfig.Read(SettingsList.DatabaseMaintenancePort, 33334);
             VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
             LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
@@ -113,7 +113,7 @@ namespace ServiceControlInstaller.Engine.Instances
                         host = HostName;
                         break;
                 }
-                return $"http://{host}:{MaintenancePort}/";
+                return $"http://{host}:{DatabaseMaintenancePort}/";
             }
         }
 
@@ -161,7 +161,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{MaintenancePort}/";
+                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
                 return baseUrl;
             }
         }
@@ -223,7 +223,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var version = Version;
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
-            settings.Set(SettingsList.MaintenancePort, MaintenancePort.ToString());
+            settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString());
             settings.Set(SettingsList.LogPath, LogPath);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);

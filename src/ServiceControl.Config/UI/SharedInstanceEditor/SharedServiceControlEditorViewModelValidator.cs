@@ -53,7 +53,7 @@ namespace ServiceControl.Config.Validation
         {
             return ServiceControlInstances
                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-               .SelectMany(p => new[] { p.Port.ToString(), p.MaintenancePort.ToString() })
+               .SelectMany(p => new[] { p.Port.ToString(), p.DatabaseMaintenancePort.ToString() })
                .Distinct()
                .ToList();
         }
@@ -74,11 +74,11 @@ namespace ServiceControl.Config.Validation
                 .NotEmpty()
                 .ValidPort()
                 .MustNotBeIn(x => UsedPorts(x.InstanceName))
-                .NotEqual(x => x.MaintenancePortNumber)
+                .NotEqual(x => x.DatabaseMaintenancePortNumber)
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
                 .When(x => x.SubmitAttempted);
 
-            RuleFor(x => x.MaintenancePortNumber)
+            RuleFor(x => x.DatabaseMaintenancePortNumber)
                 .NotEmpty()
                 .ValidPort()
                 .MustNotBeIn(x => UsedPorts(x.InstanceName))

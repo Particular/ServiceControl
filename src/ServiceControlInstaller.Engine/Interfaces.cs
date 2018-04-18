@@ -74,7 +74,7 @@
 
     public interface IServiceControlInstance : IServiceInstance,  IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance, IURLInfo, IInstallable
     {
-        int MaintenancePort { get; }
+        int DatabaseMaintenancePort { get; }
         string VirtualDirectory { get;  }
         bool ForwardAuditMessages { get; }
         bool ForwardErrorMessages { get; }

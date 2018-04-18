@@ -51,7 +51,7 @@
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
-            MaintenancePort = SettingsReader<int>.Read("MaintenancePort", 33334);
+            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = 10;
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
@@ -83,11 +83,11 @@
             }
         }
 
-        public string MaintenanceUrl
+        public string DatabaseMaintenanceUrl
         {
             get
             {
-                return $"http://{Hostname}:{MaintenancePort}";
+                return $"http://{Hostname}:{DatabaseMaintenancePort}";
             }
         }
 
@@ -96,7 +96,7 @@
         public string StorageUrl => $"{RootUrl}storage";
 
         public int Port { get; set; }
-        public int MaintenancePort { get; set; }
+        public int DatabaseMaintenancePort { get; set; }
 
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");

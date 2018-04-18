@@ -74,7 +74,7 @@
 
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
-            documentStore.Configuration.Port = settings.MaintenancePort;
+            documentStore.Configuration.Port = settings.DatabaseMaintenancePort;
             documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
                 ? "localhost"
                 : settings.Hostname;

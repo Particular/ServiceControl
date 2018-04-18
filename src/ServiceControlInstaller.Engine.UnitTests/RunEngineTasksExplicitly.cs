@@ -53,7 +53,7 @@
                 InstallPath = Path.Combine(root, "Binaries"),
                 HostName = "localhost",
                 Port = 33335,
-                MaintenancePort = 33336,
+                DatabaseMaintenancePort = 33336,
                 VirtualDirectory = null,
                 AuditQueue = "audittest",
                 ForwardAuditMessages = false,
@@ -96,7 +96,7 @@
             var msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.HostName = Environment.MachineName;
             msmqTestInstance.Port = 33338;
-            msmqTestInstance.MaintenancePort = 33339;
+            msmqTestInstance.DatabaseMaintenancePort = 33339;
             installer.Update(msmqTestInstance, true);
             Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update URL change failed");
 

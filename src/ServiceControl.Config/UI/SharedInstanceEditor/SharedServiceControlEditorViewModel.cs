@@ -75,7 +75,7 @@
 
         public string PortNumber { get; set; }
 
-        public string MaintenancePortNumber { get; set; }
+        public string DatabaseMaintenancePortNumber { get; set; }
 
         public string Description { get; set; }
 

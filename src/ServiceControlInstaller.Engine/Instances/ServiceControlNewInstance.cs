@@ -33,7 +33,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string InstallPath { get; set; }
         public int Port { get; set; }
-        public int MaintenancePort { get; set; }
+        public int DatabaseMaintenancePort { get; set; }
         public string VirtualDirectory { get; set; }
         public string ErrorQueue { get; set; }
         public string ErrorLogQueue { get; set; }
@@ -93,7 +93,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{MaintenancePort}/";
+                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
                 return baseUrl;
             }
         }
@@ -245,7 +245,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             try
             {
-                MaintenancePortValidator.Validate(this);
+                DatabaseMaintenancePortValidator.Validate(this);
             }
             catch (EngineValidationException ex)
             {
@@ -296,17 +296,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         void CheckForConflictingUrlAclReservations()
         {
-            foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == Port))
-            {
-                // exclusive or of reservation and instance - if only one of them has "localhost" then the UrlAcl will clash
-                if (reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
-                    !reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new EngineValidationException($"Conflicting UrlAcls found - {Url} vs {reservation.Url}");
-                }
-            }
-
-            foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == MaintenancePort))
+            foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == Port || p.Port == DatabaseMaintenancePort))
             {
                 // exclusive or of reservation and instance - if only one of them has "localhost" then the UrlAcl will clash
                 if (reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
