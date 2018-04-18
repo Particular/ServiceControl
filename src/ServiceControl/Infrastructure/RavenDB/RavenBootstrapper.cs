@@ -78,8 +78,6 @@
             documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
                 ? "localhost"
                 : settings.Hostname;
-            // TODO: Still required?
-            //documentStore.Configuration.VirtualDirectory = $"{settings.VirtualDirectory}/storage";
             documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 
