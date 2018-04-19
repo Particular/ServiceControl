@@ -27,7 +27,6 @@ namespace ServiceControl.Recoverability
                 Bus.SendLocal<ArchiveAllInGroup>(m =>
                 {
                     m.GroupId = groupId;
-                    m.CutOff = DateTime.UtcNow;
                 });
             }
 

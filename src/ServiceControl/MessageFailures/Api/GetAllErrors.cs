@@ -17,11 +17,11 @@
                 using (var session = Store.OpenAsyncSession())
                 {
                     var queryResult = await session.Advanced
-                        .AsyncLuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                        .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
                         .FilterByQueueAddress(Request)
-                        .QueryResultAsync
+                        .QueryResultAsync()
                         .ConfigureAwait(false);
 
                     return Negotiate
@@ -37,7 +37,7 @@
                     RavenQueryStatistics stats;
 
                     var results = await session.Advanced
-                        .AsyncLuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                        .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
@@ -63,7 +63,7 @@
 
                     RavenQueryStatistics stats;
                     var results = await session.Advanced
-                        .AsyncLuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                        .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .Statistics(out stats)
                         .FilterByStatusWhere(Request)
                         .AndAlso()

@@ -63,6 +63,10 @@
                 documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             }
 
+            //This is affects only remote access to the database in maintenace mode and enables access without authentication
+            documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
+            documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
+
             if (!maintenanceMode)
             {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
@@ -70,12 +74,10 @@
 
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
-            documentStore.Configuration.DisablePerformanceCounters = settings.DisableRavenDBPerformanceCounters;
-            documentStore.Configuration.Port = settings.Port;
+            documentStore.Configuration.Port = settings.DatabaseMaintenancePort;
             documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
                 ? "localhost"
                 : settings.Hostname;
-            documentStore.Configuration.VirtualDirectory = $"{settings.VirtualDirectory}/storage";
             documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 

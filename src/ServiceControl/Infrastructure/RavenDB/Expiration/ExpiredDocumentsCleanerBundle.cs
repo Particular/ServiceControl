@@ -50,10 +50,14 @@
         {
             if (timer != null)
             {
-                using (var manualResetEvent = new ManualResetEvent(false))
+                lock (timer)
                 {
-                    timer.Dispose(manualResetEvent);
-                    manualResetEvent.WaitOne();
+                    using (var manualResetEvent = new ManualResetEvent(false))
+                    {
+                        timer.Dispose(manualResetEvent);
+                        manualResetEvent.WaitOne();
+                    }
+                    timer = null;
                 }
             }
         }

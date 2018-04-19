@@ -40,7 +40,7 @@ namespace ServiceControl.Recoverability
             using (var session = store.OpenSession())
             {
                 var query = session.Advanced
-                    .LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .WhereEquals("Status", (int) FailedMessageStatus.RetryIssued)
                     .AndAlso()
                     .WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)

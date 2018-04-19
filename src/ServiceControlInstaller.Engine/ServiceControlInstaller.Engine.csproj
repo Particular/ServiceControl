@@ -130,6 +130,7 @@
     <Compile Include="Validation\ConnectionStringValidator.cs" />
     <Compile Include="Queues\QueueCreation.cs" />
     <Compile Include="Validation\EngineValidationException.cs" />
+    <Compile Include="Validation\DatabaseMaintenancePortValidator.cs" />
     <Compile Include="Validation\MsmqConfigValidator.cs" />
     <Compile Include="ReportCard\Status.cs" />
     <Compile Include="ReportCard\ReportCard.cs" />

@@ -25,7 +25,10 @@
 
             lock (locks[lockIndex])
             {
+                //We want to continue using attachments for now
+#pragma warning disable 618
                 DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
+#pragma warning restore 618
                 {
                     {"ContentType", contentType},
                     {"ContentLength", bodySize}
@@ -37,7 +40,10 @@
 
         public bool TryFetch(string bodyId, out Stream stream)
         {
+            //We want to continue using attachments for now
+#pragma warning disable 618
             var attachment = DocumentStore.DatabaseCommands.GetAttachment("messagebodies/" + bodyId);
+#pragma warning restore 618
 
             if (attachment == null)
             {
