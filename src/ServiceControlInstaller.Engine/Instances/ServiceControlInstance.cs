@@ -418,6 +418,10 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 DatabaseMigrations.RunDatabaseMigrations(this, updateProgress);
             }
+            catch (DatabaseMigrationsException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
             catch (DatabaseMigrationsTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
