@@ -302,6 +302,7 @@
     <Compile Include="DbMigrations\MigrationsModule.cs" />
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
     <Compile Include="HeartbeatMonitoring\LegacyHandler.cs" />
+    <Compile Include="Hosting\Commands\DatabaseMigrationsCommand.cs" />
     <Compile Include="Hosting\Commands\ImportFailedAuditsCommand.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
@@ -336,6 +337,7 @@
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="LoggingConfigurator.cs" />
+    <Compile Include="DatabaseMigrationsBootstrapper.cs" />
     <Compile Include="MaintenanceBootstrapper.cs" />
     <Compile Include="Infrastructure\MetadataExtensions.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
