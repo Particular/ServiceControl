@@ -19,7 +19,7 @@
             builder.RegisterType<MonitoringInstanceInstaller>().SingleInstance();
         }
     }
-    
+
     public class ServiceControlInstanceInstaller
     {
         public ServiceControlZipInfo ZipInfo { get; }
@@ -103,10 +103,10 @@
 
             upgradeOptions.ApplyChangesToInstance(instance);
 
-	        progress.Report(4, 6, "Updating Database...");
-	        instance.UpdateDatabase(msg => progress.Report(4, 6, $"Updating Database {msg}..."));
+            progress.Report(4, 6, "Updating Database...");
+            instance.UpdateDatabase(msg => progress.Report(4, 6, $"Updating Database {msg}..."));
 
-			progress.Report(5, 6, "Running Queue Creation...");
+            progress.Report(5, 6, "Running Queue Creation...");
             instance.SetupInstance();
 
             instance.ReportCard.SetStatus();
