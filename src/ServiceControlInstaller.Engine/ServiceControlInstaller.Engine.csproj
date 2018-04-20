@@ -112,6 +112,9 @@
     <Compile Include="Configuration\ServiceControl\SettingConstants.cs" />
     <Compile Include="Configuration\ServiceControl\SettingsList.cs" />
     <Compile Include="Configuration\SettingInfo.cs" />
+    <Compile Include="Database\DatabaseMigrations.cs" />
+    <Compile Include="Database\DatabaseMigrationsException.cs" />
+    <Compile Include="Database\DatabaseMigrationsTimeoutException.cs" />
     <Compile Include="FileSystem\ReleaseDateReader.cs" />
     <Compile Include="FileSystem\MonitoringZipInfo.cs" />
     <Compile Include="Instances\BaseService.cs" />

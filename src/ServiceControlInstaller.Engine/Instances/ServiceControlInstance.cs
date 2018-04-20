@@ -11,6 +11,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
+    using ServiceControlInstaller.Engine.Database;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
@@ -411,7 +412,19 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public void DisableMaintenanceMode()
+	    public void UpdateDatabase(Action<string> updateProgress)
+	    {
+		    try
+		    {
+			    DatabaseMigrations.RunDatabaseMigrations(this, updateProgress);
+		    }
+		    catch (DatabaseMigrationsTimeoutException ex)
+		    {
+			    ReportCard.Errors.Add(ex.Message);
+		    }
+	    }
+
+		public void DisableMaintenanceMode()
         {
             AppConfig.DisableMaintenanceMode();
             InMaintenanceMode = false;
