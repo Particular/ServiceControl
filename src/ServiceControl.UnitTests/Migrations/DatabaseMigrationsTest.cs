@@ -95,7 +95,7 @@
 
         List<string> RunDataMigration(params string[] commands)
         {
-            return RunDataMigration(10000, commands);
+            return RunDataMigration(100000, commands);
         }
     }
 }
