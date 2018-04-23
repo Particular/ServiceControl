@@ -127,8 +127,24 @@
                 }
             }
 
-            var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                          windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes I want to proceed", "No");
+            bool confirm;
+            if (instance.Version.Major != installer.ZipInfo.Version.Major) //Upgrade to different major -> recommend DB backup
+            {
+                confirm = windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", 
+                    $"{model.Name} is going to be upgraded to version {installer.ZipInfo.Version} which uses a different storage format. Database migration will be conducted " 
+                    + " as part of the upgrade. It is recommended that you back up the database before upgrading. To read more about the back up process "
+                    + " see https://docs.particular.net/servicecontrol/backup-sc-database.", 
+                    "Do you want to proceed?", 
+                    "Yes I backed up the database and I want to proceed", "No");
+            }
+            else
+            {
+                confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
+                          windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", 
+                          $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", 
+                          "Do you want to proceed?", 
+                          "Yes I want to proceed", "No");
+            }
 
             if (confirm)
             {
