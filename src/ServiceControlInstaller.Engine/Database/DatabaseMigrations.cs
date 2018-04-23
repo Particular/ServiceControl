@@ -7,22 +7,19 @@
     using System.Threading;
     using ServiceControlInstaller.Engine.Instances;
 
-    internal class DatabaseMigrations
+    public class DatabaseMigrations
     {
         public static void RunDatabaseMigrations(IServiceControlInstance instance, Action<string> updateProgress)
         {
-            RunDataMigration(updateProgress, instance.InstallPath,
-                Constants.ServiceControlExe,
-                instance.Name);
+            var timeout = (int)TimeSpan.FromMinutes(20).TotalMilliseconds;
+            var args = $"--database --serviceName={instance.Name}";
+            RunDataMigration(updateProgress, instance.InstallPath, Constants.ServiceControlExe, timeout, () => args);
         }
 
-        static void RunDataMigration(Action<string> updateProgress, string installPath, string exeName, string serviceName)
+        public static void RunDataMigration(Action<string> updateProgress, string installPath, string exeName, int timeoutMilliseconds, Func<string> args)
         {
             var fileName = Path.Combine(installPath, exeName);
-            var args = $"--database --serviceName={serviceName}";
-
             var attempts = 0;
-            var timeout = (int) TimeSpan.FromMinutes(20).TotalMilliseconds;
 
             do
             {
@@ -31,7 +28,7 @@
                     p.StartInfo.CreateNoWindow = true;
                     p.StartInfo.UseShellExecute = false;
                     p.StartInfo.FileName = fileName;
-                    p.StartInfo.Arguments = args;
+                    p.StartInfo.Arguments = args();
                     p.StartInfo.WorkingDirectory = installPath;
                     p.StartInfo.RedirectStandardOutput = true;
                     p.StartInfo.RedirectStandardError = true;
@@ -88,9 +85,9 @@
                         p.BeginOutputReadLine();
                         p.BeginErrorReadLine();
 
-                        if (p.WaitForExit(timeout) &&
-                            outputWaitHandle.WaitOne(timeout) &&
-                            errorWaitHandle.WaitOne(timeout))
+                        if (p.WaitForExit(timeoutMilliseconds) &&
+                            outputWaitHandle.WaitOne(timeoutMilliseconds) &&
+                            errorWaitHandle.WaitOne(timeoutMilliseconds))
                         {
                             Debug.WriteLine($"Attempt {attempts} exited with code {p.ExitCode}");
                             if (p.ExitCode == 0)

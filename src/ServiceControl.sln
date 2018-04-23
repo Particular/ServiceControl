@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2010
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
@@ -47,6 +47,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.MSMQ.DLQMonitor", "ServiceControl.MSMQ.DLQMonitor\ServiceControl.MSMQ.DLQMonitor.csproj", "{46F65684-6439-4199-806E-9EA4CA0AC31C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.ASB.DLQMonitor", "ServiceControl.ASB.DLQMonitor\ServiceControl.ASB.DLQMonitor.csproj", "{70BE1AF0-4739-43E9-864E-4104A5781614}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseMigrationsTester", "DatabaseMigrationsTester\DatabaseMigrationsTester.csproj", "{276C38D4-734E-4C0B-9CDB-71B62550EDE7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -118,6 +120,10 @@ Global
 		{70BE1AF0-4739-43E9-864E-4104A5781614}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70BE1AF0-4739-43E9-864E-4104A5781614}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70BE1AF0-4739-43E9-864E-4104A5781614}.Release|Any CPU.Build.0 = Release|Any CPU
+		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

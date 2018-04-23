@@ -131,6 +131,7 @@
     <Compile Include="Infrastructure\Settings\SettingsTests.cs" />
     <Compile Include="MessageExtensions.cs" />
     <Compile Include="Migrations\1.27\SplitFailedMessageDocumentsMigrationTests.cs" />
+    <Compile Include="Migrations\DatabaseMigrationsTest.cs" />
     <Compile Include="ObjectApprover.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
@@ -162,6 +163,14 @@
     <Compile Include="ScatterGather\MessageView_ScatterGatherTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DatabaseMigrationsTester\DatabaseMigrationsTester.csproj">
+      <Project>{276c38d4-734e-4c0b-9cdb-71b62550ede7}</Project>
+      <Name>DatabaseMigrationsTester</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
+      <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
+      <Name>ServiceControlInstaller.Engine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
       <Name>ServiceControl</Name>
