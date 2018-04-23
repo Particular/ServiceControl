@@ -24,6 +24,12 @@ namespace DatabaseMigrationsTester
                 case Command.Timeout:
                     Thread.Sleep(100000);
                     return 0;
+                case Command.UpdateProgress:
+                    Console.Out.WriteLine("Updating schema from version: 1");
+                    Console.Out.WriteLine("Updating schema from version: 2");
+                    Console.Out.WriteLine("Updating schema from version: 3");
+                    Console.Out.WriteLine("OK Upgrading");
+                    return 0;
             }
 
             return 0;
@@ -37,6 +43,7 @@ namespace DatabaseMigrationsTester
         Return0,
         WriteToErrorAndExitNonZero,
         WriteToErrorAndExitZero,
+        UpdateProgress,
     }
 }
 

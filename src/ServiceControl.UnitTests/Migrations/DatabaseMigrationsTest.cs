@@ -32,6 +32,20 @@
         }
 
         [Test]
+        public void It_parses_progress_information()
+        {
+            var progressLog = RunDataMigration("UpdateProgress");
+
+            CollectionAssert.AreEquivalent(new []
+            {
+                "Updating schema from version 1",
+                "Updating schema from version 2",
+                "Updating schema from version 3",
+                ""
+            }, progressLog);
+        }
+
+        [Test]
         public void If_first_attempt_throws_it_runs_second_attempt()
         {
             RunDataMigration("Throw", "Return0");
