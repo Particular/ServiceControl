@@ -1,5 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Migrations
-
+namespace ServiceControl.UnitTests.Migrations
 {
     using System;
     using System.Collections.Generic;
