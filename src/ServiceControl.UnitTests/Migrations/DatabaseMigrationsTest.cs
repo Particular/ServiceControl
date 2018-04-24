@@ -12,15 +12,15 @@
     [TestFixture]
     public class DatabaseMigrationsTest
     {
-        StringBuilder debugLog;
+        StringBuilder traceLog;
 
         [SetUp]
         public void Setup()
         {
-            debugLog = new StringBuilder();
-            Debug.AutoFlush = true;
-            Debug.Listeners.Remove("DatabaseMigrationsTest");
-            Debug.Listeners.Add(new TextWriterTraceListener(new StringWriter(debugLog), "DatabaseMigrationsTest"));
+            traceLog = new StringBuilder();
+            Trace.AutoFlush = true;
+            Trace.Listeners.Remove("DatabaseMigrationsTest");
+            Trace.Listeners.Add(new TextWriterTraceListener(new StringWriter(traceLog), "DatabaseMigrationsTest"));
         }
 
         [Test]
@@ -28,7 +28,7 @@
         {
             RunDataMigration("Return0");
 
-            StringAssert.DoesNotContain("Attempt 2", debugLog.ToString());
+            StringAssert.DoesNotContain("Attempt 2", traceLog.ToString());
         }
 
         [Test]
@@ -50,7 +50,7 @@
         {
             RunDataMigration("Throw", "Return0");
 
-            var actual = debugLog.ToString();
+            var actual = traceLog.ToString();
             StringAssert.Contains("Attempt 1", actual);
             StringAssert.Contains("Attempt 2", actual);
         }

@@ -78,7 +78,7 @@
 
                         attempts++;
 
-                        Debug.WriteLine($"Attempt {attempts}");
+                        Trace.WriteLine($"Attempt {attempts}");
 
                         p.Start();
 
@@ -89,7 +89,7 @@
                             outputWaitHandle.WaitOne(timeoutMilliseconds) &&
                             errorWaitHandle.WaitOne(timeoutMilliseconds))
                         {
-                            Debug.WriteLine($"Attempt {attempts} exited with code {p.ExitCode}");
+                            Trace.WriteLine($"Attempt {attempts} exited with code {p.ExitCode}");
                             if (p.ExitCode == 0)
                             {
                                 break;
