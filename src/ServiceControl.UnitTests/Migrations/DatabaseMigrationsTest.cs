@@ -17,10 +17,10 @@
         [SetUp]
         public void Setup()
         {
-            Debug.Listeners.Clear();
             debugLog = new StringBuilder();
-            Debug.Listeners.Add(new TextWriterTraceListener(new StringWriter(debugLog)));
-            Debug.Listeners.Add(new ConsoleTraceListener());
+            Debug.AutoFlush = true;
+            Debug.Listeners.Remove("DatabaseMigrationsTest");
+            Debug.Listeners.Add(new TextWriterTraceListener(new StringWriter(debugLog), "DatabaseMigrationsTest"));
         }
 
         [Test]
