@@ -222,6 +222,10 @@
     <Compile Include="UI\MessageBox\ExceptionMessageBox.xaml.cs">
       <DependentUpon>ExceptionMessageBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\MessageBox\TextBoxDialogViewModel.cs" />
+    <Compile Include="UI\MessageBox\TextBoxDialogView.xaml.cs">
+      <DependentUpon>TextBoxDialogView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\MessageBox\SliderDialogView.xaml.cs">
       <DependentUpon>SliderDialogView.xaml</DependentUpon>
     </Compile>
@@ -249,6 +253,7 @@
     <Compile Include="UI\Shell\NewInstancePopup.xaml.cs">
       <DependentUpon>NewInstancePopup.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Validation\IProvideValidator.cs" />
     <Compile Include="Validation\Validations.cs" />
     <Compile Include="Validation\ValidationTemplate.cs" />
     <Compile Include="Framework\Command.cs" />
@@ -374,6 +379,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\InstanceEdit\MonitoringEditView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\MessageBox\TextBoxDialogView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

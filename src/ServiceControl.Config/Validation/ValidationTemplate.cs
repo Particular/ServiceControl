@@ -25,7 +25,15 @@
         public ValidationTemplate(RxPropertyChanged target)
         {
             this.target = target;
-            validator = GetValidator(target.GetType());
+            var providesValidator = target as IProvideValidator;
+            if (providesValidator != null)
+            {
+                validator = providesValidator.Validator;
+            }
+            else
+            {
+                validator = GetValidator(target.GetType());
+            }
             errorsChangedSubject = new Subject<DataErrorsChangedEventArgs>();
             target.PropertyChanged += Validate;
             properties = new HashSet<string>(target.GetType().GetProperties().Select(p => p.Name));
