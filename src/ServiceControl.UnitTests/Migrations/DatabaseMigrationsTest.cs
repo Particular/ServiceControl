@@ -28,7 +28,7 @@
         {
             RunDataMigration("Return0");
 
-            Assert.IsFalse(debugLog.ToString().Contains("Attempt 2"));
+            StringAssert.DoesNotContain("Attempt 2", debugLog.ToString());
         }
 
         [Test]
@@ -50,8 +50,9 @@
         {
             RunDataMigration("Throw", "Return0");
 
-            Assert.IsTrue(debugLog.ToString().Contains("Attempt 1"));
-            Assert.IsTrue(debugLog.ToString().Contains("Attempt 2"));
+            var actual = debugLog.ToString();
+            StringAssert.Contains("Attempt 1", actual);
+            StringAssert.Contains("Attempt 2", actual);
         }
 
         [Test]
