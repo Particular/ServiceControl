@@ -55,6 +55,14 @@ namespace ServiceControl.Config.UI.InstanceEdit
             RuleFor(x => x.ConnectionString)
                .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
                .When(x => !string.IsNullOrWhiteSpace(x.SelectedTransport?.SampleConnectionString) && x.SubmitAttempted);
+
+            RuleFor(x => x.DatabaseMaintenancePortNumber)
+                .NotEmpty()
+                .ValidPort()
+                .MustNotBeIn(x => UsedPorts(x.InstanceName))
+                .NotEqual(x => x.PortNumber)
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .When(x => x.DatabaseMaintenancePortNumberRequired && x.SubmitAttempted);
         }
     }
 }

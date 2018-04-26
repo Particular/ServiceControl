@@ -23,7 +23,8 @@
         {
             if (Config.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
             {
-                return (T)Convert.ChangeType(Config.AppSettings.Settings[key].Value, typeof(T));
+                var nonNullableType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+                return (T)Convert.ChangeType(Config.AppSettings.Settings[key].Value, nonNullableType);
             }
 
             try

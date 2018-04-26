@@ -33,7 +33,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string InstallPath { get; set; }
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
+        public int? DatabaseMaintenancePort { get; set; }
         public string VirtualDirectory { get; set; }
         public string ErrorQueue { get; set; }
         public string ErrorLogQueue { get; set; }

@@ -37,7 +37,7 @@ namespace ServiceControlInstaller.PowerShell
         public string Url { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
+        public int? DatabaseMaintenancePort { get; set; }
 
         public string InstallPath { get; set; }
         public string DBPath { get; set; }

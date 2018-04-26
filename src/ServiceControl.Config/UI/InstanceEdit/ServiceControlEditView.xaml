@@ -88,7 +88,9 @@
                                       Text="{Binding HostName}"
                                       Warning="{Binding HostNameWarning}" />
                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding PortNumber}" />
-                <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding DatabaseMaintenancePortNumber}" />
+                <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" 
+                                      Text="{Binding DatabaseMaintenancePortNumber}"
+                                      Visibility="{Binding DatabaseMaintenancePortNumberRequired, Converter={StaticResource boolToVis}}"/>
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"

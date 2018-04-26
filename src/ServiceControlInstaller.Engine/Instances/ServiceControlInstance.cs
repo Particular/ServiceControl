@@ -26,7 +26,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string DBPath { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
+        public int? DatabaseMaintenancePort { get; set; }
         public string VirtualDirectory { get; set; }
         public string ErrorQueue { get; set; }
         public string AuditQueue { get; set; }
@@ -55,7 +55,7 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");
             Port = AppConfig.Read(SettingsList.Port, 33333);
-            DatabaseMaintenancePort = AppConfig.Read(SettingsList.DatabaseMaintenancePort, 33334);
+            DatabaseMaintenancePort = AppConfig.Read<int?>(SettingsList.DatabaseMaintenancePort, null);
             VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
             LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());

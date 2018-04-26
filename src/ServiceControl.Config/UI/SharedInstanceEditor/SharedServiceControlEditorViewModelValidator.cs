@@ -78,14 +78,6 @@ namespace ServiceControl.Config.Validation
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
                 .When(x => x.SubmitAttempted);
 
-            RuleFor(x => x.DatabaseMaintenancePortNumber)
-                .NotEmpty()
-                .ValidPort()
-                .MustNotBeIn(x => UsedPorts(x.InstanceName))
-                .NotEqual(x => x.PortNumber)
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
-                .When(x => x.SubmitAttempted);
-
             RuleFor(x => x.LogPath)
                 .NotEmpty()
                 .ValidPath()
