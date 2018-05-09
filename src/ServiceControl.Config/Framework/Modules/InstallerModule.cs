@@ -19,7 +19,7 @@
             builder.RegisterType<MonitoringInstanceInstaller>().SingleInstance();
         }
     }
-    
+
     public class ServiceControlInstanceInstaller
     {
         public ServiceControlZipInfo ZipInfo { get; }
@@ -78,7 +78,7 @@
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
-            progress.Report(0, 5, "Stopping instance...");
+            progress.Report(0, 6, "Stopping instance...");
             if (!instance.TryStopService())
             {
                 return new ReportCard
@@ -88,23 +88,27 @@
                 };
             }
 
-            progress.Report(1, 5, "Backing up app.config...");
+            progress.Report(1, 6, "Backing up app.config...");
             var backupFile = instance.BackupAppConfig();
             try
             {
-                progress.Report(2, 5, "Upgrading Files...");
+                progress.Report(2, 6, "Upgrading Files...");
                 instance.UpgradeFiles(ZipInfo.FilePath);
             }
             finally
             {
-                progress.Report(3, 5, "Restoring app.config...");
+                progress.Report(3, 6, "Restoring app.config...");
                 instance.RestoreAppConfig(backupFile);
             }
 
             upgradeOptions.ApplyChangesToInstance(instance);
 
-            progress.Report(4, 5, "Running Queue Creation...");
+            progress.Report(4, 6, "Updating Database...");
+            instance.UpdateDatabase(msg => progress.Report(4, 6, $"Updating Database {msg}..."));
+
+            progress.Report(5, 6, "Running Queue Creation...");
             instance.SetupInstance();
+
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
         }

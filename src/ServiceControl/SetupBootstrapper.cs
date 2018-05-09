@@ -4,7 +4,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
@@ -41,13 +40,10 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings);
 
-            containerBuilder.RegisterModule<MigrationsModule>();
-
             using (documentStore)
             using (var container = containerBuilder.Build())
             using (NServiceBusFactory.Create(settings, container, null, documentStore, configuration, false))
             {
-                container.Resolve<MigrationsManager>().ApplyMigrations();
             }
         }
 

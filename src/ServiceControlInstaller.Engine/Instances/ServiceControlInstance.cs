@@ -11,21 +11,22 @@ namespace ServiceControlInstaller.Engine.Instances
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
+    using ServiceControlInstaller.Engine.Database;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Queues;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Services;
     using ServiceControlInstaller.Engine.UrlAcl;
     using ServiceControlInstaller.Engine.Validation;
-    
+
     public class ServiceControlInstance : BaseService, IServiceControlInstance
     {
-        
+
         public string LogPath { get; set; }
         public string DBPath { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
+        public int? DatabaseMaintenancePort { get; set; }
         public string VirtualDirectory { get; set; }
         public string ErrorQueue { get; set; }
         public string AuditQueue { get; set; }
@@ -54,7 +55,7 @@ namespace ServiceControlInstaller.Engine.Instances
             Service.Refresh();
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");
             Port = AppConfig.Read(SettingsList.Port, 33333);
-            DatabaseMaintenancePort = AppConfig.Read(SettingsList.DatabaseMaintenancePort, 33334);
+            DatabaseMaintenancePort = AppConfig.Read<int?>(SettingsList.DatabaseMaintenancePort, null);
             VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
             LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
@@ -96,7 +97,7 @@ namespace ServiceControlInstaller.Engine.Instances
         }
 
         /// <summary>
-        /// Raven management URL 
+        /// Raven management URL
         /// </summary>
         public string StorageUrl
         {
@@ -195,7 +196,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
-            
+
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
             var queueNamesChanged = !(string.Equals(oldSettings.AuditQueue, AuditQueue, StringComparison.OrdinalIgnoreCase)
@@ -309,10 +310,10 @@ namespace ServiceControlInstaller.Engine.Instances
 
             return Path.Combine(profilePath, @"AppData\Local\Particular\ServiceControl\logs");
         }
-        
+
         public void RemoveUrlAcl()
         {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) || 
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) ||
                                                                               p.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 try
@@ -325,7 +326,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
             }
         }
-        
+
         /// <summary>
         ///     Returns false if a reboot is required to complete deletion
         /// </summary>
@@ -382,7 +383,7 @@ namespace ServiceControlInstaller.Engine.Instances
             File.Copy(sourcePath, configFile, true);
 
             // Populate the config with common settings even if they are defaults
-            // Will not clobber other settings in the config 
+            // Will not clobber other settings in the config
             AppConfig = new AppConfig(this);
             AppConfig.Validate();
             AppConfig.Save();
@@ -394,7 +395,7 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
         }
-        
+
         public void SetupInstance()
         {
             try
@@ -406,6 +407,22 @@ namespace ServiceControlInstaller.Engine.Instances
                 ReportCard.Errors.Add(ex.Message);
             }
             catch (QueueCreationTimeoutException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+        }
+
+        public void UpdateDatabase(Action<string> updateProgress)
+        {
+            try
+            {
+                DatabaseMigrations.RunDatabaseMigrations(this, updateProgress);
+            }
+            catch (DatabaseMigrationsException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+            catch (DatabaseMigrationsTimeoutException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
