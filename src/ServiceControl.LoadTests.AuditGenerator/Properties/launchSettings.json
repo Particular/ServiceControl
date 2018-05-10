@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ServiceControl.LoadTests.AuditGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "AuditGen 1000 5000"
+    }
+  }
+}
