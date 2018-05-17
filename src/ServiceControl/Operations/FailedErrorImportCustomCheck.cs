@@ -37,7 +37,7 @@ The import of these messages could have failed for a number of reasons and Servi
         }
 
         readonly IDocumentStore store;
-        static readonly ILog Logger = LogManager.GetLogger(typeof(FailedAuditImportCustomCheck));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(FailedErrorImportCustomCheck));
     }
 
     class FailedErrorImportIndex : AbstractIndexCreationTask<FailedErrorImport>
