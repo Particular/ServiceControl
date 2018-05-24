@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using Caliburn.Micro;
     using ServiceControl.Config.Events;
@@ -10,7 +11,7 @@
     using ServiceControlInstaller.Engine.Instances;
     using System.Threading.Tasks;
     
-    class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<LicenseUpdated>
+    class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<ResetInstances>, IHandle<LicenseUpdated>
     {
         private readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;
 
@@ -33,8 +34,9 @@
 
         private void RefreshInstances()
         {
-            Instances.Clear();
-            foreach (var item in InstanceFinder.AllInstances())
+            var missingInstances = InstanceFinder.AllInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
+
+            foreach (var item in missingInstances)
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
@@ -59,6 +61,15 @@
                         // Ignored
                     }
                 });
+            }
+        }
+
+        public void Handle(ResetInstances message)
+        {
+            Instances.Clear();
+            foreach (var item in InstanceFinder.AllInstances())
+            {
+                Instances.Add(instanceDetailsFunc(item));
             }
         }
     }
