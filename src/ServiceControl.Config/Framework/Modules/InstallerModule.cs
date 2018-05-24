@@ -78,7 +78,7 @@
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
-            progress.Report(0, 6, "Stopping instance...");
+            progress.Report(0, 7, "Stopping instance...");
             if (!instance.TryStopService())
             {
                 return new ReportCard
@@ -88,25 +88,28 @@
                 };
             }
 
-            progress.Report(1, 6, "Backing up app.config...");
+            progress.Report(1, 7, "Backing up app.config...");
             var backupFile = instance.BackupAppConfig();
             try
             {
-                progress.Report(2, 6, "Upgrading Files...");
+                progress.Report(2, 7, "Upgrading Files...");
                 instance.UpgradeFiles(ZipInfo.FilePath);
             }
             finally
             {
-                progress.Report(3, 6, "Restoring app.config...");
+                progress.Report(3, 7, "Restoring app.config...");
                 instance.RestoreAppConfig(backupFile);
             }
 
             upgradeOptions.ApplyChangesToInstance(instance);
 
-            progress.Report(4, 6, "Updating Database...");
-            instance.UpdateDatabase(msg => progress.Report(4, 6, $"Updating Database {msg}..."));
+            progress.Report(4, 6, "Removing database indexes...");
+            instance.RemoveDatabaseIndexes();
 
-            progress.Report(5, 6, "Running Queue Creation...");
+            progress.Report(4, 6, "Updating Database...");
+            instance.UpdateDatabase(msg => progress.Report(5, 7, $"Updating Database {msg}..."));
+
+            progress.Report(6, 7, "Running Queue Creation...");
             instance.SetupInstance();
 
             instance.ReportCard.SetStatus();
