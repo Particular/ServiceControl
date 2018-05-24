@@ -154,66 +154,80 @@
                 }
             }
 
-            bool confirm;
             if (instance.Version.Major != installer.ZipInfo.Version.Major) //Upgrade to different major -> recommend DB backup
             {
-                confirm = windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
+                if (!windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
                     $"{model.Name} is going to be upgraded to version {installer.ZipInfo.Version} which uses a different storage format. Database migration will be conducted "
                     + " as part of the upgrade. It is recommended that you back up the database before upgrading. To read more about the back up process "
                     + " see https://docs.particular.net/servicecontrol/backup-sc-database.",
                     "Do you want to proceed?",
-                    "Yes I backed up the database and I want to proceed", "No");
+                    "Yes I backed up the database and I want to proceed", "No"))
+                {
+                    return;
+                }
+
+                var dbSize = instance.GetDatabaseSize() / (1024.0 * 1024 * 1024);
+                if (dbSize >= 100) // 100GB
+                {
+                    if (!windowManager.ShowYesNoDialog($"MIGRATE LARGE DATABASE", $"The database being upgraded is {dbSize.ToString("N0")} Gb. Migrating this much data could take a long "
+                        + "time and ServiceControl will be stopped for that entire duration. It is recommended that you consider one of the other upgrade approaches instead.",
+                        "Are you sure you want to migrate this database?", "Yes", "No"))
+                    {
+                        return;
+                    }
+                }
             }
             else
             {
-                confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                          windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
+                if(instance.Service.Status != ServiceControllerStatus.Stopped &&
+                          !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
                           $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.",
                           "Do you want to proceed?",
-                          "Yes I want to proceed", "No");
+                          "Yes I want to proceed", "No"))
+                {
+                    return;
+                }
             }
 
-            if (confirm)
+            using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
             {
-                using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
+                var reportCard = new ReportCard();
+                var restartAgain = model.IsRunning;
+
+                var stopped = await model.StopService(progress);
+
+                if (!stopped)
                 {
-                    var reportCard = new ReportCard();
-                    var restartAgain = model.IsRunning;
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
 
-                    var stopped = await model.StopService(progress);
+                    reportCard.Errors.Add("Failed to stop the service");
+                    reportCard.SetStatus();
+                    windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
 
-                    if (!stopped)
+                    return;
+                }
+
+                reportCard = await Task.Run(() => installer.Upgrade(model.Name, upgradeOptions, progress));
+
+                if (reportCard.HasErrors || reportCard.HasWarnings)
+                {
+                    windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+                }
+                else
+                {
+                    if (restartAgain)
                     {
-                        eventAggregator.PublishOnUIThread(new RefreshInstances());
-
-                        reportCard.Errors.Add("Failed to stop the service");
-                        reportCard.SetStatus();
-                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
-
-                        return;
-                    }
-
-                    reportCard = await Task.Run(() => installer.Upgrade(model.Name, upgradeOptions, progress));
-
-                    if (reportCard.HasErrors || reportCard.HasWarnings)
-                    {
-                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
-                    }
-                    else
-                    {
-                        if (restartAgain)
+                        var serviceStarted = await model.StartService(progress);
+                        if (!serviceStarted)
                         {
-                            var serviceStarted = await model.StartService(progress);
-                            if (!serviceStarted)
-                            {
-                                reportCard.Errors.Add("The Service failed to start. Please consult the service control logs for this instance");
-                                windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
-                            }
+                            reportCard.Errors.Add("The Service failed to start. Please consult the service control logs for this instance");
+                            windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
                         }
                     }
                 }
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
+
+            eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
 
         [FeatureToggle(Feature.LicenseChecks)]

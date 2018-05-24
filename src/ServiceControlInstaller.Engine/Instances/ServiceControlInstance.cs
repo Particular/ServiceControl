@@ -373,6 +373,13 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public long GetDatabaseSize()
+        {
+            var folders = AppConfig.RavenDataPaths().ToList();
+
+            return folders.Sum(path => new DirectoryInfo(path).GetDirectorySize());
+        }
+
         public void RestoreAppConfig(string sourcePath)
         {
             if (sourcePath == null)
