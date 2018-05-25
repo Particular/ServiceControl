@@ -37,7 +37,7 @@
                     p.OutputDataReceived += (sender, eventArgs) =>
                     {
                         var output = eventArgs.Data;
-                        if (output != null && !output.Contains("|Error|"))
+                        if (output != null && !output.Contains("|"))
                         {
                             updateProgress(SpliceText(output.Replace(":", string.Empty)));
                         }
