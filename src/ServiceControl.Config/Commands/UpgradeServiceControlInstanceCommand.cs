@@ -166,8 +166,8 @@
                     return;
                 }
 
-                var dbSize = instance.GetDatabaseSize();
-                if (dbSize >= 100 * 1024 * 1024 * 1024) // 100GB
+                var dbSize = instance.GetDatabaseSizeInGb();
+                if (dbSize >= 100) // 100GB
                 {
                     if (!windowManager.ShowYesNoDialog($"MIGRATE LARGE DATABASE", $"The database being upgraded is {dbSize.ToString("N0")} Gb. Migrating this much data could take a long "
                         + "time and ServiceControl will be stopped for that entire duration. It is recommended that you consider one of the other upgrade approaches instead.",
