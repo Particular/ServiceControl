@@ -429,10 +429,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            catch (DatabaseMigrationsTimeoutException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
         }
 
         public void RemoveDatabaseIndexes()

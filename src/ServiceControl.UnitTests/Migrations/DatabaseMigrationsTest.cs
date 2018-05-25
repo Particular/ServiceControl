@@ -72,31 +72,17 @@ namespace ServiceControl.UnitTests.Migrations
             RunDataMigration("WriteToErrorAndExitZero");
         }
 
-        [Test]
-        public void It_handles_timeouts()
-        {
-            Assert.Throws<DatabaseMigrationsTimeoutException>(() =>
-            {
-                RunDataMigration(1000, "Timeout");
-            });
-        }
-
-        List<string> RunDataMigration(int timeoutMilliseconds, params string[] commands)
+        List<string> RunDataMigration(params string[] commands)
         {
             var progressLog = new List<string>();
             var index = 0;
-            DatabaseMigrations.RunDataMigration(s => { progressLog.Add(s); }, AppDomain.CurrentDomain.BaseDirectory, "DatabaseMigrationsTester.exe", timeoutMilliseconds, () =>
+            DatabaseMigrations.RunDataMigration(s => { progressLog.Add(s); }, AppDomain.CurrentDomain.BaseDirectory, "DatabaseMigrationsTester.exe", () =>
             {
                 var nextCommand = commands[index % commands.Length];
                 index++;
                 return nextCommand;
             });
             return progressLog;
-        }
-
-        List<string> RunDataMigration(params string[] commands)
-        {
-            return RunDataMigration(100000, commands);
         }
     }
 }
