@@ -29,6 +29,8 @@ namespace DatabaseMigrationsTester
                     Console.Out.WriteLine("Updating schema from version: 2");
                     Console.Out.WriteLine("Updating schema from version: 3");
                     Console.Out.WriteLine("OK Upgrading");
+                    Console.Out.WriteLine("2018-05-25 114744.7193|101|Error|Raven.Database.Storage>indexDefinitionStorage|Failed...");
+                    Console.Out.WriteLine("OK");
                     return 0;
             }
 

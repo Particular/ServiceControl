@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -35,31 +36,21 @@
 
                     var error = new StringBuilder();
 
-                    var updatingSchema = false;
-
                     using (var outputWaitHandle = new AutoResetEvent(false))
                     using (var errorWaitHandle = new AutoResetEvent(false))
                     {
                         p.OutputDataReceived += (sender, eventArgs) =>
                         {
-                            if (eventArgs.Data == null)
+                            var output = eventArgs.Data;
+                            if (output == null)
                             {
                                 outputWaitHandle.Set();
                             }
                             else
                             {
-
-                                Debug.WriteLine(eventArgs.Data);
-
-                                if (eventArgs.Data.StartsWith("Updating schema from version"))
+                                if (!output.Contains("|Error|"))
                                 {
-                                    updatingSchema = true;
-                                    updateProgress(eventArgs.Data.Replace(":", string.Empty));
-                                }
-                                else if (updatingSchema && eventArgs.Data.StartsWith("OK"))
-                                {
-                                    updatingSchema = false;
-                                    updateProgress(string.Empty);
+                                    updateProgress(SpliceText(output.Replace(":", string.Empty)));
                                 }
                             }
                         };
@@ -113,5 +104,13 @@
                 }
             } while (attempts < 2);
         }
+
+        private static string SpliceText(string text)
+        {
+            return SpliceTextPattern.Replace(text, $"$1{Environment.NewLine}");
+        }
+
+        // line length = 80
+        static readonly Regex SpliceTextPattern = new Regex($"(.{{80}})", RegexOptions.Compiled);
     }
 }

@@ -40,7 +40,8 @@ namespace ServiceControl.UnitTests.Migrations
                 "Updating schema from version 1",
                 "Updating schema from version 2",
                 "Updating schema from version 3",
-                ""
+                "OK Upgrading",
+                "OK"
             }, progressLog);
         }
 
