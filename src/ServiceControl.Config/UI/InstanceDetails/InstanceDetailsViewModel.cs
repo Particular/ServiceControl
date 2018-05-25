@@ -32,7 +32,6 @@
             CopyToClipboard = new CopyToClipboardCommand();
             StartCommand = Command.Create(() => StartService());
             StopCommand = Command.Create(() => StopService());
-            Version = instance.Version;
             
             ServiceInstance = instance;
 
@@ -83,7 +82,7 @@
 
         public string LogPath => ((IServicePaths)ServiceInstance).LogPath;
 
-        public Version Version { get; set; }
+        public Version Version => ServiceInstance.Version;
 
         public InstanceType InstanceType { get; set; }
 
@@ -197,6 +196,7 @@
         public void Handle(RefreshInstances message)
         {
             UpdateServiceProperties();
+
             NotifyOfPropertyChange("Name");
             NotifyOfPropertyChange("Host");
             NotifyOfPropertyChange("InstallPath");
@@ -275,6 +275,7 @@
         void UpdateServiceProperties()
         {
             ServiceInstance.Service.Refresh();
+
             NotifyOfPropertyChange("Status");
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("AllowStart");
