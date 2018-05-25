@@ -197,6 +197,7 @@
         public void Handle(RefreshInstances message)
         {
             UpdateServiceProperties();
+
             NotifyOfPropertyChange("Name");
             NotifyOfPropertyChange("Host");
             NotifyOfPropertyChange("InstallPath");
@@ -275,6 +276,8 @@
         void UpdateServiceProperties()
         {
             ServiceInstance.Service.Refresh();
+            Version = ServiceInstance.Version;
+
             NotifyOfPropertyChange("Status");
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("AllowStart");

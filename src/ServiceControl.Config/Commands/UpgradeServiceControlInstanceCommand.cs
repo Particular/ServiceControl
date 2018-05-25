@@ -51,7 +51,6 @@
 
             var instance = InstanceFinder.FindServiceControlInstance(model.Name);
 
-
             instance.Service.Refresh();
 
             var upgradeOptions = new ServiceControlUpgradeOptions();
@@ -107,8 +106,6 @@
                 }
             }
 
-
-
             if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
             {
                 var viewModel = new SliderDialogViewModel("UPGRADE QUESTION - DATABASE RETENTION",
@@ -133,7 +130,6 @@
                     return;
                 }
             }
-
 
             if (!instance.AppConfig.AppSettingExists(SettingsList.DatabaseMaintenancePort.Name))
             {
