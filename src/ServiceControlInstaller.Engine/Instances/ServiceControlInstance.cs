@@ -435,6 +435,23 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        public void RemoveDatabaseIndexes()
+        {
+            var folders = AppConfig.RavenDataPaths().ToList();
+
+            foreach (var folder in folders.OrderByDescending(p => p.Length))
+            {
+                try
+                {
+                    FileUtils.DeleteDirectory(Path.Combine(folder, "Indexes"), true, false);
+                }
+                catch
+                {
+                    ReportCard.Warnings.Add($"Could not delete the RavenDB Indexes '{folder}'. This may cause problems in the data migration step. Please remove manually if errors occur.");
+                }
+            }
+        }
+
         public void DisableMaintenanceMode()
         {
             AppConfig.DisableMaintenanceMode();
