@@ -67,6 +67,8 @@
                     }
                 }
             } while (attempts < 2);
+
+            File.Create(Path.Combine(installPath, $"{DateTime.UtcNow.ToFileTimeUtc().ToString()}.upgrade")).Close();
         }
 
         private static string SpliceText(string text)

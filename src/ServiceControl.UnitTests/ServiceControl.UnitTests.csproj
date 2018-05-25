@@ -161,6 +161,7 @@
     <Compile Include="ScatterGather\MessagesView_ScatterGather_NoData.cs" />
     <Compile Include="ScatterGather\MessageViewComparerTests.cs" />
     <Compile Include="ScatterGather\MessageView_ScatterGatherTest.cs" />
+    <Compile Include="Upgrade\StaleIndexAfterUpgradeCheckerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DatabaseMigrationsTester\DatabaseMigrationsTester.csproj">

@@ -4,8 +4,10 @@ namespace ServiceControl.UnitTests.Migrations
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Text;
     using NUnit.Framework;
+    using Raven.Database.FileSystem.Storage.Voron.Impl;
     using ServiceControlInstaller.Engine.Database;
 
     [TestFixture]
@@ -72,7 +74,39 @@ namespace ServiceControl.UnitTests.Migrations
             RunDataMigration("WriteToErrorAndExitZero");
         }
 
+<<<<<<< HEAD
         List<string> RunDataMigration(params string[] commands)
+=======
+        [Test]
+        public void It_handles_timeouts()
+        {
+            Assert.Throws<DatabaseMigrationsTimeoutException>(() =>
+            {
+                RunDataMigration(1000, "Timeout");
+            });
+        }
+        
+        [Test]
+        public void It_writes_upgrade_file()
+        {
+            var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.upgrade");
+            foreach (var file in files)
+            {
+                File.Delete(file);
+            }
+            
+            var now = DateTime.UtcNow;
+            RunDataMigration("Return0");
+
+            files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.upgrade");
+            
+            Assert.That(files, Has.Length.EqualTo(1));
+            var fileTime = DateTime.FromFileTimeUtc(Convert.ToInt64(Path.GetFileNameWithoutExtension(files[0])));
+            Assert.That(fileTime, Is.GreaterThanOrEqualTo(now).And.LessThanOrEqualTo(now.AddSeconds(10)));
+        }
+
+        List<string> RunDataMigration(int timeoutMilliseconds, params string[] commands)
+>>>>>>> Spike for indexing in progress after upgrade
         {
             var progressLog = new List<string>();
             var index = 0;
