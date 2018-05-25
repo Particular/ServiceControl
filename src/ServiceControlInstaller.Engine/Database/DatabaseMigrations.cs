@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -40,15 +41,17 @@
                     {
                         p.OutputDataReceived += (sender, eventArgs) =>
                         {
-                            if (eventArgs.Data == null)
+                            var output = eventArgs.Data;
+                            if (output == null)
                             {
                                 outputWaitHandle.Set();
                             }
                             else
                             {
-
-                                Debug.WriteLine(eventArgs.Data);
-                                updateProgress(eventArgs.Data.Replace(":", string.Empty));
+                                if (!output.Contains("|Error|"))
+                                {
+                                    updateProgress(SpliceText(output.Replace(":", string.Empty)));
+                                }
                             }
                         };
 
@@ -101,5 +104,13 @@
                 }
             } while (attempts < 2);
         }
+
+        private static string SpliceText(string text)
+        {
+            return SpliceTextPattern.Replace(text, $"$1{Environment.NewLine}");
+        }
+
+        // line length = 80
+        static readonly Regex SpliceTextPattern = new Regex($"(.{{80}})", RegexOptions.Compiled);
     }
 }
