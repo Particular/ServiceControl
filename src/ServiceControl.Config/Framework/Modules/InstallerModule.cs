@@ -107,7 +107,7 @@
             instance.RemoveDatabaseIndexes();
 
             progress.Report(4, 6, "Updating Database...");
-            instance.UpdateDatabase(msg => progress.Report(5, 7, $"Updating Database {msg}..."));
+            instance.UpdateDatabase(msg => progress.Report(5, 7, $"Updating Database...{Environment.NewLine}{msg}"));
 
             progress.Report(6, 7, "Running Queue Creation...");
             instance.SetupInstance();

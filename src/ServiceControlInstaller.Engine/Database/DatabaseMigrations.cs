@@ -35,8 +35,6 @@
 
                     var error = new StringBuilder();
 
-                    var updatingSchema = false;
-
                     using (var outputWaitHandle = new AutoResetEvent(false))
                     using (var errorWaitHandle = new AutoResetEvent(false))
                     {
@@ -50,17 +48,7 @@
                             {
 
                                 Debug.WriteLine(eventArgs.Data);
-
-                                if (eventArgs.Data.StartsWith("Updating schema from version"))
-                                {
-                                    updatingSchema = true;
-                                    updateProgress(eventArgs.Data.Replace(":", string.Empty));
-                                }
-                                else if (updatingSchema && eventArgs.Data.StartsWith("OK"))
-                                {
-                                    updatingSchema = false;
-                                    updateProgress(string.Empty);
-                                }
+                                updateProgress(eventArgs.Data.Replace(":", string.Empty));
                             }
                         };
 
