@@ -286,7 +286,8 @@
                 dbFolder += $"-{SanitiseFolderName(VirtualDirectory)}";
             }
 
-            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
+            //var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
+            var defaultPath = @"C:\ProgramData\Particular\ServiceControl\Particular.ServiceControl\DB";
 
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }

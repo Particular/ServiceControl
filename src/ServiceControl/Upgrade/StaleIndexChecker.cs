@@ -15,11 +15,10 @@
             documentStore = store;
         }
 
-        public virtual async Task<bool> Check(DateTime cutOffTime, CancellationToken cancellationToken)
+        public virtual async Task<bool> IsReindexingInComplete(DateTime cutOffTime, CancellationToken cancellationToken)
         {
             try
             {
-                
                 using(var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                 using (var session = documentStore.OpenAsyncSession())
                 {
@@ -34,13 +33,12 @@
                         .SelectFields<FailedMessageView>()
                         .ToListAsync(cts.Token);
 
-
-                    return stats.IsStale;
+                    return !stats.IsStale;
                 }
             }
-            catch (OperationCanceledException e)
+            catch (OperationCanceledException)
             {
-                return true;
+                return false;
             }
         }
     }

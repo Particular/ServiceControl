@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class StaleIndexAfterUpgrade : Feature
     {
@@ -30,22 +31,16 @@
             private StaleIndexChecker staleIndexChecker;
             private StaleIndexInfoStore staleIndexInfoStore;
 
-            public CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore) : this(staleIndexChecker, staleIndexInfoStore, null){}
+            public CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, LoggingSettings loggingSettings) : this(staleIndexChecker, staleIndexInfoStore, loggingSettings, null) {}
             
-            protected CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, string baseDirectory)
+            protected CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, LoggingSettings loggingSettings, string baseDirectory)
             {
                 this.staleIndexInfoStore = staleIndexInfoStore;
                 this.staleIndexChecker = staleIndexChecker;
-                if (baseDirectory == null)
-                {
-                    this.directory = AppDomain.CurrentDomain.BaseDirectory;
-                }
-                else
-                {
-                    this.directory = baseDirectory;
-                }
+
+                directory = baseDirectory ?? loggingSettings.LogPath;
             }
-            
+
             protected override void OnStop()
             {
                 tokenSource?.Cancel();
@@ -61,16 +56,21 @@
                     return;
                 }
 
+
                 tokenSource = new CancellationTokenSource();
                 var fileTime = latestUpgrade[0];
                 var latest = DateTime.FromFileTimeUtc(fileTime);
+
+                // File exists, so assume in progress
+                staleIndexInfoStore.Store(new StaleIndexInfo { InProgress = true, StartedAt = latest });
+
                 checkTask = Task.Run(async () =>
                 {
                     while (!tokenSource.IsCancellationRequested)
                     {
-                        if (await staleIndexChecker.Check(latest, tokenSource.Token).ConfigureAwait(false))
+                        if (await staleIndexChecker.IsReindexingInComplete(latest, tokenSource.Token).ConfigureAwait(false))
                         {
-                            File.Delete(Path.Combine(this.directory, $"{fileTime}.upgrade"));
+                            File.Delete(Path.Combine(directory, $"{fileTime}.upgrade"));
                             staleIndexInfoStore.Store(StaleIndexInfoStore.NotInProgress);
                             break;
                         }

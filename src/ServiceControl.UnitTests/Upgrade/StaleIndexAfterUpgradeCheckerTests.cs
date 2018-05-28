@@ -56,7 +56,7 @@
 
         class TestableCheckerTask : StaleIndexAfterUpgrade.CheckerTask
         {
-            public TestableCheckerTask(StaleIndexChecker indexChecker, StaleIndexInfoStore staleIndexInfoStore, string baseDirectory) : base(indexChecker, staleIndexInfoStore, baseDirectory)
+            public TestableCheckerTask(StaleIndexChecker indexChecker, StaleIndexInfoStore staleIndexInfoStore, string baseDirectory) : base(indexChecker, staleIndexInfoStore, null, baseDirectory)
             {
             }
 
@@ -81,7 +81,7 @@
             
             public DateTime CutoffTime { get; private set; }
 
-            public override Task<bool> Check(DateTime cutOffTime, CancellationToken cancellationToken)
+            public override Task<bool> IsReindexingInComplete(DateTime cutOffTime, CancellationToken cancellationToken)
             {
                 CutoffTime = cutOffTime;
                 return Task.FromResult(Result);
