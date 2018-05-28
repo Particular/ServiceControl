@@ -3,11 +3,11 @@
     using Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class UpgradeModule : BaseModule
+    public class UpgradeModuleApi : BaseModule
     {
         public StaleIndexInfoStore InfoStore { get; set; }
         
-        public UpgradeModule()
+        public UpgradeModuleApi()
         {
             Get["/upgrade"] = parameters =>
             {

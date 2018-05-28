@@ -666,7 +666,7 @@
     <Compile Include="Upgrade\StaleIndexChecker.cs" />
     <Compile Include="Upgrade\StaleIndexInfo.cs" />
     <Compile Include="Upgrade\StaleIndexInfoStore.cs" />
-    <Compile Include="Upgrade\UpgradeModule.cs" />
+    <Compile Include="Upgrade\UpgradeModuleApi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\packages\RavenDB.Database.3.5.7-patch-35263\tools\Raven.Studio.Html5.zip">
