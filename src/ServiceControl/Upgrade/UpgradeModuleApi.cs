@@ -11,7 +11,7 @@
         {
             Get["/upgrade"] = parameters =>
             {
-                var info = InfoStore.Get();
+                var info = InfoStore?.Get();
                 return Negotiate.WithModel(info);
             };
         }
