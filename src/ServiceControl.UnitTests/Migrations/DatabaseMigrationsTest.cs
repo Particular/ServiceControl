@@ -25,7 +25,7 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void It_finishes_after_first_successful_attempt()
         {
-            RunDataMigration(1000, "Return0");
+            RunDataMigration("Return0");
 
             StringAssert.DoesNotContain("Attempt 2", traceLog.ToString());
         }
@@ -33,7 +33,7 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void It_parses_progress_information()
         {
-            var progressLog = RunDataMigration(1000, "UpdateProgress");
+            var progressLog = RunDataMigration("UpdateProgress");
 
             CollectionAssert.AreEquivalent(new []
             {
@@ -48,7 +48,7 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void If_first_attempt_throws_it_runs_second_attempt()
         {
-            RunDataMigration(1000, "Throw", "Return0");
+            RunDataMigration("Throw", "Return0");
 
             var actual = traceLog.ToString();
             StringAssert.Contains("Attempt 1", actual);
@@ -60,7 +60,7 @@ namespace ServiceControl.UnitTests.Migrations
         {
             var ex = Assert.Throws<DatabaseMigrationsException>(() =>
             {
-                RunDataMigration(1000, "WriteToErrorAndExitNonZero");
+                RunDataMigration("WriteToErrorAndExitNonZero");
             });
 
             StringAssert.Contains("Some error message", ex.Message);
@@ -69,18 +69,9 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void It_ignores_error_output_when_returning_zero()
         {
-            RunDataMigration(1000, "WriteToErrorAndExitZero");
+            RunDataMigration("WriteToErrorAndExitZero");
         }
 
-        [Test]
-        public void It_handles_timeouts()
-        {
-            Assert.Throws<DatabaseMigrationsTimeoutException>(() =>
-            {
-                RunDataMigration(1000, "Timeout");
-            });
-        }
-        
         [Test]
         public void It_writes_upgrade_file()
         {
@@ -91,7 +82,7 @@ namespace ServiceControl.UnitTests.Migrations
             }
             
             var now = DateTime.UtcNow;
-            RunDataMigration(1000, "Return0");
+            RunDataMigration("Return0");
 
             files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.upgrade");
             
@@ -100,7 +91,7 @@ namespace ServiceControl.UnitTests.Migrations
             Assert.That(fileTime, Is.GreaterThanOrEqualTo(now).And.LessThanOrEqualTo(now.AddSeconds(10)));
         }
 
-        List<string> RunDataMigration(int timeoutMilliseconds, params string[] commands)
+        List<string> RunDataMigration(params string[] commands)
         {
             var progressLog = new List<string>();
             var index = 0;
