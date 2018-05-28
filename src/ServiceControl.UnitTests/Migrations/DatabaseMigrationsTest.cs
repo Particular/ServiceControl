@@ -4,10 +4,8 @@ namespace ServiceControl.UnitTests.Migrations
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
     using System.Text;
     using NUnit.Framework;
-    using Raven.Database.FileSystem.Storage.Voron.Impl;
     using ServiceControlInstaller.Engine.Database;
 
     [TestFixture]
@@ -27,7 +25,7 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void It_finishes_after_first_successful_attempt()
         {
-            RunDataMigration("Return0");
+            RunDataMigration(1000, "Return0");
 
             StringAssert.DoesNotContain("Attempt 2", traceLog.ToString());
         }
@@ -35,7 +33,7 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void It_parses_progress_information()
         {
-            var progressLog = RunDataMigration("UpdateProgress");
+            var progressLog = RunDataMigration(1000, "UpdateProgress");
 
             CollectionAssert.AreEquivalent(new []
             {
@@ -50,7 +48,7 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void If_first_attempt_throws_it_runs_second_attempt()
         {
-            RunDataMigration("Throw", "Return0");
+            RunDataMigration(1000, "Throw", "Return0");
 
             var actual = traceLog.ToString();
             StringAssert.Contains("Attempt 1", actual);
@@ -62,7 +60,7 @@ namespace ServiceControl.UnitTests.Migrations
         {
             var ex = Assert.Throws<DatabaseMigrationsException>(() =>
             {
-                RunDataMigration("WriteToErrorAndExitNonZero");
+                RunDataMigration(1000, "WriteToErrorAndExitNonZero");
             });
 
             StringAssert.Contains("Some error message", ex.Message);
@@ -71,12 +69,9 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void It_ignores_error_output_when_returning_zero()
         {
-            RunDataMigration("WriteToErrorAndExitZero");
+            RunDataMigration(1000, "WriteToErrorAndExitZero");
         }
 
-<<<<<<< HEAD
-        List<string> RunDataMigration(params string[] commands)
-=======
         [Test]
         public void It_handles_timeouts()
         {
@@ -96,7 +91,7 @@ namespace ServiceControl.UnitTests.Migrations
             }
             
             var now = DateTime.UtcNow;
-            RunDataMigration("Return0");
+            RunDataMigration(1000, "Return0");
 
             files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.upgrade");
             
@@ -106,16 +101,17 @@ namespace ServiceControl.UnitTests.Migrations
         }
 
         List<string> RunDataMigration(int timeoutMilliseconds, params string[] commands)
->>>>>>> Spike for indexing in progress after upgrade
         {
             var progressLog = new List<string>();
             var index = 0;
-            DatabaseMigrations.RunDataMigration(s => { progressLog.Add(s); }, AppDomain.CurrentDomain.BaseDirectory, "DatabaseMigrationsTester.exe", () =>
+
+            DatabaseMigrations.RunDataMigration(s => { progressLog.Add(s); }, AppDomain.CurrentDomain.BaseDirectory, AppDomain.CurrentDomain.BaseDirectory, "DatabaseMigrationsTester.exe", () =>
             {
                 var nextCommand = commands[index % commands.Length];
                 index++;
                 return nextCommand;
             });
+
             return progressLog;
         }
     }

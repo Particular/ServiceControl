@@ -11,7 +11,7 @@
     public class StaleIndexAfterUpgradeCheckerTests
     {
         [Test]
-        public async Task Should_delete_upgrade_file_one_indexing_reached_cutoff()
+        public async Task Should_delete_upgrade_file_once_indexing_reached_cutoff()
         {
             var currentDirectory = TestContext.CurrentContext.TestDirectory;
 
@@ -28,16 +28,18 @@
             
             var staleIndexChecker = new TestableStaleIndexChecker();
             var indexStore = new StaleIndexInfoStore();
-            staleIndexChecker.Result = true; // stale
+            staleIndexChecker.Result = false; // stale
             var checker = new TestableCheckerTask(staleIndexChecker, indexStore, currentDirectory);
             StaleIndexInfo? infoInProgress, infoDone;
             try
             {
                 checker.Start();
-
                 await Task.Delay(1000); // evil time based for now
                 infoInProgress = indexStore.Get();
-                staleIndexChecker.Result = false;
+
+                await Task.Delay(1000); // evil time based for now
+                staleIndexChecker.Result = true;
+
                 await Task.Delay(1000); // evil time based for now
                 infoDone = indexStore.Get();
             }
