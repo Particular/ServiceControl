@@ -114,7 +114,7 @@ namespace ServiceControlInstaller.Engine.Instances
                         host = HostName;
                         break;
                 }
-                return $"http://{host}:{DatabaseMaintenancePort}/";
+                return $"http://{host}:{DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
             }
         }
 
