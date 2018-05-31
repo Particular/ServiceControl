@@ -80,5 +80,6 @@
         bool ForwardErrorMessages { get; }
         TimeSpan AuditRetentionPeriod { get; }
         TimeSpan ErrorRetentionPeriod { get; }
+        bool IsUpdatingDataStore { get; set; }
     }
 }

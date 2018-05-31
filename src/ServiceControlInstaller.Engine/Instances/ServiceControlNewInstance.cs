@@ -47,6 +47,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public string DisplayName { get; set; }
         public string ServiceDescription { get; set; }
         public bool SkipQueueCreation { get; set; }
+        public bool IsUpdatingDataStore { get; set; }
+
 
         [XmlIgnore]
         public Version Version { get; set; }

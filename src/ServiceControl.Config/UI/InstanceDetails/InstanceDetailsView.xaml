@@ -72,31 +72,43 @@
                        Text="MONITORING INSTANCE" />
 
         </StackPanel>
-        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0 0 0 10">
-            <ContentControl Margin="0,0,0,0"
-                            VerticalAlignment="Center"
-                            Template="{StaticResource RunningIcon}"
-                            Visibility="{Binding IsRunning,
+        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0 0 0 10">
+            <StackPanel Orientation="Horizontal">
+                <ContentControl Margin="0,0,0,0"
+                                VerticalAlignment="Center"
+                                Template="{StaticResource RunningIcon}"
+                                Visibility="{Binding IsRunning,
                                                  Converter={StaticResource boolToVis}}" />
 
-            <ContentControl Margin="0,0,0,0"
-                            VerticalAlignment="Center"
-                            Template="{StaticResource StoppedIcon}"
-                            Visibility="{Binding IsStopped,
+                <ContentControl Margin="0,0,0,0"
+                                VerticalAlignment="Center"
+                                Template="{StaticResource StoppedIcon}"
+                                Visibility="{Binding IsStopped,
                                                  Converter={StaticResource boolToVis}}" />
+
+                <TextBlock Margin="3,0,0,0"
+                           VerticalAlignment="Center"
+                           FontSize="13px"
+                           Foreground="{StaticResource Gray40Brush}"
+                           Text="{Binding Status}" />
+
+                <TextBlock  Margin="3,0,0,0" 
+                            VerticalAlignment="Center"  
+                            FontSize="13px"
+                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"
+                >
+                    <Hyperlink Foreground="DarkOrange" Command="{Binding AdvancedOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
+                </TextBlock>
+
+            </StackPanel>
 
             <TextBlock Margin="3,0,0,0"
                        VerticalAlignment="Center"
                        FontSize="13px"
-                       Foreground="{StaticResource Gray40Brush}"
-                       Text="{Binding Status}" />
-
-            <TextBlock  Margin="3,0,0,0" 
-                        VerticalAlignment="Center"  
-                        FontSize="13px"
-                        Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}">
-                <Hyperlink Foreground="DarkOrange" Command="{Binding AdvancedOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
-            </TextBlock>
+                       Foreground="{StaticResource Gray60Brush}"
+                       Text="• UPDATING DATA STORE" 
+                       Visibility="{Binding IsUpdatingDataStore, Converter={StaticResource boolToVis}}"
+                       />
         </StackPanel>
 
         <StackPanel Grid.Row="1"

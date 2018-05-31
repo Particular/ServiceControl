@@ -131,5 +131,10 @@
                 return new Version(0, 0, 0);
             }
         }
+
+        public virtual void RefreshServiceProperties()
+        {
+            Service.Refresh();
+        }
     }
 }
