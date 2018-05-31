@@ -33,17 +33,18 @@
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
+            var markerFileService = configuration.GetSettings().Get<MarkerFileService>("ServiceControl.MarkerFileService");
 
             Settings = settings;
 
-            StartRaven(documentStore, settings, false);
+            StartRaven(documentStore, settings, markerFileService, false);
 
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
         public static Settings Settings { get; set; }
 
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
+        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, MarkerFileService markerFileService, bool maintenanceMode)
         {
             Directory.CreateDirectory(settings.DbPath);
 
@@ -83,7 +84,10 @@
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
 
-            documentStore.Initialize();
+            using (markerFileService.CreateMarker("datamigration.marker"))
+            {
+                documentStore.Initialize();
+            }
 
             Logger.Info("Index creation started");
 

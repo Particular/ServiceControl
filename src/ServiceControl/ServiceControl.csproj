@@ -314,6 +314,7 @@
     <Compile Include="Infrastructure\DomainEvents\IDomainEvent.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainEvents.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainHandler.cs" />
+    <Compile Include="Infrastructure\MarkerFile.cs" />
     <Compile Include="Infrastructure\RavenDB\Extensions.cs" />
     <Compile Include="Infrastructure\SignalR\IUserInterfaceEvent.cs" />
     <Compile Include="Infrastructure\SignalR\ServicePulseNotifier.cs" />
