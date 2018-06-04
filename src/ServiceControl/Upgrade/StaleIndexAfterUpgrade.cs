@@ -1,6 +1,7 @@
 ﻿namespace Particular.ServiceControl.Upgrade
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -49,14 +50,26 @@
 
             protected override void OnStart()
             {
-                var strings = Directory.GetFiles(directory, "*.upgrade");
-                var latestUpgrade = strings.Select(f => Convert.ToInt64(Path.GetFileNameWithoutExtension(f))).OrderByDescending(x => x).ToArray();
-                if (latestUpgrade.Length == 0)
+                var fileNamesWithoutExtension = Directory.GetFiles(directory, "*.upgrade").Select(Path.GetFileNameWithoutExtension);
+
+                var latestUpgrade = new List<long>();
+                foreach (var fileNameWithoutExtension in fileNamesWithoutExtension)
+                {
+                    long upgradeTime;
+                    if (long.TryParse(fileNameWithoutExtension, out upgradeTime))
+                    {
+                        latestUpgrade.Add(upgradeTime);
+                    }
+                }
+    
+                if (latestUpgrade.Count == 0)
                 {
                     return;
                 }
 
-
+                latestUpgrade.Sort(); // ascending
+                latestUpgrade.Reverse(); // descending
+                
                 tokenSource = new CancellationTokenSource();
                 var fileTime = latestUpgrade[0];
                 var latest = DateTime.FromFileTimeUtc(fileTime);
