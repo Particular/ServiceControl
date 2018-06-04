@@ -81,14 +81,21 @@
                 {
                     while (!tokenSource.IsCancellationRequested)
                     {
-                        if (await staleIndexChecker.IsReindexingInComplete(latest, tokenSource.Token).ConfigureAwait(false))
+                        if (!await staleIndexChecker.IsReindexingInComplete(latest, tokenSource.Token).ConfigureAwait(false))
                         {
-                            File.Delete(Path.Combine(directory, $"{fileTime}.upgrade"));
-                            staleIndexInfoStore.Store(StaleIndexInfoStore.NotInProgress);
-                            break;
+                            continue;
                         }
 
-                        staleIndexInfoStore.Store(new StaleIndexInfo { InProgress = true, StartedAt = latest });
+                        try
+                        {
+                            File.Delete(Path.Combine(directory, $"{fileTime}.upgrade"));
+                        }
+                        catch (IOException)
+                        {
+                            // if we can't delete for now that is OK
+                        }
+                        staleIndexInfoStore.Store(StaleIndexInfoStore.NotInProgress);
+                        break;
                     }
                 });
             }
