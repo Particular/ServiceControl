@@ -8,6 +8,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
 
@@ -24,6 +25,7 @@ namespace ServiceBus.Management.Infrastructure
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
+            configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(new LoggingSettings(settings.ServiceName).LogPath));
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();

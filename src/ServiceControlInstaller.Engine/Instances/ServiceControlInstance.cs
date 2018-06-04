@@ -38,6 +38,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string ConnectionString { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
+        public bool IsUpdatingDataStore { get; set; }
         public bool InMaintenanceMode { get; set; }
         public bool SkipQueueCreation { get; set; }
         public AppConfig AppConfig;
@@ -82,6 +83,19 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
+
+            UpdateDataMigrationMarker();
+        }
+
+        private void UpdateDataMigrationMarker()
+        {
+            IsUpdatingDataStore = File.Exists(Path.Combine(LogPath, "datamigration.marker"));
+        }
+
+        public override void RefreshServiceProperties()
+        {
+            base.RefreshServiceProperties();
+            UpdateDataMigrationMarker();
         }
 
         public string Url

@@ -1,6 +1,7 @@
 namespace Particular.ServiceControl
 {
     using Autofac;
+    using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.RavenDB;
     using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
@@ -21,10 +22,12 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterModule<MigrationsModule>();
 
+            var markerFileService = new MarkerFileService(loggingSettings.LogPath);
+
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                new RavenBootstrapper().StartRaven(documentStore, settings, true);
+                new RavenBootstrapper().StartRaven(documentStore, settings, markerFileService, true);
                 container.Resolve<MigrationsManager>().ApplyMigrations();
             }
         }
