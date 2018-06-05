@@ -99,7 +99,7 @@ namespace ServiceControl.Recoverability
                 RavenQueryStatistics stats;
 
                 var queryResult = await session.Advanced
-                                    .AsyncLuceneQuery<FailureGroupView, FailureGroupsViewIndex>()
+                                    .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
                                     .Statistics(out stats)
                                     .WhereEquals(group => group.Id, groupId)
                                     .FilterByStatusWhere(Request)
@@ -120,7 +120,7 @@ namespace ServiceControl.Recoverability
                 RavenQueryStatistics stats;
 
                 var results = await session.Advanced
-                    .AsyncLuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                    .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .Statistics(out stats)
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
@@ -143,11 +143,11 @@ namespace ServiceControl.Recoverability
             using (var session = Store.OpenAsyncSession())
             {
                 var queryResult = await session.Advanced
-                    .AsyncLuceneQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                    .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
                     .FilterByLastModifiedRange(Request)
-                    .QueryResultAsync
+                    .QueryResultAsync()
                     .ConfigureAwait(false);
 
                 return Negotiate

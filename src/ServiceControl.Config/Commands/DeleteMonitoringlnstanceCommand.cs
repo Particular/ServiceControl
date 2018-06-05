@@ -44,7 +44,7 @@
                         model.TryClose(true);
                     }
                 }
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                eventAggregator.PublishOnUIThread(new ResetInstances());
             }
         }
     }

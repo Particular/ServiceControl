@@ -1,15 +1,20 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using FluentValidation;
     using Framework;
     using Framework.Commands;
     using ServiceControl.Config.Events;
     using ServiceControl.Config.Framework.Modules;
     using ServiceControl.Config.UI.InstanceDetails;
     using ServiceControl.Config.UI.MessageBox;
+    using ServiceControl.Config.Validation;
     using ServiceControl.Config.Xaml.Controls;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
@@ -45,15 +50,14 @@
             }
 
             var instance = InstanceFinder.FindServiceControlInstance(model.Name);
-            
 
             instance.Service.Refresh();
 
             var upgradeOptions = new ServiceControlUpgradeOptions();
-            
+
             if (!instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
             {
-                var result  = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
+                var result = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
                 if (!result.HasValue)
                 {
                     //Dialog was cancelled
@@ -62,7 +66,7 @@
                 }
                 upgradeOptions.OverrideEnableErrorForwarding = !result.Value;
             }
-            
+
             //Grab old setting if it exists
             if (!instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
             {
@@ -127,53 +131,126 @@
                 }
             }
 
-            var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                          windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes I want to proceed", "No");
-
-            if (confirm)
+            if (!instance.AppConfig.AppSettingExists(SettingsList.DatabaseMaintenancePort.Name))
             {
-                using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
+                var viewModel = new TextBoxDialogViewModel("UPGRADE QUESTION - MAINTENANCE PORT",
+                    "When in the maintenance mode Service Control exposes the RavenDB database on a specified port.",
+                    "MAINTENANCE PORT",
+                    "", new MaintenancePortValidator());
+
+                if (windowManager.ShowTextBoxDialog(viewModel))
                 {
-                    var reportCard = new ReportCard();
-                    var restartAgain = model.IsRunning;
+                    upgradeOptions.MaintenancePort = int.Parse(viewModel.Value);
+                }
+                else
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
+            }
 
-                    var stopped = await model.StopService(progress);
+            if (instance.Version.Major != installer.ZipInfo.Version.Major) //Upgrade to different major -> recommend DB backup
+            {
+                if (!windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
+                    $"{model.Name} is going to be upgraded to version {installer.ZipInfo.Version} which uses a different storage format. Database migration will be conducted "
+                    + " as part of the upgrade. It is recommended that you back up the database before upgrading. To read more about the back up process "
+                    + " see https://docs.particular.net/servicecontrol/backup-sc-database.",
+                    "Do you want to proceed?",
+                    "Yes I backed up the database and I want to proceed", "No"))
+                {
+                    return;
+                }
 
-                    if (!stopped)
+                var dbSize = instance.GetDatabaseSizeInGb();
+                if (dbSize >= 100) // 100GB
+                {
+                    if (!windowManager.ShowYesNoDialog($"MIGRATE LARGE DATABASE", $"The database being upgraded is {dbSize.ToString("N0")} GB. Migrating this much data could take a long "
+                        + "time and ServiceControl will be stopped for that entire duration. It is recommended that you consider one of the other upgrade approaches instead.",
+                        "Are you sure you want to migrate this database?", "Yes", "No"))
                     {
-                        eventAggregator.PublishOnUIThread(new RefreshInstances());
-
-                        reportCard.Errors.Add("Failed to stop the service");
-                        reportCard.SetStatus();
-                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
-
                         return;
                     }
+                }
+            }
+            else
+            {
+                if(instance.Service.Status != ServiceControllerStatus.Stopped &&
+                          !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
+                          $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.",
+                          "Do you want to proceed?",
+                          "Yes I want to proceed", "No"))
+                {
+                    return;
+                }
+            }
 
-                    reportCard = await Task.Run(() => installer.Upgrade(model.Name, upgradeOptions, progress));
+            using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
+            {
+                var reportCard = new ReportCard();
+                var restartAgain = model.IsRunning;
 
-                    if (reportCard.HasErrors || reportCard.HasWarnings)
+                var stopped = await model.StopService(progress);
+
+                if (!stopped)
+                {
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+
+                    reportCard.Errors.Add("Failed to stop the service");
+                    reportCard.SetStatus();
+                    windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
+
+                    return;
+                }
+
+                reportCard = await Task.Run(() => installer.Upgrade(model.Name, upgradeOptions, progress));
+
+                if (reportCard.HasErrors || reportCard.HasWarnings)
+                {
+                    windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+                }
+                else
+                {
+                    if (restartAgain)
                     {
-                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
-                    }
-                    else
-                    {
-                        if (restartAgain)
+                        var serviceStarted = await model.StartService(progress);
+                        if (!serviceStarted)
                         {
-                           var serviceStarted =  await model.StartService(progress);
-                            if (!serviceStarted)
-                            {
-                                reportCard.Errors.Add("The Service failed to start. Please consult the service control logs for this instance");
-                                windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
-                            }
+                            reportCard.Errors.Add("The Service failed to start. Please consult the service control logs for this instance");
+                            windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
                         }
                     }
                 }
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
+
+            eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
 
         [FeatureToggle(Feature.LicenseChecks)]
         public bool LicenseChecks { get; set; }
+
+        class MaintenancePortValidator : AbstractValidator<TextBoxDialogViewModel>
+        {
+            ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances;
+
+            public MaintenancePortValidator()
+            {
+                ServiceControlInstances = InstanceFinder.ServiceControlInstances();
+
+                RuleFor(x => x.Value)
+                    .NotEmpty()
+                    .ValidPort()
+                    .MustNotBeIn(x => UsedPorts())
+                    .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports");
+            }
+
+            List<string> UsedPorts()
+            {
+                return ServiceControlInstances
+                    .SelectMany(p => new[] { p.Port.ToString(), p.DatabaseMaintenancePort.ToString() })
+                    .Distinct()
+                    .ToList();
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
@@ -45,7 +46,6 @@
                 };
                 var indexName = new ExpiryProcessedMessageIndex().IndexName;
                 database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    null,
                     doc =>
                     {
                         var id = doc.Value<string>("__document_id");
@@ -76,7 +76,7 @@
             Chunker.ExecuteInChunks(items.Count, (s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1));
+                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
 
                 deletionCount += results.Count(x => x.Deleted == true);
@@ -89,7 +89,10 @@
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents.", s, e);
                     for (var idx = s; idx <= e; idx++)
                     {
+                        //We want to continue using attachments for now
+#pragma warning disable 618
                         accessor.Attachments.DeleteAttachment(attachments[idx], null);
+#pragma warning restore 618
                     }
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
                 });

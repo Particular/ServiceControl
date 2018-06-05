@@ -33,17 +33,18 @@
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
+            var markerFileService = configuration.GetSettings().Get<MarkerFileService>("ServiceControl.MarkerFileService");
 
             Settings = settings;
 
-            StartRaven(documentStore, settings, false);
+            StartRaven(documentStore, settings, markerFileService, false);
 
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
         public static Settings Settings { get; set; }
 
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
+        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, MarkerFileService markerFileService, bool maintenanceMode)
         {
             Directory.CreateDirectory(settings.DbPath);
 
@@ -63,6 +64,10 @@
                 documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             }
 
+            //This is affects only remote access to the database in maintenace mode and enables access without authentication
+            documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
+            documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
+
             if (!maintenanceMode)
             {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
@@ -70,18 +75,19 @@
 
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
-            documentStore.Configuration.DisablePerformanceCounters = settings.DisableRavenDBPerformanceCounters;
-            documentStore.Configuration.Port = settings.Port;
+            documentStore.Configuration.Port = settings.DatabaseMaintenancePort;
             documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
                 ? "localhost"
                 : settings.Hostname;
-            documentStore.Configuration.VirtualDirectory = $"{settings.VirtualDirectory}/storage";
             documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
 
-            documentStore.Initialize();
+            using (markerFileService.CreateMarker("datamigration.marker"))
+            {
+                documentStore.Initialize();
+            }
 
             Logger.Info("Index creation started");
 

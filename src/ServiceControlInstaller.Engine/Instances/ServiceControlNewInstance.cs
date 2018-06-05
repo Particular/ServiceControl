@@ -33,6 +33,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string InstallPath { get; set; }
         public int Port { get; set; }
+        public int? DatabaseMaintenancePort { get; set; }
         public string VirtualDirectory { get; set; }
         public string ErrorQueue { get; set; }
         public string ErrorLogQueue { get; set; }
@@ -46,6 +47,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public string DisplayName { get; set; }
         public string ServiceDescription { get; set; }
         public bool SkipQueueCreation { get; set; }
+        public bool IsUpdatingDataStore { get; set; }
+
 
         [XmlIgnore]
         public Version Version { get; set; }
@@ -85,6 +88,15 @@ namespace ServiceControlInstaller.Engine.Instances
                     return baseUrl;
                 }
                 return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
+            }
+        }
+
+        public string AclMaintenanceUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+                return baseUrl;
             }
         }
 
@@ -153,6 +165,9 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
+
+            var maintenanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            maintenanceReservation.Create();
         }
 
         public void SetupInstance()
@@ -232,6 +247,15 @@ namespace ServiceControlInstaller.Engine.Instances
 
             try
             {
+                DatabaseMaintenancePortValidator.Validate(this);
+            }
+            catch (EngineValidationException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+
+            try
+            {
                 ReportCard.CancelRequested = new PathsValidator(this).RunValidation(true, promptToProceed);
             }
             catch (EngineValidationException ex)
@@ -274,7 +298,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         void CheckForConflictingUrlAclReservations()
         {
-            foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == Port))
+            foreach (var reservation in UrlReservation.GetAll().Where(p => p.Port == Port || p.Port == DatabaseMaintenancePort))
             {
                 // exclusive or of reservation and instance - if only one of them has "localhost" then the UrlAcl will clash
                 if (reservation.HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) && !HostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||

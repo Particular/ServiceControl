@@ -32,7 +32,6 @@
             CopyToClipboard = new CopyToClipboardCommand();
             StartCommand = Command.Create(() => StartService());
             StopCommand = Command.Create(() => StopService());
-            Version = instance.Version;
             
             ServiceInstance = instance;
 
@@ -83,7 +82,7 @@
 
         public string LogPath => ((IServicePaths)ServiceInstance).LogPath;
 
-        public Version Version { get; set; }
+        public Version Version => ServiceInstance.Version;
 
         public InstanceType InstanceType { get; set; }
 
@@ -92,6 +91,8 @@
         public bool HasNewVersion => Version < NewVersion;
 
         public string Transport => ((ITransportConfig) ServiceInstance).TransportPackage;
+
+        public bool IsUpdatingDataStore => ServiceControlInstance?.IsUpdatingDataStore ?? false;
 
         public string Status
         {
@@ -197,6 +198,7 @@
         public void Handle(RefreshInstances message)
         {
             UpdateServiceProperties();
+
             NotifyOfPropertyChange("Name");
             NotifyOfPropertyChange("Host");
             NotifyOfPropertyChange("InstallPath");
@@ -274,13 +276,15 @@
 
         void UpdateServiceProperties()
         {
-            ServiceInstance.Service.Refresh();
+            ServiceInstance.RefreshServiceProperties();
+
             NotifyOfPropertyChange("Status");
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("AllowStart");
             NotifyOfPropertyChange("IsRunning");
             NotifyOfPropertyChange("IsStopped");
             NotifyOfPropertyChange("InMaintenanceMode");
+            NotifyOfPropertyChange("IsUpdatingDataStore");
         }
     }
 }

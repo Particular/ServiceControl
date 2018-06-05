@@ -85,21 +85,14 @@
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Database.2.5.2996\lib\net45\Raven.Abstractions.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Raven.Abstractions, Version=3.5.7.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Database.3.5.7-patch-35263\lib\net45\Raven.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Embedded, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Embedded.2.5.2996\lib\net45\Raven.Client.Embedded.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Raven.Client.Lightweight, Version=3.5.7.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Client.3.5.7-patch-35263\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Lightweight, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Client.2.5.2996\lib\net45\Raven.Client.Lightweight.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Raven.Database, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Database.2.5.2996\lib\net45\Raven.Database.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Raven.Database, Version=3.5.7.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Database.3.5.7-patch-35263\lib\net45\Raven.Database.dll</HintPath>
     </Reference>
     <Reference Include="ServiceControl.Contracts, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ServiceControl.Contracts.1.1.1\lib\net40\ServiceControl.Contracts.dll</HintPath>
@@ -138,6 +131,7 @@
     <Compile Include="Infrastructure\Settings\SettingsTests.cs" />
     <Compile Include="MessageExtensions.cs" />
     <Compile Include="Migrations\1.27\SplitFailedMessageDocumentsMigrationTests.cs" />
+    <Compile Include="Migrations\DatabaseMigrationsTest.cs" />
     <Compile Include="ObjectApprover.cs" />
     <Compile Include="RavenIndexAwaiter.cs" />
     <Compile Include="Infrastructure\TransportMessageExtensionsTests.cs" />
@@ -167,8 +161,17 @@
     <Compile Include="ScatterGather\MessagesView_ScatterGather_NoData.cs" />
     <Compile Include="ScatterGather\MessageViewComparerTests.cs" />
     <Compile Include="ScatterGather\MessageView_ScatterGatherTest.cs" />
+    <Compile Include="Upgrade\StaleIndexAfterUpgradeCheckerTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DatabaseMigrationsTester\DatabaseMigrationsTester.csproj">
+      <Project>{276c38d4-734e-4c0b-9cdb-71b62550ede7}</Project>
+      <Name>DatabaseMigrationsTester</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
+      <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
+      <Name>ServiceControlInstaller.Engine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
       <Name>ServiceControl</Name>
@@ -179,6 +182,10 @@
     <Content Include="SagaAudit\SagaListIndexTests.RunMapReduce.approved.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\packages\RavenDB.Database.3.5.7-patch-35263\tools\Raven.Studio.Html5.zip">
+      <Link>Raven.Studio.Html5.zip</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="app.config" />
     <None Include="packages.config" />
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

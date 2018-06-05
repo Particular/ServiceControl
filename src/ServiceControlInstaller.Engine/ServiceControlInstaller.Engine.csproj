@@ -112,6 +112,9 @@
     <Compile Include="Configuration\ServiceControl\SettingConstants.cs" />
     <Compile Include="Configuration\ServiceControl\SettingsList.cs" />
     <Compile Include="Configuration\SettingInfo.cs" />
+    <Compile Include="Database\DatabaseMigrations.cs" />
+    <Compile Include="Database\DatabaseMigrationsException.cs" />
+    <Compile Include="Database\DatabaseMigrationsTimeoutException.cs" />
     <Compile Include="FileSystem\ReleaseDateReader.cs" />
     <Compile Include="FileSystem\MonitoringZipInfo.cs" />
     <Compile Include="Instances\BaseService.cs" />
@@ -130,6 +133,7 @@
     <Compile Include="Validation\ConnectionStringValidator.cs" />
     <Compile Include="Queues\QueueCreation.cs" />
     <Compile Include="Validation\EngineValidationException.cs" />
+    <Compile Include="Validation\DatabaseMaintenancePortValidator.cs" />
     <Compile Include="Validation\MsmqConfigValidator.cs" />
     <Compile Include="ReportCard\Status.cs" />
     <Compile Include="ReportCard\ReportCard.cs" />

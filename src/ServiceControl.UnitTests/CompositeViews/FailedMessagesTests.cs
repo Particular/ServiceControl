@@ -42,7 +42,7 @@
             {
                 using (var session = documentStore.OpenSession())
                 {
-                    var results = session.Advanced.LuceneQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    var results = session.Advanced.DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                                         .Statistics(out stats)
                                         .SelectFields<FailedMessageView>()

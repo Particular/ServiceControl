@@ -59,7 +59,6 @@
                     },
                     PerformanceTunning = new
                     {
-                        Settings.MaximumMessageThroughputPerSecond,
                         MaxBodySizeToStore= Settings.MaxBodySizeToStore,
                         Settings.HttpDefaultConnectionLimit,
                         Settings.ExternalIntegrationsDispatchingBatchSize,

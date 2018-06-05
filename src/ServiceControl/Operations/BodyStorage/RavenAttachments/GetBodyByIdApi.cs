@@ -20,7 +20,11 @@
             Action<Stream> contents;
             string contentType;
             int bodySize;
+
+            //We want to continue using attachments for now
+#pragma warning disable 618
             var attachment = await Store.AsyncDatabaseCommands.GetAttachmentAsync("messagebodies/" + messageId).ConfigureAwait(false);
+#pragma warning restore 618
             Etag currentEtag;
 
             if (attachment == null)

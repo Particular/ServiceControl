@@ -23,6 +23,10 @@
 
         public void Handle(UnArchiveMessagesByRange message)
         {
+            var options = new BulkOperationOptions
+            {
+                AllowStale = true
+            };
             var result = store.DatabaseCommands.UpdateByIndex(
                 new FailedMessageViewIndex().IndexName,
                 new IndexQuery
@@ -41,7 +45,7 @@ if(this.Status === archivedStatus) {
                         {"archivedStatus", (int) FailedMessageStatus.Archived},
                         {"unresolvedStatus", (int) FailedMessageStatus.Unresolved}
                     }
-                }, true).WaitForCompletion();
+                }, options).WaitForCompletion();
 
             var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
 

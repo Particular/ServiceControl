@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2010
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
@@ -47,6 +47,16 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.MSMQ.DLQMonitor", "ServiceControl.MSMQ.DLQMonitor\ServiceControl.MSMQ.DLQMonitor.csproj", "{46F65684-6439-4199-806E-9EA4CA0AC31C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.ASB.DLQMonitor", "ServiceControl.ASB.DLQMonitor\ServiceControl.ASB.DLQMonitor.csproj", "{70BE1AF0-4739-43E9-864E-4104A5781614}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseMigrationsTester", "DatabaseMigrationsTester\DatabaseMigrationsTester.csproj", "{276C38D4-734E-4C0B-9CDB-71B62550EDE7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LoadTests", "LoadTests", "{B05ACC74-412F-470C-872F-D1ABD75885B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.LoadTests.Messages", "ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj", "{AECE0265-F6E3-49A7-9F45-8847D359F05D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.LoadTests.QueueLengthMonitor", "ServiceControl.LoadTests.QueueLengthMonitor\ServiceControl.LoadTests.QueueLengthMonitor.csproj", "{48096FD2-5634-4E42-91F2-DF5CEED43859}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LoadTests.AuditGenerator", "ServiceControl.LoadTests.AuditGenerator\ServiceControl.LoadTests.AuditGenerator.csproj", "{0A6BF34E-B7C3-4D3D-908F-BA74DAC4743F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -118,6 +128,22 @@ Global
 		{70BE1AF0-4739-43E9-864E-4104A5781614}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70BE1AF0-4739-43E9-864E-4104A5781614}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70BE1AF0-4739-43E9-864E-4104A5781614}.Release|Any CPU.Build.0 = Release|Any CPU
+		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AECE0265-F6E3-49A7-9F45-8847D359F05D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AECE0265-F6E3-49A7-9F45-8847D359F05D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AECE0265-F6E3-49A7-9F45-8847D359F05D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AECE0265-F6E3-49A7-9F45-8847D359F05D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48096FD2-5634-4E42-91F2-DF5CEED43859}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48096FD2-5634-4E42-91F2-DF5CEED43859}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48096FD2-5634-4E42-91F2-DF5CEED43859}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48096FD2-5634-4E42-91F2-DF5CEED43859}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A6BF34E-B7C3-4D3D-908F-BA74DAC4743F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A6BF34E-B7C3-4D3D-908F-BA74DAC4743F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A6BF34E-B7C3-4D3D-908F-BA74DAC4743F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A6BF34E-B7C3-4D3D-908F-BA74DAC4743F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -134,6 +160,9 @@ Global
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 		{46F65684-6439-4199-806E-9EA4CA0AC31C} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 		{70BE1AF0-4739-43E9-864E-4104A5781614} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{AECE0265-F6E3-49A7-9F45-8847D359F05D} = {B05ACC74-412F-470C-872F-D1ABD75885B5}
+		{48096FD2-5634-4E42-91F2-DF5CEED43859} = {B05ACC74-412F-470C-872F-D1ABD75885B5}
+		{0A6BF34E-B7C3-4D3D-908F-BA74DAC4743F} = {B05ACC74-412F-470C-872F-D1ABD75885B5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}

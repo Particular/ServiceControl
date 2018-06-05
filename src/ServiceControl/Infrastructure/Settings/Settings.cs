@@ -51,17 +51,18 @@
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
+            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            MaximumConcurrencyLevel = 10;
+            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             RemoteInstances = GetRemoteInstances();
         }
 
-        public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
+        public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
-        public int MaximumMessageThroughputPerSecond => SettingsReader<int>.Read("MaximumMessageThroughputPerSecond", 350);
+        public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
@@ -82,11 +83,20 @@
             }
         }
 
+        public string DatabaseMaintenanceUrl
+        {
+            get
+            {
+                return $"http://{Hostname}:{DatabaseMaintenancePort}";
+            }
+        }
+
         public string ApiUrl => $"{RootUrl}api";
 
         public string StorageUrl => $"{RootUrl}storage";
 
         public int Port { get; set; }
+        public int DatabaseMaintenancePort { get; set; }
 
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
@@ -127,9 +137,14 @@
         {
             get
             {
-                if (expirationProcessTimerInSeconds < 0 || expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
+                if (expirationProcessTimerInSeconds < 0)
                 {
-                    logger.Error($"ExpirationProcessTimerInSeconds settings is invalid, the valid range is 0 to {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                    logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                    return ExpirationProcessTimerInSecondsDefault;
+                }
+                if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
+                {
+                    logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
                     return ExpirationProcessTimerInSecondsDefault;
                 }
                 return expirationProcessTimerInSeconds;
@@ -146,9 +161,14 @@
         {
             get
             {
-                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
+                if (expirationProcessBatchSize < 1)
                 {
-                    logger.Error($"ExpirationProcessBatchSize settings is invalid, {ExpirationProcessBatchSizeMinimum} is the minimum value. Defaulting to {ExpirationProcessBatchSizeDefault}");
+                    logger.Error($"ExpirationProcessBatchSize cannot be less than 1. Defaulting to {ExpirationProcessBatchSizeDefault}");
+                    return ExpirationProcessBatchSizeDefault;
+                }
+                if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
+                {
+                    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
                     return ExpirationProcessBatchSizeDefault;
                 }
                 return expirationProcessBatchSize;
@@ -305,14 +325,14 @@
                 if (TimeSpan.TryParse(valueRead, out result))
                 {
                     string message;
-                    if (result < TimeSpan.FromHours(1))
+                    if (ValidateConfiguration && result < TimeSpan.FromHours(1))
                     {
                         message = "EventRetentionPeriod settings is invalid, value should be minimum 1 hour.";
                         logger.Fatal(message);
                         throw new Exception(message);
                     }
 
-                    if (result > TimeSpan.FromDays(200))
+                    if (ValidateConfiguration && result > TimeSpan.FromDays(200))
                     {
                         message = "EventRetentionPeriod settings is invalid, value should be maximum 200 days.";
                         logger.Fatal(message);
@@ -340,14 +360,14 @@
 
             if (TimeSpan.TryParse(valueRead, out result))
             {
-                if (result < TimeSpan.FromDays(10))
+                if (ValidateConfiguration && result < TimeSpan.FromDays(10))
                 {
                     message = "ErrorRetentionPeriod settings is invalid, value should be minimum 10 days.";
                     logger.Fatal(message);
                     throw new Exception(message);
                 }
 
-                if (result > TimeSpan.FromDays(45))
+                if (ValidateConfiguration && result > TimeSpan.FromDays(45))
                 {
                     message = "ErrorRetentionPeriod settings is invalid, value should be maximum 45 days.";
                     logger.Fatal(message);
@@ -377,14 +397,14 @@
 
             if (TimeSpan.TryParse(valueRead, out result))
             {
-                if (result < TimeSpan.FromHours(1))
+                if (ValidateConfiguration && result < TimeSpan.FromHours(1))
                 {
                     message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
                     InternalLogger.Fatal(message);
                     throw new Exception(message);
                 }
 
-                if (result > TimeSpan.FromDays(365))
+                if (ValidateConfiguration && result > TimeSpan.FromDays(365))
                 {
                     message = "AuditRetentionPeriod settings is invalid, value should be maximum 365 days.";
                     InternalLogger.Fatal(message);

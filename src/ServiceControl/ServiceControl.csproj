@@ -177,21 +177,14 @@
       <HintPath>..\packages\Owin.Metrics.0.3.7\lib\net45\Owin.Metrics.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Raven.Abstractions, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Database.2.5.2996\lib\net45\Raven.Abstractions.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Raven.Abstractions, Version=3.5.7.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Database.3.5.7-patch-35263\lib\net45\Raven.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Embedded, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Embedded.2.5.2996\lib\net45\Raven.Client.Embedded.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Raven.Client.Lightweight, Version=3.5.7.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Client.3.5.7-patch-35263\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Lightweight, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Client.2.5.2996\lib\net45\Raven.Client.Lightweight.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Raven.Database, Version=2.5.0.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
-      <HintPath>..\packages\RavenDB.Database.2.5.2996\lib\net45\Raven.Database.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Raven.Database, Version=3.5.7.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <HintPath>..\packages\RavenDB.Database.3.5.7-patch-35263\lib\net45\Raven.Database.dll</HintPath>
     </Reference>
     <Reference Include="ServiceControl.Contracts, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ServiceControl.Contracts.1.1.1\lib\net40\ServiceControl.Contracts.dll</HintPath>
@@ -309,6 +302,7 @@
     <Compile Include="DbMigrations\MigrationsModule.cs" />
     <Compile Include="DbMigrations\1.27\SplitFailedMessageDocumentsMigration.cs" />
     <Compile Include="HeartbeatMonitoring\LegacyHandler.cs" />
+    <Compile Include="Hosting\Commands\DatabaseMigrationsCommand.cs" />
     <Compile Include="Hosting\Commands\ImportFailedAuditsCommand.cs" />
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
@@ -320,6 +314,8 @@
     <Compile Include="Infrastructure\DomainEvents\IDomainEvent.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainEvents.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainHandler.cs" />
+    <Compile Include="Infrastructure\MarkerFile.cs" />
+    <Compile Include="Infrastructure\RavenDB\Extensions.cs" />
     <Compile Include="Infrastructure\SignalR\IUserInterfaceEvent.cs" />
     <Compile Include="Infrastructure\SignalR\ServicePulseNotifier.cs" />
     <Compile Include="Infrastructure\EndpointInstanceId.cs" />
@@ -342,6 +338,7 @@
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="LoggingConfigurator.cs" />
+    <Compile Include="DatabaseMigrationsBootstrapper.cs" />
     <Compile Include="MaintenanceBootstrapper.cs" />
     <Compile Include="Infrastructure\MetadataExtensions.cs" />
     <Compile Include="MessageFailures\Api\PendingRetryMessages.cs" />
@@ -665,8 +662,17 @@
     <Compile Include="SagaAudit\SagaStateChange.cs" />
     <Compile Include="SagaAudit\SagaStateChangeStatus.cs" />
     <Compile Include="SetupBootstrapper.cs" />
+    <Compile Include="Upgrade\StaleIndexAfterUpgrade.cs" />
+    <Compile Include="Upgrade\StaleIndexChecker.cs" />
+    <Compile Include="Upgrade\StaleIndexInfo.cs" />
+    <Compile Include="Upgrade\StaleIndexInfoStore.cs" />
+    <Compile Include="Upgrade\UpgradeModuleApi.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\packages\RavenDB.Database.3.5.7-patch-35263\tools\Raven.Studio.Html5.zip">
+      <Link>Raven.Studio.Html5.zip</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
