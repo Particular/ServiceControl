@@ -12,10 +12,10 @@
         public static void RunDatabaseMigrations(IServiceControlInstance instance, Action<string> updateProgress)
         {
             var args = $"--database --serviceName={instance.Name}";
-            RunDataMigration(updateProgress, instance.InstallPath, Constants.ServiceControlExe, () => args);
+            RunDataMigration(updateProgress, instance.LogPath, instance.InstallPath, Constants.ServiceControlExe, () => args);
         }
 
-        public static void RunDataMigration(Action<string> updateProgress, string installPath, string exeName, Func<string> args)
+        public static void RunDataMigration(Action<string> updateProgress, string logPath, string installPath, string exeName, Func<string> args)
         {
             var fileName = Path.Combine(installPath, exeName);
             var attempts = 0;
@@ -67,6 +67,8 @@
                     }
                 }
             } while (attempts < 2);
+
+            File.Create(Path.Combine(logPath, $"{DateTime.UtcNow.ToFileTimeUtc().ToString()}.upgrade")).Close();
         }
 
         private static string SpliceText(string text)

@@ -72,16 +72,37 @@ namespace ServiceControl.UnitTests.Migrations
             RunDataMigration("WriteToErrorAndExitZero");
         }
 
+        [Test]
+        public void It_writes_upgrade_file()
+        {
+            var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.upgrade");
+            foreach (var file in files)
+            {
+                File.Delete(file);
+            }
+            
+            var now = DateTime.UtcNow;
+            RunDataMigration("Return0");
+
+            files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.upgrade");
+            
+            Assert.That(files, Has.Length.EqualTo(1));
+            var fileTime = DateTime.FromFileTimeUtc(Convert.ToInt64(Path.GetFileNameWithoutExtension(files[0])));
+            Assert.That(fileTime, Is.GreaterThanOrEqualTo(now).And.LessThanOrEqualTo(now.AddSeconds(10)));
+        }
+
         List<string> RunDataMigration(params string[] commands)
         {
             var progressLog = new List<string>();
             var index = 0;
-            DatabaseMigrations.RunDataMigration(s => { progressLog.Add(s); }, AppDomain.CurrentDomain.BaseDirectory, "DatabaseMigrationsTester.exe", () =>
+
+            DatabaseMigrations.RunDataMigration(s => { progressLog.Add(s); }, AppDomain.CurrentDomain.BaseDirectory, AppDomain.CurrentDomain.BaseDirectory, "DatabaseMigrationsTester.exe", () =>
             {
                 var nextCommand = commands[index % commands.Length];
                 index++;
                 return nextCommand;
             });
+
             return progressLog;
         }
     }
