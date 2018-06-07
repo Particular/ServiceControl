@@ -464,11 +464,14 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void DisableMaintenanceMode()
         {
+            AppConfig = new AppConfig(this);
             AppConfig.DisableMaintenanceMode();
             InMaintenanceMode = false;
         }
+
         public void EnableMaintenanceMode()
         {
+            AppConfig = new AppConfig(this);
             AppConfig.EnableMaintenanceMode();
             InMaintenanceMode = true;
         }
