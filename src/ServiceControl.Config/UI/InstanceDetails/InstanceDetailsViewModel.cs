@@ -207,8 +207,6 @@
             NotifyOfPropertyChange("HasNewVersion");
             NotifyOfPropertyChange("Transport");
             NotifyOfPropertyChange("BrowsableUrl");
-            NotifyOfPropertyChange("InMaintenanceMode");
-            NotifyOfPropertyChange("InMaintenanceMode");
         }
 
         public async Task<bool> StartService(IProgressObject progress = null)
