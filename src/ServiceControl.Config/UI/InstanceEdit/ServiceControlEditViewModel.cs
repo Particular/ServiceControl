@@ -59,6 +59,19 @@
             RetentionPeriodsVisible = instance.Version >= SettingsList.ErrorRetentionPeriod.SupportedFrom;
         }
 
+        public void UpdateInstanceFromViewModel(ServiceControlInstance instance)
+        {
+            instance.HostName = HostName;
+            instance.Port = Convert.ToInt32(PortNumber);
+            instance.DatabaseMaintenancePort = Convert.ToInt32(DatabaseMaintenancePortNumber);
+            instance.LogPath = LogPath;
+            instance.AuditLogQueue = AuditForwardingQueueName;
+            instance.AuditQueue = AuditQueueName;
+            instance.ErrorQueue = ErrorQueueName;
+            instance.ErrorLogQueue = ErrorForwardingQueueName;
+            instance.ConnectionString = ConnectionString;
+        }
+
         public bool ErrorForwardingVisible { get; set; }
         public bool RetentionPeriodsVisible { get; set; }
 

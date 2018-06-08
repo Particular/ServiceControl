@@ -82,7 +82,7 @@
                 // No setting to migrate so display dialog
                 if (!upgradeOptions.AuditRetentionPeriod.HasValue)
                 {
-                    var viewModel = new SliderDialogViewModel("UPGRADE QUESTION - DATABASE RETENTION",
+                    var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",
                         "Service Control periodically purges audit messages from the database.",
                         "AUDIT RETENTION PERIOD",
                         "Please specify the age at which these records should be removed",
@@ -108,7 +108,7 @@
 
             if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
             {
-                var viewModel = new SliderDialogViewModel("UPGRADE QUESTION - DATABASE RETENTION",
+                var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",
                         "Service Control periodically purges resolved and archived error messages from the database.",
                         "ERROR RETENTION PERIOD",
                         "Please specify the age at which these records should be removed",
@@ -133,10 +133,11 @@
 
             if (!instance.AppConfig.AppSettingExists(SettingsList.DatabaseMaintenancePort.Name))
             {
-                var viewModel = new TextBoxDialogViewModel("UPGRADE QUESTION - MAINTENANCE PORT",
-                    "When in the maintenance mode Service Control exposes the RavenDB database on a specified port.",
+                var viewModel = new TextBoxDialogViewModel("INPUT REQUIRED - MAINTENANCE PORT",
+                    "When Service Control is set to maintenance mode it requires a prereserved port on which it exposes the RavenDB database.",
                     "MAINTENANCE PORT",
-                    "", new MaintenancePortValidator());
+                    "Please specify an open port that will be used as the maintenance port",
+                    new MaintenancePortValidator());
 
                 if (windowManager.ShowTextBoxDialog(viewModel))
                 {
