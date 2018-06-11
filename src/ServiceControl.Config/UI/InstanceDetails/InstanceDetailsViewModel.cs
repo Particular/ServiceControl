@@ -74,8 +74,6 @@
 
         public string BrowsableUrl => ((IURLInfo)ServiceInstance).BrowsableUrl;
         
-        //public string StorageUrl => ServiceControlInstance?.StorageUrl;
-
         public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
 
         public string DBPath => ServiceControlInstance?.DBPath;
@@ -209,7 +207,6 @@
             NotifyOfPropertyChange("HasNewVersion");
             NotifyOfPropertyChange("Transport");
             NotifyOfPropertyChange("BrowsableUrl");
-            NotifyOfPropertyChange("InMaintenanceMode");
         }
 
         public async Task<bool> StartService(IProgressObject progress = null)
