@@ -87,7 +87,10 @@
 
         internal void CheckQueueNamesAreUniqueWithinInstance()
         {
-            if (queues.Select(p => p.QueueName.ToLower()).Distinct().Count() != queues.Count)
+            var duplicatedQueues = queues.ToLookup(x => x.QueueName.ToLower())
+                .Where(x => x.Key != "!disable" && x.Key != "!disable.log" && x.Count() > 1);
+
+            if (duplicatedQueues.Any())
             {
                 throw new EngineValidationException("Each of the queue names specified for a instance should be unique");
             }

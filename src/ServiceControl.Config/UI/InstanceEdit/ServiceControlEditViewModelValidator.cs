@@ -22,11 +22,11 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit")
-                .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Error Forwarding")
-                .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit Forwarding")
+                .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
+                .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
+                .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
                 .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted);
+                .When(x => x.SubmitAttempted && x.ErrorQueueName != "!disable");
 
             RuleFor(x => x.ErrorForwardingQueueName)
                 .NotEmpty()
@@ -42,7 +42,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
                 .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
                 .MustNotBeIn(x => UsedQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted);
+                .When(x => x.SubmitAttempted && x.AuditQueueName != "!disable");
 
             RuleFor(x => x.AuditForwardingQueueName)
                 .NotEmpty()
