@@ -113,7 +113,8 @@
 
             do
             {
-                more = TryDispatchEventBatch();
+                more = await TryDispatchEventBatch()
+                    .ConfigureAwait(false);
 
                 circuitBreaker.Success();
 
@@ -125,14 +126,14 @@
             } while (!token.IsCancellationRequested && more);
         }
 
-        private bool TryDispatchEventBatch()
+        private async Task<bool> TryDispatchEventBatch()
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 RavenQueryStatistics stats;
-                var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Statistics(out stats).Take(settings.ExternalIntegrationsDispatchingBatchSize).ToArray();
+                var awaitingDispatching = await session.Query<ExternalIntegrationDispatchRequest>().Statistics(out stats).Take(settings.ExternalIntegrationsDispatchingBatchSize).ToListAsync();
 
-                if (awaitingDispatching.Length == 0)
+                if (awaitingDispatching.Count == 0)
                 {
                     // If the index hasn't caught up, try again
                     return stats.IndexEtag.CompareTo(latestEtag) < 0;
@@ -143,8 +144,15 @@
                 {
                     Logger.Debug($"Dispatching {allContexts.Length} events.");
                 }
-                var eventsToBePublished = eventPublishers.SelectMany(p => p.PublishEventsForOwnContexts(allContexts, session));
 
+                var eventsToBePublished = new List<object>();
+                foreach (var publisher in eventPublishers)
+                {
+                    var @events = await publisher.PublishEventsForOwnContexts(allContexts, session)
+                        .ConfigureAwait(false);
+                    eventsToBePublished.AddRange(@events);
+                }
+                
                 foreach (var eventToBePublished in eventsToBePublished)
                 {
                     if (Logger.IsDebugEnabled)
@@ -172,7 +180,8 @@
                         {
                             m.Reason = "Failed to retrieve reason!";
                         }
-                        domainEvents.Raise(m);
+                        await domainEvents.Raise(m)
+                            .ConfigureAwait(false);
                     }
                 }
                 foreach (var dispatchedEvent in awaitingDispatching)
@@ -180,7 +189,8 @@
                     session.Delete(dispatchedEvent);
                 }
 
-                session.SaveChanges();
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
             return true;

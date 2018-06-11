@@ -31,24 +31,24 @@ namespace ServiceControl.Recoverability
 
         public void Handle(RetryMessagesById message)
         {
-            Retries.StartRetryForMessageSelection(message.MessageUniqueIds);
+            Retries.StartRetryForMessageSelection(message.MessageUniqueIds).GetAwaiter().GetResult();
         }
 
         public void Handle(RetryMessage message)
         {
-            Retries.StartRetryForSingleMessage(message.FailedMessageId);
+            Retries.StartRetryForSingleMessage(message.FailedMessageId).GetAwaiter().GetResult();
         }
 
         public void Handle(MessageFailedRepeatedly message)
         {
-            RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+            RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId).GetAwaiter().GetResult();
         }
 
         public void Handle(MessageFailed message)
         {
             if (message.RepeatedFailure)
             {
-                RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+                RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId).GetAwaiter().GetResult();
             }
         }
 

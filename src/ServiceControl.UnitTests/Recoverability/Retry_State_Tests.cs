@@ -25,7 +25,7 @@ namespace ServiceControl.UnitTests.Recoverability
     public class Retry_State_Tests
     {
         [Test]
-        public void When_a_group_is_processed_it_is_set_to_the_Preparing_state()
+        public async Task When_a_group_is_processed_it_is_set_to_the_Preparing_state()
         {
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
@@ -33,7 +33,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
+                await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
 
                 Assert.AreEqual(RetryState.Preparing, status.RetryState);
@@ -49,7 +49,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", false, 1);
+                await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", false, 1);
 
                 new RetryBatches_ByStatusAndSession().Execute(documentStore);
                 new FailedMessageRetries_ByBatch().Execute(documentStore);
@@ -78,7 +78,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 2001);
+                await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 2001);
 
                 new RetryBatches_ByStatus_ReduceInitialBatchSize().Execute(documentStore);
 
@@ -134,7 +134,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
+                await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
 
                 var sender = new TestSender();
 
@@ -173,7 +173,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1001);
+                await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1001);
 
                 var bodyStorage = new RavenAttachmentsBodyStorage
                 {
@@ -205,7 +205,7 @@ namespace ServiceControl.UnitTests.Recoverability
             }
         }
 
-        void CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
+        async Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
         {
             var messages = Enumerable.Range(0, numberOfMessages).Select(i =>
             {
@@ -238,14 +238,14 @@ namespace ServiceControl.UnitTests.Recoverability
                 };
             });
 
-            using (var session = documentStore.OpenSession())
+            using (var session = documentStore.OpenAsyncSession())
             {
                 foreach (var message in messages)
                 {
-                    session.Store(message);
+                    await session.StoreAsync(message);
                 }
 
-                session.SaveChanges();
+                await session.SaveChangesAsync();
             }
 
             new FailedMessages_ByGroup().Execute(documentStore);
@@ -263,7 +263,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
             documentStore.WaitForIndexing();
 
-            gateway.ProcessNextBulkRetry();
+            await gateway.ProcessNextBulkRetry();
         }
     }
 
@@ -278,12 +278,14 @@ namespace ServiceControl.UnitTests.Recoverability
             this.progressToStaged = progressToStaged;
         }
 
-        public override void MoveBatchToStaging(string batchDocumentId)
+        public override Task MoveBatchToStaging(string batchDocumentId)
         {
             if (progressToStaged)
             {
-                base.MoveBatchToStaging(batchDocumentId);
+                return base.MoveBatchToStaging(batchDocumentId);
             }
+
+            return Task.FromResult(0);
         }
     }
 

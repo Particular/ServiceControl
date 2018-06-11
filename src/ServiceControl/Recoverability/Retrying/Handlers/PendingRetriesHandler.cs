@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.MessageFailures;
@@ -25,9 +26,15 @@ namespace ServiceControl.Recoverability
 
         public void Handle(RetryPendingMessagesById message)
         {
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(RetryPendingMessagesById message)
+        {
             foreach (var messageUniqueId in message.MessageUniqueIds)
             {
-                manager.RemoveFailedMessageRetryDocument(messageUniqueId);
+                await manager.RemoveFailedMessageRetryDocument(messageUniqueId)
+                    .ConfigureAwait(false);
             }
 
             bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
@@ -35,12 +42,17 @@ namespace ServiceControl.Recoverability
 
         public void Handle(RetryPendingMessages message)
         {
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(RetryPendingMessages message)
+        {
             var messageIds = new List<string>();
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 var query = session.Advanced
-                    .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .WhereEquals("Status", (int) FailedMessageStatus.RetryIssued)
                     .AndAlso()
                     .WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
@@ -49,11 +61,12 @@ namespace ServiceControl.Recoverability
                     .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>(fields);
 
-                using (var ie = session.Advanced.Stream(query))
+                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
                 {
-                    while (ie.MoveNext())
+                    while (await ie.MoveNextAsync().ConfigureAwait(false))
                     {
-                        manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id);
+                        await manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id)
+                            .ConfigureAwait(false);
                         messageIds.Add(ie.Current.Document.Id);
                     }
                 }

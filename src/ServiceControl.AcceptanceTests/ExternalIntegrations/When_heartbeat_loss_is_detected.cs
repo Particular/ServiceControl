@@ -42,7 +42,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     Name = "UnluckyEndpoint"
                 }
 
-            }));
+            }).GetAwaiter().GetResult());
 
             await Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>

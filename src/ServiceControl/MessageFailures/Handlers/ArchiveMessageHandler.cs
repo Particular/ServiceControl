@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
+    using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using InternalMessages;
     using NServiceBus;
@@ -20,26 +21,32 @@
 
         public void Handle(ArchiveMessage message)
         {
-            using (var session = store.OpenSession())
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(ArchiveMessage message)
+        {
+            using (var session = store.OpenAsyncSession())
             {
-                var failedMessage = session.Load<FailedMessage>(new Guid(message.FailedMessageId));
+                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(message.FailedMessageId))
+                    .ConfigureAwait(false);
 
                 if (failedMessage == null)
                 {
-                    return; //No point throwing
+                    return;
                 }
 
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
                     failedMessage.Status = FailedMessageStatus.Archived;
 
-                    domainEvents.Raise(new FailedMessageArchived
+                    await domainEvents.Raise(new FailedMessageArchived
                     {
                         FailedMessageId = message.FailedMessageId
-                    });
+                    }).ConfigureAwait(false);
                 }
 
-                session.SaveChanges();
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
     }

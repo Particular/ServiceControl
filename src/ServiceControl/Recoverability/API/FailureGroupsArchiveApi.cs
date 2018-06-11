@@ -1,6 +1,6 @@
 namespace ServiceControl.Recoverability
 {
-    using System;
+    using System.Threading.Tasks;
     using Nancy;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -9,20 +9,21 @@ namespace ServiceControl.Recoverability
     {
         public FailureGroupsArchiveApi()
         {
-            Post["/recoverability/groups/{groupId}/errors/archive"] =
-                parameters => ArchiveGroupErrors(parameters.GroupId);
+            Post["/recoverability/groups/{groupId}/errors/archive", true] =
+                (parameters, ctx) => ArchiveGroupErrors(parameters.GroupId);
         }
 
-        dynamic ArchiveGroupErrors(string groupId)
+        async Task<dynamic> ArchiveGroupErrors(string groupId)
         {
-            if (String.IsNullOrWhiteSpace(groupId))
+            if (string.IsNullOrWhiteSpace(groupId))
             {
                 return HttpStatusCode.BadRequest;
             }
 
             if (!ArchiveOperationManager.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
-                ArchiveOperationManager.StartArchiving(groupId, ArchiveType.FailureGroup);
+                await ArchiveOperationManager.StartArchiving(groupId, ArchiveType.FailureGroup)
+                    .ConfigureAwait(false);
 
                 Bus.SendLocal<ArchiveAllInGroup>(m =>
                 {

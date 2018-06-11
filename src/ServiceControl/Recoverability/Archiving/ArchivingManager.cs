@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using ServiceControl.Infrastructure.DomainEvents;
 
     public class ArchivingManager
@@ -48,7 +49,7 @@
             return summary;
         }
 
-        public void StartArchiving(ArchiveOperation archiveOperation)
+        public Task StartArchiving(ArchiveOperation archiveOperation)
         {
             var summary = GetOrCreate(archiveOperation.ArchiveType, archiveOperation.RequestId);
 
@@ -59,10 +60,10 @@
             summary.NumberOfBatches = archiveOperation.NumberOfBatches;
             summary.CurrentBatch = archiveOperation.CurrentBatch;
 
-            summary.Start();
+            return summary.Start();
         }
 
-        public void StartArchiving(string requestId, ArchiveType archiveType)
+        public Task StartArchiving(string requestId, ArchiveType archiveType)
         {
             var summary = GetOrCreate(archiveType, requestId);
 
@@ -73,7 +74,7 @@
             summary.NumberOfBatches = 0;
             summary.CurrentBatch = 0;
 
-            summary.Start();
+            return summary.Start();
         }
 
         public InMemoryArchive GetStatusForArchiveOperation(string requestId, ArchiveType archiveType)
@@ -84,23 +85,23 @@
             return summary;
         }
 
-        public void BatchArchived(string requestId, ArchiveType archiveType, int numberOfMessagesArchivedInBatch)
+        public Task BatchArchived(string requestId, ArchiveType archiveType, int numberOfMessagesArchivedInBatch)
         {
             var summary = GetOrCreate(archiveType, requestId);
 
-            summary.BatchArchived(numberOfMessagesArchivedInBatch);
+            return summary.BatchArchived(numberOfMessagesArchivedInBatch);
         }
 
-        public void ArchiveOperationFinalizing(string requestId, ArchiveType archiveType)
+        public Task ArchiveOperationFinalizing(string requestId, ArchiveType archiveType)
         {
             var summary = GetOrCreate(archiveType, requestId);
-            summary.FinalizeArchive();
+            return summary.FinalizeArchive();
         }
 
-        public void ArchiveOperationCompleted(string requestId, ArchiveType archiveType)
+        public Task ArchiveOperationCompleted(string requestId, ArchiveType archiveType)
         {
             var summary = GetOrCreate(archiveType, requestId);
-            summary.Complete();
+            return summary.Complete();
         }
 
         public void DismissArchiveOperation(string requestId, ArchiveType archiveType)

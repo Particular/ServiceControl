@@ -2,6 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -30,6 +31,11 @@ namespace ServiceControl.Recoverability
 
         public void Handle(ReclassifyErrors message)
         {
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(ReclassifyErrors message)
+        {
             if (Interlocked.Exchange(ref executing, 1) != 0)
             {
                 // Prevent more then one execution at a time
@@ -42,10 +48,10 @@ namespace ServiceControl.Recoverability
 
                 if (failedMessagesReclassified > 0)
                 {
-                    domainEvents.Raise(new ReclassificationOfErrorMessageComplete
+                    await domainEvents.Raise(new ReclassificationOfErrorMessageComplete
                     {
                         NumberofMessageReclassified = failedMessagesReclassified
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
             finally

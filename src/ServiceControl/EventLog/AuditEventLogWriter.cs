@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.EventLog
 {
+    using System.Threading.Tasks;
     using Contracts.EventLog;
     using Raven.Client;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -23,7 +24,7 @@
             this.mappings = mappings;
         }
 
-        public void Handle(IDomainEvent message)
+        public async Task Handle(IDomainEvent message)
         {
             if (!mappings.HasMapping(message))
             {
@@ -32,13 +33,15 @@
 
             var logItem = mappings.ApplyMapping(message);
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                session.Store(logItem);
-                session.SaveChanges();
+                await session.StoreAsync(logItem)
+                    .ConfigureAwait(false);
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
-            broadcaster.Broadcast(new EventLogItemAdded
+            await broadcaster.Broadcast(new EventLogItemAdded
             {
                 RaisedAt = logItem.RaisedAt,
                 Severity = logItem.Severity,
@@ -49,7 +52,7 @@
                 // The reason is because this data is not useful for end users, so for now we just empty it.
                 // At the moment too much data is being populated in this field, and this has significant down sides to the amount of data we are sending down to ServicePulse (it actually crashes it).
                 RelatedTo = emptyArray
-            });
+            }).ConfigureAwait(false);
         }
     }
 }

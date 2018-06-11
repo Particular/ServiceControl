@@ -1,6 +1,7 @@
 namespace ServiceControl.ExternalIntegrations
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Raven.Client;
     using ServiceControl.Infrastructure.DomainEvents;
 
@@ -9,6 +10,6 @@ namespace ServiceControl.ExternalIntegrations
         bool Handles(IDomainEvent @event);
         object CreateDispatchContext(IDomainEvent @event);
 
-        IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session);
+        Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IAsyncDocumentSession session);
     }
 }

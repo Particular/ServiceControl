@@ -25,18 +25,20 @@
 
             Get["/endpoints/known", true] = (_, token) => KnownEndpointsApi.Execute(this);
 
-            Patch["/endpoints/{id}"] = parameters =>
+            Patch["/endpoints/{id}", true] = async (parameters, token) =>
             {
                 var data = this.Bind<EndpointUpdateModel>();
                 var endpointId = (Guid) parameters.id;
 
                 if (data.MonitorHeartbeat)
                 {
-                    Monitoring.EnableMonitoring(endpointId);
+                    await Monitoring.EnableMonitoring(endpointId)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    Monitoring.DisableMonitoring(endpointId);
+                    await Monitoring.DisableMonitoring(endpointId)
+                        .ConfigureAwait(false);
                 }
 
                 return HttpStatusCode.Accepted;

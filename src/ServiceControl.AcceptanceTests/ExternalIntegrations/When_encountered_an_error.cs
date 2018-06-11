@@ -2,6 +2,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -51,7 +52,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     Name = "UnluckyEndpoint"
                 }
 
-            }));
+            }).GetAwaiter().GetResult());
 
             await Define(context)
                 .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
@@ -86,7 +87,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 return null;
             }
 
-            public IEnumerable<object> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IDocumentSession session)
+            public Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IAsyncDocumentSession session)
             {
                 if (!failed)
                 {
@@ -94,7 +95,8 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     Context.Failed = true;
                     throw new Exception("Simulated exception");
                 }
-                yield break;
+
+                return Task.FromResult(Enumerable.Empty<object>());
             }
         }
 

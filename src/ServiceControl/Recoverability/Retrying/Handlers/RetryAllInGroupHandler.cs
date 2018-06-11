@@ -1,7 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -22,23 +22,30 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(RetryAllInGroup message)
+        {
             FailureGroupView group;
 
-            using (var session = Store.OpenSession())
+            using (var session = Store.OpenAsyncSession())
             {
-                group = session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                    .FirstOrDefault(x => x.Id == message.GroupId);
+                @group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                    .FirstOrDefaultAsync(x => x.Id == message.GroupId)
+                    .ConfigureAwait(false);
             }
 
             string originator = null;
             if (@group?.Title != null)
             {
-                originator = group.Title;
+                originator = @group.Title;
             }
 
             var started = message.Started ?? DateTime.UtcNow;
-            RetryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last);
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
+            await RetryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, @group?.Type, @group?.Last)
+                .ConfigureAwait(false);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, @group?.Type);
         }
 
         public RetriesGateway Retries { get; set; }

@@ -67,12 +67,12 @@
                     await collection.Save(session).ConfigureAwait(false);
                 }
 
-                DomainEvents.Raise(new MessageRedirectCreated
+                await DomainEvents.Raise(new MessageRedirectCreated
                 {
                     MessageRedirectId = messageRedirect.MessageRedirectId,
                     FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
                     ToPhysicalAddress = messageRedirect.ToPhysicalAddress
-                });
+                }).ConfigureAwait(false);
 
                 if (request.retryexisting)
                 {
@@ -128,7 +128,8 @@
 
                     await redirects.Save(session).ConfigureAwait(false);
 
-                    DomainEvents.Raise(messageRedirectChanged);
+                    await DomainEvents.Raise(messageRedirectChanged)
+                        .ConfigureAwait(false);
 
                     return HttpStatusCode.NoContent;
                 }
@@ -153,12 +154,12 @@
 
                     await redirects.Save(session).ConfigureAwait(false);
 
-                    DomainEvents.Raise(new MessageRedirectRemoved
+                    await DomainEvents.Raise(new MessageRedirectRemoved
                     {
                         MessageRedirectId = messageRedirectId,
                         FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
                         ToPhysicalAddress = messageRedirect.ToPhysicalAddress
-                    });
+                    }).ConfigureAwait(false);
                 }
 
                 return HttpStatusCode.NoContent;

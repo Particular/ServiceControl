@@ -3,6 +3,7 @@ namespace ServiceControl.ExternalIntegrations
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Raven.Client;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.MessageFailures;
@@ -17,23 +18,29 @@ namespace ServiceControl.ExternalIntegrations
             };
         }
 
-        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
+        protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
             var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
-            var failedMessageData = session.Load<FailedMessage>(documentIds);
+            var failedMessageData = await session.LoadAsync<FailedMessage>(documentIds)
+                .ConfigureAwait(false);
+            
+            var failedMessages = new List<object>(failedMessageData.Length);
             foreach (var entity in failedMessageData)
             {
                 session.Advanced.Evict(entity);
+
+                if (entity != null)
+                {
+                    failedMessages.Add(entity.ToEvent());
+                }
             }
 
-            return failedMessageData.Where(p => p != null).Select(x => x.ToEvent());
+            return failedMessages;
         }
 
         public class DispatchContext
         {
             public Guid FailedMessageId { get; set; }
         }
-
-
     }
 }

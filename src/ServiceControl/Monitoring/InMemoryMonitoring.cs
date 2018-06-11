@@ -43,7 +43,7 @@
 
             protected override void OnStart()
             {
-                persistence.WarmupMonitoringFromPersistence();
+                persistence.WarmupMonitoringFromPersistence().GetAwaiter().GetResult();
                 timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             }
 
@@ -53,7 +53,7 @@
                 {
                     var inactivityThreshold = DateTime.UtcNow - GracePeriod;
                     log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
-                    monitor.CheckEndpoints(inactivityThreshold);
+                    monitor.CheckEndpoints(inactivityThreshold).GetAwaiter().GetResult();
                 }
                 catch (Exception exception)
                 {

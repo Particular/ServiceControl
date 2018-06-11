@@ -85,11 +85,11 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        public virtual void MoveBatchToStaging(string batchDocumentId)
+        public virtual async Task MoveBatchToStaging(string batchDocumentId)
         {
             try
             {
-                store.DatabaseCommands.Patch(batchDocumentId,
+                await store.AsyncDatabaseCommands.PatchAsync(batchDocumentId,
                     new[]
                     {
                         new PatchRequest
@@ -99,7 +99,7 @@ namespace ServiceControl.Recoverability
                             Value = (int) RetryBatchStatus.Staging,
                             PrevVal = (int) RetryBatchStatus.MarkingDocuments
                         }
-                    });
+                    }).ConfigureAwait(false);
             }
             catch (ConcurrencyException)
             {
@@ -107,9 +107,9 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        public void RemoveFailedMessageRetryDocument(string uniqueMessageId)
+        public Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
         {
-            store.DatabaseCommands.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
+            return store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
         internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
@@ -125,10 +125,11 @@ namespace ServiceControl.Recoverability
 
             log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatches.Count);
 
-            await Task.WhenAll(orphanedBatches.Select(b => Task.Run(() =>
+            // let's leave Task.Run for now due to sync sends
+            await Task.WhenAll(orphanedBatches.Select(b => Task.Run(async () =>
             {
                 log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", b.Id, b.FailureRetries.Count);
-                MoveBatchToStaging(b.Id);
+                await MoveBatchToStaging(b.Id);
             })));
 
             foreach (var batch in orphanedBatches)
@@ -159,7 +160,8 @@ namespace ServiceControl.Recoverability
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
                     log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
-                    OperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
+                    await OperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last)
+                        .ConfigureAwait(false);
                 }
             }
         }

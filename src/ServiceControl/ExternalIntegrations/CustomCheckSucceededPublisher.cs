@@ -3,6 +3,7 @@ namespace ServiceControl.ExternalIntegrations
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Raven.Client;
     using ServiceControl.Contracts;
 
@@ -21,9 +22,9 @@ namespace ServiceControl.ExternalIntegrations
             };
         }
 
-        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return contexts.Select(r => new CustomCheckSucceeded
+            return Task.FromResult(contexts.Select(r => (object)new CustomCheckSucceeded
             {
                 SucceededAt = r.SucceededAt,
                 Category = r.Category,
@@ -31,7 +32,7 @@ namespace ServiceControl.ExternalIntegrations
                 Host = r.EndpointHost,
                 HostId = r.EndpointHostId,
                 EndpointName = r.EndpointName
-            });
+            }));
         }
 
         public class DispatchContext

@@ -1,5 +1,6 @@
 namespace ServiceControl.Infrastructure.SignalR
 {
+    using System.Threading.Tasks;
     using ServiceControl.Infrastructure.DomainEvents;
 
     /// <summary>
@@ -14,12 +15,13 @@ namespace ServiceControl.Infrastructure.SignalR
             this.broadcaster = broadcaster;
         }
 
-        public void Handle(IDomainEvent domainEvent)
+        public async Task Handle(IDomainEvent domainEvent)
         {
             var userInteraceEvent = domainEvent as IUserInterfaceEvent;
             if (userInteraceEvent != null)
             {
-                broadcaster.Broadcast(userInteraceEvent);
+                await broadcaster.Broadcast(userInteraceEvent)
+                    .ConfigureAwait(false);
             }
         }
     }

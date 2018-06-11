@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System.Globalization;
+    using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
@@ -23,15 +24,20 @@
 
         public void Handle(UnArchiveMessagesByRange message)
         {
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(UnArchiveMessagesByRange message)
+        {
             var options = new BulkOperationOptions
             {
                 AllowStale = true
             };
-            var result = store.DatabaseCommands.UpdateByIndex(
+            var result = await store.AsyncDatabaseCommands.UpdateByIndexAsync(
                 new FailedMessageViewIndex().IndexName,
                 new IndexQuery
                 {
-                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", message.From.Ticks, message.To.Ticks, (int)FailedMessageStatus.Archived),
+                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", message.From.Ticks, message.To.Ticks, (int) FailedMessageStatus.Archived),
                     Cutoff = message.CutOff
                 }, new ScriptedPatchRequest
                 {
@@ -45,14 +51,15 @@ if(this.Status === archivedStatus) {
                         {"archivedStatus", (int) FailedMessageStatus.Archived},
                         {"unresolvedStatus", (int) FailedMessageStatus.Unresolved}
                     }
-                }, options).WaitForCompletion();
+                }, options);
 
-            var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
+            var patchedDocumentIds = (await result.WaitForCompletionAsync().ConfigureAwait(false))
+                .JsonDeserialization<DocumentPatchResult[]>();
 
-            domainEvents.Raise(new FailedMessagesUnArchived
+            await domainEvents.Raise(new FailedMessagesUnArchived
             {
                 MessagesCount = patchedDocumentIds.Length
-            });
+            }).ConfigureAwait(false);
         }
 
         class DocumentPatchResult

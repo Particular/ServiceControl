@@ -58,7 +58,8 @@ namespace ServiceControl.Recoverability
                 redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
                 var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
                 var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
-                retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
+                await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
+                    .ConfigureAwait(false);
 
                 if ( stagedMessages > 0)
                 {
@@ -87,12 +88,13 @@ namespace ServiceControl.Recoverability
             {
                 Log.DebugFormat("Loading batch {0} for forwarding", nowForwarding.RetryBatchId);
 
-                var forwardingBatch = await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId).ConfigureAwait(false);
+                var forwardingBatch = await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId, cancellationToken).ConfigureAwait(false);
 
                 if (forwardingBatch != null)
                 {
                     Log.InfoFormat("Found batch {0}. Forwarding...", forwardingBatch.Id);
-                    Forward(forwardingBatch, session, cancellationToken);
+                    await Forward(forwardingBatch, session, cancellationToken)
+                        .ConfigureAwait(false);
                     Log.DebugFormat("Retry batch {0} forwarded.", forwardingBatch.Id);
                 }
                 else
@@ -111,24 +113,27 @@ namespace ServiceControl.Recoverability
             return false;
         }
 
-        void Forward(RetryBatch forwardingBatch, IAsyncDocumentSession session, CancellationToken cancellationToken)
+        async Task Forward(RetryBatch forwardingBatch, IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
             Log.InfoFormat("Forwarding batch {0} with {1} messages", forwardingBatch.Id, messageCount);
-            retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
+            await retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType)
+                .ConfigureAwait(false);
 
             if (isRecoveringFromPrematureShutdown)
             {
                 Log.Warn("Recovering from premature shutdown. Starting forwarder in timeout mode");
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken);
-                retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize)
+                    .ConfigureAwait(false);
             }
             else
             {
                 Log.DebugFormat("Starting forwarder in counting mode with {0} messages", messageCount);
                 returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount);
-                retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
+                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount)
+                    .ConfigureAwait(false);
             }
 
             session.Delete(forwardingBatch);
@@ -182,12 +187,12 @@ namespace ServiceControl.Recoverability
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
                 var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
-                domainEvents.Raise(new MessagesSubmittedForRetry
+                await domainEvents.Raise(new MessagesSubmittedForRetry
                 {
                     FailedMessageIds = failedIds,
                     NumberOfFailedMessages = failedIds.Length,
                     Context = stagingBatch.Context
-                });
+                }).ConfigureAwait(false);
             }
 
             var msgLookup = messages.ToLookup(x => x.Id);

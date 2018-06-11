@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using Raven.Client;
@@ -39,6 +40,11 @@
 
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
+                EnrichAsync(headers, metadata).GetAwaiter().GetResult();
+            }
+
+            private async Task EnrichAsync(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
                 string oldRetryId;
                 string newRetryMessageId;
 
@@ -54,11 +60,11 @@
                     return;
                 }
 
-                domainEvents.Raise(new MessageFailureResolvedByRetry
+                await domainEvents.Raise(new MessageFailureResolvedByRetry
                 {
                     FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
                     AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()
-                });
+                }).ConfigureAwait(false);
             }
 
             private IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)

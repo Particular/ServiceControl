@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
@@ -37,7 +38,7 @@
                 // have the relevant information via the headers, which were added in v4.
                 if (sendingEndpoint != null)
                 {
-                    TryAddEndpoint(sendingEndpoint);
+                    TryAddEndpoint(sendingEndpoint).GetAwaiter().GetResult();
                     metadata.Add("SendingEndpoint", sendingEndpoint);
                 }
 
@@ -47,12 +48,12 @@
                 if (receivingEndpoint != null)
                 {
                     metadata.Add("ReceivingEndpoint", receivingEndpoint);
-                    TryAddEndpoint(receivingEndpoint);
+                    TryAddEndpoint(receivingEndpoint).GetAwaiter().GetResult();
                 }
                 
             }
 
-            void TryAddEndpoint(EndpointDetails endpointDetails)
+            async Task TryAddEndpoint(EndpointDetails endpointDetails)
             {
                 // for backwards compat with version before 4_5 we might not have a hostid
                 if (endpointDetails.HostId == Guid.Empty)
@@ -60,8 +61,8 @@
                     return;
                 }
 
-                monitoring.DetectEndpointFromLocalAudit(endpointDetails);
-
+                await monitoring.DetectEndpointFromLocalAudit(endpointDetails)
+                    .ConfigureAwait(false);
             }
         }
     }

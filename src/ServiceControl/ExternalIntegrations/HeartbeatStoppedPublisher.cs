@@ -3,6 +3,7 @@ namespace ServiceControl.ExternalIntegrations
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Raven.Client;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
@@ -21,16 +22,16 @@ namespace ServiceControl.ExternalIntegrations
             };
         }
 
-        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return contexts.Select(r => new HeartbeatStopped
+            return Task.FromResult(contexts.Select(r => (object)new HeartbeatStopped
             {
                 DetectedAt = r.DetectedAt,
                 LastReceivedAt = r.LastReceivedAt,
                 Host = r.EndpointHost,
                 HostId = r.EndpointHostId,
                 EndpointName = r.EndpointName
-            });
+            }));
         }
 
         public class DispatchContext

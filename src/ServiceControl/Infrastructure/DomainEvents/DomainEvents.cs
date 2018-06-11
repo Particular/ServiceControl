@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.DomainEvents
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Autofac;
 
     public class DomainEvents : IDomainEvents
@@ -12,7 +13,7 @@
             this.container = container;
         }
 
-        public void Raise<T>(T domainEvent) where T : IDomainEvent
+        public async Task Raise<T>(T domainEvent) where T : IDomainEvent
         {
             if (container == null)
             {
@@ -23,14 +24,16 @@
             container.TryResolve(out handlers);
             foreach (var handler in handlers)
             {
-                handler.Handle(domainEvent);
+                await handler.Handle(domainEvent)
+                    .ConfigureAwait(false);
             }
 
             IEnumerable<IDomainHandler<IDomainEvent>> ieventHandlers;
             container.TryResolve(out ieventHandlers);
             foreach (var handler in ieventHandlers)
             {
-                handler.Handle(domainEvent);
+                await handler.Handle(domainEvent)
+                    .ConfigureAwait(false);
             }
         }
     }

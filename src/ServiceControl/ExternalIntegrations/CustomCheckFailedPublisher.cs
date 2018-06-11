@@ -3,6 +3,7 @@ namespace ServiceControl.ExternalIntegrations
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Raven.Client;
     using CustomCheckFailed = ServiceControl.Contracts.CustomCheckFailed;
 
@@ -23,9 +24,9 @@ namespace ServiceControl.ExternalIntegrations
             };
         }
 
-        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return contexts.Select(r => new CustomCheckFailed
+            return Task.FromResult(contexts.Select(r => (object)new CustomCheckFailed
             {
                 FailedAt = r.FailedAt,
                 Category = r.Category,
@@ -34,7 +35,7 @@ namespace ServiceControl.ExternalIntegrations
                 Host = r.EndpointHost,
                 HostId = r.EndpointHostId,
                 EndpointName = r.EndpointName
-            });
+            }));
         }
 
         public class DispatchContext

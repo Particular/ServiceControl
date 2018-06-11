@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -19,7 +19,7 @@
         {
             try
             {
-                UpdateCount();
+                UpdateCount().GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -27,18 +27,19 @@
             }
         }
 
-        void UpdateCount()
+        async Task UpdateCount()
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                var failedCustomCheckCount = session.Query<CustomCheck, CustomChecksIndex>().Count(p => p.Status == Status.Fail);
+                var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail)
+                    .ConfigureAwait(false);
                 if (lastCount == failedCustomCheckCount)
                     return;
                 lastCount = failedCustomCheckCount;
-                domainEvents.Raise(new CustomChecksUpdated
+                await domainEvents.Raise(new CustomChecksUpdated
                 {
                     Failed = lastCount
-                });
+                }).ConfigureAwait(false);
             }
         }
 

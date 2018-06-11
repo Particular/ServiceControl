@@ -1,13 +1,14 @@
 ﻿namespace ServiceControl.Infrastructure.SignalR
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Microsoft.AspNet.SignalR;
 
     public class GlobalEventHandler
     {
         static string[] emptyArray = new string[0];
 
-        public void Broadcast(object @event)
+        public async Task Broadcast(object @event)
         {
             var typeName = @event.GetType().Name;
             var types = new List<string>
@@ -16,8 +17,8 @@
             };
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
-            context.Connection.Broadcast(new Envelope { Types = types, Message = @event }, emptyArray)
-                 .Wait();
+            await context.Connection.Broadcast(new Envelope { Types = types, Message = @event }, emptyArray)
+                .ConfigureAwait(false);
         }
     }
 }
