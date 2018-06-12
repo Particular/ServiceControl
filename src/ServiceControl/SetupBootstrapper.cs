@@ -20,8 +20,10 @@ namespace Particular.ServiceControl
 
         public void Run(string username)
         {
-            var configuration = new BusConfiguration();
-            configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+            var configuration = new EndpointConfiguration(settings.ServiceName);
+            var assemblyScanner = configuration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+            
             configuration.EnableInstallers(username);
 
             if (settings.SkipQueueCreation)
@@ -42,8 +44,8 @@ namespace Particular.ServiceControl
 
             using (documentStore)
             using (var container = containerBuilder.Build())
-            using (NServiceBusFactory.Create(settings, container, null, documentStore, configuration, false))
             {
+                NServiceBusFactory.Create(settings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();    
             }
         }
 
