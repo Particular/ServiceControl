@@ -579,10 +579,12 @@ namespace ServiceBus.Management.AcceptanceTests
             var startPort = 33333;
             foreach (var instanceName in instanceNames)
             {
-                startPort = FindAvailablePort(startPort);
+                var instancePort = FindAvailablePort(startPort++);
+                var maintenancePort = FindAvailablePort(startPort++);
                 var settings = new Settings(instanceName)
                 {
-                    Port = startPort++,
+                    Port = instancePort,
+                    DatabaseMaintenancePort = maintenancePort,
                     DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                     ForwardErrorMessages = false,
                     ForwardAuditMessages = false,
