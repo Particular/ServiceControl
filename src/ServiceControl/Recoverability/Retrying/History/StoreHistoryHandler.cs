@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Recoverability.Retrying
 {
+    using System.Threading.Tasks;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -15,11 +16,12 @@
             this.settings = settings;
         }
 
-        public void Handle(RetryOperationCompleted message)
+        public async Task Handle(RetryOperationCompleted message)
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                var retryHistory = session.Load<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
+                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ?? 
+                                   RetryHistory.CreateNew();
 
                 retryHistory.AddToHistory(new HistoricRetryOperation
                 {
@@ -45,8 +47,10 @@
                     Last = message.Last,
                 });
 
-                session.Store(retryHistory);
-                session.SaveChanges();
+                await session.StoreAsync(retryHistory)
+                    .ConfigureAwait(false);
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
         }
     }

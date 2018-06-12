@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System.Linq;
+    using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using InternalMessages;
     using NServiceBus;
@@ -20,13 +21,19 @@
 
         public void Handle(UnArchiveMessages messages)
         {
+            HandleAsync(messages).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(UnArchiveMessages messages)
+        {
             FailedMessage[] failedMessages;
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                failedMessages = session.Load<FailedMessage>(messages.FailedMessageIds.Select(FailedMessage.MakeDocumentId));
+                failedMessages = await session.LoadAsync<FailedMessage>(messages.FailedMessageIds.Select(FailedMessage.MakeDocumentId))
+                    .ConfigureAwait(false);
 
                 foreach (var failedMessage in failedMessages)
                 {
@@ -36,13 +43,14 @@
                     }
                 }
 
-                session.SaveChanges();
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
-            domainEvents.Raise(new FailedMessagesUnArchived
+            await domainEvents.Raise(new FailedMessagesUnArchived
             {
                 MessagesCount = failedMessages.Length
-            });
+            }).ConfigureAwait(false);
         }
     }
 }

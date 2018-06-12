@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -153,7 +154,7 @@
 
             Store(message.Headers.UniqueId(), processingAttempt, groups);
 
-            AnnounceFailedMessage(message.Headers, failureDetails);
+            AnnounceFailedMessage(message.Headers, failureDetails).GetAwaiter().GetResult();
 
             if (settings.ForwardErrorMessages)
             {
@@ -218,29 +219,29 @@
             );
         }
 
-        private void AnnounceFailedMessage(IReadOnlyDictionary<string, string> headers, FailureDetails failureDetails)
+        private async Task AnnounceFailedMessage(IReadOnlyDictionary<string, string> headers, FailureDetails failureDetails)
         {
             var failingEndpointId = Address.Parse(failureDetails.AddressOfFailingEndpoint).Queue;
 
             string failedMessageId;
             if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
             {
-                domainEvents.Raise(new MessageFailed
+                await domainEvents.Raise(new MessageFailed
                 {
                     FailureDetails = failureDetails,
                     EndpointId = failingEndpointId,
                     FailedMessageId = failedMessageId,
                     RepeatedFailure = true
-                });
+                }).ConfigureAwait(false);
             }
             else
             {
-                domainEvents.Raise(new MessageFailed
+                await domainEvents.Raise(new MessageFailed
                 {
                     FailureDetails = failureDetails,
                     EndpointId = failingEndpointId,
                     FailedMessageId = headers.UniqueId(),
-                });
+                }).ConfigureAwait(false);
             }
         }
 

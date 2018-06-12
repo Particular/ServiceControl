@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
+    using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure;
@@ -22,6 +23,11 @@
 
         public void Handle(ReportCustomCheckResult message)
         {
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(ReportCustomCheckResult message)
+        {
             if (string.IsNullOrEmpty(message.EndpointName))
             {
                 throw new Exception("Received an custom check message without proper initialization of the EndpointName in the schema");
@@ -36,14 +42,15 @@
             {
                 throw new Exception("Received an custom check message without proper initialization of the HostId in the schema");
             }
-
+            
             var publish = false;
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString(), message.CustomCheckId);
             CustomCheck customCheck;
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                customCheck = session.Load<CustomCheck>(id);
+                customCheck = await session.LoadAsync<CustomCheck>(id)
+                    .ConfigureAwait(false);
 
                 if (customCheck == null ||
                     customCheck.Status == Status.Fail && !message.HasFailed ||
@@ -71,15 +78,17 @@
                     HostId = message.HostId,
                     Name = message.EndpointName
                 };
-                session.Store(customCheck);
-                session.SaveChanges();
+                await session.StoreAsync(customCheck)
+                    .ConfigureAwait(false);
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
             if (publish)
             {
                 if (message.HasFailed)
                 {
-                    domainEvents.Raise(new CustomCheckFailed
+                    await domainEvents.Raise(new CustomCheckFailed
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,
@@ -87,18 +96,18 @@
                         FailedAt = message.ReportedAt,
                         FailureReason = message.FailureReason,
                         OriginatingEndpoint = customCheck.OriginatingEndpoint
-                    });
+                    }).ConfigureAwait(false);
                 }
                 else
                 {
-                    domainEvents.Raise(new CustomCheckSucceeded
+                    await domainEvents.Raise(new CustomCheckSucceeded
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,
                         Category = message.Category,
                         SucceededAt = message.ReportedAt,
                         OriginatingEndpoint = customCheck.OriginatingEndpoint
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using NServiceBus;
     using Raven.Client;
@@ -24,7 +25,13 @@
 
         public void Handle(MessageFailureResolvedByRetry message)
         {
-            if (MarkMessageAsResolved(message.FailedMessageId))
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(MessageFailureResolvedByRetry message)
+        {
+            if (await MarkMessageAsResolved(message.FailedMessageId)
+                .ConfigureAwait(false))
             {
                 return;
             }
@@ -36,7 +43,8 @@
 
             foreach (var alternative in message.AlternativeFailedMessageIds.Where(x => x != message.FailedMessageId))
             {
-                if (MarkMessageAsResolved(alternative))
+                if (await MarkMessageAsResolved(alternative)
+                    .ConfigureAwait(false))
                 {
                     return;
                 }
@@ -45,19 +53,30 @@
 
         public void Handle(MarkPendingRetryAsResolved message)
         {
-            MarkMessageAsResolved(message.FailedMessageId);
-            domainEvents.Raise(new MessageFailureResolvedManually
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(MarkPendingRetryAsResolved message)
+        {
+            await MarkMessageAsResolved(message.FailedMessageId)
+                .ConfigureAwait(false);
+            await domainEvents.Raise(new MessageFailureResolvedManually
             {
                 FailedMessageId = message.FailedMessageId
-            });
+            }).ConfigureAwait(false);
         }
 
         public void Handle(MarkPendingRetriesAsResolved message)
         {
-            using (var session = store.OpenSession())
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(MarkPendingRetriesAsResolved message)
+        {
+            using (var session = store.OpenAsyncSession())
             {
                 var prequery = session.Advanced
-                    .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .WhereEquals("Status", (int) FailedMessageStatus.RetryIssued)
                     .AndAlso()
                     .WhereBetweenOrEqual("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
@@ -72,9 +91,9 @@
                     .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 
-                using (var ie = session.Advanced.Stream(query))
+                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
                 {
-                    while (ie.MoveNext())
+                    while (await ie.MoveNextAsync().ConfigureAwait(false))
                     {
                         bus.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id);
                     }
@@ -82,13 +101,14 @@
             }
         }
 
-        private bool MarkMessageAsResolved(string failedMessageId)
+        private async Task<bool> MarkMessageAsResolved(string failedMessageId)
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = session.Load<FailedMessage>(new Guid(failedMessageId));
+                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
+                    .ConfigureAwait(false);
 
                 if (failedMessage == null)
                 {
@@ -97,7 +117,7 @@
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
-                session.SaveChanges();
+                await session.SaveChangesAsync().ConfigureAwait(false);
 
                 return true;
             }

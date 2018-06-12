@@ -8,17 +8,18 @@
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     public class ArchiveDocumentManager
     {
         private static ILog logger = LogManager.GetLogger<ArchiveDocumentManager>();
 
-        public ArchiveOperation LoadArchiveOperation(IDocumentSession session, string groupId, ArchiveType archiveType)
+        public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
         {
-            return session.Load<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
+            return session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
         }
 
-        public ArchiveOperation CreateArchiveOperation(IDocumentSession session, string groupId, ArchiveType archiveType, int numberOfMessages, string groupName, int batchSize)
+        public async Task<ArchiveOperation> CreateArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType, int numberOfMessages, string groupName, int batchSize)
         {
             var operation = new ArchiveOperation
             {
@@ -33,7 +34,7 @@
                 CurrentBatch = 0
             };
 
-            session.Store(operation);
+            await session.StoreAsync(operation).ConfigureAwait(false);
 
             int documentCount = 0;
             var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName);
@@ -44,7 +45,7 @@
                 .ProjectFromIndexFieldsInto<FailureGroupMessageView>()
                 .Select(document => document.Id);
 
-            var docs = StreamResults(session, docQuery).ToArray();
+            var docs = await StreamResults(session, docQuery);
 
             var batches = docs
                 .GroupBy(d =>
@@ -60,32 +61,35 @@
                     DocumentIds = batch.ToList()
                 };
 
-                session.Store(archiveBatch);
+                await session.StoreAsync(archiveBatch);
             }
 
             return operation;
         }
 
-        IEnumerable<string> StreamResults(IDocumentSession session, IQueryable<string> query)
+        async Task<IEnumerable<string>> StreamResults(IAsyncDocumentSession session, IQueryable<string> query)
         {
-            using (var enumerator = session.Advanced.Stream(query))
+            var results = new List<string>();
+            using (var enumerator = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
             {
-                while (enumerator.MoveNext())
+                while (await enumerator.MoveNextAsync())
                 {
-                    yield return enumerator.Current.Document;
+                    results.Add(enumerator.Current.Document);
                 }
             }
+
+            return results;
         }
 
-        public ArchiveBatch GetArchiveBatch(IDocumentSession session, string archiveOperationId, int batchNumber)
+        public Task<ArchiveBatch> GetArchiveBatch(IAsyncDocumentSession session, string archiveOperationId, int batchNumber)
         {
-            return session.Load<ArchiveBatch>($"{archiveOperationId}/{batchNumber}");
+            return session.LoadAsync<ArchiveBatch>($"{archiveOperationId}/{batchNumber}");
         }
 
-        public GroupDetails GetGroupDetails(IDocumentSession session, string groupId)
+        public async Task<GroupDetails> GetGroupDetails(IAsyncDocumentSession session, string groupId)
         {
-            var group = session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                .FirstOrDefault(x => x.Id == groupId);
+            var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                .FirstOrDefaultAsync(x => x.Id == groupId);
 
             return new GroupDetails
             {
@@ -94,7 +98,7 @@
             };
         }
 
-        public void ArchiveMessageGroupBatch(IDocumentSession session, ArchiveBatch batch)
+        public async Task ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
             var patchCommands = batch?.DocumentIds
                 .Select(documentId =>
@@ -114,14 +118,16 @@
 
             if (patchCommands != null)
             {
-                session.Advanced.DocumentStore.DatabaseCommands.Batch(patchCommands);
-                session.Advanced.DocumentStore.DatabaseCommands.Delete(batch.Id, null);
+                await session.Advanced.DocumentStore.AsyncDatabaseCommands.BatchAsync(patchCommands)
+                    .ConfigureAwait(false);
+                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(batch.Id, null)
+                    .ConfigureAwait(false);
             }
         }
 
-        public bool WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, ArchiveType archiveType, TimeSpan timeToWait)
+        public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, ArchiveType archiveType, TimeSpan timeToWait)
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
                     .Customize(x => x.WaitForNonStaleResultsAsOfNow(timeToWait));
@@ -133,7 +139,7 @@
                 try
                 {
                     // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
-                    docQuery.Any();
+                    await docQuery.AnyAsync().ConfigureAwait(false);
 
                     return true;
                 }
@@ -144,17 +150,19 @@
             }
         }
 
-        public void UpdateArchiveOperation(IDocumentSession session, ArchiveOperation archiveOperation)
+        public Task UpdateArchiveOperation(IAsyncDocumentSession session, ArchiveOperation archiveOperation)
         {
-            session.Store(archiveOperation);
+            return session.StoreAsync(archiveOperation);
         }
 
-        public void RemoveArchiveOperation(IDocumentStore store, ArchiveOperation archiveOperation)
+        public async Task RemoveArchiveOperation(IDocumentStore store, ArchiveOperation archiveOperation)
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                session.Advanced.DocumentStore.DatabaseCommands.Delete(archiveOperation.Id, null);
-                session.SaveChanges();
+                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(archiveOperation.Id, null)
+                    .ConfigureAwait(false);
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
         }
 

@@ -39,7 +39,7 @@
                         Name = "Testing"
                     },
                     SucceededAt = DateTime.Now,
-                });
+                }).GetAwaiter().GetResult();
                 domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
                 {
                     Category = "Testing",
@@ -52,7 +52,7 @@
                     },
                     FailedAt = DateTime.Now,
                     FailureReason = "Because I can",
-                });
+                }).GetAwaiter().GetResult();
             });
 
             await Define(context)

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using Raven.Client;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -17,9 +18,16 @@
 
         public void Handle(DeleteCustomCheck message)
         {
-            store.DatabaseCommands.Delete(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null);
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
 
-            domainEvents.Raise(new CustomCheckDeleted { Id = message.Id });
+        private async Task HandleAsync(DeleteCustomCheck message)
+        {
+            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null)
+                .ConfigureAwait(false);
+
+            await domainEvents.Raise(new CustomCheckDeleted {Id = message.Id})
+                .ConfigureAwait(false);
         }
     }
 }

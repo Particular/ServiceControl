@@ -64,7 +64,7 @@
                 bool processedRequests;
                 do
                 {
-                    processedRequests = retries.ProcessNextBulkRetry();
+                    processedRequests = retries.ProcessNextBulkRetry().GetAwaiter().GetResult();
                 } while (processedRequests && !abortProcessing);
             }
         }

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -17,7 +18,7 @@
             this.store = store;
             this.eventPublishers = eventPublishers;
         }
-        public void Handle(IDomainEvent message)
+        public async Task Handle(IDomainEvent message)
         {
             var dispatchContexts = eventPublishers
                 .Where(p => p.Handles(message))
@@ -29,7 +30,7 @@
                 return;
             }
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 foreach (var dispatchContext in dispatchContexts)
                 {
@@ -43,10 +44,12 @@
                         DispatchContext = dispatchContext
                     };
 
-                    session.Store(dispatchRequest);
+                    await session.StoreAsync(dispatchRequest)
+                        .ConfigureAwait(false);
                 }
 
-                session.SaveChanges();
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
         }
 

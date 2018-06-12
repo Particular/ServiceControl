@@ -262,28 +262,37 @@ namespace ServiceControl.Recoverability
 
             public void ProcessingAlwaysFailsForMessage(TransportMessage message, Exception e)
             {
+                ProcessingAlwaysFailsForMessageAsync(message, e).GetAwaiter().GetResult();
+            }
+
+            private async Task ProcessingAlwaysFailsForMessageAsync(TransportMessage message, Exception e)
+            {
                 try
                 {
                     var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
                     Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", e);
 
-                    using (var session = store.OpenSession())
+                    using (var session = store.OpenAsyncSession())
                     {
-                        var failedMessage = session.Load<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId));
+                        var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId))
+                            .ConfigureAwait(false);
                         if (failedMessage != null)
                         {
                             failedMessage.Status = FailedMessageStatus.Unresolved;
                         }
 
-                        var failedMessageRetry = session.Load<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId));
+                        var failedMessageRetry = await session.LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId))
+                            .ConfigureAwait(false);
                         if (failedMessageRetry != null)
                         {
                             session.Delete(failedMessageRetry);
                         }
 
-                        session.SaveChanges();
+                        await session.SaveChangesAsync()
+                            .ConfigureAwait(false);
                     }
+
                     string reason;
                     try
                     {
@@ -293,12 +302,13 @@ namespace ServiceControl.Recoverability
                     {
                         reason = "Failed to retrieve reason!";
                     }
-                    domainEvents.Raise(new MessagesSubmittedForRetryFailed
+
+                    await domainEvents.Raise(new MessagesSubmittedForRetryFailed
                     {
                         Reason = reason,
                         FailedMessageId = messageUniqueId,
                         Destination = destination
-                    });
+                    }).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

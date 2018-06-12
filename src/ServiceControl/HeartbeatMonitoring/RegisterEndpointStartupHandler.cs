@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using Plugin.Heartbeat.Messages;
     using ServiceControl.Contracts.Operations;
@@ -16,13 +17,18 @@
 
         public void Handle(RegisterEndpointStartup message)
         {
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private Task HandleAsync(RegisterEndpointStartup message)
+        {
             var endpointDetails = new EndpointDetails
             {
                 Host = message.Host,
                 HostId = message.HostId,
                 Name = message.Endpoint
             };
-            monitoring.DetectEndpointFromHeartbeatStartup(endpointDetails, message.StartedAt);
+            return monitoring.DetectEndpointFromHeartbeatStartup(endpointDetails, message.StartedAt);
         }
     }
 }

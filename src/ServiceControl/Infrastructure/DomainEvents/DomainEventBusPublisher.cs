@@ -1,5 +1,6 @@
 namespace ServiceControl.Infrastructure.DomainEvents
 {
+    using System.Threading.Tasks;
     using NServiceBus;
 
     class DomainEventBusPublisher : IDomainHandler<IDomainEvent>
@@ -11,7 +12,9 @@ namespace ServiceControl.Infrastructure.DomainEvents
             this.bus = bus;
         }
 
-        public void Handle(IDomainEvent domainEvent)
+#pragma warning disable 1998
+        public async Task Handle(IDomainEvent domainEvent)
+#pragma warning restore 1998
         {
             if (domainEvent is IEvent)
             {
