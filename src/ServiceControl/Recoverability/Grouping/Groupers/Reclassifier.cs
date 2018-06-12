@@ -26,20 +26,21 @@
             notifier?.Register(() => { abort = true; });
         }
 
-        internal int ReclassifyFailedMessages(IDocumentStore store, bool force, IEnumerable<IFailureClassifier> classifiers)
+        internal async Task<int> ReclassifyFailedMessages(IDocumentStore store, bool force, IEnumerable<IFailureClassifier> classifiers)
         {
             logger.Info("Reclassification of failures started.");
 
             int failedMessagesReclassified = 0;
             var currentBatch = new List<Tuple<string, ClassifiableMessageDetails>>();
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 ReclassifyErrorSettings settings = null;
 
                 if (!force)
                 {
-                    settings = session.Load<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase);
+                    settings = await session.LoadAsync<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase)
+                        .ConfigureAwait(false);
 
                     if (settings != null && settings.ReclassificationDone)
                     {
@@ -53,9 +54,10 @@
 
                 var totalMessagesReclassified = 0;
 
-                using (var stream = session.Advanced.Stream(query.As<FailedMessage>()))
+                using (var stream = await session.Advanced.StreamAsync(query.As<FailedMessage>())
+                    .ConfigureAwait(false))
                 {
-                    while (!abort && stream.MoveNext())
+                    while (!abort && await stream.MoveNextAsync().ConfigureAwait(false))
                     {
                         currentBatch.Add(Tuple.Create(stream.Current.Document.Id, new ClassifiableMessageDetails(stream.Current.Document)));
 
@@ -83,8 +85,8 @@
                 }
 
                 settings.ReclassificationDone = true;
-                session.Store(settings);
-                session.SaveChanges();
+                await session.StoreAsync(settings).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
 
                 return failedMessagesReclassified;
             }

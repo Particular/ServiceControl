@@ -17,7 +17,7 @@
         {
             var reclassifier = new Reclassifier(null);
 
-            var failedMessagesReclassified = reclassifier.ReclassifyFailedMessages(store, true, classifiers);
+            var failedMessagesReclassified = reclassifier.ReclassifyFailedMessages(store, true, classifiers).GetAwaiter().GetResult();
 
             return $"Reclassified {failedMessagesReclassified} messages";
         }

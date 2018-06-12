@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using EndpointPlugin.Messages.SagaState;
     using NServiceBus;
     using Raven.Client;
@@ -16,6 +17,11 @@
         }
 
         public void Handle(SagaUpdatedMessage message)
+        {
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(SagaUpdatedMessage message)
         {
             var sagaHistory = new SagaSnapshot
             {
@@ -46,10 +52,10 @@
 
             AddResultingMessages(message.ResultingMessages, sagaHistory);
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                session.Store(sagaHistory);
-                session.SaveChanges();
+                await session.StoreAsync(sagaHistory).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
