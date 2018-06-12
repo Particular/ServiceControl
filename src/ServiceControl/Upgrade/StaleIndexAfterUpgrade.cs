@@ -15,13 +15,14 @@
         public StaleIndexAfterUpgrade()
         {
             EnableByDefault();
-            RegisterStartupTask<CheckerTask>();
         }
         
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<StaleIndexChecker>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<StaleIndexInfoStore>(DependencyLifecycle.SingleInstance);
+            
+            context.RegisterStartupTask(b => b.Build<CheckerTask>());
         }
         
         public class CheckerTask : FeatureStartupTask 
@@ -42,13 +43,7 @@
                 directory = baseDirectory ?? loggingSettings.LogPath;
             }
 
-            protected override void OnStop()
-            {
-                tokenSource?.Cancel();
-                checkTask?.GetAwaiter().GetResult();
-            }
-
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 var fileNamesWithoutExtension = Directory.GetFiles(directory, "*.upgrade").Select(Path.GetFileNameWithoutExtension);
 
@@ -64,7 +59,7 @@
     
                 if (latestUpgrade.Count == 0)
                 {
-                    return;
+                    return Task.FromResult(0);
                 }
 
                 latestUpgrade.Sort(); // ascending
@@ -98,6 +93,14 @@
                         break;
                     }
                 });
+                
+                return Task.FromResult(0);
+            }
+
+            protected override Task OnStop(IMessageSession session)
+            {
+                tokenSource?.Cancel();
+                return checkTask ?? Task.FromResult(0);
             }
         }
     }
