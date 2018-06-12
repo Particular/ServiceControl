@@ -8,7 +8,7 @@
     {
         static string[] emptyArray = new string[0];
 
-        public async Task Broadcast(object @event)
+        public Task Broadcast(object @event)
         {
             var typeName = @event.GetType().Name;
             var types = new List<string>
@@ -17,8 +17,7 @@
             };
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
-            await context.Connection.Broadcast(new Envelope { Types = types, Message = @event }, emptyArray)
-                .ConfigureAwait(false);
+            return context.Connection.Broadcast(new Envelope { Types = types, Message = @event }, emptyArray);
         }
     }
 }
