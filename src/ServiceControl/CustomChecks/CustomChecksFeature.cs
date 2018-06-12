@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using Raven.Client;
@@ -10,12 +11,13 @@
         public CustomChecksFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<WireUpCustomCheckNotifications>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<CustomCheckNotifications>(DependencyLifecycle.SingleInstance);
+            
+            context.RegisterStartupTask(b => b.Build<WireUpCustomCheckNotifications>());
         }
 
         class WireUpCustomCheckNotifications : FeatureStartupTask
@@ -30,14 +32,16 @@
                 this.store = store;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 subscription = store.Changes().ForIndex(new CustomChecksIndex().IndexName).Subscribe(notifications);
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 subscription.Dispose();
+                return Task.FromResult(0);
             }
         }
     }
