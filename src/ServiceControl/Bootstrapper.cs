@@ -5,6 +5,7 @@ namespace Particular.ServiceControl
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading.Tasks;
     using Autofac;
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
@@ -89,7 +90,7 @@ namespace Particular.ServiceControl
             domainEvents.SetContainer(container);
         }
 
-        public BusInstance Start(bool isRunningAcceptanceTests = false)
+        public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
@@ -100,7 +101,8 @@ namespace Particular.ServiceControl
                 WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
 
-            bus = NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
+            bus = await NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+                .ConfigureAwait(false);
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
 
