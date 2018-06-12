@@ -47,6 +47,8 @@
         {
             Directory.CreateDirectory(settings.DbPath);
 
+            documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
+            
             documentStore.DataDirectory = settings.DbPath;
             documentStore.UseEmbeddedHttpServer = maintenanceMode || settings.ExposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
