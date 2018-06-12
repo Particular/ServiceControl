@@ -65,7 +65,7 @@
                     Total = failedUnresolvedMessageCount, // Left here for backwards compatibility, to be removed eventually.
                     UnresolvedTotal = failedUnresolvedMessageCount,
                     ArchivedTotal = failedArchivedMessageCount
-                });
+                }).ConfigureAwait(false);
             }
         }
     }

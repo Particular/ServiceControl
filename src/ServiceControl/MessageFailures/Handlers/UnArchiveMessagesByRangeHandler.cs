@@ -51,7 +51,7 @@ if(this.Status === archivedStatus) {
                         {"archivedStatus", (int) FailedMessageStatus.Archived},
                         {"unresolvedStatus", (int) FailedMessageStatus.Unresolved}
                     }
-                }, options);
+                }, options).ConfigureAwait(false);
 
             var patchedDocumentIds = (await result.WaitForCompletionAsync().ConfigureAwait(false))
                 .JsonDeserialization<DocumentPatchResult[]>();

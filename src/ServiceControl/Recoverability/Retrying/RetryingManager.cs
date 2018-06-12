@@ -53,7 +53,8 @@
 
             var summary = GetOrCreate(retryType, requestId);
 
-            await summary.Prepare(totalNumberOfMessages);
+            await summary.Prepare(totalNumberOfMessages)
+                .ConfigureAwait(false);
         }
 
         public async Task PreparedAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, string originator, string classifier, DateTime startTime, DateTime last)

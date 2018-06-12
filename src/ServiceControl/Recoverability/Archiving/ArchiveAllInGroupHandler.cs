@@ -63,7 +63,8 @@ namespace ServiceControl.Recoverability
                     logger.Info($"Splitting group {message.GroupId} into batches");
                     archiveOperation = await documentManager.CreateArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize)
                         .ConfigureAwait(false);
-                    await session.SaveChangesAsync();
+                    await session.SaveChangesAsync()
+                        .ConfigureAwait(false);
 
                     logger.Info($"Group {message.GroupId} has been split into {archiveOperation.NumberOfBatches} batches");
                 }
@@ -96,9 +97,11 @@ namespace ServiceControl.Recoverability
 
                     archiveOperation = archiveOperationManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation();
 
-                    await documentManager.UpdateArchiveOperation(batchSession, archiveOperation);
+                    await documentManager.UpdateArchiveOperation(batchSession, archiveOperation)
+                        .ConfigureAwait(false);
 
-                    await batchSession.SaveChangesAsync();
+                    await batchSession.SaveChangesAsync()
+                        .ConfigureAwait(false);
 
                     if (nextBatch != null)
                     {
@@ -126,7 +129,7 @@ namespace ServiceControl.Recoverability
                 GroupId = message.GroupId,
                 GroupName = archiveOperation.GroupName,
                 MessagesCount = archiveOperation.TotalNumberOfMessages
-            });
+            }).ConfigureAwait(false);
         }
     }
 }

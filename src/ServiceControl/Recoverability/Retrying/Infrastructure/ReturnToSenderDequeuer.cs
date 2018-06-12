@@ -308,7 +308,7 @@ namespace ServiceControl.Recoverability
                         Reason = reason,
                         FailedMessageId = messageUniqueId,
                         Destination = destination
-                    });
+                    }).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
