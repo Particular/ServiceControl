@@ -31,23 +31,29 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.ServiceBus, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.ServiceBus.2.8.2\lib\net40-full\Microsoft.ServiceBus.dll</HintPath>
+    <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <HintPath>..\packages\WindowsAzure.ServiceBus.4.1.0\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.Azure.Transports.WindowsAzureServiceBus.6.4.2\lib\net45\NServiceBus.Azure.Transports.WindowsAzureServiceBus.dll</HintPath>
+    <Reference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus, Version=8.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
+      <HintPath>..\packages\NServiceBus.Azure.Transports.WindowsAzureServiceBus.8.0.0\lib\net452\NServiceBus.Azure.Transports.WindowsAzureServiceBus.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.5.2.24\lib\net45\NServiceBus.Core.dll</HintPath>
+    <Reference Include="NServiceBus.Core, Version=7.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
+      <HintPath>..\packages\NServiceBus.7.0.1\lib\net452\NServiceBus.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.CustomChecks, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.CustomChecks.1.0.0\lib\net45\NServiceBus.CustomChecks.dll</HintPath>
+    <Reference Include="NServiceBus.CustomChecks, Version=3.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
+      <HintPath>..\packages\NServiceBus.CustomChecks.3.0.0\lib\net452\NServiceBus.CustomChecks.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />

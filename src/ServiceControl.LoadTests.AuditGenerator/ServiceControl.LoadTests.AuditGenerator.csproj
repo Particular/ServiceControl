@@ -1,19 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net462</TargetFramework>
     <AssemblyName>AuditGenerator</AssemblyName>
     <LangVersion>7</LangVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Metrics.NET" Version="0.5.5" />
-    <PackageReference Include="NServiceBus" Version="6.4.3" />
+    <PackageReference Include="NServiceBus" Version="7.0.1" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
   </ItemGroup>
-
 </Project>
