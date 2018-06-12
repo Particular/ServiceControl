@@ -5,9 +5,8 @@
     using System.IO;
     using System.Linq;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using NServiceBus.Persistence;
     using Particular.ServiceControl.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
@@ -29,7 +28,7 @@
             }
         }
 
-        public void Customize(BusConfiguration configuration)
+        public void Customize(EndpointConfiguration configuration)
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
