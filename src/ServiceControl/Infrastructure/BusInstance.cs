@@ -6,17 +6,17 @@ namespace ServiceBus.Management.Infrastructure
 
     public class BusInstance : IDisposable
     {
-        public BusInstance(IBus bus, IDomainEvents domainEvents)
+        public BusInstance(IEndpointInstance bus, IDomainEvents domainEvents)
         {
             Bus = bus;
             DomainEvents = domainEvents;
         }
 
-        public IBus Bus { get; }
+        public IEndpointInstance Bus { get; }
         public IDomainEvents DomainEvents { get; }
         public void Dispose()
         {
-            Bus.Dispose();
+            Bus.Stop().GetAwaiter().GetResult();
         }
     }
 }
