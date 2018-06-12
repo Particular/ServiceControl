@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
@@ -11,12 +12,12 @@
         public LicenseCheckFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<LicenseCheckFeatureStartup>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<ActiveLicense>(DependencyLifecycle.SingleInstance);
+            context.RegisterStartupTask(b => b.Build<LicenseCheckFeatureStartup>());
         }
     }
 
@@ -32,15 +33,20 @@
             this.activeLicense = activeLicense;
         }
 
-        protected override void OnStart()
+        protected override Task OnStart(IMessageSession session)
         {
             var due = TimeSpan.FromHours(8);
-            timer = timeKeeper.New(activeLicense.Refresh, due, due);
+            timer = timeKeeper.New(() =>
+            {
+                activeLicense.Refresh();
+            }, due, due);
+            return Task.FromResult(0);
         }
 
-        protected override void OnStop()
+        protected override Task OnStop(IMessageSession session)
         {
             timeKeeper.Release(timer);
+            return Task.FromResult(0);
         }
     }
 }
