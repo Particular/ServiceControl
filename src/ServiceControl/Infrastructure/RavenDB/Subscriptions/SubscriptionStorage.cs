@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using Raven.Abstractions.Data;
@@ -10,7 +11,7 @@
     {
         SubscriptionStorage()
         {
-            DependsOn<StorageDrivenPublishing>();
+            DependsOn<MessageDrivenSubscriptions>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
@@ -40,6 +41,27 @@
             };
 
             context.Container.ConfigureComponent<SubscriptionPersister>(DependencyLifecycle.SingleInstance);
+            context.RegisterStartupTask(b => b.Build<PrimeSubscriptions>());
+        }
+        
+        class PrimeSubscriptions : FeatureStartupTask
+        {
+            public IPrimableSubscriptionStorage Persister { get; set; }
+
+            protected override Task OnStart(IMessageSession session)
+            {
+                if (Persister != null)
+                {
+                    
+                }
+
+                return Task.FromResult(0);
+            }
+
+            protected override Task OnStop(IMessageSession session)
+            {
+                return Task.FromResult(0);
+            }
         }
     }
 }
