@@ -6,6 +6,7 @@
     using Raven.Client.Indexes;
     using System;
     using System.Linq;
+    using System.Threading.Tasks;
 
     class FailedErrorImportCustomCheck : CustomCheck
     {
@@ -17,12 +18,18 @@
 
         public override CheckResult PerformCheck()
         {
-            using (var session = store.OpenSession())
+            return PerformCheckAsync().GetAwaiter().GetResult();
+        }
+
+        private async Task<CheckResult> PerformCheckAsync()
+        {
+            using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-                using (var ie = session.Advanced.Stream(query))
+                using (var ie = await session.Advanced.StreamAsync(query)
+                    .ConfigureAwait(false))
                 {
-                    if (ie.MoveNext())
+                    if (await ie.MoveNextAsync().ConfigureAwait(false))
                     {
                         var message = @"One or more error messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database.
 The import of these messages could have failed for a number of reasons and ServiceControl is not able to automatically reimport them. For guidance on how to resolve this see https://docs.particular.net/servicecontrol/import-failed-audit-messages";

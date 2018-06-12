@@ -24,6 +24,7 @@ namespace ServiceControl.Recoverability
         private RetryDocumentManager retryDocumentManager;
         public RetryingManager OperationManager { get; set; }
         private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
+
         public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
         {
             this.store = store;
@@ -135,7 +136,7 @@ namespace ServiceControl.Recoverability
 
             await OperationManager.Prepairing(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
-            await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow)
+            await StageRetryByUniqueMessageIds(requestId, retryType, new[] {uniqueMessageId}, DateTime.UtcNow)
                 .ConfigureAwait(false);
             await OperationManager.PreparedBatch(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
@@ -167,7 +168,8 @@ namespace ServiceControl.Recoverability
 
             var failedMessageRetryIds = messageIds.Select(FailedMessageRetry.MakeDocumentId).ToArray();
 
-            var batchDocumentId = retryDocumentManager.CreateBatchDocument(requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier);
+            var batchDocumentId = await retryDocumentManager.CreateBatchDocument(requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier)
+                .ConfigureAwait(false);
 
             log.InfoFormat("Created Batch '{0}' with {1} messages for '{2}'", batchDocumentId, messageIds.Length, batchName);
 

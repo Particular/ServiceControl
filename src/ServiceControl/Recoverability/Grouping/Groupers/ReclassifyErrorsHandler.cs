@@ -44,7 +44,8 @@ namespace ServiceControl.Recoverability
 
             try
             {
-                var failedMessagesReclassified = reclassifier.ReclassifyFailedMessages(store, message.Force, classifiers);
+                var failedMessagesReclassified = await reclassifier.ReclassifyFailedMessages(store, message.Force, classifiers)
+                    .ConfigureAwait(false);
 
                 if (failedMessagesReclassified > 0)
                 {

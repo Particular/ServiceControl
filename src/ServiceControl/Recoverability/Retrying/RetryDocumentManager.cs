@@ -35,12 +35,12 @@ namespace ServiceControl.Recoverability
             notifier.Register(() => { abort = true; });
         }
 
-        public string CreateBatchDocument(string requestId, RetryType retryType, string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
+        public async Task<string> CreateBatchDocument(string requestId, RetryType retryType, string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                session.Store(new RetryBatch
+                await session.StoreAsync(new RetryBatch
                 {
                     Id = batchDocumentId,
                     Context = batchName,
@@ -54,8 +54,8 @@ namespace ServiceControl.Recoverability
                     RetrySessionId = RetrySessionId,
                     FailureRetries = failedMessageRetryIds,
                     Status = RetryBatchStatus.MarkingDocuments
-                });
-                session.SaveChanges();
+                }).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
             return batchDocumentId;
         }

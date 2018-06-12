@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -93,11 +94,16 @@
 
         private void InnerHandle(TransportMessage message)
         {
+            InnerHandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task InnerHandleAsync(TransportMessage message)
+        {
             var entity = auditImporter.ConvertToSaveMessage(message);
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                session.Store(entity);
-                session.SaveChanges();
+                await session.StoreAsync(entity).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
             if (settings.ForwardAuditMessages)
