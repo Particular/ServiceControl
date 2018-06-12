@@ -23,6 +23,11 @@
 
         public void Handle(ReportCustomCheckResult message)
         {
+            HandleAsync(message).GetAwaiter().GetResult();
+        }
+
+        private async Task HandleAsync(ReportCustomCheckResult message)
+        {
             if (string.IsNullOrEmpty(message.EndpointName))
             {
                 throw new Exception("Received an custom check message without proper initialization of the EndpointName in the schema");
@@ -37,12 +42,7 @@
             {
                 throw new Exception("Received an custom check message without proper initialization of the HostId in the schema");
             }
-
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(ReportCustomCheckResult message)
-        {
+            
             var publish = false;
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString(), message.CustomCheckId);
             CustomCheck customCheck;
