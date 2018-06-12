@@ -11,7 +11,7 @@
 
     public class CustomChecksModule : BaseModule
     {
-        public IBus Bus { get; set; }
+        public IMessageSession Bus { get; set; }
 
         public CustomChecksModule()
         {
@@ -37,11 +37,11 @@
                 }
             };
 
-            Delete["/customchecks/{id}"] = parameters =>
+            Delete["/customchecks/{id}", true] = async (parameters, token) =>
             {
                 Guid id = parameters.id;
 
-                Bus.SendLocal(new DeleteCustomCheck{Id = id});
+                await Bus.SendLocal(new DeleteCustomCheck{Id = id}).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
