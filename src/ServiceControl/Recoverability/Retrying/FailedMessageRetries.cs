@@ -15,10 +15,7 @@
         public FailedMessageRetries()
         {
             EnableByDefault();
-            RegisterStartupTask<RebuildRetryGroupStatuses>();
-            RegisterStartupTask<BulkRetryBatchCreation>();
-            RegisterStartupTask<AdoptOrphanBatchesFromPreviousSession>();
-            RegisterStartupTask<ProcessRetryBatches>();
+
         }
 
         protected override void Setup(FeatureConfigurationContext context)
@@ -26,6 +23,11 @@
             context.Container.ConfigureComponent<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetriesGateway>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetryProcessor>(DependencyLifecycle.SingleInstance);
+            
+            context.RegisterStartupTask(b => b.Build<RebuildRetryGroupStatuses>());
+            context.RegisterStartupTask(b => b.Build<BulkRetryBatchCreation>());
+            context.RegisterStartupTask(b => b.Build<AdoptOrphanBatchesFromPreviousSession>());
+            context.RegisterStartupTask(b => b.Build<ProcessRetryBatches>());
         }
 
         class BulkRetryBatchCreation : FeatureStartupTask
@@ -41,30 +43,35 @@
                 this.timeKeeper = timeKeeper;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 if (retries != null)
                 {
                     var due = TimeSpan.FromSeconds(5);
                     timer = timeKeeper.New(ProcessRequestedBulkRetryOperations, due, due);
                 }
+
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 if (retries != null)
                 {
                     abortProcessing = true;
                     timeKeeper.Release(timer);
                 }
+                
+                return Task.FromResult(0);
             }
 
-            void ProcessRequestedBulkRetryOperations()
+            async Task ProcessRequestedBulkRetryOperations()
             {
                 bool processedRequests;
                 do
                 {
-                    processedRequests = retries.ProcessNextBulkRetry().GetAwaiter().GetResult();
+                    processedRequests = await retries.ProcessNextBulkRetry()
+                        .ConfigureAwait(false);
                 } while (processedRequests && !abortProcessing);
             }
         }
@@ -77,17 +84,17 @@
                 this.retryDocumentManager = retryDocumentManager;
             }
 
-            protected override void OnStart()
+            protected override async Task OnStart(IMessageSession session)
             {
-                StartAsync().GetAwaiter().GetResult();
+                using (var storageSession = store.OpenAsyncSession())
+                {
+                    await retryDocumentManager.RebuildRetryOperationState(storageSession).ConfigureAwait(false);
+                }
             }
 
-            private async Task StartAsync()
+            protected override Task OnStop(IMessageSession session)
             {
-                using (var session = store.OpenAsyncSession())
-                {
-                    await retryDocumentManager.RebuildRetryOperationState(session).ConfigureAwait(false);
-                }
+                return Task.FromResult(0);
             }
 
             RetryDocumentManager retryDocumentManager;
@@ -131,14 +138,16 @@
                 return hasMoreWorkToDo;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 timer = timeKeeper.NewTimer(() => AdoptOrphanedBatches(), TimeSpan.Zero, TimeSpan.FromMinutes(2));
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 timeKeeper.Release(timer);
+                return Task.FromResult(0);
             }
 
             IDocumentStore store;
@@ -160,40 +169,37 @@
                 this.settings = settings;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 timer = timeKeeper.New(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency);
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 shuttingDown.Cancel();
                 timeKeeper.Release(timer);
+                return Task.FromResult(0);
             }
 
-            void Process()
+            async Task Process()
             {
                 try
                 {
-                    ProcessAsync().GetAwaiter().GetResult();
+                    bool batchesProcessed;
+                    do
+                    {
+                        using (var session = store.OpenAsyncSession())
+                        {
+                            batchesProcessed = await processor.ProcessBatches(session, shuttingDown.Token).ConfigureAwait(false);
+                            await session.SaveChangesAsync().ConfigureAwait(false);
+                        }
+                    } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
                 }
                 catch (Exception ex)
                 {
                     log.Error("Error during retry batch processing", ex);
                 }
-            }
-
-            private async Task ProcessAsync()
-            {
-                bool batchesProcessed;
-                do
-                {
-                    using (var session = store.OpenAsyncSession())
-                    {
-                        batchesProcessed = await processor.ProcessBatches(session, shuttingDown.Token).ConfigureAwait(false);
-                        await session.SaveChangesAsync().ConfigureAwait(false);
-                    }
-                } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
             }
 
             IDocumentStore store;
