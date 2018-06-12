@@ -12,6 +12,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Operations;
 
     public static class NServiceBusFactory
     {
@@ -83,9 +84,10 @@ namespace ServiceBus.Management.Infrastructure
 
             container.Resolve<SubscribeToOwnEvents>().Run();
             var domainEvents = container.Resolve<IDomainEvents>();
+            var importFailedAudits = container.Resolve<ImportFailedAudits>();
 
             var startedBus = await bus.Start().ConfigureAwait(false);
-            return new BusInstance(startedBus, domainEvents);
+            return new BusInstance(startedBus, domainEvents, importFailedAudits);
         }
 
         static Type DetermineTransportType(Settings.Settings settings)
