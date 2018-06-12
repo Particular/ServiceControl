@@ -72,7 +72,17 @@
                 return true;
             }, dueTime, period);
         }
+        
+        public Timer New(Func<Task> callback, TimeSpan dueTime, TimeSpan period)
+        {
+            ThrowIfDisposed();
 
+            return NewTimer(async () =>
+            {
+                await callback().ConfigureAwait(false);
+                return true;
+            }, dueTime, period);
+        }
         public void Release(Timer timer)
         {
             ThrowIfDisposed();
