@@ -21,12 +21,7 @@
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(ReportCustomCheckResult message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(ReportCustomCheckResult message)
+        public async Task Handle(ReportCustomCheckResult message, IMessageHandlerContext context)
         {
             if (string.IsNullOrEmpty(message.EndpointName))
             {
