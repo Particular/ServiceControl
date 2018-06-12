@@ -22,7 +22,7 @@ namespace Particular.ServiceControl
     public class Bootstrapper
     {
         private static HttpClient httpClient;
-        private BusConfiguration configuration;
+        private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action onCriticalError;
@@ -34,7 +34,7 @@ namespace Particular.ServiceControl
         public IDisposable WebApp;
 
         // Windows Service
-        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings)
+        public Bootstrapper(Action onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
             if (configuration == null)
             {

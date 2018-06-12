@@ -2,9 +2,10 @@ namespace ServiceBus.Management.Infrastructure
 {
     using System;
     using System.Diagnostics;
+    using System.Threading.Tasks;
     using Autofac;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -14,12 +15,13 @@ namespace ServiceBus.Management.Infrastructure
 
     public static class NServiceBusFactory
     {
-        public static IStartableBus Create(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             if (configuration == null)
             {
-                configuration = new BusConfiguration();
-                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+                configuration = new EndpointConfiguration(settings.ServiceName);
+                var assemblyScanner = configuration.AssemblyScanner();
+                assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
@@ -30,22 +32,16 @@ namespace ServiceBus.Management.Infrastructure
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
             configuration.DisableFeature<AutoSubscribe>();
-            configuration.DisableFeature<SecondLevelRetries>();
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
 
-            configuration.UseSerialization<JsonSerializer>();
+            configuration.Recoverability().Delayed(c => c.NumberOfRetries(0));
 
-            configuration.Transactions()
-                .DisableDistributedTransactions()
-                .DoNotWrapHandlersExecutionInATransactionScope();
-
-            configuration.ScaleOut().UseSingleBrokerQueue();
+            configuration.UseSerialization<NewtonsoftSerializer>();
 
             var transportType = DetermineTransportType(settings);
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-            configuration.EndpointName(settings.ServiceName);
 
             if (!isRunningAcceptanceTests)
             {
@@ -54,13 +50,16 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
             var transport = configuration.UseTransport(transportType);
+            transport.Transactions(TransportTransactionMode.ReceiveOnly);
+            
             if (settings.TransportConnectionString != null)
             {
                 transport.ConnectionString(settings.TransportConnectionString);
             }
-            configuration.DefineCriticalErrorAction((s, exception) =>
+            configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {
                 onCriticalError();
+                return Task.FromResult(0);
             });
 
             if (Environment.UserInteractive && Debugger.IsAttached)
@@ -68,17 +67,18 @@ namespace ServiceBus.Management.Infrastructure
                 configuration.EnableInstallers();
             }
 
-            return Bus.Create(configuration);
+            return Endpoint.Create(configuration);
         }
 
-        public static BusInstance CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration, bool isRunningAcceptanceTests)
+        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
-            var bus = Create(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
+            var bus = await Create(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+                .ConfigureAwait(false);
 
             container.Resolve<SubscribeToOwnEvents>().Run();
             var domainEvents = container.Resolve<IDomainEvents>();
 
-            var startedBus = bus.Start();
+            var startedBus = await bus.Start().ConfigureAwait(false);
             return new BusInstance(startedBus, domainEvents);
         }
 
