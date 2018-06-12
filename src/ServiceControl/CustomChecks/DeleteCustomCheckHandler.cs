@@ -16,12 +16,7 @@
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(DeleteCustomCheck message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(DeleteCustomCheck message)
+        public async Task Handle(DeleteCustomCheck message, IMessageHandlerContext context)
         {
             await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null)
                 .ConfigureAwait(false);
