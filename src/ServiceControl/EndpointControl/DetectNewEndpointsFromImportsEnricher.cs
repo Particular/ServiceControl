@@ -32,13 +32,19 @@
 
             public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
+                EnrichAsync(headers, metadata).GetAwaiter().GetResult();
+            }
+
+            async Task EnrichAsync(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
                 var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(headers);
 
                 // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
                 // have the relevant information via the headers, which were added in v4.
                 if (sendingEndpoint != null)
                 {
-                    TryAddEndpoint(sendingEndpoint).GetAwaiter().GetResult();
+                    await TryAddEndpoint(sendingEndpoint)
+                        .ConfigureAwait(false);
                     metadata.Add("SendingEndpoint", sendingEndpoint);
                 }
 
@@ -48,9 +54,9 @@
                 if (receivingEndpoint != null)
                 {
                     metadata.Add("ReceivingEndpoint", receivingEndpoint);
-                    TryAddEndpoint(receivingEndpoint).GetAwaiter().GetResult();
+                    await TryAddEndpoint(receivingEndpoint)
+                        .ConfigureAwait(false);
                 }
-                
             }
 
             async Task TryAddEndpoint(EndpointDetails endpointDetails)
