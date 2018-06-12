@@ -17,9 +17,10 @@ namespace ServiceBus.Management.Infrastructure
     {
         public static Task<IStartableEndpoint> Create(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
+            var endpointName = settings.ServiceName;
             if (configuration == null)
             {
-                configuration = new EndpointConfiguration(settings.ServiceName);
+                configuration = new EndpointConfiguration(endpointName);
                 var assemblyScanner = configuration.AssemblyScanner();
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
@@ -27,7 +28,7 @@ namespace ServiceBus.Management.Infrastructure
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
-            configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(new LoggingSettings(settings.ServiceName).LogPath));
+            configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(new LoggingSettings(endpointName).LogPath));
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
@@ -35,9 +36,14 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
 
-            configuration.Recoverability().Delayed(c => c.NumberOfRetries(0));
+            var recoverability = configuration.Recoverability();
+            recoverability.Immediate(c => c.NumberOfRetries(3));
+            recoverability.Delayed(c => c.NumberOfRetries(0));
+            configuration.SendFailedMessagesTo($"{endpointName}.Errors");
 
             configuration.UseSerialization<NewtonsoftSerializer>();
+            
+            configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             var transportType = DetermineTransportType(settings);
 
@@ -45,7 +51,7 @@ namespace ServiceBus.Management.Infrastructure
 
             if (!isRunningAcceptanceTests)
             {
-                configuration.ReportCustomChecksTo(settings.ServiceName);
+                configuration.ReportCustomChecksTo(endpointName);
             }
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
