@@ -80,6 +80,7 @@
         {
             try
             {
+                await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
                 do
                 {
                     try
