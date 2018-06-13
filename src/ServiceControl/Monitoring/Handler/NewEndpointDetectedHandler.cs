@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Monitoring.Handler
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using ServiceControl.Contracts.EndpointControl;
 
@@ -12,9 +13,10 @@
             this.endpointInstanceMonitoring = endpointInstanceMonitoring;
         }
 
-        public void Handle(NewEndpointDetected message)
+        public Task Handle(NewEndpointDetected message, IMessageHandlerContext context)
         {
             endpointInstanceMonitoring.DetectEndpointFromRemoteAudit(message.Endpoint);
+            return Task.FromResult(0);
         }
     }
 }

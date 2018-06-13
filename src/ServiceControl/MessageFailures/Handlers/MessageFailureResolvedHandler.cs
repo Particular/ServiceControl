@@ -12,23 +12,16 @@
 
     public class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>
     {
-        IBus bus;
         IDocumentStore store;
         IDomainEvents domainEvents;
 
-        public MessageFailureResolvedHandler(IBus bus, IDocumentStore store, IDomainEvents domainEvents)
+        public MessageFailureResolvedHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
-            this.bus = bus;
             this.store = store;
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(MessageFailureResolvedByRetry message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(MessageFailureResolvedByRetry message)
+        public async Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
         {
             if (await MarkMessageAsResolved(message.FailedMessageId)
                 .ConfigureAwait(false))
@@ -51,12 +44,7 @@
             }
         }
 
-        public void Handle(MarkPendingRetryAsResolved message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(MarkPendingRetryAsResolved message)
+        public async Task Handle(MarkPendingRetryAsResolved message, IMessageHandlerContext context)
         {
             await MarkMessageAsResolved(message.FailedMessageId)
                 .ConfigureAwait(false);
@@ -66,12 +54,7 @@
             }).ConfigureAwait(false);
         }
 
-        public void Handle(MarkPendingRetriesAsResolved message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(MarkPendingRetriesAsResolved message)
+        public async Task Handle(MarkPendingRetriesAsResolved message, IMessageHandlerContext context)
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -95,7 +78,8 @@
                 {
                     while (await ie.MoveNextAsync().ConfigureAwait(false))
                     {
-                        bus.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id);
+                        await context.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id)
+                            .ConfigureAwait(false);
                     }
                 }
             }

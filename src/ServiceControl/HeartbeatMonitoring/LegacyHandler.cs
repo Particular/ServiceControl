@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.EndpointControl.InternalMessages;
@@ -10,12 +11,12 @@
         IHandleMessages<EnableEndpointMonitoring>,
         IHandleMessages<DisableEndpointMonitoring>
     {
-        public void Handle(RegisterPotentiallyMissingHeartbeats message) { }
+        public Task Handle(RegisterPotentiallyMissingHeartbeats message, IMessageHandlerContext context) => Task.FromResult(0);
 
-        public void Handle(RegisterEndpoint message) { }
+        public Task Handle(RegisterEndpoint message, IMessageHandlerContext context) => Task.FromResult(0);
 
-        public void Handle(EnableEndpointMonitoring message) { }
+        public Task Handle(EnableEndpointMonitoring message, IMessageHandlerContext context) => Task.FromResult(0);
 
-        public void Handle(DisableEndpointMonitoring message) { }
+        public Task Handle(DisableEndpointMonitoring message, IMessageHandlerContext context) => Task.FromResult(0);
     }
 }
