@@ -1,23 +1,22 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.Faults;
     using NServiceBus.Logging;
-    using NServiceBus.Satellites;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
-    using NServiceBus.Unicast.Transport;
+    using NServiceBus.Raw;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using Raven.Client;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
-    public class ReturnToSenderDequeuer : IAdvancedSatellite
+    public class ReturnToSenderDequeuer
     {
         private DequeueMessagesWrapper receiver;
         private Timer timer;
@@ -26,14 +25,12 @@ namespace ServiceControl.Recoverability
         bool endedPrematurelly;
         int? targetMessageCount;
         int actualMessageCount;
-        Predicate<TransportMessage> shouldProcess;
-        readonly ISendMessages sender;
+        Predicate<MessageContext> shouldProcess;
         CaptureIfMessageSendingFails faultManager;
         IBodyStorage bodyStorage;
 
-        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IDomainEvents domainEvents, Configure configure)
+        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, IDocumentStore store, IDomainEvents domainEvents, string endpointName, Action<EndpointConfiguration> configureTransport)
         {
-            this.sender = sender;
             this.bodyStorage = bodyStorage;
 
             Action executeOnFailure = () =>
@@ -50,14 +47,25 @@ namespace ServiceControl.Recoverability
 
             faultManager = new CaptureIfMessageSendingFails(store, domainEvents, executeOnFailure);
             timer = new Timer(state => StopInternal());
-            InputAddress = Address.Parse(configure.Settings.EndpointName()).SubScope("staging");
         }
 
-        public bool Handle(TransportMessage message)
+        RawEndpointConfiguration CreateEndpointConfiguration(string endpointName, Action<RawEndpointConfiguration> configureTransport, IErrorHandlingPolicy errorHandlingPolicy)
+        {
+            var config = RawEndpointConfiguration.Create($"{endpointName}.staging",
+                (context, dispatcher) => Handle(context, bodyStorage, dispatcher), "poison" /*TODO*/);
+
+            configureTransport(config);
+            config.AutoCreateQueue();
+            config.CustomErrorHandlingPolicy(errorHandlingPolicy);
+
+            return config;
+        }
+
+        async Task Handle(MessageContext message, IBodyStorage bodyStorage, IDispatchMessages sender)
         {
             if (shouldProcess(message))
             {
-                HandleMessage(message, bodyStorage, sender);
+                await HandleMessage(message, bodyStorage, sender);
 
                 if (IsCounting)
                 {
@@ -74,8 +82,6 @@ namespace ServiceControl.Recoverability
                 Log.Debug("Resetting timer");
                 timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
             }
-
-            return true;
         }
 
         static byte[] ReadFully(Stream input)
@@ -92,72 +98,59 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        public static void HandleMessage(TransportMessage message, IBodyStorage bodyStorage, ISendMessages sender) //Public for testing
+        public static async Task HandleMessage(MessageContext message, IBodyStorage bodyStorage, IDispatchMessages sender) //Public for testing
         {
-            message.Headers.Remove("ServiceControl.Retry.StagingId");
+            var body = new byte[0];
+            var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
-            Log.DebugFormat("{0}: Retrieving message body", message.Id);
+            outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
+
+            var messageId = message.MessageId;
+            Log.DebugFormat("{0}: Retrieving message body", messageId);
 
             string attemptMessageId;
-            if (message.Headers.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
+            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
             {
                 Stream stream;
                 if (bodyStorage.TryFetch(attemptMessageId, out stream))
                 {
                     using (stream)
                     {
-                        message.Body = ReadFully(stream);
+                        body = ReadFully(stream);
                     }
-                }
-                else
-                { 
-                    Log.WarnFormat("{0}: Message Body not found for attempt Id {1}", message.Id, attemptMessageId);
-                }
-                message.Headers.Remove("ServiceControl.Retry.Attempt.MessageId");
-            }
-            else
-            {
-                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", message.Id);
-            }
-
-            if (message.Body != null)
-            {
-                Log.DebugFormat("{0}: Body size: {1} bytes", message.Id, message.Body.LongLength);
-            }
-            else
-            {
-                Log.DebugFormat("{0}: Body is NULL", message.Id);
-            }
-
-            var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
-            Log.DebugFormat("{0}: Forwarding message to {1}", message.Id, destination);
-            try
-            {
-                string retryTo;
-                if (!message.Headers.TryGetValue("ServiceControl.RetryTo", out retryTo))
-                {
-                    retryTo = destination;
-                    message.Headers.Remove("ServiceControl.TargetEndpointAddress");
+                    Log.DebugFormat("{0}: Body size: {1} bytes", messageId, body.LongLength);
                 }
                 else
                 {
-                    Log.DebugFormat("{0}: Found ServiceControl.RetryTo header. Rerouting to {1}", message.Id, retryTo);
+                    Log.WarnFormat("{0}: Message Body not found for attempt Id {1}", messageId, attemptMessageId);
                 }
-
-                sender.Send(message, new SendOptions(retryTo));
-                Log.DebugFormat("{0}: Forwarded message to {1}", message.Id, retryTo);
+                outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
             }
-            catch (Exception)
+            else
             {
-                Log.WarnFormat("{0}: Error forwarding message, resetting headers", message.Id);
-                message.Headers["ServiceControl.TargetEndpointAddress"] = destination;
-                if (attemptMessageId != null)
-                {
-                    message.Headers["ServiceControl.Retry.Attempt.MessageId"] = attemptMessageId;
-                }
-
-                throw;
+                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", messageId);
             }
+
+            var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body);
+
+            var destination = outgoingHeaders["ServiceControl.TargetEndpointAddress"];
+            Log.DebugFormat("{0}: Forwarding message to {1}", messageId, destination);
+            string retryTo;
+            if (!outgoingHeaders.TryGetValue("ServiceControl.RetryTo", out retryTo))
+            {
+                retryTo = destination;
+                outgoingHeaders.Remove("ServiceControl.TargetEndpointAddress");
+            }
+            else
+            {
+                Log.DebugFormat("{0}: Found ServiceControl.RetryTo header. Rerouting to {1}", messageId, retryTo);
+            }
+
+            var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
+
+            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions)
+                .ConfigureAwait(false);
+            Log.DebugFormat("{0}: Forwarded message to {1}", messageId, retryTo);
         }
 
         bool IsCounting => targetMessageCount.HasValue;
@@ -178,7 +171,7 @@ namespace ServiceControl.Recoverability
         {
         }
 
-        public virtual void Run(Predicate<TransportMessage> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
+        public virtual void Run(Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
         {
             try
             {
@@ -229,20 +222,7 @@ namespace ServiceControl.Recoverability
             Log.InfoFormat("{0} stopped", GetType().Name);
         }
 
-        public Address InputAddress { get; }
-        public bool Disabled => false;
-
-        public Action<TransportReceiver> GetReceiverCustomization()
-        {
-            return r =>
-            {
-                receiver = new DequeueMessagesWrapper(r.Receiver);
-                r.Receiver = receiver;
-                r.FailureManager = faultManager;
-            };
-        }
-
-        class CaptureIfMessageSendingFails : IManageMessageFailures
+        class CaptureIfMessageSendingFails : IErrorHandlingPolicy
         {
             static ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
             IDocumentStore store;
@@ -256,19 +236,11 @@ namespace ServiceControl.Recoverability
                 this.domainEvents = domainEvents;
             }
 
-            public void SerializationFailedForMessage(TransportMessage message, Exception e)
-            {
-            }
-
-            public void ProcessingAlwaysFailsForMessage(TransportMessage message, Exception e)
-            {
-                ProcessingAlwaysFailsForMessageAsync(message, e).GetAwaiter().GetResult();
-            }
-
-            private async Task ProcessingAlwaysFailsForMessageAsync(TransportMessage message, Exception e)
+            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
                 try
                 {
+                    var message = handlingContext.Error.Message;
                     var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
                     Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", e);
@@ -296,7 +268,7 @@ namespace ServiceControl.Recoverability
                     string reason;
                     try
                     {
-                        reason = e.GetBaseException().Message;
+                        reason = handlingContext.Error.Exception.GetBaseException().Message;
                     }
                     catch (Exception)
                     {
@@ -319,10 +291,8 @@ namespace ServiceControl.Recoverability
                 {
                     executeOnFailure();
                 }
-            }
 
-            public void Init(Address address)
-            {
+                return ErrorHandleResult.Handled;
             }
         }
 
