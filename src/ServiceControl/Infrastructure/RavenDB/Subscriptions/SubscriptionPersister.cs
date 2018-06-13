@@ -37,7 +37,7 @@
             locallyHandledEventTypes = settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray();
 
 
-            SetSubscriptions(new Subscriptions());
+            SetSubscriptions(new Subscriptions()).GetAwaiter().GetResult();
         }
 
         public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context)
@@ -147,11 +147,12 @@
             }
         }
 
-        private void SetSubscriptions(Subscriptions newSubscriptions)
+        private async Task SetSubscriptions(Subscriptions newSubscriptions)
         {
             try
             {
-                subscriptionsLock.WaitAsync();
+                await subscriptionsLock.WaitAsync()
+                    .ConfigureAwait(false);
                 
                 subscriptions = newSubscriptions;
                 UpdateLookup();
@@ -168,7 +169,8 @@
             {
                 var primeSubscriptions = await LoadSubscriptions(session).ConfigureAwait(false) ?? await MigrateSubscriptions(session, localClient).ConfigureAwait(false);
 
-                SetSubscriptions(primeSubscriptions);
+                await SetSubscriptions(primeSubscriptions)
+                    .ConfigureAwait(false);
             }
         }
 
