@@ -20,7 +20,7 @@
         private IDocumentStore store;
         private SubscriptionClient localClient;
         private Subscriptions subscriptions;
-        private ILookup<MessageType, SubscriptionClient> subscriptionsLookup;
+        private ILookup<MessageType, Subscriber> subscriptionsLookup;
         private MessageType[] locallyHandledEventTypes;
 
         private SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
@@ -123,14 +123,14 @@
                                    select new
                                    {
                                        subscription.MessageType,
-                                       Address = client
+                                       Subscriber = new Subscriber(client.TransportAddress, client.Endpoint)
                                    }).Union(from eventType in locallyHandledEventTypes
                                             select new
                                             {
                                                 MessageType = eventType,
-                                                Address = localClient
+                                                Subscriber = new Subscriber(localClient.TransportAddress, localClient.Endpoint)
                                             }
-                                    ).ToLookup(x => x.MessageType, x => x.Address);
+                                    ).ToLookup(x => x.MessageType, x => x.Subscriber);
         }
 
         private string FormatId(MessageType messageType)
@@ -233,8 +233,7 @@
 
         public Task<IEnumerable<Subscriber>> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes, ContextBag context)
         {
-            // TODO:fix, allocates a lot for every publish
-            return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Select(x => new Subscriber(x.TransportAddress, x.Endpoint)).Distinct());
+            return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct());
         }
     }
 
