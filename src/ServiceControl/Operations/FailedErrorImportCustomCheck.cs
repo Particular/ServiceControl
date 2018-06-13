@@ -16,18 +16,12 @@
             this.store = store;
         }
 
-        public override CheckResult PerformCheck()
-        {
-            return PerformCheckAsync().GetAwaiter().GetResult();
-        }
-
-        private async Task<CheckResult> PerformCheckAsync()
+        public override async Task<CheckResult> PerformCheck()
         {
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-                using (var ie = await session.Advanced.StreamAsync(query)
-                    .ConfigureAwait(false))
+                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
                 {
                     if (await ie.MoveNextAsync().ConfigureAwait(false))
                     {
