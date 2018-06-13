@@ -82,7 +82,8 @@ namespace ServiceBus.Management.Infrastructure
             var bus = await Create(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
-            container.Resolve<SubscribeToOwnEvents>().Run();
+            var subscribeToOwnEvents = container.Resolve<SubscribeToOwnEvents>();
+            await subscribeToOwnEvents.Run().ConfigureAwait(false);
             var domainEvents = container.Resolve<IDomainEvents>();
             var importFailedAudits = container.Resolve<ImportFailedAudits>();
 
