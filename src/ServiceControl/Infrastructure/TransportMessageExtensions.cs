@@ -67,6 +67,20 @@
             return default(Address);
         }
 
+        // NOTE: Duplicated from TransportMessage
+        public static MessageIntentEnum MessageIntent(this IReadOnlyDictionary<string, string> headers)
+        {
+            var messageIntent = default(MessageIntentEnum);
+
+            string messageIntentString;
+            if (headers.TryGetValue(Headers.MessageIntent, out messageIntentString))
+            {
+                Enum.TryParse(messageIntentString, true, out messageIntent);
+            }
+
+            return messageIntent;
+        }
+
     }
 
     public static class TransportMessageExtensions
