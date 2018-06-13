@@ -12,6 +12,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Recoverability;
+    using global::ServiceControl.Operations;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using Raven.Client;
@@ -88,6 +89,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
+            containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
