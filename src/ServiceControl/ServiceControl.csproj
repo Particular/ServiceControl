@@ -547,8 +547,6 @@
     <Compile Include="MessageFailures\FailedMessage.cs" />
     <Compile Include="MessageFailures\Handlers\MessageFailureResolvedHandler.cs" />
     <Compile Include="MessageFailures\InternalMessages\ArchiveMessage.cs" />
-    <Compile Include="MessageFailures\InternalMessages\PerformRetry.cs" />
-    <Compile Include="MessageFailures\InternalMessages\RegisterSuccessfulRetry.cs" />
     <Compile Include="HeartbeatMonitoring\Heartbeat.cs" />
     <Compile Include="Infrastructure\Nancy\ExtraHeaders.cs" />
     <Compile Include="Infrastructure\Nancy\Helpers.cs" />
@@ -651,7 +649,6 @@
     <Compile Include="Recoverability\Retrying\Raven\RetryBatchNowForwarding.cs" />
     <Compile Include="Recoverability\Retrying\RetryBatchStatus.cs" />
     <Compile Include="Recoverability\Retrying\RetryDocumentManager.cs" />
-    <Compile Include="Recoverability\Retrying\Handlers\RetryHandlerForBackwardsCompatability.cs" />
     <Compile Include="Recoverability\Retrying\Messages\RetryMessagesByQueueAddress.cs" />
     <Compile Include="Recoverability\Retrying\Messages\RetryMessagesById.cs" />
     <Compile Include="MessageFailures\InternalMessages\RetryPendingMessages.cs" />
