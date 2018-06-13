@@ -240,7 +240,7 @@ namespace ServiceControl.Recoverability
 
             if (attempt.CorrelationId != null)
             {
-                transportMessage.Headers[Headers.CorrelationId] = attempt.CorrelationId
+                transportMessage.Headers[Headers.CorrelationId] = attempt.CorrelationId;
             }
 
             return sender.Dispatch(new TransportOperations(new TransportOperation(transportMessage, new UnicastAddressTag(returnToSender.InputAddress))), transaction, contextBag);
