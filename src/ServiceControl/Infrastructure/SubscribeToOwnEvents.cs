@@ -5,9 +5,10 @@ namespace ServiceControl.Infrastructure
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Extensibility;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using ServiceControl.Contracts.EndpointControl;
@@ -15,7 +16,7 @@ namespace ServiceControl.Infrastructure
 
     class SubscribeToOwnEvents
     {
-        public void Run()
+        public async Task Run()
         {
             var localAddress = Settings.LocalAddress();
             var eventTypes = Settings.GetAvailableTypes().Implementing<IEvent>();
@@ -26,54 +27,55 @@ namespace ServiceControl.Infrastructure
                 typeof(NewEndpointDetected)
             };
 
-            if (TransportDefinition.HasNativePubSubSupport)
+            var transportInfrastructure = Settings.Get<TransportInfrastructure>();
+            
+            if (transportInfrastructure.OutboundRoutingPolicy.Publishes == OutboundRoutingType.Multicast)
             {
-                SubscribeForBrokers(localAddress, eventTypes);
+                await SubscribeForBrokers(localAddress, eventTypes).ConfigureAwait(false);
 
                 foreach (var remote in ServiceControlSettings.RemoteInstances)
                 {
-                    SubscribeForBrokers(Address.Parse(remote.QueueAddress), typesToSubscribeTo);
+                    await SubscribeForBrokers(remote.QueueAddress, typesToSubscribeTo);
                 }
             }
             else
             {
-                SubscribeForNonBrokers(localAddress, eventTypes);
+                await SubscribeForNonBrokers(localAddress, eventTypes).ConfigureAwait(false);
 
                 foreach (var remote in ServiceControlSettings.RemoteInstances)
                 {
+                    var operations = new List<TransportOperation>();
                     foreach (var typeToSubscribeTo in typesToSubscribeTo)
                     {
-                        MessageSender.Send(
-                            message: new TransportMessage(
-                                existingId: Guid.NewGuid().ToString(),
-                                existingHeaders: new Dictionary<string, string>
-                                {
-                                    {Headers.ControlMessageHeader, string.Empty},
-                                    {Headers.MessageIntent, MessageIntentEnum.Subscribe.ToString()},
-                                    {Headers.SubscriptionMessageType, $"{typeToSubscribeTo.FullName}, Version=1.0.0"}, // keep version stable
-                                    {Headers.ReplyToAddress, localAddress.ToString()}
-                                }),
-                            sendOptions: new SendOptions(Address.Parse(remote.QueueAddress)));
+                        operations.Add(new TransportOperation(new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
+                        {
+                            {Headers.ControlMessageHeader, string.Empty},
+                            {Headers.MessageIntent, MessageIntentEnum.Subscribe.ToString()},
+                            {Headers.SubscriptionMessageType, $"{typeToSubscribeTo.FullName}, Version=1.0.0"}, // keep version stable
+                            {Headers.ReplyToAddress, localAddress}
+                        }, new byte[0]), new UnicastAddressTag(remote.QueueAddress)));
                     }
+
+                    await MessageDispatcher.Dispatch(new TransportOperations(operations.ToArray()), new TransportTransaction(), new ContextBag())
+                        .ConfigureAwait(false);       
                 }
             }
         }
 
-        void SubscribeForBrokers(Address address, IEnumerable<Type> eventTypes)
+        Task SubscribeForBrokers(string address, IEnumerable<Type> eventTypes)
         {
-            Parallel.ForEach(eventTypes, eventType => SubscriptionManager.Subscribe(eventType, address));
+            return Task.WhenAll(eventTypes.Select(eventType => SubscriptionManager.Subscribe(eventType, new ContextBag())));
         }
 
-        void SubscribeForNonBrokers(Address address, IEnumerable<Type> eventTypes)
+        Task SubscribeForNonBrokers(string localAddress, IEnumerable<Type> eventTypes)
         {
-            SubscriptionStorage.Subscribe(address, eventTypes.Select(e => new MessageType(e)));
+            return Task.WhenAll(eventTypes.Select(eventType => SubscriptionStorage.Subscribe(new Subscriber(localAddress, Settings.EndpointName()), new MessageType(eventType), new ContextBag())));
         }
 
-        public ISendMessages MessageSender { get; set; }
+        public IDispatchMessages MessageDispatcher { get; set; }
         public IManageSubscriptions SubscriptionManager { get; set; }
         public ISubscriptionStorage SubscriptionStorage { get; set; }
         public ReadOnlySettings Settings { get; set; }
         public ServiceBus.Management.Infrastructure.Settings.Settings ServiceControlSettings { get; set; }
-        public TransportDefinition TransportDefinition { get; set; }
     }
 }
