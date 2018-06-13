@@ -102,14 +102,16 @@
                 this.store = store;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 subscription = store.Changes().ForIndex(new FailedMessageViewIndex().IndexName).Subscribe(notifications);
+                return Task.FromResult(true);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 subscription.Dispose();
+                return Task.FromResult(true);
             }
         }
     }
