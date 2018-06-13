@@ -451,6 +451,10 @@
     <Compile Include="Operations\AuditImporter.cs" />
     <Compile Include="Operations\AuditIngestor.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyByIdApi.cs" />
+    <Compile Include="Operations\ErrorImporter.cs" />
+    <Compile Include="Operations\ErrorIngestor.cs" />
+    <Compile Include="Operations\FailedMessageAnnouncer.cs" />
+    <Compile Include="Operations\FailedMessagePersister.cs" />
     <Compile Include="Operations\FailedTransportMessage.cs" />
     <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
@@ -574,7 +578,6 @@
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyById.cs" />
     <Compile Include="Operations\BodyStorage\IBodyStorage.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\RavenAttachmentsBodyStorage.cs" />
-    <Compile Include="Operations\ErrorQueueImport.cs" />
     <Compile Include="Operations\ExceptionExtensions.cs" />
     <Compile Include="Operations\FailedAuditImport.cs" />
     <Compile Include="Operations\FailedErrorImport.cs" />
