@@ -27,12 +27,7 @@ namespace ServiceControl.Recoverability
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(ArchiveAllInGroup message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(ArchiveAllInGroup message)
+        public async Task Handle(ArchiveAllInGroup message, IMessageHandlerContext context)
         {
             if (retryingManager.IsRetryInProgressFor(message.GroupId))
             {

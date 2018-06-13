@@ -5,21 +5,24 @@ namespace ServiceControl.Infrastructure.DomainEvents
 
     class DomainEventBusPublisher : IDomainHandler<IDomainEvent>
     {
-        IBus bus;
+        IMessageSession messageSession;
 
-        public DomainEventBusPublisher(IBus bus)
+        public DomainEventBusPublisher(IMessageSession messageSession)
         {
-            this.bus = bus;
+            this.messageSession = messageSession;
         }
 
 #pragma warning disable 1998
-        public async Task Handle(IDomainEvent domainEvent)
+        public Task Handle(IDomainEvent domainEvent)
 #pragma warning restore 1998
         {
-            if (domainEvent is IEvent)
+            var busEvent = domainEvent as IBusEvent;
+
+            if (busEvent != null)
             {
-                bus.Publish(domainEvent);
+                return messageSession.Publish(busEvent);
             }
+            return Task.FromResult(0);
         }
     }
 }
