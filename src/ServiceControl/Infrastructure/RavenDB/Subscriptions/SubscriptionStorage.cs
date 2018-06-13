@@ -41,6 +41,7 @@
             };
 
             context.Container.ConfigureComponent<SubscriptionPersister>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<PrimeSubscriptions>(DependencyLifecycle.SingleInstance);
             context.RegisterStartupTask(b => b.Build<PrimeSubscriptions>());
         }
         
@@ -50,12 +51,7 @@
 
             protected override Task OnStart(IMessageSession session)
             {
-                if (Persister != null)
-                {
-                    
-                }
-
-                return Task.FromResult(0);
+                return Persister?.Prime() ?? Task.FromResult(0);
             }
 
             protected override Task OnStop(IMessageSession session)
