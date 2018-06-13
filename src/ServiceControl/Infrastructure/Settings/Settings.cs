@@ -44,7 +44,7 @@
             }
 
             DbPath = GetDbPath();
-            TransportType = SettingsReader<string>.Read("TransportType", typeof(LearningTransport).AssemblyQualifiedName);
+            TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
