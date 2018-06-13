@@ -2,24 +2,24 @@
 {
     using NServiceBus.Features;
     using NServiceBus.Transport;
-    using Settings;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    public class ErrorLoqQueue : Feature
+    public class AuditLoqQueue : Feature
     {
-        public ErrorLoqQueue()
+        public AuditLoqQueue()
         {
             Prerequisite(c =>
             {
                 var settings = c.Settings.Get<Settings>("ServiceControl.Settings");
-                return settings.ForwardErrorMessages && settings.ErrorLogQueue != null;
-            }, "Error Log queue not enabled.");
+                return settings.ForwardAuditMessages && settings.AuditLogQueue != null;
+            }, "Audit Log queue not enabled.");
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
             var queueBindings = context.Settings.Get<QueueBindings>();
-            queueBindings.BindSending(settings.ErrorLogQueue);
+            queueBindings.BindSending(settings.AuditLogQueue);
         }
     }
 }

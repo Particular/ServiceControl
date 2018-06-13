@@ -322,6 +322,7 @@
     <Compile Include="Infrastructure\DomainEvents\IDomainEvent.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainEvents.cs" />
     <Compile Include="Infrastructure\DomainEvents\IDomainHandler.cs" />
+    <Compile Include="Infrastructure\Installers\AuditLoqQueue.cs" />
     <Compile Include="Infrastructure\MarkerFile.cs" />
     <Compile Include="Infrastructure\RavenDB\Extensions.cs" />
     <Compile Include="Infrastructure\RavenDB\Subscriptions\LegacyAddress.cs" />
@@ -517,7 +518,6 @@
     <Compile Include="EventLog\EventLogItem.cs" />
     <Compile Include="HeartbeatMonitoring\RegisterEndpointStartupHandler.cs" />
     <Compile Include="Infrastructure\DeterministicGuid.cs" />
-    <Compile Include="Infrastructure\Installers\AuditLogQueueInstaller.cs" />
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleanerBundle.cs" />
