@@ -6,14 +6,11 @@
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
-    using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.Recoverability;
 
     public class RetryMessages : BaseModule
     {
-        private static ILog Logger = LogManager.GetLogger<RetryMessages>();
-
         public RetryMessagesApi RetryMessagesApi { get; set; }
 
         public RetryMessages()
@@ -30,7 +27,7 @@
                 return await RetryMessagesApi.Execute(this, failedMessageId);
             };
 
-            Post["/errors/retry"] = _ =>
+            Post["/errors/retry", true] = async (_, token) =>
             {
                 var ids = this.Bind<List<string>>();
 
@@ -39,12 +36,13 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
+                await Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = ids.ToArray())
+                    .ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/errors/queues/{queueaddress}/retry"] = parameters =>
+            Post["/errors/queues/{queueaddress}/retry", true] = async (parameters, token) =>
             {
                 string queueAddress = parameters.queueaddress;
 
@@ -53,36 +51,35 @@
                     return Negotiate.WithReasonPhrase("queueaddress URL parameter must be provided").WithStatusCode(HttpStatusCode.BadRequest);
                 }
 
-                Bus.SendLocal<RetryMessagesByQueueAddress>(m =>
+                await Bus.SendLocal<RetryMessagesByQueueAddress>(m =>
                 {
                     m.QueueAddress = queueAddress;
                     m.Status = FailedMessageStatus.Unresolved;
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/errors/retry/all"] = _ =>
+            Post["/errors/retry/all", true] =  async (_, token) =>
             {
                 var request = new RequestRetryAll();
 
-                Bus.SendLocal(request);
+                await Bus.SendLocal(request)
+                    .ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/errors/{name}/retry/all"] = parameters =>
+            Post["/errors/{name}/retry/all", true] = async (parameters, token) =>
             {
                 var request = new RequestRetryAll { Endpoint = parameters.name };
 
-                Bus.SendLocal(request);
+                await Bus.SendLocal(request).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
         }
 
-        public IBus Bus { get; set; }
+        public IMessageSession Bus { get; set; }
     }
-
-
 }
