@@ -460,11 +460,13 @@
     <Compile Include="Monitoring\MonitoringDataPersister.cs" />
     <Compile Include="Monitoring\RecordedHeartbeat.cs" />
     <Compile Include="Operations\AuditImporter.cs" />
+    <Compile Include="Operations\AuditIngestor.cs" />
     <Compile Include="Operations\BodyStorage\RavenAttachments\GetBodyByIdApi.cs" />
     <Compile Include="Operations\FailedTransportMessage.cs" />
     <Compile Include="Operations\ImportFailedAudits.cs" />
     <Compile Include="Operations\FailedErrorImportCustomCheck.cs" />
     <Compile Include="Operations\FailedAuditImportCustomCheck.cs" />
+    <Compile Include="Operations\MessageForwarder.cs" />
     <Compile Include="Recoverability\API\UnacknowledgedGroupsApi.cs" />
     <Compile Include="Recoverability\Archiving\ArchiveDocumentManager.cs" />
     <Compile Include="Recoverability\Archiving\Raven\ArchiveOperation.cs" />
@@ -574,7 +576,6 @@
     <Compile Include="Infrastructure\OWIN\Startup.cs" />
     <Compile Include="Infrastructure\Settings\Settings.cs" />
     <Compile Include="Infrastructure\Settings\SettingsReader.cs" />
-    <Compile Include="Operations\AuditQueueImport.cs" />
     <Compile Include="CompositeViews\Messages\GetMessagesByConversation.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="Infrastructure\Extensions\NegotiatorExtensions.cs" />

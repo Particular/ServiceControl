@@ -3,9 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
+    using NServiceBus.Transport;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.MessageAuditing;
     using ServiceControl.Operations.BodyStorage;
 
@@ -18,7 +21,40 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<AuditImporter>(DependencyLifecycle.SingleInstance);
+            var settings = context.Settings.Get<Settings>();
+
+            if(settings.IngestAuditMessages)
+            {
+                context.Container.ConfigureComponent<AuditImporter>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
+
+                context.AddSatelliteReceiver(
+                    "Audit Import",
+                    settings.AuditQueue, 
+                    new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
+                    OnAuditError,
+                    OnAuditMessage
+                );
+            }
+
+            // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled
+        }
+
+        private Task OnAuditMessage(IBuilder builder, MessageContext messageContext)
+        {
+            return builder.Build<AuditIngestor>().Ingest(messageContext);
+        }
+
+        private RecoverabilityAction OnAuditError(RecoverabilityConfig config, ErrorContext errorContext)
+        {
+            var recoverabilityAction = DefaultRecoverabilityPolicy.Invoke(config, errorContext);
+
+            if (recoverabilityAction is MoveToError)
+            {
+                // TODO: Hand off to SatelliteImportFailuresHandler
+            }
+
+            return recoverabilityAction;
         }
     }
 
@@ -33,12 +69,12 @@
             enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichAudits).ToArray();
         }
 
-        public ProcessedMessage ConvertToSaveMessage(TransportMessage message)
+        public ProcessedMessage ConvertToSaveMessage(MessageContext message)
         {
             var metadata = new Dictionary<string, object>
             {
-                ["MessageId"] = message.Id,
-                ["MessageIntent"] = message.MessageIntent,
+                ["MessageId"] = message.MessageId,
+                ["MessageIntent"] = message.Headers.MessageIntent(),
                 ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
 
