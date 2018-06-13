@@ -18,13 +18,14 @@
         public FailedMessagesFeature()
         {
             EnableByDefault();
-            RegisterStartupTask<WireUpFailedMessageNotifications>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<FailedMessageViewIndexNotifications>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<DetectSuccessfullRetriesEnricher>(DependencyLifecycle.SingleInstance);
+
+            context.RegisterStartupTask(b => b.Build<WireUpFailedMessageNotifications>());
         }
 
         class DetectSuccessfullRetriesEnricher : ImportEnricher
@@ -79,14 +80,26 @@
                 string failedQ;
                 if (headers.TryGetValue("NServiceBus.FailedQ", out failedQ))
                 {
-                    yield return DeterministicGuid.MakeId(messageId, Address.Parse(failedQ).Queue).ToString();
+                    yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(failedQ)).ToString();
                 }
 
                 string replyToAddress;
                 if (headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
                 {
-                    yield return DeterministicGuid.MakeId(messageId, Address.Parse(replyToAddress).Queue).ToString();
+                    yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(replyToAddress)).ToString();
                 }
+            }
+
+            static string ExtractQueueNameForLegacyReasons(string address)
+            {
+                var atIndex = address?.IndexOf("@", StringComparison.InvariantCulture);
+
+                if (atIndex.HasValue && atIndex.Value > -1)
+                {
+                    return address.Substring(0, atIndex.Value);
+                }
+
+                return address;
             }
         }
 
