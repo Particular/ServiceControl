@@ -22,12 +22,7 @@
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(UnArchiveMessagesByRange message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(UnArchiveMessagesByRange message)
+        public async Task Handle(UnArchiveMessagesByRange message, IMessageHandlerContext context)
         {
             var options = new BulkOperationOptions
             {

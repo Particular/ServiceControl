@@ -19,12 +19,7 @@
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(UnArchiveMessages messages)
-        {
-            HandleAsync(messages).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(UnArchiveMessages messages)
+        public async Task Handle(UnArchiveMessages messages, IMessageHandlerContext context)
         {
             FailedMessage[] failedMessages;
 

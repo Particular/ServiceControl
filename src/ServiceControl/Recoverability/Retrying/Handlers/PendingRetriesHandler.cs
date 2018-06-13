@@ -13,23 +13,16 @@ namespace ServiceControl.Recoverability
     {
         static string[] fields = { "Id" };
 
-        private readonly IBus bus;
         private readonly IDocumentStore store;
         private readonly RetryDocumentManager manager;
 
-        public PendingRetriesHandler(IBus bus, IDocumentStore store, RetryDocumentManager manager)
+        public PendingRetriesHandler(IDocumentStore store, RetryDocumentManager manager)
         {
-            this.bus = bus;
             this.store = store;
             this.manager = manager;
         }
 
-        public void Handle(RetryPendingMessagesById message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(RetryPendingMessagesById message)
+        public async Task Handle(RetryPendingMessagesById message, IMessageHandlerContext context)
         {
             foreach (var messageUniqueId in message.MessageUniqueIds)
             {
@@ -37,15 +30,11 @@ namespace ServiceControl.Recoverability
                     .ConfigureAwait(false);
             }
 
-            bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
+            await context.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds)
+                .ConfigureAwait(false);
         }
-
-        public void Handle(RetryPendingMessages message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(RetryPendingMessages message)
+        
+        public async Task Handle(RetryPendingMessages message, IMessageHandlerContext context)
         {
             var messageIds = new List<string>();
 
@@ -72,7 +61,8 @@ namespace ServiceControl.Recoverability
                 }
             }
 
-            bus.SendLocal(new RetryMessagesById {MessageUniqueIds = messageIds.ToArray()});
+            await context.SendLocal(new RetryMessagesById {MessageUniqueIds = messageIds.ToArray()})
+                .ConfigureAwait(false);
         }
     }
 }

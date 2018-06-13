@@ -8,7 +8,7 @@ namespace ServiceControl.Recoverability
 
     public class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
     {
-        public void Handle(RetryAllInGroup message)
+        public async Task Handle(RetryAllInGroup message, IMessageHandlerContext context)
         {
             if (Retries == null)
             {
@@ -22,11 +22,6 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(RetryAllInGroup message)
-        {
             FailureGroupView group;
 
             using (var session = Store.OpenAsyncSession())

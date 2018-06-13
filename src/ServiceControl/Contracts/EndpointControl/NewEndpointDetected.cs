@@ -5,9 +5,10 @@
     using Operations;
     using ServiceControl.Infrastructure.DomainEvents;
 
-    public class NewEndpointDetected : IDomainEvent, IEvent
+    public class NewEndpointDetected : IDomainEvent, IBusEvent
     {
         public DateTime DetectedAt { get; set; }
         public EndpointDetails Endpoint { get; set; }
+        public IMessageHandlerContext Context { get; set; }
     }
 }
