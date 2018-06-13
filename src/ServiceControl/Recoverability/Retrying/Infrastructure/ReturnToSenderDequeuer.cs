@@ -5,7 +5,6 @@ namespace ServiceControl.Recoverability
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
@@ -18,8 +17,7 @@ namespace ServiceControl.Recoverability
 
     public class ReturnToSenderDequeuer
     {
-        private DequeueMessagesWrapper receiver;
-        private Timer timer;
+        Timer timer;
         ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
         bool endedPrematurelly;
@@ -27,38 +25,25 @@ namespace ServiceControl.Recoverability
         int actualMessageCount;
         Predicate<MessageContext> shouldProcess;
         CaptureIfMessageSendingFails faultManager;
-        IBodyStorage bodyStorage;
+        Func<RawEndpointConfiguration> createEndpointConfiguration;
 
-        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, IDocumentStore store, IDomainEvents domainEvents, string endpointName, Action<EndpointConfiguration> configureTransport)
+        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, IDocumentStore store, IDomainEvents domainEvents, string endpointName, 
+            Action<RawEndpointConfiguration> configureTransport, string poisonQueue)
         {
-            this.bodyStorage = bodyStorage;
-
-            Action executeOnFailure = () =>
+            createEndpointConfiguration = () =>
             {
-                if (IsCounting)
-                {
-                    CountMessageAndStopIfReachedTarget();
-                }
-                else
-                {
-                    timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
-                }
+                var config = RawEndpointConfiguration.Create($"{endpointName}.staging",
+                    (context, dispatcher) => Handle(context, bodyStorage, dispatcher), poisonQueue);
+
+                configureTransport(config);
+                config.AutoCreateQueue();
+                config.CustomErrorHandlingPolicy(faultManager);
+
+                return config;
             };
 
-            faultManager = new CaptureIfMessageSendingFails(store, domainEvents, executeOnFailure);
+            faultManager = new CaptureIfMessageSendingFails(store, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal());
-        }
-
-        RawEndpointConfiguration CreateEndpointConfiguration(string endpointName, Action<RawEndpointConfiguration> configureTransport, IErrorHandlingPolicy errorHandlingPolicy)
-        {
-            var config = RawEndpointConfiguration.Create($"{endpointName}.staging",
-                (context, dispatcher) => Handle(context, bodyStorage, dispatcher), "poison" /*TODO*/);
-
-            configureTransport(config);
-            config.AutoCreateQueue();
-            config.CustomErrorHandlingPolicy(errorHandlingPolicy);
-
-            return config;
         }
 
         async Task Handle(MessageContext message, IBodyStorage bodyStorage, IDispatchMessages sender)
@@ -66,18 +51,21 @@ namespace ServiceControl.Recoverability
             if (shouldProcess(message))
             {
                 await HandleMessage(message, bodyStorage, sender);
-
-                if (IsCounting)
-                {
-                    CountMessageAndStopIfReachedTarget();
-                }
+                IncrementCounterOrProlongTimer();
             }
             else
             {
-                Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.Id);
+                Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.MessageId);
             }
+        }
 
-            if (!IsCounting)
+        void IncrementCounterOrProlongTimer()
+        {
+            if (IsCounting)
+            {
+                CountMessageAndStopIfReachedTarget();
+            }
+            else
             {
                 Log.Debug("Resetting timer");
                 timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
@@ -167,12 +155,9 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        public void Start()
+        public virtual async Task Run(Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
         {
-        }
-
-        public virtual void Run(Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
-        {
+            IReceivingRawEndpoint processor = null;
             try
             {
                 Log.DebugFormat("Started. Expectected message count {0}", expectedMessageCount);
@@ -183,11 +168,13 @@ namespace ServiceControl.Recoverability
                 }
 
                 shouldProcess = filter;
-                resetEvent.Reset();
                 targetMessageCount = expectedMessageCount;
                 actualMessageCount = 0;
                 Log.DebugFormat("Starting receiver");
-                receiver.StartInternal();
+
+                var config = createEndpointConfiguration();
+                resetEvent.Reset();
+                processor = await RawEndpoint.Start(config).ConfigureAwait(false);
                 if (!expectedMessageCount.HasValue)
                 {
                     Log.Debug("Running in timeout mode. Starting timer");
@@ -199,6 +186,10 @@ namespace ServiceControl.Recoverability
             {
                 Log.DebugFormat("Waiting for finish");
                 resetEvent.Wait(cancellationToken);
+                if (processor != null)
+                {
+                    await processor.Stop().ConfigureAwait(false);
+                }
                 Log.DebugFormat("Finished");
             }
 
@@ -217,7 +208,6 @@ namespace ServiceControl.Recoverability
 
         void StopInternal()
         {
-            receiver.StopInternal();
             resetEvent.Set();
             Log.InfoFormat("{0} stopped", GetType().Name);
         }
@@ -243,7 +233,7 @@ namespace ServiceControl.Recoverability
                     var message = handlingContext.Error.Message;
                     var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
-                    Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", e);
+                    Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", handlingContext.Error.Exception);
 
                     using (var session = store.OpenAsyncSession())
                     {
@@ -293,48 +283,6 @@ namespace ServiceControl.Recoverability
                 }
 
                 return ErrorHandleResult.Handled;
-            }
-        }
-
-        internal class DequeueMessagesWrapper : IDequeueMessages
-        {
-            IDequeueMessages realDequeuer;
-            int maximumConcurrencyLevel;
-            object startStopLock = new object();
-
-            public DequeueMessagesWrapper(IDequeueMessages realDequeuer)
-            {
-                this.realDequeuer = realDequeuer;
-            }
-
-            public void Init(Address address, TransactionSettings transactionSettings, Func<TransportMessage, bool> tryProcessMessage, Action<TransportMessage, Exception> endProcessMessage)
-            {
-                realDequeuer.Init(address, transactionSettings, tryProcessMessage, endProcessMessage);
-            }
-
-            public void StartInternal()
-            {
-                lock (startStopLock)
-                {
-                    realDequeuer.Start(maximumConcurrencyLevel);
-                }
-            }
-
-            public void Start(int maximumConcurrencyLevel)
-            {
-                this.maximumConcurrencyLevel = maximumConcurrencyLevel;
-            }
-
-            public void Stop()
-            {
-            }
-
-            public void StopInternal()
-            {
-                lock (startStopLock)
-                {
-                    realDequeuer.Stop();
-                }
             }
         }
     }
