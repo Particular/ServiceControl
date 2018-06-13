@@ -68,10 +68,10 @@
                     Transport = new
                     {
                         Settings.TransportType,
-                        AuditLogQueue = Settings.AuditLogQueue.Queue,
-                        AuditQueue = Settings.AuditQueue.Queue,
-                        ErrorLogQueue = Settings.ErrorLogQueue.Queue,
-                        ErrorQueue = Settings.ErrorQueue.Queue,
+                        AuditLogQueue = Settings.AuditLogQueue,
+                        AuditQueue = Settings.AuditQueue,
+                        ErrorLogQueue = Settings.ErrorLogQueue,
+                        ErrorQueue = Settings.ErrorQueue,
                         Settings.ForwardAuditMessages,
                         Settings.ForwardErrorMessages
                     },
