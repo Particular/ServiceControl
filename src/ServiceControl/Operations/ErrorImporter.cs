@@ -32,7 +32,7 @@
 
                 context.AddSatelliteReceiver(
                     "Error Queue Ingestor", 
-                    settings.ErrorQueue, 
+                    context.Settings.ToTransportAddress(settings.ErrorQueue), 
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnError, 
                     OnMessage);
