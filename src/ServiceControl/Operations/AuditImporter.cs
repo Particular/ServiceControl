@@ -2,12 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transport;
+    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.MessageAuditing;
     using ServiceControl.Operations.BodyStorage;
@@ -28,6 +30,8 @@
                 context.Container.ConfigureComponent<AuditImporter>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
 
+                SetupImportFailuresHandler(context);
+
                 context.AddSatelliteReceiver(
                     "Audit Import",
                     settings.AuditQueue, 
@@ -38,6 +42,23 @@
             }
 
             // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled
+        }
+
+        private void SetupImportFailuresHandler(FeatureConfigurationContext context)
+        {
+            var store = context.Settings.Get<IDocumentStore>();
+            var loggingSettings = context.Settings.Get<LoggingSettings>();
+
+            importFailuresHandler = new SatelliteImportFailuresHandler(
+                store, 
+                Path.Combine(loggingSettings.LogPath, @"FailedImports\Audit"),
+                msg => new FailedAuditImport
+                {
+                    Message = msg
+                }, 
+                // TODO: How do we get CriticalError?
+                null
+            );
         }
 
         private Task OnAuditMessage(IBuilder builder, MessageContext messageContext)
@@ -51,12 +72,15 @@
 
             if (recoverabilityAction is MoveToError)
             {
-                // TODO: Hand off to SatelliteImportFailuresHandler
+                importFailuresHandler.Handle(errorContext).GetAwaiter().GetResult();
             }
 
             return recoverabilityAction;
         }
+
+        private SatelliteImportFailuresHandler importFailuresHandler;
     }
+
 
     public class AuditImporter
     {
