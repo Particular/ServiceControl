@@ -4,7 +4,6 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
-    using Nancy.Routing;
     using NServiceBus;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
