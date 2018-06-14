@@ -34,7 +34,7 @@
 
                 context.AddSatelliteReceiver(
                     "Audit Import",
-                    settings.AuditQueue, 
+                    context.Settings.ToTransportAddress(settings.AuditQueue), 
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnAuditError,
                     OnAuditMessage
