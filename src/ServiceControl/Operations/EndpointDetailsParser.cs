@@ -20,19 +20,20 @@ namespace ServiceControl.Contracts.Operations
                 return endpointDetails;
             }
 
-            var address = Address.Undefined;
-            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingAddress, headers, s => address = Address.Parse(s));
+            string address = null;
+            DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingAddress, headers, s => address = s);
 
-            if (address != Address.Undefined)
+            if (address != null)
             {
-                endpointDetails.Name = address.Queue;
-                endpointDetails.Host = address.Machine;
+                var queueAndMachinename = ExtractQueueAndMachineName(address);
+                endpointDetails.Name = queueAndMachinename.Queue;
+                endpointDetails.Host = queueAndMachinename.Machine;
                 return endpointDetails;
             }
 
             return null;
         }
-
+        
         public static EndpointDetails ReceivingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
             var endpoint = new EndpointDetails();
@@ -61,21 +62,23 @@ namespace ServiceControl.Contracts.Operations
                 return endpoint;
             }
 
-            var address = Address.Undefined;
+            string address = null;
             //use the failed q to determine the receiving endpoint
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.FailedQ", headers, s => address = Address.Parse(s));
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.FailedQ", headers, s => address = s);
 
             // If we have a failed queue, then construct an endpoint from the failed queue information
-            if (address != Address.Undefined)
+            if (address != null)
             {
+                var queueAndMachinename = ExtractQueueAndMachineName(address);
+                
                 if (string.IsNullOrEmpty(endpoint.Name))
                 {
-                    endpoint.Name = address.Queue;
+                    endpoint.Name = queueAndMachinename.Queue;
                 }
 
                 if (string.IsNullOrEmpty(endpoint.Host))
                 {
-                    endpoint.Host = address.Machine;
+                    endpoint.Host = queueAndMachinename.Machine;
                 }
 
                 // If we've been now able to get the endpoint details, return the new info.
@@ -86,6 +89,26 @@ namespace ServiceControl.Contracts.Operations
             }
 
             return null;
+        }
+        
+        static QueueAndMachine ExtractQueueAndMachineName(string address)
+        {           
+            var atIndex = address?.IndexOf("@", StringComparison.InvariantCulture);
+
+            if (atIndex.HasValue && atIndex.Value > -1)
+            {
+                var queue = address.Substring(0, atIndex.Value);
+                var machine = address.Substring(atIndex.Value + 1);
+                return new QueueAndMachine { Queue = queue, Machine = machine };
+            }
+
+            return new QueueAndMachine { Queue = address, Machine = null };
+        }
+
+        struct QueueAndMachine
+        {
+            public string Queue;
+            public string Machine;
         }
     }
 }
