@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
@@ -13,6 +14,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
+    using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
     class FailedMessagePersister
     {
@@ -72,7 +74,7 @@
                 // TODO: Do we need to persist all of these things separately still?
                 message.Headers.MessageIntent(),
                 true,
-                message.Headers.CorrelationId(),
+                message.Headers[Headers.CorrelationId],
                 message.Headers.ReplyToAddress());
 
             var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
