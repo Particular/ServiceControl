@@ -5,6 +5,7 @@ namespace ServiceControl.Recoverability
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
@@ -27,16 +28,13 @@ namespace ServiceControl.Recoverability
         CaptureIfMessageSendingFails faultManager;
         Func<RawEndpointConfiguration> createEndpointConfiguration;
 
-        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, IDocumentStore store, IDomainEvents domainEvents, string endpointName, 
-            Action<RawEndpointConfiguration> configureTransport, string poisonQueue)
+        public ReturnToSenderDequeuer(IBodyStorage bodyStorage, IDocumentStore store, IDomainEvents domainEvents, string endpointName, RawEndpointFactory rawEndpointFactory)
         {
             createEndpointConfiguration = () =>
             {
-                var config = RawEndpointConfiguration.Create($"{endpointName}.staging",
-                    (context, dispatcher) => Handle(context, bodyStorage, dispatcher), poisonQueue);
+                var config = rawEndpointFactory.CreateRawEndpointConfiguration($"{endpointName}.staging",
+                    (context, dispatcher) => Handle(context, bodyStorage, dispatcher), TransportTransactionMode.SendsAtomicWithReceive);
 
-                configureTransport(config);
-                config.AutoCreateQueue();
                 config.CustomErrorHandlingPolicy(faultManager);
 
                 return config;

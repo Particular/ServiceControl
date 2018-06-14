@@ -478,6 +478,8 @@
     <Compile Include="Recoverability\GroupOperation.cs" />
     <Compile Include="Recoverability\API\EtagHelper.cs" />
     <Compile Include="Recoverability\Archiving\ArchivingManager.cs" />
+    <Compile Include="Recoverability\Retrying\Infrastructure\RawEndpointFactory.cs" />
+    <Compile Include="Recoverability\Retrying\Infrastructure\ReturnToSenderDequeuerFeature.cs" />
     <Compile Include="Recoverability\Retrying\RetryingManager.cs" />
     <Compile Include="Recoverability\Retrying\History\StoreHistoryHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\AddressOfFailingEndpointClassifier.cs" />

@@ -44,7 +44,7 @@
             }
 
             DbPath = GetDbPath();
-            TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
+            TransportType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
@@ -118,7 +118,7 @@
             }
         }
 
-        public string TransportType { get; set; }
+        public Type TransportType { get; set; }
 
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
@@ -309,6 +309,18 @@
                 return forwardAuditMessages.Value;
             }
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
+        }
+
+        static Type GetTransportType()
+        {
+            var typeName = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
+            var transportType = Type.GetType(typeName);
+            if (transportType != null)
+            {
+                return transportType;
+            }
+            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
+            throw new Exception(errorMsg);
         }
 
         private static string SanitiseFolderName(string folderName)
