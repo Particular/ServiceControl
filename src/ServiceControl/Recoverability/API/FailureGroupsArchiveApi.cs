@@ -25,16 +25,16 @@ namespace ServiceControl.Recoverability
                 await ArchiveOperationManager.StartArchiving(groupId, ArchiveType.FailureGroup)
                     .ConfigureAwait(false);
 
-                Bus.SendLocal<ArchiveAllInGroup>(m =>
+                await Bus.SendLocal<ArchiveAllInGroup>(m =>
                 {
                     m.GroupId = groupId;
-                });
+                }).ConfigureAwait(false);
             }
 
             return HttpStatusCode.Accepted;
         }
 
         public ArchivingManager ArchiveOperationManager { get; set; }
-        public IBus Bus { get; set; }
+        public IEndpointInstance Bus { get; set; }
     }
 }
