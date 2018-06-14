@@ -1,14 +1,18 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.IO;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transport;
+    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ErrorImporter : Feature
     {
+        private SatelliteImportFailuresHandler importFailuresHandler;
+
         public ErrorImporter()
         {
             EnableByDefault();
@@ -24,6 +28,8 @@
                 context.Container.ConfigureComponent<FailedMessagePersister>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
 
+                SetupImportFailuresHandler(context);
+
                 context.AddSatelliteReceiver(
                     "Error Queue Ingestor", 
                     settings.ErrorQueue, 
@@ -33,6 +39,25 @@
             }
 
             // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled
+        }
+
+        private void SetupImportFailuresHandler(FeatureConfigurationContext context)
+        {
+            var store = context.Settings.Get<IDocumentStore>();
+            var loggingSettings = context.Settings.Get<LoggingSettings>();
+
+            importFailuresHandler = new SatelliteImportFailuresHandler(
+                store,
+                Path.Combine(loggingSettings.LogPath, @"FailedImports\Error"),
+                msg => new FailedErrorImport
+                {
+                    // TODO: We need a TransportMessage class to resolve this
+                    //Message = msg
+                    Message = null
+                },
+                // TODO: How do we get CriticalError?
+                null
+            );
         }
 
         private Task OnMessage(IBuilder builder, MessageContext messageContext)
@@ -46,7 +71,7 @@
 
             if (recoverabilityAction is MoveToError)
             {
-                // TODO: Hand off to SatelliteImportFailuresHandler
+                importFailuresHandler.Handle(errorContext).GetAwaiter().GetResult();
             }
 
             return recoverabilityAction;
