@@ -28,11 +28,15 @@ namespace ServiceControl.Recoverability
         CaptureIfMessageSendingFails faultManager;
         Func<RawEndpointConfiguration> createEndpointConfiguration;
 
+        public string InputAddress { get; }
+
         public ReturnToSenderDequeuer(IBodyStorage bodyStorage, IDocumentStore store, IDomainEvents domainEvents, string endpointName, RawEndpointFactory rawEndpointFactory)
         {
+            InputAddress = $"{endpointName}.staging";
+            
             createEndpointConfiguration = () =>
             {
-                var config = rawEndpointFactory.CreateRawEndpointConfiguration($"{endpointName}.staging",
+                var config = rawEndpointFactory.CreateRawEndpointConfiguration(InputAddress,
                     (context, dispatcher) => Handle(context, bodyStorage, dispatcher), TransportTransactionMode.SendsAtomicWithReceive);
 
                 config.CustomErrorHandlingPolicy(faultManager);
