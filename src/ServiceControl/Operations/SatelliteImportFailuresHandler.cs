@@ -3,83 +3,88 @@
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.Faults;
+    using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Installers;
 
-    public class SatelliteImportFailuresHandler : IManageMessageFailures, IDisposable
+    class SatelliteImportFailuresHandler
     {
-        public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<TransportMessage, object> messageBuilder, CriticalError criticalError)
+        private IDocumentStore store;
+        private string logPath;
+
+        private Func<FailedTransportMessage, object> messageBuilder;
+        //private ImportFailureCircuitBreaker failureCircuitBreaker;
+
+        public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<FailedTransportMessage, object> messageBuilder, CriticalError criticalError)
         {
             this.store = store;
             this.logPath = logPath;
             this.messageBuilder = messageBuilder;
 
-            failureCircuitBreaker = new ImportFailureCircuitBreaker(criticalError);
+            //failureCircuitBreaker = new ImportFailureCircuitBreaker(criticalError);
 
             Directory.CreateDirectory(logPath);
         }
 
-        public void Dispose()
+        public Task Handle(ErrorContext errorContext)
         {
-            failureCircuitBreaker.Dispose();
-        }
-
-        public void SerializationFailedForMessage(TransportMessage message, Exception e)
-        {
-            Handle(e, messageBuilder(message), logPath);
-        }
-
-        public void ProcessingAlwaysFailsForMessage(TransportMessage message, Exception e)
-        {
-            Handle(e, messageBuilder(message), logPath);
-        }
-
-        public void Init(Address address)
-        {
-        }
-
-        void Handle(Exception exception, dynamic failure, string logDirectory)
-        {
-            try
+            var failure = (dynamic) messageBuilder(new FailedTransportMessage
             {
-                DoLogging(exception, failure, logDirectory);
-            }
-            finally
-            {
-                failureCircuitBreaker.Increment(exception);
-            }
+                Id = errorContext.Message.MessageId,
+                Headers = errorContext.Message.Headers,
+                Body = errorContext.Message.Body
+            });
+
+            return Handle(errorContext.Exception, failure);
         }
 
-        void DoLogging(Exception exception, dynamic failure, string logDirectory)
+        private async Task Handle(Exception exception, dynamic failure)
+        {
+            //try
+            //{
+            await DoLogging(exception, failure)
+                .ConfigureAwait(false);
+            //}
+            //finally
+            //{
+            //    failureCircuitBreaker.Increment(exception);
+            //}
+        }
+
+        private async Task DoLogging(Exception exception, dynamic failure)
         {
             var id = Guid.NewGuid();
 
-            using (var session = store.OpenSession())
+            // Write to Raven
+            using (var session = store.OpenAsyncSession())
             {
                 failure.Id = id;
 
-                session.Store(failure);
-                session.SaveChanges();
+                await session.StoreAsync(failure)
+                    .ConfigureAwait(false);
+
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
-            var filePath = Path.Combine(logDirectory, id + ".txt");
+            // Write to Log Path
+            var filePath = Path.Combine(logPath, failure.Id + ".txt");
             File.WriteAllText(filePath, exception.ToFriendlyString());
-            WriteEvent("A message import has failed. A log file has been written to " + filePath);
+
+            // Write to Event Log
+            await WriteEvent("A message import has failed. A log file has been written to " + filePath)
+                .ConfigureAwait(false);
         }
 
-        static void WriteEvent(string message)
+        private async Task WriteEvent(string message)
         {
 #if DEBUG
-            new CreateEventSource().Install(null, null);
+            await new CreateEventSource().Install(null)
+                .ConfigureAwait(false);
 #endif
             EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
         }
-
-        readonly ImportFailureCircuitBreaker failureCircuitBreaker;
-        readonly string logPath;
-        readonly Func<TransportMessage, object> messageBuilder;
-        readonly IDocumentStore store;
     }
 }
