@@ -46,8 +46,6 @@ namespace ServiceBus.Management.Infrastructure
             
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
-            var transportType = DetermineTransportType(settings);
-
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
             if (!isRunningAcceptanceTests)
@@ -56,7 +54,7 @@ namespace ServiceBus.Management.Infrastructure
             }
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-            var transport = configuration.UseTransport(transportType);
+            var transport = configuration.UseTransport(settings.TransportType);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             
             if (settings.TransportConnectionString != null)
@@ -89,19 +87,6 @@ namespace ServiceBus.Management.Infrastructure
 
             var startedBus = await bus.Start().ConfigureAwait(false);
             return new BusInstance(startedBus, domainEvents, importFailedAudits);
-        }
-
-        static Type DetermineTransportType(Settings.Settings settings)
-        {
-            var logger = LogManager.GetLogger(typeof(NServiceBusFactory));
-            var transportType = Type.GetType(settings.TransportType);
-            if (transportType != null)
-            {
-                return transportType;
-            }
-            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
-            logger.Error(errorMsg);
-            throw new Exception(errorMsg);
         }
 
         static bool IsExternalContract(Type t)
