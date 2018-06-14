@@ -4,6 +4,7 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Threading.Tasks;
     using Nancy;
+    using Nancy.Routing;
     using NServiceBus;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
@@ -14,7 +15,7 @@ namespace ServiceControl.Recoverability
 
     public class FailureGroupsApi : BaseModule
     {
-        public IBus Bus { get; set; }
+        public IEndpointInstance Bus { get; set; }
 
         public GroupFetcher GroupFetcher { get; set; }
 
@@ -25,8 +26,7 @@ namespace ServiceControl.Recoverability
             Get["/recoverability/classifiers"] =
                 _ => GetSupportedClassifiers();
 
-            Post["/recoverability/groups/reclassify"] =
-                _ => ReclassifyErrors();
+            Post["/recoverability/groups/reclassify", true] = (parameters, token) => ReclassifyErrors();
 
             Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}", true] =
                (parameters, token) =>
@@ -49,12 +49,12 @@ namespace ServiceControl.Recoverability
                 (parameters, token) => GetGroup(parameters.GroupId);
         }
 
-        dynamic ReclassifyErrors()
+        async Task<dynamic> ReclassifyErrors()
         {
-            Bus.SendLocal(new ReclassifyErrors
+            await Bus.SendLocal(new ReclassifyErrors
             {
                 Force = true
-            });
+            }).ConfigureAwait(false);
 
             return HttpStatusCode.Accepted;
         }
