@@ -588,7 +588,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                     ForwardErrorMessages = false,
                     ForwardAuditMessages = false,
-                    TransportType = transportToUse.TypeName,
+                    TransportType = Type.GetType(transportToUse.TypeName),
                     TransportConnectionString = transportToUse.ConnectionString,
                     ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                     MaximumConcurrencyLevel = 2,

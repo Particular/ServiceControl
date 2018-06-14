@@ -176,6 +176,9 @@
       <HintPath>..\packages\NServiceBus.Autofac.7.0.0\lib\net452\NServiceBus.ObjectBuilder.Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NServiceBus.Raw, Version=3.0.0.0, Culture=neutral, PublicKeyToken=215652b07edbd86c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.Raw.3.0.0\lib\net452\NServiceBus.Raw.dll</HintPath>
+    </Reference>
     <Reference Include="NServiceBus.Transport.Msmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
       <HintPath>..\packages\NServiceBus.Transport.Msmq.1.0.0\lib\net452\NServiceBus.Transport.Msmq.dll</HintPath>
       <Private>True</Private>
@@ -192,6 +195,7 @@
       <HintPath>..\packages\RavenDB.Database.3.5.7-patch-35263\lib\net45\Raven.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Client.Lightweight, Version=3.5.7.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RavenDB.Client.3.5.7-patch-35263\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Database, Version=3.5.7.0, Culture=neutral, PublicKeyToken=37f41c7f99471593, processorArchitecture=MSIL">
@@ -474,6 +478,8 @@
     <Compile Include="Recoverability\GroupOperation.cs" />
     <Compile Include="Recoverability\API\EtagHelper.cs" />
     <Compile Include="Recoverability\Archiving\ArchivingManager.cs" />
+    <Compile Include="Recoverability\Retrying\Infrastructure\RawEndpointFactory.cs" />
+    <Compile Include="Recoverability\Retrying\Infrastructure\ReturnToSenderDequeuerFeature.cs" />
     <Compile Include="Recoverability\Retrying\RetryingManager.cs" />
     <Compile Include="Recoverability\Retrying\History\StoreHistoryHandler.cs" />
     <Compile Include="Recoverability\Grouping\Groupers\AddressOfFailingEndpointClassifier.cs" />

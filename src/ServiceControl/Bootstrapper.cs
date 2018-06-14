@@ -11,6 +11,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.Recoverability;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using Raven.Client;
@@ -74,6 +75,10 @@ namespace Particular.ServiceControl
 
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
+
+            var rawEndpointFactory = new RawEndpointFactory(settings);
+            containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
+
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
