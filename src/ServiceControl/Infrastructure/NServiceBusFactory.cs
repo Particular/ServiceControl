@@ -7,7 +7,6 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using NServiceBus.Logging;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
