@@ -20,13 +20,10 @@
             };
 
             await Define(context)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
                 {
-                    bus.Send(new MyMessage
-                    {
-                        PropertyToSearchFor = c.PropertyToSearchFor
-                    });
-                }))
+                    PropertyToSearchFor = c.PropertyToSearchFor
+                })))
                 .WithEndpoint<Receiver>()
                 .Done(async c => await TryGetMany<MessagesView>("/api/messages/search/" + c.PropertyToSearchFor))
                 .Run(TimeSpan.FromSeconds(40));
@@ -52,14 +49,13 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }

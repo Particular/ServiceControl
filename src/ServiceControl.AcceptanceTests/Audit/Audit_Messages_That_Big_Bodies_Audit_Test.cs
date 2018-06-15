@@ -23,7 +23,7 @@
 
             //Act
             await Define(context)
-                .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
+                .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
                         BigFatBody = new byte[MAX_BODY_SIZE - 10000]
@@ -65,7 +65,7 @@
 
             //Act
             await Define(context)
-                .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
+                .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
                         BigFatBody = new byte[MAX_BODY_SIZE + 1000]
@@ -105,17 +105,11 @@
             public class BigFatMessageHandler : IHandleMessages<BigFatMessage>
             {
                 readonly Context _context;
-                readonly IBus bus;
 
-                public BigFatMessageHandler(Context context, IBus bus)
+                public Task Handle(BigFatMessage message, IMessageHandlerContext context)
                 {
-                    _context = context;
-                    this.bus = bus;
-                }
-
-                public void Handle(BigFatMessage message)
-                {
-                    _context.MessageId = bus.GetMessageHeader(message, "NServiceBus.MessageId");
+                    _context.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
+                    return Task.FromResult(0);
                 }
             }
         }

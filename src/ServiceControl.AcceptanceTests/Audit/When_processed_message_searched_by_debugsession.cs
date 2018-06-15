@@ -17,13 +17,11 @@
             var context = new MyContext();
 
             await Define(context)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+                .WithEndpoint<Sender>(b => b.When((bus, c) =>
                 {
-                    var message = new MyMessage();
-
-                    bus.SetMessageHeader(message, "ServiceControl.DebugSessionId", "DANCO-WIN8@Application1@2014-01-26T11:33:51");
-
-                    bus.Send(message);
+                    var sendOptions = new SendOptions();
+                    sendOptions.SetHeader("ServiceControl.DebugSessionId", "DANCO-WIN8@Application1@2014-01-26T11:33:51");
+                    return bus.Send(new MyMessage(), sendOptions);
                 }))
                 .WithEndpoint<Receiver>()
                 .Done(async c => c.MessageId != null && await TryGetMany<MessagesView>("/api/messages/search/DANCO-WIN8@Application1@2014-01-26T11:33:51"))
@@ -50,14 +48,13 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }
