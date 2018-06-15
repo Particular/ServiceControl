@@ -4,9 +4,9 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Config.ConfigurationSource;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.Operations;
 
@@ -18,9 +18,9 @@
         {
             var context = new MyContext();
 
-            CustomConfiguration = config => config.OnEndpointSubscribed(s =>
+            CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
+                if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
                 {
                     context.ExternalProcessorSubscribed = true;
                 }
@@ -56,10 +56,10 @@
             });
 
             await Define(context)
-                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
+                .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
-                    bus.Subscribe<CustomCheckSucceeded>();
-                    bus.Subscribe<CustomCheckFailed>();
+                    await bus.Subscribe<CustomCheckSucceeded>();
+                    await bus.Subscribe<CustomCheckFailed>();
 
                     if (c.HasNativePubSubSupport)
                     {
@@ -77,16 +77,21 @@
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JsonServer>();
+                EndpointSetup<JsonServer>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                });
             }
 
             public class CustomCheckSucceededHandler : IHandleMessages<CustomCheckSucceeded>
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(CustomCheckSucceeded message)
+                public Task Handle(CustomCheckSucceeded message, IMessageHandlerContext context)
                 {
                     Context.CustomCheckSucceededReceived = true;
+                    return Task.FromResult(0);
                 }
             }
 
@@ -94,24 +99,10 @@
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(CustomCheckFailed message)
+                public Task Handle(CustomCheckFailed message, IMessageHandlerContext context)
                 {
                     Context.CustomCheckFailedReceived = true;
-                }
-            }
-
-            public class UnicastOverride : IProvideConfiguration<UnicastBusConfig>
-            {
-                public UnicastBusConfig GetConfiguration()
-                {
-                    var config = new UnicastBusConfig();
-                    var serviceControlMapping = new MessageEndpointMapping
-                    {
-                        AssemblyName = "ServiceControl.Contracts",
-                        Endpoint = "Particular.ServiceControl"
-                    };
-                    config.MessageEndpointMappings.Add(serviceControlMapping);
-                    return config;
+                    return Task.FromResult(0);
                 }
             }
         }
