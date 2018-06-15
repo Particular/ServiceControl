@@ -11,9 +11,12 @@
         [Test]
         public void No_headers_should_throw_with_message_id()
         {
-            var headers = new Dictionary<string, string>();
+            var headers = new Dictionary<string, string>
+            {
+                {Headers.MessageId, Guid.Empty.ToString() }
+            };
             var exception = Assert.Throws<Exception>(() => { headers.ProcessingEndpointName(); });
-            Assert.AreEqual("No processing endpoint could be determined for message (00000000-0000-0000-0000-000000000000)",exception.Message);
+            Assert.AreEqual("No processing endpoint could be determined for message (00000000-0000-0000-0000-000000000000)", exception.Message);
         }
 
         [Test]
@@ -21,6 +24,7 @@
         {
             var headers = new Dictionary<string, string>
             {
+                {Headers.MessageId, Guid.Empty.ToString() },
                 { Headers.EnclosedMessageTypes ,"TheMessageType"}
             };
             var exception = Assert.Throws<Exception>(() => { headers.ProcessingEndpointName(); });
@@ -34,7 +38,7 @@
             {
                 { Headers.ProcessingEndpoint ,"TheEndpoint"}
             };
-            Assert.AreEqual("TheEndpoint",headers.ProcessingEndpointName());
+            Assert.AreEqual("TheEndpoint", headers.ProcessingEndpointName());
         }
 
         [Test]
@@ -44,7 +48,7 @@
             {
                 { "NServiceBus.FailedQ" ,"TheEndpoint"}
             };
-            Assert.AreEqual("TheEndpoint",message.ProcessingEndpointName());
+            Assert.AreEqual("TheEndpoint", message.ProcessingEndpointName());
         }
 
         [Test]
