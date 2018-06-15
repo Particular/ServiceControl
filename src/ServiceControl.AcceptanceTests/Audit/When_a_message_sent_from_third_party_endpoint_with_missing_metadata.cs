@@ -1,12 +1,13 @@
-﻿
-namespace ServiceBus.Management.AcceptanceTests.Audit
+﻿namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.CompositeViews.Messages;
@@ -43,27 +44,22 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
+            class SendMessage : DispatchRawMessages
             {
-                readonly ISendMessages sendMessages;
                 readonly MyContext context;
                 readonly ReadOnlySettings settings;
 
-                public SendMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
+                public SendMessage(MyContext context, ReadOnlySettings settings)
                 {
-                    this.sendMessages = sendMessages;
                     this.context = context;
                     this.settings = settings;
                 }
 
-                public void Start()
-                {
-                    var transportMessage = new TransportMessage(context.MessageId, new Dictionary<string, string> { { Headers.ProcessingEndpoint, settings.EndpointName() } });
-                    sendMessages.Send(transportMessage, new SendOptions("audit"));
-                }
 
-                public void Stop()
+                protected override TransportOperations CreateMessage()
                 {
+                    var headers = new Dictionary<string, string> {{Headers.ProcessingEndpoint, settings.EndpointName()}};
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }
         }
