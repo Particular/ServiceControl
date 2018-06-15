@@ -5,16 +5,19 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Settings;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_message_is_imported_twice : AcceptanceTest
     {
         [Test]
         public async Task Should_register_a_new_endpoint()
         {
+            var endpointName = Conventions.EndpointNamingConvention(typeof(Sender));
+            
             var context = new MyContext();
             EndpointsView endpoint = null;
 
@@ -23,7 +26,7 @@
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EndpointsView>("/api/endpoints", m => m.Name == c.EndpointNameOfSendingEndpoint);
+                    var result = await TryGetSingle<EndpointsView>("/api/endpoints", m => m.Name == endpointName);
                     endpoint = result;
                     if (!result)
                     {
@@ -35,30 +38,18 @@
                 })
                 .Run(TimeSpan.FromSeconds(30));
 
-            Assert.AreEqual(context.EndpointNameOfSendingEndpoint, endpoint.Name);
+            Assert.AreEqual(endpointName, endpoint?.Name);
         }
 
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
-            }
-
-            class SetEndpointName : IWantToRunWhenBusStartsAndStops
-            {
-                public ReadOnlySettings Settings { get; set; }
-                public MyContext Context { get; set; }
-
-                public void Start()
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    Context.EndpointNameOfSendingEndpoint = Settings.EndpointName();
-                }
-
-                public void Stop()
-                {
-                }
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
+                });
             }
         }
 
@@ -66,17 +57,14 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .WithConfig<UnicastBusConfig>(c =>
-                    {
-                        c.ForwardReceivedMessagesTo = "audit";
-                    });
+                EndpointSetup<DefaultServerWithAudit>(c => c.ForwardReceivedMessagesTo("audit"));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -88,8 +76,6 @@
 
         public class MyContext : ScenarioContext
         {
-            public string EndpointNameOfSendingEndpoint { get; set; }
-
         }
     }
 }
