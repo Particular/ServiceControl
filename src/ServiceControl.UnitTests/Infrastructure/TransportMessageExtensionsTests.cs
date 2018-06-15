@@ -44,11 +44,11 @@
         [Test]
         public void With_FailedQ_header_should_return_FailedQ()
         {
-            var message = new Dictionary<string, string>
+            var headers = new Dictionary<string, string>
             {
                 { "NServiceBus.FailedQ" ,"TheEndpoint"}
             };
-            Assert.AreEqual("TheEndpoint", message.ProcessingEndpointName());
+            Assert.AreEqual("TheEndpoint", headers.ProcessingEndpointName());
         }
 
         [Test]
