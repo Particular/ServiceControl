@@ -21,7 +21,7 @@
             List<EndpointsView> endpoints = null;
 
             await Define(context)
-                .WithEndpoint<StartingEndpoint>()
+                .WithEndpoint<StartingEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     
@@ -47,29 +47,15 @@
                 EndpointSetup<DefaultServerWithAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
-            {
-                readonly IBus bus;
-
-                public SendMessage(IBus bus)
-                {
-                    this.bus = bus;
-                }
-
-                public void Start()
-                {
-                    bus.SendLocal(new MyMessage());
-                }
-
-                public void Stop()
-                {
-                }
-            }
-
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public void Handle(MyMessage message)
                 {
+                }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    return Task.FromResult(0);
                 }
             }
         }

@@ -2,12 +2,12 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -22,7 +22,7 @@
             List<EndpointsView> endpoints = null;
 
             await Define(context)
-                .WithEndpoint<MyEndpoint>()
+                .WithEndpoint<MyEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
@@ -62,29 +62,11 @@
                 EndpointSetup<DefaultServerWithAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
-            {
-                readonly IBus bus;
-
-                public SendMessage(IBus bus)
-                {
-                    this.bus = bus;
-                }
-
-                public void Start()
-                {
-                    bus.SendLocal(new MyMessage());
-                }
-
-                public void Stop()
-                {
-                }
-            }
-
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -95,8 +77,8 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.EndpointName(EndpointName);
-                }).IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.Heartbeat.dll"));
+                    c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
+                }).CustomEndpointName(EndpointName);
             }
         }
 
