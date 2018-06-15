@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props" Condition="Exists('..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -142,6 +143,10 @@
       <HintPath>..\packages\NServiceBus.SagaAudit.3.0.0\lib\net452\NServiceBus.SagaAudit.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NServiceBus.Transport.Msmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
+      <HintPath>..\packages\NServiceBus.Transport.Msmq.1.0.0\lib\net452\NServiceBus.Transport.Msmq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NServiceBus.Transport.RabbitMQ, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
       <HintPath>..\packages\NServiceBus.RabbitMQ.5.0.0\lib\net452\NServiceBus.Transport.RabbitMQ.dll</HintPath>
       <Private>True</Private>
@@ -231,6 +236,8 @@
     <Compile Include="Audit\When_processed_message_searched_by_messageid.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_messagetype.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_msgid_for_endpoint.cs" />
+    <Compile Include="ConfigureEndpointInMemoryPersistence.cs" />
+    <Compile Include="ConfigureEndpointMsmqTransport .cs" />
     <Compile Include="Contexts\DefaultServerWithoutAudit.cs" />
     <Compile Include="Audit\When_a_message_sent_from_third_party_endpoint_with_missing_metadata.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
@@ -239,12 +246,22 @@
     <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\RabbitMqTransportIntegration.cs" />
+    <Compile Include="TestSuiteConstraints.cs" />
     <Compile Include="CustomChecks\Custom_check_transition_should_trigger_signalr_event.cs" />
     <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />
     <Compile Include="CustomChecks\When_a_custom_check_fails.cs" />
     <Compile Include="CustomChecks\When_a_periodic_custom_check_fails.cs" />
     <Compile Include="DiagnosticTimer.cs" />
     <Compile Include="DispatchRawMessages.cs" />
+    <Compile Include="EndpointTemplates\ConfigureExtensions.cs" />
+    <Compile Include="EndpointTemplates\DefaultPublisher.cs" />
+    <Compile Include="EndpointTemplates\DefaultServer.cs" />
+    <Compile Include="EndpointTemplates\EndpointConfigurationExtensions.cs" />
+    <Compile Include="EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
+    <Compile Include="EndpointTemplates\IConfigureEndpointTestExecution.cs" />
+    <Compile Include="EndpointTemplates\Requires.cs" />
+    <Compile Include="EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
+    <Compile Include="EndpointTemplates\TestSuiteConstraints.cs" />
     <Compile Include="ExternalIntegrations\JsonServer.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_failed.cs" />
@@ -347,4 +364,10 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props'))" />
+  </Target>
 </Project>
