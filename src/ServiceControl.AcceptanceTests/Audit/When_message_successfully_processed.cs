@@ -6,10 +6,13 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTests;
+    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.CompositeViews.Endpoints;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_message_successfully_processed : AcceptanceTest
     {
@@ -39,8 +42,11 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), Conventions.EndpointNamingConvention(typeof(Receiver)));
+                });
             }
         }
 
