@@ -153,7 +153,8 @@
 
                     try
                     {
-                        bus.Publish(eventToBePublished);
+                        await bus.Publish(eventToBePublished)
+                            .ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {
