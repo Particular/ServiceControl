@@ -2,19 +2,19 @@
 {
     using System;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Features;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_publishing_from_a_saga : AcceptanceTest
     {
-
         [Test]
         public async Task Saga_audit_trail_should_contain_the_state_change()
         {
@@ -22,7 +22,7 @@
             SagaHistory sagaHistory = null;
 
             await Define(context)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(async c =>
                 {
                     var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
@@ -46,9 +46,14 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<AutoSubscribe>())
-                    .AddMapping<MyEvent>(typeof(EndpointThatIsHostingTheSaga))
-                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                    {
+                        c.DisableFeature<AutoSubscribe>();
+                        c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
+
+                        var routing = c.ConfigureTransport().Routing();
+                        routing.RouteToEndpoint(typeof(MyEvent), typeof(EndpointThatIsHostingTheSaga));
+                    });
             }
         }
 
@@ -57,16 +62,18 @@
             IHandleMessages<MyEvent>
         {
             public MyContext Context { get; set; }
-            public void Handle(StartSagaMessage message)
+            public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
                 Context.SagaId = Data.Id;
                 Context.ReceivedInitiatingMessage = true;
-                Bus.Publish(new MyEvent());
+                return context.Publish(new MyEvent());
             }
 
-            public void Handle(MyEvent message)
+            public Task Handle(MyEvent message, IMessageHandlerContext context)
             {
                 Context.ReceivedEvent = true;
+
+                return Task.FromResult(0);
             }
 
             protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)

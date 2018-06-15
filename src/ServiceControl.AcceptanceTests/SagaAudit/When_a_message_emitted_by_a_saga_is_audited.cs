@@ -5,7 +5,6 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Saga;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
@@ -19,7 +18,7 @@
             MessagesView auditedMessage = null;
 
             await Define(context)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(async c =>
                 {
                     var result = await TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
@@ -45,11 +44,11 @@
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MessageInitiatingSaga message)
+                public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     Context.SagaId = Data.Id;
 
-                    Bus.SendLocal(new MessageSentBySaga());
+                    return context.SendLocal(new MessageSentBySaga());
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -65,10 +64,10 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-                public void Handle(MessageSentBySaga message)
+                public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }

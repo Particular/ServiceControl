@@ -3,14 +3,15 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Features;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
@@ -22,7 +23,7 @@
             SagaHistory sagaHistory = null;
 
             await Define(context)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(async c =>
                 {
                     var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
@@ -58,23 +59,29 @@
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.DisableFeature<AutoSubscribe>();
-                })
-                    .AddMapping<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga))
-                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
+                    c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
+
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MessagePublishedBySaga), typeof(EndpointThatIsHostingTheSaga));
+                });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MessageInitiatingSaga message)
+                public async Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     Context.SagaId = Data.Id;
 
-                    Bus.Reply(new MessageReplyBySaga());
-                    ReplyToOriginator(new MessageReplyToOriginatorBySaga());
-                    Bus.SendLocal(new MessageSentBySaga());
-                    Bus.Publish(new MessagePublishedBySaga());
+                    await context.Reply(new MessageReplyBySaga())
+                        .ConfigureAwait(false);
+                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga())
+                        .ConfigureAwait(false);
+                    await context.SendLocal(new MessageSentBySaga())
+                        .ConfigureAwait(false);
+                    await context.Publish(new MessagePublishedBySaga())
+                        .ConfigureAwait(false);
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -88,22 +95,25 @@
 
             class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
             {
-                public void Handle(MessageReplyBySaga message)
+                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
 
             class MessagePublishedBySagaHandler : IHandleMessages<MessagePublishedBySaga>
             {
-                public void Handle(MessagePublishedBySaga message)
+                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
 
             class MessageReplyToOriginatorBySagaHandler : IHandleMessages<MessageReplyToOriginatorBySaga>
             {
-                public void Handle(MessageReplyToOriginatorBySaga message)
+                public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
 
@@ -111,9 +121,10 @@
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MessageSentBySaga message)
+                public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done = true;
+                    return Task.FromResult(0);
                 }
             }
         }
