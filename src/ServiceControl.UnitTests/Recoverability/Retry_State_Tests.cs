@@ -1,5 +1,4 @@
-﻿using NServiceBus.Transports;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Raven.Client;
 using ServiceControl.Contracts.Operations;
 using ServiceControl.Infrastructure;
@@ -9,14 +8,13 @@ using ServiceControl.Recoverability;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NServiceBus;
-using NServiceBus.Unicast;
-using NServiceBus.ObjectBuilder.Common;
 
 namespace ServiceControl.UnitTests.Recoverability
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus.Extensibility;
+    using NServiceBus.Transport;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.UnitTests.Operations;
@@ -89,12 +87,7 @@ namespace ServiceControl.UnitTests.Recoverability
                     DocumentStore = documentStore
                 };
 
-                var settingsHolder = new NServiceBus.Settings.SettingsHolder();
-                settingsHolder.Set("EndpointName", "TestEndpoint");
-
-                var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
-
-                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, domainEvents, configure), retryManager);
+                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -114,7 +107,7 @@ namespace ServiceControl.UnitTests.Recoverability
                     };
                     await documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, domainEvents, configure), retryManager);
+                    processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                     await processor.ProcessBatches(session, CancellationToken.None);
                     await session.SaveChangesAsync();
@@ -143,11 +136,7 @@ namespace ServiceControl.UnitTests.Recoverability
                     DocumentStore = documentStore
                 };
 
-                var settingsHolder = new NServiceBus.Settings.SettingsHolder();
-                settingsHolder.Set("EndpointName", "TestEndpoint");
-
-                var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
-                var returnToSender = new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, domainEvents, configure);
+                var returnToSender = new TestReturnToSenderDequeuer(bodyStorage, documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(sender, domainEvents, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenAsyncSession())
@@ -182,12 +171,7 @@ namespace ServiceControl.UnitTests.Recoverability
 
                 var sender = new TestSender();
 
-                var settingsHolder = new NServiceBus.Settings.SettingsHolder();
-                settingsHolder.Set("EndpointName", "TestEndpoint");
-
-                var configure = new Configure(settingsHolder, new TestContainer(), new List<Action<NServiceBus.ObjectBuilder.IConfigureComponents>>(), new NServiceBus.Pipeline.PipelineSettings(new BusConfiguration()));
-
-                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, sender, documentStore, domainEvents, configure), retryManager);
+                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -291,223 +275,18 @@ namespace ServiceControl.UnitTests.Recoverability
 
     public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
-        public TestReturnToSenderDequeuer(IBodyStorage bodyStorage, ISendMessages sender, IDocumentStore store, IDomainEvents domainEvents, Configure configure)
-            : base(bodyStorage, sender, store, domainEvents, configure)
-        {
-        }
-
-        public override void Run(Predicate<TransportMessage> filter, CancellationToken token, int? expectedMessageCount = default(int?))
-        {
-            // NOOP
-        }
-    }
-
-    public class TestContainer : IContainer
-    {
-        public object Build(Type typeToBuild)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<object> BuildAll(Type typeToBuild)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IContainer BuildChildContainer()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Configure(Type component, DependencyLifecycle dependencyLifecycle)
-        {
-        }
-
-        public void Configure<T>(Func<T> component, DependencyLifecycle dependencyLifecycle)
-        {
-        }
-
-        public void ConfigureProperty(Type component, string property, object value)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public bool HasComponent(Type componentType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RegisterSingleton(Type lookupType, object instance)
-        {
-        }
-
-        public void Release(object instance)
+        public TestReturnToSenderDequeuer(IBodyStorage bodyStorage, IDocumentStore store, IDomainEvents domainEvents, string endpointName)
+            : base(bodyStorage, store, domainEvents, endpointName, null /* rawEndpointFactory */)
         {
         }
     }
 
-    public class TestSender : ISendMessages
+    public class TestSender : IDispatchMessages
     {
-        public void Send(TransportMessage message, SendOptions sendOptions)
-        {
-        }
-    }
 
-    public class TestBus : IBus
-    {
-        public IMessageContext CurrentMessageContext
+        public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-#pragma warning disable CS0618
-        public IInMemoryOperations InMemory
-#pragma warning restore CS0618
-        {
-        get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public IDictionary<string, string> OutgoingHeaders
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public ICallback Defer(DateTime processAt, object message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Defer(TimeSpan delay, object message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public void DoNotContinueDispatchingCurrentMessageToHandlers()
-        {
-        }
-
-        public void ForwardCurrentMessageTo(string destination)
-        {
-        }
-
-        public void HandleCurrentMessageLater()
-        {
-        }
-
-        public void Publish<T>()
-        {
-        }
-
-        public void Publish<T>(Action<T> messageConstructor)
-        {
-        }
-
-        public void Publish<T>(T message)
-        {
-        }
-
-        public void Reply(object message)
-        {
-        }
-
-        public void Reply<T>(Action<T> messageConstructor)
-        {
-        }
-
-        public void Return<T>(T errorEnum)
-        {
-        }
-
-        public ICallback Send(object message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send(Address address, object message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send(string destination, object message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send(Address address, string correlationId, object message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send(string destination, string correlationId, object message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send<T>(Action<T> messageConstructor)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send<T>(Address address, Action<T> messageConstructor)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send<T>(string destination, Action<T> messageConstructor)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send<T>(Address address, string correlationId, Action<T> messageConstructor)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback Send<T>(string destination, string correlationId, Action<T> messageConstructor)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback SendLocal(object message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICallback SendLocal<T>(Action<T> messageConstructor)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Subscribe(Type messageType)
-        {
-        }
-
-        public void Subscribe<T>()
-        {
-        }
-
-        public void Unsubscribe(Type messageType)
-        {
-        }
-
-        public void Unsubscribe<T>()
-        {
+            return Task.FromResult(0);
         }
     }
 }

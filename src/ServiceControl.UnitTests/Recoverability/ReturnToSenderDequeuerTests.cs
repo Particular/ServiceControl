@@ -3,10 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text;
-    using NServiceBus;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using NServiceBus.Extensibility;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
@@ -14,8 +16,20 @@
     [TestFixture]
     public class ReturnToSenderDequeuerTests
     {
+        private MessageContext CreateMessage(string id, Dictionary<string, string> headers)
+        {
+            return new MessageContext(
+                id, 
+                headers, 
+                new byte[0],
+                new TransportTransaction(), 
+                new CancellationTokenSource(),
+                new ContextBag()
+            );
+        }
+
         [Test]
-        public void It_removes_staging_id_header()
+        public async Task It_removes_staging_id_header()
         {
             var sender = new FakeSender();
 
@@ -24,15 +38,16 @@
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint"
             };
-            var message = new TransportMessage(Guid.NewGuid().ToString(), headers);
+            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender);
+            await ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender)
+                .ConfigureAwait(false);
 
             Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"));
         }
 
         [Test]
-        public void It_fetches_the_body_if_provided()
+        public async Task It_fetches_the_body_if_provided()
         {
             var sender = new FakeSender();
 
@@ -42,15 +57,16 @@
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
                 ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId"
             };
-            var message = new TransportMessage(Guid.NewGuid().ToString(), headers);
+            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender);
+            await ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender)
+                .ConfigureAwait(false);
 
             Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
         }
 
         [Test]
-        public void It_uses_retry_to_if_provided()
+        public async Task It_uses_retry_to_if_provided()
         {
             var sender = new FakeSender();
 
@@ -60,16 +76,17 @@
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
                 ["ServiceControl.RetryTo"] = "Proxy"
             };
-            var message = new TransportMessage(Guid.NewGuid().ToString(), headers);
+            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender);
+            await ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender)
+                .ConfigureAwait(false);
 
-            Assert.AreEqual("Proxy", sender.Options.Destination.Queue);
+            Assert.AreEqual("Proxy", sender.Destination);
             Assert.AreEqual("TargetEndpoint", sender.Message.Headers["ServiceControl.TargetEndpointAddress"]);
         }
 
         [Test]
-        public void It_sends_directly_to_target_if_retry_to_is_not_provided()
+        public async Task It_sends_directly_to_target_if_retry_to_is_not_provided()
         {
             var sender = new FakeSender();
 
@@ -78,16 +95,17 @@
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
             };
-            var message = new TransportMessage(Guid.NewGuid().ToString(), headers);
+            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender);
+            await ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender)
+                .ConfigureAwait(false);
 
-            Assert.AreEqual("TargetEndpoint", sender.Options.Destination.Queue);
+            Assert.AreEqual("TargetEndpoint", sender.Destination);
             Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"));
         }
 
         [Test]
-        public void It_restores_body_id_and_target_addres_after_failure()
+        public async Task It_restores_body_id_and_target_addres_after_failure()
         {
             var sender = new FaultySender();
 
@@ -97,11 +115,12 @@
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
                 ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
             };
-            var message = new TransportMessage(Guid.NewGuid().ToString(), headers);
+            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
             try
             {
-                ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender);
+                await ReturnToSenderDequeuer.HandleMessage(message, new FakeBodyStorage(), sender)
+                    .ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -111,23 +130,26 @@
             Assert.IsTrue(message.Headers.ContainsKey("ServiceControl.Retry.Attempt.MessageId"));
         }
 
-        class FaultySender : ISendMessages
+        class FaultySender : IDispatchMessages
         {
-            public void Send(TransportMessage message, SendOptions sendOptions)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
             {
                 throw new Exception("Simulated");
             }
         }
 
-        class FakeSender : ISendMessages
+        class FakeSender : IDispatchMessages
         {
-            public TransportMessage Message { get; private set; }
-            public SendOptions Options { get; private set; }
+            public OutgoingMessage Message { get; private set; }
+            public string Destination { get; private set; }
 
-            public void Send(TransportMessage message, SendOptions sendOptions)
+
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
             {
-                Message = message;
-                Options = sendOptions;
+                var operation = outgoingMessages.UnicastTransportOperations.Single();
+                Message = operation.Message;
+                Destination = operation.Destination;
+                return Task.FromResult(0);
             }
         }
 
