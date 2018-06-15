@@ -5,9 +5,11 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Contexts;
+    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.EventLog;
 
@@ -44,7 +46,10 @@
 
             public EndpointWithFailingCustomCheck()
             {
-                EndpointSetup<DefaultServerWithoutAudit>().IncludeAssembly(typeof(PeriodicCheck).Assembly);
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
+                });
             }
 
             public class EventuallyFailingCustomCheck : CustomCheck
