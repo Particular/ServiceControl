@@ -7,6 +7,8 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTests;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
@@ -82,11 +84,10 @@
             public Sender()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
-                    {
-                        var routing = c.ConfigureTransport().Routing();
-                        routing.RouteToEndpoint(typeof(NonMessage).Assembly, "Destination");
-                    })
-                    .AddMapping<MyMessage>(typeof(Receiver));
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
+                });
             }
         }
 

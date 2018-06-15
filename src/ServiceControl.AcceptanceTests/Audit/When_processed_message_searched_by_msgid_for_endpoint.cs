@@ -4,6 +4,8 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -27,8 +29,11 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
+                });
             }
         }
 
