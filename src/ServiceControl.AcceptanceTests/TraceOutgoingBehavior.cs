@@ -1,13 +1,13 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
-    using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Settings;
 
-    internal class TraceOutgoingBehavior : IBehavior<OutgoingContext>
+    internal class TraceOutgoingBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
     {
         private ScenarioContext scenarioContext;
         private ReadOnlySettings settings;
@@ -18,19 +18,18 @@ namespace ServiceBus.Management.AcceptanceTests
             this.settings = settings;
         }
 
-        public void Invoke(OutgoingContext context, Action next)
-        {
-            scenarioContext.AddTrace($"-> {context.OutgoingMessage.MessageIntent} from {settings.LocalAddress()} [{context.OutgoingMessage.Id}] {context.OutgoingLogicalMessage.MessageType.Name}");
-            next();
-        }
-
         internal class Registration : RegisterStep
         {
             public Registration()
                 : base("TraceOutgoingBehavior", typeof(TraceOutgoingBehavior), "Adds outgoing messages to the acceptance test trace")
             {
-                InsertBefore(WellKnownStep.DispatchMessageToTransport);
             }
+        }
+
+        public Task Invoke(IOutgoingLogicalMessageContext context, Func<IOutgoingLogicalMessageContext, Task> next)
+        {
+            scenarioContext.AddTrace($"-> {context.Headers[Headers.MessageIntent]} from {settings.LocalAddress()} [{context.MessageId}] {context.Message.MessageType.Name}");
+            return next(context);
         }
     }
 }
