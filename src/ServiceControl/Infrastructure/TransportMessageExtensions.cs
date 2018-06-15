@@ -57,10 +57,16 @@
         }
 
         // NOTE: Duplicated from TransportMessage
-        private static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
+        public static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
         {
             string destination;
             return headers.TryGetValue(Headers.ReplyToAddress, out destination) ? destination : null;
+        }
+
+        public static string CorrelationId(this IReadOnlyDictionary<string, string> headers)
+        {
+            string correlationId;
+            return headers.TryGetValue(Headers.CorrelationId, out correlationId) ? correlationId : null;
         }
 
         // NOTE: Duplicated from TransportMessage
