@@ -33,9 +33,6 @@
             builder.AuditProcessedMessagesTo("audit");
             typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass().Concat(new[]
             {
-                typeof(RegisterWrappers),
-                typeof(SessionCopInBehavior),
-                typeof(SessionCopInBehaviorForMainPipe),
                 typeof(TraceIncomingBehavior),
                 typeof(TraceOutgoingBehavior)
             }));
@@ -60,8 +57,6 @@
             {
                 builder.GetSettings().Set("SC.ConfigureComponent", r);
             });
-            builder.Pipeline.Register<SessionCopInBehavior.Registration>();
-            builder.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
             builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
             builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 

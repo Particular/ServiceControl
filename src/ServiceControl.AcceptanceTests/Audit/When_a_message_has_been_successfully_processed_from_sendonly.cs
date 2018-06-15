@@ -1,12 +1,13 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.CompositeViews.Messages;
@@ -41,24 +42,24 @@ namespace ServiceBus.Management.AcceptanceTests
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
+            class SendMessage : DispatchRawMessages
             {
-                public ISendMessages SendMessages { get; set; }
-
                 public MyContext MyContext { get; set; }
 
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Start()
-                {
-                    var transportMessage = new TransportMessage();
-                    transportMessage.Headers[Headers.MessageId] = MyContext.MessageId;
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = Settings.EndpointName();
-                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("audit")));
-                }
-
                 public void Stop()
                 {
+                }
+
+                protected override TransportOperations CreateMessage()
+                {
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.MessageId] = MyContext.MessageId,
+                        [Headers.ProcessingEndpoint] = Settings.EndpointName()
+                    };
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(MyContext.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }
         }
@@ -66,12 +67,6 @@ namespace ServiceBus.Management.AcceptanceTests
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-
-            public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string EndpointNameOfSendingEndpoint { get; set; }
-
-            public string PropertyToSearchFor { get; set; }
         }
     }
 }

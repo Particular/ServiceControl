@@ -24,10 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
-    using NServiceBus.MessageInterfaces;
-    using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
     using NUnit.Framework;
     using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
@@ -604,11 +601,6 @@ namespace ServiceBus.Management.AcceptanceTests
                 SettingsPerInstance[instanceName] = settings;
 
                 var configuration = new EndpointConfiguration(instanceName);
-                configuration.TypesToScan(GetTypesScopedByTestClass(transportToUse).Concat(new[]
-                {
-                    typeof(TraceIncomingBehavior),
-                    typeof(TraceOutgoingBehavior)
-                }));
                 configuration.EnableInstallers();
 
                 configuration.GetSettings().Set("SC.ScenarioContext", context);
