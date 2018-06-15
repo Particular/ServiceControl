@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
@@ -20,10 +19,7 @@
             FailedMessage failedMessage;
 
             var context = await Define<Context>()
-                .WithEndpoint<FailingEndpoint>(b => b.Given(bus =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }).When(async ctx =>
+                .WithEndpoint<FailingEndpoint>(b => b.When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
@@ -52,29 +48,46 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
-                })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
+                    c.EnableFeature<Outbox>();
+                    
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(s => s.NumberOfRetries(1));
+                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                });
             }
-
-            class CustomConfig : INeedInitialization
+            
+            class StartFeature : Feature
             {
-                public void Customize(BusConfiguration configuration)
+                public StartFeature()
                 {
-                    configuration.DisableFeature<Outbox>();
+                    EnableByDefault();
+                }
+                
+                protected override void Setup(FeatureConfigurationContext context)
+                {
+                    context.RegisterStartupTask(new SendMessageAtStart());
+                }
+                
+                class SendMessageAtStart : FeatureStartupTask
+                {
+                    protected override Task OnStart(IMessageSession session)
+                    {
+                        return session.SendLocal(new MyMessage());
+                    }
+
+                    protected override Task OnStop(IMessageSession session)
+                    {
+                        return Task.FromResult(0);
+                    }
                 }
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
                     if (Context.AboutToSendRetry)
@@ -83,9 +96,11 @@
                     }
                     else
                     {
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
                         throw new Exception("Simulated Exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }

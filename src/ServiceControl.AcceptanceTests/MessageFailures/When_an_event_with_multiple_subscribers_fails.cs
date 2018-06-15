@@ -6,8 +6,8 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.MessageFailures.Api;
@@ -22,18 +22,18 @@
             var failedMessages = new List<FailedMessageView>();
 
             await Define(context)
-                .WithEndpoint<FailingSubscriber1>(behavior => behavior.Given((bus, ctx) =>
+                .WithEndpoint<FailingSubscriber1>(behavior => behavior.When(async (bus, ctx) =>
                 {
-                    bus.Subscribe<SampleEvent>();
+                    await bus.Subscribe<SampleEvent>();
 
                     if (ctx.HasNativePubSubSupport)
                     {
                         ctx.Subscriber1Subscribed = true;
                     }
                 }))
-                .WithEndpoint<FailingSubscriber2>(behavior => behavior.Given((bus, ctx) =>
+                .WithEndpoint<FailingSubscriber2>(behavior => behavior.When(async (bus, ctx) =>
                 {
-                    bus.Subscribe<SampleEvent>();
+                    await bus.Subscribe<SampleEvent>();
 
                     if (ctx.HasNativePubSubSupport)
                     {
@@ -41,19 +41,19 @@
                     }
                 }))
                 .WithEndpoint<Publisher>(behavior => behavior
-                        .CustomConfig(cfg => cfg.OnEndpointSubscribed(sub =>
+                        .CustomConfig(cfg => cfg.OnEndpointSubscribed<FailingEventContext>((s, ctx) =>
                             {
-                                if (sub.SubscriberReturnAddress.Queue.Contains("Subscriber1"))
+                                if (s.SubscriberReturnAddress.Contains("Subscriber1"))
                                 {
                                     context.Subscriber1Subscribed = true;
                                 }
-                                else if (sub.SubscriberReturnAddress.Queue.Contains("Subscriber2"))
+                                else if (s.SubscriberReturnAddress.Contains("Subscriber2"))
                                 {
                                     context.Subscriber2Subscribed = true;
                                 }
                                 else
                                 {
-                                    throw new Exception($"Unknown subscriber subscribed to publisher: {sub.SubscriberReturnAddress}");
+                                    throw new Exception($"Unknown subscriber subscribed to publisher: {s.SubscriberReturnAddress}");
                                 }
                             })
                         ).When(
@@ -88,16 +88,20 @@
         {
             public FailingSubscriber1()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 0;
-                    }).AddMapping<SampleEvent>(typeof(Publisher));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(s => s.NumberOfRetries(0));
+                    recoverability.Delayed(s => s.NumberOfRetries(0));
+
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(SampleEvent), typeof(Publisher));
+                }, metadata => metadata.RegisterPublisherFor<SampleEvent>(typeof(Publisher)));
             }
 
             public class SampleEventHandler : IHandleMessages<SampleEvent>
             {
-                public void Handle(SampleEvent message)
+                public Task Handle(SampleEvent message, IMessageHandlerContext context)
                 {
                     throw new Exception("Failing Subscriber 1");
                 }
@@ -109,18 +113,19 @@
             public FailingSubscriber2()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
-                    {
-                        c.DisableFeature<SecondLevelRetries>();
-                    })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 0;
-                    }).AddMapping<SampleEvent>(typeof(Publisher));
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(s => s.NumberOfRetries(0));
+                    recoverability.Delayed(s => s.NumberOfRetries(0));
+
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(SampleEvent), typeof(Publisher));
+                }, metadata => metadata.RegisterPublisherFor<SampleEvent>(typeof(Publisher)));
             }
 
             public class SampleEventHandler : IHandleMessages<SampleEvent>
             {
-                public void Handle(SampleEvent message)
+                public Task Handle(SampleEvent message, IMessageHandlerContext context)
                 {
                     throw new Exception("Failing Subscriber 2");
                 }
