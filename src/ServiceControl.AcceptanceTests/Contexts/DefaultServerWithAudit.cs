@@ -5,59 +5,57 @@
     using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Reflection;
+    using System.Threading.Tasks;
     using NLog;
     using NLog.Config;
     using NLog.Filters;
     using NLog.Targets;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using NServiceBus.Hosting.Helpers;
-    using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
 
     public class DefaultServerWithAudit : IEndpointSetupTemplate
     {
-        public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            if (endpointConfiguration.AddressOfAuditQueue == null)
-            {
-                endpointConfiguration.AddressOfAuditQueue = Address.Parse("audit");
-            }
-
             ServicePointManager.DefaultConnectionLimit = 100;
 
             NServiceBus.Logging.LogManager.Use<NLogFactory>();
 
             SetupLogging(endpointConfiguration);
+            
+            var typesToInclude = new List<Type>();
 
-            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
-            var types = GetTypesScopedByTestClass(transportToUse, endpointConfiguration).Concat(new[]
+            var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
+            builder.AuditProcessedMessagesTo("audit");
+            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass().Concat(new[]
             {
                 typeof(RegisterWrappers),
                 typeof(SessionCopInBehavior),
                 typeof(SessionCopInBehaviorForMainPipe),
                 typeof(TraceIncomingBehavior),
                 typeof(TraceOutgoingBehavior)
-            });
-            var builder = new BusConfiguration();
+            }));
+
+
+            builder.TypesToIncludeInScan(typesToInclude);
+
+            // TODO Move to test constraints
+//            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
 
             builder.DisableFeature<AutoSubscribe>();
-            builder.UsePersistence<InMemoryPersistence>();
-            builder.EndpointName(endpointConfiguration.EndpointName);
-            builder.TypesToScan(types);
-            builder.CustomConfigurationSource(configSource);
             builder.EnableInstallers();
             builder.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-            builder.DefineTransport(transportToUse);
-            builder.RegisterComponents(r =>
-            {
-                r.RegisterSingleton(runDescriptor.ScenarioContext.GetType(), runDescriptor.ScenarioContext);
-                r.RegisterSingleton(typeof(ScenarioContext), runDescriptor.ScenarioContext);
-            });
+            
+            await builder.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
+
+            builder.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
+
+            await builder.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
+
             builder.RegisterComponents(r =>
             {
                 builder.GetSettings().Set("SC.ConfigureComponent", r);
@@ -67,8 +65,8 @@
             builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
             builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
-            builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
             builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
+            
             configurationBuilderCustomization(builder);
 
             return builder;
@@ -80,7 +78,7 @@
         }
 
 
-        static void SetupLogging(EndpointConfiguration endpointConfiguration)
+        static void SetupLogging(EndpointCustomizationConfiguration endpointConfiguration)
         {
             var logDir = ".\\logfiles\\";
 
@@ -124,54 +122,6 @@
             });
 
             return rule;
-        }
-
-        static IEnumerable<Type> GetTypesScopedByTestClass(ITransportIntegration transportToUse, EndpointConfiguration endpointConfiguration)
-        {
-            var assemblies = new AssemblyScanner().GetScannableAssemblies();
-
-            var types = assemblies.Assemblies
-                //exclude all test types by default
-                                  .Where(a => a != Assembly.GetExecutingAssembly())
-                                  .Where(a =>
-                                  {
-                                      if (a == transportToUse.Type.Assembly)
-                                      {
-                                          return true;
-                                      }
-                                      return !a.GetName().Name.Contains("Transports");
-                                  })
-                                  .Where(a => !a.GetName().Name.StartsWith("ServiceControl.Plugin"))
-                                  .Where(a => a.GetName().Name != "ServiceControl")
-                                  .SelectMany(a => a.GetTypes());
-
-            types = types.Union(GetNestedTypeRecursive(transportToUse.GetType(), null));
-
-            var extraConfigForEndpoint = Type.GetType($"{transportToUse.GetType().Namespace}.{transportToUse.Name}.CustomConfigForEndpoints", false);
-            if (extraConfigForEndpoint != null)
-            {
-                types = types.Union(new [] {extraConfigForEndpoint});
-            }
-
-            types = types.Union(GetNestedTypeRecursive(endpointConfiguration.BuilderType.DeclaringType, endpointConfiguration.BuilderType));
-
-            types = types.Union(endpointConfiguration.TypesToInclude);
-
-            var typesScopedByTestClass = types.ToList();
-            return typesScopedByTestClass;
-        }
-
-        static IEnumerable<Type> GetNestedTypeRecursive(Type rootType, Type builderType)
-        {
-            yield return rootType;
-
-            if (typeof(IEndpointConfigurationFactory).IsAssignableFrom(rootType) && rootType != builderType)
-                yield break;
-
-            foreach (var nestedType in rootType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).SelectMany(t => GetNestedTypeRecursive(t, builderType)))
-            {
-                yield return nestedType;
-            }
         }
     }
 }

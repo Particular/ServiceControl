@@ -1,16 +1,16 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Config.ConfigurationSource;
     using NServiceBus.Features;
 
     public class DefaultServerWithoutAudit : IEndpointSetupTemplate
     {
-        public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
+        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            return new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, configSource, b =>
+            return new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, b =>
             {
                 b.DisableFeature<Audit>();
                 configurationBuilderCustomization(b);

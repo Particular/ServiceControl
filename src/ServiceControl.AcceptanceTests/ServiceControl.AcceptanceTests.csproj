@@ -294,7 +294,6 @@
     <Compile Include="MessageFailures\When_a_retry_for_a_empty_body_message_is_successful.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_fails.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_is_successful.cs" />
-    <Compile Include="Contexts\ConfigureExtensions.cs" />
     <Compile Include="MessageRedirects\MessageRedirect.cs" />
     <Compile Include="MessageRedirects\RedirectRequest.cs" />
     <Compile Include="MessageRedirects\When_a_message_fails_a_retry_with_a_redirect.cs" />
