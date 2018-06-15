@@ -23,7 +23,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.MessageInterfaces;
@@ -48,8 +47,8 @@ namespace ServiceBus.Management.AcceptanceTests
         private Dictionary<string, BusInstance> busses = new Dictionary<string, BusInstance>();
         private Dictionary<string, HttpClient> httpClients = new Dictionary<string, HttpClient>();
         private Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
-        protected Action<BusConfiguration> CustomConfiguration = _ => { };
-        protected Action<string, BusConfiguration> CustomInstanceConfiguration = (i, c) => { };
+        protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
+        protected Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
         protected Dictionary<string, OwinHttpMessageHandler> Handlers = new Dictionary<string, OwinHttpMessageHandler>();
         protected Dictionary<string, Settings> SettingsPerInstance = new Dictionary<string, Settings>();
 
@@ -97,7 +96,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         private void AssertTransportNotExplicitlyIgnored()
         {
-            if (TestContext.CurrentContext.Test.Properties.Contains(ignoreTransportsKey))
+            if (TestContext.CurrentContext.Test.Properties.ContainsKey(ignoreTransportsKey))
             {
                 if (((string[]) TestContext.CurrentContext.Test.Properties[ignoreTransportsKey]).Contains(transportToUse.Name))
                 {
