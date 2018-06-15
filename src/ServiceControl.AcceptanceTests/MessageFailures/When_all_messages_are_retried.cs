@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -22,10 +21,10 @@
             FailedMessage messageToBeArchived = null;
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }))
                 .Done(async c =>
                 {
@@ -90,7 +89,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -99,13 +102,11 @@
 
                 public ReadOnlySettings Settings { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
 
                     if (message.MessageNumber == 1)
                     {
@@ -120,6 +121,8 @@
                     {
                         throw new Exception("Simulated exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }

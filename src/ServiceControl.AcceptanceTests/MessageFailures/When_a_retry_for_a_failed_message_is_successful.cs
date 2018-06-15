@@ -7,7 +7,6 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
@@ -28,7 +27,7 @@
             var context = new MyContext();
 
             await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -66,7 +65,7 @@
             var context = new MyContext();
 
             await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -98,7 +97,7 @@
             var context = new MyContext();
 
             await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -130,7 +129,7 @@
             var context = new MyContext();
 
             await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -162,7 +161,7 @@
             var context = new MyContext();
 
             await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -211,28 +210,32 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.Out.WriteLine("Handling message");
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress().ToString();
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.LocalAddress = Settings.LocalAddress();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
                     {
                         throw new Exception("Simulated exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -250,7 +253,7 @@
 
             public bool RetryIssued { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, Address.Parse(LocalAddress).Queue).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, LocalAddress).ToString();
             public string LocalAddress { get; set; }
         }
     }
