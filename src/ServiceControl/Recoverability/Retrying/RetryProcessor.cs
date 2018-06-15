@@ -125,14 +125,16 @@ namespace ServiceControl.Recoverability
             if (isRecoveringFromPrematureShutdown)
             {
                 Log.Warn("Recovering from premature shutdown. Starting forwarder in timeout mode");
-                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken);
+                await returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken)
+                    .ConfigureAwait(false);
                 await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize)
                     .ConfigureAwait(false);
             }
             else
             {
                 Log.DebugFormat("Starting forwarder in counting mode with {0} messages", messageCount);
-                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount);
+                await returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount)
+                    .ConfigureAwait(false);
                 await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount)
                     .ConfigureAwait(false);
             }
@@ -142,7 +144,7 @@ namespace ServiceControl.Recoverability
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
 
-        static Predicate<TransportMessage> IsPartOfStagedBatch(string stagingId)
+        static Predicate<MessageContext> IsPartOfStagedBatch(string stagingId)
         {
             return m =>
             {
