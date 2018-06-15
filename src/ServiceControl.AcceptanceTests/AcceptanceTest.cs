@@ -23,6 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Hosting.Helpers;
     using NServiceBus.MessageInterfaces;
@@ -602,24 +603,18 @@ namespace ServiceBus.Management.AcceptanceTests
                 SetInstanceSettings(instanceName, settings);
                 SettingsPerInstance[instanceName] = settings;
 
-                var configuration = new BusConfiguration();
+                var configuration = new EndpointConfiguration(instanceName);
                 configuration.TypesToScan(GetTypesScopedByTestClass(transportToUse).Concat(new[]
                 {
-                    typeof(MessageMapperInterceptor),
-                    typeof(RegisterWrappers),
-                    typeof(SessionCopInBehavior),
-                    typeof(SessionCopInBehaviorForMainPipe),
                     typeof(TraceIncomingBehavior),
                     typeof(TraceOutgoingBehavior)
                 }));
                 configuration.EnableInstallers();
 
-                configuration.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
                 configuration.GetSettings().Set("SC.ScenarioContext", context);
 
                 // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
                 // This is needed because we no longer use the AppDomain separation.
-                configuration.EnableFeature<MessageMapperInterceptor>();
                 configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
 
                 configuration.RegisterComponents(r =>
@@ -628,8 +623,6 @@ namespace ServiceBus.Management.AcceptanceTests
                     r.RegisterSingleton(typeof(ScenarioContext), context);
                 });
 
-                configuration.Pipeline.Register<SessionCopInBehavior.Registration>();
-                configuration.Pipeline.Register<SessionCopInBehaviorForMainPipe.Registration>();
                 configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
                 configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
@@ -701,89 +694,8 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        private class MessageMapperInterceptor : Feature
-        {
-            public MessageMapperInterceptor()
-            {
-                DependsOn<JsonSerialization>();
-            }
-
-            protected override void Setup(FeatureConfigurationContext context)
-            {
-                context.Container.ConfigureComponent<IMessageMapper>(builder => new MessageMapperWrapper(), DependencyLifecycle.SingleInstance);
-            }
-        }
-
-        private class MessageMapperWrapper : IMessageMapper
-        {
-            private static string assemblyName;
-
-            private IMessageMapper messageMapper;
-
-            static MessageMapperWrapper()
-            {
-                var s = typeof(Bootstrapper).AssemblyQualifiedName;
-                assemblyName = s.Substring(s.IndexOf(','));
-            }
-
-            public MessageMapperWrapper()
-            {
-                messageMapper = new MessageMapper();
-            }
-
-            public T CreateInstance<T>()
-            {
-                return messageMapper.CreateInstance<T>();
-            }
-
-            public T CreateInstance<T>(Action<T> action)
-            {
-                return messageMapper.CreateInstance(action);
-            }
-
-            public object CreateInstance(Type messageType)
-            {
-                return messageMapper.CreateInstance(messageType);
-            }
-
-            public void Initialize(IEnumerable<Type> types)
-            {
-                messageMapper.Initialize(types);
-            }
-
-            public Type GetMappedTypeFor(Type t)
-            {
-                if (t.Assembly.GetName().Name.StartsWith("ServiceControl.Plugin"))
-                {
-                    return Type.GetType($"{t.FullName}{assemblyName}");
-                }
-                return messageMapper.GetMappedTypeFor(t);
-            }
-
-            public Type GetMappedTypeFor(string typeName)
-            {
-                return messageMapper.GetMappedTypeFor(typeName);
-            }
-        }
-
         private class ConsoleContext : ScenarioContext
         {
-        }
-    }
-
-    public static class HttpClientExtensions
-    {
-        public static async Task<HttpResponseMessage> PatchAsync(this HttpClient client, string requestUri, HttpContent iContent)
-        {
-            var method = new HttpMethod("PATCH");
-            var request = new HttpRequestMessage(method, requestUri)
-            {
-                Content = iContent
-            };
-
-            var response = await client.SendAsync(request);
-
-            return response;
         }
     }
 }

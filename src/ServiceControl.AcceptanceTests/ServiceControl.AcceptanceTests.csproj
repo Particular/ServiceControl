@@ -246,6 +246,7 @@
     <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\RabbitMqTransportIntegration.cs" />
+    <Compile Include="HttpClientExtensions.cs" />
     <Compile Include="TestSuiteConstraints.cs" />
     <Compile Include="CustomChecks\Custom_check_transition_should_trigger_signalr_event.cs" />
     <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />
@@ -339,10 +340,8 @@
     <Compile Include="SagaAudit\When_publishing_from_a_saga.cs" />
     <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_audited.cs" />
     <Compile Include="ScenarioWithEndpointBehaviorExtensions.cs" />
-    <Compile Include="SessionCopBehavior.cs" />
     <Compile Include="SignalRHttpClient.cs" />
     <Compile Include="SingleResult.cs" />
-    <Compile Include="SubscriptionBehavior.cs" />
     <Compile Include="TraceIncomingBehavior.cs" />
     <Compile Include="TraceOutgoingBehavior.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
