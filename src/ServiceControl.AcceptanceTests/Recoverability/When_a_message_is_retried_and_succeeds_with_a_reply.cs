@@ -4,8 +4,8 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -19,7 +19,7 @@
             var context = new RetryReplyContext();
 
             await Define(context)
-                .WithEndpoint<OriginatingEndpoint>(c => c.Given(bus => bus.Send(new OriginalMessage())))
+                .WithEndpoint<OriginatingEndpoint>(c => c.When(bus => bus.Send(new OriginalMessage())))
                 .WithEndpoint<ReceivingEndpoint>()
                 .Done(async c =>
                 {
@@ -61,17 +61,21 @@
         {
             public OriginatingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<OriginalMessage>(typeof(ReceivingEndpoint));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(OriginalMessage), typeof(ReceivingEndpoint));
+                });
             }
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
             {
                 public RetryReplyContext Context { get; set; }
 
-                public void Handle(ReplyMessage message)
+                public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     Context.ReplyHandledBy = "Originating Endpoint";
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -80,38 +84,40 @@
         {
             public ReceivingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        c.MaxRetries = 0;
+                        var recoverability = c.Recoverability();
+                        recoverability.Delayed(x => x.NumberOfRetries(0));
+                        recoverability.Immediate(x => x.NumberOfRetries(0));
                     });
             }
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>
             {
-                public IBus Bus { get; set; }
                 public RetryReplyContext Context { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(OriginalMessage message)
+                public Task Handle(OriginalMessage message, IMessageHandlerContext context)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    var messageId = context.MessageId.Replace(@"\", "-");
+                    // TODO: Check if the local address needs to be sanitized
+                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
 
                     if (!Context.RetryIssued)
                     {
                         throw new Exception("This is still the original attempt");
                     }
-                    Bus.Reply(new ReplyMessage());
+                    return context.Reply(new ReplyMessage());
                 }
             }
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
             {
                 public RetryReplyContext Context { get; set; }
-                public void Handle(ReplyMessage message)
+                public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     Context.ReplyHandledBy = "Receiving Endpoint";
+                    return Task.FromResult(0);
                 }
             }
         }

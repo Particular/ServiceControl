@@ -6,9 +6,9 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.MessageFailures.Api;
@@ -60,60 +60,60 @@
                 );
             }
 
-            public class FakeSender : IWantToRunWhenBusStartsAndStops
+            public class FakeSender : DispatchRawMessages
             {
-                public void Start()
-                {
-                    var transportMessage = new TransportMessage(Guid.NewGuid().ToString(),
-                        new Dictionary<string, string>
-                        {
-                            [Headers.ReplyToAddress] = context.ReplyToAddress,
-                            [Headers.ProcessingEndpoint] = settings.EndpointName(),
-                            ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
-                            ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
-                            ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
-                            ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                            ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                            ["NServiceBus.FailedQ"] = settings.LocalAddress().ToString(),
-                            ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
-                            [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
-                            [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
-                        });
+                private ReadOnlySettings settings;
+                private ReplyToContext context;
 
-                    messageSender.Send(transportMessage, new SendOptions("error"));
+                protected override TransportOperations CreateMessage()
+                {
+                    var messageId = Guid.NewGuid().ToString();
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.ReplyToAddress] = context.ReplyToAddress,
+                        [Headers.ProcessingEndpoint] = settings.EndpointName(),
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
+                        ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = settings.LocalAddress(),
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
+                        [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
+                    };
+
+                    var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
+
+                    return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
 
-                public void Stop() { }
-
-                private ISendMessages messageSender;
-                private ReplyToContext context;
-                private ReadOnlySettings settings;
-
-                public FakeSender(ISendMessages messageSender, ReplyToContext context, ReadOnlySettings settings)
+                public FakeSender(ReadOnlySettings settings, ReplyToContext context)
                 {
-                    this.messageSender = messageSender;
-                    this.context = context;
                     this.settings = settings;
+                    this.context = context;
                 }
             }
 
             class VerifyHeaderIsUnchanged : IMutateIncomingTransportMessages
             {
-                public void MutateIncoming(TransportMessage transportMessage)
+                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     string replyToAddress;
-                    if (transportMessage.Headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+                    if (context.Headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
                     {
-                        context.ReceivedReplyToAddress = replyToAddress;
+                        replyToContext.ReceivedReplyToAddress = replyToAddress;
                     }
-                    context.Done = true;
+
+                    replyToContext.Done = true;
+                    return Task.FromResult(0);
                 }
 
-                private ReplyToContext context;
+                private ReplyToContext replyToContext;
 
                 public VerifyHeaderIsUnchanged(ReplyToContext context)
                 {
-                    this.context = context;
+                    replyToContext = context;
                 }
             }
         }

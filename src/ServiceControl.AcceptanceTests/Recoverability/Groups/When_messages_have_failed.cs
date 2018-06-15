@@ -7,8 +7,6 @@
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -31,10 +29,12 @@
             FailedMessage failedMessageB = null;
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal(new MyMessageA());
-                    bus.SendLocal(new MyMessageB());
+                    await bus.SendLocal(new MyMessageA())
+                        .ConfigureAwait(false);
+                    await bus.SendLocal(new MyMessageB())
+                        .ConfigureAwait(false);
                 }))
                 .Done(async c =>
                 {
@@ -98,10 +98,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        c.MaxRetries = 0;
+                        var recoverability = c.Recoverability();
+                        recoverability.Immediate(x => x.NumberOfRetries(0));
+                        recoverability.Delayed(x => x.NumberOfRetries(0));
                     });
             }
 
@@ -111,20 +112,18 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessageA message)
+                public Task Handle(MyMessageA message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().Queue;
-                    Context.MessageIdA = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress();
+                    Context.MessageIdA = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
 
-                public void Handle(MyMessageB message)
+                public Task Handle(MyMessageB message, IMessageHandlerContext context)
                 {
-                    Context.MessageIdB = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.MessageIdB = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }

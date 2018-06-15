@@ -3,12 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -29,11 +26,14 @@
             FailedMessage secondFailure = null;
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal<MyMessage>(m => m.IsFirst = true);
-                    Thread.Sleep(TimeSpan.FromSeconds(1));
-                    bus.SendLocal<MyMessage>(m => m.IsFirst = false);
+                    await bus.SendLocal<MyMessage>(m => m.IsFirst = true)
+                        .ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromSeconds(1))
+                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.IsFirst = false)
+                        .ConfigureAwait(false);
                 }))
                 .Done(async c =>
                 {
@@ -99,10 +99,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        c.MaxRetries = 0;
+                        var recoverability = c.Recoverability();
+                        recoverability.Immediate(x => x.NumberOfRetries(0));
+                        recoverability.Delayed(x => x.NumberOfRetries(0));
                     });
             }
 
@@ -110,16 +111,15 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
 
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    // TODO: Check LocalAddress sanitization
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
 
                     if (message.IsFirst)
                     {

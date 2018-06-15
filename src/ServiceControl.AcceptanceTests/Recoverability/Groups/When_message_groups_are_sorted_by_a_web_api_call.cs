@@ -5,11 +5,9 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
 
@@ -85,59 +83,49 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithAudit>(c =>
                     {
-                        c.MaxRetries = 1;
-                        c.MaximumConcurrencyLevel = 1; // this should mean they get processed one at a time
+                        var recoverability = c.Recoverability();
+                        recoverability.Immediate(x => x.NumberOfRetries(0));
+                        recoverability.Delayed(x => x.NumberOfRetries(0));
+                        c.LimitMessageProcessingConcurrencyTo(1);
                     });
             }
 
-            public class SendFailedMessage : IWantToRunWhenBusStartsAndStops
+            class SendFailedMessages : DispatchRawMessages
             {
-                readonly ISendMessages sendMessages;
-                readonly ReadOnlySettings settings;
-
-                public SendFailedMessage(ISendMessages sendMessages, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage()
                 {
-                    this.sendMessages = sendMessages;
-                    this.settings = settings;
+                    var errorAddress = new UnicastAddressTag("error");
+                    
+                    return new TransportOperations(
+                        new TransportOperation(CreateTransportMessage(1), errorAddress),
+                        new TransportOperation(CreateTransportMessage(2), errorAddress),
+                        new TransportOperation(CreateTransportMessage(3), errorAddress)
+                    );
                 }
 
-                public void Start()
-                {
-                    var msg = CreateTransportMessage(2);
-
-                    sendMessages.Send(msg, new SendOptions(Address.Parse("error")));
-
-                    msg = CreateTransportMessage(1);
-
-                    sendMessages.Send(msg, new SendOptions(Address.Parse("error")));
-
-                    msg = CreateTransportMessage(3);
-
-                    sendMessages.Send(msg, new SendOptions(Address.Parse("error")));
-                }
-
-                TransportMessage CreateTransportMessage(int i)
+                OutgoingMessage CreateTransportMessage(int i)
                 {
                     var date = new DateTime(2015, 9 + i, 20 + i, 0, 0, 0);
-                    var msg = new TransportMessage(i + MessageId, new Dictionary<string, string>
+                    var msg = new OutgoingMessage(i + MessageId, new Dictionary<string, string>
                     {
                         {"NServiceBus.ExceptionInfo.ExceptionType", "System.Exception"},
                         {"NServiceBus.ExceptionInfo.Message", "An error occurred"},
                         {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},
-                        {"NServiceBus.FailedQ", settings.LocalAddress().ToString()},
+                        {"NServiceBus.FailedQ", settings.LocalAddress()},
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
                         {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
                         {Headers.EnclosedMessageTypes, "MessageThatWillFail" + i},
-                    });
+                    }, new byte[0]);
                     return msg;
                 }
 
-                public void Stop()
-                {
+                readonly ReadOnlySettings settings;
 
+                public SendFailedMessages(ReadOnlySettings settings)
+                {
+                    this.settings = settings;
                 }
             }
         }
