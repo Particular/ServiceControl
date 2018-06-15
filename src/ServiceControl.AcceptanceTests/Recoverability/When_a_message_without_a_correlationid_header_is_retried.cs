@@ -4,10 +4,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.MessageMutator;
-    using NServiceBus.Unicast.Messages;
     using NUnit.Framework;
     using Contexts;
     using NServiceBus.Settings;
@@ -19,7 +16,7 @@
         public async Task The_successful_retry_should_succeed()
         {
             var context = await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async ctx =>
                 {
                     if (string.IsNullOrWhiteSpace(ctx.UniqueMessageId))
@@ -61,27 +58,24 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
+                    var recoverability = c.Recoverability();
+                    recoverability.Delayed(x => x.NumberOfRetries(0));
+                    recoverability.Immediate(x => x.NumberOfRetries(0));
                     c.RegisterComponents(components => components.ConfigureComponent<CorrelationIdRemover>(DependencyLifecycle.InstancePerCall));
-                })
-                .WithConfig<TransportConfig>(c =>
-                {
-                    c.MaxRetries = 0;
                 });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public IBus Bus { get; set; }
-
                 public MyContext TestContext { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    // TODO: Check LocalAddress should just be queue name
+                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
 
                     if (!TestContext.RetryIssued)
                     {
@@ -89,22 +83,16 @@
                     }
 
                     TestContext.RetryHandled = true;
+                    return Task.FromResult(0);
                 }
             }
 
             class CorrelationIdRemover : IMutateOutgoingTransportMessages
             {
-                public void MutateOutgoing(LogicalMessage logicalMessage, TransportMessage transportMessage)
+                public Task MutateOutgoing(MutateOutgoingTransportMessageContext context)
                 {
-                    var hasCorrelationId = transportMessage.Headers.ContainsKey(Headers.CorrelationId);
-
-                    if (!hasCorrelationId)
-                    {
-                        return;
-                    }
-
-                    transportMessage.CorrelationId = null;
-                    transportMessage.Headers.Remove(Headers.CorrelationId);
+                    context.OutgoingHeaders.Remove(Headers.CorrelationId);
+                    return Task.FromResult(0);
                 }
             }
         }

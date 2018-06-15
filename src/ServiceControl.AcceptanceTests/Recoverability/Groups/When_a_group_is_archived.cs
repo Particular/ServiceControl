@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -23,10 +22,12 @@
             FailedMessage secondFailure = null;
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                     {
-                        bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
-                        bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
+                        await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
+                            .ConfigureAwait(false);
+                        await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
+                            .ConfigureAwait(false);
                     })
                     .When(async ctx =>
                     {
@@ -35,7 +36,7 @@
                             return false;
                         }
 
-                        var result = await TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
+                        var result = await TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/").ConfigureAwait(false);
                         List<FailedMessage.FailureGroup> beforeArchiveGroups = result;
                         if (!result)
                         {
@@ -44,7 +45,7 @@
 
                         foreach (var group in beforeArchiveGroups)
                         {
-                            var failedMessagesResult = await TryGetMany<FailedMessage>($"/api/recoverability/groups/{@group.Id}/errors");
+                            var failedMessagesResult = await TryGetMany<FailedMessage>($"/api/recoverability/groups/{@group.Id}/errors").ConfigureAwait(false);
                             List<FailedMessage> failedMessages = failedMessagesResult;
                             if (failedMessagesResult)
                             {
@@ -100,10 +101,12 @@
             string failureGroupId = null;
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
+                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
+                        .ConfigureAwait(false);
                 }))
                 .Done(async c =>
                 {
@@ -182,7 +185,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c => c.Recoverability().Delayed(x => x.NumberOfRetries(0)));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -191,13 +194,11 @@
 
                 public ReadOnlySettings Settings { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
 
                     if (message.MessageNumber == 1)
                     {
@@ -212,6 +213,8 @@
                     {
                         throw new Exception("Simulated exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }
