@@ -279,6 +279,11 @@ namespace ServiceControl.UnitTests.Recoverability
             : base(bodyStorage, store, domainEvents, endpointName, null /* rawEndpointFactory */)
         {
         }
+
+        public override Task Run(Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
+        {
+            return Task.FromResult(0);
+        }
     }
 
     public class TestSender : IDispatchMessages
