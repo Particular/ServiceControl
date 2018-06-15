@@ -2,23 +2,25 @@
 {
     using System;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Settings;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.EventLog;
 
     public class When_an_endpoint_starts_up : AcceptanceTest
     {
+        static Guid hostIdentifier = Guid.NewGuid();
+        
         [Test]
         public async Task Should_result_in_a_startup_event()
         {
-            var context = new MyContext();
+            var context = new ScenarioContext();
+            
             EventLogItem entry = null;
 
             await Define(context)
@@ -32,12 +34,7 @@
                 .Run();
 
             Assert.AreEqual(Severity.Info, entry.Severity, "Endpoint startup should be treated as info");
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + context.HostIdentifier));
-        }
-
-        public class MyContext : ScenarioContext
-        {
-            public Guid HostIdentifier { get; set; }
+            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + hostIdentifier));
         }
 
         public class StartingEndpoint : EndpointConfigurationBuilder
@@ -46,31 +43,11 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var hostIdentifier = Guid.NewGuid();
+                    c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
+                    
                     c.GetSettings().Set("ServiceControl.CustomHostIdentifier", hostIdentifier);
                     c.UniquelyIdentifyRunningInstance().UsingCustomIdentifier(hostIdentifier);
-                }).IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.Heartbeat.dll"));
-            }
-
-            class RetrieveHostIdentifier : IWantToRunWhenBusStartsAndStops
-            {
-                readonly ReadOnlySettings settings;
-                readonly MyContext context;
-
-                public RetrieveHostIdentifier(ReadOnlySettings settings, MyContext context)
-                {
-                    this.settings = settings;
-                    this.context = context;
-                }
-
-                public void Start()
-                {
-                    context.HostIdentifier = settings.Get<Guid>("ServiceControl.CustomHostIdentifier");
-                }
-
-                public void Stop()
-                {
-                }
+                });
             }
         }
     }
