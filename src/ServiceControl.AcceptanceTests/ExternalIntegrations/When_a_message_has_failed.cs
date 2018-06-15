@@ -6,10 +6,9 @@
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Features;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts;
 
     [TestFixture]
@@ -20,9 +19,9 @@
         {
             var context = new MyContext();
 
-            CustomConfiguration = config => config.OnEndpointSubscribed(s =>
+            CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
+                if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
                 {
                     context.ExternalProcessorSubscribed = true;
                 }
@@ -30,9 +29,9 @@
 
             await Define(context)
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
-                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
+                .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
-                    bus.Subscribe<MessageFailed>();
+                    await bus.Subscribe<MessageFailed>();
 
                     if (c.HasNativePubSubSupport)
                     {
@@ -55,12 +54,12 @@
         {
             public FailingReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.Recoverability().Delayed(s => s.NumberOfRetries(0)); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     throw new Exception(message.Body);
                 }
@@ -71,33 +70,23 @@
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JsonServer>();
+                EndpointSetup<JsonServer>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                });
             }
 
             public class FailureHandler : IHandleMessages<MessageFailed>
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MessageFailed message)
+                public Task Handle(MessageFailed message, IMessageHandlerContext context)
                 {
                     var serializedMessage = JsonConvert.SerializeObject(message);
                     Context.Event = serializedMessage;
                     Context.EventDelivered = true;
-                }
-            }
-
-            public class UnicastOverride : IProvideConfiguration<UnicastBusConfig>
-            {
-                public UnicastBusConfig GetConfiguration()
-                {
-                    var config = new UnicastBusConfig();
-                    var serviceControlMapping = new MessageEndpointMapping
-                    {
-                        AssemblyName = "ServiceControl.Contracts",
-                        Endpoint = "Particular.ServiceControl"
-                    };
-                    config.MessageEndpointMappings.Add(serviceControlMapping);
-                    return config;
+                    return Task.FromResult(0);
                 }
             }
         }

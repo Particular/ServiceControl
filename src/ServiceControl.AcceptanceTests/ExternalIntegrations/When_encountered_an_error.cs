@@ -6,10 +6,10 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Config.ConfigurationSource;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
@@ -30,9 +30,9 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
             CustomConfiguration = config =>
             {
-                config.OnEndpointSubscribed(s =>
+                config.OnEndpointSubscribed<MyContext>((s, ctx) =>
                 {
-                    if (s.SubscriberReturnAddress.Queue.Contains("ExternalProcessor"))
+                    if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
                     {
                         context.ExternalProcessorSubscribed = true;
                     }
@@ -55,9 +55,9 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             }).GetAwaiter().GetResult());
 
             await Define(context)
-                .WithEndpoint<ExternalProcessor>(b => b.Given((bus, c) =>
+                .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
-                    bus.Subscribe<HeartbeatStopped>();
+                    await bus.Subscribe<HeartbeatStopped>();
 
                     if (c.HasNativePubSubSupport)
                     {
@@ -104,31 +104,21 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JsonServer>();
+                EndpointSetup<JsonServer>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                });
             }
 
             public class FailureHandler : IHandleMessages<HeartbeatStopped>
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(HeartbeatStopped message)
+                public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
                 {
                     Context.NotificationDelivered = true;
-                }
-            }
-
-            public class UnicastOverride : IProvideConfiguration<UnicastBusConfig>
-            {
-                public UnicastBusConfig GetConfiguration()
-                {
-                    var config = new UnicastBusConfig();
-                    var serviceControlMapping = new MessageEndpointMapping
-                    {
-                        AssemblyName = "ServiceControl.Contracts",
-                        Endpoint = "Particular.ServiceControl"
-                    };
-                    config.MessageEndpointMappings.Add(serviceControlMapping);
-                    return config;
+                    return Task.FromResult(0);
                 }
             }
         }
