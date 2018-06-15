@@ -602,7 +602,6 @@
     <Compile Include="Operations\ImportFailureCircuitBreaker.cs" />
     <Compile Include="Infrastructure\TypeExtensions.cs" />
     <Compile Include="Operations\LicenseReporter.cs" />
-    <Compile Include="Operations\TransportMessageCleaner.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\RavenDB\RavenBootstrapper.cs" />
