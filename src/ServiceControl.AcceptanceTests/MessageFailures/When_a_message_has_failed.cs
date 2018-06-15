@@ -21,6 +21,8 @@
     using ServiceControl.MessageFailures.Api;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Config;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -34,7 +36,7 @@
             FailedMessage failedMessage = null;
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result = await TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
@@ -62,7 +64,7 @@
             FailedMessageView failure = null;
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
@@ -85,7 +87,7 @@
             var failure = new MessagesView();
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result = await TryGetSingle<MessagesView>("/api/messages", m=>m.MessageId == c.MessageId);
@@ -109,7 +111,7 @@
             EventLogItem entry = null;
 
             await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
@@ -177,17 +179,17 @@
             await Define<QueueSearchContext>()
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                    b.When(bus => bus.SendLocal(new MyMessage()));
                 })
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
                     b.CustomConfig(configuration => configuration.EndpointName(searchEndpointName));
-                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                    b.When(bus => bus.SendLocal(new MyMessage()));
                 })
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
                     b.CustomConfig(configuration => configuration.EndpointName("YetAnotherEndpoint"));
-                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                    b.When(bus => bus.SendLocal(new MyMessage()));
                 }).Done(async c =>
                 {
                     if (c.FailedMessageCount < 3)
@@ -209,8 +211,11 @@
         {
             public EndpointThatUsesSignalR()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
+                });
             }
 
             class SignalRStarter : IWantToRunWhenBusStartsAndStops
