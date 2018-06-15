@@ -19,10 +19,7 @@
             EndpointsView endpoint = null;
 
             await Define(context)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    bus.Send(new MyMessage());
-                }))
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {

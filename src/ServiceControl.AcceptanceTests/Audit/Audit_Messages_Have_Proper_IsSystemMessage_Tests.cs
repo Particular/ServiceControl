@@ -7,8 +7,8 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
@@ -134,40 +134,38 @@
             {
                 EndpointSetup<DefaultServerWithAudit>();
             }
-
-            class SendMessageLowLevel : IWantToRunWhenBusStartsAndStops
+           
+            class SendMessageLowLevel : DispatchRawMessages
             {
-                public ISendMessages SendMessages { get; set; }
-
                 public SystemMessageTestContext SystemMessageTestContext { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Start()
+                protected override TransportOperations CreateMessage()
                 {
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
-                    var transportMessage = new TransportMessage();
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = "ServerEndpoint";
-                    transportMessage.Headers[Headers.MessageId] = SystemMessageTestContext.MessageId;
-                    transportMessage.Headers[Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707";
-                    transportMessage.Headers["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804";
-                    transportMessage.Headers["$.diagnostics.hostdisplayname"] = "SELENE";
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.ProcessingEndpoint] = "ServerEndpoint",
+                        [Headers.MessageId] = SystemMessageTestContext.MessageId,
+                        [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
+                        ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
+                        ["$.diagnostics.hostdisplayname"] = "SELENE"
+                    };
+                    
                     if (!string.IsNullOrEmpty(SystemMessageTestContext.EnclosedMessageType))
                     {
-                        transportMessage.Headers[Headers.EnclosedMessageTypes] = SystemMessageTestContext.EnclosedMessageType;
+                        headers[Headers.EnclosedMessageTypes] = SystemMessageTestContext.EnclosedMessageType;
                     }
                     if (SystemMessageTestContext.IncludeControlMessageHeader)
                     {
-                        transportMessage.Headers[Headers.ControlMessageHeader] = SystemMessageTestContext.ControlMessageHeaderValue != null && (bool) SystemMessageTestContext.ControlMessageHeaderValue ? SystemMessageTestContext.ControlMessageHeaderValue.ToString() : null;
+                        headers[Headers.ControlMessageHeader] = SystemMessageTestContext.ControlMessageHeaderValue != null && (bool) SystemMessageTestContext.ControlMessageHeaderValue ? SystemMessageTestContext.ControlMessageHeaderValue.ToString() : null;
                     }
-
-                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("audit")));
-
-                    Bus.SendLocal(new DoQueryAllowed());
+                    
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(SystemMessageTestContext.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
 
-                public void Stop()
+                protected override Task AfterDispatch(IMessageSession session)
                 {
+                    return session.SendLocal(new DoQueryAllowed());
                 }
             }
 
@@ -175,7 +173,7 @@
             {
                 public SystemMessageTestContext Context { get; set; }
 
-                public void Handle(DoQueryAllowed message)
+                public Task Handle(DoQueryAllowed message, IMessageHandlerContext context)
                 {
                     Context.QueryForMessages = true;
                 }
