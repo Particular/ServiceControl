@@ -2,7 +2,6 @@
 {
     using System.Threading;
     using Nancy;
-    using NServiceBus;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -15,7 +14,6 @@
 
     public class FailedAuditsModule : BaseModule
     {
-        public IBus Bus { get; set; }
         public ImportFailedAudits ImportFailedAudits { get; set; }
 
         public FailedAuditsModule()
