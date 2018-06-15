@@ -7,8 +7,6 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.CompositeViews.Messages;
