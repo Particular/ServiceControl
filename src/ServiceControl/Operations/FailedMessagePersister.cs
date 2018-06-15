@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
