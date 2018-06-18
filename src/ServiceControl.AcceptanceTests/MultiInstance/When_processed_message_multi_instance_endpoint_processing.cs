@@ -40,11 +40,11 @@
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<KnownEndpointsView>("/api/endpoints/known", m => m.EndpointDetails.Name == c.EndpointNameOfReceivingEndpoint, Master);
+                    var result = await this.TryGetMany<KnownEndpointsView>("/api/endpoints/known", m => m.EndpointDetails.Name == c.EndpointNameOfReceivingEndpoint, Master);
                     knownEndpoints = result;
                     if (result)
                     {
-                        httpResponseMessage = await GetRaw("/api/endpoints/known", Master);
+                        httpResponseMessage = await this.GetRaw("/api/endpoints/known", Master);
 
                         return true;
                     }

@@ -24,7 +24,7 @@
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
                     sagaHistory = result;
                     return c.ReceivedInitiatingMessage &&
                            result;

@@ -36,10 +36,10 @@
                             return false;
                         }
 
-                        return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     }, async (bus, ctx) =>
                     {
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         ctx.RetrySent = true;
                     })
                 )
@@ -47,7 +47,7 @@
                 {
                     if (!ctx.Retried) return false;
 
-                    return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", m => m.ProcessingAttempts.Count == 2);
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", m => m.ProcessingAttempts.Count == 2);
                 })
                 .Run();
 
@@ -75,10 +75,10 @@
                             return false;
                         }
 
-                        return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     }, async (bus, ctx) =>
                     {
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         ctx.RetrySent = true;
                     })
                 )
@@ -86,7 +86,7 @@
                 {
                     if (!ctx.Retried) return false;
 
-                    return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", m => m.Status == FailedMessageStatus.Resolved);
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", m => m.Status == FailedMessageStatus.Resolved);
                 })
                 .Run();
 
@@ -113,10 +113,10 @@
                             return false;
                         }
 
-                        return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     }, async (bus, ctx) =>
                     {
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         ctx.RetrySent = true;
                     })
                 )
@@ -124,7 +124,7 @@
                 {
                     if (!ctx.Retried) return false;
 
-                    return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", m => m.ProcessingAttempts.Count == 2);
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", m => m.ProcessingAttempts.Count == 2);
                 })
                 .Run();
 
@@ -152,10 +152,10 @@
                             return false;
                         }
 
-                        return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     }, async (bus, ctx) =>
                     {
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         ctx.RetrySent = true;
                     })
                 )
@@ -163,7 +163,7 @@
                 {
                     if (!ctx.Retried) return false;
 
-                    return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", m => m.Status == FailedMessageStatus.Resolved);
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", m => m.Status == FailedMessageStatus.Resolved);
                 })
                 .Run();
 

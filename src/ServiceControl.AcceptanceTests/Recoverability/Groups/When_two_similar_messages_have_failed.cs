@@ -38,7 +38,7 @@
                     if (!c.FirstDone || !c.SecondDone)
                         return false;
 
-                    var result = await TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    var result = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
                     exceptionTypeAndStackTraceGroups = result;
                     if (!result)
                     {
@@ -50,16 +50,16 @@
                         return false;
                     }
 
-                    messageTypeGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
+                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
 
-                    var firstFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId);
+                    var firstFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId);
                     firstFailure = firstFailureResult;
                     if (!firstFailureResult)
                     {
                         return false;
                     }
 
-                    var secondFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId);
+                    var secondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId);
                     secondFailure = secondFailureResult;
                     if (!secondFailureResult)
                     {

@@ -19,7 +19,7 @@
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
-                .Done(async c => c.MessageId != null && await TryGetMany<MessagesView>($"/api/endpoints/{c.EndpointNameOfReceivingEndpoint}/messages/search/{c.MessageId}"))
+                .Done(async c => c.MessageId != null && await this.TryGetMany<MessagesView>($"/api/endpoints/{c.EndpointNameOfReceivingEndpoint}/messages/search/{c.MessageId}"))
                 .Run(TimeSpan.FromSeconds(40));
         }
         

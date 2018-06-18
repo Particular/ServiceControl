@@ -43,7 +43,7 @@
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<MessagesView>("/api/messages/", instanceName: Master);
+                    var result = await this.TryGetMany<MessagesView>("/api/messages/", instanceName: Master);
                     response = result;
                     return result && response.Count == 2;
                 })

@@ -29,7 +29,7 @@
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
                     entry = result;
                     return result;
                 })
@@ -46,7 +46,7 @@
             var context = await Define<MyContext>(
                     ctx =>
                     {
-                        ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME];
+                        ctx.Handler = () => this.Handlers[Settings.DEFAULT_SERVICE_NAME];
                     })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()

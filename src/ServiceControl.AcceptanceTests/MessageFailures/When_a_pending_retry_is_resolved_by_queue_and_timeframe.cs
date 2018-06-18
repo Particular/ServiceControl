@@ -34,7 +34,7 @@
                         return false;
                     }
 
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
                     if (!result)
                     {
@@ -44,7 +44,7 @@
                     if (!ctx.RetryAboutToBeSent)
                     {
                         ctx.RetryAboutToBeSent = true;
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         return false;
                     }
 
@@ -52,7 +52,7 @@
                     //Following code ensures that the failed message index contains the message
                     if (failedMessage.Status == FailedMessageStatus.RetryIssued)
                     {
-                        var failedMessagesResult = await TryGet<FailedMessage[]>("/api/errors");
+                        var failedMessagesResult = await this.TryGet<FailedMessage[]>("/api/errors");
                         FailedMessage[] failedMessages = failedMessagesResult;
                         if (failedMessagesResult)
                         {
@@ -63,7 +63,7 @@
                     return false;
                 }, async (bus, ctx) =>
                 {
-                    await Patch("/api/pendingretries/queues/resolve", new
+                    await this.Patch("/api/pendingretries/queues/resolve", new
                     {
                         queueaddress = ctx.FromAddress,
                         from = DateTime.UtcNow.AddHours(-1).ToString("o"),
@@ -72,7 +72,7 @@
                 }))
                 .Done(async ctx =>
                 {
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
 
                     if (failedMessage.Status == FailedMessageStatus.Resolved)

@@ -21,7 +21,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {
-                    if (!await TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId))
+                    if (!await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId))
                     {
                         return false;
                     }

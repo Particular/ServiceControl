@@ -45,7 +45,7 @@
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/search/" + searchString, instanceName: Master);
+                    var result = await this.TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/search/" + searchString, instanceName: Master);
                     response = result;
                     return result && response.Count == 1;
                 })

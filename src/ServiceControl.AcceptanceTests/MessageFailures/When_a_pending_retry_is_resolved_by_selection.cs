@@ -27,7 +27,7 @@
                         return false;
                     }
 
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
                     if (!result)
                     {
@@ -37,7 +37,7 @@
                     if (!ctx.RetryAboutToBeSent)
                     {
                         ctx.RetryAboutToBeSent = true;
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         return false;
                     }
 
@@ -49,7 +49,7 @@
                     return false;
                 }, async (bus, ctx) =>
                 {
-                    await Patch("/api/pendingretries/resolve", new
+                    await this.Patch("/api/pendingretries/resolve", new
                     {
                         uniquemessageids = new List<string>
                         {
@@ -59,7 +59,7 @@
                 }))
                 .Done(async ctx =>
                 {
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
 
                     if (failedMessage.Status == FailedMessageStatus.Resolved)

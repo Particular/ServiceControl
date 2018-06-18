@@ -22,7 +22,7 @@
                     PropertyToSearchFor = c.PropertyToSearchFor
                 })))
                 .WithEndpoint<Receiver>()
-                .Done(async c => await TryGetMany<MessagesView>("/api/messages/search/" + c.PropertyToSearchFor))
+                .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + c.PropertyToSearchFor))
                 .Run(TimeSpan.FromSeconds(40));
         }
         

@@ -252,6 +252,9 @@
     <Compile Include="Contexts\TransportIntegration\RabbitMqTransportIntegration.cs" />
     <Compile Include="EndpointConfigurationExtensions.cs" />
     <Compile Include="HttpClientExtensions.cs" />
+    <Compile Include="IAcceptanceTestInfrastructureProvider.cs" />
+    <Compile Include="ServiceControlComponentBehavior.cs" />
+    <Compile Include="ServiceControlComponentRunner.cs" />
     <Compile Include="TestSuiteConstraints.cs" />
     <Compile Include="CustomChecks\Custom_check_transition_should_trigger_signalr_event.cs" />
     <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />

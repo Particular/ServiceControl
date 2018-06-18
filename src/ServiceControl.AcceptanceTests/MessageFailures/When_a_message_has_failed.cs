@@ -37,7 +37,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
+                    var result = await this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
                     failedMessage = result;
                     return c.MessageId != null && result;
                 })
@@ -63,7 +63,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -84,7 +84,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<MessagesView>("/api/messages", m=>m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m=>m.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -106,7 +106,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
                     entry = result;
                     return result;
                 })
@@ -121,7 +121,7 @@
         [Test]
         public async Task Should_raise_a_signalr_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+            var context = await Define<MyContext>(ctx => { ctx.Handler = () => this.Handlers[Settings.DEFAULT_SERVICE_NAME]; })
                 .WithEndpoint<Receiver>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -143,7 +143,7 @@
                     {
                         if (c.FailedMessageCount >= 1)
                         {
-                            var result = await TryGetMany<QueueAddress>("/api/errors/queues/addresses?search=failing");
+                            var result = await this.TryGetMany<QueueAddress>("/api/errors/queues/addresses?search=failing");
                             searchResults = result;
                             return result;
                         }
@@ -184,7 +184,7 @@
                     {
                         return false;
                     }
-                    var result = await TryGetMany<QueueAddress>($"/api/errors/queues/addresses/search/{searchTerm}");
+                    var result = await this.TryGetMany<QueueAddress>($"/api/errors/queues/addresses/search/{searchTerm}");
                     searchResults = result;
                     return result;
                 })

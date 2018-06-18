@@ -26,10 +26,10 @@
                 .WithEndpoint<VerifyHeaderEndpoint>()
                 .Done(async x =>
                 {
-                    if (!x.RetryIssued && await TryGetMany<FailedMessageView>("/api/errors"))
+                    if (!x.RetryIssued && await this.TryGetMany<FailedMessageView>("/api/errors"))
                     {
                         x.RetryIssued = true;
-                        await Post<object>("/api/errors/retry/all");
+                        await this.Post<object>("/api/errors/retry/all");
                     }
 
                     return x.Done;

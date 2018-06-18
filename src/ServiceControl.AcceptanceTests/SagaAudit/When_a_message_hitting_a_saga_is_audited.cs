@@ -27,7 +27,7 @@
                         return false;
                     }
 
-                    var result = await TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
                     auditedMessage = result;
                     return result;
                 })
