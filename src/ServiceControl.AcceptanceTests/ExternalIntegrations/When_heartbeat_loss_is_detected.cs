@@ -20,17 +20,17 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         [Test]
         public async Task Notification_is_published_on_a_bus()
         {
-            var context = new MyContext();
+            var externalProcessorSubscribed = false;
 
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
                 {
-                    context.ExternalProcessorSubscribed = true;
+                    externalProcessorSubscribed = true;
                 }
             });
 
-            ExecuteWhen(() => context.ExternalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
+            ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
             {
                 DetectedAt = new DateTime(2013, 09, 13, 13, 14, 13),
                 LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
@@ -43,14 +43,14 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
             }).GetAwaiter().GetResult());
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
                     await bus.Subscribe<HeartbeatStopped>();
 
                     if (c.HasNativePubSubSupport)
                     {
-                        c.ExternalProcessorSubscribed = true;
+                        externalProcessorSubscribed = true;
                     }
                 }))
                 .Done(c => c.NotificationDelivered)
@@ -85,7 +85,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         public class MyContext : ScenarioContext
         {
             public bool NotificationDelivered { get; set; }
-            public bool ExternalProcessorSubscribed { get; set; }
         }
     }
 }
