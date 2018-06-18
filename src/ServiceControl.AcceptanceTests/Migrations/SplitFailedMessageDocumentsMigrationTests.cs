@@ -19,9 +19,9 @@
         [Test]
         public async Task It_should_be_added_as_attempt_to_failedmessage_when_it_fails_with_new_header()
         {
-            var context = await Define(new Context
+            var context = await Define<Context>(ctx =>
                 {
-                    HeaderKey = NewRetryUniqueMessageIdHeader
+                    ctx.HeaderKey = NewRetryUniqueMessageIdHeader;
                 })
                 .WithEndpoint<FakePublisher>(builder => builder.When(ctx => ctx.EndpointsStarted, bus => bus.Send("Migrations.FailureEndpoint", new FailingMessage())))
                 .WithEndpoint<FailureEndpoint>(b =>
@@ -57,10 +57,10 @@
         [Test]
         public async Task It_should_mark_failedmessage_resolved_when_it_succeeds_with_new_header()
         {
-            var context = await Define(new Context
+            var context = await Define<Context>(ctx =>
                 {
-                    HeaderKey = NewRetryUniqueMessageIdHeader,
-                    HasSuccessInTheEnd = true
+                    ctx.HeaderKey = NewRetryUniqueMessageIdHeader;
+                    ctx.HasSuccessInTheEnd = true;
                 })
                 .WithEndpoint<FakePublisher>(builder => builder.When(ctx => ctx.EndpointsStarted, bus => bus.Send("Migrations.FailureEndpoint", new FailingMessage())))
                 .WithEndpoint<FailureEndpoint>(b =>
@@ -96,9 +96,9 @@
         [Test]
         public async Task It_should_be_added_as_attempt_to_failedmessage_when_it_fails_with_old_header()
         {
-            var context = await Define(new Context
+            var context = await Define<Context>(ctx =>
             {
-                HeaderKey = OldRetryUniqueMessageIdHeader
+                ctx.HeaderKey = OldRetryUniqueMessageIdHeader;
             })
                 .WithEndpoint<FakePublisher>(builder => builder.When(ctx => ctx.EndpointsStarted, bus => bus.Send("Migrations.FailureEndpoint", new FailingMessage())))
                 .WithEndpoint<FailureEndpoint>(b =>
@@ -134,10 +134,10 @@
         [Test]
         public async Task It_should_mark_failedmessage_resolved_when_it_succeeds_with_old_header()
         {
-            var context = await Define(new Context
+            var context = await Define<Context>(ctx =>
             {
-                HeaderKey = OldRetryUniqueMessageIdHeader,
-                HasSuccessInTheEnd = true
+                ctx.HeaderKey = OldRetryUniqueMessageIdHeader;
+                ctx.HasSuccessInTheEnd = true;
             })
                 .WithEndpoint<FakePublisher>(builder => builder.When(ctx => ctx.EndpointsStarted, bus => bus.Send("Migrations.FailureEndpoint", new FailingMessage())))
                 .WithEndpoint<FailureEndpoint>(b =>
