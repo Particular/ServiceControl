@@ -8,7 +8,6 @@
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
@@ -23,7 +22,8 @@
     using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
-    using NServiceBus.Config;
+    using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Features;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class When_a_message_has_failed : AcceptanceTest
@@ -151,7 +151,8 @@
             await Define<QueueSearchContext>()
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.Given(bus => bus.SendLocal(new MyMessage())).When(async c =>
+                    b.When(bus => bus.SendLocal(new MyMessage()));
+                    b.When(async c =>
                     {
                         if (c.FailedMessageCount >= 1)
                         {
@@ -161,7 +162,7 @@
                         }
 
                         return false;
-                    }, _ => { });
+                    }, (session, ctx) => Task.FromResult(0));
                 })
                 .Done(c => searchResults.Count == 1)
                 .Run();
@@ -183,12 +184,12 @@
                 })
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.CustomConfig(configuration => configuration.EndpointName(searchEndpointName));
+                    b.CustomConfig(configuration => configuration.GetSettings().Set("NServiceBus.Routing.EndpointName", searchEndpointName));
                     b.When(bus => bus.SendLocal(new MyMessage()));
                 })
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.CustomConfig(configuration => configuration.EndpointName("YetAnotherEndpoint"));
+                    b.CustomConfig(configuration => configuration.GetSettings().Set("NServiceBus.Routing.EndpointName", "YetAnotherEndpoint"));
                     b.When(bus => bus.SendLocal(new MyMessage()));
                 }).Done(async c =>
                 {
@@ -218,42 +219,55 @@
                 });
             }
 
-            class SignalRStarter : IWantToRunWhenBusStartsAndStops
+            class SignalRStarterFeature : Feature
             {
-                private readonly MyContext context;
-                private readonly IBus bus;
-                private Connection connection;
-
-                public SignalRStarter(MyContext context, IBus bus)
+                public SignalRStarterFeature()
                 {
-                    this.context = context;
-                    this.bus = bus;
-                    connection = new Connection("http://localhost/api/messagestream")
-                    {
-                        JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
-                    };
+                    EnableByDefault();
                 }
 
-                public void Start()
+                protected override void Setup(FeatureConfigurationContext context)
                 {
-                    connection.Received += ConnectionOnReceived;
-                    connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
-
-                    bus.Send(new MyMessage());
+                    
                 }
 
-                private void ConnectionOnReceived(string s)
+
+                class SignalRStarter : FeatureStartupTask
                 {
-                    if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
+                    protected override Task OnStart(IMessageSession session)
                     {
-                        context.SignalrData = s;
-                        context.SignalrEventReceived = true;
+                        connection.Received += ConnectionOnReceived;
+                        connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
+
+                        return session.Send(new MyMessage());
                     }
-                }
 
-                public void Stop()
-                {
-                    connection.Stop();
+                    protected override Task OnStop(IMessageSession session)
+                    {
+                        connection.Stop();
+                        return Task.FromResult(0);
+                    }
+
+                    private void ConnectionOnReceived(string s)
+                    {
+                        if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
+                        {
+                            context.SignalrData = s;
+                            context.SignalrEventReceived = true;
+                        }
+                    }
+
+                    private MyContext context;
+                    private Connection connection;
+
+                    public SignalRStarter(MyContext context)
+                    {
+                        this.context = context;
+                        connection = new Connection("http://localhost/api/messagestream")
+                        {
+                            JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
+                        };
+                    }
                 }
             }
         }
@@ -262,22 +276,20 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.Recoverability().Delayed(x => x.NumberOfRetries(0)));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress().Queue;
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.LocalAddress = Settings.LocalAddress();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }
@@ -287,11 +299,12 @@
         {
             public FailingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 0;
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(x => x.NumberOfRetries(0));
+                    recoverability.Delayed(x => x.NumberOfRetries(0));
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -299,7 +312,7 @@
                 public QueueSearchContext Context { get; set; }
                 static object lockObj = new object();
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     lock (lockObj)
                     {

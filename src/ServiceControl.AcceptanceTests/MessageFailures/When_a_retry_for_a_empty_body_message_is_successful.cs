@@ -1,15 +1,15 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.MessageMutator;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
@@ -71,75 +71,75 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
+                    c.NoDelayedRetries();
                     c.RegisterComponents(cc => cc.ConfigureComponent<LookForControlMessage>(DependencyLifecycle.SingleInstance));
                 });
             }
 
-            public class SendControlMessage : IWantToRunWhenBusStartsAndStops
+            public class SendControlMessage : DispatchRawMessages
             {
-                readonly ISendMessages sendMessages;
                 readonly MyContext context;
                 readonly ReadOnlySettings settings;
 
-                public SendControlMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
+                public SendControlMessage(MyContext context, ReadOnlySettings settings)
                 {
-                    this.sendMessages = sendMessages;
                     this.context = context;
                     this.settings = settings;
                 }
 
-                public void Start()
+                protected override TransportOperations CreateMessage()
                 {
                     context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
                     context.MessageId = Guid.NewGuid().ToString();
                     context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
 
-                    var transportMessage = new TransportMessage();
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint;
-                    transportMessage.Headers[Headers.MessageId] = context.MessageId;
-                    transportMessage.Headers[Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707";
-                    transportMessage.Headers["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804";
-                    transportMessage.Headers["$.diagnostics.hostdisplayname"] = "SELENE";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
-                    transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    transportMessage.Headers["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z";
-                    transportMessage.Headers[Headers.ControlMessageHeader] = Boolean.TrueString;
-                    transportMessage.Headers[Headers.ReplyToAddress] = settings.LocalAddress().ToString();
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint,
+                        [Headers.MessageId] = context.MessageId,
+                        [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
+                        ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
+                        ["$.diagnostics.hostdisplayname"] = "SELENE",
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
+                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = settings.LocalAddress(),
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z",
+                        [Headers.ControlMessageHeader] = Boolean.TrueString,
+                        [Headers.ReplyToAddress] = settings.LocalAddress()
+                    };
 
-                    sendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
-                }
+                var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
 
-                public void Stop()
-                {
-
+                    return new TransportOperations(
+                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))    
+                    );
                 }
             }
 
             public class LookForControlMessage : IMutateIncomingTransportMessages
             {
-                readonly IBus bus;
-                readonly MyContext context;
+                readonly MyContext myContext;
 
-                public LookForControlMessage(IBus bus, MyContext context)
+                public LookForControlMessage(MyContext context)
                 {
-                    this.bus = bus;
-                    this.context = context;
+                    this.myContext = context;
                 }
 
-                public void MutateIncoming(TransportMessage transportMessage)
+                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
-                    if (transportMessage.Id == context.MessageId)
+                    if (context.Headers[Headers.MessageId] == myContext.MessageId)
                     {
-                        bus.DoNotContinueDispatchingCurrentMessageToHandlers();
-                        context.Done = true;
+                        // TODO: Figure out how to enable this
+                        //bus.DoNotContinueDispatchingCurrentMessageToHandlers();
+                        myContext.Done = true;
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }

@@ -7,10 +7,9 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
@@ -44,48 +43,45 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
+                    c.NoDelayedRetries();
                 });
             }
 
-            public class SendFailedMessage : IWantToRunWhenBusStartsAndStops
+            public class SendFailedMessage : DispatchRawMessages
             {
-                readonly ISendMessages sendMessages;
                 readonly MyContext context;
                 readonly ReadOnlySettings settings;
 
-                public SendFailedMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
+                public SendFailedMessage(MyContext context, ReadOnlySettings settings)
                 {
-                    this.sendMessages = sendMessages;
                     this.context = context;
                     this.settings = settings;
                 }
 
-                public void Start()
+                protected override TransportOperations CreateMessage()
                 {
                     context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
                     context.MessageId = Guid.NewGuid().ToString();
                     context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
 
-                    var transportMessage = new TransportMessage(context.MessageId, new Dictionary<string, string>());
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint;
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
-                    transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    transportMessage.Headers[Headers.ControlMessageHeader] = Boolean.TrueString;
-                    transportMessage.Headers["NServiceBus.ClearTimeouts"] = Boolean.TrueString;
-                    transportMessage.Headers["NServiceBus.SagaId"] = "626f86be-084c-4867-a5fc-a53f0092b299";
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint,
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
+                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = settings.LocalAddress(),
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        [Headers.ControlMessageHeader] = Boolean.TrueString,
+                        ["NServiceBus.ClearTimeouts"] = Boolean.TrueString,
+                        ["NServiceBus.SagaId"] = "626f86be-084c-4867-a5fc-a53f0092b299"
+                    };
 
-                    sendMessages.Send(transportMessage, new SendOptions("error"));
-                }
+                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
 
-                public void Stop()
-                {
-
+                    return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
             }
         }
