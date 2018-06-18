@@ -19,12 +19,10 @@
         [Test, IgnoreTransports("AzureServiceBus", "AzureStorageQueues", "RabbitMq")]
         public async Task The_header_should_not_be_changed()
         {
-            var context = new ReplyToContext
+            var context = await Define<ReplyToContext>(ctx =>
             {
-                ReplyToAddress = "ReplyToAddress@SOMEMACHINE"
-            };
-
-            await Define(context)
+                ctx.ReplyToAddress = "ReplyToAddress@SOMEMACHINE";
+            })
                 .WithEndpoint<VerifyHeaderEndpoint>()
                 .Done(async x =>
                 {

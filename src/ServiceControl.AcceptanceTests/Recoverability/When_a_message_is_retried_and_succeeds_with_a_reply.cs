@@ -16,9 +16,7 @@
         [Test]
         public async Task The_reply_should_go_to_the_correct_endpoint()
         {
-            var context = new RetryReplyContext();
-
-            await Define(context)
+            var context = await Define<RetryReplyContext>()
                 .WithEndpoint<OriginatingEndpoint>(c => c.When(bus => bus.Send(new OriginalMessage())))
                 .WithEndpoint<ReceivingEndpoint>()
                 .Done(async c =>
