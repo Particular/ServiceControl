@@ -16,15 +16,13 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-                IncludeControlMessageHeader = false,
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+            {
+                ctx.MessageId = Guid.NewGuid().ToString();
+                ctx.EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+                ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
@@ -41,15 +39,13 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_message_type_is_a_scheduled_task()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask",
-                IncludeControlMessageHeader = false,
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask";
+                    ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
@@ -65,16 +61,14 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_true()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = null,
-                IncludeControlMessageHeader = true,
-                ControlMessageHeaderValue = true
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = null;
+                    ctx.IncludeControlMessageHeader = true;
+                    ctx.ControlMessageHeaderValue = true;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
@@ -90,16 +84,14 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_null()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask",
-                IncludeControlMessageHeader = true, // If hte control message header is present, then its a system message
-                ControlMessageHeaderValue = null
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask";
+                    ctx.IncludeControlMessageHeader = true; // If hte control message header is present, then its a system message
+                    ctx.ControlMessageHeaderValue = null;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
@@ -116,15 +108,13 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_for_integration_scenario()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = null,
-                IncludeControlMessageHeader = false
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = null;
+                    ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {

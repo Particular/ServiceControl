@@ -38,7 +38,8 @@
         [Test]
         public async Task The_import_should_support_it()
         {
-            var context = new MyContext();
+            var criticalErrorExecuted = false;
+            
             SetSettings = settings =>
             {
                 settings.MaximumConcurrencyLevel = 10;
@@ -47,14 +48,14 @@
             {
                 config.DefineCriticalErrorAction(ctx =>
                 {
-                    context.CriticalErrorExecuted = true;
+                    criticalErrorExecuted = true;
                     return Task.FromResult(0);
                 });
                 config.RegisterComponents(c => c.ConfigureComponent<CounterEnricher>(DependencyLifecycle.SingleInstance));
             };
 
             FailedMessage failure = null;
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<SourceEndpoint>()
                 .Done(async c =>
                 {
@@ -69,11 +70,11 @@
                         return m.ProcessingAttempts.Count == 10;
                     });
                     failure = result;
-                    return c.CriticalErrorExecuted || result;
+                    return criticalErrorExecuted || result;
                 })
                 .Run();
 
-            Assert.IsFalse(context.CriticalErrorExecuted);
+            Assert.IsFalse(criticalErrorExecuted);
             Assert.NotNull(failure);
             Assert.AreEqual(10, failure.ProcessingAttempts.Count);
         }
@@ -127,7 +128,7 @@
             }
         }
 
-        public class MyContext : ScenarioContext
+        class MyContext : ScenarioContext
         {
             ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
 
@@ -136,10 +137,7 @@
                 receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
             }
 
-            public string ReceivedMessages => string.Join(",", receivedMessages.Keys);
-
             public string UniqueId { get; set; }
-            public bool CriticalErrorExecuted { get; set; }
         }
     }
 }

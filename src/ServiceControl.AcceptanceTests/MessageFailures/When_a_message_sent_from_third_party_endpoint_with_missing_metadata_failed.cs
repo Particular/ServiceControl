@@ -22,9 +22,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             FailedMessageView failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
@@ -44,12 +42,8 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             FailedMessageView failure = null;
 
             var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
-            var context = new MyContext
-            {
-                TimeSent = sentTime
-            };
 
-            await Define(context)
+            await Define<MyContext>(ctx => { ctx.TimeSent = sentTime; })
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
@@ -68,9 +62,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             FailedMessageView failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {

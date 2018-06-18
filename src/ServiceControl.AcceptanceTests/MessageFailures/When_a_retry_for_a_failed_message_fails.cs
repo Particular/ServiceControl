@@ -15,11 +15,12 @@
         [Test]
         public async Task It_should_be_marked_as_unresolved()
         {
-            var context = new MyContext { Succeed = false };
-
             FailedMessage failure = null;
 
-            await Define(context)
+            await Define<MyContext>(ctx =>
+                {
+                    ctx.Succeed = false;
+                })
                 .WithEndpoint<FailureEndpoint>(b =>
                     b.When(bus => bus.SendLocal(new MyMessage()))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
@@ -42,11 +43,12 @@
         [Test]
         public async Task It_should_be_able_to_be_retried_successfully()
         {
-            var context = new MyContext { Succeed = false };
-
             FailedMessage failure = null;
 
-            await Define(context)
+            await Define<MyContext>(ctx =>
+                {
+                    ctx.Succeed = false;
+                })
                 .WithEndpoint<FailureEndpoint>(b =>
                     b.When(bus => bus.SendLocal(new MyMessage()))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
