@@ -13,9 +13,7 @@
         [Test]
         public async Task Saga_info_should_not_be_available_through_the_http_api()
         {
-            var context = new MyContext();
-
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MyMessage{OrderId = 1})))
                 .Done(c => c.SagaNotFound)
                 .Run(TimeSpan.FromSeconds(40));

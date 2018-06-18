@@ -16,10 +16,9 @@
         [Test]
         public async Task Message_should_be_enriched_with_saga_state_changes()
         {
-            var context = new MyContext();
             var messages = new List<MessagesView>();
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<EndpointThatIsHostingSagas>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga())))
                 .Done(async c =>
                 {
