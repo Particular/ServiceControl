@@ -19,7 +19,7 @@
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
-            var context = await Define<MyContext>()
+            await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                     {
                         await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
@@ -49,7 +49,7 @@
                             {
                                 if (failedMessages.Count == 2)
                                 {
-                                    ctx.GroupId = group.Id;
+                                    ctx.GroupId = @group.Id;
                                     return true;
                                 }
                             }
@@ -96,7 +96,7 @@
             FailedMessage secondFailure = null;
             string failureGroupId = null;
 
-            var context = await Define<MyContext>()
+            await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
                     await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)

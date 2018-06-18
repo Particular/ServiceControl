@@ -22,7 +22,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             FailedMessage originalMessage = null;
             FailedMessage retriedMessage = null;
 
-            var context = await Define<MeowContext>()
+            await Define<MeowContext>()
                 .WithEndpoint<MeowReceiver>(b => b.When(bus => bus.SendLocal(new Meow())))
                 .Done(async ctx =>
                 {

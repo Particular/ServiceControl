@@ -31,7 +31,7 @@
 
             List<EndpointsView> response;
 
-            var context = await Define<MyContext>(Slave, Master)
+            await Define<MyContext>(Slave, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -49,7 +49,7 @@
 
             List<EndpointsView> response = null;
 
-            var context = await Define<MyContext>(Slave, Master)
+            await Define<MyContext>(Slave, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {

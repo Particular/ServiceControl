@@ -23,7 +23,7 @@
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
-            var context = await Define<MyContext>()
+            await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
                     await bus.SendLocal<MyMessage>(m => m.IsFirst = true)

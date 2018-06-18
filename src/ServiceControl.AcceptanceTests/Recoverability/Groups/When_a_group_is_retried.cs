@@ -18,7 +18,7 @@
             FailedMessage messageToBeRetriedAsPartOfGroupRetry = null;
             FailedMessage messageToBeArchived = null;
 
-            var context = await Define<MyContext>()
+            await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
                     await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
