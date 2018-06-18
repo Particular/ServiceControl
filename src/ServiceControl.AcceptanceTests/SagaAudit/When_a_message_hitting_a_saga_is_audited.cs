@@ -16,10 +16,9 @@
         [Test]
         public async Task Saga_info_should_be_available_through_the_http_api()
         {
-            var context = new MyContext();
             MessagesView auditedMessage = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(async c =>
                 {

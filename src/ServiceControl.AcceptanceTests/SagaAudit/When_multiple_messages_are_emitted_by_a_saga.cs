@@ -19,10 +19,9 @@
         [Test]
         public async Task All_outgoing_message_intents_should_be_captured()
         {
-            var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(async c =>
                 {

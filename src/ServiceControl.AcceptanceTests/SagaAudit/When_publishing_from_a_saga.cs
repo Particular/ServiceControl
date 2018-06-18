@@ -18,17 +18,15 @@
         [Test]
         public async Task Saga_audit_trail_should_contain_the_state_change()
         {
-            var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(async c =>
                 {
                     var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
                     sagaHistory = result;
                     return c.ReceivedInitiatingMessage &&
-                           //  c.ReceivedEvent &&
                            result;
                 })
                 .Run();
