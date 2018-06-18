@@ -18,12 +18,8 @@
         public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()
         {
             MessagesView auditedMessage = null;
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString()
-            };
 
-            await Define(context)
+            await Define<MyContext>(ctx => { ctx.MessageId = Guid.NewGuid().ToString(); })
                 .WithEndpoint<ThirdPartyEndpoint>()
                 .Done(async c =>
                 {

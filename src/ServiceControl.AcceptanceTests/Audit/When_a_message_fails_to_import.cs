@@ -39,10 +39,9 @@
                 config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance));
             };
 
-            var context = new MyContext();
             FailedAuditsCountReponse failedAuditsCountReponse;
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c =>

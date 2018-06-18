@@ -17,12 +17,7 @@ namespace ServiceBus.Management.AcceptanceTests
         [Test]
         public async Task Should_import_messages_from_sendonly_endpoint()
         {
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString()
-            };
-
-            await Define(context)
+            await Define<MyContext>(ctx => { ctx.MessageId = Guid.NewGuid().ToString(); })
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {

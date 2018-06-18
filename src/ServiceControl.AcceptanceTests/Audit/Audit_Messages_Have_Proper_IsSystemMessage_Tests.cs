@@ -17,15 +17,13 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-                IncludeControlMessageHeader = false,
-            };
-
             MessagesView auditMessage = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+                    ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
@@ -42,15 +40,13 @@
         [Test]
         public async Task Scheduled_task_messages_should_set_IsSystemMessage()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask, TestSendOnlyError, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null",
-                IncludeControlMessageHeader = false,
-            };
-
             MessagesView auditMessage = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask, TestSendOnlyError, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null";
+                    ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
@@ -66,17 +62,15 @@
         [Test]
         public async Task Control_messages_should_not_be_audited()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask",
-                IncludeControlMessageHeader = true, // If the control message header is present, then its a system message regardless of the value
-                ControlMessageHeaderValue = null
-            };
-
             var containsItem = true;
 
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask";
+                    ctx.IncludeControlMessageHeader = true; // If the control message header is present, then its a system message regardless of the value
+                    ctx.ControlMessageHeaderValue = null;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
@@ -106,15 +100,13 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_for_integration_scenario()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = null,
-                IncludeControlMessageHeader = false
-            };
-
             MessagesView auditMessage = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = null;
+                    ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
