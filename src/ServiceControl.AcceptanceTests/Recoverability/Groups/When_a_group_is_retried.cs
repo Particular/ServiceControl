@@ -15,12 +15,10 @@
         [Test]
         public async Task Only_unresolved_issues_should_be_retried()
         {
-            var context = new MyContext();
-
             FailedMessage messageToBeRetriedAsPartOfGroupRetry = null;
             FailedMessage messageToBeArchived = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
                     await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)

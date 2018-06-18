@@ -18,14 +18,12 @@
         [Test]
         public async Task They_should_be_grouped_together()
         {
-            var context = new MyContext();
-
             List<FailureGroupView> exceptionTypeAndStackTraceGroups = null;
             List<FailureGroupView> messageTypeGroups = null;
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
                     await bus.SendLocal<MyMessage>(m => m.IsFirst = true)

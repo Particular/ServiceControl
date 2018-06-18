@@ -40,11 +40,9 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
         async Task<List<FailedMessageView>> SortTest(string sortProperty)
         {
-            var context = new MyContext();
-
             List<FailedMessageView> localErrors = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
