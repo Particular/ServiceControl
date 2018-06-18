@@ -18,10 +18,9 @@
         {
             var endpointName = Conventions.EndpointNamingConvention(typeof(Sender));
             
-            var context = new MyContext();
             EndpointsView endpoint = null;
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c =>

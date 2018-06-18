@@ -9,7 +9,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
-    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading;
@@ -24,7 +23,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Hosting.Helpers;
     using NUnit.Framework;
     using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
@@ -188,31 +186,9 @@ namespace ServiceBus.Management.AcceptanceTests
             return Define<T>(c => { }, instanceNames);
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(T context, params string[] instanceNames) where T : ScenarioContext, new()
-        {
-            return null;
-        }
-        
         protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer, params string[] instanceNames) where T : ScenarioContext, new()
         {
             return Scenario.Define(contextInitializer);
-        }
-
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Func<T> contextFactory, params string[] instanceNames) where T : ScenarioContext, new()
-        {
-            var ctx = contextFactory();
-
-            if (ctx == scenarioContext)
-            {
-                //We have already SC running
-                return new ScenarioWithContext<T>(() => (T)scenarioContext);
-            }
-            scenarioContext = ctx;
-            scenarioContext.SessionId = Guid.NewGuid().ToString();
-
-            InitializeServiceControl(scenarioContext, instanceNames);
-
-            return new ScenarioWithContext<T>(() => (T) scenarioContext);
         }
 
         protected Task<HttpResponseMessage> GetRaw(string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
@@ -461,39 +437,6 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             return startPort;
-        }
-
-        private static IEnumerable<Type> GetTypesScopedByTestClass(ITransportIntegration transportToUse)
-        {
-            var assemblies = new AssemblyScanner().GetScannableAssemblies();
-
-            var types = assemblies.Assemblies
-                //exclude all test types by default
-                .Where(a => a != Assembly.GetExecutingAssembly())
-                .Where(a =>
-                {
-                    if (a == transportToUse.Type.Assembly)
-                    {
-                        return true;
-                    }
-                    return !a.GetName().Name.Contains("Transports");
-                })
-                .Where(a => !a.GetName().Name.StartsWith("ServiceControl.Plugin"))
-                .SelectMany(a => a.GetTypes());
-
-            types = types.Union(GetNestedTypeRecursive(transportToUse.GetType()));
-
-            return types;
-        }
-
-        private static IEnumerable<Type> GetNestedTypeRecursive(Type rootType)
-        {
-            yield return rootType;
-
-            foreach (var nestedType in rootType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-            {
-                yield return nestedType;
-            }
         }
 
         public static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
