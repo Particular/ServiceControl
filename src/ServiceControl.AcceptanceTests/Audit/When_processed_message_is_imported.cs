@@ -21,11 +21,10 @@
         public async Task Should_be_accessible_via_the_rest_api()
         {
             const string Payload = "PAYLOAD";
-            var context = new MyContext();
             MessagesView auditedMessage = null;
             byte[] body = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
                 {
                     Payload = Payload

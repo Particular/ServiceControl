@@ -16,12 +16,10 @@
         [Test]
         public async Task Should_be_found()
         {
-            var context = new MyContext();
-
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c => await TryGetMany<MessagesView>("/api/messages/search/" + searchString))

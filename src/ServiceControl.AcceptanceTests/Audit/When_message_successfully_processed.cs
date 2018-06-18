@@ -18,16 +18,14 @@
         [Test]
         public async Task Should_list_the_endpoint_in_the_list_of_known_endpoints()
         {
-            var context = new MyContext();
-
             List<EndpointsView> knownEndpoints = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints", m => m.Name == context.EndpointNameOfReceivingEndpoint);
+                    var result = await TryGetMany<EndpointsView>("/api/endpoints", m => m.Name == c.EndpointNameOfReceivingEndpoint);
                     knownEndpoints = result;
                     return result;
                 })
