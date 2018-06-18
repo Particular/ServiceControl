@@ -3,15 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
-    using System.Security.Cryptography;
-    using System.Text;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
-    using NServiceBus.Hosting;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
