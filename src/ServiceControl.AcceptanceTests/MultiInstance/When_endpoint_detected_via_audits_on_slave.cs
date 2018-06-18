@@ -35,7 +35,7 @@
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result =  await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                    var result =  await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
                     response = result;
                     return result && response.Count == 1;
                 })
@@ -53,7 +53,7 @@
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
                     response = result;
                     if (result && response.Count > 0)
                     {
@@ -64,12 +64,12 @@
                     {
                         var endpointId = response.First().Id;
 
-                        await Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
+                        await this.Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
                         {
                             MonitorHeartbeat = true
                         }, Master);
 
-                        var resultAfterPath = await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                        var resultAfterPath = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
                         response = resultAfterPath;
                         return resultAfterPath;
                     }

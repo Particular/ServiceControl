@@ -25,7 +25,7 @@
                 .WithEndpoint<StartingEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(typeof(StartingEndpoint).Name)) && e.EventType == typeof(EndpointStarted).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(typeof(StartingEndpoint).Name)) && e.EventType == typeof(EndpointStarted).Name);
                     entry = result;
                     return result;
                 })

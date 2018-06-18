@@ -60,7 +60,7 @@
                         )
                 ).Done(async ctx =>
                 {
-                    var result = await TryGetMany<FailedMessageView>("/api/errors");
+                    var result = await this.TryGetMany<FailedMessageView>("/api/errors");
                     failedMessages = result;
                     return result && failedMessages.Sum(x => x.NumberOfProcessingAttempts) >= 2;
                 })

@@ -33,21 +33,21 @@
                 })
                     .When(async ctx =>
                     {
-                        return !ctx.RetryForInvalidAddressIssued && await TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
+                        return !ctx.RetryForInvalidAddressIssued && await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
                     },
                         async (bus, ctx) =>
                         {
-                            await Post<object>($"/api/errors/{ctx.DecommissionedEndpointUniqueMessageId}/retry");
+                            await this.Post<object>($"/api/errors/{ctx.DecommissionedEndpointUniqueMessageId}/retry");
                             await bus.SendLocal(new MessageThatWillFail());
                             ctx.RetryForInvalidAddressIssued = true;
                         })
                     .When(async ctx =>
                     {
-                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
+                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
                     },
                         async (bus, ctx) =>
                         {
-                            await Post<object>($"/api/errors/{ctx.MessageThatWillFailUniqueMessageId}/retry");
+                            await this.Post<object>($"/api/errors/{ctx.MessageThatWillFailUniqueMessageId}/retry");
                             ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued = true;
                         }))
                 .Done(async ctx =>
@@ -57,9 +57,9 @@
                         return false;
                     }
 
-                    var decomissionedFailureResult = await TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId && m.Status == FailedMessageStatus.Unresolved);
+                    var decomissionedFailureResult = await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId && m.Status == FailedMessageStatus.Unresolved);
                     decomissionedFailure = decomissionedFailureResult;
-                    var successfullyRetriedResult = await TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId && m.Status == FailedMessageStatus.Resolved);
+                    var successfullyRetriedResult = await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId && m.Status == FailedMessageStatus.Resolved);
                     successfullyRetried = successfullyRetriedResult;
                     return decomissionedFailureResult && successfullyRetriedResult;
                 })

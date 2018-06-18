@@ -25,7 +25,7 @@
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EndpointsView>("/api/endpoints", m => m.Name == endpointName);
+                    var result = await this.TryGetSingle<EndpointsView>("/api/endpoints", m => m.Name == endpointName);
                     endpoint = result;
                     if (!result)
                     {

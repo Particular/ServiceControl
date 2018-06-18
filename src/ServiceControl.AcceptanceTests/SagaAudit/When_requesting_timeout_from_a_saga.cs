@@ -22,7 +22,7 @@
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", sh=>sh.Changes.Any(change=>change.Status == SagaStateChangeStatus.Updated));
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", sh=>sh.Changes.Any(change=>change.Status == SagaStateChangeStatus.Updated));
                     sagaHistory = result;
                     return c.ReceivedTimeoutMessage && result;
                 })

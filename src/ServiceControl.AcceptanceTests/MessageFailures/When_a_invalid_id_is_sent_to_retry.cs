@@ -24,7 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                         {
                             try
                             {
-                                await Post<object>("/api/errors/1785201b-5ccd-4705-b14e-f9dd7ef1386e/retry");
+                                await this.Post<object>("/api/errors/1785201b-5ccd-4705-b14e-f9dd7ef1386e/retry");
                                 break;
                             }
                             catch (InvalidOperationException)
@@ -35,7 +35,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 
                         await bus.SendLocal(new MessageThatWillFail());
                     })
-                    .When(async ctx => ctx.IssueRetry && await TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
+                    .When(async ctx => ctx.IssueRetry && await this.TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
                 .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 

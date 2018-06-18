@@ -59,7 +59,7 @@
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(async c =>
                 {
-                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
                     sagaHistory = result;
                     return c.Done && result;
                 })

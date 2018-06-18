@@ -41,7 +41,7 @@
                         return false;
                     }
 
-                    var defaultGroupsResult = await TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    var defaultGroupsResult = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
                     defaultGroups = defaultGroupsResult;
                     if (!defaultGroupsResult)
                     {
@@ -53,12 +53,12 @@
                         return false;
                     }
 
-                    messageTypeGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
-                    exceptionTypeAndStackTraceGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
+                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
+                    exceptionTypeAndStackTraceGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
 
-                    var failedMessageAResult = await TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdA}", msg => msg.FailureGroups.Any());
+                    var failedMessageAResult = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdA}", msg => msg.FailureGroups.Any());
                     failedMessageA = failedMessageAResult;
-                    var failedMessageBResult = await TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdB}", msg => msg.FailureGroups.Any());
+                    var failedMessageBResult = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdB}", msg => msg.FailureGroups.Any());
                     failedMessageB = failedMessageBResult;
                     if (!failedMessageAResult || !failedMessageBResult)
                     {

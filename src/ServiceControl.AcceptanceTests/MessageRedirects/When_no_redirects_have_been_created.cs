@@ -12,7 +12,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
         {
             Define<Context>();
 
-            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
             List<MessageRedirectFromJson> response = result;
 
             Assert.AreEqual(0, response.Count, "Expected 0 redirects to be created");

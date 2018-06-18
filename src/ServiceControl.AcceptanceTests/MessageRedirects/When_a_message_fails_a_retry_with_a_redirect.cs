@@ -26,18 +26,18 @@
                 .WithEndpoint<OriginalEndpoint>(b =>
                         b.When(bus => bus.SendLocal(new MessageToRetry()))
                             .When( // Failed Message Received
-                                async ctx => ctx.UniqueMessageId != null && await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}"),
+                                async ctx => ctx.UniqueMessageId != null && await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}"),
                                 async (bus, ctx) =>
                                 {
                                     // Create Redirect
-                                    await Post("/api/redirects", new RedirectRequest
+                                    await this.Post("/api/redirects", new RedirectRequest
                                     {
                                         fromphysicaladdress = ctx.FromAddress,
                                         tophysicaladdress = ctx.ToAddress
                                     }, status => status != HttpStatusCode.Created);
 
                                     // Retry Failed Message
-                                    await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                                 })
                 )
                 .WithEndpoint<NewEndpoint>(c =>
@@ -50,7 +50,7 @@
                 })
                 .Done(async ctx =>
                 {
-                    var result = await TryGetMany<FailedMessageView>("/api/errors", msg => msg.Exception.Message.Contains("Message Failed In New Endpoint Too"));
+                    var result = await this.TryGetMany<FailedMessageView>("/api/errors", msg => msg.Exception.Message.Contains("Message Failed In New Endpoint Too"));
                     failedMessages = result;
                     return ctx.ProcessedAgain&& result;
                 })

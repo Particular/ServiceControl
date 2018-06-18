@@ -26,7 +26,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
                     failure = result;
                     return result;
                 })

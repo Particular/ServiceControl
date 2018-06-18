@@ -37,14 +37,14 @@
                         return false;
                     }
 
-                    var result = await TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
                     auditedMessage = result;
                     if (!result)
                     {
                         return false;
                     }
 
-                    body = await DownloadData(auditedMessage.BodyUrl);
+                    body = await this.DownloadData(auditedMessage.BodyUrl);
 
                     return true;
 
