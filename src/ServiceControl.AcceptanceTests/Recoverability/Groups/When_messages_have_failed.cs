@@ -19,8 +19,6 @@
         [Test]
         public async Task Should_be_grouped()
         {
-            var context = new MyContext();
-
             List<FailureGroupView> defaultGroups = null;
             List<FailureGroupView> exceptionTypeAndStackTraceGroups = null;
             List<FailureGroupView> messageTypeGroups = null;
@@ -28,7 +26,7 @@
             FailedMessage failedMessageA = null;
             FailedMessage failedMessageB = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
                     await bus.SendLocal(new MyMessageA())

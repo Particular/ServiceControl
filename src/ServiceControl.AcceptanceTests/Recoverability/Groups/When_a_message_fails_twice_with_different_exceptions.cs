@@ -19,12 +19,10 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         [Test]
         public async Task Only_the_second_groups_should_apply()
         {
-            var context = new MeowContext();
-
             FailedMessage originalMessage = null;
             FailedMessage retriedMessage = null;
 
-            await Define(context)
+            var context = await Define<MeowContext>()
                 .WithEndpoint<MeowReceiver>(b => b.When(bus => bus.SendLocal(new Meow())))
                 .Done(async ctx =>
                 {
