@@ -23,13 +23,9 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var context = new MyContext
-            {
-                SignalrStarted = true
-            };
             EventLogItem entry = null;
 
-            await Define(context)
+            await Define<MyContext>(ctx => { ctx.SignalrStarted = true; })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(async c =>
                 {
