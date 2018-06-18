@@ -7,14 +7,13 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_fails_a_retry_with_a_redirect : AcceptanceTest
     {
@@ -25,7 +24,7 @@
 
             await Define<Context>()
                 .WithEndpoint<OriginalEndpoint>(b =>
-                        b.Given(bus => bus.SendLocal(new MessageToRetry()))
+                        b.When(bus => bus.SendLocal(new MessageToRetry()))
                             .When( // Failed Message Received
                                 async ctx => ctx.UniqueMessageId != null && await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}"),
                                 async (bus, ctx) =>
@@ -41,7 +40,14 @@
                                     await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                                 })
                 )
-                .WithEndpoint<NewEndpoint>()
+                .WithEndpoint<NewEndpoint>(c =>
+                {
+                    c.When((session, ctx) =>
+                    {
+                        ctx.ToAddress = Conventions.EndpointNamingConvention(typeof(NewEndpoint));
+                        return Task.FromResult(0);
+                    });
+                })
                 .Done(async ctx =>
                 {
                     var result = await TryGetMany<FailedMessageView>("/api/errors", msg => msg.Exception.Message.Contains("Message Failed In New Endpoint Too"));
@@ -63,23 +69,21 @@
         {
             public OriginalEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        c.MaxRetries = 1;
+                        c.NoRetries();
                     });
             }
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MessageToRetry message)
+                public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
-                    Context.FromAddress = Settings.LocalAddress().ToString();
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
+                    Context.FromAddress = Settings.LocalAddress();
+                    Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
                     throw new Exception("Message Failed");
                 }
             }
@@ -89,31 +93,17 @@
         {
             public NewEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        c.MaxRetries = 1;
+                        c.NoRetries();
                     });
-            }
-
-            public class EndpointDiscovery : IWantToRunWhenBusStartsAndStops
-            {
-                public Context Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Start()
-                {
-                    Context.ToAddress = Settings.LocalAddress().ToString();
-                }
-
-                public void Stop() { }
             }
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
                 public Context Context { get; set; }
 
-                public void Handle(MessageToRetry message)
+                public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
                     Context.ProcessedAgain = true;
                     throw new Exception("Message Failed In New Endpoint Too");
