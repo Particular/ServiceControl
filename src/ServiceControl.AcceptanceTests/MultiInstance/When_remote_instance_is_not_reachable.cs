@@ -30,7 +30,7 @@
             var searchString = typeof(MyMessage).Name;
 
             await Define(context, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.SendLocal(new MyMessage()); }))
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c => await TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
         }
@@ -46,31 +46,32 @@
                     QueueAddress = "remote1"
                 }
             };
-            settings.AuditQueue = Address.Parse(AuditMaster);
-            settings.ErrorQueue = Address.Parse(ErrorMaster);
+            settings.AuditQueue = AuditMaster;
+            settings.ErrorQueue = ErrorMaster;
         }
 
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .AuditTo(Address.Parse(AuditMaster))
-                    .ErrorTo(Address.Parse(ErrorMaster));
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.AuditProcessedMessagesTo(AuditMaster);
+                    c.SendFailedMessagesTo(ErrorMaster);
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }
