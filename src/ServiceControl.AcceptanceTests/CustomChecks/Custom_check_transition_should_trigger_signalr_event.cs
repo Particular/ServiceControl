@@ -21,12 +21,7 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var context = new MyContext
-            {
-                Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
-            };
-
-            await Define(context)
+            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)

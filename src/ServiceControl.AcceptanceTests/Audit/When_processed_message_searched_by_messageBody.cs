@@ -16,12 +16,7 @@
         [Test]
         public async Task Should_be_found_()
         {
-            var context = new MyContext
-            {
-                PropertyToSearchFor = Guid.NewGuid().ToString()
-            };
-
-            await Define(context)
+            await Define<MyContext>(ctx => { ctx.PropertyToSearchFor = Guid.NewGuid().ToString(); })
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
                 {
                     PropertyToSearchFor = c.PropertyToSearchFor

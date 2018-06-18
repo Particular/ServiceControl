@@ -14,14 +14,13 @@
         [Test]
         public async Task Ttbr_is_stripped_before_being_forwarded_to_audit_queue()
         {
-            var context = new MyContext();
             SetSettings = settings =>
             {
                 settings.ForwardAuditMessages = true;
                 settings.AuditLogQueue = "Audit.LogPeekEndpoint";
             };
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<SourceEndpoint>(
                     c => c.When(bus => bus.SendLocal(new MessageWithTtbr()))
                 )

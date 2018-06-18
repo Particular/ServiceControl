@@ -16,9 +16,7 @@
         [Test]
         public async Task Should_be_found()
         {
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) =>
                 {
                     var sendOptions = new SendOptions();

@@ -18,11 +18,10 @@
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
 
-            var context = new Context();
             byte[] body = null;
 
             //Act
-            await Define(context)
+            await Define<Context>()
                 .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
@@ -60,11 +59,10 @@
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
 
-            var context = new Context();
             byte[] body = null;
 
             //Act
-            await Define(context)
+            await Define<Context>()
                 .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
