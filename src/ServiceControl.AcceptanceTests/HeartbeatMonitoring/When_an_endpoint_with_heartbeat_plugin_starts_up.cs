@@ -18,10 +18,9 @@
         [Test]
         public async Task Should_be_monitored_and_active()
         {
-            var context = new MyContext();
             List<EndpointsView> endpoints = null;
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<StartingEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {

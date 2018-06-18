@@ -19,11 +19,9 @@
         [Test]
         public async Task Should_result_in_a_startup_event()
         {
-            var context = new ScenarioContext();
-            
             EventLogItem entry = null;
 
-            await Define(context)
+            await Define<ScenarioContext>()
                 .WithEndpoint<StartingEndpoint>()
                 .Done(async c =>
                 {

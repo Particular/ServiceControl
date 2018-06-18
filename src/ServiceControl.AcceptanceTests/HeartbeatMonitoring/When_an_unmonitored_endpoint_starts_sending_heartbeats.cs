@@ -18,10 +18,9 @@
         [Test]
         public async Task Should_be_marked_as_monitored()
         {
-            var context = new MyContext();
             List<EndpointsView> endpoints = null;
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<MyEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -35,7 +34,7 @@
             Assert.NotNull(myEndpoint);
             Assert.IsFalse(myEndpoint.Monitored);
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<MyEndpointWithHeartbeat>()
                 .Done(async c =>
                 {

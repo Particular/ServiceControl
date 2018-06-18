@@ -25,11 +25,10 @@
         [Test]
         public async Task It_is_shown_as_inactive_if_it_does_not_send_heartbeats()
         {
-            var context = new MyContext();
             List<EndpointsView> endpoints = null;
             var state = State.WaitingForEndpointDetection;
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<MyEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
