@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -22,7 +21,7 @@
 
             await Define(context)
                 .WithEndpoint<FailureEndpoint>(b =>
-                    b.Given(bus => bus.SendLocal(new MyMessage()))
+                    b.When(bus => bus.SendLocal(new MyMessage()))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
                             (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
@@ -49,7 +48,7 @@
 
             await Define(context)
                 .WithEndpoint<FailureEndpoint>(b =>
-                    b.Given(bus => bus.SendLocal(new MyMessage()))
+                    b.When(bus => bus.SendLocal(new MyMessage()))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
                           (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
@@ -92,22 +91,23 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.NoDelayedRetries();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Attempting to process message");
 
-                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().Queue;
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!Context.Succeed) //simulate that the exception will be resolved with the retry
                     {
@@ -115,6 +115,7 @@
                         throw new Exception("Simulated exception");
                     }
                     Console.WriteLine("Message processing success");
+                    return Task.FromResult(0);
                 }
             }
         }

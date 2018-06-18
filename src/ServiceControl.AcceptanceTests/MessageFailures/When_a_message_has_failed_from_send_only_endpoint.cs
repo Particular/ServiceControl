@@ -1,12 +1,13 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
 
@@ -65,40 +66,46 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class Foo : IWantToRunWhenBusStartsAndStops
+            class Foo : DispatchRawMessages
             {
-                public ISendMessages SendMessages { get; set; }
+                private MyContext myContext;
 
-                public MyContext MyContext { get; set; }
-
-                public void Start()
+                public Foo(MyContext myContext)
                 {
-                    // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
-                    var transportMessage = new TransportMessage();
-                    if (MyContext.IncludeProcessingEndpointHeader)
-                    {
-                        transportMessage.Headers[Headers.ProcessingEndpoint] = "SomeEndpoint";
-                    }
-                    transportMessage.Headers[Headers.MessageId] = MyContext.MessageId;
-                    transportMessage.Headers[Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707";
-                    transportMessage.Headers["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804";
-                    transportMessage.Headers["$.diagnostics.hostdisplayname"] = "SELENE";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = "SomeEndpoint@SELENE";
-                    transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    transportMessage.Headers["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z";
-                    transportMessage.Headers[Headers.EnclosedMessageTypes] = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
-
-                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
+                    this.myContext = myContext;
                 }
 
-                public void Stop()
+                protected override TransportOperations CreateMessage()
                 {
+                    // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.MessageId] = myContext.MessageId,
+                        [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
+                        ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
+                        ["$.diagnostics.hostdisplayname"] = "SELENE",
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
+                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = "SomeEndpoint@SELENE",
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z",
+                        [Headers.EnclosedMessageTypes] = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+                    };
+
+                    if (myContext.IncludeProcessingEndpointHeader)
+                    {
+                        headers[Headers.ProcessingEndpoint] = "SomeEndpoint";
+                    }
+
+                    var outgoingMessage = new OutgoingMessage(myContext.MessageId, headers, new byte[0]);
+
+                    return new TransportOperations(
+                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))
+                    );
                 }
             }
         }

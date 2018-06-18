@@ -250,6 +250,7 @@
     <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\RabbitMqTransportIntegration.cs" />
+    <Compile Include="EndpointConfigurationExtensions.cs" />
     <Compile Include="HttpClientExtensions.cs" />
     <Compile Include="TestSuiteConstraints.cs" />
     <Compile Include="CustomChecks\Custom_check_transition_should_trigger_signalr_event.cs" />
@@ -287,7 +288,6 @@
     <Compile Include="MessageFailures\When_a_pending_retry_is_resolved_by_timeframe.cs" />
     <Compile Include="MessageFailures\When_a_pending_retry_is_retried_again.cs" />
     <Compile Include="MessageFailures\When_a_multiple_error_message_with_same_uniqueid_are_imported_concurrently.cs" />
-    <Compile Include="MessageFailures\When_an_error_message_has_ttbr_set.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
     <Compile Include="MessageFailures\When_a_invalid_id_is_sent_to_retry.cs" />

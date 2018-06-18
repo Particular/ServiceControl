@@ -7,7 +7,7 @@
     using NServiceBus.Features;
     using NServiceBus.Transport;
 
-    abstract class DispatchRawMessages : Feature
+    public abstract class DispatchRawMessages : Feature
     {
         protected DispatchRawMessages()
         {

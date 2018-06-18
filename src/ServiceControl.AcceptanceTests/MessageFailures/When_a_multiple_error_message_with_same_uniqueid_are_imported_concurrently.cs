@@ -3,11 +3,12 @@
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
@@ -44,7 +45,11 @@
             };
             CustomConfiguration = config =>
             {
-                config.DefineCriticalErrorAction((s, exception) => context.CriticalErrorExecuted = true);
+                config.DefineCriticalErrorAction(ctx =>
+                {
+                    context.CriticalErrorExecuted = true;
+                    return Task.FromResult(0);
+                });
                 config.RegisterComponents(c => c.ConfigureComponent<CounterEnricher>(DependencyLifecycle.SingleInstance));
             };
 
@@ -80,23 +85,26 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            public class SendMultipleFailedMessagesWithSameUniqueId : IWantToRunWhenBusStartsAndStops
+            class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages
             {
-                ISendMessages sendMessages;
                 MyContext context;
 
-                public SendMultipleFailedMessagesWithSameUniqueId(ISendMessages sendMessages, MyContext context)
+                public SendMultipleFailedMessagesWithSameUniqueId(MyContext context)
                 {
-                    this.sendMessages = sendMessages;
                     this.context = context;
                 }
 
-                public void Start()
+                protected override TransportOperations CreateMessage()
                 {
                     var messageId = Guid.NewGuid().ToString();
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();
 
-                    Parallel.For(0, 10, i =>
+                    return new TransportOperations(GetMessages(messageId).ToArray());
+                }
+
+                IEnumerable<TransportOperation> GetMessages(string messageId)
+                {
+                    for (var i = 0; i < 10; i++)
                     {
                         var headers = new Dictionary<string, string>
                         {
@@ -110,13 +118,11 @@
                             ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                             ["Counter"] = i.ToString()
                         };
-                        var message = new TransportMessage(messageId, headers);
-                        sendMessages.Send(message, new SendOptions("error"));
-                    });
-                }
 
-                public void Stop()
-                {
+                        var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
+
+                        yield return new TransportOperation(outgoingMessage, new UnicastAddressTag("error"));
+                    }
                 }
             }
         }

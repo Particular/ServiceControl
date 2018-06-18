@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
@@ -21,14 +20,9 @@
             FailedMessage failedMessage;
 
             var context = await Define<Context>()
-                .WithEndpoint<DecoyFailingEndpoint>(b => b.Given(bus =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }))
-                .WithEndpoint<FailingEndpoint>(b => b.Given(bus =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }).When(async ctx =>
+                .WithEndpoint<DecoyFailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage()))
+                .When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
@@ -99,29 +93,20 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
-                })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
-            }
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(x => x.NumberOfRetries(0));
+                    recoverability.Delayed(x => x.NumberOfRetries(0));
 
-            class CustomConfig : INeedInitialization
-            {
-                public void Customize(BusConfiguration configuration)
-                {
-                    configuration.DisableFeature<Outbox>();
-                }
+                    c.DisableFeature<Outbox>();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
                     if (Context.RetryAboutToBeSent)
@@ -131,10 +116,12 @@
                     }
                     else
                     {
-                        Context.FromAddress = Settings.LocalAddress().ToString();
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
+                        Context.FromAddress = Settings.LocalAddress();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
                         throw new Exception("Simulated Exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -143,20 +130,18 @@
         {
             public DecoyFailingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        c.MaxRetries = 1;
+                        c.NoRetries();
                     });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
                     if (Context.RetryAboutToBeSent)
@@ -168,6 +153,8 @@
                         Context.DecoyProcessed = true;
                         throw new Exception("Simulated Exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }

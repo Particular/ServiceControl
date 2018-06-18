@@ -5,8 +5,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.Contexts;
@@ -21,10 +19,8 @@
             FailedMessage failedMessage;
 
             await Define<Context>()
-                .WithEndpoint<FailingEndpoint>(b => b.Given(bus =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }).When(async ctx =>
+                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage()))
+                .When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
@@ -87,29 +83,17 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
-                })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
-            }
-
-            class CustomConfig : INeedInitialization
-            {
-                public void Customize(BusConfiguration configuration)
-                {
-                    configuration.DisableFeature<Outbox>();
-                }
+                    c.NoRetries();
+                    c.NoOutbox();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public async Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
                     if (Context.RetryAboutToBeSent)
@@ -119,8 +103,8 @@
                     }
                     else
                     {
-                        Context.FromAddress = Settings.LocalAddress().ToString();
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
+                        Context.FromAddress = Settings.LocalAddress();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
                         throw new Exception("Simulated Exception");
                     }
                 }
