@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.MessageMutator;
     using NServiceBus.Settings;
     using NUnit.Framework;
@@ -181,7 +180,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
+                    c.Recoverability().Delayed(x => x.NumberOfRetries(0));
                 });
             }
         }
@@ -192,33 +191,32 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
+                    c.Recoverability().Delayed(x => x.NumberOfRetries(0));
                 });
             }
 
             public class FailingMessageHandler : IHandleMessages<FailingMessage>
             {
-                public IBus Bus { get; set; }
                 public Context TestContext { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(FailingMessage message)
+                public async Task Handle(FailingMessage message, IMessageHandlerContext context)
                 {
                     TestContext.ProcessingAttemptCount++;
-                    Console.WriteLine($"Handling message {Bus.CurrentMessageContext.Id} attempt {TestContext.ProcessingAttemptCount}");
+                    Console.WriteLine($"Handling message {context.MessageId} attempt {TestContext.ProcessingAttemptCount}");
 
-                    if (Bus.CurrentMessageContext.Headers.ContainsKey(TestContext.HeaderKey))
+                    if (context.MessageHeaders.ContainsKey(TestContext.HeaderKey))
                     {
-                        Console.WriteLine($"Retrying message {Bus.CurrentMessageContext.Id}");
-                        TestContext.RetryUniqueMessageId = Bus.CurrentMessageContext.Headers[TestContext.HeaderKey];
+                        Console.WriteLine($"Retrying message {context.MessageId}");
+                        TestContext.RetryUniqueMessageId = context.MessageHeaders[TestContext.HeaderKey];
                         TestContext.Retried = true;
                     }
                     else if (TestContext.ProcessingAttemptCount == 1)
                     {
-                        TestContext.MessageId = Bus.CurrentMessageContext.Id;
-                        TestContext.ReplyToAddress = Bus.CurrentMessageContext.ReplyToAddress.ToString();
+                        TestContext.MessageId = context.MessageId;
+                        TestContext.ReplyToAddress = context.ReplyToAddress;
 
-                        TestContext.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id, Settings.LocalAddress().Queue).ToString();
+                        TestContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.LocalAddress()).ToString();
                     }
 
                     if (TestContext.Retried && TestContext.HasSuccessInTheEnd)
@@ -238,7 +236,7 @@
 
             public string OriginalUniqueMessageId => string.IsNullOrEmpty(ReplyToAddress)
                 ? ""
-                : DeterministicGuid.MakeId(MessageId, Address.Parse(ReplyToAddress).Queue).ToString();
+                : DeterministicGuid.MakeId(MessageId, ReplyToAddress).ToString();
 
             public string HeaderKey { get; set; }
             public string RetryUniqueMessageId { get; internal set; }
@@ -253,21 +251,22 @@
         }
 
         protected class RetryUniqueMessageIdMutator : IMutateIncomingTransportMessages
-
         {
             public Context TestContext { get; set; }
 
-            public void MutateIncoming(TransportMessage transportMessage)
+            public Task MutateIncoming(MutateIncomingTransportMessageContext context)
             {
-                Console.WriteLine($"Mutating message {transportMessage.Id}");
+                Console.WriteLine($"Mutating message {context.Headers[Headers.MessageId]}");
 
-                if (transportMessage.Headers.ContainsKey(NewRetryUniqueMessageIdHeader))
+                if (context.Headers.ContainsKey(NewRetryUniqueMessageIdHeader))
                 {
-                    Console.WriteLine($"Found retry uniquemessageid header {TestContext.HeaderKey}: {transportMessage.Headers[NewRetryUniqueMessageIdHeader]}. Using {TestContext.OriginalUniqueMessageId}");
+                    Console.WriteLine($"Found retry uniquemessageid header {TestContext.HeaderKey}: {context.Headers[NewRetryUniqueMessageIdHeader]}. Using {TestContext.OriginalUniqueMessageId}");
 
-                    transportMessage.Headers.Remove(NewRetryUniqueMessageIdHeader);
-                    transportMessage.Headers.Add(TestContext.HeaderKey, TestContext.OriginalUniqueMessageId);
+                    context.Headers.Remove(NewRetryUniqueMessageIdHeader);
+                    context.Headers.Add(TestContext.HeaderKey, TestContext.OriginalUniqueMessageId);
                 }
+
+                return Task.FromResult(0);
             }
         }
     }
