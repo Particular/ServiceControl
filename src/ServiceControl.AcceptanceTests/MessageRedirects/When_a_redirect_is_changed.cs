@@ -23,9 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             const string newTo = "endpointC@machine3";
 
-            var context = new Context();
-
-            Define(context);
+            var context = await Define<Context>().Run();
 
             await Post("/api/redirects", redirect);
 
