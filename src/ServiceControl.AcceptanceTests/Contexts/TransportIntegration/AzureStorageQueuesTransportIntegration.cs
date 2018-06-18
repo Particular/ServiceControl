@@ -2,8 +2,6 @@
 {
     using System;
     using NServiceBus;
-    using NServiceBus.Config;
-    using NServiceBus.Config.ConfigurationSource;
 
     public class AzureStorageQueuesTransportIntegration : ITransportIntegration
     {
@@ -32,15 +30,16 @@
 
         }
 
-        class MyConfig : IProvideConfiguration<AzureQueueConfig>
-        {
-            public AzureQueueConfig GetConfiguration()
-            {
-                return new AzureQueueConfig
-                {
-                    BatchSize = 5
-                };
-            }
-        }
+        // TODO: This
+        //class MyConfig : IProvideConfiguration<AzureQueueConfig>
+        //{
+        //    public AzureQueueConfig GetConfiguration()
+        //    {
+        //        return new AzureQueueConfig
+        //        {
+        //            BatchSize = 5
+        //        };
+        //    }
+        //}
     }
 }

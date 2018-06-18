@@ -31,16 +31,17 @@
     }
 }
 
-namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration.RabbitMq
-{
-    using NServiceBus;
+// TODO: This
+//namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration.RabbitMq
+//{
+//    using NServiceBus;
 
-    class CustomConfigForEndpoints : INeedInitialization
-    {
-        public void Customize(BusConfiguration configuration)
-        {
-            configuration.UseTransport<RabbitMQTransport>().DisableCallbackReceiver();
-            configuration.EnableOutbox();
-        }
-    }
-}
+//    class CustomConfigForEndpoints : INeedInitialization
+//    {
+//        public void Customize(BusConfiguration configuration)
+//        {
+//            configuration.UseTransport<RabbitMQTransport>().DisableCallbackReceiver();
+//            configuration.EnableOutbox();
+//        }
+//    }
+//}
