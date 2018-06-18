@@ -37,10 +37,10 @@
             MessagesView capturedMessage = null;
             
             await Define(context, Remote1, Master)
-                .WithEndpoint<RemoteEndpoint>(b => b.Given(bus =>
+                .WithEndpoint<RemoteEndpoint>(b => b.When(async bus =>
                 {
                     context.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);
-                    bus.SendLocal(new MyMessage());
+                    await bus.SendLocal(new MyMessage());
                 }))
                 .Done(async c =>
                 {
@@ -89,8 +89,8 @@
             {
                 case Remote1:
                     addressOfRemote = settings.ApiUrl;
-                    settings.AuditQueue = Address.Parse(AuditRemote);
-                    settings.ErrorQueue = Address.Parse(ErrorRemote);
+                    settings.AuditQueue = AuditRemote;
+                    settings.ErrorQueue = ErrorRemote;
                     break;
                 case Master:
                     settings.RemoteInstances = new[]
@@ -101,8 +101,8 @@
                             QueueAddress = Remote1
                         }
                     };
-                    settings.AuditQueue = Address.Parse(AuditMaster);
-                    settings.ErrorQueue = Address.Parse(ErrorMaster);
+                    settings.AuditQueue = AuditMaster;
+                    settings.ErrorQueue = ErrorMaster;
                     break;
             }
         }
@@ -125,17 +125,21 @@
             public RemoteEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
-                    c.RegisterComponents(cc => cc.ConfigureComponent<MessageBodySpy>(DependencyLifecycle.SingleInstance)))
-                    .AuditTo(Address.Parse(AuditRemote));
+                {
+                    c.RegisterComponents(cc => cc.ConfigureComponent<MessageBodySpy>(DependencyLifecycle.SingleInstance));
+                    c.AuditProcessedMessagesTo(AuditRemote);
+                });
             }
 
             public class MessageBodySpy : IMutateIncomingTransportMessages
             {
                 public MyContext Context { get; set; }
-                public void MutateIncoming(TransportMessage transportMessage)
+                
+                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
-                    Context.Remote1MessageContentType = transportMessage.Headers[Headers.ContentType];
-                    Context.Remote1MessageBody = transportMessage.Body;
+                    Context.Remote1MessageContentType = context.Headers[Headers.ContentType];
+                    Context.Remote1MessageBody = context.Body;
+                    return Task.FromResult(0);
                 }
             }
 
@@ -143,11 +147,10 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
+                    Context.Remote1MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }
