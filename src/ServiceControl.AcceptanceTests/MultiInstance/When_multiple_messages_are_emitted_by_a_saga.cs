@@ -53,10 +53,9 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            await Define(context, Remote1, Master)
+            var context = await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(async c =>
                 {

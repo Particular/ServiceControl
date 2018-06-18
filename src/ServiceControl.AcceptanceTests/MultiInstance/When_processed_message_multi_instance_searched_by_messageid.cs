@@ -29,9 +29,7 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
-
-            await Define(context, Remote1, Master)
+            var context = await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c => c.Remote1MessageId != null && await TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: Master))
