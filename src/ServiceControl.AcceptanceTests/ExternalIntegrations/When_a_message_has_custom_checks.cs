@@ -16,17 +16,16 @@
         [Test]
         public async Task Notification_should_be_published_on_the_bus()
         {
-            var context = new MyContext();
-
+            var externalProcessorSubscribed = false;
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
                 {
-                    context.ExternalProcessorSubscribed = true;
+                    externalProcessorSubscribed = true;
                 }
             });
 
-            ExecuteWhen(() => context.ExternalProcessorSubscribed, domainEvents =>
+            ExecuteWhen(() => externalProcessorSubscribed, domainEvents =>
             {
                 domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
                 {
@@ -55,7 +54,7 @@
                 }).GetAwaiter().GetResult();
             });
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
                     await bus.Subscribe<CustomCheckSucceeded>();
@@ -63,7 +62,7 @@
 
                     if (c.HasNativePubSubSupport)
                     {
-                        c.ExternalProcessorSubscribed = true;
+                        externalProcessorSubscribed = true;
                     }
                 }))
                 .Done(c => c.CustomCheckFailedReceived && c.CustomCheckSucceededReceived)
@@ -111,7 +110,6 @@
         {
             public bool CustomCheckSucceededReceived { get; set; }
             public bool CustomCheckFailedReceived { get; set; }
-            public bool ExternalProcessorSubscribed { get; set; }
         }
     }
 }

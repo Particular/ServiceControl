@@ -17,17 +17,15 @@
         [Test]
         public async Task Notification_should_be_published_on_the_bus()
         {
-            var context = new MyContext();
-
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
                 {
-                    context.ExternalProcessorSubscribed = true;
+                    ctx.ExternalProcessorSubscribed = true;
                 }
             });
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
