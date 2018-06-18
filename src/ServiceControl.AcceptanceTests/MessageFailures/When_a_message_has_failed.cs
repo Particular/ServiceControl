@@ -31,11 +31,9 @@
         [Test]
         public async Task Should_be_imported_and_accessible_via_the_rest_api()
         {
-            var context = new MyContext();
-
             FailedMessage failedMessage = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -59,11 +57,9 @@
         [Test]
         public async Task Should_be_listed_in_the_error_list()
         {
-            var context = new MyContext();
-
             FailedMessageView failure = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -82,11 +78,9 @@
         [Test]
         public async Task Should_be_listed_in_the_messages_list()
         {
-            var context = new MyContext();
-
             var failure = new MessagesView();
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -106,11 +100,9 @@
         [Test]
         public async Task Should_add_an_event_log_item()
         {
-            var context = new MyContext();
-
             EventLogItem entry = null;
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -129,12 +121,7 @@
         [Test]
         public async Task Should_raise_a_signalr_event()
         {
-            var context = new MyContext
-            {
-                Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
-            };
-
-            await Define(context)
+            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
                 .WithEndpoint<Receiver>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)

@@ -15,10 +15,7 @@
         [Test]
         public async Task Should_import_all_messages()
         {
-            var context = new MyContext();
-
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => Task.WhenAll(Enumerable.Repeat(0, 100).Select(i => bus.SendLocal(new MyMessage())))))
                 .Done(async c =>
                 {

@@ -16,9 +16,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         [Test]
         public async Task SubsequentBatchesShouldBeProcessed()
         {
-            var context = new MyContext();
-
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(cfg => cfg
                     .When(async bus =>
                     {

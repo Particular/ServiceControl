@@ -21,9 +21,7 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {

@@ -17,11 +17,9 @@
         [Test]
         public async Task There_should_be_a_FailedMessage_for_each_subscriber()
         {
-            var context = new FailingEventContext();
-
             var failedMessages = new List<FailedMessageView>();
 
-            await Define(context)
+            await Define<FailingEventContext>()
                 .WithEndpoint<FailingSubscriber1>(behavior => behavior.When(async (bus, ctx) =>
                 {
                     await bus.Subscribe<SampleEvent>();
@@ -45,11 +43,11 @@
                             {
                                 if (s.SubscriberReturnAddress.Contains("Subscriber1"))
                                 {
-                                    context.Subscriber1Subscribed = true;
+                                    ctx.Subscriber1Subscribed = true;
                                 }
                                 else if (s.SubscriberReturnAddress.Contains("Subscriber2"))
                                 {
-                                    context.Subscriber2Subscribed = true;
+                                    ctx.Subscriber2Subscribed = true;
                                 }
                                 else
                                 {

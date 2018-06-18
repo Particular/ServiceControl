@@ -24,9 +24,7 @@
             MessagesView message = null;
             List<EventLogItem> eventLogItems = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -62,9 +60,7 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -94,9 +90,7 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -126,9 +120,7 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -158,9 +150,7 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {

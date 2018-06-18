@@ -16,14 +16,12 @@
         [Test]
         public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_not_present()
         {
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                IncludeProcessingEndpointHeader = false
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<MyContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.IncludeProcessingEndpointHeader = false;
+                })
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {
@@ -39,14 +37,12 @@
         [Test]
         public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_present()
         {
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                IncludeProcessingEndpointHeader = true
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<MyContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.IncludeProcessingEndpointHeader = true;
+                })
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {
