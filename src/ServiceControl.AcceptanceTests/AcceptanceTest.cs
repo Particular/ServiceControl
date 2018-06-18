@@ -185,13 +185,17 @@ namespace ServiceBus.Management.AcceptanceTests
 
         protected IScenarioWithEndpointBehavior<T> Define<T>(params string[] instanceNames) where T : ScenarioContext, new()
         {
-            Func<T> instance = () => new T();
-            return Define(instance, instanceNames);
+            return Define<T>(c => { }, instanceNames);
         }
 
         protected IScenarioWithEndpointBehavior<T> Define<T>(T context, params string[] instanceNames) where T : ScenarioContext, new()
         {
-            return Define(() => context, instanceNames);
+            return null;
+        }
+        
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer, params string[] instanceNames) where T : ScenarioContext, new()
+        {
+            return Scenario.Define(contextInitializer);
         }
 
         protected IScenarioWithEndpointBehavior<T> Define<T>(Func<T> contextFactory, params string[] instanceNames) where T : ScenarioContext, new()
