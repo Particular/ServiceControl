@@ -32,16 +32,15 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             List<KnownEndpointsView> knownEndpoints = null;
             HttpResponseMessage httpResponseMessage = null;
 
-            await Define(context, Remote1, Master)
+            var context = await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<KnownEndpointsView>("/api/endpoints/known", m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master);
+                    var result = await TryGetMany<KnownEndpointsView>("/api/endpoints/known", m => m.EndpointDetails.Name == c.EndpointNameOfReceivingEndpoint, Master);
                     knownEndpoints = result;
                     if (result)
                     {

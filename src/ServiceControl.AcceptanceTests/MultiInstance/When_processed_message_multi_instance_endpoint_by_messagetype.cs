@@ -33,7 +33,6 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             List<MessagesView> response = new List<MessagesView>();
 
             var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
@@ -41,7 +40,7 @@
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            await Define(context, Remote1, Master)
+            var context = await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>

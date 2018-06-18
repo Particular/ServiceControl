@@ -31,20 +31,18 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
-
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;
             
-            await Define(context, Remote1, Master)
-                .WithEndpoint<RemoteEndpoint>(b => b.When(async bus =>
+            var context = await Define<MyContext>(Remote1, Master)
+                .WithEndpoint<RemoteEndpoint>(b => b.When(async (bus, ctx) =>
                 {
-                    context.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);
+                    ctx.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);
                     await bus.SendLocal(new MyMessage());
                 }))
                 .Done(async c =>
                 {
-                    if (string.IsNullOrWhiteSpace(context.Remote1MessageId))
+                    if (string.IsNullOrWhiteSpace(c.Remote1MessageId))
                     {
                         return false;
                     }

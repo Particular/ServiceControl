@@ -29,10 +29,9 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             List<EndpointsView> response;
 
-            await Define(context, Slave, Master)
+            var context = await Define<MyContext>(Slave, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -48,10 +47,9 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             List<EndpointsView> response = null;
 
-            await Define(context, Slave, Master)
+            var context = await Define<MyContext>(Slave, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
