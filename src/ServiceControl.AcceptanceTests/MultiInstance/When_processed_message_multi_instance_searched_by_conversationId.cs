@@ -29,7 +29,7 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = await Define<MyContext>(Remote1, Master)
+            await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new TriggeringMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>

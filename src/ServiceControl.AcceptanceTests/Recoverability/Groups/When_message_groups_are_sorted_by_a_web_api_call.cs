@@ -42,7 +42,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             List<FailedMessageView> localErrors = null;
 
-            var context = await Define<MyContext>()
+            await Define<MyContext>()
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {

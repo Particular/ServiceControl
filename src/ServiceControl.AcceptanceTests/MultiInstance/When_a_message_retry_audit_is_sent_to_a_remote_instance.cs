@@ -30,7 +30,7 @@
 
             FailedMessage failure;
 
-            var context = await Define<MyContext>(Remote1, Master)
+            await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
