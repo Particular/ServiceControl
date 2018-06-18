@@ -107,9 +107,7 @@
             var toAddress = "endpointTo@machineTo";
             var dependentCount = 3;
 
-            var context = new Context();
-
-            Define(context);
+            var context = Define<Context>();
 
             for (var i = 0; i < dependentCount; i++)
             {
