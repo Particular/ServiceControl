@@ -25,10 +25,10 @@
                 using (var session = documentStore.OpenAsyncSession())
                 {
                     cts.CancelAfter(TimeSpan.FromMinutes(1));
-                    
+
                     RavenQueryStatistics stats;
                     await session.Advanced.AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                        .SetResultTransformer(FailedMessageViewTransformer.Name)
                         .Take(1)
                         .Statistics(out stats)
                         .WaitForNonStaleResultsAsOf(cutOffTime)
