@@ -1,13 +1,14 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
     class Is_System_Message_Tests: AcceptanceTest
@@ -15,19 +16,17 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
-                IncludeControlMessageHeader = false,
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+            {
+                ctx.MessageId = Guid.NewGuid().ToString();
+                ctx.EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+                ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -40,19 +39,17 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_message_type_is_a_scheduled_task()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask",
-                IncludeControlMessageHeader = false,
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask";
+                    ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -64,20 +61,18 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_true()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = null,
-                IncludeControlMessageHeader = true,
-                ControlMessageHeaderValue = true
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = null;
+                    ctx.IncludeControlMessageHeader = true;
+                    ctx.ControlMessageHeaderValue = true;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -89,20 +84,18 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_control_message_header_is_null()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask",
-                IncludeControlMessageHeader = true, // If hte control message header is present, then its a system message
-                ControlMessageHeaderValue = null
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask";
+                    ctx.IncludeControlMessageHeader = true; // If hte control message header is present, then its a system message
+                    ctx.ControlMessageHeaderValue = null;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -115,19 +108,17 @@
         [Test]
         public async Task Should_set_the_IsSystemMessage_for_integration_scenario()
         {
-            var context = new SystemMessageTestContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                EnclosedMessageType = null,
-                IncludeControlMessageHeader = false
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<SystemMessageTestContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = null;
+                    ctx.IncludeControlMessageHeader = false;
+                })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -143,50 +134,40 @@
                 EndpointSetup<DefaultServerWithAudit>();
             }
 
-            class Foo : IWantToRunWhenBusStartsAndStops
+            class Foo : DispatchRawMessages<SystemMessageTestContext>
             {
-                public ISendMessages SendMessages { get; set; }
-
-                public SystemMessageTestContext SystemMessageTestContext { get; set; }
-
-                public void Start()
+                protected override TransportOperations CreateMessage(SystemMessageTestContext context)
                 {
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
-                    var transportMessage = new TransportMessage();
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = "ServerEndpoint";
-                    transportMessage.Headers[Headers.MessageId] = SystemMessageTestContext.MessageId;
-                    transportMessage.Headers[Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707";
-                    transportMessage.Headers["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804";
-                    transportMessage.Headers["$.diagnostics.hostdisplayname"] = "SELENE";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = "SomeEndpoint@SELENE";
-                    transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    transportMessage.Headers["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z";
-                    if (!string.IsNullOrEmpty(SystemMessageTestContext.EnclosedMessageType))
+                    var headers = new Dictionary<string, string>
                     {
-                        transportMessage.Headers[Headers.EnclosedMessageTypes] = SystemMessageTestContext.EnclosedMessageType;
-                    }
-                    if (SystemMessageTestContext.IncludeControlMessageHeader)
+                        [Headers.ProcessingEndpoint] = "ServerEndpoint",
+                        [Headers.MessageId] = context.MessageId,
+                        [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
+                        ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
+                        ["$.diagnostics.hostdisplayname"] = "SELENE",
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
+                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = "SomeEndpoint@SELENE",
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z"
+                    };
+                    if (!string.IsNullOrEmpty(context.EnclosedMessageType))
                     {
-                        transportMessage.Headers[Headers.ControlMessageHeader] = SystemMessageTestContext.ControlMessageHeaderValue != null && (bool) SystemMessageTestContext.ControlMessageHeaderValue ? SystemMessageTestContext.ControlMessageHeaderValue.ToString() : null;
+                        headers[Headers.EnclosedMessageTypes] = context.EnclosedMessageType;
                     }
-
-                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
-                }
-
-                public void Stop()
-                {
+                    if (context.IncludeControlMessageHeader)
+                    {
+                        headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool) context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
+                    }
+                    
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("error")));
                 }
             }
-        }
-
-        public class MyMessage : IMessage
-        {
         }
 
         public class SystemMessageTestContext : ScenarioContext

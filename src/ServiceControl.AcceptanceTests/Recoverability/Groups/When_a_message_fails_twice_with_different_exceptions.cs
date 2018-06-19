@@ -7,10 +7,9 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using System.Web;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -20,13 +19,11 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         [Test]
         public async Task Only_the_second_groups_should_apply()
         {
-            var context = new MeowContext();
-
             FailedMessage originalMessage = null;
             FailedMessage retriedMessage = null;
 
-            await Define(context)
-                .WithEndpoint<MeowReceiver>(b => b.Given(bus => bus.SendLocal(new Meow())))
+            await Define<MeowContext>()
+                .WithEndpoint<MeowReceiver>(b => b.When(bus => bus.SendLocal(new Meow())))
                 .Done(async ctx =>
                 {
                     if (String.IsNullOrWhiteSpace(ctx.UniqueMessageId))
@@ -36,18 +33,18 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     if (!ctx.Retrying)
                     {
-                        var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                         FailedMessage originalMessageTemp = result;
                         if (result)
                         {
                             originalMessage = originalMessageTemp;
                             ctx.Retrying = true;
-                            await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                            await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         }
                     }
                     else
                     {
-                        var retriedMessageResult = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", err => err.ProcessingAttempts.Count == 2);
+                        var retriedMessageResult = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", err => err.ProcessingAttempts.Count == 2);
                         retriedMessage = retriedMessageResult;
                         return retriedMessageResult;
                     }
@@ -82,20 +79,22 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public MeowReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    c.Recoverability().Delayed(x => x.NumberOfRetries(0));
+                });
             }
 
             public class FailingMessageHandler : IHandleMessages<Meow>
             {
                 public MeowContext Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(Meow message)
+                public Task Handle(Meow message, IMessageHandlerContext context)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
                     Context.UniqueMessageId = uniqueMessageId;
 
                     if (Context.Retrying)

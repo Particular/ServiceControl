@@ -21,11 +21,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             Define<Context>();
 
-            await Post("/api/redirects", redirect);
+            await this.Post("/api/redirects", redirect);
 
-            await Delete($"/api/redirects/{messageRedirectId}/");
+            await this.Delete($"/api/redirects/{messageRedirectId}/");
 
-            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
             List<MessageRedirectFromJson> response = result;
 
             Assert.AreEqual(0, response.Count, "Expected no redirects after delete");

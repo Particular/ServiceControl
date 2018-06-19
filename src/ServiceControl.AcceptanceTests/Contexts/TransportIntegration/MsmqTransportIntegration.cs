@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    public class MsmqTransportIntegration : ITransportIntegration
+    public class MsmqTransportIntegration
     {
         public MsmqTransportIntegration()
         {

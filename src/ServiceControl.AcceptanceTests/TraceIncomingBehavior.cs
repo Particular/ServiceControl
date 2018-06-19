@@ -1,13 +1,13 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
-    using NServiceBus.Pipeline.Contexts;
     using NServiceBus.Settings;
 
-    internal class TraceIncomingBehavior : IBehavior<IncomingContext>
+    internal class TraceIncomingBehavior : IBehavior<IIncomingLogicalMessageContext, IIncomingLogicalMessageContext>
     {
         private ScenarioContext scenarioContext;
         private ReadOnlySettings settings;
@@ -18,19 +18,18 @@ namespace ServiceBus.Management.AcceptanceTests
             this.settings = settings;
         }
 
-        public void Invoke(IncomingContext context, Action next)
-        {
-            scenarioContext.AddTrace($"<- {settings.LocalAddress()} got [{context.PhysicalMessage.Id}] {context.IncomingLogicalMessage.MessageType.Name}");
-            next();
-        }
-
         internal class Registration : RegisterStep
         {
             public Registration()
                 : base("TraceIncomingBehavior", typeof(TraceIncomingBehavior), "Adds incoming messages to the acceptance test trace")
             {
-                InsertBefore(WellKnownStep.LoadHandlers);
             }
+        }
+
+        public Task Invoke(IIncomingLogicalMessageContext context, Func<IIncomingLogicalMessageContext, Task> next)
+        {
+            scenarioContext.AddTrace($"<- {settings.LocalAddress()} got [{context.MessageId}] {context.Message.MessageType.Name}");
+            return next(context);
         }
     }
 }

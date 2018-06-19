@@ -2,12 +2,12 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -18,14 +18,13 @@
         [Test]
         public async Task Should_be_marked_as_monitored()
         {
-            var context = new MyContext();
             List<EndpointsView> endpoints = null;
 
-            await Define(context)
-                .WithEndpoint<MyEndpoint>()
+            await Define<MyContext>()
+                .WithEndpoint<MyEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
                     endpoints = result;
                     return result;
                 })
@@ -35,11 +34,11 @@
             Assert.NotNull(myEndpoint);
             Assert.IsFalse(myEndpoint.Monitored);
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<MyEndpointWithHeartbeat>()
                 .Done(async c =>
                 {
-                    var result =  await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
+                    var result =  await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
                     endpoints = result;
                     return result;
                 })
@@ -62,29 +61,11 @@
                 EndpointSetup<DefaultServerWithAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
-            {
-                readonly IBus bus;
-
-                public SendMessage(IBus bus)
-                {
-                    this.bus = bus;
-                }
-
-                public void Start()
-                {
-                    bus.SendLocal(new MyMessage());
-                }
-
-                public void Stop()
-                {
-                }
-            }
-
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -95,8 +76,8 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.EndpointName(EndpointName);
-                }).IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.Heartbeat.dll"));
+                    c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
+                }).CustomEndpointName(EndpointName);
             }
         }
 

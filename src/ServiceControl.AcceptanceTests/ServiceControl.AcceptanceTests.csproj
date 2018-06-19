@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props" Condition="Exists('..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -98,12 +99,16 @@
     <Reference Include="Nancy, Version=1.4.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Nancy.1.4.3\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
       <HintPath>..\packages\NLog.4.5.3\lib\net45\NLog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NServiceBus.AcceptanceTesting, Version=7.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
+      <HintPath>..\packages\NServiceBus.AcceptanceTesting.7.0.1\lib\net452\NServiceBus.AcceptanceTesting.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus, Version=8.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
@@ -126,6 +131,10 @@
       <HintPath>..\packages\NServiceBus.Heartbeat.3.0.0\lib\net452\NServiceBus.Heartbeat.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NServiceBus.Newtonsoft.Json, Version=2.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
+      <HintPath>..\packages\NServiceBus.Newtonsoft.Json.2.1.0\lib\net452\NServiceBus.Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NServiceBus.NLog, Version=3.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
       <HintPath>..\packages\NServiceBus.NLog.3.0.0\lib\net452\NServiceBus.NLog.dll</HintPath>
       <Private>True</Private>
@@ -138,6 +147,10 @@
       <HintPath>..\packages\NServiceBus.SagaAudit.3.0.0\lib\net452\NServiceBus.SagaAudit.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NServiceBus.Transport.Msmq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
+      <HintPath>..\packages\NServiceBus.Transport.Msmq.1.0.0\lib\net452\NServiceBus.Transport.Msmq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NServiceBus.Transport.RabbitMQ, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
       <HintPath>..\packages\NServiceBus.RabbitMQ.5.0.0\lib\net452\NServiceBus.Transport.RabbitMQ.dll</HintPath>
       <Private>True</Private>
@@ -146,8 +159,8 @@
       <HintPath>..\packages\NServiceBus.SqlServer.4.0.0\lib\net452\NServiceBus.Transport.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+    <Reference Include="nunit.framework, Version=3.7.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb">
+      <HintPath>..\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
@@ -227,19 +240,39 @@
     <Compile Include="Audit\When_processed_message_searched_by_messageid.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_messagetype.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_msgid_for_endpoint.cs" />
-    <Compile Include="Contexts\DefaultServerWithoutAudit.cs" />
+    <Compile Include="ConfigureEndpointInMemoryPersistence.cs" />
+    <Compile Include="ConfigureEndpointMsmqTransport .cs" />
     <Compile Include="Audit\When_a_message_sent_from_third_party_endpoint_with_missing_metadata.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureStorageQueuesTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\AzureServiceBusTransportIntegration.cs" />
-    <Compile Include="Contexts\TransportIntegration\ITransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\MsmqTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\RabbitMqTransportIntegration.cs" />
+    <Compile Include="EndpointConfigurationExtensions.cs" />
+    <Compile Include="EndpointTemplates\DefaultServerWithAudit.cs" />
+    <Compile Include="EndpointTemplates\DefaultServerWithoutAudit.cs" />
+    <Compile Include="HttpClientExtensions.cs" />
+    <Compile Include="IAcceptanceTestInfrastructureProvider.cs" />
+    <Compile Include="IRequireConnectionString.cs" />
+    <Compile Include="ITransportIntegration.cs" />
+    <Compile Include="ServiceControlComponentBehavior.cs" />
+    <Compile Include="ServiceControlComponentRunner.cs" />
+    <Compile Include="TestSuiteConstraints.cs" />
     <Compile Include="CustomChecks\Custom_check_transition_should_trigger_signalr_event.cs" />
     <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />
     <Compile Include="CustomChecks\When_a_custom_check_fails.cs" />
     <Compile Include="CustomChecks\When_a_periodic_custom_check_fails.cs" />
     <Compile Include="DiagnosticTimer.cs" />
+    <Compile Include="DispatchRawMessages.cs" />
+    <Compile Include="EndpointTemplates\ConfigureExtensions.cs" />
+    <Compile Include="EndpointTemplates\DefaultPublisher.cs" />
+    <Compile Include="EndpointTemplates\DefaultServer.cs" />
+    <Compile Include="EndpointTemplates\EndpointConfigurationExtensions.cs" />
+    <Compile Include="EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
+    <Compile Include="EndpointTemplates\IConfigureEndpointTestExecution.cs" />
+    <Compile Include="EndpointTemplates\Requires.cs" />
+    <Compile Include="EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
+    <Compile Include="EndpointTemplates\TestSuiteConstraints.cs" />
     <Compile Include="ExternalIntegrations\JsonServer.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_failed.cs" />
@@ -260,7 +293,6 @@
     <Compile Include="MessageFailures\When_a_pending_retry_is_resolved_by_timeframe.cs" />
     <Compile Include="MessageFailures\When_a_pending_retry_is_retried_again.cs" />
     <Compile Include="MessageFailures\When_a_multiple_error_message_with_same_uniqueid_are_imported_concurrently.cs" />
-    <Compile Include="MessageFailures\When_an_error_message_has_ttbr_set.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed.cs" />
     <Compile Include="MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
     <Compile Include="MessageFailures\When_a_invalid_id_is_sent_to_retry.cs" />
@@ -272,7 +304,6 @@
     <Compile Include="MessageFailures\When_a_retry_for_a_empty_body_message_is_successful.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_fails.cs" />
     <Compile Include="MessageFailures\When_a_retry_for_a_failed_message_is_successful.cs" />
-    <Compile Include="Contexts\ConfigureExtensions.cs" />
     <Compile Include="MessageRedirects\MessageRedirect.cs" />
     <Compile Include="MessageRedirects\RedirectRequest.cs" />
     <Compile Include="MessageRedirects\When_a_message_fails_a_retry_with_a_redirect.cs" />
@@ -280,7 +311,6 @@
     <Compile Include="MessageRedirects\When_a_redirect_is_changed.cs" />
     <Compile Include="MessageRedirects\When_a_redirect_is_created.cs" />
     <Compile Include="MessageRedirects\When_a_redirect_is_removed.cs" />
-    <Compile Include="Contexts\DefaultServerWithAudit.cs" />
     <Compile Include="MessageRedirects\When_no_redirects_have_been_created.cs" />
     <Compile Include="Migrations\SplitFailedMessageDocumentsMigrationTests.cs" />
     <Compile Include="MultiInstance\When_a_message_retry_audit_is_sent_to_a_remote_instance.cs" />
@@ -317,10 +347,9 @@
     <Compile Include="SagaAudit\When_requesting_timeout_from_a_saga.cs" />
     <Compile Include="SagaAudit\When_publishing_from_a_saga.cs" />
     <Compile Include="SagaAudit\When_a_message_hitting_a_saga_is_audited.cs" />
-    <Compile Include="SessionCopBehavior.cs" />
+    <Compile Include="ScenarioWithEndpointBehaviorExtensions.cs" />
     <Compile Include="SignalRHttpClient.cs" />
     <Compile Include="SingleResult.cs" />
-    <Compile Include="SubscriptionBehavior.cs" />
     <Compile Include="TraceIncomingBehavior.cs" />
     <Compile Include="TraceOutgoingBehavior.cs" />
     <Compile Include="When_a_message_is_imported_twice.cs" />
@@ -332,10 +361,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj">
-      <Project>{758357f6-cd31-4337-80c4-ba377fc257af}</Project>
-      <Name>ServiceControl.AcceptanceTesting</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>
       <Name>ServiceControl</Name>
@@ -345,4 +370,10 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props'))" />
+  </Target>
 </Project>

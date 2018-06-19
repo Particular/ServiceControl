@@ -21,9 +21,9 @@
 
             Define<Context>();
 
-            await Post("/api/redirects", redirect);
+            await this.Post("/api/redirects", redirect);
 
-            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
             List<MessageRedirectFromJson> response = result;
 
             Assert.AreEqual(1, response.Count, "Expected 1 redirect to be created");
@@ -44,7 +44,7 @@
 
             Define<Context>();
 
-            await Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
+            await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
         }
 
         [Test]
@@ -58,7 +58,7 @@
 
             Define<Context>();
 
-            await Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
+            await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.BadRequest);
         }
 
         [Test]
@@ -72,11 +72,11 @@
 
             Define<Context>();
 
-            await Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
+            await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
 
             redirect.tophysicaladdress = "endpointC@machine3";
 
-            await Post("/api/redirects", redirect, status => status != HttpStatusCode.Conflict);
+            await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.Conflict);
         }
 
         [Test]
@@ -90,11 +90,11 @@
 
             Define<Context>();
 
-            await Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
+            await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
 
-            await Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
+            await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
 
-            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
             List<MessageRedirectFromJson> response = result;
 
             Assert.AreEqual(1, response.Count, "Expected only 1 redirect to be created");
@@ -107,9 +107,7 @@
             var toAddress = "endpointTo@machineTo";
             var dependentCount = 3;
 
-            var context = new Context();
-
-            Define(context);
+            Define<Context>();
 
             for (var i = 0; i < dependentCount; i++)
             {
@@ -118,10 +116,10 @@
                     fromphysicaladdress = $"endpoint{i}@machine{i}",
                     tophysicaladdress = toAddress
                 };
-                await Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
+                await this.Post("/api/redirects", redirect, status => status != HttpStatusCode.Created);
             }
 
-            await Post("/api/redirects", new RedirectRequest
+            await this.Post("/api/redirects", new RedirectRequest
             {
                 fromphysicaladdress = toAddress,
                 tophysicaladdress = "endpointX@machineX"

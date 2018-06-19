@@ -3,10 +3,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -17,15 +17,14 @@
         [Test]
         public async Task Should_not_be_monitored()
         {
-            var context = new MyContext();
             List<EndpointsView> endpoints = null;
 
-            await Define(context)
-                .WithEndpoint<StartingEndpoint>()
+            await Define<MyContext>()
+                .WithEndpoint<StartingEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
                     endpoints = result;
                     return result;
                 })
@@ -47,29 +46,15 @@
                 EndpointSetup<DefaultServerWithAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
-            {
-                readonly IBus bus;
-
-                public SendMessage(IBus bus)
-                {
-                    this.bus = bus;
-                }
-
-                public void Start()
-                {
-                    bus.SendLocal(new MyMessage());
-                }
-
-                public void Stop()
-                {
-                }
-            }
-
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public void Handle(MyMessage message)
                 {
+                }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    return Task.FromResult(0);
                 }
             }
         }

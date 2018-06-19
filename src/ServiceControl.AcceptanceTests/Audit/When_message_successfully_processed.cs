@@ -6,29 +6,26 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Endpoints;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_message_successfully_processed : AcceptanceTest
     {
         [Test]
         public async Task Should_list_the_endpoint_in_the_list_of_known_endpoints()
         {
-            var context = new MyContext();
-
             List<EndpointsView> knownEndpoints = null;
 
-            await Define(context)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    bus.Send(new MyMessage());
-                }))
+            var context = await Define<MyContext>()
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints", m => m.Name == context.EndpointNameOfReceivingEndpoint);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints", m => m.Name == c.EndpointNameOfReceivingEndpoint);
                     knownEndpoints = result;
                     return result;
                 })
@@ -42,8 +39,11 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), Conventions.EndpointNamingConvention(typeof(Receiver)));
+                });
             }
         }
 
@@ -58,14 +58,13 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }

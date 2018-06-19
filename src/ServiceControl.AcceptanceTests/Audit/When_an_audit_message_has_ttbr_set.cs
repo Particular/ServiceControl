@@ -4,25 +4,25 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
     class When_an_audit_message_has_ttbr_set : AcceptanceTest
     {
         [Test]
         public async Task Ttbr_is_stripped_before_being_forwarded_to_audit_queue()
         {
-            var context = new MyContext();
             SetSettings = settings =>
             {
                 settings.ForwardAuditMessages = true;
-                settings.AuditLogQueue = Address.Parse("Audit.LogPeekEndpoint");
+                settings.AuditLogQueue = "Audit.LogPeekEndpoint";
             };
 
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<SourceEndpoint>(
-                    c => c.Given(bus => bus.SendLocal(new MessageWithTtbr()))
+                    c => c.When(bus => bus.SendLocal(new MessageWithTtbr()))
                 )
                 .WithEndpoint<LogPeekEndpoint>()
                 .Done(c => c.Done)
@@ -37,15 +37,16 @@
             public SourceEndpoint()
             {
                 // Must disable transactions to be able to forward TTBR to Audit Log
-                EndpointSetup<DefaultServerWithAudit>(config => config.Transactions().Disable());
+                EndpointSetup<DefaultServerWithAudit>(config => config.ConfigureTransport().Transactions(TransportTransactionMode.None));
             }
 
             public class MessageHandler : IHandleMessages<MessageWithTtbr>
             {
-                public void Handle(MessageWithTtbr message)
+                public Task Handle(MessageWithTtbr message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message processed successfully");
                     // Process successfully and forward to Audit Log
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -56,27 +57,27 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.EndpointName("Audit.LogPeekEndpoint");
                     c.RegisterComponents(components => components.ConfigureComponent<MutateIncomingTransportMessages>(DependencyLifecycle.InstancePerCall));
-                });
+                }).CustomEndpointName("Audit.LogPeekEndpoint");
             }
 
             public class MutateIncomingTransportMessages : IMutateIncomingTransportMessages
             {
-                readonly MyContext context;
+                readonly MyContext testContext;
 
-                public MutateIncomingTransportMessages(MyContext context)
+                public MutateIncomingTransportMessages(MyContext testContext)
                 {
-                    this.context = context;
+                    this.testContext = testContext;
                 }
 
-                public void MutateIncoming(TransportMessage transportMessage)
+                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     // MSMQ gives incoming messages a magic value so we can't compare against MaxValue
                     // Ensure that the TTBR given is greater than the 10:00:00 configured
-                    context.TtbrStripped = transportMessage.TimeToBeReceived > TimeSpan.Parse("00:10:00");
+                    testContext.TtbrStripped = TimeSpan.Parse(context.Headers[Headers.TimeToBeReceived]) > TimeSpan.Parse("00:10:00");
 
-                    context.Done = true;
+                    testContext.Done = true;
+                    return Task.FromResult(0);
                 }
             }
         }

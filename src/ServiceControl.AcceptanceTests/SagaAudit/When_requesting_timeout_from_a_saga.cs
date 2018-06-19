@@ -2,13 +2,12 @@
 {
     using System;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_requesting_timeout_from_a_saga : AcceptanceTest
@@ -17,14 +16,13 @@
         [Test]
         public async Task Saga_audit_trail_should_contain_the_state_change()
         {
-            var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            await Define(context)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new StartSagaMessage())))
+            var context = await Define<MyContext>()
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", sh=>sh.Changes.Any(change=>change.Status == SagaStateChangeStatus.Updated));
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", sh=>sh.Changes.Any(change=>change.Status == SagaStateChangeStatus.Updated));
                     sagaHistory = result;
                     return c.ReceivedTimeoutMessage && result;
                 })
@@ -43,8 +41,7 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }
 
         }
@@ -54,15 +51,16 @@
         {
             public MyContext Context { get; set; }
 
-            public void Handle(StartSagaMessage message)
+            public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
                 Context.SagaId = Data.Id;
-                RequestTimeout<TimeoutMessage>(TimeSpan.FromMilliseconds(10));
+                return RequestTimeout<TimeoutMessage>(context, TimeSpan.FromMilliseconds(10));
             }
 
-            public void Timeout(TimeoutMessage state)
+            public Task Timeout(TimeoutMessage stat, IMessageHandlerContext context)
             {
                 Context.ReceivedTimeoutMessage = true;
+                return Task.FromResult(0);
             }
 
             protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)

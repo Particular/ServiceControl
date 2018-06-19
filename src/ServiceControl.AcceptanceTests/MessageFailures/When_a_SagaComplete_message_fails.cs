@@ -1,20 +1,17 @@
-﻿
-
-namespace ServiceBus.Management.AcceptanceTests.MessageFailures
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_SagaComplete_message_fails : AcceptanceTest
     {
@@ -23,13 +20,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             FailedMessageView failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
                     failure = result;
                     return result;
                 })
@@ -44,48 +39,36 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
+                    c.NoDelayedRetries();
                 });
             }
 
-            public class SendFailedMessage : IWantToRunWhenBusStartsAndStops
+            public class SendFailedMessage : DispatchRawMessages<MyContext>
             {
-                readonly ISendMessages sendMessages;
-                readonly MyContext context;
-                readonly ReadOnlySettings settings;
-
-                public SendFailedMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    this.sendMessages = sendMessages;
-                    this.context = context;
-                    this.settings = settings;
-                }
-
-                public void Start()
-                {
-                    context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    context.EndpointNameOfReceivingEndpoint = Conventions.EndpointNamingConvention(typeof(FailureEndpoint));
                     context.MessageId = Guid.NewGuid().ToString();
                     context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
 
-                    var transportMessage = new TransportMessage(context.MessageId, new Dictionary<string, string>());
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint;
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
-                    transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    transportMessage.Headers[Headers.ControlMessageHeader] = Boolean.TrueString;
-                    transportMessage.Headers["NServiceBus.ClearTimeouts"] = Boolean.TrueString;
-                    transportMessage.Headers["NServiceBus.SagaId"] = "626f86be-084c-4867-a5fc-a53f0092b299";
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint,
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
+                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)),
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        [Headers.ControlMessageHeader] = Boolean.TrueString,
+                        ["NServiceBus.ClearTimeouts"] = Boolean.TrueString,
+                        ["NServiceBus.SagaId"] = "626f86be-084c-4867-a5fc-a53f0092b299"
+                    };
 
-                    sendMessages.Send(transportMessage, new SendOptions("error"));
-                }
+                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
 
-                public void Stop()
-                {
-
+                    return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
             }
         }

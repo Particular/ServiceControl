@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    public class RabbitMqTransportIntegration : ITransportIntegration
+    public class RabbitMqTransportIntegration
     {
         public RabbitMqTransportIntegration()
         {
@@ -31,16 +31,17 @@
     }
 }
 
-namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration.RabbitMq
-{
-    using NServiceBus;
+// TODO: This
+//namespace ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration.RabbitMq
+//{
+//    using NServiceBus;
 
-    class CustomConfigForEndpoints : INeedInitialization
-    {
-        public void Customize(BusConfiguration configuration)
-        {
-            configuration.UseTransport<RabbitMQTransport>().DisableCallbackReceiver();
-            configuration.EnableOutbox();
-        }
-    }
-}
+//    class CustomConfigForEndpoints : INeedInitialization
+//    {
+//        public void Customize(BusConfiguration configuration)
+//        {
+//            configuration.UseTransport<RabbitMQTransport>().DisableCallbackReceiver();
+//            configuration.EnableOutbox();
+//        }
+//    }
+//}

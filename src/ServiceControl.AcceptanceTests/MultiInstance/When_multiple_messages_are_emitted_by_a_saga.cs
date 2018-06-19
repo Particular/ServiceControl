@@ -4,14 +4,14 @@
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Features;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
@@ -53,14 +53,13 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             SagaHistory sagaHistory = null;
 
-            await Define(context, Remote1, Master)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+            var context = await Define<MyContext>(Remote1, Master)
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
                 .Done(async c =>
                 {
-                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
                     sagaHistory = result;
                     return c.Done && result;
                 })
@@ -92,8 +91,8 @@
             {
                 case Remote1:
                     addressOfRemote = settings.ApiUrl;
-                    settings.AuditQueue = Address.Parse(AuditRemote);
-                    settings.ErrorQueue = Address.Parse(ErrorRemote);
+                    settings.AuditQueue = AuditRemote;
+                    settings.ErrorQueue = ErrorRemote;
                     break;
                 case Master:
                     settings.RemoteInstances = new[]
@@ -104,8 +103,8 @@
                             QueueAddress = Remote1
                         }
                     };
-                    settings.AuditQueue = Address.Parse(AuditMaster);
-                    settings.ErrorQueue = Address.Parse(ErrorMaster);
+                    settings.AuditQueue = AuditMaster;
+                    settings.ErrorQueue = ErrorMaster;
                     break;
             }
         }
@@ -117,25 +116,28 @@
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.DisableFeature<AutoSubscribe>();
-                })
-                .AddMapping<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga))
-                .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"))
-                .AuditTo(Address.Parse(AuditRemote))
-                .ErrorTo(Address.Parse(ErrorMaster));
+                    c.AuditSagaStateChanges(AuditRemote);
+                    c.AuditProcessedMessagesTo(AuditRemote);
+                    c.SendFailedMessagesTo(ErrorMaster);
+
+                    c.ConfigureTransport()
+                        .Routing()
+                        .RouteToEndpoint(typeof(MessagePublishedBySaga), typeof(EndpointThatIsHostingTheSaga));
+                });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MessageInitiatingSaga message)
+                public async Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     Context.SagaId = Data.Id;
 
-                    Bus.Reply(new MessageReplyBySaga());
-                    ReplyToOriginator(new MessageReplyToOriginatorBySaga());
-                    Bus.SendLocal(new MessageSentBySaga());
-                    Bus.Publish(new MessagePublishedBySaga());
+                    await context.Reply(new MessageReplyBySaga());
+                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga());
+                    await context.SendLocal(new MessageSentBySaga());
+                    await context.Publish(new MessagePublishedBySaga());
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -149,22 +151,25 @@
 
             class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
             {
-                public void Handle(MessageReplyBySaga message)
+                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
 
             class MessagePublishedBySagaHandler : IHandleMessages<MessagePublishedBySaga>
             {
-                public void Handle(MessagePublishedBySaga message)
+                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
 
             class MessageReplyToOriginatorBySagaHandler : IHandleMessages<MessageReplyToOriginatorBySaga>
             {
-                public void Handle(MessageReplyToOriginatorBySaga message)
+                public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
 
@@ -172,9 +177,10 @@
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MessageSentBySaga message)
+                public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done = true;
+                    return Task.FromResult(0);
                 }
             }
         }

@@ -6,11 +6,9 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
 
     public class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
@@ -18,9 +16,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         [Test]
         public async Task SubsequentBatchesShouldBeProcessed()
         {
-            var context = new MyContext();
-
-            await Define(context)
+            var context = await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(cfg => cfg
                     .When(async bus =>
                     {
@@ -28,7 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                         {
                             try
                             {
-                                await Post<object>("/api/errors/1785201b-5ccd-4705-b14e-f9dd7ef1386e/retry");
+                                await this.Post<object>("/api/errors/1785201b-5ccd-4705-b14e-f9dd7ef1386e/retry");
                                 break;
                             }
                             catch (InvalidOperationException)
@@ -37,9 +33,9 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                             }
                         }
 
-                        bus.SendLocal(new MessageThatWillFail());
+                        await bus.SendLocal(new MessageThatWillFail());
                     })
-                    .When(async ctx => ctx.IssueRetry && await TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
+                    .When(async ctx => ctx.IssueRetry && await this.TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
                 .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 
@@ -50,29 +46,30 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 0;
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(s => s.NumberOfRetries(0));
+                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                });
             }
 
             public class MessageThatWillFailHandler: IHandleMessages<MessageThatWillFail>
             {
                 public MyContext Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MessageThatWillFail message)
+                public Task Handle(MessageThatWillFail message, IMessageHandlerContext context)
                 {
                     if (!Context.ExceptionThrown) //simulate that the exception will be resolved with the retry
                     {
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
                         Context.ExceptionThrown = Context.IssueRetry = true;
                         throw new Exception("Simulated exception");
                     }
 
                     Context.Done = true;
+                    return Task.FromResult(0);
                 }
             }
         }

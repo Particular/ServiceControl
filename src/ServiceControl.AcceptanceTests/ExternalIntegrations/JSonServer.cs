@@ -1,18 +1,19 @@
 namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Config.ConfigurationSource;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
     public class JsonServer : IEndpointSetupTemplate
     {
-        public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
+
+        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            return new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, configSource, b =>
+            return new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, b =>
             {
-                b.UseSerialization<JsonSerializer>();
+                b.UseSerialization<NewtonsoftSerializer>();
                 configurationBuilderCustomization(b);
             });
         }

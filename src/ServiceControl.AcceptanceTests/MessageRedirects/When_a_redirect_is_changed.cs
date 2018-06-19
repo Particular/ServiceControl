@@ -23,23 +23,21 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             const string newTo = "endpointC@machine3";
 
-            var context = new Context();
+            var context = await Define<Context>().Run();
 
-            Define(context);
+            await this.Post("/api/redirects", redirect);
 
-            await Post("/api/redirects", redirect);
-
-            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
             List<MessageRedirectFromJson> response = result;
 
             context.CreatedAt = response[0].last_modified;
 
-            await Put($"/api/redirects/{messageRedirectId}/", new
+            await this.Put($"/api/redirects/{messageRedirectId}/", new
             {
                 tophysicaladdress = newTo
             }, status => status != HttpStatusCode.NoContent);
 
-            result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
+            result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
             response = result;
 
             Assert.AreEqual(1, response.Count, "Expected only 1 redirect");
@@ -62,9 +60,9 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             Define<Context>();
 
-            await Post("/api/redirects", redirect);
+            await this.Post("/api/redirects", redirect);
 
-            await Put($"/api/redirects/{messageRedirectId}/", new
+            await this.Put($"/api/redirects/{messageRedirectId}/", new
             {
                 tophysicaladdress = string.Empty
             }, status => status != HttpStatusCode.BadRequest);
@@ -77,7 +75,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             Define<Context>();
 
-            await Put($"/api/redirects/{Guid.Empty}/", new
+            await this.Put($"/api/redirects/{Guid.Empty}/", new
             {
                 tophysicaladdress = newTo
             }, status => status != HttpStatusCode.NotFound);
@@ -102,11 +100,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             Define<Context>();
 
-            await Post("/api/redirects", updateRedirect);
+            await this.Post("/api/redirects", updateRedirect);
 
-            await Post("/api/redirects", conflictRedirect);
+            await this.Post("/api/redirects", conflictRedirect);
 
-            await Put($"/api/redirects/{messageRedirectId}/", new
+            await this.Put($"/api/redirects/{messageRedirectId}/", new
             {
                 tophysicaladdress = conflictRedirect.fromphysicaladdress
             }, status => status != HttpStatusCode.Conflict);

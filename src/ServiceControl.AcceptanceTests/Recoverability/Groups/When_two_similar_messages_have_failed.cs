@@ -3,15 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -21,26 +18,27 @@
         [Test]
         public async Task They_should_be_grouped_together()
         {
-            var context = new MyContext();
-
             List<FailureGroupView> exceptionTypeAndStackTraceGroups = null;
             List<FailureGroupView> messageTypeGroups = null;
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal<MyMessage>(m => m.IsFirst = true);
-                    Thread.Sleep(TimeSpan.FromSeconds(1));
-                    bus.SendLocal<MyMessage>(m => m.IsFirst = false);
+                    await bus.SendLocal<MyMessage>(m => m.IsFirst = true)
+                        .ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromSeconds(1))
+                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.IsFirst = false)
+                        .ConfigureAwait(false);
                 }))
                 .Done(async c =>
                 {
                     if (!c.FirstDone || !c.SecondDone)
                         return false;
 
-                    var result = await TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    var result = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
                     exceptionTypeAndStackTraceGroups = result;
                     if (!result)
                     {
@@ -52,16 +50,16 @@
                         return false;
                     }
 
-                    messageTypeGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
+                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
 
-                    var firstFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId);
+                    var firstFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId);
                     firstFailure = firstFailureResult;
                     if (!firstFailureResult)
                     {
                         return false;
                     }
 
-                    var secondFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId);
+                    var secondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId);
                     secondFailure = secondFailureResult;
                     if (!secondFailureResult)
                     {
@@ -99,10 +97,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        c.MaxRetries = 0;
+                        var recoverability = c.Recoverability();
+                        recoverability.Immediate(x => x.NumberOfRetries(0));
+                        recoverability.Delayed(x => x.NumberOfRetries(0));
                     });
             }
 
@@ -110,16 +109,15 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
 
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    // TODO: Check LocalAddress sanitization
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
 
                     if (message.IsFirst)
                     {

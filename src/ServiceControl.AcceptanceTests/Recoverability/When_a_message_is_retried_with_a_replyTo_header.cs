@@ -6,12 +6,13 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
@@ -19,19 +20,17 @@
         [Test, IgnoreTransports("AzureServiceBus", "AzureStorageQueues", "RabbitMq")]
         public async Task The_header_should_not_be_changed()
         {
-            var context = new ReplyToContext
+            var context = await Define<ReplyToContext>(ctx =>
             {
-                ReplyToAddress = "ReplyToAddress@SOMEMACHINE"
-            };
-
-            await Define(context)
+                ctx.ReplyToAddress = "ReplyToAddress@SOMEMACHINE";
+            })
                 .WithEndpoint<VerifyHeaderEndpoint>()
                 .Done(async x =>
                 {
-                    if (!x.RetryIssued && await TryGetMany<FailedMessageView>("/api/errors"))
+                    if (!x.RetryIssued && await this.TryGetMany<FailedMessageView>("/api/errors"))
                     {
                         x.RetryIssued = true;
-                        await Post<object>("/api/errors/retry/all");
+                        await this.Post<object>("/api/errors/retry/all");
                     }
 
                     return x.Done;
@@ -60,60 +59,51 @@
                 );
             }
 
-            public class FakeSender : IWantToRunWhenBusStartsAndStops
+            class FakeSender : DispatchRawMessages<ReplyToContext>
             {
-                public void Start()
+                protected override TransportOperations CreateMessage(ReplyToContext context)
                 {
-                    var transportMessage = new TransportMessage(Guid.NewGuid().ToString(),
-                        new Dictionary<string, string>
-                        {
-                            [Headers.ReplyToAddress] = context.ReplyToAddress,
-                            [Headers.ProcessingEndpoint] = settings.EndpointName(),
-                            ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
-                            ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
-                            ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
-                            ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                            ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                            ["NServiceBus.FailedQ"] = settings.LocalAddress().ToString(),
-                            ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
-                            [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
-                            [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
-                        });
+                    var messageId = Guid.NewGuid().ToString();
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.ReplyToAddress] = context.ReplyToAddress,
+                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)),
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
+                        ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)), // TODO: Correct?
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
+                        [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
+                    };
 
-                    messageSender.Send(transportMessage, new SendOptions("error"));
-                }
+                    var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
 
-                public void Stop() { }
-
-                private ISendMessages messageSender;
-                private ReplyToContext context;
-                private ReadOnlySettings settings;
-
-                public FakeSender(ISendMessages messageSender, ReplyToContext context, ReadOnlySettings settings)
-                {
-                    this.messageSender = messageSender;
-                    this.context = context;
-                    this.settings = settings;
+                    return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
             }
 
             class VerifyHeaderIsUnchanged : IMutateIncomingTransportMessages
             {
-                public void MutateIncoming(TransportMessage transportMessage)
+                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     string replyToAddress;
-                    if (transportMessage.Headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+                    if (context.Headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
                     {
-                        context.ReceivedReplyToAddress = replyToAddress;
+                        replyToContext.ReceivedReplyToAddress = replyToAddress;
                     }
-                    context.Done = true;
+
+                    replyToContext.Done = true;
+                    return Task.FromResult(0);
                 }
 
-                private ReplyToContext context;
+                private ReplyToContext replyToContext;
 
                 public VerifyHeaderIsUnchanged(ReplyToContext context)
                 {
-                    this.context = context;
+                    replyToContext = context;
                 }
             }
         }

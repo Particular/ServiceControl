@@ -5,10 +5,9 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -17,16 +16,16 @@
         [Test]
         public async Task All_messages_in_group_should_get_archived()
         {
-            var context = new MyContext();
-
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                     {
-                        bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
-                        bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
+                        await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
+                            .ConfigureAwait(false);
+                        await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
+                            .ConfigureAwait(false);
                     })
                     .When(async ctx =>
                     {
@@ -35,7 +34,7 @@
                             return false;
                         }
 
-                        var result = await TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
+                        var result = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/").ConfigureAwait(false);
                         List<FailedMessage.FailureGroup> beforeArchiveGroups = result;
                         if (!result)
                         {
@@ -44,13 +43,13 @@
 
                         foreach (var group in beforeArchiveGroups)
                         {
-                            var failedMessagesResult = await TryGetMany<FailedMessage>($"/api/recoverability/groups/{@group.Id}/errors");
+                            var failedMessagesResult = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{@group.Id}/errors").ConfigureAwait(false);
                             List<FailedMessage> failedMessages = failedMessagesResult;
                             if (failedMessagesResult)
                             {
                                 if (failedMessages.Count == 2)
                                 {
-                                    ctx.GroupId = group.Id;
+                                    ctx.GroupId = @group.Id;
                                     return true;
                                 }
                             }
@@ -59,7 +58,7 @@
 
                     }, async (bus, ctx) =>
                     {
-                        await Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive");
+                        await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive");
                         ctx.ArchiveIssued = true;
                     })
                 )
@@ -68,14 +67,14 @@
                     if (c.FirstMessageId == null || c.SecondMessageId == null)
                         return false;
 
-                    var firstFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId, e => e.Status == FailedMessageStatus.Archived);
+                    var firstFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId, e => e.Status == FailedMessageStatus.Archived);
                     firstFailure = firstFailureResult;
                     if (!firstFailureResult)
                     {
                         return false;
                     }
 
-                    var secondFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status == FailedMessageStatus.Archived);
+                    var secondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status == FailedMessageStatus.Archived);
                     secondFailure = secondFailureResult;
                     if (!secondFailureResult)
                     {
@@ -93,17 +92,17 @@
         [Test]
         public async Task Only_unresolved_issues_should_be_archived()
         {
-            var context = new MyContext();
-
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
             string failureGroupId = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
+                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
+                        .ConfigureAwait(false);
                 }))
                 .Done(async c =>
                 {
@@ -113,7 +112,7 @@
                     if (!c.RetryIssued)
                     {
                         // Don't retry until the message has been added to a group
-                        var result = await TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
+                        var result = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
                         List<FailedMessage.FailureGroup> beforeArchiveGroups = result;
                         if (!result)
                         {
@@ -122,7 +121,7 @@
 
                         failureGroupId = beforeArchiveGroups[0].Id;
 
-                        var unresolvedSecondFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var unresolvedSecondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status == FailedMessageStatus.Unresolved);
                         secondFailure = unresolvedSecondFailureResult;
                         if (!unresolvedSecondFailureResult)
                         {
@@ -130,20 +129,20 @@
                         }
 
                         c.RetryIssued = true;
-                        await Post<object>($"/api/errors/{c.SecondMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{c.SecondMessageId}/retry");
                     }
 
                     if (!c.ArchiveIssued)
                     {
                         // Ensure message is being retried
-                        var notUnresolvedSecondFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status != FailedMessageStatus.Unresolved);
+                        var notUnresolvedSecondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status != FailedMessageStatus.Unresolved);
                         secondFailure = notUnresolvedSecondFailureResult;
                         if (!notUnresolvedSecondFailureResult)
                         {
                             return false;
                         }
 
-                        await Post<object>($"/api/recoverability/groups/{failureGroupId}/errors/archive");
+                        await this.Post<object>($"/api/recoverability/groups/{failureGroupId}/errors/archive");
                         c.ArchiveIssued = true;
                     }
 
@@ -166,7 +165,7 @@
 
         async Task<SingleResult<FailedMessage>> GetFailedMessage(string messageId, Predicate<FailedMessage> condition = null)
         {
-            var result = await TryGet("/api/errors/" + messageId, condition);
+            var result = await this.TryGet("/api/errors/" + messageId, condition);
             if (string.IsNullOrEmpty(messageId) || !result)
             {
                 return result;
@@ -182,7 +181,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c => c.Recoverability().Delayed(x => x.NumberOfRetries(0)));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -191,13 +190,11 @@
 
                 public ReadOnlySettings Settings { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
 
                     if (message.MessageNumber == 1)
                     {
@@ -212,6 +209,8 @@
                     {
                         throw new Exception("Simulated exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }

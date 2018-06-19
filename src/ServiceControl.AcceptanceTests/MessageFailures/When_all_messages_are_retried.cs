@@ -4,10 +4,9 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -16,16 +15,14 @@
         [Test]
         public async Task Only_unresolved_issues_should_be_retried()
         {
-            var context = new MyContext();
-
             FailedMessage messageToBeRetriedAsPartOfRetryAll = null;
             FailedMessage messageToBeArchived = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }))
                 .Done(async c =>
                 {
@@ -37,14 +34,14 @@
                     //First we are going to issue an archive to one of the messages
                     if (!c.ArchiveIssued)
                     {
-                        var result = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var result = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Unresolved);
                         messageToBeArchived = result;
                         if (!result)
                         {
                             return false;
                         }
 
-                        await Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
+                        await this.Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
 
                         c.ArchiveIssued = true;
 
@@ -55,7 +52,7 @@
                     if (!c.RetryAllIssued)
                     {
                         // Ensure message is being retried
-                        var unresolvedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var unresolvedResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Unresolved);
                         messageToBeRetriedAsPartOfRetryAll = unresolvedResult;
                         if (!unresolvedResult)
                         {
@@ -64,19 +61,19 @@
 
                         c.RetryAllIssued = true;
 
-                        await Post<object>("/api/errors/retry/all");
+                        await this.Post<object>("/api/errors/retry/all");
 
                         return false;
                     }
 
-                    var resolvedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Resolved);
+                    var resolvedResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Resolved);
                     messageToBeRetriedAsPartOfRetryAll = resolvedResult;
                     if (!resolvedResult)
                     {
                         return false;
                     }
 
-                    var archivedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Archived);
+                    var archivedResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Archived);
                     messageToBeArchived = archivedResult;
                     return archivedResult;
                 })
@@ -90,7 +87,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -99,13 +100,11 @@
 
                 public ReadOnlySettings Settings { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
 
                     if (message.MessageNumber == 1)
                     {
@@ -120,6 +119,8 @@
                     {
                         throw new Exception("Simulated exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }

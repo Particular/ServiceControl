@@ -1,31 +1,27 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_message_has_been_successfully_processed_from_sendonly: AcceptanceTest
     {
         [Test]
         public async Task Should_import_messages_from_sendonly_endpoint()
         {
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString()
-            };
-
-            await Define(context)
+            await Define<MyContext>(ctx => { ctx.MessageId = Guid.NewGuid().ToString(); })
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {
-                    if (!await TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId))
+                    if (!await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId))
                     {
                         return false;
                     }
@@ -41,24 +37,16 @@ namespace ServiceBus.Management.AcceptanceTests
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
+            class SendMessage : DispatchRawMessages<MyContext>
             {
-                public ISendMessages SendMessages { get; set; }
-
-                public MyContext MyContext { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Start()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    var transportMessage = new TransportMessage();
-                    transportMessage.Headers[Headers.MessageId] = MyContext.MessageId;
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = Settings.EndpointName();
-                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("audit")));
-                }
-
-                public void Stop()
-                {
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.MessageId] = context.MessageId,
+                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(SendOnlyEndpoint))
+                    };
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }
         }
@@ -66,12 +54,6 @@ namespace ServiceBus.Management.AcceptanceTests
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-
-            public string EndpointNameOfReceivingEndpoint { get; set; }
-
-            public string EndpointNameOfSendingEndpoint { get; set; }
-
-            public string PropertyToSearchFor { get; set; }
         }
     }
 }

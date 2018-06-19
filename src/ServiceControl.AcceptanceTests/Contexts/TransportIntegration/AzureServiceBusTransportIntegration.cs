@@ -2,10 +2,8 @@
 {
     using System;
     using NServiceBus;
-    using NServiceBus.Config;
-    using NServiceBus.Config.ConfigurationSource;
 
-    public class AzureServiceBusTransportIntegration : ITransportIntegration
+    public class AzureServiceBusTransportIntegration
     {
         public AzureServiceBusTransportIntegration()
         {
@@ -34,19 +32,20 @@
 
         }
 
-        class MyConfig : IProvideConfiguration<AzureServiceBusQueueConfig>
-        {
-            public AzureServiceBusQueueConfig GetConfiguration()
-            {
-                return new AzureServiceBusQueueConfig
-                {
-                    DefaultMessageTimeToLive = (long)TimeSpan.FromMinutes(15).TotalMilliseconds,
-                    LockDuration = (int)TimeSpan.FromSeconds(30).TotalMilliseconds,
-                    ServerWaitTime = 2,
-                    BatchSize = 5,
-                    MaxDeliveryCount = 100
-                };
-            }
-        }
+        // TODO: This
+        //class MyConfig : IProvideConfiguration<AzureServiceBusQueueConfig>
+        //{
+        //    public AzureServiceBusQueueConfig GetConfiguration()
+        //    {
+        //        return new AzureServiceBusQueueConfig
+        //        {
+        //            DefaultMessageTimeToLive = (long)TimeSpan.FromMinutes(15).TotalMilliseconds,
+        //            LockDuration = (int)TimeSpan.FromSeconds(30).TotalMilliseconds,
+        //            ServerWaitTime = 2,
+        //            BatchSize = 5,
+        //            MaxDeliveryCount = 100
+        //        };
+        //    }
+        //}
     }
 }

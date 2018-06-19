@@ -4,18 +4,14 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
-    using System.Reflection;
-    using System.Security.Cryptography;
-    using System.Text;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Hosting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
-    using NServiceBus.Unicast;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
 
@@ -36,23 +32,19 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             List<KnownEndpointsView> knownEndpoints = null;
             HttpResponseMessage httpResponseMessage = null;
 
-            await Define(context, Remote1, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    bus.Send(new MyMessage());
-                }))
+            var context = await Define<MyContext>(Remote1, Master)
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<KnownEndpointsView>("/api/endpoints/known", m => m.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint, Master);
+                    var result = await this.TryGetMany<KnownEndpointsView>("/api/endpoints/known", m => m.EndpointDetails.Name == c.EndpointNameOfReceivingEndpoint, Master);
                     knownEndpoints = result;
                     if (result)
                     {
-                        httpResponseMessage = await GetRaw("/api/endpoints/known", Master);
+                        httpResponseMessage = await this.GetRaw("/api/endpoints/known", Master);
 
                         return true;
                     }
@@ -73,8 +65,8 @@
             {
                 case Remote1:
                     addressOfRemote = settings.ApiUrl;
-                    settings.AuditQueue = Address.Parse(AuditRemote);
-                    settings.ErrorQueue = Address.Parse(ErrorRemote);
+                    settings.AuditQueue = AuditRemote;
+                    settings.ErrorQueue = ErrorRemote;
                     break;
                 case Master:
                     settings.RemoteInstances = new[]
@@ -85,8 +77,8 @@
                             QueueAddress = Remote1
                         }
                     };
-                    settings.AuditQueue = Address.Parse(AuditMaster);
-                    settings.ErrorQueue = Address.Parse(ErrorMaster);
+                    settings.AuditQueue = AuditMaster;
+                    settings.ErrorQueue = ErrorMaster;
                     break;
             }
         }
@@ -95,24 +87,28 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .AuditTo(Address.Parse(AuditMaster))
-                    .ErrorTo(Address.Parse(ErrorMaster))
-                    .AddMapping<MyMessage>(typeof(ReceiverRemote));
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.AuditProcessedMessagesTo(AuditMaster);
+                    c.SendFailedMessagesTo(ErrorMaster);
+
+                    c.ConfigureTransport()
+                        .Routing()
+                        .RouteToEndpoint(typeof(MyMessage), typeof(ReceiverRemote));
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MasterMessageId = Bus.CurrentMessageContext.Id;
+                    Context.MasterMessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -121,58 +117,28 @@
         {
             public ReceiverRemote()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .AuditTo(Address.Parse(AuditRemote))
-                    .ErrorTo(Address.Parse(ErrorRemote));
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.AuditProcessedMessagesTo(AuditRemote);
+                    c.SendFailedMessagesTo(ErrorRemote);
+
+                    // TODO: Figure out how to do this properly
+                    // c.UniquelyIdentifyRunningInstance().UsingNames();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
+                    Context.Remote1MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
-            }
-        }
-
-        // Needed to override the host display name for ReceiverRemote endpoint
-        // (.UniquelyIdentifyRunningInstance().UsingNames(instanceName, hostName) didn't work)
-        public class HostIdFixer : IWantToRunWhenConfigurationIsComplete
-        {
-
-            public HostIdFixer(UnicastBus bus, ReadOnlySettings settings)
-            {
-                var hostId = CreateGuid(Environment.MachineName, settings.EndpointName());
-                var location = Assembly.GetExecutingAssembly().Location;
-                var properties = new Dictionary<string, string>
-                {
-                    {"Location", location}
-                };
-                bus.HostInformation = new HostInformation(
-                    hostId: hostId,
-                    displayName: ReceiverHostDisplayName,
-                    properties: properties);
-            }
-
-            static Guid CreateGuid(params string[] data)
-            {
-                using (var provider = new MD5CryptoServiceProvider())
-                {
-                    var inputBytes = Encoding.Default.GetBytes(string.Concat(data));
-                    var hashBytes = provider.ComputeHash(inputBytes);
-                    return new Guid(hashBytes);
-                }
-            }
-
-            public void Run(Configure config)
-            {
             }
         }
 

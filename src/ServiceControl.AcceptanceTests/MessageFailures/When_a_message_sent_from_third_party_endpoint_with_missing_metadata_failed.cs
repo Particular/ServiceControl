@@ -1,20 +1,17 @@
-﻿
-
-namespace ServiceBus.Management.AcceptanceTests.MessageFailures
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed : AcceptanceTest
     {
@@ -23,13 +20,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             FailedMessageView failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
                     failure = result;
                     return result;
                 })
@@ -45,16 +40,12 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             FailedMessageView failure = null;
 
             var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
-            var context = new MyContext
-            {
-                TimeSent = sentTime
-            };
 
-            await Define(context)
+            await Define<MyContext>(ctx => { ctx.TimeSent = sentTime; })
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
                     failure = result;
                     return c.UniqueMessageId != null & result;
                 })
@@ -69,13 +60,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
         {
             FailedMessageView failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
                     failure = result;
                     return c.UniqueMessageId != null & result;
                 })
@@ -90,50 +79,39 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
+                    c.Recoverability().Delayed(x => x.NumberOfRetries(0));
                 });
             }
 
-            public class SendFailedMessage : IWantToRunWhenBusStartsAndStops
+            class SendFailedMessage : DispatchRawMessages<MyContext>
             {
-                readonly ISendMessages sendMessages;
-                readonly MyContext context;
-                readonly ReadOnlySettings settings;
-
-                public SendFailedMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    this.sendMessages = sendMessages;
-                    this.context = context;
-                    this.settings = settings;
-                }
-
-                public void Start()
-                {
-                    context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    context.EndpointNameOfReceivingEndpoint = Conventions.EndpointNamingConvention(typeof(FailureEndpoint));
                     context.MessageId = Guid.NewGuid().ToString();
                     context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
 
-                    var transportMessage = new TransportMessage(context.MessageId, new Dictionary<string, string>());
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint;
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
-                    transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint,
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
+                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)), // TODO: Correct?
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                    };
                     if (context.TimeSent.HasValue)
                     {
-                        transportMessage.Headers["NServiceBus.TimeSent"] = DateTimeExtensions.ToWireFormattedString(context.TimeSent.Value);
+                        headers["NServiceBus.TimeSent"] = DateTimeExtensions.ToWireFormattedString(context.TimeSent.Value);
                     }
 
-                    sendMessages.Send(transportMessage, new SendOptions("error"));
-                }
+                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
 
-                public void Stop()
-                {
-
+                    return new TransportOperations(
+                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))
+                    );
                 }
             }
         }

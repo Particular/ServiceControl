@@ -16,7 +16,7 @@
             await Define<Context>()
                 .Done(async x =>
                 {
-                    var result =  await TryGetMany<string>("/api/recoverability/classifiers");
+                    var result =  await this.TryGetMany<string>("/api/recoverability/classifiers");
                     classifiers = result;
                     return result;
                 })

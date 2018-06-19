@@ -4,10 +4,12 @@
     using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTests;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
 
@@ -37,14 +39,10 @@
                 config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance));
             };
 
-            var context = new MyContext();
             FailedAuditsCountReponse failedAuditsCountReponse;
 
-            await Define(context)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    bus.Send(new MyMessage());
-                }))
+            await Define<MyContext>()
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
@@ -54,14 +52,14 @@
                     }
                     if (!c.WasReimported)
                     {
-                        var result = await TryGet<FailedAuditsCountReponse>("/api/failedaudits/count");
+                        var result = await this.TryGet<FailedAuditsCountReponse>("/api/failedaudits/count");
                         failedAuditsCountReponse = result;
                         if (result)
                         {
                             if (failedAuditsCountReponse.Count > 0)
                             {
                                 c.FailedImport = true;
-                                await Post<object>("/api/failedaudits/import", null, code =>
+                                await this.Post<object>("/api/failedaudits/import", null, code =>
                                 {
                                     if (code == HttpStatusCode.OK)
                                     {
@@ -75,7 +73,7 @@
                         return false;
                     }
 
-                    return await TryGetMany<MessagesView>("/api/messages/search/" + c.MessageId);
+                    return await this.TryGetMany<MessagesView>("/api/messages/search/" + c.MessageId);
                 })
                 .Run(TimeSpan.FromSeconds(40));
         }
@@ -84,8 +82,11 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
+                });
             }
         }
 
@@ -100,11 +101,10 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }

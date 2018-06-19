@@ -3,13 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
@@ -17,16 +16,15 @@
         [Test]
         public async Task Message_should_be_enriched_with_saga_state_changes()
         {
-            var context = new MyContext();
             var messages = new List<MessagesView>();
 
-            await Define(context)
-                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.Given((bus, c) => bus.SendLocal(new InitiateSaga())))
+            var context = await Define<MyContext>()
+                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga())))
                 .Done(async c =>
                 {
                     if (c.Saga1Complete && c.Saga2Complete)
                     {
-                        var result = await TryGetMany<MessagesView>("/api/messages");
+                        var result = await this.TryGetMany<MessagesView>("/api/messages");
                         messages = result;
                         if (result)
                         {
@@ -70,8 +68,7 @@
         {
             public EndpointThatIsHostingSagas()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }
 
             public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
@@ -80,22 +77,23 @@
 
                 static Guid myId = Guid.NewGuid();
 
-                public void Handle(InitiateSaga message)
+                public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
                     Data.MyId = myId;
-                    Bus.SendLocal(new UpdateSaga1 { MyId = myId });
+                    return context.SendLocal(new UpdateSaga1 { MyId = myId });
                 }
 
-                public void Handle(UpdateSaga1 message)
+                public Task Handle(UpdateSaga1 message, IMessageHandlerContext context)
                 {
-                    Bus.SendLocal(new CompleteSaga1 { MyId = myId });
+                    return context.SendLocal(new CompleteSaga1 { MyId = myId });
                 }
 
-                public void Handle(CompleteSaga1 message)
+                public Task Handle(CompleteSaga1 message, IMessageHandlerContext context)
                 {
                     MarkAsComplete();
                     Context.Saga1Id = Data.Id;
                     Context.Saga1Complete = true;
+                    return Task.FromResult(0);
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga1Data> mapper)
@@ -106,7 +104,6 @@
 
                 public class Saga1Data : ContainSagaData
                 {
-                    [Unique]
                     public Guid MyId { get; set; }
                 }
             }
@@ -117,27 +114,27 @@
 
                 static Guid myId = Guid.NewGuid();
 
-                public void Handle(InitiateSaga message)
+                public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
                     Data.MyId = myId;
-                    Bus.SendLocal(new UpdateSaga2 { MyId = myId });
+                    return context.SendLocal(new UpdateSaga2 { MyId = myId });
                 }
 
-                public void Handle(UpdateSaga2 message)
+                public Task Handle(UpdateSaga2 message, IMessageHandlerContext context)
                 {
-                    Bus.SendLocal(new CompleteSaga2 { MyId = myId });
+                    return context.SendLocal(new CompleteSaga2 { MyId = myId });
                 }
 
-                public void Handle(CompleteSaga2 message)
+                public Task Handle(CompleteSaga2 message, IMessageHandlerContext context)
                 {
                     MarkAsComplete();
                     Context.Saga2Id = Data.Id;
                     Context.Saga2Complete = true;
+                    return Task.FromResult(0);
                 }
 
                 public class Saga2Data : ContainSagaData
                 {
-                    [Unique]
                     public Guid MyId { get; set; }
                 }
 
