@@ -10,7 +10,7 @@
     public class StaleIndexChecker
     {
         private IDocumentStore documentStore;
-        private ILog logger = LogManager.GetLogger(typeof(StaleIndexChecker));
+        private static ILog logger = LogManager.GetLogger(typeof(StaleIndexChecker));
 
         public StaleIndexChecker(IDocumentStore store)
         {
@@ -21,7 +21,7 @@
         {
             try
             {
-                using(var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                 using (var session = documentStore.OpenAsyncSession())
                 {
                     cts.CancelAfter(TimeSpan.FromMinutes(1));
@@ -41,6 +41,11 @@
             catch (OperationCanceledException)
             {
                 logger.Debug("Waiting for non-stale indexes timed out");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.Warn("Waiting for non-stale indexes threw unexpected exception.", ex);
                 return false;
             }
         }
