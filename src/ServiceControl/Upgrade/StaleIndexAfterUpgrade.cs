@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class StaleIndexAfterUpgrade : Feature
@@ -26,6 +27,7 @@
         
         public class CheckerTask : FeatureStartupTask 
         {
+            private ILog logger = LogManager.GetLogger(typeof(CheckerTask));
             private string directory;
             private Task checkTask;
             private CancellationTokenSource tokenSource;
@@ -81,19 +83,22 @@
                 {
                     while (!tokenSource.IsCancellationRequested)
                     {
+                        logger.Debug("Checking for index staleness");
                         if (!await staleIndexChecker.IsReindexingInComplete(latest, tokenSource.Token).ConfigureAwait(false))
                         {
                             continue;
                         }
 
+                        logger.Debug("Idnexes up to date. Deleting marker file.");
                         try
                         {
                             File.Delete(Path.Combine(directory, $"{fileTime}.upgrade"));
                         }
-                        catch (IOException)
+                        catch (IOException ex)
                         {
-                            // if we can't delete for now that is OK
+                            logger.Warn("Could not delete marker file even after non-stale indexes reported", ex);
                         }
+
                         staleIndexInfoStore.Store(StaleIndexInfoStore.NotInProgress);
                         break;
                     }

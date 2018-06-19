@@ -4,11 +4,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using global::ServiceControl.MessageFailures.Api;
+    using NServiceBus.Logging;
     using Raven.Client;
 
     public class StaleIndexChecker
     {
         private IDocumentStore documentStore;
+        private ILog logger = LogManager.GetLogger(typeof(StaleIndexChecker));
 
         public StaleIndexChecker(IDocumentStore store)
         {
@@ -38,6 +40,7 @@
             }
             catch (OperationCanceledException)
             {
+                logger.Debug("Waiting for non-stale indexes timed out");
                 return false;
             }
         }
