@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Contexts
+﻿namespace ServiceBus.Management.AcceptanceTests.EndpointTemplates
 {
     using System;
     using System.Collections.Generic;
@@ -39,9 +39,6 @@
 
 
             builder.TypesToIncludeInScan(typesToInclude);
-
-            // TODO Move to test constraints
-//            var transportToUse = AcceptanceTest.GetTransportIntegrationFromEnvironmentVar();
 
             builder.DisableFeature<AutoSubscribe>();
             builder.EnableInstallers();

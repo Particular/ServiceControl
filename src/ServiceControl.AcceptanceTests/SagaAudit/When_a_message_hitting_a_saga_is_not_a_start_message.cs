@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Sagas;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
     public class When_a_message_hitting_a_saga_is_not_a_start_message : AcceptanceTest
     {

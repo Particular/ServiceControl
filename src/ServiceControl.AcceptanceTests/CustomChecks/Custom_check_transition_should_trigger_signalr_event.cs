@@ -4,7 +4,6 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -13,6 +12,7 @@
     using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]

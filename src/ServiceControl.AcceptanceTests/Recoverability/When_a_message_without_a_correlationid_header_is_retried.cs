@@ -6,8 +6,8 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
-    using Contexts;
     using NServiceBus.Settings;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
 
     public class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest

@@ -23,7 +23,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
-    using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Settings;

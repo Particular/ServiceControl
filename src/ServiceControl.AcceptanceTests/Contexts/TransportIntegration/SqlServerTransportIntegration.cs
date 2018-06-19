@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    public class SqlServerTransportIntegration : ITransportIntegration
+    public class SqlServerTransportIntegration
     {
         public SqlServerTransportIntegration()
         {
