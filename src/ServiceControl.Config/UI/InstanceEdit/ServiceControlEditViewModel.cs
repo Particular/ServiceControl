@@ -63,13 +63,17 @@
         {
             instance.HostName = HostName;
             instance.Port = Convert.ToInt32(PortNumber);
-            instance.DatabaseMaintenancePort = Convert.ToInt32(DatabaseMaintenancePortNumber);
             instance.LogPath = LogPath;
             instance.AuditLogQueue = AuditForwardingQueueName;
             instance.AuditQueue = AuditQueueName;
             instance.ErrorQueue = ErrorQueueName;
             instance.ErrorLogQueue = ErrorForwardingQueueName;
             instance.ConnectionString = ConnectionString;
+
+            if (ServiceControlInstance.Version.Major >= 2)
+            {
+                instance.DatabaseMaintenancePort = Convert.ToInt32(DatabaseMaintenancePortNumber);
+            }
         }
 
         public bool ErrorForwardingVisible { get; set; }
