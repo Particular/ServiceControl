@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Contexts;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,6 +11,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
 

@@ -4,7 +4,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
     public class JsonServer : IEndpointSetupTemplate
     {

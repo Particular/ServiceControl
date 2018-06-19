@@ -4,13 +4,13 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 

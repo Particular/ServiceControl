@@ -7,7 +7,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider

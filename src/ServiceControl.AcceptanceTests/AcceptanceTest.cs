@@ -12,8 +12,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts.TransportIntegration;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -46,7 +46,7 @@ namespace ServiceBus.Management.AcceptanceTests
             CustomConfiguration = _ => { };
             CustomInstanceConfiguration = (i, c) => { };
 
-            var transportToUse = GetTransportIntegrationFromEnvironmentVar();
+            var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
             Console.Out.WriteLine($"Using transport {transportToUse.Name}");
             
             AssertTransportNotExplicitlyIgnored(transportToUse);
@@ -76,32 +76,6 @@ namespace ServiceBus.Management.AcceptanceTests
                 Assert.Inconclusive($"Transport {transportToUse.Name} has been explicitly ignored for test {TestContext.CurrentContext.Test.Name}");
             }
         }
-
-        private static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
-        {
-            ITransportIntegration transportToUse = null;
-
-            var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
-            if (transportToUseString != null)
-            {
-                transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(typeof(MsmqTransportIntegration).FullName.Replace("Msmq", transportToUseString)) ?? typeof(MsmqTransportIntegration));
-            }
-
-            if (transportToUse == null)
-            {
-                transportToUse = new MsmqTransportIntegration();
-            }
-
-            var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
-            if (!string.IsNullOrWhiteSpace(connectionString))
-            {
-                transportToUse.ConnectionString = connectionString;
-            }
-
-            return transportToUse;
-        }
-
-        
 
         // TODO: Fix
         protected void ExecuteWhen(Func<bool> execute, Action<IDomainEvents> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)

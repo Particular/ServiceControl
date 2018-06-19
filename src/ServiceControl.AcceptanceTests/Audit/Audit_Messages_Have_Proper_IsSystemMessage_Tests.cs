@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     class Audit_Messages_Have_Proper_IsSystemMessage_Tests: AcceptanceTest

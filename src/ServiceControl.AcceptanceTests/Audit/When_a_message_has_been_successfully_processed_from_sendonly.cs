@@ -9,7 +9,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_a_message_has_been_successfully_processed_from_sendonly: AcceptanceTest

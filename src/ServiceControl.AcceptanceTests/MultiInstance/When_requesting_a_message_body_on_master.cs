@@ -10,7 +10,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;

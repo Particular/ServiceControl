@@ -2,10 +2,10 @@
 {
     using System.Net;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest

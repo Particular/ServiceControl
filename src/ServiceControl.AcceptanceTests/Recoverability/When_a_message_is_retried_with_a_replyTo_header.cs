@@ -10,7 +10,7 @@
     using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
     public class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest

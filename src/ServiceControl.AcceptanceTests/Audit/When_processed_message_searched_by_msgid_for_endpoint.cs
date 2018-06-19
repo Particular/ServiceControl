@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_processed_message_searched_by_msgid_for_endpoint : AcceptanceTest

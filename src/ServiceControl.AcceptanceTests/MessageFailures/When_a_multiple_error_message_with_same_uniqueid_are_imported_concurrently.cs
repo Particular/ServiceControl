@@ -10,7 +10,7 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;

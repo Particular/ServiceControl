@@ -9,7 +9,7 @@
     using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata : AcceptanceTest
