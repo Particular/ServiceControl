@@ -127,35 +127,33 @@
                 EndpointSetup<DefaultServerWithAudit>();
             }
            
-            class SendMessageLowLevel : DispatchRawMessages
-            {
-                public SystemMessageTestContext SystemMessageTestContext { get; set; }
-
-                protected override TransportOperations CreateMessage()
+            public class SendMessageLowLevel : DispatchRawMessages<SystemMessageTestContext>
+            {               
+                protected override TransportOperations CreateMessage(SystemMessageTestContext context)
                 {
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
                     var headers = new Dictionary<string, string>
                     {
                         [Headers.ProcessingEndpoint] = "ServerEndpoint",
-                        [Headers.MessageId] = SystemMessageTestContext.MessageId,
+                        [Headers.MessageId] = context.MessageId,
                         [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
                         ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
                         ["$.diagnostics.hostdisplayname"] = "SELENE"
                     };
                     
-                    if (!string.IsNullOrEmpty(SystemMessageTestContext.EnclosedMessageType))
+                    if (!string.IsNullOrEmpty(context.EnclosedMessageType))
                     {
-                        headers[Headers.EnclosedMessageTypes] = SystemMessageTestContext.EnclosedMessageType;
+                        headers[Headers.EnclosedMessageTypes] = context.EnclosedMessageType;
                     }
-                    if (SystemMessageTestContext.IncludeControlMessageHeader)
+                    if (context.IncludeControlMessageHeader)
                     {
-                        headers[Headers.ControlMessageHeader] = SystemMessageTestContext.ControlMessageHeaderValue != null && (bool) SystemMessageTestContext.ControlMessageHeaderValue ? SystemMessageTestContext.ControlMessageHeaderValue.ToString() : null;
+                        headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool) context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
                     }
                     
-                    return new TransportOperations(new TransportOperation(new OutgoingMessage(SystemMessageTestContext.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
 
-                protected override Task AfterDispatch(IMessageSession session)
+                protected override Task AfterDispatch(IMessageSession session, SystemMessageTestContext context)
                 {
                     return session.SendLocal(new DoQueryAllowed());
                 }

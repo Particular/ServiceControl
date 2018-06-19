@@ -6,12 +6,12 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
-    using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
-
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
+    
     public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata : AcceptanceTest
     {
         [Test]
@@ -40,21 +40,11 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMessage : DispatchRawMessages
+            class SendMessage : DispatchRawMessages<MyContext>
             {
-                readonly MyContext context;
-                readonly ReadOnlySettings settings;
-
-                public SendMessage(MyContext context, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    this.context = context;
-                    this.settings = settings;
-                }
-
-
-                protected override TransportOperations CreateMessage()
-                {
-                    var headers = new Dictionary<string, string> {{Headers.ProcessingEndpoint, settings.EndpointName()}};
+                    var headers = new Dictionary<string, string> {{Headers.ProcessingEndpoint, Conventions.EndpointNamingConvention(typeof(ThirdPartyEndpoint))}};
                     return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }

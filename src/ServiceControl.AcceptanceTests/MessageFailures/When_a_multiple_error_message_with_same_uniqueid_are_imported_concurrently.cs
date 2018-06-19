@@ -86,16 +86,9 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages
+            class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages<MyContext>
             {
-                MyContext context;
-
-                public SendMultipleFailedMessagesWithSameUniqueId(MyContext context)
-                {
-                    this.context = context;
-                }
-
-                protected override TransportOperations CreateMessage()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
                     var messageId = Guid.NewGuid().ToString();
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();

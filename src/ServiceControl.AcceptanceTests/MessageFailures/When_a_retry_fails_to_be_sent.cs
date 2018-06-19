@@ -123,16 +123,9 @@
                 }
             }
 
-            class SendFailedMessage : DispatchRawMessages
+            class SendFailedMessage : DispatchRawMessages<MyContext>
             {
-                private readonly MyContext context;
-
-                public SendFailedMessage(MyContext context)
-                {
-                    this.context = context;
-                }
-
-                protected override TransportOperations CreateMessage()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
                     var headers = new Dictionary<string, string>
                     {
