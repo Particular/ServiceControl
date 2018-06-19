@@ -27,7 +27,7 @@
         
         public class CheckerTask : FeatureStartupTask 
         {
-            private ILog logger = LogManager.GetLogger(typeof(CheckerTask));
+            private static ILog logger = LogManager.GetLogger(typeof(CheckerTask));
             private string directory;
             private Task checkTask;
             private CancellationTokenSource tokenSource;
@@ -89,7 +89,7 @@
                             continue;
                         }
 
-                        logger.Debug("Idnexes up to date. Deleting marker file.");
+                        logger.Debug("Indexes up to date. Deleting marker file.");
                         try
                         {
                             File.Delete(Path.Combine(directory, $"{fileTime}.upgrade"));
