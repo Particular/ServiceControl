@@ -6,6 +6,21 @@
 
     public class FailedMessageViewTransformer : AbstractTransformerCreationTask<FailedMessage>
     {
+        private static string transformerName;
+        
+        public static string Name
+        {
+            get
+            {
+                if (transformerName == null)
+                {
+                    transformerName = new FailedMessageViewTransformer().TransformerName;
+                }
+
+                return transformerName;
+            }
+        }
+        
         public FailedMessageViewTransformer()
         {
             TransformResults = failures => from failure in failures
