@@ -7,12 +7,12 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NServiceBus.Routing;
-    using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_retry_for_a_empty_body_message_is_successful : AcceptanceTest
     {
@@ -74,20 +74,11 @@
                 });
             }
 
-            public class SendControlMessage : DispatchRawMessages
+            public class SendControlMessage : DispatchRawMessages<MyContext>
             {
-                readonly MyContext context;
-                readonly ReadOnlySettings settings;
-
-                public SendControlMessage(MyContext context, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    this.context = context;
-                    this.settings = settings;
-                }
-
-                protected override TransportOperations CreateMessage()
-                {
-                    context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    context.EndpointNameOfReceivingEndpoint = Conventions.EndpointNamingConvention(typeof(FailureEndpoint));
                     context.MessageId = Guid.NewGuid().ToString();
                     context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
 
@@ -104,11 +95,11 @@
                         ["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty,
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                        ["NServiceBus.FailedQ"] = settings.LocalAddress(),
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)), // TODO: Correct?
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                         ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z",
                         [Headers.ControlMessageHeader] = Boolean.TrueString,
-                        [Headers.ReplyToAddress] = settings.LocalAddress()
+                        [Headers.ReplyToAddress] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)) // TODO: Correct?
                     };
 
                 var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);

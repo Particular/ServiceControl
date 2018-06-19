@@ -6,11 +6,11 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
-    using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_message_has_been_successfully_processed_from_sendonly: AcceptanceTest
     {
@@ -37,24 +37,16 @@ namespace ServiceBus.Management.AcceptanceTests
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMessage : DispatchRawMessages
+            class SendMessage : DispatchRawMessages<MyContext>
             {
-                public MyContext MyContext { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Stop()
-                {
-                }
-
-                protected override TransportOperations CreateMessage()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
                     var headers = new Dictionary<string, string>
                     {
-                        [Headers.MessageId] = MyContext.MessageId,
-                        [Headers.ProcessingEndpoint] = Settings.EndpointName()
+                        [Headers.MessageId] = context.MessageId,
+                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(SendOnlyEndpoint))
                     };
-                    return new TransportOperations(new TransportOperation(new OutgoingMessage(MyContext.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }
         }

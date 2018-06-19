@@ -3,11 +3,13 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.Extensibility;
     using NServiceBus.Features;
     using NServiceBus.Transport;
 
-    public abstract class DispatchRawMessages : Feature
+    public abstract class DispatchRawMessages<TContext> : Feature
+        where TContext : ScenarioContext
     {
         protected DispatchRawMessages()
         {
@@ -16,17 +18,17 @@
         
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(b => b.Build<DispatchTask>());
+            context.RegisterStartupTask(b => new DispatchTask(b.Build<IDispatchMessages>(), () => CreateMessage((TContext)b.Build<ScenarioContext>()), s => BeforeDispatch(s, (TContext)b.Build<ScenarioContext>()), s => AfterDispatch(s, (TContext)b.Build<ScenarioContext>())));
         }
 
-        protected abstract TransportOperations CreateMessage();
+        protected abstract TransportOperations CreateMessage(TContext context);
 
-        protected virtual Task BeforeDispatch(IMessageSession session)
+        protected virtual Task BeforeDispatch(IMessageSession session, TContext context)
         {
             return Task.FromResult(0);
         }
         
-        protected virtual Task AfterDispatch(IMessageSession session)
+        protected virtual Task AfterDispatch(IMessageSession session, TContext context)
         {
             return Task.FromResult(0);
         }

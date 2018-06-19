@@ -1,6 +1,4 @@
-﻿
-
-namespace ServiceBus.Management.AcceptanceTests.MessageFailures
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
@@ -8,12 +6,12 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
-    using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed : AcceptanceTest
     {
@@ -85,20 +83,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                 });
             }
 
-            class SendFailedMessage : DispatchRawMessages
+            class SendFailedMessage : DispatchRawMessages<MyContext>
             {
-                readonly MyContext context;
-                readonly ReadOnlySettings settings;
-
-                public SendFailedMessage(MyContext context, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    this.context = context;
-                    this.settings = settings;
-                }
-
-                protected override TransportOperations CreateMessage()
-                {
-                    context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    context.EndpointNameOfReceivingEndpoint = Conventions.EndpointNamingConvention(typeof(FailureEndpoint));
                     context.MessageId = Guid.NewGuid().ToString();
                     context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
 
@@ -110,7 +99,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                        ["NServiceBus.FailedQ"] = settings.LocalAddress(),
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)), // TODO: Correct?
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                     };
                     if (context.TimeSent.HasValue)

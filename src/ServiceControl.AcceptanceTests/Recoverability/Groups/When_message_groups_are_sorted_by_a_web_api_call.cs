@@ -6,12 +6,12 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
-    using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_message_groups_are_sorted_by_a_web_api_call : AcceptanceTest
     {
@@ -89,9 +89,9 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                     });
             }
 
-            class SendFailedMessages : DispatchRawMessages
+            class SendFailedMessages : DispatchRawMessages<MyContext>
             {
-                protected override TransportOperations CreateMessage()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
                     var errorAddress = new UnicastAddressTag("error");
                     
@@ -110,19 +110,12 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                         {"NServiceBus.ExceptionInfo.ExceptionType", "System.Exception"},
                         {"NServiceBus.ExceptionInfo.Message", "An error occurred"},
                         {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},
-                        {"NServiceBus.FailedQ", settings.LocalAddress()},
+                        {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(Receiver))}, // TODO: Correct?
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
                         {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
                         {Headers.EnclosedMessageTypes, "MessageThatWillFail" + i},
                     }, new byte[0]);
                     return msg;
-                }
-
-                readonly ReadOnlySettings settings;
-
-                public SendFailedMessages(ReadOnlySettings settings)
-                {
-                    this.settings = settings;
                 }
             }
         }
