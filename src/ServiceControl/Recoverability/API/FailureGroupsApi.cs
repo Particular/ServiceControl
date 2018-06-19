@@ -127,7 +127,7 @@ namespace ServiceControl.Recoverability
                     .FilterByLastModifiedRange(Request)
                     .Sort(Request)
                     .Paging(Request)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    .SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
