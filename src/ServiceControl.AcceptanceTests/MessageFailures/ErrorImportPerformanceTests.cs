@@ -4,10 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class ErrorImportPerformanceTests : AcceptanceTest
@@ -19,7 +19,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => Task.WhenAll(Enumerable.Repeat(0, 100).Select(i => bus.SendLocal(new MyMessage())))))
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<MessagesView>("/api/messages?per_page=150");
+                    var result = await this.TryGetMany<MessagesView>("/api/messages?per_page=150");
                     if (!result)
                     {
                         return false;

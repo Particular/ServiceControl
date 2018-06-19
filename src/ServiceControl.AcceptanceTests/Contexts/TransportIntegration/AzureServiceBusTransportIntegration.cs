@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    public class AzureServiceBusTransportIntegration : ITransportIntegration
+    public class AzureServiceBusTransportIntegration
     {
         public AzureServiceBusTransportIntegration()
         {

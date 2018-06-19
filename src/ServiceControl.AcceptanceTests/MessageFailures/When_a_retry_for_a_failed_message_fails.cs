@@ -6,7 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -24,9 +24,9 @@
                 .WithEndpoint<FailureEndpoint>(b =>
                     b.When(bus => bus.SendLocal(new MyMessage()))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
-                            (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                            (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
-                            (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                            (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                 )
                 .Done(async ctx =>
                 {
@@ -52,14 +52,14 @@
                 .WithEndpoint<FailureEndpoint>(b =>
                     b.When(bus => bus.SendLocal(new MyMessage()))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
-                          (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                          (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
-                          (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                          (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 3),
                          async (bus, ctx) =>
                          {
                              ctx.Succeed = true;
-                             await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                             await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                          })
                     )
                 .Done(async ctx =>
@@ -86,7 +86,7 @@
                 return SingleResult<FailedMessage>.Empty;
             }
 
-            return await TryGet($"/api/errors/{c.UniqueMessageId}", condition);
+            return await this.TryGet($"/api/errors/{c.UniqueMessageId}", condition);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

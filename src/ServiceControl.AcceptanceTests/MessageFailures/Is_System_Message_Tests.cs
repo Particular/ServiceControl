@@ -3,12 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
     class Is_System_Message_Tests: AcceptanceTest
@@ -26,7 +26,7 @@
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -49,7 +49,7 @@
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -72,7 +72,7 @@
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -95,7 +95,7 @@
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -118,7 +118,7 @@
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -134,17 +134,15 @@
                 EndpointSetup<DefaultServerWithAudit>();
             }
 
-            class Foo : DispatchRawMessages
+            class Foo : DispatchRawMessages<SystemMessageTestContext>
             {
-                public SystemMessageTestContext SystemMessageTestContext { get; set; }
-
-                protected override TransportOperations CreateMessage()
+                protected override TransportOperations CreateMessage(SystemMessageTestContext context)
                 {
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
                     var headers = new Dictionary<string, string>
                     {
                         [Headers.ProcessingEndpoint] = "ServerEndpoint",
-                        [Headers.MessageId] = SystemMessageTestContext.MessageId,
+                        [Headers.MessageId] = context.MessageId,
                         [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
                         ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
                         ["$.diagnostics.hostdisplayname"] = "SELENE",
@@ -158,16 +156,16 @@
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                         ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z"
                     };
-                    if (!string.IsNullOrEmpty(SystemMessageTestContext.EnclosedMessageType))
+                    if (!string.IsNullOrEmpty(context.EnclosedMessageType))
                     {
-                        headers[Headers.EnclosedMessageTypes] = SystemMessageTestContext.EnclosedMessageType;
+                        headers[Headers.EnclosedMessageTypes] = context.EnclosedMessageType;
                     }
-                    if (SystemMessageTestContext.IncludeControlMessageHeader)
+                    if (context.IncludeControlMessageHeader)
                     {
-                        headers[Headers.ControlMessageHeader] = SystemMessageTestContext.ControlMessageHeaderValue != null && (bool) SystemMessageTestContext.ControlMessageHeaderValue ? SystemMessageTestContext.ControlMessageHeaderValue.ToString() : null;
+                        headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool) context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
                     }
                     
-                    return new TransportOperations(new TransportOperation(new OutgoingMessage(SystemMessageTestContext.MessageId, headers, new byte[0]), new UnicastAddressTag("error")));
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("error")));
                 }
             }
         }

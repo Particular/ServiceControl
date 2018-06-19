@@ -15,7 +15,7 @@ namespace ServiceBus.Management.Infrastructure
 
     public static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -28,7 +28,7 @@ namespace ServiceBus.Management.Infrastructure
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
-            configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(new LoggingSettings(endpointName).LogPath));
+            configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
@@ -74,9 +74,9 @@ namespace ServiceBus.Management.Infrastructure
             return Endpoint.Create(configuration);
         }
 
-        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
-            var bus = await Create(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            var bus = await Create(settings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             var subscribeToOwnEvents = container.Resolve<SubscribeToOwnEvents>();

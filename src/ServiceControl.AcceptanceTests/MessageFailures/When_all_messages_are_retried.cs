@@ -6,7 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -34,14 +34,14 @@
                     //First we are going to issue an archive to one of the messages
                     if (!c.ArchiveIssued)
                     {
-                        var result = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var result = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Unresolved);
                         messageToBeArchived = result;
                         if (!result)
                         {
                             return false;
                         }
 
-                        await Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
+                        await this.Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
 
                         c.ArchiveIssued = true;
 
@@ -52,7 +52,7 @@
                     if (!c.RetryAllIssued)
                     {
                         // Ensure message is being retried
-                        var unresolvedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var unresolvedResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Unresolved);
                         messageToBeRetriedAsPartOfRetryAll = unresolvedResult;
                         if (!unresolvedResult)
                         {
@@ -61,19 +61,19 @@
 
                         c.RetryAllIssued = true;
 
-                        await Post<object>("/api/errors/retry/all");
+                        await this.Post<object>("/api/errors/retry/all");
 
                         return false;
                     }
 
-                    var resolvedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Resolved);
+                    var resolvedResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedAsPartOfRetryAllId, e => e.Status == FailedMessageStatus.Resolved);
                     messageToBeRetriedAsPartOfRetryAll = resolvedResult;
                     if (!resolvedResult)
                     {
                         return false;
                     }
 
-                    var archivedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Archived);
+                    var archivedResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Archived);
                     messageToBeArchived = archivedResult;
                     return archivedResult;
                 })

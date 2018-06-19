@@ -6,7 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Settings;
@@ -42,7 +42,7 @@
                         if (result)
                         {
                             c.RetryIssued = true;
-                            await Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
+                            await this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
                         }
 
                         return false;
@@ -84,7 +84,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
+            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

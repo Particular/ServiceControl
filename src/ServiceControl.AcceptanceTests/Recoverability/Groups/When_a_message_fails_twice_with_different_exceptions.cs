@@ -9,7 +9,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -33,18 +33,18 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     if (!ctx.Retrying)
                     {
-                        var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                         FailedMessage originalMessageTemp = result;
                         if (result)
                         {
                             originalMessage = originalMessageTemp;
                             ctx.Retrying = true;
-                            await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                            await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         }
                     }
                     else
                     {
-                        var retriedMessageResult = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", err => err.ProcessingAttempts.Count == 2);
+                        var retriedMessageResult = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", err => err.ProcessingAttempts.Count == 2);
                         retriedMessage = retriedMessageResult;
                         return retriedMessageResult;
                     }

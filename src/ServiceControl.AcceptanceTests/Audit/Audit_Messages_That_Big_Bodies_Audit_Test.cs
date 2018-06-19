@@ -2,10 +2,10 @@
 {
     using System.Net;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest
@@ -36,14 +36,14 @@
                                 return false;
                             }
 
-                            var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                            var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
                             MessagesView auditMessage = result;
                             if (!result)
                             {
                                 return false;
                             }
 
-                            body = await DownloadData(auditMessage.BodyUrl);
+                            body = await this.DownloadData(auditMessage.BodyUrl);
 
                             return true;
                         })
@@ -76,14 +76,14 @@
                         {
                             return false;
                         }
-                        var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                        var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
                         MessagesView auditMessage = result;
                         if (!result)
                         {
                             return false;
                         }
 
-                        body = await DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
+                        body = await this.DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
 
                         return true;
                     })

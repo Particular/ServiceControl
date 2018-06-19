@@ -7,9 +7,14 @@ using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Transport;
+using ServiceBus.Management.AcceptanceTests;
 
-public class ConfigureEndpointMsmqTransport : IConfigureEndpointTestExecution
+public class ConfigureEndpointMsmqTransport : ITransportIntegration
 {
+    public string Name => "Msmq";
+    public string TypeName => "NServiceBus.MsmqTransport, NServiceBus.Transport.Msmq";
+    public string ConnectionString { get; set; }
+    
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         queueBindings = configuration.GetSettings().Get<QueueBindings>();

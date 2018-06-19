@@ -6,8 +6,8 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
-    using Contexts;
     using NServiceBus.Settings;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
 
     public class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
@@ -26,13 +26,13 @@
 
                     if (!ctx.RetryIssued)
                     {
-                        if (!await TryGet<object>($"/api/errors/{ctx.UniqueMessageId}"))
+                        if (!await this.TryGet<object>($"/api/errors/{ctx.UniqueMessageId}"))
                         {
                             return false;
                         }
 
                         ctx.RetryIssued = true;
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         return false;
                     }
 

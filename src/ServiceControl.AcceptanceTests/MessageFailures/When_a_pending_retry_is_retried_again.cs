@@ -7,7 +7,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -27,7 +27,7 @@
                         return false;
                     }
 
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
                     if (!result)
                     {
@@ -37,7 +37,7 @@
                     if (!ctx.RetryAboutToBeSent)
                     {
                         ctx.RetryAboutToBeSent = true;
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         return false;
                     }
 
@@ -49,7 +49,7 @@
                     return false;
                 }, async (bus, ctx) =>
                 {
-                    await Post<object>("/api/pendingretries/retry", new List<string>
+                    await this.Post<object>("/api/pendingretries/retry", new List<string>
                     {
                         ctx.UniqueMessageId
                     });

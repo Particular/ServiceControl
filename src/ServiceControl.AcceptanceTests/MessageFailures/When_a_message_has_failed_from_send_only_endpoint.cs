@@ -3,12 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
     public class When_a_message_has_failed_from_send_only_endpoint : AcceptanceTest
@@ -25,7 +25,7 @@
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -46,7 +46,7 @@
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -62,21 +62,14 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class Foo : DispatchRawMessages
+            class Foo : DispatchRawMessages<MyContext>
             {
-                private MyContext myContext;
-
-                public Foo(MyContext myContext)
-                {
-                    this.myContext = myContext;
-                }
-
-                protected override TransportOperations CreateMessage()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
                     var headers = new Dictionary<string, string>
                     {
-                        [Headers.MessageId] = myContext.MessageId,
+                        [Headers.MessageId] = context.MessageId,
                         [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
                         ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
                         ["$.diagnostics.hostdisplayname"] = "SELENE",
@@ -92,12 +85,12 @@
                         [Headers.EnclosedMessageTypes] = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
                     };
 
-                    if (myContext.IncludeProcessingEndpointHeader)
+                    if (context.IncludeProcessingEndpointHeader)
                     {
                         headers[Headers.ProcessingEndpoint] = "SomeEndpoint";
                     }
 
-                    var outgoingMessage = new OutgoingMessage(myContext.MessageId, headers, new byte[0]);
+                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
 
                     return new TransportOperations(
                         new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))

@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
@@ -32,7 +32,7 @@
             await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(async c => c.Remote1MessageId != null && await TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: Master))
+                .Done(async c => c.Remote1MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
         }
 

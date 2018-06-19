@@ -3,10 +3,10 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
@@ -26,7 +26,7 @@
                         return false;
                     }
 
-                    var result = await TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
                     auditedMessage = result;
                     return result;
                 })

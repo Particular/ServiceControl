@@ -2,12 +2,12 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -25,7 +25,7 @@
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EndpointsView>("/api/endpoints", m => m.Name == endpointName);
+                    var result = await this.TryGetSingle<EndpointsView>("/api/endpoints", m => m.Name == endpointName);
                     endpoint = result;
                     if (!result)
                     {

@@ -10,7 +10,7 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
@@ -64,7 +64,7 @@
                         return false;
                     }
 
-                    var result = await TryGet<FailedMessage>($"/api/errors/{c.UniqueId}", m =>
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueId}", m =>
                     {
                         Console.WriteLine("Processing attempts: " + m.ProcessingAttempts.Count);
                         return m.ProcessingAttempts.Count == 10;
@@ -86,16 +86,9 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages
+            class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages<MyContext>
             {
-                MyContext context;
-
-                public SendMultipleFailedMessagesWithSameUniqueId(MyContext context)
-                {
-                    this.context = context;
-                }
-
-                protected override TransportOperations CreateMessage()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
                     var messageId = Guid.NewGuid().ToString();
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();

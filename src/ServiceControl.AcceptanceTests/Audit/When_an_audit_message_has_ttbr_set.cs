@@ -7,7 +7,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
     class When_an_audit_message_has_ttbr_set : AcceptanceTest
     {

@@ -8,7 +8,7 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -27,16 +27,16 @@
                         return false;
                     }
 
-                    return await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                 }, async (bus, ctx) =>
                 {
-                    await Post("/api/redirects", new RedirectRequest
+                    await this.Post("/api/redirects", new RedirectRequest
                     {
                         fromphysicaladdress = ctx.FromAddress,
                         tophysicaladdress = ctx.ToAddress
                     }, status => status != HttpStatusCode.Created);
 
-                    await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                 }))
                 .WithEndpoint<ToNewEndpoint>(c => 
                     c.When((session, ctx) =>

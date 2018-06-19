@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    public class AzureStorageQueuesTransportIntegration : ITransportIntegration
+    public class AzureStorageQueuesTransportIntegration
     {
         public AzureStorageQueuesTransportIntegration()
         {

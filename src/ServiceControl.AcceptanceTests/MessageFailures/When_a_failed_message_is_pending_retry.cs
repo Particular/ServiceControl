@@ -7,7 +7,7 @@
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -26,18 +26,18 @@
                         return false;
                     }
 
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
                     return result;
                 }, async (bus, ctx) =>
                 {
                     ctx.AboutToSendRetry = true;
-                    await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                 }))
                 .Done(ctx => ctx.Retried)
                 .Run();
 
-            failedMessage = await TryGet<FailedMessage>($"/api/errors/{context.UniqueMessageId}");
+            failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{context.UniqueMessageId}");
 
             Assert.AreEqual(failedMessage.Status, FailedMessageStatus.RetryIssued,"Status was not set to RetryIssued");
         }

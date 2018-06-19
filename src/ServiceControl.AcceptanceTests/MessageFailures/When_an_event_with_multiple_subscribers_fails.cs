@@ -9,7 +9,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
     class When_an_event_with_multiple_subscribers_fails : AcceptanceTest
@@ -60,7 +60,7 @@
                         )
                 ).Done(async ctx =>
                 {
-                    var result = await TryGetMany<FailedMessageView>("/api/errors");
+                    var result = await this.TryGetMany<FailedMessageView>("/api/errors");
                     failedMessages = result;
                     return result && failedMessages.Sum(x => x.NumberOfProcessingAttempts) >= 2;
                 })

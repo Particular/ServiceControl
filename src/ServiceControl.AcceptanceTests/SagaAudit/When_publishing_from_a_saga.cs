@@ -3,13 +3,13 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
@@ -24,7 +24,7 @@
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
                     sagaHistory = result;
                     return c.ReceivedInitiatingMessage &&
                            result;

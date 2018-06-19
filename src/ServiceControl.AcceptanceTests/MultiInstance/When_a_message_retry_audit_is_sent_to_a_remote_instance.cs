@@ -6,7 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
@@ -43,7 +43,7 @@
 
                     if (failure.Status == FailedMessageStatus.Unresolved)
                     {
-                        await IssueRetry(c, () => Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
+                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
                         return false;
                     }
 
@@ -83,7 +83,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, null, Master);
+            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, null, Master);
         }
 
         async Task IssueRetry(MyContext c, Func<Task> retryAction)

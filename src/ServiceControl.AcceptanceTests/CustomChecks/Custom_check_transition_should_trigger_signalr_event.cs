@@ -4,7 +4,6 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -13,6 +12,7 @@
     using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]
@@ -21,7 +21,7 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+            var context = await Define<MyContext>(ctx => { ctx.Handler = () => this.Handlers[Settings.DEFAULT_SERVICE_NAME]; })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)

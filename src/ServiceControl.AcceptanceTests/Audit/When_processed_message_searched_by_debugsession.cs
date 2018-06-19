@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_processed_message_searched_by_debugsession : AcceptanceTest
@@ -24,7 +24,7 @@
                     return bus.Send(new MyMessage(), sendOptions);
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(async c => c.MessageId != null && await TryGetMany<MessagesView>("/api/messages/search/DANCO-WIN8@Application1@2014-01-26T11:33:51"))
+                .Done(async c => c.MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/DANCO-WIN8@Application1@2014-01-26T11:33:51"))
                 .Run(TimeSpan.FromSeconds(40));
         }
         

@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_processed_message_searched_by_messagetype  : AcceptanceTest
@@ -22,7 +22,7 @@
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
-                .Done(async c => await TryGetMany<MessagesView>("/api/messages/search/" + searchString))
+                .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString))
                 .Run(TimeSpan.FromSeconds(40));
         }
         

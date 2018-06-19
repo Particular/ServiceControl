@@ -10,7 +10,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
@@ -43,7 +43,7 @@
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<MessagesView>("/api/messages/", instanceName: Master);
+                    var result = await this.TryGetMany<MessagesView>("/api/messages/", instanceName: Master);
                     response = result;
                     return result && response.Count == 2;
                 })

@@ -9,7 +9,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -25,7 +25,7 @@
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints", m => m.Name == c.EndpointNameOfReceivingEndpoint);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints", m => m.Name == c.EndpointNameOfReceivingEndpoint);
                     knownEndpoints = result;
                     return result;
                 })

@@ -3,11 +3,11 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.EventLog;
@@ -24,7 +24,7 @@
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
                     entry = result;
                     return result;
                 })

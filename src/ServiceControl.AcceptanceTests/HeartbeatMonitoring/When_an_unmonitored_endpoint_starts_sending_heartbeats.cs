@@ -3,10 +3,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -24,7 +24,7 @@
                 .WithEndpoint<MyEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
                     endpoints = result;
                     return result;
                 })
@@ -38,7 +38,7 @@
                 .WithEndpoint<MyEndpointWithHeartbeat>()
                 .Done(async c =>
                 {
-                    var result =  await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
+                    var result =  await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
                     endpoints = result;
                     return result;
                 })

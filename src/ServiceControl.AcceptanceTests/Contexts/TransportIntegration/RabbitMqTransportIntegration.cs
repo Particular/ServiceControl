@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    public class RabbitMqTransportIntegration : ITransportIntegration
+    public class RabbitMqTransportIntegration
     {
         public RabbitMqTransportIntegration()
         {

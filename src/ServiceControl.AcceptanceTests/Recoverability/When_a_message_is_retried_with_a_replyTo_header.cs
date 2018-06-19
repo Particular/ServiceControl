@@ -10,8 +10,9 @@
     using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
@@ -26,10 +27,10 @@
                 .WithEndpoint<VerifyHeaderEndpoint>()
                 .Done(async x =>
                 {
-                    if (!x.RetryIssued && await TryGetMany<FailedMessageView>("/api/errors"))
+                    if (!x.RetryIssued && await this.TryGetMany<FailedMessageView>("/api/errors"))
                     {
                         x.RetryIssued = true;
-                        await Post<object>("/api/errors/retry/all");
+                        await this.Post<object>("/api/errors/retry/all");
                     }
 
                     return x.Done;
@@ -58,24 +59,21 @@
                 );
             }
 
-            public class FakeSender : DispatchRawMessages
+            class FakeSender : DispatchRawMessages<ReplyToContext>
             {
-                private ReadOnlySettings settings;
-                private ReplyToContext context;
-
-                protected override TransportOperations CreateMessage()
+                protected override TransportOperations CreateMessage(ReplyToContext context)
                 {
                     var messageId = Guid.NewGuid().ToString();
                     var headers = new Dictionary<string, string>
                     {
                         [Headers.ReplyToAddress] = context.ReplyToAddress,
-                        [Headers.ProcessingEndpoint] = settings.EndpointName(),
+                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)),
                         ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
                         ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                        ["NServiceBus.FailedQ"] = settings.LocalAddress(),
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)), // TODO: Correct?
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                         [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
                         [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
@@ -84,12 +82,6 @@
                     var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
 
                     return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
-                }
-
-                public FakeSender(ReadOnlySettings settings, ReplyToContext context)
-                {
-                    this.settings = settings;
-                    this.context = context;
                 }
             }
 

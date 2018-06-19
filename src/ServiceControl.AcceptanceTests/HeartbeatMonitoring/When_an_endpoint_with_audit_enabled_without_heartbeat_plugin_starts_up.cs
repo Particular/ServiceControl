@@ -3,10 +3,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -24,7 +24,7 @@
                 .Done(async c =>
                 {
                     
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
                     endpoints = result;
                     return result;
                 })
