@@ -189,7 +189,10 @@ namespace ServiceBus.Management.AcceptanceTests
                 Bootstrapper bootstrapper;
                 using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
                 {
-                    var loggingSettings = new LoggingSettings(settings.ServiceName);
+                    var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                    Directory.CreateDirectory(logPath);
+
+                    var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
                     bootstrapper = new Bootstrapper(() => { }, settings, configuration, loggingSettings);
                     bootstrappers[instanceName] = bootstrapper;
                     bootstrapper.HttpClientFactory = HttpClientFactory;
