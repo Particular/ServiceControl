@@ -16,8 +16,9 @@
 
     public class MessageStreamerConnection : PersistentConnection
     {
-        public MessageStreamerConnection(IDispatchMessages sender, ReadOnlySettings settings, Conventions conventions)
+        public MessageStreamerConnection(IDispatchMessages sender, ReadOnlySettings settings)
         {
+            var conventions = settings.Get<Conventions>();
             this.sender = sender;
 
             messageTypes = settings.GetAvailableTypes()

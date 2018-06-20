@@ -48,6 +48,7 @@
             {
                 protected override void Setup(FeatureConfigurationContext context)
                 {
+                    context.Container.ConfigureComponent<SignalrStarter>(DependencyLifecycle.SingleInstance);
                     context.RegisterStartupTask(b => b.Build<SignalrStarter>());
                 }
             }
