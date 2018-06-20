@@ -47,7 +47,8 @@ namespace ServiceControl.Operations
                                 await storeSession.StoreAsync(entity).ConfigureAwait(false);
                                 await storeSession.SaveChangesAsync().ConfigureAwait(false);
                             }
-                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null);
+                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null)
+                                .ConfigureAwait(false);
                             succeeded++;
                             Logger.Info($"Successfully re-imported failed audit message {dto.Id}.");
                         }
