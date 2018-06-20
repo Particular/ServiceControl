@@ -200,7 +200,7 @@
                 public Context TestContext { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public async Task Handle(FailingMessage message, IMessageHandlerContext context)
+                public Task Handle(FailingMessage message, IMessageHandlerContext context)
                 {
                     TestContext.ProcessingAttemptCount++;
                     Console.WriteLine($"Handling message {context.MessageId} attempt {TestContext.ProcessingAttemptCount}");
@@ -221,7 +221,7 @@
 
                     if (TestContext.Retried && TestContext.HasSuccessInTheEnd)
                     {
-                        return;
+                        return Task.FromResult(0);;
                     }
 
                     throw new Exception("Simulated Exception");

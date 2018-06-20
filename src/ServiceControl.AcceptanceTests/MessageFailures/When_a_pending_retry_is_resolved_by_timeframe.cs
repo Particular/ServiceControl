@@ -93,7 +93,7 @@
                 public Context Context { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public async Task Handle(MyMessage message, IMessageHandlerContext context)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
                     if (Context.RetryAboutToBeSent)
@@ -107,6 +107,8 @@
                         Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
                         throw new Exception("Simulated Exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }
