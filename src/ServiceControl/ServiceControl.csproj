@@ -355,6 +355,7 @@
     <Compile Include="Infrastructure\Settings\InstanceIdGenerator.cs" />
     <Compile Include="Infrastructure\Settings\RemoteInstanceSetting.cs" />
     <Compile Include="Infrastructure\SignalR\ServicePulseNotifierFeature.cs" />
+    <Compile Include="Infrastructure\TaskExtensions.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
     <Compile Include="Licensing\LicenseModule.cs" />
     <Compile Include="LoggingConfigurator.cs" />

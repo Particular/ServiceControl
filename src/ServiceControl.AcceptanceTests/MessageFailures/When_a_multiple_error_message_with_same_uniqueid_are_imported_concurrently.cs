@@ -21,7 +21,7 @@
         {
             public MyContext Context { get; set; }
 
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 string counter;
                 if (headers.TryGetValue("Counter", out counter))
@@ -32,6 +32,8 @@
                 {
                     Console.WriteLine("No Counter header found");
                 }
+
+                return Task.FromResult(0);
             }
         }
 

@@ -1,9 +1,11 @@
 namespace ServiceControl.Operations
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Features;
+    using ServiceControl.Infrastructure;
 
     public class LicenseReporter : Feature
     {
@@ -27,7 +29,7 @@ namespace ServiceControl.Operations
                 this.licenseStatusKeeper = licenseStatusKeeper;
             }
 
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var status = GetLicenseStatus(headers);
                 var endpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
@@ -38,6 +40,8 @@ namespace ServiceControl.Operations
                 {
                     licenseStatusKeeper.Set(endpoint.Name + endpoint.Host, status);
                 }
+
+                return TaskEx.CompletedTask;
             }
 
             public string GetLicenseStatus(IReadOnlyDictionary<string, string> headers)

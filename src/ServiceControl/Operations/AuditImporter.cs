@@ -94,7 +94,7 @@
             enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichAudits).ToArray();
         }
 
-        public ProcessedMessage ConvertToSaveMessage(MessageContext message)
+        public async Task<ProcessedMessage> ConvertToSaveMessage(MessageContext message)
         {
             string messageId;
             if (!message.Headers.TryGetValue(Headers.MessageId, out messageId))
@@ -108,9 +108,11 @@
                 ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
 
+            // TODO: Fan out?
             foreach (var enricher in enrichers)
             {
-                enricher.Enrich(message.Headers, metadata);
+                await enricher.Enrich(message.Headers, metadata)
+                    .ConfigureAwait(false);
             }
 
             bodyStorageEnricher.StoreAuditMessageBody(

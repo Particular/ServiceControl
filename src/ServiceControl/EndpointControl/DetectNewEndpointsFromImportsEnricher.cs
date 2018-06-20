@@ -30,12 +30,7 @@
                 this.monitoring = monitoring;
             }
 
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
-                EnrichAsync(headers, metadata).GetAwaiter().GetResult();
-            }
-
-            async Task EnrichAsync(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override async Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(headers);
 
