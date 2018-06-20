@@ -112,7 +112,6 @@
         [Serializable]
         public class MyMessage : ICommand
         {
-            public string PropertyToSearchFor { get; set; }
         }
 
         public class MyContext : ScenarioContext
