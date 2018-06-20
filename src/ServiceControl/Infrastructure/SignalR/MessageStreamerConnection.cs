@@ -23,7 +23,8 @@
 
             messageTypes = settings.GetAvailableTypes()
                                         .Where(conventions.IsMessageType)
-                                        .ToDictionary(x => x.Name, x => x.AssemblyQualifiedName);
+                                        .GroupBy(x => x.Name)
+                                        .ToDictionary(x => x.Key, x => x.FirstOrDefault().AssemblyQualifiedName);
             localAddress = settings.LocalAddress();
         }
 
