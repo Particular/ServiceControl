@@ -179,6 +179,8 @@ namespace ServiceBus.Management.AcceptanceTests
                 configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
                 configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
+                configuration.AssemblyScanner().ExcludeAssemblies("ServiceBus.Management.AcceptanceTests");
+
                 if (instanceName == Settings.DEFAULT_SERVICE_NAME)
                 {
                     customConfiguration(configuration);
