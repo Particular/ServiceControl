@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Metrics.NET" Version="0.5.5" />
     <PackageReference Include="NServiceBus" Version="7.0.1" />
+    <PackageReference Include="NServiceBus.Transport.Msmq" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
