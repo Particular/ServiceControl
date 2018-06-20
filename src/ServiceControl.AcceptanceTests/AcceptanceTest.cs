@@ -51,7 +51,7 @@ namespace ServiceBus.Management.AcceptanceTests
             
             AssertTransportNotExplicitlyIgnored(transportToUse);
             
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, SetSettings, SetInstanceSettings, CustomConfiguration, CustomInstanceConfiguration);
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
 
             Conventions.EndpointNamingConvention = t =>
             {
