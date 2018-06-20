@@ -102,11 +102,16 @@
 
             public class BigFatMessageHandler : IHandleMessages<BigFatMessage>
             {
-                readonly Context _context;
+                readonly Context testContext;
+
+                public BigFatMessageHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(BigFatMessage message, IMessageHandlerContext context)
                 {
-                    _context.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
+                    testContext.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
                     return Task.FromResult(0);
                 }
             }
@@ -114,14 +119,12 @@
 
         class BigFatMessage : IMessage
         {
-            public string MessageId { get; set; }
             public byte[] BigFatBody { get; set; }
         }
 
         class Context : ScenarioContext
         {
             public string MessageId { get; set; }
-            public bool HasBodyBeenTamperedWith { get; set; }
         }
 
     }
