@@ -90,6 +90,7 @@ namespace Particular.ServiceControl
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
             containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
+            containerBuilder.Register(c => bus.Bus);
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
