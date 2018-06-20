@@ -30,7 +30,7 @@
 
         public void Customize(EndpointConfiguration configuration)
         {
-            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
+            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>();
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
             var markerFileService = configuration.GetSettings().Get<MarkerFileService>("ServiceControl.MarkerFileService");
 

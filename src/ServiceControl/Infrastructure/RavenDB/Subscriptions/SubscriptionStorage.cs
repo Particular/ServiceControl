@@ -16,7 +16,7 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var store = context.Settings.Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
+            var store = context.Settings.Get<EmbeddableDocumentStore>();
 
             store.Conventions.FindClrType = (id, doc, metadata) =>
             {
