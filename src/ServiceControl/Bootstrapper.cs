@@ -2,11 +2,13 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Autofac;
+    using Autofac.Features.ResolveAnything;
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
@@ -73,6 +75,8 @@ namespace Particular.ServiceControl
             timeKeeper = new TimeKeeper();
 
             var containerBuilder = new ContainerBuilder();
+
+            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
 
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
