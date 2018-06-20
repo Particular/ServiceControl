@@ -22,7 +22,8 @@
 
         public async Task Ingest(MessageContext context)
         {
-            var processedMessage = auditImporter.ConvertToSaveMessage(context);
+            var processedMessage = await auditImporter.ConvertToSaveMessage(context)
+                .ConfigureAwait(false);
 
             using (var session = store.OpenAsyncSession())
             {

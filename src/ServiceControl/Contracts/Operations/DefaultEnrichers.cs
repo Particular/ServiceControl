@@ -2,8 +2,10 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Operations;
 
     public class DefaultEnrichers : Feature
@@ -21,7 +23,7 @@
 
         class MessageTypeEnricher : ImportEnricher
         {
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var isSystemMessage = false;
                 string messageType = null;
@@ -41,7 +43,8 @@
 
                 metadata.Add("IsSystemMessage", isSystemMessage);
                 metadata.Add("MessageType", messageType);
-
+                
+                return TaskEx.CompletedTask;
             }
 
             bool DetectSystemMessage(string messageTypeString)
@@ -62,7 +65,7 @@
 
         class EnrichWithTrackingIds : ImportEnricher
         {
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 string conversationId;
 
@@ -77,6 +80,8 @@
                 {
                     metadata.Add("RelatedToId", relatedToId);
                 }
+                
+                return TaskEx.CompletedTask;
             }
         }
     }

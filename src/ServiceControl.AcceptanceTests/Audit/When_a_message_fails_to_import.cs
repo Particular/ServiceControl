@@ -19,7 +19,7 @@
         {
             public MyContext Context { get; set; }
 
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 if (!Context.FailedImport)
                 {
@@ -27,6 +27,7 @@
                     throw new MessageDeserializationException("ID", null);
                 }
                 Console.WriteLine("Message processed correctly");
+                return Task.FromResult(0);
             }
         }
 

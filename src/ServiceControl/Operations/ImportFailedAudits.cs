@@ -40,7 +40,8 @@ namespace ServiceControl.Operations
                         try
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);                            
-                            var entity = auditImporter.ConvertToSaveMessage(messageContext);
+                            var entity = await auditImporter.ConvertToSaveMessage(messageContext)
+                                .ConfigureAwait(false);
                             using (var storeSession = store.OpenAsyncSession())
                             {
                                 await storeSession.StoreAsync(entity).ConfigureAwait(false);
