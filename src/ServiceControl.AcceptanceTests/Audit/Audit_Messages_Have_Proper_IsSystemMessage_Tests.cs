@@ -171,10 +171,6 @@
             }
         }
 
-        public class MyMessage : IMessage
-        {
-        }
-
         public class DoQueryAllowed : IMessage
         {
         }
