@@ -1,5 +1,6 @@
 namespace ServiceControl.Infrastructure.DomainEvents
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
 
@@ -12,7 +13,7 @@ namespace ServiceControl.Infrastructure.DomainEvents
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<DomainEventBusPublisher>(DependencyLifecycle.SingleInstance);
+            context.RegisterStartupTask(b => b.Build<DomainEventBusPublisher>());
         }
     }
 }

@@ -96,6 +96,8 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.Register(c => bus.Bus);
 
+            containerBuilder.RegisterType<DomainEventBusPublisher>().SingleInstance();
+
             container = containerBuilder.Build();
             Startup = new Startup(container);
 

@@ -2,15 +2,11 @@ namespace ServiceControl.Infrastructure.DomainEvents
 {
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Features;
 
-    class DomainEventBusPublisher : IDomainHandler<IDomainEvent>
+    public class DomainEventBusPublisher : FeatureStartupTask, IDomainHandler<IDomainEvent>
     {
         IMessageSession messageSession;
-
-        public DomainEventBusPublisher(IMessageSession messageSession)
-        {
-            this.messageSession = messageSession;
-        }
 
 #pragma warning disable 1998
         public Task Handle(IDomainEvent domainEvent)
@@ -23,6 +19,17 @@ namespace ServiceControl.Infrastructure.DomainEvents
                 return messageSession.Publish(busEvent);
             }
             return Task.FromResult(0);
+        }
+
+        protected override Task OnStart(IMessageSession session)
+        {
+            messageSession = session;
+            return Task.FromResult(true);
+        }
+
+        protected override Task OnStop(IMessageSession session)
+        {
+            return Task.FromResult(true);
         }
     }
 }
