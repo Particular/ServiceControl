@@ -29,6 +29,9 @@ namespace ServiceBus.Management.Infrastructure
             configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
             configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
+            configuration.GetSettings().Set<LoggingSettings>(loggingSettings);
+            configuration.GetSettings().Set<Settings.Settings>(settings);
+            configuration.GetSettings().Set<IDocumentStore>(documentStore);
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
