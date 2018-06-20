@@ -44,7 +44,11 @@
             {
                 protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    var headers = new Dictionary<string, string> {{Headers.ProcessingEndpoint, Conventions.EndpointNamingConvention(typeof(ThirdPartyEndpoint))}};
+                    var headers = new Dictionary<string, string>
+                    {
+                        {Headers.ProcessingEndpoint, Conventions.EndpointNamingConvention(typeof(ThirdPartyEndpoint))},
+                        {Headers.MessageId, context.MessageId},
+                    };
                     return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }
