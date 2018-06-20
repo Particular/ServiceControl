@@ -155,15 +155,15 @@
 
         class FakeBodyStorage : IBodyStorage
         {
-            public string Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+            public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
             {
                 throw new NotImplementedException();
             }
 
-            public bool TryFetch(string bodyId, out Stream stream)
+            public Task<StreamResult> TryFetch(string bodyId)
             {
-                stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)); //Echo back the body ID.
-                return true;
+                var stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)); //Echo back the body ID.
+                return Task.FromResult(new StreamResult { HasResult = true, Stream = stream });
             }
         }
     }

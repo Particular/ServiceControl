@@ -54,15 +54,15 @@
                 ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
 
+            // TODO: fanout ? 
             foreach (var enricher in enrichers)
             {
-                enricher.Enrich(message.Headers, metadata);
+                await enricher.Enrich(message.Headers, metadata)
+                    .ConfigureAwait(false);
             }
 
-            bodyStorageEnricher.StoreErrorMessageBody(
-                message.Body, 
-                message.Headers, 
-                metadata);
+            await bodyStorageEnricher.StoreErrorMessageBody(message.Body, message.Headers, metadata)
+                .ConfigureAwait(false);
 
             var failureDetails = failedMessageFactory.ParseFailureDetails(message.Headers);
 
