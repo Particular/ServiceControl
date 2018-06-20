@@ -3,6 +3,7 @@
     using System;
     using NServiceBus.CustomChecks;
     using System.Diagnostics;
+    using System.Threading.Tasks;
     using NServiceBus.Logging;
 
     public class CheckDeadLetterQueue : CustomCheck
@@ -21,7 +22,7 @@
                 readOnly: true);
         }
 
-        public override CheckResult PerformCheck()
+        public override Task<CheckResult> PerformCheck()
         {
             Logger.Debug("Checking Dead Letter Queue length");
             var currentValue = dlqPerformanceCounter.NextValue();
