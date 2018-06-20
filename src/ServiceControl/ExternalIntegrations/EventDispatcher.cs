@@ -31,10 +31,9 @@
         CancellationTokenSource tokenSource;
         Etag latestEtag = Etag.Empty;
 
-        public EventDispatcher(IDocumentStore store, IMessageSession bus, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
+        public EventDispatcher(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
-            this.bus = bus;
             this.criticalError = criticalError;
             this.settings = settings;
             this.eventPublishers = eventPublishers;
@@ -50,6 +49,8 @@
                 TimeSpan.FromMinutes(5),
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
                 TimeSpan.FromSeconds(20));
+
+            bus = session;
 
             StartDispatcher();
             return Task.FromResult(0);
