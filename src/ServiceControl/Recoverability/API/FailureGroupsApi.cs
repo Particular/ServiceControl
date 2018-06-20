@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace ServiceControl.Recoverability
 
     public class FailureGroupsApi : BaseModule
     {
-        public IEndpointInstance Bus { get; set; }
+        public Lazy<IEndpointInstance> Bus { get; set; }
 
         public GroupFetcher GroupFetcher { get; set; }
 
@@ -50,7 +51,7 @@ namespace ServiceControl.Recoverability
 
         async Task<dynamic> ReclassifyErrors()
         {
-            await Bus.SendLocal(new ReclassifyErrors
+            await Bus.Value.SendLocal(new ReclassifyErrors
             {
                 Force = true
             }).ConfigureAwait(false);

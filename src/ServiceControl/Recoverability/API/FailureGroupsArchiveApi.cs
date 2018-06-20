@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Threading.Tasks;
     using Nancy;
     using NServiceBus;
@@ -25,7 +26,7 @@ namespace ServiceControl.Recoverability
                 await ArchiveOperationManager.StartArchiving(groupId, ArchiveType.FailureGroup)
                     .ConfigureAwait(false);
 
-                await Bus.SendLocal<ArchiveAllInGroup>(m =>
+                await Bus.Value.SendLocal<ArchiveAllInGroup>(m =>
                 {
                     m.GroupId = groupId;
                 }).ConfigureAwait(false);
@@ -35,6 +36,6 @@ namespace ServiceControl.Recoverability
         }
 
         public ArchivingManager ArchiveOperationManager { get; set; }
-        public IEndpointInstance Bus { get; set; }
+        public Lazy<IEndpointInstance> Bus { get; set; }
     }
 }
