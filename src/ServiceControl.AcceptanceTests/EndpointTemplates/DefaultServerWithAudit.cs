@@ -37,6 +37,8 @@
                 typeof(TraceOutgoingBehavior)
             }));
 
+            builder.SendFailedMessagesTo("Error");
+
 
             builder.TypesToIncludeInScan(typesToInclude);
 
