@@ -32,8 +32,6 @@ namespace ServiceBus.Management.AcceptanceTests
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
         private Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
-        private Dictionary<string, BusInstance> busses = new Dictionary<string, BusInstance>();
-        private Dictionary<string, HttpClient> httpClients = new Dictionary<string, HttpClient>();
         private Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
         private ITransportIntegration transportToUse;
         private Action<string, Settings> setInstanceSettings;
@@ -215,12 +213,12 @@ namespace ServiceBus.Management.AcceptanceTests
                     portToHandler[settings.Port] = handler; // port should be unique enough
                     var httpClient = new HttpClient(handler);
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    httpClients[instanceName] = httpClient;
+                    HttpClients[instanceName] = httpClient;
                 }
 
                 using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
                 {
-                    busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
+                    Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
                 }
             }
 
@@ -238,7 +236,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
                 {
                     bootstrappers[instanceName].Stop();
-                    httpClients[instanceName].Dispose();
+                    HttpClients[instanceName].Dispose();
                     Handlers[instanceName].Dispose();
                     DeleteFolder(settings.DbPath);
                 }
@@ -318,5 +316,6 @@ namespace ServiceBus.Management.AcceptanceTests
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializer.CreateDefault();
         public Dictionary<string, Settings> SettingsPerInstance { get; } = new Dictionary<string, Settings>();
         public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
+        public Dictionary<string, BusInstance> Busses { get; } = new Dictionary<string, BusInstance>();
     }
 }

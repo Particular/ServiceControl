@@ -7,6 +7,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
+    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
@@ -44,6 +45,7 @@ namespace ServiceBus.Management.AcceptanceTests
         public Dictionary<string, HttpClient> HttpClients => runner.HttpClients;
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
         public Dictionary<string, Settings> SettingsPerInstance => runner.SettingsPerInstance;
-        public Dictionary<string, OwinHttpMessageHandler> Handlers  => runner.Handlers;
+        public Dictionary<string, OwinHttpMessageHandler> Handlers => runner.Handlers;
+        public Dictionary<string, BusInstance> Busses => runner.Busses;
     }
 }

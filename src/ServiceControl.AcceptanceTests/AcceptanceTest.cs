@@ -14,6 +14,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
+    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -77,7 +78,6 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        // TODO: Fix
         protected void ExecuteWhen(Func<bool> execute, Action<IDomainEvents> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             var timeout = TimeSpan.FromSeconds(1);
@@ -88,7 +88,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                 }
 
-                // action(busses[instanceName].DomainEvents);
+                action(Busses[instanceName].DomainEvents);
             });
         }
 
@@ -112,6 +112,7 @@ namespace ServiceBus.Management.AcceptanceTests
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
         public Dictionary<string, Settings> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
         public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
+        public Dictionary<string, BusInstance> Busses => serviceControlRunnerBehavior.Busses;
     }
 
     public static class HttpExtensions
