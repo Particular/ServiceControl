@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
+    using System;
     using System.Threading;
     using Nancy;
     using Raven.Client;
@@ -14,7 +15,7 @@
 
     public class FailedAuditsModule : BaseModule
     {
-        public ImportFailedAudits ImportFailedAudits { get; set; }
+        public Lazy<ImportFailedAudits> ImportFailedAudits { get; set; }
 
         public FailedAuditsModule()
         {
@@ -40,7 +41,7 @@
             Post["/failedaudits/import", true] = async (_, token) =>
             {
                 var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-                await ImportFailedAudits.Run(tokenSource);
+                await ImportFailedAudits.Value.Run(tokenSource);
                 return HttpStatusCode.OK;
             };
         }
