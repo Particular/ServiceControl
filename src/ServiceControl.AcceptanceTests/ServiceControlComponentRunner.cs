@@ -165,6 +165,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 configuration.EnableInstallers();
 
                 configuration.GetSettings().Set("SC.ScenarioContext", context);
+                configuration.GetSettings().Set<ScenarioContext>(context);
 
                 // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
                 // This is needed because we no longer use the AppDomain separation.
