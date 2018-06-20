@@ -6,6 +6,7 @@
     using System.Reflection;
     using AcceptanceTesting.Support;
     using Hosting.Helpers;
+    using Particular.ServiceControl;
 
     public static class EndpointCustomizationConfigurationExtensions
     {
@@ -15,7 +16,7 @@
 
             var assembliesToScan = assemblies.Assemblies
                 //exclude acceptance tests by default
-                .Where(a => a != Assembly.GetExecutingAssembly()).ToList();
+                .Where(a => a != Assembly.GetExecutingAssembly() && a != typeof(Bootstrapper).Assembly).ToList();
             var types = assembliesToScan
                 .SelectMany(a => a.GetTypes());
 
