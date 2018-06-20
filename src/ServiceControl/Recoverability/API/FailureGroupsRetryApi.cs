@@ -28,13 +28,13 @@ namespace ServiceControl.Recoverability
                 await RetryOperationManager.Wait(groupId, RetryType.FailureGroup, started)
                     .ConfigureAwait(false);
 
-                await Bus.SendLocal(new RetryAllInGroup { GroupId = groupId, Started = started }).ConfigureAwait(false);
+                await Bus.Value.SendLocal(new RetryAllInGroup { GroupId = groupId, Started = started }).ConfigureAwait(false);
             }
 
             return HttpStatusCode.Accepted;
         }
 
-        public IEndpointInstance Bus { get; set; }
+        public Lazy<IEndpointInstance> Bus { get; set; }
         public RetryingManager RetryOperationManager { get; set; }
     }
 }
