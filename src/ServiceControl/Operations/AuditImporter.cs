@@ -11,6 +11,7 @@
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageAuditing;
     using ServiceControl.Operations.BodyStorage;
 
@@ -95,9 +96,14 @@
 
         public ProcessedMessage ConvertToSaveMessage(MessageContext message)
         {
+            string messageId;
+            if (!message.Headers.TryGetValue(Headers.MessageId, out messageId))
+            {
+                messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
+            }
             var metadata = new Dictionary<string, object>
             {
-                ["MessageId"] = message.MessageId,
+                ["MessageId"] = messageId,
                 ["MessageIntent"] = message.Headers.MessageIntent(),
                 ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
