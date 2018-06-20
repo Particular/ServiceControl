@@ -238,7 +238,12 @@ namespace ServiceControlInstaller.Engine.Instances
             var version = Version;
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
-            settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString());
+            
+            if (oldSettings.Version.Major >= 2) //Maintenance port was introduced in Version 2
+            {
+                settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString());
+            }
+            
             settings.Set(SettingsList.LogPath, LogPath);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
@@ -295,6 +300,11 @@ namespace ServiceControlInstaller.Engine.Instances
             var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
 
+            if (oldSettings.Version.Major < 2) //Maintenance port was introduced in Version 2
+            {
+                return;
+            }
+            
             var maintanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             maintanceReservation.Create();
         }

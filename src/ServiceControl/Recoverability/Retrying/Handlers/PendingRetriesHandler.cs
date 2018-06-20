@@ -58,7 +58,7 @@ namespace ServiceControl.Recoverability
                     .WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
                     .AndAlso()
                     .WhereEquals(o => o.QueueAddress, message.QueueAddress)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    .SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>(fields);
 
                 using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
