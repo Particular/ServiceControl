@@ -7,7 +7,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NServiceBus.Routing;
-    using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
