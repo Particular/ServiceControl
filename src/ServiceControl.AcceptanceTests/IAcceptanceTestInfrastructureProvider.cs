@@ -3,6 +3,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Collections.Generic;
     using System.Net.Http;
     using Newtonsoft.Json;
+    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public interface IAcceptanceTestInfrastructureProvider
@@ -13,5 +14,6 @@ namespace ServiceBus.Management.AcceptanceTests
         
         Dictionary<string, Settings> SettingsPerInstance { get; }
         Dictionary<string, OwinHttpMessageHandler> Handlers { get; }
+        Dictionary<string, BusInstance> Busses { get; }
     }
 }
