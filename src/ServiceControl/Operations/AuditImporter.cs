@@ -115,10 +115,8 @@
                     .ConfigureAwait(false);
             }
 
-            bodyStorageEnricher.StoreAuditMessageBody(
-                message.Body,
-                message.Headers,
-                metadata);
+            await bodyStorageEnricher.StoreAuditMessageBody(message.Body, message.Headers, metadata)
+                .ConfigureAwait(false);
 
             var auditMessage = new ProcessedMessage(message.Headers, metadata)
             {
