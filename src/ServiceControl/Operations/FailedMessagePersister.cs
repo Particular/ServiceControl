@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
@@ -10,6 +11,7 @@
     using Raven.Imports.Newtonsoft.Json;
     using Raven.Json.Linq;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
@@ -47,9 +49,15 @@
 
         public async Task<FailureDetails> Persist(MessageContext message)
         {
+            string messageId;
+            if (!message.Headers.TryGetValue(Headers.MessageId, out messageId))
+            {
+                messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
+            }
+
             var metadata = new Dictionary<string, object>
             {
-                ["MessageId"] = message.MessageId,
+                ["MessageId"] = messageId,
                 ["MessageIntent"] = message.Headers.MessageIntent(),
                 ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
