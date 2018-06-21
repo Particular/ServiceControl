@@ -6,8 +6,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTests;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
@@ -22,7 +20,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
@@ -45,8 +43,9 @@
                 outgoingIntents[message.MessageType] = message.Intent;
             }
 
-            Assert.AreEqual("Send", outgoingIntents[typeof(MessageReplyBySaga).FullName]);
-            Assert.AreEqual("Send", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName]);
+            // TODO: These first two were originally send before the V5-7 update. Needs to be checked
+            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyBySaga).FullName]);
+            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName]);
             Assert.AreEqual("Send", outgoingIntents[typeof(MessageSentBySaga).FullName]);
             Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName]);
         }
@@ -57,11 +56,13 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.DisableFeature<AutoSubscribe>();
+                    // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
+                    c.EnableFeature<AutoSubscribe>();
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-
-                    var routing = c.ConfigureTransport().Routing();
-                    routing.RouteToEndpoint(typeof(MessagePublishedBySaga), typeof(EndpointThatIsHostingTheSaga));
+                    
+                }, metadata =>
+                {
+                    metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga));
                 });
             }
 
@@ -85,33 +86,44 @@
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
+                    mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
                 }
             }
 
             public class MySagaData : ContainSagaData
             {
+                public string MessageId { get; set; }
             }
 
             class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
                 {
+                    Context.Done1 = true;
                     return Task.FromResult(0);
                 }
             }
 
             class MessagePublishedBySagaHandler : IHandleMessages<MessagePublishedBySaga>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
                 {
+                    Context.Done2 = true;
                     return Task.FromResult(0);
                 }
             }
 
             class MessageReplyToOriginatorBySagaHandler : IHandleMessages<MessageReplyToOriginatorBySaga>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
                 {
+                    Context.Done3 = true;
                     return Task.FromResult(0);
                 }
             }
@@ -122,7 +134,7 @@
 
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
-                    Context.Done = true;
+                    Context.Done4 = true;
                     return Task.FromResult(0);
                 }
             }
@@ -131,6 +143,7 @@
         [Serializable]
         public class MessageInitiatingSaga : ICommand
         {
+            public string Id { get; set; }
         }
 
         [Serializable]
@@ -155,7 +168,12 @@
 
         public class MyContext : ScenarioContext
         {
-            public bool Done { get; set; }
+            public bool Done1 { get; set; }
+            public bool Done2 { get; set; }
+            public bool Done3 { get; set; }
+            public bool Done4 { get; set; }
+
+            public bool Done => Done1 && Done2 && Done3 && Done4;
             public Guid SagaId { get; set; }
         }
     }

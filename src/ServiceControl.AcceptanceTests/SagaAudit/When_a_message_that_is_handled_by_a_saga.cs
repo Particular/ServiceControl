@@ -19,7 +19,7 @@
             var messages = new List<MessagesView>();
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga())))
+                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga { Saga1Id = Guid.NewGuid(), Saga2Id = Guid.NewGuid() })))
                 .Done(async c =>
                 {
                     if (c.Saga1Complete && c.Saga2Complete)
@@ -47,11 +47,11 @@
             AssertInitiatedHas2Sagas(messages, context);
         }
 
-// ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once UnusedParameter.Local
         static void AssertInitiatedHas2Sagas(IEnumerable<MessagesView> messages, MyContext context)
         {
             var m = messages.First(message => message.MessageType == typeof(InitiateSaga).FullName);
-            var value = (string) m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
+            var value = (string)m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
             var strings = value.Split(';');
 
             Assert.IsTrue(strings.Any(s => s == context.Saga1Id + ":New"));
@@ -75,17 +75,17 @@
             {
                 public MyContext Context { get; set; }
 
-                static Guid myId = Guid.NewGuid();
+                //static Guid myId = Guid.NewGuid();
 
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    Data.MyId = myId;
-                    return context.SendLocal(new UpdateSaga1 { MyId = myId });
+                    //Data.MyId = myId;
+                    return context.SendLocal(new UpdateSaga1 { MyId = message.Saga1Id });
                 }
 
                 public Task Handle(UpdateSaga1 message, IMessageHandlerContext context)
                 {
-                    return context.SendLocal(new CompleteSaga1 { MyId = myId });
+                    return context.SendLocal(new CompleteSaga1 { MyId = message.MyId });
                 }
 
                 public Task Handle(CompleteSaga1 message, IMessageHandlerContext context)
@@ -98,6 +98,7 @@
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga1Data> mapper)
                 {
+                    mapper.ConfigureMapping<InitiateSaga>(d => d.Saga1Id).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<UpdateSaga1>(d => d.MyId).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<CompleteSaga1>(d => d.MyId).ToSaga(s => s.MyId);
                 }
@@ -112,17 +113,17 @@
             {
                 public MyContext Context { get; set; }
 
-                static Guid myId = Guid.NewGuid();
+                //static Guid myId = Guid.NewGuid();
 
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    Data.MyId = myId;
-                    return context.SendLocal(new UpdateSaga2 { MyId = myId });
+                    //Data.MyId = myId;
+                    return context.SendLocal(new UpdateSaga2 { MyId = message.Saga2Id });
                 }
 
                 public Task Handle(UpdateSaga2 message, IMessageHandlerContext context)
                 {
-                    return context.SendLocal(new CompleteSaga2 { MyId = myId });
+                    return context.SendLocal(new CompleteSaga2 { MyId = message.MyId });
                 }
 
                 public Task Handle(CompleteSaga2 message, IMessageHandlerContext context)
@@ -140,6 +141,7 @@
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga2Data> mapper)
                 {
+                    mapper.ConfigureMapping<InitiateSaga>(d => d.Saga2Id).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<UpdateSaga2>(d => d.MyId).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<CompleteSaga2>(d => d.MyId).ToSaga(s => s.MyId);
                 }
@@ -149,6 +151,8 @@
         [Serializable]
         public class InitiateSaga : ICommand
         {
+            public Guid Saga1Id { get; set; }
+            public Guid Saga2Id { get; set; }
         }
 
         [Serializable]
