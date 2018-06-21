@@ -19,10 +19,7 @@
         protected override void Setup(FeatureConfigurationContext context)
         {
             var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
-            context.Container.ConfigureComponent<MonitorEndpointInstances>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<EndpointInstanceMonitoring>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<MonitoringDataPersister>(DependencyLifecycle.SingleInstance);
-            
+
             context.RegisterStartupTask(b =>
             {
                 var instances = b.Build<MonitorEndpointInstances>();
