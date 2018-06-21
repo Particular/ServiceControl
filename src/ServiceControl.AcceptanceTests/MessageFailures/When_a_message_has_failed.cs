@@ -81,7 +81,7 @@
             var failure = new MessagesView();
 
             var context = await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages", m=>m.MessageId == c.MessageId);
@@ -122,7 +122,7 @@
         public async Task Should_raise_a_signalr_event()
         {
             var context = await Define<MyContext>(ctx => { ctx.Handler = () => this.Handlers[Settings.DEFAULT_SERVICE_NAME]; })
-                .WithEndpoint<Receiver>()
+                .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
                 .Run();
@@ -168,15 +168,18 @@
             await Define<QueueSearchContext>()
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
+                    b.DoNotFailOnErrorMessages();
                     b.When(bus => bus.SendLocal(new MyMessage()));
                 })
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
+                    b.DoNotFailOnErrorMessages();
                     b.CustomConfig(configuration => configuration.GetSettings().Set("NServiceBus.Routing.EndpointName", searchEndpointName));
                     b.When(bus => bus.SendLocal(new MyMessage()));
                 })
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
+                    b.DoNotFailOnErrorMessages();
                     b.CustomConfig(configuration => configuration.GetSettings().Set("NServiceBus.Routing.EndpointName", "YetAnotherEndpoint"));
                     b.When(bus => bus.SendLocal(new MyMessage()));
                 }).Done(async c =>
@@ -216,7 +219,8 @@
 
                 protected override void Setup(FeatureConfigurationContext context)
                 {
-                    
+                    context.Container.ConfigureComponent<SignalRStarter>(DependencyLifecycle.SingleInstance);
+                    context.RegisterStartupTask(b => b.Build<SignalRStarter>());
                 }
 
 
