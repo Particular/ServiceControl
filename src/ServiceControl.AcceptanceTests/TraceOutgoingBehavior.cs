@@ -4,6 +4,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Logging;
     using NServiceBus.Pipeline;
     using NServiceBus.Settings;
 
@@ -28,7 +29,13 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public Task Invoke(IOutgoingLogicalMessageContext context, Func<IOutgoingLogicalMessageContext, Task> next)
         {
-            scenarioContext.AddTrace($"-> {context.Headers[Headers.MessageIntent]} from {settings.LocalAddress()} [{context.MessageId}] {context.Message.MessageType.Name}");
+            scenarioContext.Logs.Enqueue(new ScenarioContext.LogItem
+            {
+                Endpoint = settings.EndpointName(), 
+                Level = LogLevel.Info, 
+                LoggerName = "Trace",
+                Message = $"-> {context.Headers[Headers.MessageIntent]} {context.Message.MessageType.Name} ({context.Headers[Headers.MessageId].Substring(context.Headers[Headers.MessageId].Length - 4)})"
+            });
             return next(context);
         }
     }
