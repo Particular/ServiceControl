@@ -31,7 +31,7 @@
             FailedMessage failure;
 
             await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await GetFailedMessage(c);
@@ -142,7 +142,7 @@
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, LocalAddress).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
             public string LocalAddress { get; set; }
             public bool RetryIssued { get; set; }
         }
