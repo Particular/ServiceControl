@@ -14,6 +14,7 @@
         {
             this.monitoring = monitoring;
         }
+
         public Task Handle(RegisterEndpointStartup message, IMessageHandlerContext context)
         {
             var endpointDetails = new EndpointDetails
