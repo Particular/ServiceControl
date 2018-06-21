@@ -34,7 +34,7 @@
             FailedMessage failedMessage = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
@@ -60,7 +60,7 @@
             FailedMessageView failure = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
@@ -103,7 +103,7 @@
             EventLogItem entry = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
@@ -138,6 +138,7 @@
             await Define<QueueSearchContext>()
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
+                    b.DoNotFailOnErrorMessages();
                     b.When(bus => bus.SendLocal(new MyMessage()));
                     b.When(async c =>
                     {
@@ -263,7 +264,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.Recoverability().Delayed(x => x.NumberOfRetries(0)));
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -320,7 +321,7 @@
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, LocalAddress).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
 
             public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrEventReceived { get; set; }
