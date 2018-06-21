@@ -38,7 +38,7 @@
 
                                     // Retry Failed Message
                                     await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                                })
+                                }).DoNotFailOnErrorMessages()
                 )
                 .WithEndpoint<NewEndpoint>(c =>
                 {
@@ -83,7 +83,7 @@
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
                     Context.FromAddress = Settings.LocalAddress();
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
+                    Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.EndpointName()).ToString();
                     throw new Exception("Message Failed");
                 }
             }
@@ -119,7 +119,6 @@
             public bool ProcessedAgain { get; set; }
         }
 
-        [Serializable]
         class MessageToRetry : ICommand
         {
 
