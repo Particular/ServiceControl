@@ -23,23 +23,25 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             const string newTo = "endpointC@machine3";
 
-            var context = await Define<Context>().Run();
-
-            await this.Post("/api/redirects", redirect);
-
-            var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
-            List<MessageRedirectFromJson> response = result;
-
-            context.CreatedAt = response[0].last_modified;
-
-            await this.Put($"/api/redirects/{messageRedirectId}/", new
+            var context = await Define<Context>().Done(async c =>
             {
-                tophysicaladdress = newTo
-            }, status => status != HttpStatusCode.NoContent);
+                await this.Post("/api/redirects", redirect);
 
-            result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
-            response = result;
+                var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
 
+                c.CreatedAt = result.Items[0].last_modified;
+
+                await this.Put($"/api/redirects/{messageRedirectId}/", new
+                {
+                    tophysicaladdress = newTo
+                }, status => status != HttpStatusCode.NoContent);
+
+                result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
+                c.Response = result;
+                return true;
+            }).Run();
+
+            var response = context.Response;
             Assert.AreEqual(1, response.Count, "Expected only 1 redirect");
             Assert.AreEqual(messageRedirectId, response[0].message_redirect_id, "Message Redirect Id mismatch");
             Assert.AreEqual(redirect.fromphysicaladdress, response[0].from_physical_address, "From physical address mismatch");
@@ -112,6 +114,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
         class Context : ScenarioContext
         {
+            public List<MessageRedirectFromJson> Response { get; set; }
             public DateTime? CreatedAt { get; set; }
         }
     }

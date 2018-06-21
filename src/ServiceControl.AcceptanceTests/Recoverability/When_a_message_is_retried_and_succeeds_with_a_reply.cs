@@ -18,7 +18,7 @@
         {
             var context = await Define<RetryReplyContext>()
                 .WithEndpoint<OriginatingEndpoint>(c => c.When(bus => bus.Send(new OriginalMessage())))
-                .WithEndpoint<ReceivingEndpoint>()
+                .WithEndpoint<ReceivingEndpoint>(c => c.DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (string.IsNullOrWhiteSpace(c.UniqueMessageId))
@@ -39,7 +39,7 @@
 
                     return !string.IsNullOrWhiteSpace(c.ReplyHandledBy);
                 })
-                .Run(TimeSpan.FromMinutes(3));
+                .Run(TimeSpan.FromMinutes(1));
 
             Assert.AreEqual("Originating Endpoint", context.ReplyHandledBy, "Reply handled by incorrect endpoint");
         }
@@ -99,7 +99,7 @@
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
                     // TODO: Check if the local address needs to be sanitized
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
+                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (!Context.RetryIssued)
                     {

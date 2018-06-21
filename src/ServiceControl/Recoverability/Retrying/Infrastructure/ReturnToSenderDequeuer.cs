@@ -158,6 +158,12 @@ namespace ServiceControl.Recoverability
             }
         }
 
+        public Task CreateQueue()
+        {
+            var config = createEndpointConfiguration();
+            return RawEndpoint.Create(config);
+        }
+
         public virtual async Task Run(Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
         {
             IReceivingRawEndpoint processor = null;
