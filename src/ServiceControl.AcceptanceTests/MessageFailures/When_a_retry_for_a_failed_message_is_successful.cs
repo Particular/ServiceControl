@@ -121,7 +121,7 @@
             FailedMessage failure = null;
 
             await Define<MyContext>()
-                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
