@@ -89,6 +89,13 @@ namespace ServiceBus.Management.Infrastructure
             var importFailedAudits = container.Resolve<ImportFailedAudits>();
 
             var startedBus = await bus.Start().ConfigureAwait(false);
+
+            var builder = new ContainerBuilder();
+
+            builder.RegisterInstance(startedBus).As<IMessageSession>();
+
+            builder.Update(container.ComponentRegistry);
+
             return new BusInstance(startedBus, domainEvents, importFailedAudits);
         }
 

@@ -111,15 +111,15 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
+            bus = await NServiceBusFactory.CreateAndStart(settings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+                .ConfigureAwait(false);
+
             if (!isRunningAcceptanceTests)
             {
                 var startOptions = new StartOptions(settings.RootUrl);
 
                 WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
-
-            bus = await NServiceBusFactory.CreateAndStart(settings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
-                .ConfigureAwait(false);
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
 
