@@ -46,7 +46,7 @@
                     {
                         ctx.ToAddress = Conventions.EndpointNamingConvention(typeof(NewEndpoint));
                         return Task.FromResult(0);
-                    });
+                    }).DoNotFailOnErrorMessages();
                 })
                 .Done(async ctx =>
                 {

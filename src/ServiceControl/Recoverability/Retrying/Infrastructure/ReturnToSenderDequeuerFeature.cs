@@ -39,7 +39,7 @@ namespace ServiceControl.Recoverability
 
             protected override Task OnStart(IMessageSession session)
             {
-                return Task.FromResult(0);
+                return returnToSenderDequeuer.CreateQueue();
             }
 
             protected override Task OnStop(IMessageSession session)
