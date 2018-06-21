@@ -67,6 +67,9 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                }, publisherMetadata =>
+                {
+                    publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME);
                 });
             }
 

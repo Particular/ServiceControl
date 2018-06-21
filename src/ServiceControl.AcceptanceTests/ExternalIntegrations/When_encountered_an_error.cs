@@ -7,6 +7,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests;
+    using NServiceBus.Features;
     using NUnit.Framework;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -55,9 +56,9 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             }).GetAwaiter().GetResult());
 
             var context = await Define<MyContext>()
-                .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
+                .WithEndpoint<ExternalProcessor>(b => b.When(async (messageSession, c) =>
                 {
-                    await bus.Subscribe<HeartbeatStopped>();
+                    await messageSession.Subscribe<HeartbeatStopped>();
 
                     if (c.HasNativePubSubSupport)
                     {
@@ -108,6 +109,9 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                }, publisherMetadata =>
+                {
+                    publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME);
                 });
             }
 
