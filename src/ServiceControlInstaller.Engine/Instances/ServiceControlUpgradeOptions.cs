@@ -28,7 +28,12 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             instance.SkipQueueCreation = SkipQueueCreation;
-            instance.DatabaseMaintenancePort = MaintenancePort;
+
+            if (MaintenancePort != 0)
+            {
+                instance.DatabaseMaintenancePort = MaintenancePort;
+            }
+
             instance.ApplyConfigChange();
         }
     }
