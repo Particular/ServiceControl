@@ -17,7 +17,7 @@
             MessagesView auditedMessage = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
@@ -52,11 +52,13 @@
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
+                    mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
                 }
             }
 
             public class MySagaData : ContainSagaData
             {
+                public string MessageId { get; set; }
             }
 
             class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
@@ -74,6 +76,7 @@
         [Serializable]
         public class MessageInitiatingSaga : ICommand
         {
+            public string Id { get; set; }
         }
 
         [Serializable]

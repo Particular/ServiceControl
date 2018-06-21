@@ -5,8 +5,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTests;
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
@@ -21,7 +19,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage { Id = "Id" })))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
@@ -34,7 +32,7 @@
             Assert.NotNull(sagaHistory);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(MySaga).FullName,sagaHistory.SagaType);
+            Assert.AreEqual(typeof(MySaga).FullName, sagaHistory.SagaType);
 
             var newChange = sagaHistory.Changes.Single(x => x.Status == SagaStateChangeStatus.New);
             Assert.AreEqual(typeof(StartSagaMessage).FullName, newChange.InitiatingMessage.MessageType);
@@ -46,11 +44,13 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                     {
-                        c.DisableFeature<AutoSubscribe>();
+                        // NOTE: The DefaultServerWithAudit disables this
+                        c.EnableFeature<AutoSubscribe>();
                         c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-
-                        var routing = c.ConfigureTransport().Routing();
-                        routing.RouteToEndpoint(typeof(MyEvent), typeof(EndpointThatIsHostingTheSaga));
+                    },
+                    metadata =>
+                    {
+                        metadata.RegisterPublisherFor<MyEvent>(typeof(EndpointThatIsHostingTheSaga));
                     });
             }
         }
@@ -64,7 +64,7 @@
             {
                 Context.SagaId = Data.Id;
                 Context.ReceivedInitiatingMessage = true;
-                return context.Publish(new MyEvent());
+                return context.Publish(new MyEvent { Id = message.Id });
             }
 
             public Task Handle(MyEvent message, IMessageHandlerContext context)
@@ -76,15 +76,19 @@
 
             protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
             {
+                mapper.ConfigureMapping<StartSagaMessage>(msg => msg.Id).ToSaga(saga => saga.MessageId);
+                mapper.ConfigureMapping<MyEvent>(msg => msg.Id).ToSaga(saga => saga.MessageId);
             }
         }
 
         public class MySagaData : ContainSagaData
         {
+            public string MessageId { get; set; }
         }
 
         public class StartSagaMessage : ICommand
         {
+            public string Id { get; set; }
         }
 
         public class MyContext : ScenarioContext
@@ -94,8 +98,9 @@
             public Guid SagaId { get; set; }
         }
 
-        public class MyEvent:IEvent
+        public class MyEvent : IEvent
         {
+            public string Id { get; set; }
         }
     }
 

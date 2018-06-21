@@ -19,7 +19,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage { Id = "Id" })))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
@@ -62,15 +62,18 @@
 
             protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
             {
+                mapper.ConfigureMapping<StartSagaMessage>(msg => msg.Id).ToSaga(saga => saga.MessageId);
             }
         }
 
         public class MySagaData : ContainSagaData
         {
+            public string MessageId { get; set; }
         }
 
         public class StartSagaMessage : ICommand
         {
+            public string Id { get; set; }
         }
 
         public class MyContext : ScenarioContext
