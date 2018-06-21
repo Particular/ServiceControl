@@ -26,7 +26,7 @@
             });
 
             var context = await Define<MyContext>()
-                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })))
+                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage { Body = "Faulty message" })).DoNotFailOnErrorMessages())
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
                     await bus.Subscribe<MessageFailed>();
@@ -72,6 +72,9 @@
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                }, publisherMetadata =>
+                {
+                    publisherMetadata.RegisterPublisherFor<MessageFailed>(Settings.DEFAULT_SERVICE_NAME);
                 });
             }
 
