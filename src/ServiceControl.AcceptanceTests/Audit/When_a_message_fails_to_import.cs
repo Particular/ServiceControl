@@ -74,7 +74,7 @@
                         return false;
                     }
 
-                    return await this.TryGetMany<MessagesView>("/api/messages/search/" + c.MessageId);
+                    return await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}");
                 })
                 .Run(TimeSpan.FromSeconds(40));
         }
