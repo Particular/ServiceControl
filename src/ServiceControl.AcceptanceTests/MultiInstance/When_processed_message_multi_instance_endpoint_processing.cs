@@ -122,8 +122,7 @@
                     c.AuditProcessedMessagesTo(AuditRemote);
                     c.SendFailedMessagesTo(ErrorRemote);
 
-                    // TODO: Figure out how to do this properly
-                    // c.UniquelyIdentifyRunningInstance().UsingNames();
+                    c.UniquelyIdentifyRunningInstance().UsingCustomDisplayName(ReceiverHostDisplayName);
                 });
             }
 
