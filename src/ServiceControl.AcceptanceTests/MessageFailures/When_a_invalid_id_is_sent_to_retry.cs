@@ -63,7 +63,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                 {
                     if (!Context.ExceptionThrown) //simulate that the exception will be resolved with the retry
                     {
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
                         Context.ExceptionThrown = Context.IssueRetry = true;
                         throw new Exception("Simulated exception");
                     }
