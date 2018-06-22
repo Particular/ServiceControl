@@ -30,7 +30,7 @@
                     ctx.DecommissionedEndpointMessageId = Guid.NewGuid().ToString();
                     ctx.DecommissionedEndpointUniqueMessageId = DeterministicGuid.MakeId(ctx.DecommissionedEndpointMessageId, ctx.DecommissionedEndpointName).ToString();
                     return Task.FromResult(0);
-                })
+                }).DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
                         return !ctx.RetryForInvalidAddressIssued && await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
@@ -40,7 +40,7 @@
                             await this.Post<object>($"/api/errors/{ctx.DecommissionedEndpointUniqueMessageId}/retry");
                             await bus.SendLocal(new MessageThatWillFail());
                             ctx.RetryForInvalidAddressIssued = true;
-                        })
+                        }).DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
                         return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
@@ -49,7 +49,7 @@
                         {
                             await this.Post<object>($"/api/errors/{ctx.MessageThatWillFailUniqueMessageId}/retry");
                             ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued = true;
-                        }))
+                        }).DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
                     if (!ctx.Done)
@@ -71,29 +71,6 @@
             Assert.AreEqual(FailedMessageStatus.Resolved, successfullyRetried.Status);
         }
 
-        // TODO: Figure out how to replicate a send failure on retry
-        //private class SendMessagesWrapper : ISendMessages
-        //{
-        //    private readonly ISendMessages original;
-        //    private readonly MyContext context;
-
-        //    public SendMessagesWrapper(ISendMessages original, MyContext context)
-        //    {
-        //        this.original = original;
-        //        this.context = context;
-        //    }
-
-        //    public void Send(TransportMessage message, SendOptions sendOptions)
-        //    {
-        //        if (sendOptions.Destination.Queue == context.DecommissionedEndpointName)
-        //        {
-        //            throw new QueueNotFoundException();
-        //        }
-
-        //        original.Send(message, sendOptions);
-        //    }
-        //}
-
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
@@ -111,7 +88,7 @@
 
                 public Task Handle(MessageThatWillFail message, IMessageHandlerContext context)
                 {
-                    Context.MessageThatWillFailUniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
+                    Context.MessageThatWillFailUniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
 
                     if (!Context.RetryForMessageThatWillFailAndThenBeResolvedIssued) //simulate that the exception will be resolved with the retry
                     {

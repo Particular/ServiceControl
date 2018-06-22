@@ -19,7 +19,7 @@
             FailedMessage failedMessage;
 
             await Define<Context>()
-                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage()))
+                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages()
                     .When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
@@ -60,7 +60,7 @@
                         from = DateTime.UtcNow.AddHours(-1).ToString("o"),
                         to = DateTime.UtcNow.AddSeconds(10).ToString("o")
                     });
-                }))
+                }).DoNotFailOnErrorMessages())
                 .Done(ctx => ctx.RetryCount == 2)
                 .Run();
         }
@@ -92,7 +92,7 @@
                     else
                     {
                         Context.FromAddress = Settings.LocalAddress();
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
 
