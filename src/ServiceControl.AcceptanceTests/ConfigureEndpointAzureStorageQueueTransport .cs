@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using ServiceBus.Management.AcceptanceTests;
+using ServiceControl.Infrastructure;
 
 public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
 {
@@ -17,6 +18,8 @@ public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
             .UseTransport<AzureStorageQueueTransport>()
             .ConnectionString(ConnectionString)
             .MessageInvisibleTime(TimeSpan.FromSeconds(30));
+        
+        transportConfig.SanitizeQueueNamesWith(AsqBackwardsCompatibleQueueNameSanitizer.Sanitize);
 
         transportConfig.DelayedDelivery().DisableTimeoutManager();
 
