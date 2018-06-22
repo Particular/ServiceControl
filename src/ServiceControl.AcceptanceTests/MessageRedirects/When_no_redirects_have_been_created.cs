@@ -10,10 +10,16 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
         [Test]
         public async Task Listing_redirects_should_not_error()
         {
-            Define<Context>();
-
-            var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
-            List<MessageRedirectFromJson> response = result;
+            var response = new List<MessageRedirectFromJson>();
+            
+            await Define<Context>()
+                .Done(async ctx =>
+                {
+                    var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
+                    response = result;
+                    return true;
+                })
+                .Run();
 
             Assert.AreEqual(0, response.Count, "Expected 0 redirects to be created");
         }

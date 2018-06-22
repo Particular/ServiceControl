@@ -60,14 +60,19 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             var messageRedirectId = DeterministicGuid.MakeId(redirect.fromphysicaladdress.ToLowerInvariant());
 
-            Define<Context>();
+            await Define<Context>()
+                .Done(async c =>
+                {
+                    await this.Post("/api/redirects", redirect);
 
-            await this.Post("/api/redirects", redirect);
+                    await this.Put($"/api/redirects/{messageRedirectId}/", new
+                    {
+                        tophysicaladdress = string.Empty
+                    }, status => status != HttpStatusCode.BadRequest);
 
-            await this.Put($"/api/redirects/{messageRedirectId}/", new
-            {
-                tophysicaladdress = string.Empty
-            }, status => status != HttpStatusCode.BadRequest);
+                    return true;
+                })
+                .Run();
         }
 
         [Test]
@@ -75,12 +80,16 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
         {
             const string newTo = "endpointC@machine3";
 
-            Define<Context>();
-
-            await this.Put($"/api/redirects/{Guid.Empty}/", new
-            {
-                tophysicaladdress = newTo
-            }, status => status != HttpStatusCode.NotFound);
+            await Define<Context>()
+                .Done(async ctx =>
+                {
+                    await this.Put($"/api/redirects/{Guid.Empty}/", new
+                    {
+                        tophysicaladdress = newTo
+                    }, status => status != HttpStatusCode.NotFound);
+                    
+                    return true;
+                }).Run();
         }
 
         [Test]
@@ -100,16 +109,20 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
             var messageRedirectId = DeterministicGuid.MakeId(updateRedirect.fromphysicaladdress);
 
-            Define<Context>();
+            await Define<Context>()
+                .Done(async ctx =>
+                {
+                    await this.Post("/api/redirects", updateRedirect);
 
-            await this.Post("/api/redirects", updateRedirect);
+                    await this.Post("/api/redirects", conflictRedirect);
 
-            await this.Post("/api/redirects", conflictRedirect);
-
-            await this.Put($"/api/redirects/{messageRedirectId}/", new
-            {
-                tophysicaladdress = conflictRedirect.fromphysicaladdress
-            }, status => status != HttpStatusCode.Conflict);
+                    await this.Put($"/api/redirects/{messageRedirectId}/", new
+                    {
+                        tophysicaladdress = conflictRedirect.fromphysicaladdress
+                    }, status => status != HttpStatusCode.Conflict);
+                    
+                    return true;
+                }).Run();
         }
 
         class Context : ScenarioContext

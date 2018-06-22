@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
@@ -78,7 +77,7 @@
         {
             public ToNewEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.GetSettings().Set("NServiceBus.Routing.EndpointName", "mynewendpoint"));
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
