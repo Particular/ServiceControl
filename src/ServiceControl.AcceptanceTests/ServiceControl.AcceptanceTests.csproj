@@ -239,12 +239,12 @@
     <Compile Include="Audit\When_processed_message_searched_by_messageid.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_messagetype.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_msgid_for_endpoint.cs" />
+    <Compile Include="ConfigureEndpointAzureServiceBusTransport.cs" />
     <Compile Include="ConfigureEndpointAzureStorageQueueTransport .cs" />
     <Compile Include="ConfigureEndpointInMemoryPersistence.cs" />
     <Compile Include="ConfigureEndpointMsmqTransport .cs" />
     <Compile Include="Audit\When_a_message_sent_from_third_party_endpoint_with_missing_metadata.cs" />
     <Compile Include="ConfigureEndpointRabbitMQTransport.cs" />
-    <Compile Include="Contexts\TransportIntegration\AzureServiceBusTransportIntegration.cs" />
     <Compile Include="Contexts\TransportIntegration\SqlServerTransportIntegration.cs" />
     <Compile Include="EndpointConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\DefaultServerWithAudit.cs" />
