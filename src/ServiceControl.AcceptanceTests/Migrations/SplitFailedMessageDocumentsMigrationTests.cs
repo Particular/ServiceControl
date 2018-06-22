@@ -29,6 +29,7 @@
                         config.RegisterComponents(components => components
                         .ConfigureComponent<RetryUniqueMessageIdMutator>(DependencyLifecycle.SingleInstance))
                     )
+                    .DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
                         if (ctx.UniqueMessageId == null)
@@ -68,6 +69,7 @@
                         config.RegisterComponents(components => components
                         .ConfigureComponent<RetryUniqueMessageIdMutator>(DependencyLifecycle.SingleInstance))
                     )
+                    .DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
                         if (ctx.UniqueMessageId == null)
@@ -106,6 +108,7 @@
                         config.RegisterComponents(components => components
                         .ConfigureComponent<RetryUniqueMessageIdMutator>(DependencyLifecycle.SingleInstance))
                     )
+                    .DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
                         if (ctx.UniqueMessageId == null)
@@ -145,6 +148,7 @@
                         config.RegisterComponents(components => components
                         .ConfigureComponent<RetryUniqueMessageIdMutator>(DependencyLifecycle.SingleInstance))
                     )
+                    .DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
                         if (ctx.UniqueMessageId == null)
@@ -216,7 +220,7 @@
                         TestContext.MessageId = context.MessageId;
                         TestContext.ReplyToAddress = context.ReplyToAddress;
 
-                        TestContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.LocalAddress()).ToString();
+                        TestContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
                     }
 
                     if (TestContext.Retried && TestContext.HasSuccessInTheEnd)
