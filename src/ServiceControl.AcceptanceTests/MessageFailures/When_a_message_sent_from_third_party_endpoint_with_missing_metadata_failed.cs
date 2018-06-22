@@ -93,6 +93,7 @@
 
                     var headers = new Dictionary<string, string>
                     {
+                        [Headers.MessageId] = context.MessageId,
                         [Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint,
                         ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
                         ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
