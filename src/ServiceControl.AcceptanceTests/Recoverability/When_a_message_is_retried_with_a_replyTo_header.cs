@@ -65,6 +65,7 @@
                     var messageId = Guid.NewGuid().ToString();
                     var headers = new Dictionary<string, string>
                     {
+                        [Headers.MessageId] = messageId,
                         [Headers.ReplyToAddress] = context.ReplyToAddress,
                         [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)),
                         ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,

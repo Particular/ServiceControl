@@ -26,7 +26,7 @@
                             .ConfigureAwait(false);
                         await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
                             .ConfigureAwait(false);
-                    })
+                    }).DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
                         if (ctx.ArchiveIssued || ctx.FirstMessageId == null || ctx.SecondMessageId == null)
@@ -67,14 +67,14 @@
                     if (c.FirstMessageId == null || c.SecondMessageId == null)
                         return false;
 
-                    var firstFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId, e => e.Status == FailedMessageStatus.Archived);
+                    var firstFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.FirstMessageId}", e => e.Status == FailedMessageStatus.Archived);
                     firstFailure = firstFailureResult;
                     if (!firstFailureResult)
                     {
                         return false;
                     }
 
-                    var secondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status == FailedMessageStatus.Archived);
+                    var secondFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.SecondMessageId}", e => e.Status == FailedMessageStatus.Archived);
                     secondFailure = secondFailureResult;
                     if (!secondFailureResult)
                     {
@@ -103,7 +103,7 @@
                         .ConfigureAwait(false);
                     await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
                         .ConfigureAwait(false);
-                }))
+                }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (c.FirstMessageId == null || c.SecondMessageId == null)
@@ -121,7 +121,7 @@
 
                         failureGroupId = beforeArchiveGroups[0].Id;
 
-                        var unresolvedSecondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var unresolvedSecondFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.SecondMessageId}", e => e.Status == FailedMessageStatus.Unresolved);
                         secondFailure = unresolvedSecondFailureResult;
                         if (!unresolvedSecondFailureResult)
                         {
@@ -135,7 +135,7 @@
                     if (!c.ArchiveIssued)
                     {
                         // Ensure message is being retried
-                        var notUnresolvedSecondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId, e => e.Status != FailedMessageStatus.Unresolved);
+                        var notUnresolvedSecondFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.SecondMessageId}", e => e.Status != FailedMessageStatus.Unresolved);
                         secondFailure = notUnresolvedSecondFailureResult;
                         if (!notUnresolvedSecondFailureResult)
                         {
@@ -181,7 +181,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.Recoverability().Delayed(x => x.NumberOfRetries(0)));
+                EndpointSetup<DefaultServerWithAudit>(c => c.NoDelayedRetries());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -194,7 +194,7 @@
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (message.MessageNumber == 1)
                     {

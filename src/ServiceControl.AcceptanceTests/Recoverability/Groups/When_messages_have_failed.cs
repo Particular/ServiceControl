@@ -33,7 +33,7 @@
                         .ConfigureAwait(false);
                     await bus.SendLocal(new MyMessageB())
                         .ConfigureAwait(false);
-                }))
+                }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (c.MessageIdA == null || c.MessageIdB == null)
@@ -98,9 +98,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        var recoverability = c.Recoverability();
-                        recoverability.Immediate(x => x.NumberOfRetries(0));
-                        recoverability.Delayed(x => x.NumberOfRetries(0));
+                        c.NoRetries();
                     });
             }
 
@@ -114,7 +112,7 @@
 
                 public Task Handle(MyMessageA message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress();
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageIdA = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }

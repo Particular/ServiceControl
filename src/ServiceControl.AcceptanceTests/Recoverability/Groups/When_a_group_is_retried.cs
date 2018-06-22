@@ -25,7 +25,7 @@
                         .ConfigureAwait(false);
                     await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
                         .ConfigureAwait(false);
-                }))
+                }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (c.MessageToBeRetriedByGroupId == null || c.MessageToBeArchivedId == null)
@@ -36,7 +36,7 @@
                     //First we are going to issue an archive to one of the messages
                     if (!c.ArchiveIssued)
                     {
-                        var messageToBeArchivedUnresolvedResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var messageToBeArchivedUnresolvedResult = await this.TryGet<FailedMessage>($"/api/errors/{c.MessageToBeArchivedId}", e => e.Status == FailedMessageStatus.Unresolved);
                         messageToBeArchived = messageToBeArchivedUnresolvedResult;
                         if (!messageToBeArchivedUnresolvedResult)
                         {
@@ -54,7 +54,7 @@
                     if (!c.RetryIssued)
                     {
                         // Ensure message is being retried
-                        var messageToBeRetriedAsPartOfGroupUnresolvedRetryResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedByGroupId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var messageToBeRetriedAsPartOfGroupUnresolvedRetryResult = await this.TryGet<FailedMessage>($"/api/errors/{c.MessageToBeRetriedByGroupId}", e => e.Status == FailedMessageStatus.Unresolved);
                         messageToBeRetriedAsPartOfGroupRetry = messageToBeRetriedAsPartOfGroupUnresolvedRetryResult;
                         if (!messageToBeRetriedAsPartOfGroupUnresolvedRetryResult)
                         {
@@ -68,14 +68,14 @@
                         return false;
                     }
 
-                    var messageToBeRetriedAsPartOfGroupResolvedRetryResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedByGroupId, e => e.Status == FailedMessageStatus.Resolved);
+                    var messageToBeRetriedAsPartOfGroupResolvedRetryResult = await this.TryGet<FailedMessage>($"/api/errors/{c.MessageToBeRetriedByGroupId}", e => e.Status == FailedMessageStatus.Resolved);
                     messageToBeRetriedAsPartOfGroupRetry = messageToBeRetriedAsPartOfGroupResolvedRetryResult;
                     if (!messageToBeRetriedAsPartOfGroupResolvedRetryResult)
                     {
                         return false;
                     }
 
-                    var messageToBeArchivedArchivedResult = await this.TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Archived);
+                    var messageToBeArchivedArchivedResult = await this.TryGet<FailedMessage>($"/api/errors/{c.MessageToBeArchivedId}", e => e.Status == FailedMessageStatus.Archived);
                     messageToBeArchived = messageToBeArchivedArchivedResult;
                     return messageToBeArchivedArchivedResult;
                 })
@@ -102,7 +102,7 @@
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (message.MessageNumber == 1)
                     {

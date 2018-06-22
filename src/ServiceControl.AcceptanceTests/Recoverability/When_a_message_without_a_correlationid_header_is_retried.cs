@@ -16,7 +16,8 @@
         public async Task The_successful_retry_should_succeed()
         {
             var context = await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage()))
+                    .DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
                     if (string.IsNullOrWhiteSpace(ctx.UniqueMessageId))
@@ -58,9 +59,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var recoverability = c.Recoverability();
-                    recoverability.Delayed(x => x.NumberOfRetries(0));
-                    recoverability.Immediate(x => x.NumberOfRetries(0));
+                    c.NoRetries();
                     c.RegisterComponents(components => components.ConfigureComponent<CorrelationIdRemover>(DependencyLifecycle.InstancePerCall));
                 });
             }
@@ -75,7 +74,7 @@
                     var messageId = context.MessageId.Replace(@"\", "-");
 
                     // TODO: Check LocalAddress should just be queue name
-                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
+                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (!TestContext.RetryIssued)
                     {

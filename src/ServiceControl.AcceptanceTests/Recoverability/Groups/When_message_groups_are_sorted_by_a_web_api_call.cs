@@ -57,7 +57,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                         return false;
                     }
 
-                    var errorResult = await this.TryGetMany<FailedMessageView>("/api/recoverability/groups/" + groups[0].Id + "/errors?page=1&direction=asc&sort=" + sortProperty);
+                    var errorResult = await this.TryGetMany<FailedMessageView>($"/api/recoverability/groups/{groups[0].Id}/errors?page=1&direction=asc&sort={sortProperty}");
                     localErrors = errorResult;
                     if (!errorResult)
                     {
@@ -105,15 +105,17 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 OutgoingMessage CreateTransportMessage(int i)
                 {
                     var date = new DateTime(2015, 9 + i, 20 + i, 0, 0, 0);
-                    var msg = new OutgoingMessage(i + MessageId, new Dictionary<string, string>
+                    var messageId = $"{i}{MessageId}";
+                    var msg = new OutgoingMessage(messageId, new Dictionary<string, string>
                     {
+                        {Headers.MessageId, messageId},
                         {"NServiceBus.ExceptionInfo.ExceptionType", "System.Exception"},
                         {"NServiceBus.ExceptionInfo.Message", "An error occurred"},
                         {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},
                         {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(Receiver))}, // TODO: Correct?
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
                         {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
-                        {Headers.EnclosedMessageTypes, "MessageThatWillFail" + i},
+                        {Headers.EnclosedMessageTypes, $"MessageThatWillFail{i}"},
                     }, new byte[0]);
                     return msg;
                 }

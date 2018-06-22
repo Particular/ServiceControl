@@ -23,7 +23,8 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             FailedMessage retriedMessage = null;
 
             await Define<MeowContext>()
-                .WithEndpoint<MeowReceiver>(b => b.When(bus => bus.SendLocal(new Meow())))
+                .WithEndpoint<MeowReceiver>(b => b.When(bus => bus.SendLocal(new Meow()))
+                    .DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
                     if (String.IsNullOrWhiteSpace(ctx.UniqueMessageId))
@@ -81,7 +82,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.Recoverability().Delayed(x => x.NumberOfRetries(0));
+                    c.NoDelayedRetries();
                 });
             }
 
@@ -94,7 +95,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
                     Context.UniqueMessageId = uniqueMessageId;
 
                     if (Context.Retrying)

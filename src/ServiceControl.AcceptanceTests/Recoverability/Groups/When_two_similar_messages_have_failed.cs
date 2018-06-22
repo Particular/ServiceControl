@@ -32,7 +32,7 @@
                         .ConfigureAwait(false);
                     await bus.SendLocal<MyMessage>(m => m.IsFirst = false)
                         .ConfigureAwait(false);
-                }))
+                }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (!c.FirstDone || !c.SecondDone)
@@ -52,14 +52,14 @@
 
                     messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
 
-                    var firstFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId);
+                    var firstFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.FirstMessageId}");
                     firstFailure = firstFailureResult;
                     if (!firstFailureResult)
                     {
                         return false;
                     }
 
-                    var secondFailureResult = await this.TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId);
+                    var secondFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.SecondMessageId}");
                     secondFailure = secondFailureResult;
                     if (!secondFailureResult)
                     {
@@ -99,9 +99,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        var recoverability = c.Recoverability();
-                        recoverability.Immediate(x => x.NumberOfRetries(0));
-                        recoverability.Delayed(x => x.NumberOfRetries(0));
+                        c.NoRetries();
                     });
             }
 
@@ -116,8 +114,7 @@
 
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    // TODO: Check LocalAddress sanitization
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (message.IsFirst)
                     {
