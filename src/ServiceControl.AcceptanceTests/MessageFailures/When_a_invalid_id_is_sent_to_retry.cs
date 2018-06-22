@@ -34,8 +34,8 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                         }
 
                         await bus.SendLocal(new MessageThatWillFail());
-                    })
-                    .When(async ctx => ctx.IssueRetry && await this.TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")))
+                    }).DoNotFailOnErrorMessages()
+                    .When(async ctx => ctx.IssueRetry && await this.TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")).DoNotFailOnErrorMessages())
                 .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 

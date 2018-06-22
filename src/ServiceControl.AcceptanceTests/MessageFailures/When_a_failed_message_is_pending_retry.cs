@@ -33,7 +33,7 @@
                 {
                     ctx.AboutToSendRetry = true;
                     await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                }))
+                }).DoNotFailOnErrorMessages())
                 .Done(ctx => ctx.Retried)
                 .Run();
 
