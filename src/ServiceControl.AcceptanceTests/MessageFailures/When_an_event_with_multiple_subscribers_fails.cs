@@ -28,7 +28,7 @@
                     {
                         ctx.Subscriber1Subscribed = true;
                     }
-                }))
+                }).DoNotFailOnErrorMessages())
                 .WithEndpoint<FailingSubscriber2>(behavior => behavior.When(async (bus, ctx) =>
                 {
                     await bus.Subscribe<SampleEvent>();
@@ -37,7 +37,7 @@
                     {
                         ctx.Subscriber2Subscribed = true;
                     }
-                }))
+                }).DoNotFailOnErrorMessages())
                 .WithEndpoint<Publisher>(behavior => behavior
                         .CustomConfig(cfg => cfg.OnEndpointSubscribed<FailingEventContext>((s, ctx) =>
                             {
@@ -57,7 +57,7 @@
                         ).When(
                             ctx => ctx.Subscriber1Subscribed && ctx.Subscriber2Subscribed,
                             bus => bus.Publish<SampleEvent>()
-                        )
+                        ).DoNotFailOnErrorMessages()
                 ).Done(async ctx =>
                 {
                     var result = await this.TryGetMany<FailedMessageView>("/api/errors");
