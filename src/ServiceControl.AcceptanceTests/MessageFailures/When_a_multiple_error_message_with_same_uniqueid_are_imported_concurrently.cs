@@ -104,6 +104,7 @@
                     {
                         var headers = new Dictionary<string, string>
                         {
+                            [Headers.MessageId] = messageId,
                             [Headers.ProcessingEndpoint] = "Error.SourceEndpoint",
                             ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
                             ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
