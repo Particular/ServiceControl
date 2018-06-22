@@ -82,7 +82,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             public string UniqueMessageId { get; set; }
         }
 
-        [Serializable]
+        
         public class MessageThatWillFail : ICommand
         {
         }

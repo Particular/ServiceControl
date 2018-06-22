@@ -7,7 +7,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests;
-    using NServiceBus.Features;
     using NUnit.Framework;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;

@@ -221,7 +221,7 @@
 
                     if (TestContext.Retried && TestContext.HasSuccessInTheEnd)
                     {
-                        return Task.FromResult(0);;
+                        return Task.FromResult(0);
                     }
 
                     throw new Exception("Simulated Exception");

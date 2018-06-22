@@ -140,28 +140,28 @@
             }
         }
 
-        [Serializable]
+        
         public class MessageInitiatingSaga : ICommand
         {
             public string Id { get; set; }
         }
 
-        [Serializable]
+        
         public class MessageSentBySaga : ICommand
         {
         }
 
-        [Serializable]
+        
         public class MessagePublishedBySaga : IEvent
         {
         }
 
-        [Serializable]
+        
         public class MessageReplyBySaga : IMessage
         {
         }
 
-        [Serializable]
+        
         public class MessageReplyToOriginatorBySaga : IMessage
         {
         }

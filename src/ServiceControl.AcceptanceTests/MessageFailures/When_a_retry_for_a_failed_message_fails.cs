@@ -124,7 +124,7 @@
             }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
         }

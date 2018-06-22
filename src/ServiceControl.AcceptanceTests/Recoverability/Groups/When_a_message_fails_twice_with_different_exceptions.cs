@@ -108,7 +108,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         }
 
 
-        [Serializable]
+        
         public class Meow : ICommand
         {
 

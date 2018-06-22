@@ -66,13 +66,13 @@
             }
         }
 
-        [Serializable]
+        
         public class MessageInitiatingSaga : ICommand
         {
             public int OrderId { get; set; }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
             public int OrderId { get; set; }

@@ -148,32 +148,32 @@
             }
         }
 
-        [Serializable]
+        
         public class InitiateSaga : ICommand
         {
             public Guid Saga1Id { get; set; }
             public Guid Saga2Id { get; set; }
         }
 
-        [Serializable]
+        
         public class UpdateSaga1 : ICommand
         {
             public Guid MyId { get; set; }
         }
 
-        [Serializable]
+        
         public class CompleteSaga1 : ICommand
         {
             public Guid MyId { get; set; }
         }
 
-        [Serializable]
+        
         public class UpdateSaga2 : ICommand
         {
             public Guid MyId { get; set; }
         }
 
-        [Serializable]
+        
         public class CompleteSaga2 : ICommand
         {
             public Guid MyId { get; set; }

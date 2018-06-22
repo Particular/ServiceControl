@@ -127,12 +127,12 @@
             }
         }
 
-        [Serializable]
+        
         public class MyMessageA : ICommand
         {
         }
 
-        [Serializable]
+        
         public class MyMessageB : ICommand
         {
         }

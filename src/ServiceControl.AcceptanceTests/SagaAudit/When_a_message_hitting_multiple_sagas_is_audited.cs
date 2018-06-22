@@ -100,7 +100,7 @@
 
         }
 
-        [Serializable]
+        
         public class MessageInitiatingSaga : ICommand
         {
             public string Id { get; set; }

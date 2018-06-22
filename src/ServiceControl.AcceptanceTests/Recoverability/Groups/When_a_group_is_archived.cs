@@ -215,7 +215,7 @@
             }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
             public int MessageNumber { get; set; }

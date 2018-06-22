@@ -158,7 +158,7 @@
             public bool Done { get; set; }
         }
 
-        [Serializable]
+        
         public class MessageThatWillFail : ICommand
         {
         }

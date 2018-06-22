@@ -92,7 +92,7 @@
             }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
             public string Body { get; set; }

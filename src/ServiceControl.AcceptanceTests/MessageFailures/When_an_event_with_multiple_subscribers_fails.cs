@@ -130,7 +130,7 @@
             }
         }
 
-        [Serializable]
+        
         public class SampleEvent : IEvent
         {
         }

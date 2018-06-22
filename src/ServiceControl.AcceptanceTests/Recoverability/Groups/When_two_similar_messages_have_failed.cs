@@ -135,7 +135,7 @@
             }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
             public bool IsFirst { get; set; }
