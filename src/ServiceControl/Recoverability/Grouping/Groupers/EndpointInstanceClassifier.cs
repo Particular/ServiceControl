@@ -13,7 +13,7 @@ namespace ServiceControl.Recoverability
             }
 
             var instanceId = EndpointInstanceId.From(failureDetails.ProcessingAttempt.Headers);
-            return instanceId.InstanceId;
+            return instanceId?.InstanceId;
         }
     }
 }
