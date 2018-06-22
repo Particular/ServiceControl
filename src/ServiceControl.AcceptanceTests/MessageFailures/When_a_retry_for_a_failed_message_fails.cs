@@ -27,6 +27,7 @@
                             (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
                             (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                        .DoNotFailOnErrorMessages()
                 )
                 .Done(async ctx =>
                 {
@@ -61,6 +62,7 @@
                              ctx.Succeed = true;
                              await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                          })
+                        .DoNotFailOnErrorMessages()
                     )
                 .Done(async ctx =>
                 {
@@ -108,7 +110,7 @@
                 {
                     Console.WriteLine("Attempting to process message");
 
-                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress();
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!Context.Succeed) //simulate that the exception will be resolved with the retry

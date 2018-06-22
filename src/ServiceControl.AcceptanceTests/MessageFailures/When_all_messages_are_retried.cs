@@ -23,7 +23,7 @@
                 {
                     await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
                     await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
-                }))
+                }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (c.MessageToBeRetriedAsPartOfRetryAllId == null || c.MessageToBeArchivedId == null)
@@ -89,8 +89,7 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    var recoverability = c.Recoverability();
-                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                    c.NoRetries();
                 });
             }
 
@@ -104,7 +103,7 @@
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (message.MessageNumber == 1)
                     {
