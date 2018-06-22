@@ -60,6 +60,8 @@
             RemoteInstances = GetRemoteInstances();
         }
 
+        public bool RunInMemory { get; set; }
+
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
