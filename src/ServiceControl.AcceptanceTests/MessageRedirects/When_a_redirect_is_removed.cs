@@ -29,7 +29,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
 
                     var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
                     response = result;
-                    return result;
+                    return true;
                 })
                 .Run();
 
