@@ -17,8 +17,6 @@
 
                 using (var session = Store.OpenAsyncSession())
                 {
-                    var allmessages = await session.Query<FailedMessage>().ToListAsync();
-
                     var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
 
                     if (message == null)
