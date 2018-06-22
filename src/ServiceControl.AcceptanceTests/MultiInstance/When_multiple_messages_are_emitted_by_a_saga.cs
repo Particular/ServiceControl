@@ -39,7 +39,7 @@
 
         [TearDown]
         public void TearDown()
-        {            
+        {
             // Cleanup the saga audit plugin configuration to not leak into other tests
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             var appSettings = (AppSettingsSection)config.GetSection("appSettings");
@@ -56,7 +56,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
@@ -79,8 +79,8 @@
                 outgoingIntents[message.MessageType] = message.Intent;
             }
 
-            Assert.AreEqual("Send", outgoingIntents[typeof(MessageReplyBySaga).FullName]);
-            Assert.AreEqual("Send", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName]);
+            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyBySaga).FullName]);
+            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName]);
             Assert.AreEqual("Send", outgoingIntents[typeof(MessageSentBySaga).FullName]);
             Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName]);
         }
@@ -115,14 +115,14 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.DisableFeature<AutoSubscribe>();
-                    c.AuditSagaStateChanges(AuditRemote);
+                    c.EnableFeature<AutoSubscribe>();
+                    c.AuditSagaStateChanges(Remote1);
                     c.AuditProcessedMessagesTo(AuditRemote);
                     c.SendFailedMessagesTo(ErrorMaster);
-
-                    c.ConfigureTransport()
-                        .Routing()
-                        .RouteToEndpoint(typeof(MessagePublishedBySaga), typeof(EndpointThatIsHostingTheSaga));
+                }, 
+                publishers =>
+                {
+                    publishers.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga));
                 });
             }
 
@@ -142,11 +142,13 @@
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
+                    mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
                 }
             }
 
             public class MySagaData : ContainSagaData
             {
+                public string MessageId { get; set; }
             }
 
             class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
@@ -185,27 +187,28 @@
             }
         }
 
-        
+
         public class MessageInitiatingSaga : ICommand
         {
+            public string Id { get; set; }
         }
 
-        
+
         public class MessageSentBySaga : ICommand
         {
         }
 
-        
+
         public class MessagePublishedBySaga : IEvent
         {
         }
 
-        
+
         public class MessageReplyBySaga : IMessage
         {
         }
 
-        
+
         public class MessageReplyToOriginatorBySaga : IMessage
         {
         }
