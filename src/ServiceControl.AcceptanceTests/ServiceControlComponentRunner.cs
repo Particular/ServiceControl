@@ -228,7 +228,7 @@ namespace ServiceBus.Management.AcceptanceTests
             RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
         }
 
-        public override Task Stop()
+        public override async Task Stop()
         {
             foreach (var instanceAndSettings in SettingsPerInstance)
             {
@@ -236,14 +236,12 @@ namespace ServiceBus.Management.AcceptanceTests
                 var settings = instanceAndSettings.Value;
                 using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
                 {
-                    bootstrappers[instanceName].Stop();
+                    await bootstrappers[instanceName].Stop().ConfigureAwait(false);
                     HttpClients[instanceName].Dispose();
                     Handlers[instanceName].Dispose();
                     DeleteFolder(settings.DbPath);
                 }
             }
-
-            return Task.FromResult(0);
         }
 
         private static void DeleteFolder(string path)

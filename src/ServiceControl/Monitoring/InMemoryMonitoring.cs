@@ -44,11 +44,10 @@
 
             public TimeSpan GracePeriod { get; set; }
 
-            protected override Task OnStart(IMessageSession session)
+            protected override async Task OnStart(IMessageSession session)
             {
-                persistence.WarmupMonitoringFromPersistence().GetAwaiter().GetResult();
+                await persistence.WarmupMonitoringFromPersistence();
                 timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
-                return Task.FromResult(0);
             }
 
             private async Task CheckEndpoints()

@@ -45,7 +45,7 @@
 
         protected override void OnStop()
         {
-            bootstrapper?.Stop();
+            bootstrapper?.Stop().GetAwaiter().GetResult();
 
             OnStopping();
         }

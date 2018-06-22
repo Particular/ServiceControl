@@ -126,10 +126,13 @@ namespace Particular.ServiceControl
             return bus;
         }
 
-        public void Stop()
+        public async Task Stop()
         {
             notifier.Dispose();
-            bus?.Dispose();
+            if (bus != null)
+            {
+                await bus.Stop().ConfigureAwait(false);
+            }
             timeKeeper.Dispose();
             documentStore.Dispose();
             WebApp?.Dispose();
