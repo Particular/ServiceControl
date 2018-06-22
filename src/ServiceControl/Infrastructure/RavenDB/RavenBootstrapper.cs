@@ -48,8 +48,17 @@
             Directory.CreateDirectory(settings.DbPath);
 
             documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
-            
-            documentStore.DataDirectory = settings.DbPath;
+
+            if (settings.RunInMemory)
+            {
+                documentStore.RunInMemory = true;
+            }
+            else
+            {
+                documentStore.DataDirectory = settings.DbPath;
+                documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
+            }
+
             documentStore.UseEmbeddedHttpServer = maintenanceMode || settings.ExposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
 
@@ -80,7 +89,6 @@
             documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
                 ? "localhost"
                 : settings.Hostname;
-            documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));

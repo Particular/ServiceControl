@@ -148,7 +148,8 @@ namespace ServiceBus.Management.AcceptanceTests
                     TransportConnectionString = transportToUse.ConnectionString,
                     ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                     MaximumConcurrencyLevel = 2,
-                    HttpDefaultConnectionLimit = int.MaxValue
+                    HttpDefaultConnectionLimit = int.MaxValue,
+                    RunInMemory = true
                 };
 
                 if (instanceName == Settings.DEFAULT_SERVICE_NAME)
