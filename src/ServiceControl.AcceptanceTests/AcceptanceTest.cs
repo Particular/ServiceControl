@@ -29,7 +29,6 @@ namespace ServiceBus.Management.AcceptanceTests
         protected Action<Settings> SetSettings = _ => { };
         protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
 
-
         protected AcceptanceTest()
         {
             ServicePointManager.DefaultConnectionLimit = int.MaxValue;

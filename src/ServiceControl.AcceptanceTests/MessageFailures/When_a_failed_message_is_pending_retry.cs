@@ -16,7 +16,7 @@
         [Test]
         public async Task Should_status_retryissued_after_retry_is_sent()
         {
-            FailedMessage failedMessage;
+            FailedMessage failedMessage = null;
 
             var context = await Define<Context>()
                 .WithEndpoint<FailingEndpoint>(b => b.When(async ctx =>
@@ -34,10 +34,17 @@
                     ctx.AboutToSendRetry = true;
                     await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                 }).DoNotFailOnErrorMessages())
-                .Done(ctx => ctx.Retried)
-                .Run();
+                .Done(async ctx =>
+                {
+                    if (ctx.Retried)
+                    {
+                        failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        return true;
+                    }
 
-            failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{context.UniqueMessageId}");
+                    return false;
+                })
+                .Run();
 
             Assert.AreEqual(failedMessage.Status, FailedMessageStatus.RetryIssued,"Status was not set to RetryIssued");
         }
@@ -96,7 +103,7 @@
                     }
                     else
                     {
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.LocalAddress()).ToString();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
 
