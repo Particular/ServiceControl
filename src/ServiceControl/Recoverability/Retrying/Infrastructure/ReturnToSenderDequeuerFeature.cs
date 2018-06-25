@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
         {
             context.Container.ConfigureComponent(
                 b => new ReturnToSenderDequeuer(
-                    b.Build<IBodyStorage>(),
+                    b.Build<ReturnToSender>(),
                     b.Build<IDocumentStore>(),
                     b.Build<IDomainEvents>(),
                     context.Settings.EndpointName(),
