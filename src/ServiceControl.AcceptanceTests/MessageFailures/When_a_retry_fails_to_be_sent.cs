@@ -10,8 +10,11 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Recoverability;
 
     public class When_a_retry_fails_to_be_sent : AcceptanceTest
     {
@@ -20,8 +23,8 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            // TODO: Figure out how to replicate a send failure on a retry
-            //CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(b.Build<IBodyStorage>(), new SendMessagesWrapper(b.Build<ISendMessages>(), b.Build<MyContext>()), b.Build<IDocumentStore>(), b.Build<IDomainEvents>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IBodyStorage>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
+
 
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When((bus, ctx) =>
@@ -138,6 +141,25 @@
         
         public class MessageThatWillFail : ICommand
         {
+        }
+
+        public class FakeReturnToSender : ReturnToSender
+        {
+            private MyContext myContext;
+
+            public FakeReturnToSender(IBodyStorage bodyStorage, MyContext myContext) : base(bodyStorage)
+            {
+                this.myContext = myContext;
+            }
+
+            public override Task HandleMessage(MessageContext message, IDispatchMessages sender)
+            {
+                if (message.Headers[Headers.MessageId] == myContext.DecommissionedEndpointMessageId)
+                {
+                    throw new Exception("This endpoint is unreachable");
+                }
+                return base.HandleMessage(message, sender);
+            }
         }
     }
 }
