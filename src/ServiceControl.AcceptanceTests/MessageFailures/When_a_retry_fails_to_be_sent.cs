@@ -10,9 +10,9 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceControl;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
 
@@ -27,16 +27,10 @@
 
 
             await Define<MyContext>()
-                .WithEndpoint<FailureEndpoint>(b => b.When((bus, ctx) =>
-                {
-                    ctx.DecommissionedEndpointName = "DecommissionedEndpoint";
-                    ctx.DecommissionedEndpointMessageId = Guid.NewGuid().ToString();
-                    ctx.DecommissionedEndpointUniqueMessageId = DeterministicGuid.MakeId(ctx.DecommissionedEndpointMessageId, ctx.DecommissionedEndpointName).ToString();
-                    return Task.FromResult(0);
-                }).DoNotFailOnErrorMessages()
+                .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
-                        return !ctx.RetryForInvalidAddressIssued && await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
+                        return !ctx.RetryForInvalidAddressIssued && await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
                     },
                         async (bus, ctx) =>
                         {
@@ -46,7 +40,7 @@
                         }).DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
-                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
+                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
                     },
                         async (bus, ctx) =>
                         {
@@ -107,13 +101,19 @@
             {
                 protected override TransportOperations CreateMessage(MyContext context)
                 {
+                    context.DecommissionedEndpointName = "DecommissionedEndpointName";
+                    context.DecommissionedEndpointMessageId = Guid.NewGuid().ToString();
+                    context.DecommissionedEndpointUniqueMessageId = DeterministicGuid.MakeId(context.DecommissionedEndpointMessageId, context.DecommissionedEndpointName).ToString();
+
                     var headers = new Dictionary<string, string>
                     {
+                        [Headers.MessageId] = context.DecommissionedEndpointMessageId,
                         ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
                         ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
+                        [Headers.ProcessingEndpoint] = context.DecommissionedEndpointName,
                         ["NServiceBus.FailedQ"] = context.DecommissionedEndpointName,
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z"
                     };
