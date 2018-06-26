@@ -18,7 +18,7 @@
         {
             FailedMessage failedMessage = null;
 
-            var context = await Define<Context>()
+            await Define<Context>()
                 .WithEndpoint<FailingEndpoint>(b => b.When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)

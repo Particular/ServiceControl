@@ -5,7 +5,6 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Features;
     using Raven.Client;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Operations.BodyStorage;
 
     public class ReturnToSenderDequeuerFeature : Feature
     {
