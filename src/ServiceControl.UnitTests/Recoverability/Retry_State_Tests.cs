@@ -1,23 +1,21 @@
-﻿using NUnit.Framework;
-using Raven.Client;
-using ServiceControl.Contracts.Operations;
-using ServiceControl.Infrastructure;
-using ServiceControl.MessageFailures;
-using ServiceControl.Operations.BodyStorage.RavenAttachments;
-using ServiceControl.Recoverability;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace ServiceControl.UnitTests.Recoverability
+﻿namespace ServiceControl.UnitTests.Recoverability
 {
-    using System.Threading;
-    using System.Threading.Tasks;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
+    using NUnit.Framework;
+    using Raven.Client;
+    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.Operations.BodyStorage.RavenAttachments;
+    using ServiceControl.Recoverability;
     using ServiceControl.UnitTests.Operations;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     [TestFixture]
     public class Retry_State_Tests
@@ -87,7 +85,7 @@ namespace ServiceControl.UnitTests.Recoverability
                     DocumentStore = documentStore
                 };
 
-                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -107,7 +105,7 @@ namespace ServiceControl.UnitTests.Recoverability
                     };
                     await documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, documentStore, domainEvents, "TestEndpoint"), retryManager);
+                    processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                     await processor.ProcessBatches(session, CancellationToken.None);
                     await session.SaveChangesAsync();
@@ -136,7 +134,7 @@ namespace ServiceControl.UnitTests.Recoverability
                     DocumentStore = documentStore
                 };
 
-                var returnToSender = new TestReturnToSenderDequeuer(bodyStorage, documentStore, domainEvents, "TestEndpoint");
+                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(sender, domainEvents, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenAsyncSession())
@@ -169,9 +167,11 @@ namespace ServiceControl.UnitTests.Recoverability
                     DocumentStore = documentStore
                 };
 
+                var returnToSender = new ReturnToSender(bodyStorage);
+
                 var sender = new TestSender();
 
-                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(bodyStorage, documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(returnToSender, documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -275,8 +275,8 @@ namespace ServiceControl.UnitTests.Recoverability
 
     public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
-        public TestReturnToSenderDequeuer(IBodyStorage bodyStorage, IDocumentStore store, IDomainEvents domainEvents, string endpointName)
-            : base(bodyStorage, store, domainEvents, endpointName, null /* rawEndpointFactory */)
+        public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName)
+            : base(returnToSender, store, domainEvents, endpointName, null /* rawEndpointFactory */)
         {
         }
 

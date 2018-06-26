@@ -487,6 +487,7 @@
     <Compile Include="Recoverability\API\EtagHelper.cs" />
     <Compile Include="Recoverability\Archiving\ArchivingManager.cs" />
     <Compile Include="Recoverability\Retrying\Infrastructure\RawEndpointFactory.cs" />
+    <Compile Include="Recoverability\Retrying\Infrastructure\ReturnToSender.cs" />
     <Compile Include="Recoverability\Retrying\Infrastructure\ReturnToSenderDequeuerFeature.cs" />
     <Compile Include="Recoverability\Retrying\RetryingManager.cs" />
     <Compile Include="Recoverability\Retrying\History\StoreHistoryHandler.cs" />

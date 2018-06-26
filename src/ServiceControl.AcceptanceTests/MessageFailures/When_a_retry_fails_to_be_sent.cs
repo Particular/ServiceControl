@@ -12,6 +12,9 @@
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
+    using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Recoverability;
 
     public class When_a_retry_fails_to_be_sent : AcceptanceTest
     {
@@ -20,20 +23,14 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            // TODO: Figure out how to replicate a send failure on a retry
-            //CustomConfiguration = config => { config.RegisterComponents(components => components.ConfigureComponent(b => new ReturnToSenderDequeuer(b.Build<IBodyStorage>(), new SendMessagesWrapper(b.Build<ISendMessages>(), b.Build<MyContext>()), b.Build<IDocumentStore>(), b.Build<IDomainEvents>(), b.Build<Configure>()), DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IBodyStorage>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
+
 
             await Define<MyContext>()
-                .WithEndpoint<FailureEndpoint>(b => b.When((bus, ctx) =>
-                {
-                    ctx.DecommissionedEndpointName = "DecommissionedEndpoint";
-                    ctx.DecommissionedEndpointMessageId = Guid.NewGuid().ToString();
-                    ctx.DecommissionedEndpointUniqueMessageId = DeterministicGuid.MakeId(ctx.DecommissionedEndpointMessageId, ctx.DecommissionedEndpointName).ToString();
-                    return Task.FromResult(0);
-                }).DoNotFailOnErrorMessages()
+                .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
-                        return !ctx.RetryForInvalidAddressIssued && await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
+                        return !ctx.RetryForInvalidAddressIssued && await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
                     },
                         async (bus, ctx) =>
                         {
@@ -43,7 +40,7 @@
                         }).DoNotFailOnErrorMessages()
                     .When(async ctx =>
                     {
-                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await this.TryGetSingle<FailedMessage>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
+                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
                     },
                         async (bus, ctx) =>
                         {
@@ -104,13 +101,19 @@
             {
                 protected override TransportOperations CreateMessage(MyContext context)
                 {
+                    context.DecommissionedEndpointName = "DecommissionedEndpointName";
+                    context.DecommissionedEndpointMessageId = Guid.NewGuid().ToString();
+                    context.DecommissionedEndpointUniqueMessageId = DeterministicGuid.MakeId(context.DecommissionedEndpointMessageId, context.DecommissionedEndpointName).ToString();
+
                     var headers = new Dictionary<string, string>
                     {
+                        [Headers.MessageId] = context.DecommissionedEndpointMessageId,
                         ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
                         ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
+                        [Headers.ProcessingEndpoint] = context.DecommissionedEndpointName,
                         ["NServiceBus.FailedQ"] = context.DecommissionedEndpointName,
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z"
                     };
@@ -138,6 +141,25 @@
         
         public class MessageThatWillFail : ICommand
         {
+        }
+
+        public class FakeReturnToSender : ReturnToSender
+        {
+            private MyContext myContext;
+
+            public FakeReturnToSender(IBodyStorage bodyStorage, MyContext myContext) : base(bodyStorage)
+            {
+                this.myContext = myContext;
+            }
+
+            public override Task HandleMessage(MessageContext message, IDispatchMessages sender)
+            {
+                if (message.Headers[Headers.MessageId] == myContext.DecommissionedEndpointMessageId)
+                {
+                    throw new Exception("This endpoint is unreachable");
+                }
+                return base.HandleMessage(message, sender);
+            }
         }
     }
 }
