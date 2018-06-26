@@ -31,20 +31,21 @@
 
         protected override void OnStart(string[] args)
         {
-            var busConfiguration = new BusConfiguration();
-            busConfiguration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+            var busConfiguration = new EndpointConfiguration(ServiceName);
+            var assemblyScanner = busConfiguration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
             var loggingSettings = new LoggingSettings(ServiceName);
 
             bootstrapper = new Bootstrapper(Stop, new Settings(ServiceName), busConfiguration, loggingSettings);
-            bootstrapper.Start();
+            bootstrapper.Start().GetAwaiter().GetResult();
         }
 
         internal Action OnStopping = () => { };
 
         protected override void OnStop()
         {
-            bootstrapper?.Stop();
+            bootstrapper?.Stop().GetAwaiter().GetResult();
 
             OnStopping();
         }

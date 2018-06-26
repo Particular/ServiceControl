@@ -3,13 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Saga;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
@@ -17,16 +16,15 @@
         [Test]
         public async Task Message_should_be_enriched_with_saga_state_changes()
         {
-            var context = new MyContext();
             var messages = new List<MessagesView>();
 
-            await Define(context)
-                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.Given((bus, c) => bus.SendLocal(new InitiateSaga())))
+            var context = await Define<MyContext>()
+                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga { Saga1Id = Guid.NewGuid(), Saga2Id = Guid.NewGuid() })))
                 .Done(async c =>
                 {
                     if (c.Saga1Complete && c.Saga2Complete)
                     {
-                        var result = await TryGetMany<MessagesView>("/api/messages");
+                        var result = await this.TryGetMany<MessagesView>("/api/messages");
                         messages = result;
                         if (result)
                         {
@@ -49,11 +47,11 @@
             AssertInitiatedHas2Sagas(messages, context);
         }
 
-// ReSharper disable once UnusedParameter.Local
+        // ReSharper disable once UnusedParameter.Local
         static void AssertInitiatedHas2Sagas(IEnumerable<MessagesView> messages, MyContext context)
         {
             var m = messages.First(message => message.MessageType == typeof(InitiateSaga).FullName);
-            var value = (string) m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
+            var value = (string)m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
             var strings = value.Split(';');
 
             Assert.IsTrue(strings.Any(s => s == context.Saga1Id + ":New"));
@@ -70,43 +68,43 @@
         {
             public EndpointThatIsHostingSagas()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }
 
             public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
             {
                 public MyContext Context { get; set; }
 
-                static Guid myId = Guid.NewGuid();
+                //static Guid myId = Guid.NewGuid();
 
-                public void Handle(InitiateSaga message)
+                public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    Data.MyId = myId;
-                    Bus.SendLocal(new UpdateSaga1 { MyId = myId });
+                    //Data.MyId = myId;
+                    return context.SendLocal(new UpdateSaga1 { MyId = message.Saga1Id });
                 }
 
-                public void Handle(UpdateSaga1 message)
+                public Task Handle(UpdateSaga1 message, IMessageHandlerContext context)
                 {
-                    Bus.SendLocal(new CompleteSaga1 { MyId = myId });
+                    return context.SendLocal(new CompleteSaga1 { MyId = message.MyId });
                 }
 
-                public void Handle(CompleteSaga1 message)
+                public Task Handle(CompleteSaga1 message, IMessageHandlerContext context)
                 {
                     MarkAsComplete();
                     Context.Saga1Id = Data.Id;
                     Context.Saga1Complete = true;
+                    return Task.FromResult(0);
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga1Data> mapper)
                 {
+                    mapper.ConfigureMapping<InitiateSaga>(d => d.Saga1Id).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<UpdateSaga1>(d => d.MyId).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<CompleteSaga1>(d => d.MyId).ToSaga(s => s.MyId);
                 }
 
                 public class Saga1Data : ContainSagaData
                 {
-                    [Unique]
                     public Guid MyId { get; set; }
                 }
             }
@@ -115,64 +113,67 @@
             {
                 public MyContext Context { get; set; }
 
-                static Guid myId = Guid.NewGuid();
+                //static Guid myId = Guid.NewGuid();
 
-                public void Handle(InitiateSaga message)
+                public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    Data.MyId = myId;
-                    Bus.SendLocal(new UpdateSaga2 { MyId = myId });
+                    //Data.MyId = myId;
+                    return context.SendLocal(new UpdateSaga2 { MyId = message.Saga2Id });
                 }
 
-                public void Handle(UpdateSaga2 message)
+                public Task Handle(UpdateSaga2 message, IMessageHandlerContext context)
                 {
-                    Bus.SendLocal(new CompleteSaga2 { MyId = myId });
+                    return context.SendLocal(new CompleteSaga2 { MyId = message.MyId });
                 }
 
-                public void Handle(CompleteSaga2 message)
+                public Task Handle(CompleteSaga2 message, IMessageHandlerContext context)
                 {
                     MarkAsComplete();
                     Context.Saga2Id = Data.Id;
                     Context.Saga2Complete = true;
+                    return Task.FromResult(0);
                 }
 
                 public class Saga2Data : ContainSagaData
                 {
-                    [Unique]
                     public Guid MyId { get; set; }
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga2Data> mapper)
                 {
+                    mapper.ConfigureMapping<InitiateSaga>(d => d.Saga2Id).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<UpdateSaga2>(d => d.MyId).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<CompleteSaga2>(d => d.MyId).ToSaga(s => s.MyId);
                 }
             }
         }
 
-        [Serializable]
+        
         public class InitiateSaga : ICommand
         {
+            public Guid Saga1Id { get; set; }
+            public Guid Saga2Id { get; set; }
         }
 
-        [Serializable]
+        
         public class UpdateSaga1 : ICommand
         {
             public Guid MyId { get; set; }
         }
 
-        [Serializable]
+        
         public class CompleteSaga1 : ICommand
         {
             public Guid MyId { get; set; }
         }
 
-        [Serializable]
+        
         public class UpdateSaga2 : ICommand
         {
             public Guid MyId { get; set; }
         }
 
-        [Serializable]
+        
         public class CompleteSaga2 : ICommand
         {
             public Guid MyId { get; set; }

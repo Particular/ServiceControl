@@ -19,12 +19,7 @@
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(ArchiveMessage message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(ArchiveMessage message)
+        public async Task Handle(ArchiveMessage message, IMessageHandlerContext context)
         {
             using (var session = store.OpenAsyncSession())
             {

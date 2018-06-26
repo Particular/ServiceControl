@@ -3,6 +3,8 @@
     using System;
     using System.IO;
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Raven.Client;
     using Raven.Json.Linq;
 
@@ -12,10 +14,10 @@
 
         public RavenAttachmentsBodyStorage()
         {
-            locks = Enumerable.Range(0, 42).Select(i => new object()).ToArray(); //because 42 is the answer
+            locks = Enumerable.Range(0, 42).Select(i => new SemaphoreSlim(1)).ToArray(); //because 42 is the answer
         }
 
-        public string Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+        public async Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
             /*
              * The locking here is a workaround for RavenDB bug DocumentDatabase.PutStatic that allows multiple threads to enter a critical section.
@@ -23,38 +25,38 @@
             var idHash = Math.Abs(bodyId.GetHashCode());
             var lockIndex = idHash % locks.Length; //I think using bit manipulation is not worth the effort
 
-            lock (locks[lockIndex])
+            var semaphore = locks[lockIndex];
+            try
             {
+                await semaphore.WaitAsync().ConfigureAwait(false);
+                
                 //We want to continue using attachments for now
 #pragma warning disable 618
-                DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
+                await DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream, new RavenJObject
 #pragma warning restore 618
                 {
                     {"ContentType", contentType},
                     {"ContentLength", bodySize}
-                });
+                }).ConfigureAwait(false);
 
                 return $"/messages/{bodyId}/body";
             }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
-        public bool TryFetch(string bodyId, out Stream stream)
+        public async Task<StreamResult> TryFetch(string bodyId)
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = DocumentStore.DatabaseCommands.GetAttachment("messagebodies/" + bodyId);
+            var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}");
 #pragma warning restore 618
 
-            if (attachment == null)
-            {
-                stream = null;
-                return false;
-            }
-
-            stream = attachment.Data();
-            return true;
+            return attachment == null ? new StreamResult { HasResult = false, Stream = null } : new StreamResult { HasResult = true, Stream = attachment.Data() };
         }
 
-        object[] locks;
+        SemaphoreSlim[] locks;
     }
 }

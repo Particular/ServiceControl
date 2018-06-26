@@ -4,13 +4,15 @@ using System;
 
 namespace ServiceControl.UnitTests.Archiving
 {
+    using System.Threading.Tasks;
+    using NServiceBus.Testing;
     using ServiceControl.UnitTests.Operations;
 
     [TestFixture]
     public class ArchiveGroupTests
     {
         [Test]
-        public void ArchiveGroup_skips_over_empty_batches_but_still_completes()
+        public async Task ArchiveGroup_skips_over_empty_batches_but_still_completes()
         {
             // Arrange
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
@@ -18,10 +20,11 @@ namespace ServiceControl.UnitTests.Archiving
                 var groupId = "TestGroup";
                 var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
 
-                using (var session = documentStore.OpenSession())
+                using (var session = documentStore.OpenAsyncSession())
                 {
                     var previousAchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    session.Store(previousAchiveBatch);
+                    await session.StoreAsync(previousAchiveBatch)
+                        .ConfigureAwait(false);
 
                     var previousArchiveOperation = new ArchiveOperation
                     {
@@ -35,9 +38,11 @@ namespace ServiceControl.UnitTests.Archiving
                         NumberOfBatches = 3,
                         CurrentBatch = 0
                     };
-                    session.Store(previousArchiveOperation);
+                    await session.StoreAsync(previousArchiveOperation)
+                        .ConfigureAwait(false);
 
-                    session.SaveChanges();
+                    await session.SaveChangesAsync()
+                        .ConfigureAwait(false);
                 }
 
                 var documentManager = new ArchiveDocumentManager();
@@ -46,10 +51,12 @@ namespace ServiceControl.UnitTests.Archiving
                 var retryingManager = new RetryingManager(domainEvents);
                 var handler = new ArchiveAllInGroupHandler(documentStore, domainEvents, documentManager, archivingManager, retryingManager);
 
+                var context = new TestableMessageHandlerContext();
                 var message = new ArchiveAllInGroup { GroupId = groupId };
 
                 // Act
-                handler.Handle(message);
+                await handler.Handle(message, context)
+                    .ConfigureAwait(false);
 
                 // Assert
                 using (var session = documentStore.OpenSession())

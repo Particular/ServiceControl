@@ -2,10 +2,10 @@
 {
     using System.Net;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest
@@ -18,12 +18,11 @@
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
 
-            var context = new Context();
             byte[] body = null;
 
             //Act
-            await Define(context)
-                .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
+            await Define<Context>()
+                .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
                         BigFatBody = new byte[MAX_BODY_SIZE - 10000]
@@ -37,14 +36,14 @@
                                 return false;
                             }
 
-                            var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                            var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
                             MessagesView auditMessage = result;
                             if (!result)
                             {
                                 return false;
                             }
 
-                            body = await DownloadData(auditMessage.BodyUrl);
+                            body = await this.DownloadData(auditMessage.BodyUrl);
 
                             return true;
                         })
@@ -60,12 +59,11 @@
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
 
-            var context = new Context();
             byte[] body = null;
 
             //Act
-            await Define(context)
-                .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
+            await Define<Context>()
+                .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
                         BigFatBody = new byte[MAX_BODY_SIZE + 1000]
@@ -78,14 +76,14 @@
                         {
                             return false;
                         }
-                        var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                        var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
                         MessagesView auditMessage = result;
                         if (!result)
                         {
                             return false;
                         }
 
-                        body = await DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
+                        body = await this.DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
 
                         return true;
                     })
@@ -104,32 +102,29 @@
 
             public class BigFatMessageHandler : IHandleMessages<BigFatMessage>
             {
-                readonly Context _context;
-                readonly IBus bus;
+                readonly Context testContext;
 
-                public BigFatMessageHandler(Context context, IBus bus)
+                public BigFatMessageHandler(Context testContext)
                 {
-                    _context = context;
-                    this.bus = bus;
+                    this.testContext = testContext;
                 }
 
-                public void Handle(BigFatMessage message)
+                public Task Handle(BigFatMessage message, IMessageHandlerContext context)
                 {
-                    _context.MessageId = bus.GetMessageHeader(message, "NServiceBus.MessageId");
+                    testContext.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
+                    return Task.FromResult(0);
                 }
             }
         }
 
         class BigFatMessage : IMessage
         {
-            public string MessageId { get; set; }
             public byte[] BigFatBody { get; set; }
         }
 
         class Context : ScenarioContext
         {
             public string MessageId { get; set; }
-            public bool HasBodyBeenTamperedWith { get; set; }
         }
 
     }

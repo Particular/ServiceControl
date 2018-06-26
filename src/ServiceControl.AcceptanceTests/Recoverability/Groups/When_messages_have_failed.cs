@@ -7,11 +7,9 @@
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -21,8 +19,6 @@
         [Test]
         public async Task Should_be_grouped()
         {
-            var context = new MyContext();
-
             List<FailureGroupView> defaultGroups = null;
             List<FailureGroupView> exceptionTypeAndStackTraceGroups = null;
             List<FailureGroupView> messageTypeGroups = null;
@@ -30,12 +26,14 @@
             FailedMessage failedMessageA = null;
             FailedMessage failedMessageB = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+            var context = await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal(new MyMessageA());
-                    bus.SendLocal(new MyMessageB());
-                }))
+                    await bus.SendLocal(new MyMessageA())
+                        .ConfigureAwait(false);
+                    await bus.SendLocal(new MyMessageB())
+                        .ConfigureAwait(false);
+                }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (c.MessageIdA == null || c.MessageIdB == null)
@@ -43,7 +41,7 @@
                         return false;
                     }
 
-                    var defaultGroupsResult = await TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    var defaultGroupsResult = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
                     defaultGroups = defaultGroupsResult;
                     if (!defaultGroupsResult)
                     {
@@ -55,12 +53,12 @@
                         return false;
                     }
 
-                    messageTypeGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
-                    exceptionTypeAndStackTraceGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
+                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
+                    exceptionTypeAndStackTraceGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
 
-                    var failedMessageAResult = await TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdA}", msg => msg.FailureGroups.Any());
+                    var failedMessageAResult = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdA}", msg => msg.FailureGroups.Any());
                     failedMessageA = failedMessageAResult;
-                    var failedMessageBResult = await TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdB}", msg => msg.FailureGroups.Any());
+                    var failedMessageBResult = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdB}", msg => msg.FailureGroups.Any());
                     failedMessageB = failedMessageBResult;
                     if (!failedMessageAResult || !failedMessageBResult)
                     {
@@ -98,10 +96,9 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        c.MaxRetries = 0;
+                        c.NoRetries();
                     });
             }
 
@@ -111,31 +108,29 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessageA message)
+                public Task Handle(MyMessageA message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().Queue;
-                    Context.MessageIdA = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.MessageIdA = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
 
-                public void Handle(MyMessageB message)
+                public Task Handle(MyMessageB message, IMessageHandlerContext context)
                 {
-                    Context.MessageIdB = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.MessageIdB = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }
         }
 
-        [Serializable]
+        
         public class MyMessageA : ICommand
         {
         }
 
-        [Serializable]
+        
         public class MyMessageB : ICommand
         {
         }

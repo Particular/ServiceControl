@@ -15,12 +15,7 @@
             this.monitoring = monitoring;
         }
 
-        public void Handle(RegisterEndpointStartup message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private Task HandleAsync(RegisterEndpointStartup message)
+        public Task Handle(RegisterEndpointStartup message, IMessageHandlerContext context)
         {
             var endpointDetails = new EndpointDetails
             {

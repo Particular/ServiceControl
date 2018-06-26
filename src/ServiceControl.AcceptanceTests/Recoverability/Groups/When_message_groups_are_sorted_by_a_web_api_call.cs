@@ -5,16 +5,13 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
-
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_message_groups_are_sorted_by_a_web_api_call : AcceptanceTest
     {
@@ -42,15 +39,13 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
         async Task<List<FailedMessageView>> SortTest(string sortProperty)
         {
-            var context = new MyContext();
-
             List<FailedMessageView> localErrors = null;
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups");
+                    var result = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups");
                     List<FailedMessage.FailureGroup> groups = result;
                     if (!result)
                     {
@@ -62,7 +57,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                         return false;
                     }
 
-                    var errorResult = await TryGetMany<FailedMessageView>("/api/recoverability/groups/" + groups[0].Id + "/errors?page=1&direction=asc&sort=" + sortProperty);
+                    var errorResult = await this.TryGetMany<FailedMessageView>($"/api/recoverability/groups/{groups[0].Id}/errors?page=1&direction=asc&sort={sortProperty}");
                     localErrors = errorResult;
                     if (!errorResult)
                     {
@@ -85,59 +80,44 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
+                EndpointSetup<DefaultServerWithAudit>(c =>
                     {
-                        c.MaxRetries = 1;
-                        c.MaximumConcurrencyLevel = 1; // this should mean they get processed one at a time
+                        var recoverability = c.Recoverability();
+                        recoverability.Immediate(x => x.NumberOfRetries(0));
+                        recoverability.Delayed(x => x.NumberOfRetries(0));
+                        c.LimitMessageProcessingConcurrencyTo(1);
                     });
             }
 
-            public class SendFailedMessage : IWantToRunWhenBusStartsAndStops
+            class SendFailedMessages : DispatchRawMessages<MyContext>
             {
-                readonly ISendMessages sendMessages;
-                readonly ReadOnlySettings settings;
-
-                public SendFailedMessage(ISendMessages sendMessages, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    this.sendMessages = sendMessages;
-                    this.settings = settings;
+                    var errorAddress = new UnicastAddressTag("error");
+                    
+                    return new TransportOperations(
+                        new TransportOperation(CreateTransportMessage(1), errorAddress),
+                        new TransportOperation(CreateTransportMessage(2), errorAddress),
+                        new TransportOperation(CreateTransportMessage(3), errorAddress)
+                    );
                 }
 
-                public void Start()
-                {
-                    var msg = CreateTransportMessage(2);
-
-                    sendMessages.Send(msg, new SendOptions(Address.Parse("error")));
-
-                    msg = CreateTransportMessage(1);
-
-                    sendMessages.Send(msg, new SendOptions(Address.Parse("error")));
-
-                    msg = CreateTransportMessage(3);
-
-                    sendMessages.Send(msg, new SendOptions(Address.Parse("error")));
-                }
-
-                TransportMessage CreateTransportMessage(int i)
+                OutgoingMessage CreateTransportMessage(int i)
                 {
                     var date = new DateTime(2015, 9 + i, 20 + i, 0, 0, 0);
-                    var msg = new TransportMessage(i + MessageId, new Dictionary<string, string>
+                    var messageId = $"{i}{MessageId}";
+                    var msg = new OutgoingMessage(messageId, new Dictionary<string, string>
                     {
+                        {Headers.MessageId, messageId},
                         {"NServiceBus.ExceptionInfo.ExceptionType", "System.Exception"},
                         {"NServiceBus.ExceptionInfo.Message", "An error occurred"},
                         {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},
-                        {"NServiceBus.FailedQ", settings.LocalAddress().ToString()},
+                        {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(Receiver))}, // TODO: Correct?
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
                         {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
-                        {Headers.EnclosedMessageTypes, "MessageThatWillFail" + i},
-                    });
+                        {Headers.EnclosedMessageTypes, $"MessageThatWillFail{i}"},
+                    }, new byte[0]);
                     return msg;
-                }
-
-                public void Stop()
-                {
-
                 }
             }
         }

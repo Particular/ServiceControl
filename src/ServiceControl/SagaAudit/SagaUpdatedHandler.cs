@@ -16,12 +16,7 @@
             this.store = store;
         }
 
-        public void Handle(SagaUpdatedMessage message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(SagaUpdatedMessage message)
+        public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
             var sagaHistory = new SagaSnapshot
             {

@@ -44,7 +44,7 @@
             }
 
             DbPath = GetDbPath();
-            TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
+            TransportType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
@@ -59,6 +59,8 @@
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             RemoteInstances = GetRemoteInstances();
         }
+
+        public bool RunInMemory { get; set; }
 
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
@@ -118,12 +120,12 @@
             }
         }
 
-        public string TransportType { get; set; }
+        public Type TransportType { get; set; }
 
         public string DbPath { get; set; }
-        public Address ErrorLogQueue { get; set; }
-        public Address ErrorQueue { get; set; }
-        public Address AuditQueue { get; set; }
+        public string ErrorLogQueue { get; set; }
+        public string ErrorQueue { get; set; }
+        public string AuditQueue { get; set; }
 
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
@@ -131,7 +133,7 @@
         public bool IngestAuditMessages { get; set; } = true;
         public bool IngestErrorMessages { get; set; } = true;
 
-        public Address AuditLogQueue { get; set; }
+        public string AuditLogQueue { get; set; }
 
         public int ExpirationProcessTimerInSeconds
         {
@@ -200,31 +202,31 @@
 
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
-        private Address GetAuditLogQueue()
+        private string GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
 
             if (AuditQueue == null)
             {
-                return Address.Undefined;
+                return null;
             }
 
             if (value == null)
             {
                 logger.Info("No settings found for audit log queue to import, default name will be used");
-                return AuditQueue.SubScope("log");
+                return Subscope(AuditQueue);
             }
-            return Address.Parse(value);
+            return value;
         }
 
-        private Address GetAuditQueue()
+        private string GetAuditQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
             if (value == null)
             {
                 logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-                return Address.Undefined;
+                return null;
             }
 
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
@@ -232,17 +234,17 @@
                 logger.Info("Audit ingestion disabled.");
                 return null; // needs to be null to not create the queues
             }
-            return Address.Parse(value);
+            return value;
         }
 
-        private Address GetErrorQueue()
+        private string GetErrorQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
 
             if (value == null)
             {
                 logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
-                return Address.Undefined;
+                return null;
             }
 
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
@@ -251,25 +253,25 @@
                 return null; // needs to be null to not create the queues
             }
 
-            return Address.Parse(value);
+            return value;
         }
 
-        private Address GetErrorLogQueue()
+        private string GetErrorLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
 
             if (ErrorQueue == null)
             {
-                return Address.Undefined;
+                return null;
             }
 
             if (value == null)
             {
                 logger.Info("No settings found for error log queue to import, default name will be used");
-                return ErrorQueue.SubScope("log");
+                return Subscope(ErrorQueue);
             }
 
-            return Address.Parse(value);
+            return value;
         }
 
         private string GetDbPath()
@@ -309,6 +311,18 @@
                 return forwardAuditMessages.Value;
             }
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
+        }
+
+        static Type GetTransportType()
+        {
+            var typeName = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
+            var transportType = Type.GetType(typeName);
+            if (transportType != null)
+            {
+                return transportType;
+            }
+            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
+            throw new Exception(errorMsg);
         }
 
         private static string SanitiseFolderName(string folderName)
@@ -432,6 +446,20 @@
                 }
             }
             return new RemoteInstanceSetting[0];
+        }
+
+        static string Subscope(string address)
+        {
+            var atIndex = address.IndexOf("@", StringComparison.InvariantCulture);
+
+            if (atIndex <= -1)
+            {
+                return $"{address}.log";
+            }
+            
+            var queue = address.Substring(0, atIndex);
+            var machine = address.Substring(atIndex + 1);
+            return $"{queue}.log@{machine}";
         }
     }
 }

@@ -4,11 +4,9 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
@@ -30,12 +28,10 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
-
             FailedMessage failure;
 
-            await Define(context, Remote1, Master)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            await Define<MyContext>(Remote1, Master)
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await GetFailedMessage(c);
@@ -47,7 +43,7 @@
 
                     if (failure.Status == FailedMessageStatus.Unresolved)
                     {
-                        await IssueRetry(c, () => Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
+                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
                         return false;
                     }
 
@@ -62,8 +58,8 @@
             {
                 case Remote1:
                     addressOfRemote = settings.ApiUrl;
-                    settings.AuditQueue = Address.Parse(AuditRemote);
-                    settings.ErrorQueue = Address.Parse(ErrorRemote);
+                    settings.AuditQueue = AuditRemote;
+                    settings.ErrorQueue = ErrorRemote;
                     break;
                 case Master:
                     settings.RemoteInstances = new[]
@@ -74,8 +70,8 @@
                             QueueAddress = Remote1
                         }
                     };
-                    settings.AuditQueue = Address.Parse(AuditMaster);
-                    settings.ErrorQueue = Address.Parse(ErrorMaster);
+                    settings.AuditQueue = AuditMaster;
+                    settings.ErrorQueue = ErrorMaster;
                     break;
             }
         }
@@ -87,7 +83,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, null, Master);
+            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, null, Master);
         }
 
         async Task IssueRetry(MyContext c, Func<Task> retryAction)
@@ -103,37 +99,39 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c => c.MaxRetries = 0)
-                    .AuditTo(Address.Parse(AuditRemote))
-                    .ErrorTo(Address.Parse(ErrorMaster));
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.NoRetries();
+                    c.AuditProcessedMessagesTo(AuditRemote);
+                    c.SendFailedMessagesTo(ErrorMaster);
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.Out.WriteLine("Handling message");
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress().ToString();
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.LocalAddress = Settings.LocalAddress();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
                     {
                         Console.Out.WriteLine("Throwing exception for MyMessage");
                         throw new Exception("Simulated exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
         }
@@ -144,7 +142,7 @@
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, Address.Parse(LocalAddress).Queue).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
             public string LocalAddress { get; set; }
             public bool RetryIssued { get; set; }
         }

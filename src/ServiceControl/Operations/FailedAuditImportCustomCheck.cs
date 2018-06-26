@@ -14,12 +14,7 @@
             this.store = store;
         }
 
-        public override CheckResult PerformCheck()
-        {
-            return PerformCheckAsync().GetAwaiter().GetResult();
-        }
-
-        private async Task<CheckResult> PerformCheckAsync()
+        public async override Task<CheckResult> PerformCheck()
         {
             using (var session = store.OpenAsyncSession())
             {

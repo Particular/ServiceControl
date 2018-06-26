@@ -4,8 +4,9 @@ namespace ServiceControl.Operations
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Transport;
     using Raven.Client;
     using Raven.Client.Indexes;
 
@@ -38,18 +39,16 @@ namespace ServiceControl.Operations
                         FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
                         try
                         {
-                            var transportMessage = new TransportMessage(dto.Id, dto.Headers)
-                            {
-                                Body = dto.Body
-                            };
-
-                            var entity = auditImporter.ConvertToSaveMessage(transportMessage);
+                            var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);                            
+                            var entity = await auditImporter.ConvertToSaveMessage(messageContext)
+                                .ConfigureAwait(false);
                             using (var storeSession = store.OpenAsyncSession())
                             {
                                 await storeSession.StoreAsync(entity).ConfigureAwait(false);
                                 await storeSession.SaveChangesAsync().ConfigureAwait(false);
                             }
-                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null);
+                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null)
+                                .ConfigureAwait(false);
                             succeeded++;
                             Logger.Info($"Successfully re-imported failed audit message {dto.Id}.");
                         }
@@ -72,6 +71,10 @@ namespace ServiceControl.Operations
         IDocumentStore store;
         AuditImporter auditImporter;
         CancellationTokenSource source;
+        
+        static TransportTransaction EmptyTransaction = new TransportTransaction();
+        static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
+        static ContextBag EmptyContextBag = new ContextBag();
         static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedAudits));
     }
 

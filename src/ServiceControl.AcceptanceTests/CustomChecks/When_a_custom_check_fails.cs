@@ -1,13 +1,16 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.CustomChecks
 {
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
+    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.CustomChecks;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.EventLog;
-    using ServiceControl.Plugin.CustomChecks;
 
     [TestFixture]
     public class When_a_custom_check_fails : AcceptanceTest
@@ -15,15 +18,13 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var context = new MyContext();
-
             EventLogItem entry = null;
 
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
                     entry = result;
                     return result;
                 })
@@ -43,7 +44,10 @@
 
             public EndpointWithFailingCustomCheck()
             {
-                EndpointSetup<DefaultServerWithoutAudit>().IncludeAssembly(typeof(PeriodicCheck).Assembly);
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
+                });
             }
 
             class FailingCustomCheck : CustomCheck
@@ -51,7 +55,11 @@
                 public FailingCustomCheck()
                     : base("MyCustomCheckId", "MyCategory")
                 {
-                    ReportFailed("Some reason");
+                }
+
+                public override Task<CheckResult> PerformCheck()
+                {
+                    return Task.FromResult(CheckResult.Failed("Some reason"));
                 }
             }
         }

@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Monitoring;
@@ -29,17 +29,13 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             List<EndpointsView> response;
 
-            await Define(context, Slave, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                   bus.SendLocal(new MyMessage());
-                }))
+            await Define<MyContext>(Slave, Master)
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result =  await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                    var result =  await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
                     response = result;
                     return result && response.Count == 1;
                 })
@@ -51,17 +47,13 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
             List<EndpointsView> response = null;
 
-            await Define(context, Slave, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }))
+            await Define<MyContext>(Slave, Master)
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
                     response = result;
                     if (result && response.Count > 0)
                     {
@@ -72,12 +64,12 @@
                     {
                         var endpointId = response.First().Id;
 
-                        await Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
+                        await this.Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
                         {
                             MonitorHeartbeat = true
                         }, Master);
 
-                        var resultAfterPath = await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                        var resultAfterPath = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
                         response = resultAfterPath;
                         return resultAfterPath;
                     }
@@ -94,21 +86,22 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .AuditTo(Address.Parse(AuditSlave))
-                    .ErrorTo(Address.Parse(ErrorMaster));
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.AuditProcessedMessagesTo(AuditSlave);
+                    c.SendFailedMessagesTo(ErrorMaster);
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -119,8 +112,8 @@
             {
                 case Slave:
                     addressOfRemote = settings.ApiUrl;
-                    settings.AuditQueue = Address.Parse(AuditSlave);
-                    settings.ErrorQueue = Address.Parse(ErrorSlave);
+                    settings.AuditQueue = AuditSlave;
+                    settings.ErrorQueue = ErrorSlave;
                     break;
                 case Master:
                     settings.RemoteInstances = new[]
@@ -131,13 +124,13 @@
                             QueueAddress = Slave
                         }
                     };
-                    settings.AuditQueue = Address.Parse(AuditMaster);
-                    settings.ErrorQueue = Address.Parse(ErrorMaster);
+                    settings.AuditQueue = AuditMaster;
+                    settings.ErrorQueue = ErrorMaster;
                     break;
             }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
         }

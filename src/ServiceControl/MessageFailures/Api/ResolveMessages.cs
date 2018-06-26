@@ -12,7 +12,7 @@
 
     public class ResolveMessages : BaseModule
     {
-        public IBus Bus { get; set; }
+        public IMessageSession Bus { get; set; }
 
         private class ResolveRequest
         {
@@ -24,7 +24,7 @@
 
         public ResolveMessages()
         {
-            Patch["/pendingretries/resolve"] = _ =>
+            Patch["/pendingretries/resolve", true] = async (_, ctx) =>
             {
                 var request = this.Bind<ResolveRequest>();
 
@@ -37,7 +37,8 @@
 
                     foreach (var id in request.uniquemessageids)
                     {
-                        Bus.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id });
+                        await Bus.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id })
+                            .ConfigureAwait(false);
                     }
 
                     return HttpStatusCode.Accepted;
@@ -55,16 +56,16 @@
                     return Negotiate.WithReasonPhrase("From/To").WithStatusCode(HttpStatusCode.BadRequest);
                 }
 
-                Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
+                await Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
                 {
-                    m.PeriodFrom = from;
+                    m.PeriodFrom = @from;
                     m.PeriodTo = to;
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Patch["/pendingretries/queues/resolve"] = parameters =>
+            Patch["/pendingretries/queues/resolve", true] = async(parameters, ctx) =>
             {
                 var request = this.Bind<ResolveRequest>();
 
@@ -85,12 +86,12 @@
                     return Negotiate.WithReasonPhrase("From/To").WithStatusCode(HttpStatusCode.BadRequest);
                 }
 
-                Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
+                await Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
                 {
                     m.QueueAddress = request.queueaddress;
-                    m.PeriodFrom = from;
+                    m.PeriodFrom = @from;
                     m.PeriodTo = to;
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };

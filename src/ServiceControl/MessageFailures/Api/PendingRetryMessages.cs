@@ -21,7 +21,7 @@
 
         public PendingRetryMessages()
         {
-            Post["/pendingretries/retry"] = _ =>
+            Post["/pendingretries/retry", true] = async (_, ctx) =>
             {
                 var ids = this.Bind<List<string>>();
 
@@ -30,12 +30,13 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
+                await Bus.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids.ToArray())
+                    .ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/pendingretries/queues/retry"] = parameters =>
+            Post["/pendingretries/queues/retry", true] = async (parameters, ctx) =>
             {
                 var request = this.Bind<PendingRetryRequest>();
 
@@ -56,19 +57,17 @@
                     return Negotiate.WithReasonPhrase("From/To").WithStatusCode(HttpStatusCode.BadRequest);
                 }
 
-                Bus.SendLocal<RetryPendingMessages>(m =>
+                await Bus.SendLocal<RetryPendingMessages>(m =>
                 {
                     m.QueueAddress = request.queueaddress;
-                    m.PeriodFrom = from;
+                    m.PeriodFrom = @from;
                     m.PeriodTo = to;
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
         }
 
-        public IBus Bus { get; set; }
+        public IMessageSession Bus { get; set; }
     }
-
-
 }

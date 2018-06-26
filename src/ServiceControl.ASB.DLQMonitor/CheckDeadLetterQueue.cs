@@ -2,6 +2,7 @@
 {
     using System;
     using System.Configuration;
+    using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using Microsoft.ServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -22,8 +23,7 @@
             stagingQueue = $"{settings.ServiceName}.staging";
         }
 
-
-        public override CheckResult PerformCheck()
+        public override Task<CheckResult> PerformCheck()
         {
             Logger.Debug("Checking Dead Letter Queue length");
 

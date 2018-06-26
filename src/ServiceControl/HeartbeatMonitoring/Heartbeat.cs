@@ -5,5 +5,4 @@
         Beating,
         Dead
     }
-
 }

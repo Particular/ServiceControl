@@ -4,10 +4,9 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -16,17 +15,19 @@
         [Test]
         public async Task It_should_be_marked_as_unresolved()
         {
-            var context = new MyContext { Succeed = false };
-
             FailedMessage failure = null;
 
-            await Define(context)
+            await Define<MyContext>(ctx =>
+                {
+                    ctx.Succeed = false;
+                })
                 .WithEndpoint<FailureEndpoint>(b =>
-                    b.Given(bus => bus.SendLocal(new MyMessage()))
+                    b.When(bus => bus.SendLocal(new MyMessage()))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
-                            (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                            (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
-                            (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                            (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                        .DoNotFailOnErrorMessages()
                 )
                 .Done(async ctx =>
                 {
@@ -43,23 +44,25 @@
         [Test]
         public async Task It_should_be_able_to_be_retried_successfully()
         {
-            var context = new MyContext { Succeed = false };
-
             FailedMessage failure = null;
 
-            await Define(context)
+            await Define<MyContext>(ctx =>
+                {
+                    ctx.Succeed = false;
+                })
                 .WithEndpoint<FailureEndpoint>(b =>
-                    b.Given(bus => bus.SendLocal(new MyMessage()))
+                    b.When(bus => bus.SendLocal(new MyMessage()))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
-                          (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                          (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
-                          (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                          (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
                      .When(async ctx => await CheckProcessingAttemptsIs(ctx, 3),
                          async (bus, ctx) =>
                          {
                              ctx.Succeed = true;
-                             await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                             await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                          })
+                        .DoNotFailOnErrorMessages()
                     )
                 .Done(async ctx =>
                 {
@@ -85,29 +88,30 @@
                 return SingleResult<FailedMessage>.Empty;
             }
 
-            return await TryGet($"/api/errors/{c.UniqueMessageId}", condition);
+            return await this.TryGet($"/api/errors/{c.UniqueMessageId}", condition);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.NoDelayedRetries();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Attempting to process message");
 
-                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().Queue;
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!Context.Succeed) //simulate that the exception will be resolved with the retry
                     {
@@ -115,11 +119,12 @@
                         throw new Exception("Simulated exception");
                     }
                     Console.WriteLine("Message processing success");
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
         }

@@ -3,9 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
+    using ServiceControl.Infrastructure;
 
     public class SagaAuditing : Feature
     {
@@ -21,7 +23,7 @@
 
         internal class SagaRelationshipsEnricher : ImportEnricher
         {
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 string sagasInvokedRaw;
 
@@ -127,7 +129,7 @@
                         SagaType = sagaType
                     });
                 }
-
+                return TaskEx.CompletedTask;
             }
 
             static IEnumerable<string> SplitInvokedSagas(string sagasInvokedRaw)

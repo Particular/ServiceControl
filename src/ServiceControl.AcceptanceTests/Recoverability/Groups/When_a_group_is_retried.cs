@@ -4,10 +4,9 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -16,17 +15,17 @@
         [Test]
         public async Task Only_unresolved_issues_should_be_retried()
         {
-            var context = new MyContext();
-
             FailedMessage messageToBeRetriedAsPartOfGroupRetry = null;
             FailedMessage messageToBeArchived = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
-                    bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
-                }))
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
+                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
+                        .ConfigureAwait(false);
+                }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (c.MessageToBeRetriedByGroupId == null || c.MessageToBeArchivedId == null)
@@ -37,14 +36,14 @@
                     //First we are going to issue an archive to one of the messages
                     if (!c.ArchiveIssued)
                     {
-                        var messageToBeArchivedUnresolvedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var messageToBeArchivedUnresolvedResult = await this.TryGet<FailedMessage>($"/api/errors/{c.MessageToBeArchivedId}", e => e.Status == FailedMessageStatus.Unresolved);
                         messageToBeArchived = messageToBeArchivedUnresolvedResult;
                         if (!messageToBeArchivedUnresolvedResult)
                         {
                             return false;
                         }
 
-                        await Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
+                        await this.Patch<object>($"/api/errors/{messageToBeArchived.UniqueMessageId}/archive");
 
                         c.ArchiveIssued = true;
 
@@ -55,7 +54,7 @@
                     if (!c.RetryIssued)
                     {
                         // Ensure message is being retried
-                        var messageToBeRetriedAsPartOfGroupUnresolvedRetryResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedByGroupId, e => e.Status == FailedMessageStatus.Unresolved);
+                        var messageToBeRetriedAsPartOfGroupUnresolvedRetryResult = await this.TryGet<FailedMessage>($"/api/errors/{c.MessageToBeRetriedByGroupId}", e => e.Status == FailedMessageStatus.Unresolved);
                         messageToBeRetriedAsPartOfGroupRetry = messageToBeRetriedAsPartOfGroupUnresolvedRetryResult;
                         if (!messageToBeRetriedAsPartOfGroupUnresolvedRetryResult)
                         {
@@ -64,19 +63,19 @@
 
                         c.RetryIssued = true;
 
-                        await Post<object>($"/api/recoverability/groups/{messageToBeRetriedAsPartOfGroupRetry.FailureGroups[0].Id}/errors/retry");
+                        await this.Post<object>($"/api/recoverability/groups/{messageToBeRetriedAsPartOfGroupRetry.FailureGroups[0].Id}/errors/retry");
 
                         return false;
                     }
 
-                    var messageToBeRetriedAsPartOfGroupResolvedRetryResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeRetriedByGroupId, e => e.Status == FailedMessageStatus.Resolved);
+                    var messageToBeRetriedAsPartOfGroupResolvedRetryResult = await this.TryGet<FailedMessage>($"/api/errors/{c.MessageToBeRetriedByGroupId}", e => e.Status == FailedMessageStatus.Resolved);
                     messageToBeRetriedAsPartOfGroupRetry = messageToBeRetriedAsPartOfGroupResolvedRetryResult;
                     if (!messageToBeRetriedAsPartOfGroupResolvedRetryResult)
                     {
                         return false;
                     }
 
-                    var messageToBeArchivedArchivedResult = await TryGet<FailedMessage>("/api/errors/" + c.MessageToBeArchivedId, e => e.Status == FailedMessageStatus.Archived);
+                    var messageToBeArchivedArchivedResult = await this.TryGet<FailedMessage>($"/api/errors/{c.MessageToBeArchivedId}", e => e.Status == FailedMessageStatus.Archived);
                     messageToBeArchived = messageToBeArchivedArchivedResult;
                     return messageToBeArchivedArchivedResult;
                 })
@@ -90,7 +89,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c => c.Recoverability().Delayed(x => x.NumberOfRetries(0)));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -99,13 +98,11 @@
 
                 public ReadOnlySettings Settings { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (message.MessageNumber == 1)
                     {
@@ -120,11 +117,13 @@
                     {
                         throw new Exception("Simulated exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        [Serializable]
+        
         public class MyMessage : ICommand
         {
             public int MessageNumber { get; set; }

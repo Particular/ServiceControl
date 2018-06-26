@@ -1,22 +1,26 @@
 namespace ServiceBus.Management.Infrastructure
 {
-    using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Operations;
 
-    public class BusInstance : IDisposable
+    public class BusInstance
     {
-        public BusInstance(IBus bus, IDomainEvents domainEvents)
+        public BusInstance(IEndpointInstance bus, IDomainEvents domainEvents, ImportFailedAudits importFailedAudits)
         {
+            ImportFailedAudits = importFailedAudits;
             Bus = bus;
             DomainEvents = domainEvents;
         }
 
-        public IBus Bus { get; }
+        public IEndpointInstance Bus { get; }
         public IDomainEvents DomainEvents { get; }
-        public void Dispose()
+        public ImportFailedAudits ImportFailedAudits { get; }
+
+        public Task Stop()
         {
-            Bus.Dispose();
+            return Bus.Stop();
         }
     }
 }

@@ -2,9 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
+    using ServiceControl.Infrastructure;
 
     public class ProcessingStatistics : Feature
     {
@@ -20,7 +22,7 @@
 
         class ProcessingStatisticsEnricher : ImportEnricher
         {
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var processingEnded = DateTime.MinValue;
                 var timeSent = DateTime.MinValue;
@@ -74,6 +76,8 @@
                 }
 
                 metadata.Add("DeliveryTime", deliveryTime);
+                
+                return TaskEx.CompletedTask;
             }
         }
     }

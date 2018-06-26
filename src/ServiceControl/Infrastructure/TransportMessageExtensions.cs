@@ -20,7 +20,7 @@
             // This message could be a failed message.
             if (headers.TryGetValue(FaultsHeaderKeys.FailedQ, out endpoint))
             {
-                return Address.Parse(endpoint).Queue;
+                return ExtractQueue(endpoint);
             }
 
             // In v5, a message that comes through the Audit Queue
@@ -28,7 +28,7 @@
             var replyToAddress = headers.ReplyToAddress();
             if (replyToAddress != null)
             {
-                return replyToAddress.Queue;
+                return ExtractQueue(replyToAddress);
             }
 
             string messageTypes;
@@ -53,27 +53,47 @@
         public static string MessageId(this IReadOnlyDictionary<string, string> headers)
         {
             string str;
-            if (headers.TryGetValue(Headers.MessageId, out str))
-                return str;
-            return default(string);
+            return headers.TryGetValue(Headers.MessageId, out str) ? str : default(string);
         }
 
         // NOTE: Duplicated from TransportMessage
-        private static Address ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
+        public static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
         {
             string destination;
-            if (headers.TryGetValue(Headers.ReplyToAddress, out destination))
-                return Address.Parse(destination);
-            return default(Address);
+            return headers.TryGetValue(Headers.ReplyToAddress, out destination) ? destination : null;
         }
 
-    }
-
-    public static class TransportMessageExtensions
-    {
-        public static string ProcessingEndpointName(this TransportMessage message)
+        public static string CorrelationId(this IReadOnlyDictionary<string, string> headers)
         {
-            return message.Headers.ProcessingEndpointName();
+            string correlationId;
+            return headers.TryGetValue(Headers.CorrelationId, out correlationId) ? correlationId : null;
+        }
+
+        // NOTE: Duplicated from TransportMessage
+        public static MessageIntentEnum MessageIntent(this IReadOnlyDictionary<string, string> headers)
+        {
+            var messageIntent = default(MessageIntentEnum);
+
+            string messageIntentString;
+            if (headers.TryGetValue(Headers.MessageIntent, out messageIntentString))
+            {
+                Enum.TryParse(messageIntentString, true, out messageIntent);
+            }
+
+            return messageIntent;
+        }
+
+
+        static string ExtractQueue(string address)
+        {
+            var atIndex = address?.IndexOf("@", StringComparison.InvariantCulture);
+
+            if (atIndex.HasValue && atIndex.Value > -1)
+            {
+                return address.Substring(0, atIndex.Value);
+            }
+
+            return address;
         }
     }
 }

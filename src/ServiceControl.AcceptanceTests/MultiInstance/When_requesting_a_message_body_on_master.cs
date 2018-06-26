@@ -10,7 +10,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
@@ -31,27 +31,25 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
-
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;
             
-            await Define(context, Remote1, Master)
-                .WithEndpoint<RemoteEndpoint>(b => b.Given(bus =>
+            var context = await Define<MyContext>(Remote1, Master)
+                .WithEndpoint<RemoteEndpoint>(b => b.When(async (bus, ctx) =>
                 {
-                    context.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);
-                    bus.SendLocal(new MyMessage());
+                    ctx.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);
+                    await bus.SendLocal(new MyMessage());
                 }))
                 .Done(async c =>
                 {
-                    if (string.IsNullOrWhiteSpace(context.Remote1MessageId))
+                    if (string.IsNullOrWhiteSpace(c.Remote1MessageId))
                     {
                         return false;
                     }
 
                     if (!c.Remote1MessageAudited)
                     {
-                        var result = await TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.Remote1MessageId, Master);
+                        var result = await this.TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.Remote1MessageId, Master);
                         List<MessagesView> messages = result;
                         if (!result)
                         {
@@ -61,7 +59,7 @@
                         capturedMessage = messages.Single(msg => msg.MessageId == c.Remote1MessageId);
                     }
 
-                    response = await GetRaw($"/api/{capturedMessage.BodyUrl}", Master);
+                    response = await this.GetRaw($"/api/{capturedMessage.BodyUrl}", Master);
                     Console.WriteLine($"GetRaw for {c.Remote1MessageId} resulted in {response.StatusCode}");
                     return response.StatusCode == HttpStatusCode.OK;
                 })
@@ -89,8 +87,8 @@
             {
                 case Remote1:
                     addressOfRemote = settings.ApiUrl;
-                    settings.AuditQueue = Address.Parse(AuditRemote);
-                    settings.ErrorQueue = Address.Parse(ErrorRemote);
+                    settings.AuditQueue = AuditRemote;
+                    settings.ErrorQueue = ErrorRemote;
                     break;
                 case Master:
                     settings.RemoteInstances = new[]
@@ -101,8 +99,8 @@
                             QueueAddress = Remote1
                         }
                     };
-                    settings.AuditQueue = Address.Parse(AuditMaster);
-                    settings.ErrorQueue = Address.Parse(ErrorMaster);
+                    settings.AuditQueue = AuditMaster;
+                    settings.ErrorQueue = ErrorMaster;
                     break;
             }
         }
@@ -125,17 +123,21 @@
             public RemoteEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
-                    c.RegisterComponents(cc => cc.ConfigureComponent<MessageBodySpy>(DependencyLifecycle.SingleInstance)))
-                    .AuditTo(Address.Parse(AuditRemote));
+                {
+                    c.RegisterComponents(cc => cc.ConfigureComponent<MessageBodySpy>(DependencyLifecycle.SingleInstance));
+                    c.AuditProcessedMessagesTo(AuditRemote);
+                });
             }
 
             public class MessageBodySpy : IMutateIncomingTransportMessages
             {
                 public MyContext Context { get; set; }
-                public void MutateIncoming(TransportMessage transportMessage)
+                
+                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
-                    Context.Remote1MessageContentType = transportMessage.Headers[Headers.ContentType];
-                    Context.Remote1MessageBody = transportMessage.Body;
+                    Context.Remote1MessageContentType = context.Headers[Headers.ContentType];
+                    Context.Remote1MessageBody = context.Body;
+                    return Task.FromResult(0);
                 }
             }
 
@@ -143,11 +145,10 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.Remote1MessageId = Bus.CurrentMessageContext.Id;
+                    Context.Remote1MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }

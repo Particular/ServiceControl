@@ -8,31 +8,27 @@
     using Microsoft.AspNet.SignalR;
     using Newtonsoft.Json.Linq;
     using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Routing;
     using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
 
     public class MessageStreamerConnection : PersistentConnection
     {
-        public MessageStreamerConnection(ISendMessages sender, ReadOnlySettings settings, Conventions conventions)
+        public MessageStreamerConnection(IDispatchMessages sender, ReadOnlySettings settings)
         {
+            var conventions = settings.Get<Conventions>();
             this.sender = sender;
 
             messageTypes = settings.GetAvailableTypes()
                                         .Where(conventions.IsMessageType)
-                                        .ToList();
+                                        .GroupBy(x => x.Name)
+                                        .ToDictionary(x => x.Key, x => x.FirstOrDefault().AssemblyQualifiedName);
             localAddress = settings.LocalAddress();
         }
 
-        static Task MakeEmptyTask()
-        {
-            var completionSource = new TaskCompletionSource<object>();
-            completionSource.SetResult(null);
-            return completionSource.Task;
-        }
-
-        protected override Task OnReceived(IRequest request, string connectionId, string data)
+        protected override async Task OnReceived(IRequest request, string connectionId, string data)
         {
             try
             {
@@ -41,13 +37,14 @@
                 var jsonMessage = jObject["message"].ToString();
                 var messageType = jObject["type"].ToString();
 
-                var message = new TransportMessage();
-                message.Headers[Headers.EnclosedMessageTypes] = MapMessageType(messageType);
-                message.Body = Encoding.UTF8.GetBytes(jsonMessage);
+                var message = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
+                {
+                    {Headers.EnclosedMessageTypes, messageTypes[messageType]}
+                }, Encoding.UTF8.GetBytes(jsonMessage));
+                var transportOperation = new TransportOperation(message, new UnicastAddressTag(localAddress));
+                var transportOperations = new TransportOperations(transportOperation);
 
-                sender.Send(message, new SendOptions(localAddress));
-
-                return EmptyTask;
+                await sender.Dispatch(transportOperations, transportTransaction, contextBag).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -56,15 +53,11 @@
             }
         }
 
-        string MapMessageType(string className)
-        {
-            return messageTypes.Single(t => t.Name == className).AssemblyQualifiedName;
-        }
-
-        static readonly Task EmptyTask = MakeEmptyTask();
         static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));
-        readonly List<Type> messageTypes;
-        readonly ISendMessages sender;
-        Address localAddress;
+        readonly Dictionary<string, string> messageTypes;
+        readonly IDispatchMessages sender;
+        string localAddress;
+        static TransportTransaction transportTransaction = new TransportTransaction();
+        static ContextBag contextBag = new ContextBag();
     }
 }

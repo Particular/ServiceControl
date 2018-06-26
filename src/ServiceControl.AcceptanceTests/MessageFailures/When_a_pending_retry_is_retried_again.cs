@@ -5,11 +5,9 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -21,17 +19,15 @@
             FailedMessage failedMessage;
 
             await Define<Context>()
-                .WithEndpoint<FailingEndpoint>(b => b.Given(bus =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }).When(async ctx =>
+                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages()
+                    .When(async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
                         return false;
                     }
 
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
                     if (!result)
                     {
@@ -41,7 +37,7 @@
                     if (!ctx.RetryAboutToBeSent)
                     {
                         ctx.RetryAboutToBeSent = true;
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                         return false;
                     }
 
@@ -53,11 +49,11 @@
                     return false;
                 }, async (bus, ctx) =>
                 {
-                    await Post<object>("/api/pendingretries/retry", new List<string>
+                    await this.Post<object>("/api/pendingretries/retry", new List<string>
                     {
                         ctx.UniqueMessageId
                     });
-                }))
+                }).DoNotFailOnErrorMessages())
                 .Done(ctx => ctx.RetryCount == 2)
                 .Run();
         }
@@ -68,29 +64,17 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
-                })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
-            }
-
-            class CustomConfig : INeedInitialization
-            {
-                public void Customize(BusConfiguration configuration)
-                {
-                    configuration.DisableFeature<Outbox>();
-                }
+                    c.NoRetries();
+                    c.NoOutbox();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
                     if (Context.RetryAboutToBeSent)
@@ -100,10 +84,12 @@
                     }
                     else
                     {
-                        Context.FromAddress = Settings.LocalAddress().ToString();
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
+                        Context.FromAddress = Settings.LocalAddress();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }

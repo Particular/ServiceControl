@@ -17,16 +17,21 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
                 tophysicaladdress = "endpointB@machine2"
             };
 
+            var response = new List<MessageRedirectFromJson>();
             var messageRedirectId = DeterministicGuid.MakeId(redirect.fromphysicaladdress);
 
-            Define<Context>();
+            await Define<Context>()
+                .Done(async ctx =>
+                {
+                    await this.Post("/api/redirects", redirect);
 
-            await Post("/api/redirects", redirect);
+                    await this.Delete($"/api/redirects/{messageRedirectId}/");
 
-            await Delete($"/api/redirects/{messageRedirectId}/");
-
-            var result = await TryGetMany<MessageRedirectFromJson>("/api/redirects");
-            List<MessageRedirectFromJson> response = result;
+                    var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
+                    response = result;
+                    return true;
+                })
+                .Run();
 
             Assert.AreEqual(0, response.Count, "Expected no redirects after delete");
         }

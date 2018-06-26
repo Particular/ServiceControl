@@ -1,13 +1,14 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Contexts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
     public class When_a_message_has_failed_from_send_only_endpoint : AcceptanceTest
@@ -15,18 +16,16 @@
         [Test]
         public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_not_present()
         {
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                IncludeProcessingEndpointHeader = false
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<MyContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.IncludeProcessingEndpointHeader = false;
+                })
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -38,18 +37,16 @@
         [Test]
         public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_present()
         {
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                IncludeProcessingEndpointHeader = true
-            };
-
             FailedMessageView failure = null;
-            await Define(context)
+            await Define<MyContext>(ctx =>
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.IncludeProcessingEndpointHeader = true;
+                })
                 .WithEndpoint<SendOnlyEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -65,40 +62,39 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class Foo : IWantToRunWhenBusStartsAndStops
+            class Foo : DispatchRawMessages<MyContext>
             {
-                public ISendMessages SendMessages { get; set; }
-
-                public MyContext MyContext { get; set; }
-
-                public void Start()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
-                    var transportMessage = new TransportMessage();
-                    if (MyContext.IncludeProcessingEndpointHeader)
+                    var headers = new Dictionary<string, string>
                     {
-                        transportMessage.Headers[Headers.ProcessingEndpoint] = "SomeEndpoint";
+                        [Headers.MessageId] = context.MessageId,
+                        [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
+                        ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
+                        ["$.diagnostics.hostdisplayname"] = "SELENE",
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
+                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = "SomeEndpoint@SELENE",
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z",
+                        [Headers.EnclosedMessageTypes] = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+                    };
+
+                    if (context.IncludeProcessingEndpointHeader)
+                    {
+                        headers[Headers.ProcessingEndpoint] = "SomeEndpoint";
                     }
-                    transportMessage.Headers[Headers.MessageId] = MyContext.MessageId;
-                    transportMessage.Headers[Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707";
-                    transportMessage.Headers["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804";
-                    transportMessage.Headers["$.diagnostics.hostdisplayname"] = "SELENE";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = "SomeEndpoint@SELENE";
-                    transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    transportMessage.Headers["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z";
-                    transportMessage.Headers[Headers.EnclosedMessageTypes] = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
 
-                    SendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
-                }
+                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
 
-                public void Stop()
-                {
+                    return new TransportOperations(
+                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))
+                    );
                 }
             }
         }

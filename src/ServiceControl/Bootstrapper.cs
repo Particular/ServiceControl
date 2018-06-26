@@ -2,14 +2,20 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading.Tasks;
     using Autofac;
+    using Autofac.Features.ResolveAnything;
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.Monitoring;
+    using global::ServiceControl.Recoverability;
+    using global::ServiceControl.Operations;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using Raven.Client;
@@ -22,7 +28,7 @@ namespace Particular.ServiceControl
     public class Bootstrapper
     {
         private static HttpClient httpClient;
-        private BusConfiguration configuration;
+        private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action onCriticalError;
@@ -34,7 +40,7 @@ namespace Particular.ServiceControl
         public IDisposable WebApp;
 
         // Windows Service
-        public Bootstrapper(Action onCriticalError, Settings settings, BusConfiguration configuration, LoggingSettings loggingSettings)
+        public Bootstrapper(Action onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
             if (configuration == null)
             {
@@ -71,8 +77,14 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
 
+            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
+
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
+
+            var rawEndpointFactory = new RawEndpointFactory(settings);
+            containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
+
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
@@ -82,6 +94,12 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
+            containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
+            containerBuilder.Register(c => bus.Bus);
+
+            containerBuilder.RegisterType<DomainEventBusPublisher>().AsImplementedInterfaces().AsSelf().SingleInstance();
+            containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
+            containerBuilder.RegisterType<MonitoringDataPersister>().SingleInstance();
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
@@ -89,9 +107,12 @@ namespace Particular.ServiceControl
             domainEvents.SetContainer(container);
         }
 
-        public BusInstance Start(bool isRunningAcceptanceTests = false)
+        public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
+
+            bus = await NServiceBusFactory.CreateAndStart(settings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+                .ConfigureAwait(false);
 
             if (!isRunningAcceptanceTests)
             {
@@ -100,17 +121,18 @@ namespace Particular.ServiceControl
                 WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
             }
 
-            bus = NServiceBusFactory.CreateAndStart(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
-
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
 
             return bus;
         }
 
-        public void Stop()
+        public async Task Stop()
         {
             notifier.Dispose();
-            bus?.Dispose();
+            if (bus != null)
+            {
+                await bus.Stop().ConfigureAwait(false);
+            }
             timeKeeper.Dispose();
             documentStore.Dispose();
             WebApp?.Dispose();

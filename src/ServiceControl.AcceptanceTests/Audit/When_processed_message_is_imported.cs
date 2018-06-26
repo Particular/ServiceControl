@@ -4,12 +4,14 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Contexts;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
 
@@ -19,18 +21,14 @@
         public async Task Should_be_accessible_via_the_rest_api()
         {
             const string Payload = "PAYLOAD";
-            var context = new MyContext();
             MessagesView auditedMessage = null;
             byte[] body = null;
 
-            await Define(context)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
+            var context = await Define<MyContext>()
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
                 {
-                    bus.Send(new MyMessage
-                    {
-                        Payload = Payload
-                    });
-                }))
+                    Payload = Payload
+                })))
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
@@ -39,14 +37,14 @@
                         return false;
                     }
 
-                    var result = await TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
                     auditedMessage = result;
                     if (!result)
                     {
                         return false;
                     }
 
-                    body = await DownloadData(auditedMessage.BodyUrl);
+                    body = await this.DownloadData(auditedMessage.BodyUrl);
 
                     return true;
 
@@ -89,8 +87,11 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
+                });
             }
         }
 
@@ -105,19 +106,17 @@
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        [Serializable]
         public class MyMessage : ICommand
         {
             public string Payload { get; set; }

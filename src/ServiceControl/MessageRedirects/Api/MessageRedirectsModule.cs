@@ -14,7 +14,7 @@
 
     public class MessageRedirectsModule : BaseModule
     {
-        public IBus Bus { get; set; }
+        public IMessageSession Bus { get; set; }
         public IDomainEvents DomainEvents { get; set; }
 
         private class MessageRedirectRequest
@@ -76,12 +76,12 @@
 
                 if (request.retryexisting)
                 {
-                    Bus.SendLocal(new RetryPendingMessages
+                    await Bus.SendLocal(new RetryPendingMessages
                     {
                         QueueAddress = messageRedirect.FromPhysicalAddress,
                         PeriodFrom = DateTime.MinValue,
                         PeriodTo = DateTime.UtcNow
-                    });
+                    }).ConfigureAwait(false);
                 }
 
                 return HttpStatusCode.Created;

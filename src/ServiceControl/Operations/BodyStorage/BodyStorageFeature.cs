@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using RavenAttachments;
@@ -36,17 +37,17 @@
                 this.settings = settings;
             }
 
-            public void StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public Task StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                StoreMessageBody(body, headers, metadata, isFailedMessage: false);
+                return StoreMessageBody(body, headers, metadata, isFailedMessage: false);
             }
 
-            public void StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public Task StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                StoreMessageBody(body, headers, metadata, isFailedMessage: true);
+                return StoreMessageBody(body, headers, metadata, isFailedMessage: true);
             }
 
-            private void StoreMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, bool isFailedMessage)
+            private async Task StoreMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, bool isFailedMessage)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.Add("ContentLength", bodySize);
@@ -58,7 +59,8 @@
                 var contentType = GetContentType(headers, "text/xml");
                 metadata.Add("ContentType", contentType);
 
-                var stored = TryStoreBody(body, headers, metadata, bodySize, contentType, isFailedMessage);
+                var stored = await TryStoreBody(body, headers, metadata, bodySize, contentType, isFailedMessage)
+                    .ConfigureAwait(false);
                 if (!stored)
                 {
                     metadata.Add("BodyNotStored", true);
@@ -77,7 +79,7 @@
                 return contentType;
             }
 
-            bool TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType, bool isFailedMessage)
+            async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType, bool isFailedMessage)
             {
                 var bodyId = headers.MessageId();
                 var storedInBodyStorage = false;
@@ -88,7 +90,8 @@
 
                 if (isFailedMessage || isBelowMaxSize)
                 {
-                    bodyUrl = StoreBodyInBodyStorage(body, bodyId, contentType, bodySize);
+                    bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
+                        .ConfigureAwait(false);
                     storedInBodyStorage = true;
                 }
 
@@ -102,11 +105,12 @@
                 return storedInBodyStorage;
             }
 
-            string StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
+            async Task<string> StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
             {
                 using (var bodyStream = new MemoryStream(body))
                 {
-                    var bodyUrl = bodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
+                    var bodyUrl = await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
+                        .ConfigureAwait(false);
                     return bodyUrl;
                 }
             }

@@ -1,34 +1,29 @@
-﻿
-namespace ServiceBus.Management.AcceptanceTests.Audit
+﻿namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
-
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
+    
     public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata : AcceptanceTest
     {
         [Test]
         public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()
         {
             MessagesView auditedMessage = null;
-            var context = new MyContext
-            {
-                MessageId = Guid.NewGuid().ToString()
-            };
 
-            await Define(context)
+            await Define<MyContext>(ctx => { ctx.MessageId = Guid.NewGuid().ToString(); })
                 .WithEndpoint<ThirdPartyEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
                     auditedMessage = result;
                     return result;
                 })
@@ -45,27 +40,16 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            class SendMessage : IWantToRunWhenBusStartsAndStops
+            class SendMessage : DispatchRawMessages<MyContext>
             {
-                readonly ISendMessages sendMessages;
-                readonly MyContext context;
-                readonly ReadOnlySettings settings;
-
-                public SendMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    this.sendMessages = sendMessages;
-                    this.context = context;
-                    this.settings = settings;
-                }
-
-                public void Start()
-                {
-                    var transportMessage = new TransportMessage(context.MessageId, new Dictionary<string, string> { { Headers.ProcessingEndpoint, settings.EndpointName() } });
-                    sendMessages.Send(transportMessage, new SendOptions("audit"));
-                }
-
-                public void Stop()
-                {
+                    var headers = new Dictionary<string, string>
+                    {
+                        {Headers.ProcessingEndpoint, Conventions.EndpointNamingConvention(typeof(ThirdPartyEndpoint))},
+                        {Headers.MessageId, context.MessageId},
+                    };
+                    return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }
         }

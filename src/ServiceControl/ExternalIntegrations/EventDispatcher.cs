@@ -7,7 +7,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.CircuitBreakers;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
@@ -19,7 +18,7 @@
     public class EventDispatcher : FeatureStartupTask
     {
         static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
-        IBus bus;
+        IMessageSession bus;
         CriticalError criticalError;
         IEnumerable<IEventPublisher> eventPublishers;
         Settings settings;
@@ -32,17 +31,16 @@
         CancellationTokenSource tokenSource;
         Etag latestEtag = Etag.Empty;
 
-        public EventDispatcher(IDocumentStore store, IBus bus, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
+        public EventDispatcher(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
-            this.bus = bus;
             this.criticalError = criticalError;
             this.settings = settings;
             this.eventPublishers = eventPublishers;
             this.domainEvents = domainEvents;
         }
 
-        protected override void OnStart()
+        protected override Task OnStart(IMessageSession session)
         {
             subscription = store.Changes().ForDocumentsStartingWith("ExternalIntegrationDispatchRequests").Where(c => c.Type == DocumentChangeTypes.Put).Subscribe(OnNext);
 
@@ -52,17 +50,10 @@
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
                 TimeSpan.FromSeconds(20));
 
-            StartDispatcher();
-        }
+            bus = session;
 
-        protected override void OnStop()
-        {
-            subscription.Dispose();
-            tokenSource.Cancel();
-            tokenSource.Dispose();
-            task?.Wait();
-            task?.Dispose();
-            circuitBreaker.Dispose();
+            StartDispatcher();
+            return Task.FromResult(0);
         }
 
         private void OnNext(DocumentChangeNotification documentChangeNotification)
@@ -99,7 +90,7 @@
             catch (Exception ex)
             {
                 Logger.Error("An exception occurred when dispatching external integration events", ex);
-                circuitBreaker.Failure(ex);
+                await circuitBreaker.Failure(ex).ConfigureAwait(false);
 
                 if (!tokenSource.IsCancellationRequested)
                 {
@@ -163,7 +154,8 @@
 
                     try
                     {
-                        bus.Publish(eventToBePublished);
+                        await bus.Publish(eventToBePublished)
+                            .ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {
@@ -195,6 +187,20 @@
             }
 
             return true;
+        }
+
+        protected override async Task OnStop(IMessageSession session)
+        {
+            subscription.Dispose();
+            tokenSource.Cancel();
+            tokenSource.Dispose();
+            
+            if (task != null)
+            {
+                await task.ConfigureAwait(false);
+            }
+            
+            circuitBreaker.Dispose();
         }
     }
 }

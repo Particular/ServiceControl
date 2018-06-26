@@ -7,13 +7,15 @@
     // ReSharper disable once UnusedMember.Global
     public class ServiceControlDTCSupport : INeedInitialization
     {
-        public void Customize(BusConfiguration configuration)
+        static readonly ILog Logger = LogManager.GetLogger(typeof(ServiceControlDTCSupport));
+        public void Customize(EndpointConfiguration configuration)
         {
             if (SettingsReader<bool>.Read("EnableDtc"))
             {
-                configuration.Transactions()
-                    .EnableDistributedTransactions()
-                    .WrapHandlersExecutionInATransactionScope();
+                // TODO: Figure out how to add this back in
+                //configuration.Transactions()
+                //    .EnableDistributedTransactions()
+                //    .WrapHandlersExecutionInATransactionScope();
 
                 Logger.Info("DTC has been ENABLED");
                 return;
@@ -21,7 +23,5 @@
 
             Logger.Info("DTC is DISABLED");
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ServiceControlDTCSupport));
     }
 }

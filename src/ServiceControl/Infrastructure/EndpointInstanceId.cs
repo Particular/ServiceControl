@@ -26,6 +26,11 @@
         {
             var details = EndpointDetailsParser.ReceivingEndpoint(headers);
 
+            if (details == null)
+            {
+                return null;
+            }
+
             string instanceId;
             headers.TryGetValue("NServiceBus.Metric.InstanceId", out instanceId);
 

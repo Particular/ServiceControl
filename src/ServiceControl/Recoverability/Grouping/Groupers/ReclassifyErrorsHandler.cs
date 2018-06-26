@@ -4,7 +4,6 @@ namespace ServiceControl.Recoverability
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Raven.Client;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -18,8 +17,6 @@ namespace ServiceControl.Recoverability
         Reclassifier reclassifier;
         static int executing;
 
-        ILog logger = LogManager.GetLogger<ReclassifyErrorsHandler>();
-
         public ReclassifyErrorsHandler(IDocumentStore store, IDomainEvents domainEvents, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
         {
             this.store = store;
@@ -29,12 +26,7 @@ namespace ServiceControl.Recoverability
             reclassifier = new Reclassifier(notifier);
         }
 
-        public void Handle(ReclassifyErrors message)
-        {
-            HandleAsync(message).GetAwaiter().GetResult();
-        }
-
-        private async Task HandleAsync(ReclassifyErrors message)
+        public async Task Handle(ReclassifyErrors message, IMessageHandlerContext context)
         {
             if (Interlocked.Exchange(ref executing, 1) != 0)
             {
