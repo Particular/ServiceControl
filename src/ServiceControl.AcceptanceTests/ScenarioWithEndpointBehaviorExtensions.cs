@@ -20,6 +20,43 @@
         {
             return endpointBehavior.When(ctx => predicate(ctx).GetAwaiter().GetResult(), action);
         }
+
+        public static SequenceBuilder<TContext> Do<TContext>(this IScenarioWithEndpointBehavior<TContext> endpointBehavior, string step, Func<TContext, Task<bool>> handler)
+            where TContext : ScenarioContext, ISequenceContext
+        {
+            return new SequenceBuilder<TContext>(endpointBehavior, step, handler);
+        }
+    }
+
+    public class SequenceBuilder<TContext>
+        where TContext : ScenarioContext, ISequenceContext
+    {
+        IScenarioWithEndpointBehavior<TContext> endpointBehavior;
+        Sequence<TContext> sequence = new Sequence<TContext>();
+
+        public SequenceBuilder(IScenarioWithEndpointBehavior<TContext> endpointBehavior, string step, Func<TContext, Task<bool>> handler)
+        {
+            this.endpointBehavior = endpointBehavior;
+            sequence.Do(step, handler);
+        }
+
+        public SequenceBuilder<TContext> Do(string step, Func<TContext, Task<bool>> handler)
+        {
+            sequence.Do(step, handler);
+            return this;
+        }
+
+        public SequenceBuilder<TContext> Do(string step, Func<TContext, Task> handler)
+        {
+            sequence.Do(step, handler);
+            return this;
+        }
+
+        public IScenarioWithEndpointBehavior<TContext> Done(Func<TContext, bool> doneCriteria)
+        {
+            var behavior = new ServiceControlClient<TContext>(context => sequence.Continue(context));
+            return endpointBehavior.WithComponent(behavior).Done(ctx => sequence.IsFinished(ctx) && doneCriteria(ctx));
+        }
     }
 
     public class ServiceControlClient<TContext> : IComponentBehavior

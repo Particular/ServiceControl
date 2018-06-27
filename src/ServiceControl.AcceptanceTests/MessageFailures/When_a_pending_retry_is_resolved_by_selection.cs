@@ -16,27 +16,25 @@
         [Test]
         public async Task Should_succeed()
         {
-            var machine = new StateMachine<Context, State>()
-                .When(State.Begin, async ctx =>
+            await Define<Context>()
+                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
+                .Do("DetectFailure", async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
-                        return State.Begin;
+                        return false;
                     }
-                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                    return result ? State.FailureDetected : State.Begin;
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                 })
-                .When(State.FailureDetected, async ctx =>
+                .Do("Retry", async ctx =>
                 {
                     await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                    return State.RetryRequested;
                 })
-                .When(State.RetryRequested, async ctx =>
+                .Do("WaitForRetryIssued", async ctx =>
                 {
-                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", msg => msg.Status == FailedMessageStatus.RetryIssued);
-                    return result ? State.RetryIssued : State.RetryRequested;
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", msg => msg.Status == FailedMessageStatus.RetryIssued);
                 })
-                .When(State.RetryIssued, async ctx =>
+                .Do("ResolvePending", async ctx =>
                 {
                     await this.Patch("/api/pendingretries/resolve", new
                     {
@@ -45,22 +43,13 @@
                             ctx.UniqueMessageId
                         }
                     });
-                    return State.ResolveIssued;
                 })
-                .When(State.ResolveIssued, async ctx =>
+                .Do("WaitForResolved", async ctx =>
                 {
-                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
                         message => message.Status == FailedMessageStatus.Resolved);
-                    if (result)
-                    {
-                        return State.Resolved;
-                    }
-                    return State.ResolveIssued;
-                });
-
-            await Define<Context>()
-                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
-                .Done(async ctx => await machine.Step(ctx).ConfigureAwait(false) == State.Resolved)
+                })
+                .Done(ctx => true) //We're done once the sequence is finished
                 .Run();
         }
 
@@ -83,7 +72,7 @@
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.State == State.Begin)
+                    if (Context.Step == 0)
                     {
                         Context.FromAddress = Settings.LocalAddress();
                         Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
@@ -98,23 +87,13 @@
             }
         }
 
-        public enum State
-        {
-            Begin,
-            FailureDetected,
-            RetryRequested,
-            ResolveIssued,
-            Resolved,
-            RetryIssued
-        }
-
-        public class Context : ScenarioContext, IStateMachineContext<State>
+        public class Context : ScenarioContext, ISequenceContext
         {
             public string UniqueMessageId { get; set; }
             public bool Retried { get; set; }
             public int RetryCount { get; set; }
             public string FromAddress { get; set; }
-            public State State { get; set; }
+            public int Step { get; set; }
         }
 
         public class MyMessage : ICommand
