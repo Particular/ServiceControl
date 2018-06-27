@@ -11,7 +11,7 @@ using ServiceBus.Management.AcceptanceTests;
 public class ConfigureEndpointSqlServerTransport : ITransportIntegration
 {
     public string Name => "SqlServer";
-    public string TypeName => "NServiceBus.SqlServerTransport, NServiceBus.Transports.SqlServer";
+    public string TypeName => "NServiceBus.SqlServerTransport, NServiceBus.Transport.SqlServer";
     public string ConnectionString { get; set; }
     
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
