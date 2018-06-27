@@ -16,8 +16,6 @@
         [Test]
         public async Task Should_succeed()
         {
-            FailedMessage failedMessage;
-
             await Define<Context>()
                 .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async ctx =>
@@ -30,7 +28,6 @@
                     if (ctx.State == State.Begin)
                     {
                         var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                        failedMessage = result;
                         if (result)
                         {
                             ctx.State = State.FailedMessageDetected;
@@ -48,7 +45,6 @@
                     if (ctx.State == State.RetryAboutToBeSent)
                     {
                         var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                        failedMessage = result;
                         if (result && result.Item.Status == FailedMessageStatus.RetryIssued)
                         {
                             var failedMessagesResult = await this.TryGet<FailedMessage[]>("/api/errors");
