@@ -64,10 +64,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DisableCallbackQueue.cs" />
-    <Compile Include="ServiceControlDTCSupport.cs" />
+    <Compile Include="SqlServerTransport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transport\ServiceControl.Transport.csproj">
+      <Project>{514a2d1f-9b64-4447-8949-9629419b872b}</Project>
+      <Name>ServiceControl.Transport</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}</Project>
       <Name>ServiceControl</Name>

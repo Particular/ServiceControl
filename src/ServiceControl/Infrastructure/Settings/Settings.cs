@@ -120,8 +120,7 @@
             }
         }
 
-        public Type TransportType { get; set; }
-
+        public string TransportType { get; set; }
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
@@ -313,13 +312,13 @@
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
         }
 
-        static Type GetTransportType()
+        static string GetTransportType()
         {
             var typeName = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
             var transportType = Type.GetType(typeName);
             if (transportType != null)
             {
-                return transportType;
+                return typeName;
             }
             var errorMsg = $"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
             throw new Exception(errorMsg);

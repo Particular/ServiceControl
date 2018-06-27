@@ -3,7 +3,6 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
@@ -27,14 +26,14 @@ namespace ServiceControl.Recoverability
 
         public string InputAddress { get; }
 
-        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName, RawEndpointFactory rawEndpointFactory)
+        public ReturnToSenderDequeuer(TransportDefinition transportDefinition, ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName, RawEndpointFactory rawEndpointFactory)
         {
             InputAddress = $"{endpointName}.staging";
             this.returnToSender = returnToSender;
             
             createEndpointConfiguration = () =>
             {
-                var config = rawEndpointFactory.CreateRawEndpointConfiguration(InputAddress, Handle, TransportTransactionMode.SendsAtomicWithReceive);
+                var config = rawEndpointFactory.CreateRawEndpointConfiguration(InputAddress, Handle, transportDefinition);
 
                 config.CustomErrorHandlingPolicy(faultManager);
 

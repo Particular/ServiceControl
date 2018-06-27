@@ -360,6 +360,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transport.RabbitMQ\ServiceControl.Transport.RabbitMQ.csproj">
+      <Project>{114e51c5-8eb1-44c6-ac5a-78c8ef6c7d61}</Project>
+      <Name>ServiceControl.Transport.RabbitMQ</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>
       <Name>ServiceControl</Name>

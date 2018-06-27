@@ -15,7 +15,7 @@ public class ConfigureEndpointRabbitMQTransport : ITransportIntegration
     QueueBindings queueBindings;
     
     public string Name => "RabbitMq";
-    public string TypeName => "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ";
+    public string TypeName => "NServiceBus.RabbitMQTransport, NServiceBus.Transport.RabbitMQ";
     public string ConnectionString { get; set; }
 
 
