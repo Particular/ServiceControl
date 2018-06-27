@@ -72,10 +72,15 @@
                 }).DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
+                    if (ctx.UniqueMessageId == null)
+                    {
+                        return false;
+                    }
+
                     var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
 
-                    if (failedMessage.Status == FailedMessageStatus.Resolved)
+                    if (failedMessage?.Status == FailedMessageStatus.Resolved)
                     {
                         return true;
                     }

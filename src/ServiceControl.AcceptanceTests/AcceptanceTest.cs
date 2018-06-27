@@ -210,6 +210,19 @@ namespace ServiceBus.Management.AcceptanceTests
             return SingleResult<T>.New(response);
         }
 
+        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Func<T, Task<bool>> condition, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        {
+            var response = await provider.GetInternal<T>(url, instanceName).ConfigureAwait(false);
+
+            if (response == null || !await condition(response).ConfigureAwait(false))
+            {
+                await Task.Delay(1000).ConfigureAwait(false);
+                return SingleResult<T>.Empty;
+            }
+
+            return SingleResult<T>.New(response);
+        }
+
         public static async Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (condition == null)

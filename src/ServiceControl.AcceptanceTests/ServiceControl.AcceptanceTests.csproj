@@ -253,6 +253,8 @@
     <Compile Include="IAcceptanceTestInfrastructureProvider.cs" />
     <Compile Include="IRequireConnectionString.cs" />
     <Compile Include="ITransportIntegration.cs" />
+    <Compile Include="MessageFailures\IStateMachineContext.cs" />
+    <Compile Include="MessageFailures\StateMachine.cs" />
     <Compile Include="ServiceControlComponentBehavior.cs" />
     <Compile Include="ServiceControlComponentRunner.cs" />
     <Compile Include="TestSuiteConstraints.cs" />
