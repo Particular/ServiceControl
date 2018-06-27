@@ -83,7 +83,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, null, Master);
+            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, msg => true, Master);
         }
 
         async Task IssueRetry(MyContext c, Func<Task> retryAction)
