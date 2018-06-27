@@ -39,6 +39,8 @@
 
             builder.SendFailedMessagesTo("Error");
 
+            // will work on all the cloud transports
+            builder.UseSerialization<NewtonsoftSerializer>();
 
             builder.TypesToIncludeInScan(typesToInclude);
 

@@ -59,6 +59,8 @@ namespace ServiceBus.Management.Infrastructure
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
             var transport = configuration.UseTransport(settings.TransportType);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
+
+            ApplyASQSettingsHacksIfRequired(transport, settings.TransportType.FullName);
             
             if (settings.TransportConnectionString != null)
             {
@@ -76,6 +78,16 @@ namespace ServiceBus.Management.Infrastructure
             }
 
             return Endpoint.Create(configuration);
+        }
+
+        private static void ApplyASQSettingsHacksIfRequired(TransportExtensions extensions, string transportType)
+        {
+            if (transportType != "NServiceBus.AzureStorageQueueTransport")
+            {
+                return;
+            }
+            
+            extensions.GetSettings().Set("Transport.AzureStorageQueue.QueueSanitizer", (Func<string, string>)AsqBackwardsCompatibleQueueNameSanitizer.Sanitize);
         }
 
         public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
