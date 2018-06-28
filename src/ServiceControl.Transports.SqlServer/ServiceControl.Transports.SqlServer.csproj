@@ -7,8 +7,8 @@
     <ProjectGuid>{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControl.Transports.SqlServerWithDTC</RootNamespace>
-    <AssemblyName>ServiceControl.Transports.SqlServerWithDTC</AssemblyName>
+    <RootNamespace>ServiceControl.Transports.SqlServer</RootNamespace>
+    <AssemblyName>ServiceControl.Transports.SqlServer</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
