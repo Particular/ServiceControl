@@ -13,15 +13,15 @@
             CustomizeEndpointTransport(transport);
         }
 
-        protected virtual void CustomizeEndpointTransport(TransportExtensions<MsmqTransport> extensions)
-        {
-        }
-
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, string connectionString)
         {
             var transport = endpointConfig.UseTransport<MsmqTransport>();
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
             CustomizeRawEndpointTransport(transport);
+        }
+
+        protected virtual void CustomizeEndpointTransport(TransportExtensions<MsmqTransport> extensions)
+        {
         }
 
         protected virtual void CustomizeRawEndpointTransport(TransportExtensions<MsmqTransport> extensions)

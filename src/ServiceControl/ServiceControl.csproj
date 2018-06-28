@@ -318,7 +318,6 @@
     <Compile Include="Hosting\MaintenanceHost.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Infrastructure\AsqBackwardsCompatibleQueueNameSanitizer.cs" />
     <Compile Include="Infrastructure\BusInstance.cs" />
     <Compile Include="Infrastructure\DomainEvents\DomainEventBusPublisher.cs" />
     <Compile Include="Infrastructure\DomainEvents\DomainEvents.cs" />

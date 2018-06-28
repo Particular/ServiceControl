@@ -1,11 +1,11 @@
-﻿namespace ServiceControl.Infrastructure
+﻿namespace ServiceControl.Transports.ASQ
 {
     using System;
     using System.Security.Cryptography;
     using System.Text;
     using System.Text.RegularExpressions;
 
-    public static class AsqBackwardsCompatibleQueueNameSanitizer
+    public static class BackwardsCompatibleQueueNameSanitizer
     {
         public static string Sanitize(string queueName)
         {

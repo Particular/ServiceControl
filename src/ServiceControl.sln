@@ -56,6 +56,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.Msmq", "ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj", "{46F65684-6439-4199-806E-9EA4CA0AC31C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.ASQ", "ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj", "{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -138,6 +140,10 @@ Global
 		{46F65684-6439-4199-806E-9EA4CA0AC31C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46F65684-6439-4199-806E-9EA4CA0AC31C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46F65684-6439-4199-806E-9EA4CA0AC31C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -158,6 +164,7 @@ Global
 		{114E51C5-8EB1-44C6-AC5A-78C8EF6C7D61} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 		{691074CB-67F0-45CE-B3DE-AC9A94AF29B4} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 		{46F65684-6439-4199-806E-9EA4CA0AC31C} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}
