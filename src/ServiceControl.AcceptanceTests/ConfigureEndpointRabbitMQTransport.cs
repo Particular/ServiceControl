@@ -18,7 +18,6 @@ public class ConfigureEndpointRabbitMQTransport : ITransportIntegration
     public string TypeName => $"{typeof(ServiceControl.Transports.RabbitMQ.RabbitMQTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 
-
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
