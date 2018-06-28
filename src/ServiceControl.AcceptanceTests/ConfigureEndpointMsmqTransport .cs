@@ -12,7 +12,7 @@ using ServiceBus.Management.AcceptanceTests;
 public class ConfigureEndpointMsmqTransport : ITransportIntegration
 {
     public string Name => "Msmq";
-    public string TypeName => "NServiceBus.MsmqTransport, NServiceBus.Transport.Msmq";
+    public string TypeName => "Msmq";
     public string ConnectionString { get; set; }
     
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)

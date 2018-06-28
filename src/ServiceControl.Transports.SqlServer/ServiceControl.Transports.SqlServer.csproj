@@ -7,8 +7,8 @@
     <ProjectGuid>{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControl.Transports.SqlServerWithDTC</RootNamespace>
-    <AssemblyName>ServiceControl.Transports.SqlServerWithDTC</AssemblyName>
+    <RootNamespace>ServiceControl.Transports.SqlServer</RootNamespace>
+    <AssemblyName>ServiceControl.Transports.SqlServer</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -38,6 +38,9 @@
       <HintPath>..\packages\NServiceBus.7.0.1\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NServiceBus.Raw, Version=3.0.0.0, Culture=neutral, PublicKeyToken=215652b07edbd86c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.Raw.3.0.0\lib\net452\NServiceBus.Raw.dll</HintPath>
+    </Reference>
     <Reference Include="NServiceBus.Transport.SqlServer, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c">
       <HintPath>..\packages\NServiceBus.SqlServer.4.0.0\lib\net452\NServiceBus.Transport.SqlServer.dll</HintPath>
       <Private>True</Private>
@@ -45,26 +48,19 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Common, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\packages\System.Data.Common.4.3.0\lib\net451\System.Data.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Data.SqlClient, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\System.Data.SqlClient.4.4.3\lib\net451\System.Data.SqlClient.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Security" />
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DisableCallbackQueue.cs" />
-    <Compile Include="ServiceControlDTCSupport.cs" />
+    <Compile Include="SqlServerTransportCustomization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +70,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -3,6 +3,7 @@ namespace ServiceControl.Infrastructure
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Extensibility;
@@ -31,6 +32,11 @@ namespace ServiceControl.Infrastructure
             
             if (transportInfrastructure.OutboundRoutingPolicy.Publishes == OutboundRoutingType.Multicast)
             {
+                var transportSubscriptionInfrastructure = transportInfrastructure.ConfigureSubscriptionInfrastructure();
+                var propertyInfo = typeof(TransportSubscriptionInfrastructure).GetProperty("SubscriptionManagerFactory", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                var subscriptionManagerFactory = (Func<IManageSubscriptions>)propertyInfo.GetMethod.Invoke(transportSubscriptionInfrastructure, null);
+                SubscriptionManager = subscriptionManagerFactory();
+                
                 await SubscribeForBrokers(localAddress, eventTypes).ConfigureAwait(false);
 
                 foreach (var remote in ServiceControlSettings.RemoteInstances)

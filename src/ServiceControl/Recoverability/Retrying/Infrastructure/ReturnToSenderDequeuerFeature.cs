@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Transport;
     using Raven.Client;
     using ServiceControl.Infrastructure.DomainEvents;
 
@@ -17,6 +18,7 @@ namespace ServiceControl.Recoverability
         {
             context.Container.ConfigureComponent(
                 b => new ReturnToSenderDequeuer(
+                    context.Settings.Get<TransportDefinition>(),
                     b.Build<ReturnToSender>(),
                     b.Build<IDocumentStore>(),
                     b.Build<IDomainEvents>(),

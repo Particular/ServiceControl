@@ -144,7 +144,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                     ForwardErrorMessages = false,
                     ForwardAuditMessages = false,
-                    TransportType = Type.GetType(transportToUse.TypeName),
+                    TransportType = transportToUse.TypeName,
                     TransportConnectionString = transportToUse.ConnectionString,
                     ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                     MaximumConcurrencyLevel = 2,
@@ -302,11 +302,12 @@ namespace ServiceBus.Management.AcceptanceTests
                 this.portsToHttpMessageHandlers = portsToHttpMessageHandlers;
             }
 
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 var delegatingHandler = portsToHttpMessageHandlers[request.RequestUri.Port];
                 InnerHandler = delegatingHandler;
-                return base.SendAsync(request, cancellationToken);
+                await Task.Yield();
+                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             }
         }
 

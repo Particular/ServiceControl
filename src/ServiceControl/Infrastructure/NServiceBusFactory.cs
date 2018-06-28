@@ -12,11 +12,12 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.Transport;
     using ServiceControl.Operations;
 
     public static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -29,6 +30,9 @@ namespace ServiceBus.Management.Infrastructure
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set<EmbeddableDocumentStore>(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
+
+            transportCustomization.CustomizeEndpoint(configuration, settings.TransportConnectionString);
+
             configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
             configuration.GetSettings().Set<LoggingSettings>(loggingSettings);
             configuration.GetSettings().Set<Settings.Settings>(settings);
@@ -57,15 +61,7 @@ namespace ServiceBus.Management.Infrastructure
             }
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-            var transport = configuration.UseTransport(settings.TransportType);
-            transport.Transactions(TransportTransactionMode.ReceiveOnly);
-
-            ApplyASQSettingsHacksIfRequired(transport, settings.TransportType.FullName);
             
-            if (settings.TransportConnectionString != null)
-            {
-                transport.ConnectionString(settings.TransportConnectionString);
-            }
             configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {
                 onCriticalError();
@@ -80,19 +76,9 @@ namespace ServiceBus.Management.Infrastructure
             return Endpoint.Create(configuration);
         }
 
-        private static void ApplyASQSettingsHacksIfRequired(TransportExtensions extensions, string transportType)
+        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
-            if (transportType != "NServiceBus.AzureStorageQueueTransport")
-            {
-                return;
-            }
-            
-            extensions.GetSettings().Set("Transport.AzureStorageQueue.QueueSanitizer", (Func<string, string>)AsqBackwardsCompatibleQueueNameSanitizer.Sanitize);
-        }
-
-        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
-        {
-            var bus = await Create(settings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            var bus = await Create(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             var subscribeToOwnEvents = container.Resolve<SubscribeToOwnEvents>();
