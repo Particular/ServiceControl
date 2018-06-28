@@ -45,7 +45,7 @@
             }
 
             DbPath = GetDbPath();
-            TransportType = GetTransportType();
+            TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
@@ -121,25 +121,18 @@
             }
         }
 
-        public string TransportType { get; set; }
+        public string TransportCustomizationType { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {
-            var transport = TransportType;
-            if (!transport.Contains(",")) //Assembly-qualified name
-            {
-                //Use convention
-                transport = $"ServiceControl.Transports.{transport}.{transport}TransportCustomization, ServiceControl.Transports.{transport}";
-            }
-
             try
             {
-                var customizationType = Type.GetType(transport, true);
+                var customizationType = Type.GetType(TransportCustomizationType, true);
                 return (TransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load transport customization type {transport}.", e);
+                throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
             }
         }
 

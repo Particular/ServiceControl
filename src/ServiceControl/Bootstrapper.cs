@@ -163,15 +163,15 @@ namespace Particular.ServiceControl
             var version = typeof(Bootstrapper).Assembly.GetName().Version;
             var startupMessage = $@"
 -------------------------------------------------------------
-ServiceControl Version:       {version}
-Selected Transport:           {settings.TransportType}
-Audit Retention Period:       {settings.AuditRetentionPeriod}
-Error Retention Period:       {settings.ErrorRetentionPeriod}
-Forwarding Error Messages:    {settings.ForwardErrorMessages}
-Forwarding Audit Messages:    {settings.ForwardAuditMessages}
-Database Size:                {DataSize()}bytes
-ServiceControl Logging Level: {loggingSettings.LoggingLevel}
-RavenDB Logging Level:        {loggingSettings.RavenDBLogLevel}
+ServiceControl Version:             {version}
+Audit Retention Period:             {settings.AuditRetentionPeriod}
+Error Retention Period:             {settings.ErrorRetentionPeriod}
+Forwarding Error Messages:          {settings.ForwardErrorMessages}
+Forwarding Audit Messages:          {settings.ForwardAuditMessages}
+Database Size:                      {DataSize()}bytes
+ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
+RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
+Selected Transport Customization:   {settings.TransportCustomizationType}
 -------------------------------------------------------------";
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));

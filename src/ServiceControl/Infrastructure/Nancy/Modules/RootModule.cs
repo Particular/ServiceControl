@@ -67,7 +67,7 @@
                     },
                     Transport = new
                     {
-                        Settings.TransportType,
+                        Settings.TransportCustomizationType,
                         AuditLogQueue = Settings.AuditLogQueue,
                         AuditQueue = Settings.AuditQueue,
                         ErrorLogQueue = Settings.ErrorLogQueue,
