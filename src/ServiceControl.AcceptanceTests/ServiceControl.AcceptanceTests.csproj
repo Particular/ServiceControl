@@ -239,7 +239,8 @@
     <Compile Include="Audit\When_processed_message_searched_by_messageid.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_messagetype.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_msgid_for_endpoint.cs" />
-    <Compile Include="ConfigureEndpointAzureServiceBusTransport.cs" />
+    <Compile Include="ConfigureEndpointAzureServiceBusForwardingTopologyTransport.cs" />
+    <Compile Include="ConfigureEndpointAzureServiceBusEndpointTopologyTransport.cs" />
     <Compile Include="ConfigureEndpointAzureStorageQueueTransport .cs" />
     <Compile Include="ConfigureEndpointInMemoryPersistence.cs" />
     <Compile Include="ConfigureEndpointMsmqTransport .cs" />
