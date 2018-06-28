@@ -8,12 +8,11 @@ using ServiceControl.Infrastructure;
 public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
 {
     public string Name => "AzureStorageQueues";
-    public string TypeName => "NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues";
+    public string TypeName => "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ";
     public string ConnectionString { get; set; }
     
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
-
         var transportConfig = configuration
             .UseTransport<AzureStorageQueueTransport>()
             .ConnectionString(ConnectionString)

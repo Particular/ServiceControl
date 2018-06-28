@@ -16,7 +16,7 @@
 
         public SharedMonitoringEditorViewModel()
         {
-            Transports = V6Transports.All;
+            Transports = MonitoringTransports.All;
         }
 
         [DoNotNotify]

@@ -11,7 +11,7 @@ namespace ServiceControlInstaller.PowerShell
     {
         protected override void ProcessRecord()
         {
-            WriteObject(V5Transports.All.Select(PsTransportInfo.FromTransport), true);
+            WriteObject(ServiceControlCoreTransports.All.Select(PsTransportInfo.FromTransport), true);
         }
     }
 }

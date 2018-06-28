@@ -6,11 +6,11 @@ using TestConventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using ServiceBus.Management.AcceptanceTests;
 
-public class ConfigureEndpointAzureServiceBusTransport : ITransportIntegration
+public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransportIntegration
 {
-    public string Name => "AzureServiceBus";
+    public string Name => "AzureServiceBus - Endpoint Topology";
 
-    public string TypeName => "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus";
+    public string TypeName => "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB";
 
     public string ConnectionString { get; set; }
     
@@ -18,30 +18,16 @@ public class ConfigureEndpointAzureServiceBusTransport : ITransportIntegration
     {
         configuration.UseSerialization<NewtonsoftSerializer>();
 
-        var topology = Environment.GetEnvironmentVariable("AzureServiceBusTransport.Topology");
-
-        if (!string.IsNullOrEmpty(topology))
-        {
-            configuration.GetSettings().Set("AzureServiceBus.AcceptanceTests.UsedTopology", topology);
-        }
-
         var transportConfig = configuration.UseTransport<AzureServiceBusTransport>();
 
         transportConfig.ConnectionString(ConnectionString);
 
-        if (topology == "ForwardingTopology")
+        var endpointOrientedTopology = transportConfig.UseEndpointOrientedTopology();
+        foreach (var publisher in publisherMetadata.Publishers)
         {
-            transportConfig.UseForwardingTopology();
-        }
-        else
-        {
-            var endpointOrientedTopology = transportConfig.UseEndpointOrientedTopology();
-            foreach (var publisher in publisherMetadata.Publishers)
+            foreach (var eventType in publisher.Events)
             {
-                foreach (var eventType in publisher.Events)
-                {
-                    endpointOrientedTopology.RegisterPublisher(eventType, publisher.PublisherName);
-                }
+                endpointOrientedTopology.RegisterPublisher(eventType, publisher.PublisherName);
             }
         }
 

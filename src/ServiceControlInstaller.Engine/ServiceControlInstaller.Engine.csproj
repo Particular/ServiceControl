@@ -124,7 +124,7 @@
     <Compile Include="Instances\ServiceControlUpgradeOptions.cs" />
     <Compile Include="Instances\MonitoringInstance.cs" />
     <Compile Include="Instances\MonitoringNewInstance.cs" />
-    <Compile Include="Instances\V6Transports.cs" />
+    <Compile Include="Instances\MonitoringTransports.cs" />
     <Compile Include="Unattended\UnattendMonitoringInstaller.cs" />
     <Compile Include="Unattended\XmlTimeSpan.cs" />
     <Compile Include="Queues\QueueCreationException.cs" />
@@ -149,7 +149,7 @@
     <Compile Include="Instances\ServiceControlInstance.cs" />
     <Compile Include="Instances\ServiceControlNewInstance.cs" />
     <Compile Include="Instances\TransportInfo.cs" />
-    <Compile Include="Instances\V5Transports.cs" />
+    <Compile Include="Instances\ServiceControlCoreTransports.cs" />
     <Compile Include="LicenseMgmt\DetectedLicense.cs" />
     <Compile Include="LicenseMgmt\LicenseDetails.cs" />
     <Compile Include="LicenseMgmt\LicenseManager.cs" />

@@ -101,13 +101,13 @@
         
         string DetermineTransportPackage()
         {
-            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
-            var transport = V6Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn, StringComparison.OrdinalIgnoreCase));
+            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, MonitoringTransports.All.Single(t => t.Default).TypeName).Trim();
+            var transport = MonitoringTransports.All.FirstOrDefault(p => transportAppSetting.Equals(p.TypeName, StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
                 return transport.Name;
             }
-            return V6Transports.All.First(p => p.Default).Name;
+            return MonitoringTransports.All.First(p => p.Default).Name;
         }
         
         public void ValidateChanges()
