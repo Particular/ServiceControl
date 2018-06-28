@@ -4,7 +4,7 @@
     using NServiceBus.Raw;
     using ServiceControl.Infrastructure.Transport;
 
-    public class RabbitMQTransportCustomization : TransportCustomization
+    public class RabbitMQConventionalRoutingTransportCustomization : TransportCustomization
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, string connectionString)
         {

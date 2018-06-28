@@ -245,7 +245,8 @@
     <Compile Include="ConfigureEndpointInMemoryPersistence.cs" />
     <Compile Include="ConfigureEndpointMsmqTransport .cs" />
     <Compile Include="Audit\When_a_message_sent_from_third_party_endpoint_with_missing_metadata.cs" />
-    <Compile Include="ConfigureEndpointRabbitMQTransport.cs" />
+    <Compile Include="ConfigureEndpointRabbitMQDirectRoutingTransport.cs" />
+    <Compile Include="ConfigureEndpointRabbitMQConventionalRoutingTransport.cs" />
     <Compile Include="ConfigureEndpointSqlServerTransport.cs" />
     <Compile Include="EndpointConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\DefaultServerWithAudit.cs" />

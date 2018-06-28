@@ -9,13 +9,13 @@ using NServiceBus.Transport;
 using RabbitMQ.Client;
 using ServiceBus.Management.AcceptanceTests;
 
-public class ConfigureEndpointRabbitMQTransport : ITransportIntegration
+public class ConfigureEndpointRabbitMQConventionalRoutingTransport : ITransportIntegration
 {
     DbConnectionStringBuilder connectionStringBuilder;
     QueueBindings queueBindings;
     
-    public string Name => "RabbitMq";
-    public string TypeName => $"{typeof(ServiceControl.Transports.RabbitMQ.RabbitMQTransportCustomization).AssemblyQualifiedName}";
+    public string Name => "RabbitMq - Conventional Routing Topology";
+    public string TypeName => $"{typeof(ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
@@ -23,8 +23,8 @@ public class ConfigureEndpointRabbitMQTransport : ITransportIntegration
         connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
 
         var transport = configuration.UseTransport<RabbitMQTransport>();
-        transport.ConnectionString(connectionStringBuilder.ConnectionString);
         transport.UseConventionalRoutingTopology();
+        transport.ConnectionString(connectionStringBuilder.ConnectionString);
 
         queueBindings = configuration.GetSettings().Get<QueueBindings>();
 

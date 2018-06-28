@@ -38,7 +38,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RabbitMQTransportCustomization.cs" />
+    <Compile Include="RabbitMQConventionalRoutingTransportCustomization.cs" />
+    <Compile Include="RabbitMQDirectRoutingTransportCustomization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

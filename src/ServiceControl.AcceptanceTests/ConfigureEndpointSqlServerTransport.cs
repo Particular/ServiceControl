@@ -11,7 +11,7 @@ using ServiceBus.Management.AcceptanceTests;
 public class ConfigureEndpointSqlServerTransport : ITransportIntegration
 {
     public string Name => "SqlServer";
-    public string TypeName => $"{typeof(ServiceControl.Transports.RabbitMQ.RabbitMQTransportCustomization).AssemblyQualifiedName}";
+    public string TypeName => $"{typeof(ServiceControl.Transports.SqlServer.SqlServerTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
     
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
