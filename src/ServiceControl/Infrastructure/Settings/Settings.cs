@@ -5,7 +5,6 @@
     using System.Linq;
     using Newtonsoft.Json;
     using NLog.Common;
-    using NServiceBus;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceControl.Infrastructure.Transport;
@@ -453,7 +452,7 @@
             var valueRead = SettingsReader<string>.Read("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
             {
-                var jsonSerializer = Newtonsoft.Json.JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+                var jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
                 using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
                 {
                     return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];

@@ -1,9 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using TestConventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
-using NServiceBus.Configuration.AdvancedExtensibility;
 using ServiceBus.Management.AcceptanceTests;
 
 public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransportIntegration
