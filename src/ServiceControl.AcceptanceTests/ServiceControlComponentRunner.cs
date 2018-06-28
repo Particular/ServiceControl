@@ -302,11 +302,12 @@ namespace ServiceBus.Management.AcceptanceTests
                 this.portsToHttpMessageHandlers = portsToHttpMessageHandlers;
             }
 
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 var delegatingHandler = portsToHttpMessageHandlers[request.RequestUri.Port];
                 InnerHandler = delegatingHandler;
-                return base.SendAsync(request, cancellationToken);
+                await Task.Yield();
+                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             }
         }
 

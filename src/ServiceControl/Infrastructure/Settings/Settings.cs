@@ -8,6 +8,7 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy;
+    using ServiceControl.Infrastructure.Transport;
 
     public class Settings
     {
@@ -121,6 +122,27 @@
         }
 
         public string TransportType { get; set; }
+
+        public TransportCustomization LoadTransportCustomization()
+        {
+            var transport = TransportType;
+            if (!transport.Contains(",")) //Assembly-qualified name
+            {
+                //Use convention
+                transport = $"ServiceControl.Transports.{transport}.{transport}TransportCustomization, ServiceControl.Transports.{transport}";
+            }
+
+            try
+            {
+                var customizationType = Type.GetType(transport, true);
+                return (TransportCustomization)Activator.CreateInstance(customizationType);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load transport customization type {transport}.", e);
+            }
+        }
+
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }

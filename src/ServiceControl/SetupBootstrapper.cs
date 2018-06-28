@@ -45,7 +45,7 @@ namespace Particular.ServiceControl
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                NServiceBusFactory.Create(settings, loggingSettings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();    
+                NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), loggingSettings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();    
             }
         }
 

@@ -360,9 +360,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Transport.RabbitMQ\ServiceControl.Transport.RabbitMQ.csproj">
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj">
+      <Project>{46f65684-6439-4199-806e-9ea4ca0ac31c}</Project>
+      <Name>ServiceControl.Transports.Msmq</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj">
       <Project>{114e51c5-8eb1-44c6-ac5a-78c8ef6c7d61}</Project>
-      <Name>ServiceControl.Transport.RabbitMQ</Name>
+      <Name>ServiceControl.Transports.RabbitMQ</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj">
+      <Project>{691074cb-67f0-45ce-b3de-ac9a94af29b4}</Project>
+      <Name>ServiceControl.Transports.SqlServer</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>

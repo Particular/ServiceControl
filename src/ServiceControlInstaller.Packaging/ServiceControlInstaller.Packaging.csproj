@@ -138,14 +138,6 @@
       <Project>{70be1af0-4739-43e9-864e-4104a5781614}</Project>
       <Name>ServiceControl.ASB.DLQMonitor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.MSMQ.DLQMonitor\ServiceControl.MSMQ.DLQMonitor.csproj">
-      <Project>{46f65684-6439-4199-806e-9ea4ca0ac31c}</Project>
-      <Name>ServiceControl.MSMQ.DLQMonitor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.SqlServerWithDTC\ServiceControl.Transports.SqlServerWithDTC.csproj">
-      <Project>{691074cb-67f0-45ce-b3de-ac9a94af29b4}</Project>
-      <Name>ServiceControl.Transports.SqlServerWithDTC</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

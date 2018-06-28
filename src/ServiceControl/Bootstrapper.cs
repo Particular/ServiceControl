@@ -13,6 +13,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.Infrastructure.Transport;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Operations;
@@ -38,6 +39,7 @@ namespace Particular.ServiceControl
         private IContainer container;
         private BusInstance bus;
         public IDisposable WebApp;
+        TransportCustomization transportCustomization;
 
         // Windows Service
         public Bootstrapper(Action onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
@@ -75,6 +77,7 @@ namespace Particular.ServiceControl
 
             timeKeeper = new TimeKeeper();
 
+            transportCustomization = settings.LoadTransportCustomization();
             var containerBuilder = new ContainerBuilder();
 
             containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
@@ -82,7 +85,7 @@ namespace Particular.ServiceControl
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
-            var rawEndpointFactory = new RawEndpointFactory(settings);
+            var rawEndpointFactory = new RawEndpointFactory(settings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
@@ -111,7 +114,7 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            bus = await NServiceBusFactory.CreateAndStart(settings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             if (!isRunningAcceptanceTests)

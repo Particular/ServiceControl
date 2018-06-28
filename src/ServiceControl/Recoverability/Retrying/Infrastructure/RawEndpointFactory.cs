@@ -2,18 +2,20 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.Transport;
 
     public class RawEndpointFactory
     {
         Settings settings;
+        TransportCustomization transportCustomization;
 
-        public RawEndpointFactory(Settings settings)
+        public RawEndpointFactory(Settings settings, TransportCustomization transportCustomization)
         {
             this.settings = settings;
+            this.transportCustomization = transportCustomization;
         }
 
         public RawEndpointConfiguration CreateRawEndpointConfiguration(string name, Func<MessageContext, IDispatchMessages, Task> onMessage, TransportDefinition transportDefinition)
@@ -22,9 +24,7 @@ namespace ServiceControl.Recoverability
             config.AutoCreateQueue();
             config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
-            // only partially works because we are missing important things from the config like the transport connection string
-            // plus this might be dangerous because we suddenly share things we should never have been sharing
-            config.Settings.Set<TransportDefinition>(transportDefinition);
+            transportCustomization.CustomizeRawEndpoint(config, settings.TransportConnectionString);
             return config;
         }
     }
