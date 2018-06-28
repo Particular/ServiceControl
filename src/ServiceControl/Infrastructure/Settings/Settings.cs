@@ -329,7 +329,7 @@
 
         static string GetTransportType()
         {
-            var typeName = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
+            var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
             var transportType = Type.GetType(typeName);
             if (transportType != null)
             {
