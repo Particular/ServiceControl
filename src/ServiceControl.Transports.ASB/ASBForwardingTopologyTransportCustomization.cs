@@ -33,7 +33,7 @@
         
         static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, string connectionString)
         {
-            transport.UseEndpointOrientedTopology();
+            transport.UseForwardingTopology();
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(connectionString);
         }
