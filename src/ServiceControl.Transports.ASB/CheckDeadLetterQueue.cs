@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.ASB.DLQMonitor
+﻿namespace ServiceControl.Transports.ASB
 {
     using System;
     using System.Configuration;

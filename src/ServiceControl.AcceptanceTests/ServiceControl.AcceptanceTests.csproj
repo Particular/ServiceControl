@@ -362,6 +362,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj">
+      <Project>{24c5a540-ee02-4519-b000-eda470759c5b}</Project>
+      <Name>ServiceControl.Transports.ASB</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj">
       <Project>{eda26c67-405a-4ec7-a3e6-ebab7278e70a}</Project>
       <Name>ServiceControl.Transports.ASQ</Name>
