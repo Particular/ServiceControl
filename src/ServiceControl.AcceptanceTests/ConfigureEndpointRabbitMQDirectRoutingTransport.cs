@@ -25,7 +25,6 @@ public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegra
         var transport = configuration.UseTransport<RabbitMQTransport>();
         transport.UseDirectRoutingTopology();
         transport.ConnectionString(connectionStringBuilder.ConnectionString);
-        transport.UseConventionalRoutingTopology();
 
         queueBindings = configuration.GetSettings().Get<QueueBindings>();
 
