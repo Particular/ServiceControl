@@ -19,6 +19,7 @@
         {
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
             transport.ApplyHacksForNsbRaw();
+            ConfigureTransport(transport, connectionString);
             CustomizeRawEndpointTransport(transport);
         }
         
