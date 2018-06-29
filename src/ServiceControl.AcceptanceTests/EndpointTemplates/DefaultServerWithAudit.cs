@@ -37,7 +37,7 @@
                 typeof(TraceOutgoingBehavior)
             }));
 
-            builder.SendFailedMessagesTo("Error");
+            builder.SendFailedMessagesTo("error");
 
             // will work on all the cloud transports
             builder.UseSerialization<NewtonsoftSerializer>();
