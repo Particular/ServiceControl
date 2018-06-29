@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Transports.ASB
 {
+    using System;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Raw;
     using ServiceControl.Infrastructure.Transport;
 
@@ -10,7 +12,25 @@
         {
             endpointConfig.UseSerialization<NewtonsoftSerializer>();
             
+            var remoteInstances = endpointConfig.GetSettings().Get<string[]>("ServiceControl.RemoteInstances");
+            var remoteTypesToSubscribeTo = endpointConfig.GetSettings().Get<Type[]>("ServiceControl.RemoteTypesToSubscribeTo");
+            var endpointName = endpointConfig.GetSettings().Get<string>("ServiceControl.EndpointName");
+            
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
+            var topology = transport.UseEndpointOrientedTopology();
+            foreach (var remoteInstance in remoteInstances)
+            {
+                foreach (var remoteType in remoteTypesToSubscribeTo)
+                {
+                    topology.RegisterPublisher(remoteType, remoteInstance);
+                }
+            }
+            
+            foreach (var remoteType in remoteTypesToSubscribeTo)
+            {
+                topology.RegisterPublisher(remoteType, endpointName);
+            }
+
             ConfigureTransport(transport, connectionString);
             CustomizeEndpointTransport(transport);
         }
@@ -18,6 +38,7 @@
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, string connectionString)
         {
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
+            transport.UseEndpointOrientedTopology();
             transport.ApplyHacksForNsbRaw();
             ConfigureTransport(transport, connectionString);
             CustomizeRawEndpointTransport(transport);
@@ -33,7 +54,6 @@
         
         static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, string connectionString)
         {
-            transport.UseEndpointOrientedTopology();
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(connectionString);
         }

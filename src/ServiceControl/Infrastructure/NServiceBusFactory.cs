@@ -2,6 +2,7 @@ namespace ServiceBus.Management.Infrastructure
 {
     using System;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading.Tasks;
     using Autofac;
     using NServiceBus;
@@ -10,6 +11,8 @@ namespace ServiceBus.Management.Infrastructure
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Contracts.EndpointControl;
+    using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.Transport;
@@ -30,7 +33,10 @@ namespace ServiceBus.Management.Infrastructure
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set<EmbeddableDocumentStore>(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
-
+            configuration.GetSettings().Set("ServiceControl.RemoteInstances", settings.RemoteInstances.Select(x => x.QueueAddress).ToArray());
+            configuration.GetSettings().Set("ServiceControl.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
+            configuration.GetSettings().Set("ServiceControl.EndpointName", endpointName);
+            
             transportCustomization.CustomizeEndpoint(configuration, settings.TransportConnectionString);
 
             configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
@@ -76,13 +82,14 @@ namespace ServiceBus.Management.Infrastructure
             return Endpoint.Create(configuration);
         }
 
+
         public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var bus = await Create(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             var subscribeToOwnEvents = container.Resolve<SubscribeToOwnEvents>();
-            await subscribeToOwnEvents.Run().ConfigureAwait(false);
+            await subscribeToOwnEvents.Run(remoteTypesToSubscribeTo, settings.RemoteInstances.Select(x => x.QueueAddress).ToArray()).ConfigureAwait(false);
             var domainEvents = container.Resolve<IDomainEvents>();
             var importFailedAudits = container.Resolve<ImportFailedAudits>();
 
@@ -96,6 +103,12 @@ namespace ServiceBus.Management.Infrastructure
 
             return new BusInstance(startedBus, domainEvents, importFailedAudits);
         }
+
+        static Type[] remoteTypesToSubscribeTo = new[]
+        {
+            typeof(MessageFailureResolvedByRetry),
+            typeof(NewEndpointDetected)
+        };
 
         static bool IsExternalContract(Type t)
         {
