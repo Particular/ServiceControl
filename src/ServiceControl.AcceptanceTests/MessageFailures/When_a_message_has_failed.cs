@@ -196,7 +196,7 @@
 
 
             Assert.AreEqual(1, searchResults.Count, "Result count did not match");
-            Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName));
+            Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder

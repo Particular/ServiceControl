@@ -19,7 +19,7 @@
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
+                if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     ctx.ExternalProcessorSubscribed = true;
                 }
