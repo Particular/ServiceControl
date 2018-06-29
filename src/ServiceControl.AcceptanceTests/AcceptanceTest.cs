@@ -78,17 +78,17 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected void ExecuteWhen(Func<bool> execute, Action<IDomainEvents> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected void ExecuteWhen(Func<bool> execute, Func<IDomainEvents, Task> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             var timeout = TimeSpan.FromSeconds(1);
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 while (!SpinWait.SpinUntil(execute, timeout))
                 {
                 }
 
-                action(Busses[instanceName].DomainEvents);
+                await action(Busses[instanceName].DomainEvents);
             });
         }
 
@@ -102,10 +102,6 @@ namespace ServiceBus.Management.AcceptanceTests
             serviceControlRunnerBehavior.Initialize(instanceNames);
             return Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
-        }
-
-        private class ConsoleContext : ScenarioContext
-        {
         }
 
         public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;

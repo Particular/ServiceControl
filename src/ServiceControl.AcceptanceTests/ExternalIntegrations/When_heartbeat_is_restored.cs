@@ -40,7 +40,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     Name = "LuckyEndpoint"
                 }
 
-            }).GetAwaiter().GetResult());
+            }));
 
             var context = await Define<MyContext>()
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
