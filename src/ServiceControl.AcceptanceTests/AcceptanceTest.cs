@@ -46,6 +46,10 @@ namespace ServiceBus.Management.AcceptanceTests
             CustomConfiguration = _ => { };
             CustomInstanceConfiguration = (i, c) => { };
 
+#if !NETCOREAPP2_0
+            System.Configuration.ConfigurationManager.GetSection("X");
+#endif
+
             var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
             Console.Out.WriteLine($"Using transport {transportToUse.Name}");
             

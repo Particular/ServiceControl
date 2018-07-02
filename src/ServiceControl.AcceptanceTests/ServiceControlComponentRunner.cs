@@ -2,6 +2,7 @@ namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -137,6 +138,9 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 var instancePort = FindAvailablePort(startPort++);
                 var maintenancePort = FindAvailablePort(startPort++);
+
+                ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
+
                 var settings = new Settings(instanceName)
                 {
                     Port = instancePort,
