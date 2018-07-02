@@ -53,12 +53,27 @@ namespace ServiceBus.Management.AcceptanceTests
             
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
 
+            RemoveOtherTransportAssemblies(transportToUse.TypeName);
+
             Conventions.EndpointNamingConvention = t =>
             {
                 var baseNs = typeof(AcceptanceTest).Namespace;
                 var testName = GetType().Name;
                 return t.FullName.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
             };
+        }
+
+        private void RemoveOtherTransportAssemblies(string name)
+        {
+            var assembly = Type.GetType(name, true).Assembly;
+
+            var otherAssemblies = Directory.EnumerateFiles(Path.GetDirectoryName(assembly.Location), "ServiceControl.Transports.*.dll")
+                .Where(transportAssembly => transportAssembly != assembly.Location);
+
+            foreach (var transportAssembly in otherAssemblies)
+            {
+                File.Delete(transportAssembly);
+            }
         }
 
         private static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
