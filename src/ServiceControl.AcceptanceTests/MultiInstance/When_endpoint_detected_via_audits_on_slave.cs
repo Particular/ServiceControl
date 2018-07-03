@@ -25,26 +25,6 @@
         private string addressOfRemote;
 
         [Test]
-        public async Task Should_be_returned_via_master_api()
-        {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
-
-            List<EndpointsView> response;
-
-            await Define<MyContext>(Slave, Master)
-                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
-                    (bus, c) => bus.SendLocal(new MyMessage())))
-                .Done(async c =>
-                {
-                    var result =  await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
-                    response = result;
-                    return result && response.Count == 1;
-                })
-                .Run(TimeSpan.FromSeconds(40));
-        }
-
-        [Test]
         public async Task Should_be_configurable_on_master()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
