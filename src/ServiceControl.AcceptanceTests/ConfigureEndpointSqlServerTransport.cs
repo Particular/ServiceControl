@@ -44,7 +44,7 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
         {
             await conn.OpenAsync();
 
-            var queueAddresses = queueBindings.ReceivingAddresses.Select(QueueAddress.Parse).ToList();
+            var queueAddresses = queueBindings.ReceivingAddresses.Concat(queueBindings.SendingAddresses).Select(QueueAddress.Parse).ToList();
             foreach (var address in queueAddresses)
             {
                 await TryDeleteTable(conn, address);
