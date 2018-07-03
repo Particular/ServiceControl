@@ -36,6 +36,7 @@
             transport.UseForwardingTopology();
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(connectionString);
+            transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
         }
     }
 }

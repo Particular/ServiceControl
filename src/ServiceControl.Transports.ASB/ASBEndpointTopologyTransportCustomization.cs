@@ -17,6 +17,7 @@
             var endpointName = endpointConfig.GetSettings().Get<string>("ServiceControl.EndpointName");
             
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
+            transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
             var topology = transport.UseEndpointOrientedTopology();
             foreach (var remoteInstance in remoteInstances)
             {
