@@ -86,6 +86,11 @@
                     ctx.GroupId = groups.Items[0].Id;
                     return true;
                 })
+                .Do("DetectFirstFailure", async ctx =>
+                {
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FirstMessageId}",
+                        e => e.Status == FailedMessageStatus.Unresolved);
+                })
                 .Do("DetectSecondFailure", async ctx =>
                 {
                     return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}", 
@@ -93,6 +98,7 @@
                 })
                 .Do("RetrySecond", async ctx =>
                 {
+                    ctx.FailProcessing = false;
                     await this.Post<object>($"/api/errors/{ctx.SecondMessageId}/retry");
                 })
                 .Do("DetectSecondResolved", async ctx =>
@@ -146,7 +152,7 @@
                         Context.SecondMessageId = uniqueMessageId;
                     }
 
-                    if (Context.Step == 0)
+                    if (Context.FailProcessing)
                     {
                         throw new Exception("Simulated exception");
                     }
@@ -168,6 +174,7 @@
             public string SecondMessageId { get; set; }
             public string GroupId { get; set; }
             public int Step { get; set; }
+            public bool FailProcessing { get; set; } = true;
         }
     }
 }
