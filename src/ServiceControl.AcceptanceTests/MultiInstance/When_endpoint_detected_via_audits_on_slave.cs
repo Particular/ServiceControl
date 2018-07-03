@@ -28,11 +28,13 @@
         public async Task Should_be_returned_via_master_api()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             List<EndpointsView> response;
 
             await Define<MyContext>(Slave, Master)
-                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
+                    (bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result =  await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
@@ -46,11 +48,13 @@
         public async Task Should_be_configurable_on_master()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             List<EndpointsView> response = null;
 
             await Define<MyContext>(Slave, Master)
-                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed, 
+                    (bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
@@ -130,7 +134,20 @@
             }
         }
 
-        
+        void ConfigureWaitingForMasterToSubscribe(string instance, EndpointConfiguration config)
+        {
+            if (instance == "slave")
+            {
+                config.OnEndpointSubscribed<MyContext>((s, ctx) =>
+                {
+                    if (s.SubscriberReturnAddress.IndexOf("Master", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        ctx.MasterSubscribed = true;
+                    }
+                });
+            }
+        }
+
         public class MyMessage : ICommand
         {
         }
@@ -138,6 +155,7 @@
         public class MyContext : ScenarioContext
         {
             public bool EndpointKnownOnMaster { get; set; }
+            public bool MasterSubscribed { get; set; }
         }
     }
 }
