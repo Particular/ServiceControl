@@ -20,7 +20,6 @@ namespace ServiceControl.Infrastructure.DomainEvents
             }
 
             var busCommand = domainEvent as IMessage;
-
             if (busCommand != null)
             {
                 return messageSession.SendLocal(busCommand);
