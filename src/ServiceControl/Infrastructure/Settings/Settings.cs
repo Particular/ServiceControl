@@ -1,8 +1,10 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus.Logging;
@@ -59,6 +61,8 @@
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             RemoteInstances = GetRemoteInstances();
         }
+
+        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
         public bool RunInMemory { get; set; }
 

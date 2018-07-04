@@ -37,6 +37,9 @@
                 typeof(TraceOutgoingBehavior)
             }));
 
+            builder.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
+            builder.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
+
             builder.SendFailedMessagesTo("error");
 
             // will work on all the cloud transports

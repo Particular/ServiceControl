@@ -1,6 +1,7 @@
 namespace ServiceBus.Management.Infrastructure
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
+    using NServiceBus.Pipeline;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -36,7 +38,7 @@ namespace ServiceBus.Management.Infrastructure
             configuration.GetSettings().Set("ServiceControl.RemoteInstances", settings.RemoteInstances.Select(x => x.QueueAddress).ToArray());
             configuration.GetSettings().Set("ServiceControl.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
             configuration.GetSettings().Set("ServiceControl.EndpointName", endpointName);
-            
+
             transportCustomization.CustomizeEndpoint(configuration, settings.TransportConnectionString);
 
             configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
@@ -50,13 +52,15 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
 
+            configuration.Pipeline.Register(new OnMessageBehavior(settings.OnMessage), "Intercepts incoming messages");
+
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));
             recoverability.Delayed(c => c.NumberOfRetries(0));
             configuration.SendFailedMessagesTo($"{endpointName}.Errors");
 
             configuration.UseSerialization<NewtonsoftSerializer>();
-            
+
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
@@ -67,7 +71,7 @@ namespace ServiceBus.Management.Infrastructure
             }
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-            
+
             configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {
                 onCriticalError();
@@ -104,8 +108,7 @@ namespace ServiceBus.Management.Infrastructure
             return new BusInstance(startedBus, domainEvents, importFailedAudits);
         }
 
-        static Type[] remoteTypesToSubscribeTo = new[]
-        {
+        static Type[] remoteTypesToSubscribeTo = {
             typeof(MessageFailureResolvedByRetry),
             typeof(NewEndpointDetected)
         };
@@ -113,6 +116,21 @@ namespace ServiceBus.Management.Infrastructure
         static bool IsExternalContract(Type t)
         {
             return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
+        }
+    }
+
+    class OnMessageBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
+    {
+        Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> onMessage;
+
+        public OnMessageBehavior(Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> onMessage)
+        {
+            this.onMessage = onMessage;
+        }
+
+        public Task Invoke(ITransportReceiveContext context, Func<ITransportReceiveContext, Task> next)
+        {
+            return onMessage(context.Message.MessageId, context.Message.Headers, context.Message.Body, () => next(context));
         }
     }
 }

@@ -248,6 +248,7 @@
     <Compile Include="ConfigureEndpointRabbitMQDirectRoutingTransport.cs" />
     <Compile Include="ConfigureEndpointRabbitMQConventionalRoutingTransport.cs" />
     <Compile Include="ConfigureEndpointSqlServerTransport.cs" />
+    <Compile Include="DiscardMessagesBehavior.cs" />
     <Compile Include="EndpointConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\DefaultServerWithAudit.cs" />
     <Compile Include="EndpointTemplates\DefaultServerWithoutAudit.cs" />
@@ -259,6 +260,7 @@
     <Compile Include="Sequence.cs" />
     <Compile Include="ServiceControlComponentBehavior.cs" />
     <Compile Include="ServiceControlComponentRunner.cs" />
+    <Compile Include="StampDispatchBehavior.cs" />
     <Compile Include="TestSuiteConstraints.cs" />
     <Compile Include="CustomChecks\Custom_check_transition_should_trigger_signalr_event.cs" />
     <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />
@@ -267,13 +269,11 @@
     <Compile Include="DiagnosticTimer.cs" />
     <Compile Include="DispatchRawMessages.cs" />
     <Compile Include="EndpointTemplates\ConfigureExtensions.cs" />
-    <Compile Include="EndpointTemplates\DefaultPublisher.cs" />
     <Compile Include="EndpointTemplates\DefaultServer.cs" />
     <Compile Include="EndpointTemplates\EndpointConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\IConfigureEndpointTestExecution.cs" />
     <Compile Include="EndpointTemplates\Requires.cs" />
-    <Compile Include="EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
     <Compile Include="EndpointTemplates\TestSuiteConstraints.cs" />
     <Compile Include="ExternalIntegrations\JsonServer.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />

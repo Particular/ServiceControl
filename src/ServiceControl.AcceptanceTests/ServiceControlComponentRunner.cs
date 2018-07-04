@@ -153,7 +153,33 @@ namespace ServiceBus.Management.AcceptanceTests
                     ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                     MaximumConcurrencyLevel = 2,
                     HttpDefaultConnectionLimit = int.MaxValue,
-                    RunInMemory = true
+                    RunInMemory = true,
+                    OnMessage = (id, headers, body, @continue) =>
+                    {
+                        string session;
+                        string intent;
+                        string messageTypes;
+                        //Do not filter out CC, SA and HB messages as they can't be stamped
+                        if (headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes)
+                            && messageTypes.StartsWith("ServiceControl."))
+                        {
+                            return @continue();
+                        }
+
+                        //Do not filter out subscribe messages as they can't be stamped
+                        if (headers.TryGetValue(Headers.MessageIntent, out intent)
+                            && intent == MessageIntentEnum.Subscribe.ToString())
+                        {
+                            return @continue();
+                        }
+
+                        if (!headers.TryGetValue("SC.SessionID", out session) || session != context.TestRunId.ToString())
+                        {
+                            return Task.FromResult(0);
+                        }
+
+                        return @continue();
+                    }
                 };
 
                 if (instanceName == Settings.DEFAULT_SERVICE_NAME)
@@ -182,6 +208,8 @@ namespace ServiceBus.Management.AcceptanceTests
 
                 configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
                 configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
+                configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
+                configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
 
                 configuration.AssemblyScanner().ExcludeAssemblies("ServiceBus.Management.AcceptanceTests");
 

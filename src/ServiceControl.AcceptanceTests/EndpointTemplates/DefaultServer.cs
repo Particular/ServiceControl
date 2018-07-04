@@ -6,6 +6,7 @@
     using AcceptanceTesting.Customization;
     using AcceptanceTesting.Support;
     using Features;
+    using ServiceBus.Management.AcceptanceTests;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
@@ -31,6 +32,9 @@
             configuration.EnableInstallers();
 
             configuration.DisableFeature<TimeoutManager>();
+
+            configuration.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
+            configuration.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
 
             var recoverability = configuration.Recoverability();
             recoverability.Delayed(delayed => delayed.NumberOfRetries(0));
