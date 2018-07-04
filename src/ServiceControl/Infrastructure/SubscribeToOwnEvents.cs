@@ -25,7 +25,6 @@ namespace ServiceControl.Infrastructure
             {
                 typeof(MessageFailureResolvedByRetry),
                 typeof(NewEndpointDetected),
-                typeof(MessageFailed)
             };
             
             var transportInfrastructure = Settings.Get<TransportInfrastructure>();
