@@ -313,7 +313,6 @@
     <Compile Include="MessageRedirects\When_a_redirect_is_created.cs" />
     <Compile Include="MessageRedirects\When_a_redirect_is_removed.cs" />
     <Compile Include="MessageRedirects\When_no_redirects_have_been_created.cs" />
-    <Compile Include="Migrations\SplitFailedMessageDocumentsMigrationTests.cs" />
     <Compile Include="MultiInstance\When_a_message_retry_audit_is_sent_to_a_remote_instance.cs" />
     <Compile Include="MultiInstance\When_endpoint_detected_via_audits_on_slave.cs" />
     <Compile Include="MultiInstance\When_issuing_retry_on_master.cs" />
