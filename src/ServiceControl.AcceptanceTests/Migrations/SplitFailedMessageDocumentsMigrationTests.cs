@@ -21,7 +21,7 @@
         {
             var context = await Define<Context>(ctx =>
                 {
-                    ctx.HeaderKey = NewRetryUniqueMessageIdHeader;
+                    ctx.HeaderKey = OldRetryUniqueMessageIdHeader;
                 })
                 .WithEndpoint<FakePublisher>(builder => builder.When(ctx => ctx.EndpointsStarted, bus => bus.Send("Migrations.FailureEndpoint", new FailingMessage())))
                 .WithEndpoint<FailureEndpoint>(b =>
