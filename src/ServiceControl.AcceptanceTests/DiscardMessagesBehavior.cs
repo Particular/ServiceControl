@@ -1,6 +1,7 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -8,6 +9,14 @@ namespace ServiceBus.Management.AcceptanceTests
 
     internal class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
     {
+        static string[] pluginMessages = new[]
+        {
+            "ServiceControl.Plugin.CustomChecks.Messages.ReportCustomCheckResult",
+            "ServiceControl.EndpointPlugin.Messages.SagaState.SagaChangeInitiator",
+            "ServiceControl.EndpointPlugin.Messages.SagaState.SagaUpdatedMessage",
+            "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat",
+            "ServiceControl.Plugin.Heartbeat.Messages.RegisterEndpointStartup"
+        };
         private ScenarioContext scenarioContext;
 
         public DiscardMessagesBehavior(ScenarioContext scenarioContext)
@@ -22,7 +31,7 @@ namespace ServiceBus.Management.AcceptanceTests
             string messageTypes;
             //Do not filter out CC and HB messages as they can't be stamped
             if (context.Message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes)
-                && messageTypes.StartsWith("ServiceControl."))
+                && pluginMessages.Any(t => messageTypes.StartsWith(t)))
             {
                 return next(context);
             }
