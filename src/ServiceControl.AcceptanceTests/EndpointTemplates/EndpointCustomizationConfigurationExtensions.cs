@@ -16,7 +16,9 @@
 
             var assembliesToScan = assemblies.Assemblies
                 //exclude acceptance tests by default
-                .Where(a => a != Assembly.GetExecutingAssembly() && a != typeof(Bootstrapper).Assembly).ToList();
+                .Where(a => a != Assembly.GetExecutingAssembly() && a != typeof(Bootstrapper).Assembly)
+                .Where(a => a.FullName.StartsWith("ServiceControl") == false)
+                .ToList();
             var types = assembliesToScan
                 .SelectMany(a => a.GetTypes());
 
