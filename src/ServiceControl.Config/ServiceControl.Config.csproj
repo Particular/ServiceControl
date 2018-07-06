@@ -314,6 +314,7 @@
     <Compile Include="Xaml\Controls\CleanWindow.cs" />
     <Compile Include="Xaml\Controls\FormComboBox.cs" />
     <Compile Include="Xaml\Controls\FormTextBox.cs" />
+    <Compile Include="Xaml\Converters\SubtractValueConverter.cs" />
     <Compile Include="Xaml\Converters\IsLastItemInContainerVisibilityConverter.cs" />
     <Compile Include="Xaml\Converters\NegaterConverter.cs" />
     <Compile Include="Xaml\Converters\SelectedIndexToVisibilityConverter.cs" />
