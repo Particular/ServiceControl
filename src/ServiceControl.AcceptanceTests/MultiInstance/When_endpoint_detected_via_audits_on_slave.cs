@@ -116,11 +116,11 @@
 
         void ConfigureWaitingForMasterToSubscribe(string instance, EndpointConfiguration config)
         {
-            if (instance == "slave")
+            if (instance == Slave)
             {
                 config.OnEndpointSubscribed<MyContext>((s, ctx) =>
                 {
-                    if (s.SubscriberReturnAddress.IndexOf("Master", StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         ctx.MasterSubscribed = true;
                     }
