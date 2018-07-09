@@ -538,7 +538,6 @@
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleanerBundle.cs" />
-    <Compile Include="Infrastructure\SubscribeToOwnEvents.cs" />
     <Compile Include="Licensing\ActiveLicense.cs" />
     <Compile Include="Licensing\NonLockingFileReader.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />

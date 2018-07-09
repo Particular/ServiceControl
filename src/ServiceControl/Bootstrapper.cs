@@ -93,7 +93,6 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
             containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
-            containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();

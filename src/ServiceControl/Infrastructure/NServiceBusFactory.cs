@@ -52,8 +52,7 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
 
-            // await subscribeToOwnEvents.Run(remoteTypesToSubscribeTo, settings.RemoteInstances.Select(x => x.QueueAddress).ToArray()).ConfigureAwait(false);
-            configuration.EnableFeature(typeof(SubscriptionFeature));
+            configuration.EnableFeature<SubscriptionFeature>();
 
             configuration.Pipeline.Register(new OnMessageBehavior(settings.OnMessage), "Intercepts incoming messages");
 
