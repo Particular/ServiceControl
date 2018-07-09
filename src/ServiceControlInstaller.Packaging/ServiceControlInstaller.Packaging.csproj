@@ -33,6 +33,7 @@
     <Delete Files="@(OldZips)" />
     <!-- SQL Server -->
     <AddToZip IncludeMask="NServiceBus.Transport.SQLServer.*" ZipFolder="Transports\SQLServer" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="NServiceBus.Transports.SQLServer.*" ZipFolder="Transports\SQLServer" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="ServiceControl.Transports.SQLServer.*" ZipFolder="Transports\SQLServer" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- AzureStorageQueue -->
     <AddToZip IncludeMask="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.*" ZipFolder="Transports\AzureStorageQueue" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
