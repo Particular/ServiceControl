@@ -18,11 +18,7 @@
 
         public void Validate()
         {
-            // Pretty sure this is no longer necessary
-            if (ServiceControlCoreTransports.Find(details.TransportPackage.Name) == null)
-            {
-                throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", ServiceControlCoreTransports.All.Select(p => p.Name))}");
-            }
+            // Method is empty, maybe delete? Or are there other validations needed?
         }
 
         public void EnableMaintenanceMode()
