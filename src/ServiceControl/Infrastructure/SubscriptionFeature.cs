@@ -44,13 +44,9 @@
             this.localEventsToSubscribeTo = localEventsToSubscribeTo;
         }
 
-        protected override async Task OnStart(IMessageSession session)
+        protected override Task OnStart(IMessageSession session)
         {
-            foreach (var type in localEventsToSubscribeTo)
-            {
-                //TODO: concurrent subscriptions
-                await session.Subscribe(type);
-            }
+            return Task.WhenAll(localEventsToSubscribeTo.Select(session.Subscribe));
         }
 
         protected override Task OnStop(IMessageSession session)
