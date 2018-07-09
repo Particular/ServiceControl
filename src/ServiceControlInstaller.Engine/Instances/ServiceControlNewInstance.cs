@@ -129,7 +129,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             // Copy the binaries from a zip
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
         public void WriteConfigurationFile()

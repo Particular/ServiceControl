@@ -328,7 +328,7 @@
         }
 
 
-        public static Type GetT(string typeName)
+        public static Type GetType(string typeName)
         {
             var type = Type.GetType(typeName);
             if (type != null) return type;
@@ -344,7 +344,7 @@
         static string GetTransportType()
         {
             var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
-            var transportType = GetT(typeName);
+            var transportType = GetType(typeName);
             if (transportType != null)
             {
                 return typeName;
