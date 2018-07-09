@@ -16,18 +16,8 @@
         
         private static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
         {
-            ITransportIntegration transportToUse = null;
-
-            var transportToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Transport");
-            if (transportToUseString != null)
-            {
-                transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(typeof(ConfigureEndpointMsmqTransport).FullName.Replace("Msmq", transportToUseString)) ?? typeof(ConfigureEndpointMsmqTransport));
-            }
-
-            if (transportToUse == null)
-            {
-                transportToUse = new ConfigureEndpointMsmqTransport();
-            }
+            var transportCustomizationToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.TransportCustomization") ?? typeof(ConfigureEndpointMsmqTransport).Name;
+            var transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(transportCustomizationToUseString));
 
             var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
             if (!string.IsNullOrWhiteSpace(connectionString))

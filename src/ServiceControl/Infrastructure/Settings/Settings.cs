@@ -1,13 +1,15 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Newtonsoft.Json;
     using NLog.Common;
-    using NServiceBus;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy;
+    using ServiceControl.Infrastructure.Transport;
 
     public class Settings
     {
@@ -44,7 +46,7 @@
             }
 
             DbPath = GetDbPath();
-            TransportType = GetTransportType();
+            TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
@@ -59,6 +61,8 @@
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             RemoteInstances = GetRemoteInstances();
         }
+
+        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
         public bool RunInMemory { get; set; }
 
@@ -120,7 +124,20 @@
             }
         }
 
-        public Type TransportType { get; set; }
+        public string TransportCustomizationType { get; set; }
+
+        public TransportCustomization LoadTransportCustomization()
+        {
+            try
+            {
+                var customizationType = Type.GetType(TransportCustomizationType, true);
+                return (TransportCustomization)Activator.CreateInstance(customizationType);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
+            }
+        }
 
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
@@ -313,13 +330,13 @@
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
         }
 
-        static Type GetTransportType()
+        static string GetTransportType()
         {
-            var typeName = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
+            var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
             var transportType = Type.GetType(typeName);
             if (transportType != null)
             {
-                return transportType;
+                return typeName;
             }
             var errorMsg = $"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
             throw new Exception(errorMsg);
@@ -439,7 +456,7 @@
             var valueRead = SettingsReader<string>.Read("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
             {
-                var jsonSerializer = Newtonsoft.Json.JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+                var jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
                 using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
                 {
                     return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];

@@ -173,6 +173,10 @@
       <Project>{276c38d4-734e-4c0b-9cdb-71b62550ede7}</Project>
       <Name>DatabaseMigrationsTester</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj">
+      <Project>{46f65684-6439-4199-806e-9ea4ca0ac31c}</Project>
+      <Name>ServiceControl.Transports.Msmq</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
       <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
       <Name>ServiceControlInstaller.Engine</Name>

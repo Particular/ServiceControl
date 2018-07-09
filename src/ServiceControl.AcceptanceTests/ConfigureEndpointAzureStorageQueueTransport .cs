@@ -3,23 +3,22 @@ using System.Threading.Tasks;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using ServiceBus.Management.AcceptanceTests;
-using ServiceControl.Infrastructure;
+using ServiceControl.Transports.ASQ;
 
 public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
 {
     public string Name => "AzureStorageQueues";
-    public string TypeName => "NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues";
+    public string TypeName => "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ";
     public string ConnectionString { get; set; }
     
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
-
         var transportConfig = configuration
             .UseTransport<AzureStorageQueueTransport>()
             .ConnectionString(ConnectionString)
             .MessageInvisibleTime(TimeSpan.FromSeconds(30));
         
-        transportConfig.SanitizeQueueNamesWith(AsqBackwardsCompatibleQueueNameSanitizer.Sanitize);
+        transportConfig.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
 
         transportConfig.DelayedDelivery().DisableTimeoutManager();
 

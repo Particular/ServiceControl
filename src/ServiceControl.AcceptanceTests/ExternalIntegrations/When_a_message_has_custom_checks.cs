@@ -19,15 +19,15 @@
             var externalProcessorSubscribed = false;
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
+                if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     externalProcessorSubscribed = true;
                 }
             });
 
-            ExecuteWhen(() => externalProcessorSubscribed, domainEvents =>
+            ExecuteWhen(() => externalProcessorSubscribed, async domainEvents =>
             {
-                domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
+                await domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
                 {
                     Category = "Testing",
                     CustomCheckId = "Success custom check",
@@ -38,8 +38,8 @@
                         Name = "Testing"
                     },
                     SucceededAt = DateTime.Now,
-                }).GetAwaiter().GetResult();
-                domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
+                });
+                await domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
                 {
                     Category = "Testing",
                     CustomCheckId = "Fail custom check",
@@ -51,7 +51,7 @@
                     },
                     FailedAt = DateTime.Now,
                     FailureReason = "Because I can",
-                }).GetAwaiter().GetResult();
+                });
             });
 
             var context = await Define<MyContext>()

@@ -11,7 +11,7 @@ using ServiceBus.Management.AcceptanceTests;
 public class ConfigureEndpointSqlServerTransport : ITransportIntegration
 {
     public string Name => "SqlServer";
-    public string TypeName => "NServiceBus.SqlServerTransport, NServiceBus.Transports.SqlServer";
+    public string TypeName => $"{typeof(ServiceControl.Transports.SqlServer.SqlServerTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
     
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
@@ -44,7 +44,7 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
         {
             await conn.OpenAsync();
 
-            var queueAddresses = queueBindings.ReceivingAddresses.Select(QueueAddress.Parse).ToList();
+            var queueAddresses = queueBindings.ReceivingAddresses.Concat(queueBindings.SendingAddresses).Select(QueueAddress.Parse).ToList();
             foreach (var address in queueAddresses)
             {
                 await TryDeleteTable(conn, address);

@@ -34,8 +34,9 @@
                     "Error Queue Ingestor", 
                     context.Settings.ToTransportAddress(settings.ErrorQueue), 
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
-                    OnError, 
-                    OnMessage);
+                    OnError,
+                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(builder, messageContext))
+                    );
             }
 
             // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled

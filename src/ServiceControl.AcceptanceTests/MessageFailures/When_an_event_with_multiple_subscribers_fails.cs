@@ -41,11 +41,11 @@
                 .WithEndpoint<Publisher>(behavior => behavior
                         .CustomConfig(cfg => cfg.OnEndpointSubscribed<FailingEventContext>((s, ctx) =>
                             {
-                                if (s.SubscriberReturnAddress.Contains("Subscriber1"))
+                                if (s.SubscriberReturnAddress.IndexOf("Subscriber1", StringComparison.OrdinalIgnoreCase) >= 0)
                                 {
                                     ctx.Subscriber1Subscribed = true;
                                 }
-                                else if (s.SubscriberReturnAddress.Contains("Subscriber2"))
+                                else if (s.SubscriberReturnAddress.IndexOf("Subscriber2", StringComparison.OrdinalIgnoreCase) >= 0)
                                 {
                                     ctx.Subscriber2Subscribed = true;
                                 }

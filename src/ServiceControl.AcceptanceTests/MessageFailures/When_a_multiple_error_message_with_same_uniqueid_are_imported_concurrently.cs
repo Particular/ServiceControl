@@ -95,16 +95,18 @@
                     var messageId = Guid.NewGuid().ToString();
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();
 
-                    return new TransportOperations(GetMessages(messageId).ToArray());
+                    return new TransportOperations(GetMessages(context.UniqueId).ToArray());
                 }
 
-                IEnumerable<TransportOperation> GetMessages(string messageId)
+                IEnumerable<TransportOperation> GetMessages(string uniqueId)
                 {
                     for (var i = 0; i < 10; i++)
                     {
+                        var messageId = Guid.NewGuid().ToString();
                         var headers = new Dictionary<string, string>
                         {
                             [Headers.MessageId] = messageId,
+                            ["ServiceControl.Retry.UniqueMessageId"] = uniqueId,
                             [Headers.ProcessingEndpoint] = "Error.SourceEndpoint",
                             ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
                             ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",

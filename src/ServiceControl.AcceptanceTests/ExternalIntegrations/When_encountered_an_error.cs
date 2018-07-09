@@ -32,7 +32,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             {
                 config.OnEndpointSubscribed<MyContext>((s, ctx) =>
                 {
-                    if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
+                    if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         externalProcessorSubscribed = true;
                     }
@@ -52,7 +52,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     Name = "UnluckyEndpoint"
                 }
 
-            }).GetAwaiter().GetResult());
+            }));
 
             var context = await Define<MyContext>()
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (messageSession, c) =>

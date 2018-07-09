@@ -19,7 +19,7 @@
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.Contains("ExternalProcessor"))
+                if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     ctx.ExternalProcessorSubscribed = true;
                 }
@@ -52,7 +52,7 @@
         {
             public FailingReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.Recoverability().Delayed(s => s.NumberOfRetries(0)); });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.Recoverability().Immediate(s => s.NumberOfRetries(2)).Delayed(s => s.NumberOfRetries(0)); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

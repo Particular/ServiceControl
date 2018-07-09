@@ -13,6 +13,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.Infrastructure.Transport;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Operations;
@@ -38,6 +39,7 @@ namespace Particular.ServiceControl
         private IContainer container;
         private BusInstance bus;
         public IDisposable WebApp;
+        TransportCustomization transportCustomization;
 
         // Windows Service
         public Bootstrapper(Action onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
@@ -75,6 +77,7 @@ namespace Particular.ServiceControl
 
             timeKeeper = new TimeKeeper();
 
+            transportCustomization = settings.LoadTransportCustomization();
             var containerBuilder = new ContainerBuilder();
 
             containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
@@ -82,7 +85,7 @@ namespace Particular.ServiceControl
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
-            var rawEndpointFactory = new RawEndpointFactory(settings);
+            var rawEndpointFactory = new RawEndpointFactory(settings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
@@ -90,7 +93,6 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
             containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
-            containerBuilder.RegisterType<SubscribeToOwnEvents>().PropertiesAutowired().SingleInstance();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
@@ -111,7 +113,7 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            bus = await NServiceBusFactory.CreateAndStart(settings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             if (!isRunningAcceptanceTests)
@@ -160,15 +162,15 @@ namespace Particular.ServiceControl
             var version = typeof(Bootstrapper).Assembly.GetName().Version;
             var startupMessage = $@"
 -------------------------------------------------------------
-ServiceControl Version:       {version}
-Selected Transport:           {settings.TransportType}
-Audit Retention Period:       {settings.AuditRetentionPeriod}
-Error Retention Period:       {settings.ErrorRetentionPeriod}
-Forwarding Error Messages:    {settings.ForwardErrorMessages}
-Forwarding Audit Messages:    {settings.ForwardAuditMessages}
-Database Size:                {DataSize()}bytes
-ServiceControl Logging Level: {loggingSettings.LoggingLevel}
-RavenDB Logging Level:        {loggingSettings.RavenDBLogLevel}
+ServiceControl Version:             {version}
+Audit Retention Period:             {settings.AuditRetentionPeriod}
+Error Retention Period:             {settings.ErrorRetentionPeriod}
+Forwarding Error Messages:          {settings.ForwardErrorMessages}
+Forwarding Audit Messages:          {settings.ForwardAuditMessages}
+Database Size:                      {DataSize()}bytes
+ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
+RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
+Selected Transport Customization:   {settings.TransportCustomizationType}
 -------------------------------------------------------------";
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));

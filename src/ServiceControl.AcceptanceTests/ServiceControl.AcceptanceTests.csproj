@@ -239,13 +239,16 @@
     <Compile Include="Audit\When_processed_message_searched_by_messageid.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_messagetype.cs" />
     <Compile Include="Audit\When_processed_message_searched_by_msgid_for_endpoint.cs" />
-    <Compile Include="ConfigureEndpointAzureServiceBusTransport.cs" />
+    <Compile Include="ConfigureEndpointAzureServiceBusForwardingTopologyTransport.cs" />
+    <Compile Include="ConfigureEndpointAzureServiceBusEndpointTopologyTransport.cs" />
     <Compile Include="ConfigureEndpointAzureStorageQueueTransport .cs" />
     <Compile Include="ConfigureEndpointInMemoryPersistence.cs" />
     <Compile Include="ConfigureEndpointMsmqTransport .cs" />
     <Compile Include="Audit\When_a_message_sent_from_third_party_endpoint_with_missing_metadata.cs" />
-    <Compile Include="ConfigureEndpointRabbitMQTransport.cs" />
+    <Compile Include="ConfigureEndpointRabbitMQDirectRoutingTransport.cs" />
+    <Compile Include="ConfigureEndpointRabbitMQConventionalRoutingTransport.cs" />
     <Compile Include="ConfigureEndpointSqlServerTransport.cs" />
+    <Compile Include="DiscardMessagesBehavior.cs" />
     <Compile Include="EndpointConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\DefaultServerWithAudit.cs" />
     <Compile Include="EndpointTemplates\DefaultServerWithoutAudit.cs" />
@@ -257,6 +260,7 @@
     <Compile Include="Sequence.cs" />
     <Compile Include="ServiceControlComponentBehavior.cs" />
     <Compile Include="ServiceControlComponentRunner.cs" />
+    <Compile Include="StampDispatchBehavior.cs" />
     <Compile Include="TestSuiteConstraints.cs" />
     <Compile Include="CustomChecks\Custom_check_transition_should_trigger_signalr_event.cs" />
     <Compile Include="CustomChecks\Custom_check_should_only_trigger_events_on_transition.cs" />
@@ -265,13 +269,11 @@
     <Compile Include="DiagnosticTimer.cs" />
     <Compile Include="DispatchRawMessages.cs" />
     <Compile Include="EndpointTemplates\ConfigureExtensions.cs" />
-    <Compile Include="EndpointTemplates\DefaultPublisher.cs" />
     <Compile Include="EndpointTemplates\DefaultServer.cs" />
     <Compile Include="EndpointTemplates\EndpointConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\IConfigureEndpointTestExecution.cs" />
     <Compile Include="EndpointTemplates\Requires.cs" />
-    <Compile Include="EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
     <Compile Include="EndpointTemplates\TestSuiteConstraints.cs" />
     <Compile Include="ExternalIntegrations\JsonServer.cs" />
     <Compile Include="ExternalIntegrations\When_a_message_has_custom_checks.cs" />
@@ -311,7 +313,6 @@
     <Compile Include="MessageRedirects\When_a_redirect_is_created.cs" />
     <Compile Include="MessageRedirects\When_a_redirect_is_removed.cs" />
     <Compile Include="MessageRedirects\When_no_redirects_have_been_created.cs" />
-    <Compile Include="Migrations\SplitFailedMessageDocumentsMigrationTests.cs" />
     <Compile Include="MultiInstance\When_a_message_retry_audit_is_sent_to_a_remote_instance.cs" />
     <Compile Include="MultiInstance\When_endpoint_detected_via_audits_on_slave.cs" />
     <Compile Include="MultiInstance\When_issuing_retry_on_master.cs" />
@@ -360,6 +361,26 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj">
+      <Project>{24c5a540-ee02-4519-b000-eda470759c5b}</Project>
+      <Name>ServiceControl.Transports.ASB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj">
+      <Project>{eda26c67-405a-4ec7-a3e6-ebab7278e70a}</Project>
+      <Name>ServiceControl.Transports.ASQ</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj">
+      <Project>{46f65684-6439-4199-806e-9ea4ca0ac31c}</Project>
+      <Name>ServiceControl.Transports.Msmq</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj">
+      <Project>{114e51c5-8eb1-44c6-ac5a-78c8ef6c7d61}</Project>
+      <Name>ServiceControl.Transports.RabbitMQ</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj">
+      <Project>{691074cb-67f0-45ce-b3de-ac9a94af29b4}</Project>
+      <Name>ServiceControl.Transports.SqlServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
       <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>
       <Name>ServiceControl</Name>

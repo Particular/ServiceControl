@@ -38,7 +38,7 @@
                     context.Settings.ToTransportAddress(settings.AuditQueue), 
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnAuditError,
-                    OnAuditMessage
+                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(builder, messageContext))
                 );
             }
 

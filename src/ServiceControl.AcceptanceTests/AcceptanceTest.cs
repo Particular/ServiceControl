@@ -46,6 +46,10 @@ namespace ServiceBus.Management.AcceptanceTests
             CustomConfiguration = _ => { };
             CustomInstanceConfiguration = (i, c) => { };
 
+#if !NETCOREAPP2_0
+            System.Configuration.ConfigurationManager.GetSection("X");
+#endif
+
             var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
             Console.Out.WriteLine($"Using transport {transportToUse.Name}");
             
@@ -53,12 +57,27 @@ namespace ServiceBus.Management.AcceptanceTests
             
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
 
+            RemoveOtherTransportAssemblies(transportToUse.TypeName);
+
             Conventions.EndpointNamingConvention = t =>
             {
                 var baseNs = typeof(AcceptanceTest).Namespace;
                 var testName = GetType().Name;
                 return t.FullName.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
             };
+        }
+
+        private void RemoveOtherTransportAssemblies(string name)
+        {
+            var assembly = Type.GetType(name, true).Assembly;
+
+            var otherAssemblies = Directory.EnumerateFiles(Path.GetDirectoryName(assembly.Location), "ServiceControl.Transports.*.dll")
+                .Where(transportAssembly => transportAssembly != assembly.Location);
+
+            foreach (var transportAssembly in otherAssemblies)
+            {
+                File.Delete(transportAssembly);
+            }
         }
 
         private static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
@@ -78,17 +97,17 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        protected void ExecuteWhen(Func<bool> execute, Action<IDomainEvents> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected void ExecuteWhen(Func<bool> execute, Func<IDomainEvents, Task> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             var timeout = TimeSpan.FromSeconds(1);
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 while (!SpinWait.SpinUntil(execute, timeout))
                 {
                 }
 
-                action(Busses[instanceName].DomainEvents);
+                await action(Busses[instanceName].DomainEvents);
             });
         }
 
@@ -102,10 +121,6 @@ namespace ServiceBus.Management.AcceptanceTests
             serviceControlRunnerBehavior.Initialize(instanceNames);
             return Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
-        }
-
-        private class ConsoleContext : ScenarioContext
-        {
         }
 
         public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;

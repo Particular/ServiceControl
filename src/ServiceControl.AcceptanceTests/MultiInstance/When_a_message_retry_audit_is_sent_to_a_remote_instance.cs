@@ -27,11 +27,13 @@
         public async Task Should_mark_as_resolved_on_master()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             FailedMessage failure;
 
             await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
+                .WithEndpoint<FailureEndpoint>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed, 
+                    bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await GetFailedMessage(c);
@@ -73,6 +75,20 @@
                     settings.AuditQueue = AuditMaster;
                     settings.ErrorQueue = ErrorMaster;
                     break;
+            }
+        }
+
+        void ConfigureWaitingForMasterToSubscribe(string instance, EndpointConfiguration config)
+        {
+            if (instance == Remote1)
+            {
+                config.OnEndpointSubscribed<MyContext>((s, ctx) =>
+                {
+                    if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        ctx.MasterSubscribed = true;
+                    }
+                });
             }
         }
 
@@ -145,6 +161,7 @@
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
             public string LocalAddress { get; set; }
             public bool RetryIssued { get; set; }
+            public bool MasterSubscribed { get; set; }
         }
     }
 }
