@@ -220,7 +220,7 @@
                                        Text="{TemplateBinding Header}" />
                             <Border x:Name="Border"
                                     Grid.Row="1"
-                                    MinWidth="200"
+                                    MinWidth="300"
                                     HorizontalAlignment="Left"
                                     Background="{StaticResource WhiteBrush}"
                                     BorderThickness="1">
@@ -257,7 +257,7 @@
                                    Grid.Row="1"
                                    AllowsTransparency="True"
                                    Focusable="False"
-                                   HorizontalOffset="-3"
+                                   HorizontalOffset="{TemplateBinding ActualWidth, Converter={StaticResource SubtractValueConverter}, ConverterParameter=11}"
                                    IsOpen="{TemplateBinding IsDropDownOpen}"
                                    Placement="Bottom"
                                    PlacementTarget="{Binding ElementName=PART_EditableTextBox}"
@@ -279,7 +279,7 @@
                             </Popup>
                             <ToggleButton x:Name="ToggleButton"
                                           Grid.Row="1"
-                                          MinWidth="200"
+                                          MinWidth="300"
                                           HorizontalAlignment="Left"
                                           ClickMode="Press"
                                           Focusable="false"
