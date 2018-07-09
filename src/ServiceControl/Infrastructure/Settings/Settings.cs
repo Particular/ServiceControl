@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -30,6 +31,9 @@
                 AuditQueue = GetAuditQueue();
                 AuditLogQueue = GetAuditLogQueue();
             }
+
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
+            TransportConnectionString = connectionStringSettings?.ConnectionString;
 
             DbPath = GetDbPath();
             TransportCustomizationType = GetTransportType();
@@ -323,10 +327,24 @@
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
         }
 
+
+        public static Type GetT(string typeName)
+        {
+            var type = Type.GetType(typeName);
+            if (type != null) return type;
+            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                type = a.GetType(typeName);
+                if (type != null)
+                    return type;
+            }
+            return null;
+        }
+
         static string GetTransportType()
         {
             var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
-            var transportType = Type.GetType(typeName);
+            var transportType = GetT(typeName);
             if (transportType != null)
             {
                 return typeName;
