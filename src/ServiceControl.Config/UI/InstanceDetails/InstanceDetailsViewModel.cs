@@ -45,6 +45,7 @@
                 InstanceType = InstanceType.ServiceControl;
                 return;
             }
+
             if (instance.GetType() == typeof(MonitoringInstance))
             {
                 MonitoringInstance = (MonitoringInstance) instance;
@@ -55,6 +56,7 @@
                 InstanceType = InstanceType.Monitoring;
                 return;
             }
+
             throw new Exception("Unknown instance type");
         }
 
@@ -88,7 +90,7 @@
 
         public bool HasNewVersion => Version < NewVersion;
 
-        public string Transport => ((ITransportConfig) ServiceInstance).TransportPackage;
+        public TransportInfo Transport => ((ITransportConfig) ServiceInstance).TransportPackage;
 
         public bool IsUpdatingDataStore => ServiceControlInstance?.IsUpdatingDataStore ?? false;
 

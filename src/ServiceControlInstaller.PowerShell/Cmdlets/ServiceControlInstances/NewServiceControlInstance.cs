@@ -10,6 +10,7 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Unattended;
     using ServiceControlInstaller.Engine.Validation;
     using PathInfo = Engine.Validation.PathInfo;
+    using System.Linq;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlInstance")]
     public class NewServiceControlInstance : PSCmdlet
@@ -62,7 +63,7 @@ namespace ServiceControlInstaller.PowerShell
         public string AuditLogQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet("AzureServiceBus", "AzureStorageQueue", "MSMQ", "SQLServer", "RabbitMQ")]
+        [ValidateSet("AzureServiceBus", "AzureServiceBusForwardingTopology", "AzureStorageQueue", "MSMQ", "SQLServer", "RabbitMQ", "RabbitMQDirectTopology")]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
@@ -172,7 +173,8 @@ namespace ServiceControlInstaller.PowerShell
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
-                TransportPackage = Transport,
+                // This must change to a proper name
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == Transport), 
                 SkipQueueCreation = SkipQueueCreation
             };
 

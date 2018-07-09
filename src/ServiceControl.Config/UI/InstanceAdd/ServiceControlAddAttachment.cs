@@ -73,7 +73,7 @@
                 ForwardAuditMessages = viewModel.AuditForwarding.Value,
                 ErrorQueue = viewModel.ErrorQueueName,
                 ErrorLogQueue = viewModel.ErrorForwarding.Value ? viewModel.ErrorForwardingQueueName : null ,
-                TransportPackage = viewModel.SelectedTransport.Name,
+                TransportPackage = viewModel.SelectedTransport,
                 ConnectionString = viewModel.ConnectionString,
                 ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod,
                 AuditRetentionPeriod = viewModel.AuditRetentionPeriod,

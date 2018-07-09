@@ -41,7 +41,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string AuditLogQueue { get; set; }
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
-        public string TransportPackage { get; set; }
+        public TransportInfo TransportPackage { get; set; }
         public string ConnectionString { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
@@ -151,7 +151,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 ServiceDescription = ServiceDescription
             };
             var dependencies = new List<string>();
-            if (TransportPackage.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
+            if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
                 dependencies.Add("MSMQ");
             }
@@ -224,7 +224,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void Validate(Func<PathInfo, bool> promptToProceed)
         {
-            if (TransportPackage.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
+            if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {

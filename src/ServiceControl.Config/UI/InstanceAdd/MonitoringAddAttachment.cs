@@ -66,7 +66,7 @@
                 HostName = viewModel.HostName,
                 Port = Convert.ToInt32(viewModel.PortNumber),
                 ErrorQueue = viewModel.ErrorQueueName,
-                TransportPackage = viewModel.SelectedTransport.Name,
+                TransportPackage = viewModel.SelectedTransport,
                 ConnectionString = viewModel.ConnectionString,
                 ServiceAccount = viewModel.ServiceAccount,
                 ServiceAccountPwd = viewModel.Password

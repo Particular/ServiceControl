@@ -21,7 +21,7 @@
     {
         public int Port { get; set; }
         public string HostName { get; set; }
-        public string TransportPackage { get; set; }
+        public TransportInfo TransportPackage { get; set; }
         public string ErrorQueue { get; set; }
         public string ConnectionString { get; set; }
         public string LogPath { get; set; }
@@ -99,15 +99,15 @@
             return null;
         }
         
-        string DetermineTransportPackage()
+        TransportInfo DetermineTransportPackage()
         {
             var transportAppSetting = AppConfig.Read(SettingsList.TransportType, MonitoringTransports.All.Single(t => t.Default).TypeName).Trim();
             var transport = MonitoringTransports.All.FirstOrDefault(p => transportAppSetting.Equals(p.TypeName, StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
-                return transport.Name;
+                return transport;
             }
-            return MonitoringTransports.All.First(p => p.Default).Name;
+            return MonitoringTransports.All.First(p => p.Default);
         }
         
         public void ValidateChanges()

@@ -61,7 +61,7 @@
                 AuditRetentionPeriod = TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInHoursForUI),
                 ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI),
                 ErrorQueue = "testerror",
-                TransportPackage = "MSMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
                 ReportCard = new ReportCard(),
             };
 
