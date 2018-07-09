@@ -16,11 +16,7 @@
             var typesToSubscribeTo = context.Settings.Get<Type[]>("ServiceControl.RemoteTypesToSubscribeTo");
 
             var transportInfrastructure = context.Settings.Get<TransportInfrastructure>();
-            if (transportInfrastructure.OutboundRoutingPolicy.Publishes == OutboundRoutingType.Multicast)
-            {
-                //context.RegisterStartupTask(new SubscriptionStartupTask(typesToSubscribeTo));
-            }
-            else
+            if (transportInfrastructure.OutboundRoutingPolicy.Publishes == OutboundRoutingType.Unicast)
             {
                 var publishers = context.Settings.Get<Publishers>();
 
