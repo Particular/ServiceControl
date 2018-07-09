@@ -74,7 +74,7 @@
 
             try
             {
-                Service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
+                Service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(120));
             }
             catch (TimeoutException)
             {
