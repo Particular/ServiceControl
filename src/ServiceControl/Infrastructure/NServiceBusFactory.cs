@@ -52,6 +52,8 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
 
+            configuration.EnableFeature<SubscriptionFeature>();
+
             configuration.Pipeline.Register(new OnMessageBehavior(settings.OnMessage), "Intercepts incoming messages");
 
             var recoverability = configuration.Recoverability();
@@ -89,23 +91,24 @@ namespace ServiceBus.Management.Infrastructure
 
         public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, LoggingSettings loggingSettings, IContainer container, Action onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
-            var bus = await Create(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            var startableEndpoint = await Create(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
-            var subscribeToOwnEvents = container.Resolve<SubscribeToOwnEvents>();
-            await subscribeToOwnEvents.Run(remoteTypesToSubscribeTo, settings.RemoteInstances.Select(x => x.QueueAddress).ToArray()).ConfigureAwait(false);
+            //var subscribeToOwnEvents = container.Resolve<SubscribeToOwnEvents>();
+            //await subscribeToOwnEvents.Run(remoteTypesToSubscribeTo, settings.RemoteInstances.Select(x => x.QueueAddress).ToArray()).ConfigureAwait(false);
+
             var domainEvents = container.Resolve<IDomainEvents>();
             var importFailedAudits = container.Resolve<ImportFailedAudits>();
 
-            var startedBus = await bus.Start().ConfigureAwait(false);
+            var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
 
             var builder = new ContainerBuilder();
 
-            builder.RegisterInstance(startedBus).As<IMessageSession>();
+            builder.RegisterInstance(endpointInstance).As<IMessageSession>();
 
             builder.Update(container.ComponentRegistry);
 
-            return new BusInstance(startedBus, domainEvents, importFailedAudits);
+            return new BusInstance(endpointInstance, domainEvents, importFailedAudits);
         }
 
         static Type[] remoteTypesToSubscribeTo = {

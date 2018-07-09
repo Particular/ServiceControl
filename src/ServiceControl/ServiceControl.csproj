@@ -350,6 +350,7 @@
     <Compile Include="Infrastructure\Settings\InstanceIdGenerator.cs" />
     <Compile Include="Infrastructure\Settings\RemoteInstanceSetting.cs" />
     <Compile Include="Infrastructure\SignalR\ServicePulseNotifierFeature.cs" />
+    <Compile Include="Infrastructure\SubscriptionFeature.cs" />
     <Compile Include="Infrastructure\TaskExtensions.cs" />
     <Compile Include="Infrastructure\Transport\TransportCustomization.cs" />
     <Compile Include="Licensing\LicenseCheckFeature.cs" />
@@ -537,7 +538,6 @@
     <Compile Include="Infrastructure\Installers\CreateEventSource.cs" />
     <Compile Include="Infrastructure\Plugins\RegisterPluginMessages.cs" />
     <Compile Include="Infrastructure\RavenDB\Expiration\ExpiredDocumentsCleanerBundle.cs" />
-    <Compile Include="Infrastructure\SubscribeToOwnEvents.cs" />
     <Compile Include="Licensing\ActiveLicense.cs" />
     <Compile Include="Licensing\NonLockingFileReader.cs" />
     <Compile Include="MessageFailures\Api\ArchiveMessages.cs" />
