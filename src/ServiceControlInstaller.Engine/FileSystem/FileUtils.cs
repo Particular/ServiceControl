@@ -101,7 +101,6 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     }
                 }
             }
-
         }
 
         public static long GetDirectorySize(this DirectoryInfo dir)

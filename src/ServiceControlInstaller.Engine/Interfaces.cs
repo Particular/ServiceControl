@@ -1,5 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine
 {
+    using ServiceControlInstaller.Engine.Instances;
     using System;
     
     public interface ILogging
@@ -11,7 +12,7 @@
     
     public interface ITransportConfig
     { 
-        string TransportPackage { get;  }
+        TransportInfo TransportPackage { get;  }
         string ErrorQueue { get; }
         string ConnectionString { get;  }
     }

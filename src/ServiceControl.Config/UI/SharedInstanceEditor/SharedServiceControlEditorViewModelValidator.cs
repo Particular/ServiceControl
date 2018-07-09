@@ -31,7 +31,7 @@ namespace ServiceControl.Config.Validation
         protected List<string> UsedQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {
             var transport = transportInfo == null ? string.Empty : transportInfo.Name;
-            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Equals(transport, StringComparison.OrdinalIgnoreCase) &&
+            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Name.Equals(transport, StringComparison.OrdinalIgnoreCase) &&
                             string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
             return instancesByTransport

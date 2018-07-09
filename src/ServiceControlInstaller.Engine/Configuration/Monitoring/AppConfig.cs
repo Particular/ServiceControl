@@ -16,7 +16,8 @@
 
         public void Validate()
         {
-            if (MonitoringTransports.FindByName(details.TransportPackage) == null)
+            // Pretty sure this is no longer necessary
+            if (MonitoringTransports.FindByName(details.TransportPackage.TypeName) == null)
             {
                 throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", MonitoringTransports.All.Select(p => p.Name))}");
             }
@@ -30,7 +31,7 @@
             settings.Set(SettingsList.Port, details.Port.ToString());
             settings.Set(SettingsList.HostName, details.HostName);
             settings.Set(SettingsList.LogPath, details.LogPath);
-            settings.Set(SettingsList.TransportType, MonitoringTransports.FindByName(details.TransportPackage).TypeName, version);
+            settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
             Config.Save();
         }

@@ -18,7 +18,8 @@
 
         public void Validate()
         {
-            if (ServiceControlCoreTransports.FindByName(details.TransportPackage) == null)
+            // Pretty sure this is no longer necessary
+            if (ServiceControlCoreTransports.Find(details.TransportPackage.Name) == null)
             {
                 throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", ServiceControlCoreTransports.All.Select(p => p.Name))}");
             }
@@ -51,7 +52,7 @@
             settings.Set(SettingsList.DBPath, details.DBPath);
             settings.Set(SettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
-            settings.Set(SettingsList.TransportType, ServiceControlCoreTransports.FindByName(details.TransportPackage).TypeName, version);
+            settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
             settings.Set(SettingsList.AuditQueue, details.AuditQueue);
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
             settings.Set(SettingsList.ErrorLogQueue, details.ErrorLogQueue);

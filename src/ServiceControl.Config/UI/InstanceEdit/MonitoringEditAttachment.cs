@@ -71,7 +71,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.HostName = viewModel.HostName;
             instance.Port = Convert.ToInt32(viewModel.PortNumber);
             instance.ErrorQueue = viewModel.ErrorQueueName;
-            instance.TransportPackage = viewModel.SelectedTransport.Name;
+            instance.TransportPackage = viewModel.SelectedTransport;
             instance.ConnectionString = viewModel.ConnectionString;
 
             using (var progress = viewModel.GetProgressObject("SAVING INSTANCE"))
