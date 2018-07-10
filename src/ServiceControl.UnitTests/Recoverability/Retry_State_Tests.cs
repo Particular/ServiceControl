@@ -25,7 +25,6 @@
         {
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
-            RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -41,7 +40,6 @@
         {
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
-            RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -70,7 +68,6 @@
         {
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
-            RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -97,7 +94,6 @@
 
                     // Simulate SC restart
                     retryManager = new RetryingManager(domainEvents);
-                    RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
                     var documentManager = new CustomRetryDocumentManager(false, documentStore)
                     {
@@ -121,7 +117,6 @@
         {
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
-            RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -156,7 +151,6 @@
         {
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
-            RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
 
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {

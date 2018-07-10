@@ -9,7 +9,7 @@
     public class RetryingManager
     {
         IDomainEvents domainEvents;
-        internal static Dictionary<string, InMemoryRetry> RetryOperations = new Dictionary<string, InMemoryRetry>();
+        Dictionary<string, InMemoryRetry> retryOperations = new Dictionary<string, InMemoryRetry>();
 
         public RetryingManager(IDomainEvents domainEvents)
         {
@@ -31,7 +31,7 @@
         public bool IsOperationInProgressFor(string requestId, RetryType retryType)
         {
             InMemoryRetry summary;
-            if (!RetryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary))
+            if (!retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary))
             {
                 return false;
             }
@@ -41,7 +41,7 @@
 
         public bool IsRetryInProgressFor(string requestId)
         {
-            return RetryOperations.Keys.Where(key => key.EndsWith($"/{requestId}")).Any(key => RetryOperations[key].IsInProgress());
+            return retryOperations.Keys.Where(key => key.EndsWith($"/{requestId}")).Any(key => retryOperations[key].IsInProgress());
         }
 
         public async Task Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
@@ -134,23 +134,23 @@
         private InMemoryRetry GetOrCreate(RetryType retryType, string requestId)
         {
             InMemoryRetry summary;
-            if (!RetryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary))
+            if (!retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary))
             {
                 summary = new InMemoryRetry(requestId, retryType, domainEvents);
-                RetryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)] = summary;
+                retryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)] = summary;
             }
             return summary;
         }
 
-        private static InMemoryRetry Get(string requestId, RetryType retryType)
+        private InMemoryRetry Get(string requestId, RetryType retryType)
         {
-            return RetryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)];
+            return retryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)];
         }
 
         public InMemoryRetry GetStatusForRetryOperation(string requestId, RetryType retryType)
         {
             InMemoryRetry summary;
-            RetryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary);
+            retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary);
 
             return summary;
         }

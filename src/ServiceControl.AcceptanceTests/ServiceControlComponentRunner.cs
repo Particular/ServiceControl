@@ -27,7 +27,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Recoverability;
     using LogManager = NServiceBus.Logging.LogManager;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
@@ -254,10 +253,6 @@ namespace ServiceBus.Management.AcceptanceTests
                     Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
                 }
             }
-
-            // how to deal with the statics here?
-            ArchivingManager.ArchiveOperations = new Dictionary<string, InMemoryArchive>();
-            RetryingManager.RetryOperations = new Dictionary<string, InMemoryRetry>();
         }
 
         public override async Task Stop()

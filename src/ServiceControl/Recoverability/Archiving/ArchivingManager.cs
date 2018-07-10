@@ -10,7 +10,7 @@
     {
         IDomainEvents domainEvents;
 
-        internal static Dictionary<string, InMemoryArchive> ArchiveOperations = new Dictionary<string, InMemoryArchive>();
+        Dictionary<string, InMemoryArchive> archiveOperations = new Dictionary<string, InMemoryArchive>();
 
         public ArchivingManager(IDomainEvents domainEvents)
         {
@@ -19,18 +19,18 @@
 
         public bool IsArchiveInProgressFor(string requestId)
         {
-            return ArchiveOperations.Keys.Any(key => key.EndsWith($"/{requestId}"));
+            return archiveOperations.Keys.Any(key => key.EndsWith($"/{requestId}"));
         }
 
         internal IEnumerable<InMemoryArchive> GetArchivalOperations()
         {
-            return ArchiveOperations.Values;
+            return archiveOperations.Values;
         }
 
         public bool IsOperationInProgressFor(string requestId, ArchiveType archiveType)
         {
             InMemoryArchive summary;
-            if (!ArchiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out summary))
+            if (!archiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out summary))
             {
                 return false;
             }
@@ -41,10 +41,10 @@
         private InMemoryArchive GetOrCreate(ArchiveType archiveType, string requestId)
         {
             InMemoryArchive summary;
-            if (!ArchiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out summary))
+            if (!archiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out summary))
             {
                 summary = new InMemoryArchive(requestId, archiveType, domainEvents);
-                ArchiveOperations[InMemoryArchive.MakeId(requestId, archiveType)] = summary;
+                archiveOperations[InMemoryArchive.MakeId(requestId, archiveType)] = summary;
             }
             return summary;
         }
@@ -80,7 +80,7 @@
         public InMemoryArchive GetStatusForArchiveOperation(string requestId, ArchiveType archiveType)
         {
             InMemoryArchive summary;
-            ArchiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out summary);
+            archiveOperations.TryGetValue(InMemoryArchive.MakeId(requestId, archiveType), out summary);
 
             return summary;
         }
@@ -111,7 +111,7 @@
 
         void RemoveArchiveOperation(string requestId, ArchiveType archiveType)
         {
-            ArchiveOperations.Remove(InMemoryArchive.MakeId(requestId, archiveType));
+            archiveOperations.Remove(InMemoryArchive.MakeId(requestId, archiveType));
         }
     }
 }
