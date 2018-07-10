@@ -39,7 +39,6 @@
                     try
                     {
                         var bodyContent = await reader.ReadToEndAsync().ConfigureAwait(false);
-                        log.Debug(bodyContent);
                         log.Debug($"End {context.Request.Method} ({context.Response.StatusCode}): {context.Request.Uri}:{Environment.NewLine}{bodyContent}");
 
                         newStream.Position = 0;
