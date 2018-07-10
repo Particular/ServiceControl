@@ -5,6 +5,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Logging;
     using NServiceBus.Pipeline;
 
     internal class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
@@ -43,13 +44,17 @@ namespace ServiceBus.Management.AcceptanceTests
                 return next(context);
             }
 
+            var currentSession = scenarioContext.TestRunId.ToString();
             if (!context.Message.Headers.TryGetValue("SC.SessionID", out session) 
-                || session != scenarioContext.TestRunId.ToString())
+                || session != currentSession)
             {
+                log.Debug($"Discarding message '{context.Message.MessageId}' because it's session id is '{session}' instead of '{currentSession}'.");
                 return Task.FromResult(0);
             }
 
             return next(context);
         }
+
+        private static ILog log = LogManager.GetLogger<DiscardMessagesBehavior>();
     }
 }
