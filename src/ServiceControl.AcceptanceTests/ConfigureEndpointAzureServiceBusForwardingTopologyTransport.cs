@@ -23,10 +23,6 @@ public class ConfigureEndpointAzureServiceBusForwardingTopologyTransport : ITran
 
         transportConfig.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
 
-        // w/o retries ASB will move attempted messages to the error queue right away, which will cause false failure.
-        // ScenarioRunner.PerformScenarios() verifies by default no messages are moved into error queue. If it finds any, it fails the test.
-        configuration.Recoverability().Immediate(retriesSettings => retriesSettings.NumberOfRetries(3));
-
         return Task.FromResult(0);
     }
 
