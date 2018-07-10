@@ -48,6 +48,8 @@ namespace ServiceControl.Recoverability
         {
             if (shouldProcess(message))
             {
+                Log.InfoFormat("Processing message from a fully staged batch: {0}", message.MessageId);
+                
                 await returnToSender.HandleMessage(message, sender);
                 IncrementCounterOrProlongTimer();
             }
