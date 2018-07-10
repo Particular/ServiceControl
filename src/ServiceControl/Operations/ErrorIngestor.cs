@@ -23,7 +23,8 @@
 
         public async Task Ingest(MessageContext message)
         {
-            log.Info($"Ingesting error message {message.MessageId}");
+            log.Debug($"Ingesting error message {message.MessageId}");
+            
             var failureDetails = await failedMessagePersister.Persist(message)
                 .ConfigureAwait(false);
             
