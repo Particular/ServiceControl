@@ -14,34 +14,36 @@
         {
             if (!log.IsDebugEnabled)
             {
-                await Next.Invoke(context);
+                await Next.Invoke(context).ConfigureAwait(false);
                 return;
             }
 
             log.DebugFormat("Begin {0}: {1}", context.Request.Method, context.Request.Uri.ToString());
 
             var originalStream = context.Response.Body;
-            var newStream = new MemoryStream();
-            context.Response.Body = newStream;
-
-            await Next.Invoke(context);
-
-            newStream.Position = 0;
-            using (var reader = new StreamReader(newStream))
+            using (var newStream = new MemoryStream())
             {
-                try
-                {
-                    var bodyContent = reader.ReadToEnd();
-                    log.Debug(bodyContent);
-                    log.Debug($"End {context.Request.Method} ({context.Response.StatusCode}): {context.Request.Uri}:{Environment.NewLine}{bodyContent}");
+                context.Response.Body = newStream;
 
-                    newStream.Position = 0;
-                    newStream.CopyTo(originalStream);
-                }
-                catch (Exception e)
+                await Next.Invoke(context).ConfigureAwait(false);
+
+                newStream.Position = 0;
+                using (var reader = new StreamReader(newStream))
                 {
-                    Console.WriteLine(e);
-                    throw;
+                    try
+                    {
+                        var bodyContent = await reader.ReadToEndAsync().ConfigureAwait(false);
+                        log.Debug(bodyContent);
+                        log.Debug($"End {context.Request.Method} ({context.Response.StatusCode}): {context.Request.Uri}:{Environment.NewLine}{bodyContent}");
+
+                        newStream.Position = 0;
+                        await newStream.CopyToAsync(originalStream).ConfigureAwait(false);
+                    }
+                    catch (Exception e)
+                    {
+                        log.Debug("Unable to read stream", e);
+                        throw;
+                    }
                 }
             }
         }
