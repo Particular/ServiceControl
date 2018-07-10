@@ -697,7 +697,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\packages\RavenDB.Database.3.5.7-patch-35263\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(NuGetPackageRoot)ravendb.database\3.5.7-patch-35263\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" />
     <None Remove="Hosting\Help.txt" />
     <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
     <EmbeddedResource Include="Hosting\Help.txt" />
