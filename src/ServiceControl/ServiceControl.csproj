@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net452</TargetFramework>
     <RootNamespace>ServiceControl</RootNamespace>
@@ -45,17 +46,20 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <OutputType>Exe</OutputType>
-    <LangVersion>6</LangVersion>
   </PropertyGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'net452'">
     <DefineConstants>$(DefineConstants);REGISTRYLICENSESOURCE</DefineConstants>
   </PropertyGroup>
+
   <PropertyGroup>
     <StartupObject>Particular.ServiceControl.Program</StartupObject>
   </PropertyGroup>
+
   <PropertyGroup>
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Autofac, Version=4.0.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da">
       <HintPath>..\packages\Autofac.4.0.0\lib\net451\Autofac.dll</HintPath>
@@ -688,14 +692,15 @@
     <PackageReference Include="Lucene.Net" Version="3.0.3" />
     <PackageReference Include="Rx-Linq" Version="2.2.5" />
     <PackageReference Include="Microsoft.AspNet.SignalR" Version="2.2.3" />
-    <PackageReference Include="Microsoft.AspNet.SignalR.Owin" Version="1.2.2" />    
+    <PackageReference Include="Microsoft.AspNet.SignalR.Owin" Version="1.2.2" />
     <PackageReference Include="Microsoft.AspNet.Cors" Version="5.2.3" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="3.0.1" />
     <PackageReference Include="Owin.Metrics" Version="0.3.7" />
-    <PackageReference Include="StackTraceParser.Source" Version="1.3.0" />    
+    <PackageReference Include="StackTraceParser.Source" Version="1.3.0" />
     <PackageReference Include="Particular.Licensing.Sources" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="GitVersionTask" Version="3.6.5" PrivateAssets="All" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="..\packages\RavenDB.Database.3.5.7-patch-35263\tools\Raven.Studio.Html5.zip">
       <Link>Raven.Studio.Html5.zip</Link>
@@ -705,6 +710,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="Hosting\Help.txt" />
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml">
@@ -712,10 +718,12 @@
     </EmbeddedResource>
     <Content Include="Operations.ico" />
   </ItemGroup>
+
   <ItemGroup>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
+
   <!-- Workaround for GitVersion 4.0 not creating GitVersionInformation by default -->
   <PropertyGroup>
     <UpdateAssemblyInfo>true</UpdateAssemblyInfo>
@@ -724,4 +732,5 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
   </PropertyGroup>
   <!-- End Workaround -->
+
 </Project>
