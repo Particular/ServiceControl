@@ -46,17 +46,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <OutputType>Exe</OutputType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net452'">
     <DefineConstants>$(DefineConstants);REGISTRYLICENSESOURCE</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <StartupObject>Particular.ServiceControl.Program</StartupObject>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -677,6 +667,11 @@
     <Compile Include="Upgrade\StaleIndexInfo.cs" />
     <Compile Include="Upgrade\StaleIndexInfoStore.cs" />
     <Compile Include="Upgrade\UpgradeModuleApi.cs" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.ServiceProcess" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Nancy" Version="1.4.3" />
     <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="1.4.1" />
     <PackageReference Include="Nancy.Owin" Version="1.4.1" />
@@ -698,39 +693,15 @@
     <PackageReference Include="Owin.Metrics" Version="0.3.7" />
     <PackageReference Include="StackTraceParser.Source" Version="1.3.0" />
     <PackageReference Include="Particular.Licensing.Sources" Version="1.0.0" PrivateAssets="All" />
-    <PackageReference Include="GitVersionTask" Version="3.6.5" PrivateAssets="All" />
+    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\packages\RavenDB.Database.3.5.7-patch-35263\tools\Raven.Studio.Html5.zip">
-      <Link>Raven.Studio.Html5.zip</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Include="..\packages\RavenDB.Database.3.5.7-patch-35263\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" />
+    <None Remove="Hosting\Help.txt" />
+    <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
     <EmbeddedResource Include="Hosting\Help.txt" />
-    <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <Content Include="Operations.ico" />
+    <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.ServiceProcess" />
-  </ItemGroup>
-
-  <!-- Workaround for GitVersion 4.0 not creating GitVersionInformation by default -->
-  <PropertyGroup>
-    <UpdateAssemblyInfo>true</UpdateAssemblyInfo>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-  </PropertyGroup>
-  <!-- End Workaround -->
 
 </Project>
