@@ -18,6 +18,12 @@
                 return;
             }
 
+            if (context.Request.Uri.LocalPath.StartsWith("/api/messagestream"))
+            {
+                await Next.Invoke(context).ConfigureAwait(false);
+                return;
+            }
+            
             log.DebugFormat("Begin {0}: {1}", context.Request.Method, context.Request.Uri.ToString());
 
             var originalStream = context.Response.Body;
