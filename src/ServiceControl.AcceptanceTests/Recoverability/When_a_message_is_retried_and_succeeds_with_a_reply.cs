@@ -84,9 +84,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        var recoverability = c.Recoverability();
-                        recoverability.Delayed(x => x.NumberOfRetries(0));
-                        recoverability.Immediate(x => x.NumberOfRetries(0));
+                        c.NoRetries();
                     });
             }
 
