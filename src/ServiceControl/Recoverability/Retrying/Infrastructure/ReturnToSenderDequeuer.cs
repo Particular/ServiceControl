@@ -14,7 +14,7 @@ namespace ServiceControl.Recoverability
     public class ReturnToSenderDequeuer
     {
         Timer timer;
-        ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
+        TaskCompletionSource<bool> syncEvent = new TaskCompletionSource<bool>();
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
         bool endedPrematurelly;
         int? targetMessageCount;
@@ -80,7 +80,7 @@ namespace ServiceControl.Recoverability
             {
                 Log.DebugFormat("Target count reached. Shutting down forwarder");
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
-                Task.Factory.StartNew(StopInternal);
+                Task.Run(() => StopInternal());
             }
         }
 
@@ -93,6 +93,7 @@ namespace ServiceControl.Recoverability
         public virtual async Task Run(Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
         {
             IReceivingRawEndpoint processor = null;
+            CancellationTokenRegistration? registration = null;
             try
             {
                 Log.DebugFormat("Started. Expectected message count {0}", expectedMessageCount);
@@ -108,7 +109,8 @@ namespace ServiceControl.Recoverability
                 Log.DebugFormat("Starting receiver");
 
                 var config = createEndpointConfiguration();
-                resetEvent.Reset();
+                syncEvent = new TaskCompletionSource<bool>();
+                registration = cancellationToken.Register(() => { Task.Run(() => syncEvent.TrySetCanceled(), CancellationToken.None); });
                 processor = await RawEndpoint.Start(config).ConfigureAwait(false);
                 if (!expectedMessageCount.HasValue)
                 {
@@ -119,13 +121,14 @@ namespace ServiceControl.Recoverability
             }
             finally
             {
-                Log.DebugFormat("Waiting for finish");
-                resetEvent.Wait(cancellationToken);
+                Log.DebugFormat("Waiting for {0} finish", GetType().Name);
+                await syncEvent.Task.ConfigureAwait(false);
+                registration?.Dispose();
                 if (processor != null)
                 {
                     await processor.Stop().ConfigureAwait(false);
                 }
-                Log.DebugFormat("Finished");
+                Log.DebugFormat("{0} finished", GetType().Name);
             }
 
             if (endedPrematurelly || cancellationToken.IsCancellationRequested)
@@ -138,12 +141,12 @@ namespace ServiceControl.Recoverability
         {
             timer.Dispose();
             endedPrematurelly = true;
-            resetEvent.Set();
+            Task.Run(() => syncEvent.TrySetResult(true));
         }
 
         void StopInternal()
         {
-            resetEvent.Set();
+            Task.Run(() => syncEvent.TrySetResult(true));
             Log.InfoFormat("{0} stopped", GetType().Name);
         }
 
