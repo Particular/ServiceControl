@@ -48,8 +48,6 @@
     <OutputType>Exe</OutputType>
     <DefineConstants>$(DefineConstants);REGISTRYLICENSESOURCE</DefineConstants>
     <ApplicationIcon>Operations.ico</ApplicationIcon>
-    <Company>NServiceBus Ltd</Company>
-    <Copyright>© 2010-$([System.DateTime]::UtcNow.ToString(yyyy)) NServiceBus Ltd. All rights reserved.</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
