@@ -98,21 +98,18 @@
 
             public override Task ComponentsStarted(CancellationToken token)
             {
-                tokenSource = new CancellationTokenSource();
-                var done = false;
+                tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
                 checkTask = Task.Run(async () =>
                 {
-                    while (!done && !tokenSource.IsCancellationRequested)
+                    while (!tokenSource.IsCancellationRequested)
                     {
-                        done = await isDone(scenarioContext).ConfigureAwait(false);
-                        if (done)
+                        if (await isDone(scenarioContext).ConfigureAwait(false))
                         {
                             setDone();
+                            return;
                         }
-                        else
-                        {
-                            await Task.Delay(100).ConfigureAwait(false);
-                        }
+
+                        await Task.Delay(100, tokenSource.Token).ConfigureAwait(false);
                     }
                 }, tokenSource.Token);
                 return Task.FromResult(0);
@@ -130,9 +127,13 @@
                 {
                     await checkTask.ConfigureAwait(false);
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     //Swallow
+                }
+                finally
+                {
+                    tokenSource.Dispose();
                 }
             }
         }
