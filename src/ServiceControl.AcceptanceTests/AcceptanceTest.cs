@@ -21,7 +21,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
     public abstract class AcceptanceTest : IAcceptanceTestInfrastructureProvider
@@ -493,25 +492,28 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             var response = await provider.GetRaw(url, instanceName).ConfigureAwait(false);
 
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
-
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
+                LogRequest();
                 await Task.Delay(1000).ConfigureAwait(false);
                 return null;
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase}");
+                LogRequest(response.ReasonPhrase);
+                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase}");
             }
 
-            using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-            {
-                var serializer = JsonSerializer.Create(provider.SerializerSettings);
+            var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            LogRequest();
+            return JsonConvert.DeserializeObject<T>(body, provider.SerializerSettings);
 
-                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
+            void LogRequest(string additionalInfo = null)
+            {
+                var additionalInfoString = additionalInfo != null ? ": " + additionalInfo : string.Empty;
+                Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}{additionalInfoString}");
             }
         }
     }

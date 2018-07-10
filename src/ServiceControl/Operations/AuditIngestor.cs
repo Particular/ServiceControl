@@ -1,12 +1,14 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Threading.Tasks;
+    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class AuditIngestor
     {
+        private static ILog log = LogManager.GetLogger<ErrorIngestor>();
         private AuditImporter auditImporter;
         private IDocumentStore store;
         private IForwardMessages messageForwarder;
@@ -22,6 +24,8 @@
 
         public async Task Ingest(MessageContext context)
         {
+            log.DebugFormat("Ingesting audit message {0}", context.MessageId);
+            
             var processedMessage = await auditImporter.ConvertToSaveMessage(context)
                 .ConfigureAwait(false);
 

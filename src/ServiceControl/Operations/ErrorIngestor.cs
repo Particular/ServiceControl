@@ -1,11 +1,14 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Threading.Tasks;
+    using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ErrorIngestor
     {
+        private static ILog log = LogManager.GetLogger<ErrorIngestor>();
         private IForwardMessages messageForwarder;
         private Settings settings;
         private FailedMessageAnnouncer failedMessageAnnouncer;
@@ -21,6 +24,12 @@
 
         public async Task Ingest(MessageContext message)
         {
+            if (log.IsDebugEnabled)
+            {
+                message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+                log.Debug($"Ingesting error message {message.MessageId} (original message id: {originalMessageId ?? string.Empty})");
+            }
+            
             var failureDetails = await failedMessagePersister.Persist(message)
                 .ConfigureAwait(false);
             

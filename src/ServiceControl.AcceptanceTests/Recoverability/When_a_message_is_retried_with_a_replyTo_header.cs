@@ -54,7 +54,7 @@
             public VerifyHeaderEndpoint()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(
-                    c => c.RegisterComponents(cc => cc.ConfigureComponent<VerifyHeaderIsUnchanged>(DependencyLifecycle.SingleInstance))
+                    (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((ReplyToContext)r.ScenarioContext))
                 );
             }
 

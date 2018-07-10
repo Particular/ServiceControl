@@ -12,11 +12,11 @@
         {
             log.DebugFormat("Begin {0}: {1}", context.Request.Method, context.Request.Uri.ToString());
 
-            await Next.Invoke(context);
+            await Next.Invoke(context).ConfigureAwait(false);
 
-            log.DebugFormat("End {0}: {1}", context.Request.Method, context.Request.Uri.ToString());
+            log.DebugFormat("End {0} ({1}): {2}", context.Request.Method, context.Response.StatusCode, context.Request.Uri.ToString());
         }
 
-        static ILog log = LogManager.GetLogger<LogApiCalls>();
+        private static ILog log = LogManager.GetLogger<LogApiCalls>();
     }
 }
