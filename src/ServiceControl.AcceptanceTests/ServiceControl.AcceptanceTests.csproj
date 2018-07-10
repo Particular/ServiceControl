@@ -1,13 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props" Condition="Exists('..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props')" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A1E60657-039F-4BAB-B031-2515F86B0C3D}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net452</TargetFramework>
     <RootNamespace>ServiceBus.Management.AcceptanceTests</RootNamespace>
     <AssemblyName>ServiceBus.Management.AcceptanceTests</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
@@ -356,44 +350,31 @@
     <Compile Include="Audit\When_processed_message_is_imported.cs" />
     <Compile Include="AcceptanceTest.cs" />
   </ItemGroup>
+  </PropertyGroup>
+
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj">
-      <Project>{24c5a540-ee02-4519-b000-eda470759c5b}</Project>
-      <Name>ServiceControl.Transports.ASB</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj">
-      <Project>{eda26c67-405a-4ec7-a3e6-ebab7278e70a}</Project>
-      <Name>ServiceControl.Transports.ASQ</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj">
-      <Project>{46f65684-6439-4199-806e-9ea4ca0ac31c}</Project>
-      <Name>ServiceControl.Transports.Msmq</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj">
-      <Project>{114e51c5-8eb1-44c6-ac5a-78c8ef6c7d61}</Project>
-      <Name>ServiceControl.Transports.RabbitMQ</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj">
-      <Project>{691074cb-67f0-45ce-b3de-ac9a94af29b4}</Project>
-      <Name>ServiceControl.Transports.SqlServer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj">
-      <Project>{4c6b71b2-74ef-4b9e-88ff-c56532727c6d}</Project>
-      <Name>ServiceControl</Name>
-    </ProjectReference>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web" />
   </ItemGroup>
+
   <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <PackageReference Include="Microsoft.AspNet.SignalR.Client" Version="2.2.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.0.1" />
+    <PackageReference Include="NServiceBus.Heartbeat" Version="3.0.0" />
+    <PackageReference Include="NServiceBus.SagaAudit" Version="3.0.0" />
+    <PackageReference Include="NUnit" Version="3.7.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
+    <PackageReference Include="OwinHttpMessageHandler" Version="1.3.5" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NServiceBus.Transport.Msmq.1.0.0\build\NServiceBus.Transport.Msmq.props'))" />
-  </Target>
+
 </Project>
