@@ -1,8 +1,7 @@
 
 namespace ServiceControlInstaller.Engine.Api
 {
-    #pragma warning disable 169
-    #pragma warning disable 414
+#pragma warning disable CS0649
 
     using System;
     using System.Runtime.InteropServices;
@@ -71,7 +70,6 @@ namespace ServiceControlInstaller.Engine.Api
         public UInt32 Delay;
     }
 
-    #pragma warning restore 169
-    #pragma warning restore 414
+#pragma warning restore CS0649
 
 }

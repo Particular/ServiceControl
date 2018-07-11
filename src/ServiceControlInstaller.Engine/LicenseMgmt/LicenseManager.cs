@@ -3,7 +3,6 @@
     using System;
     using Microsoft.Win32;
     using Particular.Licensing;
-    using ServiceControlInstaller.Engine.FileSystem;
 
     public class LicenseManager
     {
@@ -17,7 +16,7 @@
 
         public static bool TryImportLicense(string licenseFile, out string errorMessage)
         {
-            var licenseText = NonLockingFileReader.ReadAllTextWithoutLocking(licenseFile);
+            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
 
             if (!LicenseVerifier.TryVerify(licenseText, out _))
             {
