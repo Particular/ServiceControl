@@ -24,7 +24,7 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var settings = context.Settings.Get<Settings>();
+            var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
 
             if(settings.IngestAuditMessages)
             {
