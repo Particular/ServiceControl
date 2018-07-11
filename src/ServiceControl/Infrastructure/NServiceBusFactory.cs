@@ -1,7 +1,6 @@
 namespace ServiceBus.Management.Infrastructure
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
@@ -9,7 +8,6 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using NServiceBus.Pipeline;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -43,7 +41,6 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
             configuration.GetSettings().Set<LoggingSettings>(loggingSettings);
-            configuration.GetSettings().Set<Settings.Settings>(settings);
             configuration.GetSettings().Set<IDocumentStore>(documentStore);
 
             // Disable Auditing for the service control endpoint
@@ -53,8 +50,6 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<Outbox>();
 
             configuration.EnableFeature<SubscriptionFeature>();
-
-            configuration.Pipeline.Register(new OnMessageBehavior(settings.OnMessage), "Intercepts incoming messages");
 
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));
@@ -94,9 +89,6 @@ namespace ServiceBus.Management.Infrastructure
             var startableEndpoint = await Create(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
-            //var subscribeToOwnEvents = container.Resolve<SubscribeToOwnEvents>();
-            //await subscribeToOwnEvents.Run(remoteTypesToSubscribeTo, settings.RemoteInstances.Select(x => x.QueueAddress).ToArray()).ConfigureAwait(false);
-
             var domainEvents = container.Resolve<IDomainEvents>();
             var importFailedAudits = container.Resolve<ImportFailedAudits>();
 
@@ -121,21 +113,6 @@ namespace ServiceBus.Management.Infrastructure
             return t.Namespace != null 
                    && t.Namespace.StartsWith("ServiceControl.Contracts") 
                    && t.Assembly.GetName().Name == "ServiceControl.Contracts";
-        }
-    }
-
-    class OnMessageBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
-    {
-        Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> onMessage;
-
-        public OnMessageBehavior(Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> onMessage)
-        {
-            this.onMessage = onMessage;
-        }
-
-        public Task Invoke(ITransportReceiveContext context, Func<ITransportReceiveContext, Task> next)
-        {
-            return onMessage(context.Message.MessageId, context.Message.Headers, context.Message.Body, () => next(context));
         }
     }
 }
