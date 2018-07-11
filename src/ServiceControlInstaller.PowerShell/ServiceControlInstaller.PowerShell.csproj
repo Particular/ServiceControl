@@ -1,8 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
+    <TargetFramework>net40</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -105,20 +104,24 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
   <ItemGroup>
-    <Content Include="ServiceControlMgmt.psm1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Content Include="ServiceControlMgmt.format.ps1xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.PowerShell.3.ReferenceAssemblies" Version="1.0.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Update="ServiceControlInstaller.Powershell.dll-help.xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ServiceControlMgmt.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ServiceControlMgmt.psd1" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ServiceControlMgmt.psm1" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ShortcutStartup.ps1" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
   <UsingTask TaskName="FileUpdate" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
     <ParameterGroup>
       <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
@@ -128,30 +131,27 @@
     <Task>
       <Using Namespace="System.Text.RegularExpressions" />
       <Using Namespace="System.IO" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
                RegexOptions options = RegexOptions.Multiline | RegexOptions.IgnoreCase;
-               if (Files.Length > 0)  
-               {  
-                    for (int i = 0; i<Files.Length; i++)  
-                    {  
+               if (Files.Length > 0)
+               {
+                    for (int i = 0; i < Files.Length; i++)
+                    {
                         string path = Files[i].GetMetadata("FullPath");
                         File.WriteAllText(path, Regex.Replace(File.ReadAllText(path), Pattern, ReplacementText, options));
-                    }  
-                }  
-            ]]></Code>
+                    }
+                }
+            ]]>
+      </Code>
     </Task>
   </UsingTask>
-  <Target Name="AfterBuild">
+
+  <Target Name="UpdateVersion" BeforeTargets="Build">
     <ItemGroup>
       <PSModuleFile Include="$(OutputPath)\ServiceControlMgmt.psd1" />
     </ItemGroup>
     <FileUpdate Files="@(PSModuleFile)" Pattern="{{Version}}" ReplacementText="$(GitVersion_MajorMinorPatch)" />
   </Target>
-  <Import Project="..\packages\GitVersionTask.4.0.0-beta0012\build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.4.0.0-beta0012\build\GitVersionTask.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\GitVersionTask.4.0.0-beta0012\build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.4.0.0-beta0012\build\GitVersionTask.targets'))" />
-  </Target>
+
 </Project>
