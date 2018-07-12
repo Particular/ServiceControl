@@ -405,26 +405,29 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             var response = await provider.GetRaw(url, instanceName).ConfigureAwait(false);
 
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
-
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
-                await Task.Delay(1000).ConfigureAwait(false);
+                LogRequest();
                 return null;
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase}");
+                LogRequest(response.ReasonPhrase);
+                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase}");
             }
 
-            using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-            {
-                var serializer = JsonSerializer.Create(provider.SerializerSettings);
+            var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            LogRequest(body);
+            return JsonConvert.DeserializeObject<T>(body, provider.SerializerSettings);
 
-                return serializer.Deserialize<T>(new JsonTextReader(new StreamReader(stream)));
+            void LogRequest(string additionalInfo = null)
+            {
+                var additionalInfoString = additionalInfo != null ? ": " + additionalInfo : string.Empty;
+                Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}{additionalInfoString}");
             }
         }
+    }
     }
 }
