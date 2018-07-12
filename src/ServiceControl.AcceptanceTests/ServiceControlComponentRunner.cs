@@ -280,6 +280,10 @@ namespace ServiceBus.Management.AcceptanceTests
                     DeleteFolder(settings.DbPath);
                 }
             }
+            bootstrappers.Clear();
+            HttpClients.Clear();
+            Handlers.Clear();
+            SettingsPerInstance.Clear();
         }
 
         private static void DeleteFolder(string path)
