@@ -409,6 +409,7 @@ namespace ServiceBus.Management.AcceptanceTests
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
                 LogRequest();
+                await Task.Delay(1000).ConfigureAwait(false);
                 return null;
             }
 
@@ -428,6 +429,5 @@ namespace ServiceBus.Management.AcceptanceTests
                 Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}{additionalInfoString}");
             }
         }
-    }
     }
 }
