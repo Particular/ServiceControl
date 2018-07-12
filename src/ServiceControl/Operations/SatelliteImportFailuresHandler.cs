@@ -78,13 +78,21 @@
                 .ConfigureAwait(false);
         }
 
+#if DEBUG
         private async Task WriteEvent(string message)
         {
-#if DEBUG
             await new CreateEventSource().Install(null)
                 .ConfigureAwait(false);
-#endif
+
             EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
         }
+#else
+        private Task WriteEvent(string message)
+        {
+            EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
+
+            return Task.FromResult(0);
+        }
+#endif
     }
 }
