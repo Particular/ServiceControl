@@ -48,7 +48,8 @@ namespace ServiceBus.Management.AcceptanceTests
             if (!context.Message.Headers.TryGetValue("SC.SessionID", out session) 
                 || session != currentSession)
             {
-                log.Debug($"Discarding message '{context.Message.MessageId}' because it's session id is '{session}' instead of '{currentSession}'.");
+                context.Message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+                log.Debug($"Discarding message '{context.Message.MessageId}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
                 return Task.FromResult(0);
             }
 

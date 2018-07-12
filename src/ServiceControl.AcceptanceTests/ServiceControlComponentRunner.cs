@@ -23,6 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Settings;
+    using LogLevel = NLog.LogLevel;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -100,6 +101,10 @@ namespace ServiceBus.Management.AcceptanceTests
                     RunInMemory = true,
                     OnMessage = (id, headers, body, @continue) =>
                     {
+                        var log = LogManager.GetLogger<ServiceControlComponentRunner>();
+                        headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+                        log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
+
                         string session;
                         string intent;
                         string messageTypes;
@@ -117,8 +122,10 @@ namespace ServiceBus.Management.AcceptanceTests
                             return @continue();
                         }
 
-                        if (!headers.TryGetValue("SC.SessionID", out session) || session != context.TestRunId.ToString())
+                        var currentSession = context.TestRunId.ToString();
+                        if (!headers.TryGetValue("SC.SessionID", out session) || session != currentSession)
                         {
+                            log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
                             return Task.FromResult(0);
                         }
 

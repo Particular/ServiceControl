@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -23,7 +24,8 @@
 
         public async Task Ingest(MessageContext message)
         {
-            log.Debug($"Ingesting error message {message.MessageId}");
+            message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+            log.Debug($"Ingesting error message {message.MessageId} (original message id: {originalMessageId ?? string.Empty})");
             
             var failureDetails = await failedMessagePersister.Persist(message)
                 .ConfigureAwait(false);
