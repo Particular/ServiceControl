@@ -47,9 +47,6 @@
 
         public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context)
         {
-            // Use same MessageType version across all messages to ensure backward compatibility
-            messageType = new MessageType(messageType.TypeName, StableSubscriptionMessageVersion);
-
             if (subscriber.Endpoint == localClient.Endpoint)
             {
                 return;
@@ -213,8 +210,6 @@
 
         public async Task Unsubscribe(Subscriber subscriber, MessageType messageType, ContextBag context)
         {
-            // Use same MessageType version across all messages to ensure backward compatibility
-            messageType = new MessageType(messageType.TypeName, StableSubscriptionMessageVersion);
             try
             {
                 await subscriptionsLock.WaitAsync().ConfigureAwait(false);
@@ -243,8 +238,6 @@
 
         public Task<IEnumerable<Subscriber>> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes, ContextBag context)
         {
-            // Use same MessageType version across all messages to ensure backward compatibility
-            messageTypes = messageTypes.Select(m => new MessageType(m.TypeName, StableSubscriptionMessageVersion));
             return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct());
         }
 
