@@ -37,7 +37,7 @@
 
             var loggingSettings = new LoggingSettings(ServiceName);
 
-            bootstrapper = new Bootstrapper(Stop, new Settings(ServiceName), busConfiguration, loggingSettings);
+            bootstrapper = new Bootstrapper(ctx => Stop(), new Settings(ServiceName), busConfiguration, loggingSettings);
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 

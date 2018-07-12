@@ -32,7 +32,7 @@ namespace Particular.ServiceControl
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private Action onCriticalError;
+        private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private TimeKeeper timeKeeper;
@@ -42,7 +42,7 @@ namespace Particular.ServiceControl
         TransportCustomization transportCustomization;
 
         // Windows Service
-        public Bootstrapper(Action onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
             if (configuration == null)
             {
