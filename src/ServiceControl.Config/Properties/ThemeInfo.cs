@@ -1,11 +1,5 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Windows;
+﻿using System.Windows;
 
-[assembly: AssemblyTitle("ServiceControl.Config")]
-[assembly: AssemblyProduct("ServiceControl.Config")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
-[assembly: ComVisible(false)]
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None, //where theme specific resource dictionaries are located
                                      //(used if a resource is not found in the page,
