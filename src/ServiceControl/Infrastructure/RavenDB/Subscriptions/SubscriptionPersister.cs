@@ -240,8 +240,6 @@
         {
             return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct());
         }
-
-        private static readonly Version StableSubscriptionMessageVersion = new Version(1, 0, 0);
     }
 
     class Subscriptions
