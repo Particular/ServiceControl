@@ -283,7 +283,6 @@ namespace ServiceBus.Management.AcceptanceTests
             bootstrappers.Clear();
             HttpClients.Clear();
             Handlers.Clear();
-            SettingsPerInstance.Clear();
         }
 
         private static void DeleteFolder(string path)
