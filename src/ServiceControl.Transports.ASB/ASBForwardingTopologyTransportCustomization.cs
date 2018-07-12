@@ -37,6 +37,7 @@
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(connectionString);
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
+            transport.NumberOfClientsPerEntity(1);
         }
     }
 }

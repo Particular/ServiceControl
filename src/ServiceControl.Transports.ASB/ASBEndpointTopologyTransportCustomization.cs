@@ -57,6 +57,7 @@
         {
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(connectionString);
+            transport.NumberOfClientsPerEntity(1);
         }
     }
 }
