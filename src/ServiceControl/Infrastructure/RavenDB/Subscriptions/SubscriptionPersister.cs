@@ -25,16 +25,21 @@
 
         private SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
 
-        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings)
+        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings) : 
+            this(store, settings, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
+        {
+        }
+
+        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
         {
             this.store = store;
             localClient = new SubscriptionClient()
             {
-                Endpoint = settings.EndpointName(),
-                TransportAddress = settings.LocalAddress()
+                Endpoint = endpointName,
+                TransportAddress = localAddress
             };
 
-            locallyHandledEventTypes = settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray();
+            this.locallyHandledEventTypes = locallyHandledEventTypes;
 
 
             SetSubscriptions(new Subscriptions()).GetAwaiter().GetResult();
