@@ -41,10 +41,8 @@
 
             public override async Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                string oldRetryId;
                 string newRetryMessageId;
-
-                var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out oldRetryId);
+                var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out _);
                 var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out newRetryMessageId);
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
