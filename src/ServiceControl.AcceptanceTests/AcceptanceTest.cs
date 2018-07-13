@@ -2,6 +2,7 @@ namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -13,6 +14,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.AcceptanceTests;
+    using NServiceBus.Logging;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -36,6 +38,12 @@ namespace ServiceBus.Management.AcceptanceTests
             ServicePointManager.UseNagleAlgorithm = false; // Improvement for small tcp packets traffic, get buffered up to 1/2-second. If your storage communication is for small (less than ~1400 byte) payloads, this setting should help (especially when dealing with things like Azure Queues, which tend to have very small messages).
             ServicePointManager.Expect100Continue = false; // This ensures tcp ports are free up quicker by the OS, prevents starvation of ports
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
+        }
+        
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
         }
 
         [SetUp]
@@ -129,6 +137,137 @@ namespace ServiceBus.Management.AcceptanceTests
         public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
         public Dictionary<string, BusInstance> Busses => serviceControlRunnerBehavior.Busses;
     }
+    
+    class StaticLoggerFactory : ILoggerFactory
+    {
+        public static ScenarioContext CurrentContext;
+
+        public StaticLoggerFactory(ScenarioContext currentContext)
+        {
+            CurrentContext = currentContext;
+        }
+
+        public ILog GetLogger(Type type)
+        {
+            return GetLogger(type.FullName);
+        }
+
+        public ILog GetLogger(string name)
+        {
+            return new StaticContextAppender();
+        }
+    }
+
+    class StaticContextAppender : ILog
+    {        
+        public bool IsDebugEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Debug;
+        public bool IsInfoEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Info;
+        public bool IsWarnEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Warn;
+        public bool IsErrorEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Error;
+        public bool IsFatalEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Fatal;
+
+
+        public void Debug(string message)
+        {
+            Log(message, LogLevel.Debug);
+        }
+
+        public void Debug(string message, Exception exception)
+        {
+            var fullMessage = $"{message} {exception}";
+            Log(fullMessage, LogLevel.Debug);
+        }
+
+        public void DebugFormat(string format, params object[] args)
+        {
+            var fullMessage = string.Format(format, args);
+            Log(fullMessage, LogLevel.Debug);
+        }
+
+        public void Info(string message)
+        {
+            Log(message, LogLevel.Info);
+        }
+
+
+        public void Info(string message, Exception exception)
+        {
+            var fullMessage = $"{message} {exception}";
+            Log(fullMessage, LogLevel.Info);
+        }
+
+        public void InfoFormat(string format, params object[] args)
+        {
+            var fullMessage = string.Format(format, args);
+            Log(fullMessage, LogLevel.Info);
+        }
+
+        public void Warn(string message)
+        {
+            Log(message, LogLevel.Warn);
+        }
+
+        public void Warn(string message, Exception exception)
+        {
+            var fullMessage = $"{message} {exception}";
+            Log(fullMessage, LogLevel.Warn);
+        }
+
+        public void WarnFormat(string format, params object[] args)
+        {
+            var fullMessage = string.Format(format, args);
+            Log(fullMessage, LogLevel.Warn);
+        }
+
+        public void Error(string message)
+        {
+            Log(message, LogLevel.Error);
+        }
+
+        public void Error(string message, Exception exception)
+        {
+            var fullMessage = $"{message} {exception}";
+            Log(fullMessage, LogLevel.Error);
+        }
+
+        public void ErrorFormat(string format, params object[] args)
+        {
+            var fullMessage = string.Format(format, args);
+            Log(fullMessage, LogLevel.Error);
+        }
+
+        public void Fatal(string message)
+        {
+            Log(message, LogLevel.Fatal);
+        }
+
+        public void Fatal(string message, Exception exception)
+        {
+            var fullMessage = $"{message} {exception}";
+            Log(fullMessage, LogLevel.Fatal);
+        }
+
+        public void FatalFormat(string format, params object[] args)
+        {
+            var fullMessage = string.Format(format, args);
+            Log(fullMessage, LogLevel.Fatal);
+        }
+
+        void Log(string message, LogLevel messageSeverity)
+        {
+            if (StaticLoggerFactory.CurrentContext.LogLevel > messageSeverity)
+            {
+                return;
+            }
+
+            Trace.WriteLine(message);
+            StaticLoggerFactory.CurrentContext.Logs.Enqueue(new ScenarioContext.LogItem
+            {
+                Level = messageSeverity,
+                Message = message
+            });
+        }
+}
 
     public static class HttpExtensions
     {
