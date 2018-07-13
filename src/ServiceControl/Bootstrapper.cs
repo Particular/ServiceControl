@@ -19,6 +19,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Operations;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
@@ -70,7 +71,7 @@ namespace Particular.ServiceControl
 
         private void Initialize()
         {
-            RecordStartup(loggingSettings);
+            RecordStartup(loggingSettings, configuration);
 
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
@@ -157,7 +158,7 @@ namespace Particular.ServiceControl
             }
         }
 
-        private void RecordStartup(LoggingSettings loggingSettings)
+        private void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = typeof(Bootstrapper).Assembly.GetName().Version;
             var startupMessage = $@"
@@ -175,6 +176,36 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
             logger.Info(startupMessage);
+            endpointConfiguration.SetDiagnosticsPath(loggingSettings.LogPath);
+            endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
+            {
+                Settings = new
+                {
+                    settings.ApiUrl,
+                    settings.AuditLogQueue,
+                    settings.AuditQueue,
+                    settings.DatabaseMaintenancePort,
+                    settings.ErrorLogQueue,
+                    settings.DisableRavenDBPerformanceCounters,
+                    settings.DbPath,
+                    settings.ErrorQueue,
+                    settings.ForwardAuditMessages,
+                    settings.ForwardErrorMessages,
+                    settings.HttpDefaultConnectionLimit,
+                    settings.IngestAuditMessages,
+                    settings.IngestErrorMessages,
+                    settings.MaxBodySizeToStore,
+                    settings.MaximumConcurrencyLevel,
+                    settings.Port,
+                    settings.ProcessRetryBatchesFrequency,
+                    settings.RemoteInstances,
+                    settings.RetryHistoryDepth,
+                    settings.RunInMemory,
+                    settings.SkipQueueCreation,
+                    settings.TransportCustomizationType
+                },
+                LoggingSettings = loggingSettings
+            });
         }
     }
 }
