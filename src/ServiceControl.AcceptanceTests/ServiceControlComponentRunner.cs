@@ -23,7 +23,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Settings;
-    using LogLevel = NLog.LogLevel;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {

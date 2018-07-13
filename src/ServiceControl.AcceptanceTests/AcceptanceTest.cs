@@ -22,7 +22,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
     public abstract class AcceptanceTest : IAcceptanceTestInfrastructureProvider
