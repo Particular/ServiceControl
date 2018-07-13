@@ -5,10 +5,10 @@
 
     internal struct TokenPrivileges
     {
-#pragma warning disable CS0649
+#pragma warning disable 169
         public UInt32 PrivilegeCount;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
         public LUID_AND_ATTRIBUTES[] Privileges;
-#pragma warning restore CS0649
+#pragma warning restore 169
     }
 }
