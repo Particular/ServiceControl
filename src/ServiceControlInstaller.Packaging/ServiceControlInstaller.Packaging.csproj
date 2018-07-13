@@ -18,7 +18,7 @@
 
   <UsingTask AssemblyFile="..\..\buildsupport\DeploymentZipTask.Dll" TaskName="DeploymentZipTask.AddToZip" />
 
-  <Target Name="ZipTarget" AfterTargets="AfterBuild">
+  <Target Name="CreateServiceControlZip" AfterTargets="Build">
     <PropertyGroup>
       <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
       <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
@@ -52,10 +52,7 @@
     <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)\$(TargetFramework)" ZipFileName="$(ZipToCreate)" />
   </Target>
 
-  <!--
-    Copy the zip for servicecontrol monitoring to same folder as the SC.zip
-  -->
-  <Target Name="ServiceControlMonitoring" AfterTargets="ZipTarget">
+  <Target Name="CopyServiceControlMonitoringZip" AfterTargets="CreateServiceControlZip">
     <PropertyGroup>
       <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
     </PropertyGroup>

@@ -20,7 +20,7 @@
     <None Update="ShortcutStartup.ps1" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <UsingTask TaskName="FileUpdate" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+  <UsingTask TaskName="FileUpdate" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
       <Pattern ParameterType="System.String" Required="true" />
@@ -45,7 +45,7 @@
     </Task>
   </UsingTask>
 
-  <Target Name="UpdateVersion" BeforeTargets="Build">
+  <Target Name="UpdateModuleManifestVersion" AfterTargets="Build">
     <ItemGroup>
       <PSModuleFile Include="$(OutputPath)\ServiceControlMgmt.psd1" />
     </ItemGroup>

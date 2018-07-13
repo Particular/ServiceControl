@@ -69,7 +69,7 @@
     </Compile>
   </ItemGroup>
 
-  <Target Name="CopyZips" BeforeTargets="Build">
+  <Target Name="CopyZips" AfterTargets="Build">
     <ItemGroup>
       <OutputFiles Include="..\..\zip\*.zip" />
       <ExistingZipsToRemove Include="$(OutputPath)*.zip" />
@@ -78,7 +78,7 @@
     <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="false" />
   </Target>
 
-  <Target Name="RemoveTranslationsAfterBuild" BeforeTargets="Build">
+  <Target Name="RemoveTranslationAssemblies" AfterTargets="Build">
     <ItemGroup>
       <FluentValidationExcludedCultures Include="cs;da;de;es;fa;fi;fr;it;ko;mk;nl;pl;pt;ru;sv;tr;zh-CN" />
     </ItemGroup>
