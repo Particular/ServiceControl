@@ -4,14 +4,6 @@
     <TargetFramework>net40</TargetFramework>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <WixToolPath>..\..\lib\WiX\3.7\</WixToolPath>
-    <WixTargetsPath>$(WixToolPath)Wix.targets</WixTargetsPath>
-    <WixCATargetsPath>$(WixToolPath)\sdk\wix.ca.targets</WixCATargetsPath>
-    <WixSdkPath>$(WixToolPath)\sdk\</WixSdkPath>
-    <WixTasksPath>$(WixToolPath)wixtasks.dll</WixTasksPath>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
   </ItemGroup>
@@ -20,6 +12,26 @@
     <Reference Include="Microsoft.Deployment.WindowsInstaller" HintPath="$(WixSdkPath)Microsoft.Deployment.WindowsInstaller.dll" />
   </ItemGroup>
 
-  <Import Project="$(WixCATargetsPath)" />
+  <ItemGroup>
+    <PackageReference Include="WiX" Version="3.11.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="CustomAction.config" />
+    <Content Include="CustomAction.config" />
+  </ItemGroup>
+
+  <!-- Workaround needed because importing WiX targets file below is too early for $(TargetName) and $(TargetExt) to be defined -->
+  <PropertyGroup>
+    <TargetCAFileName>ServiceControlInstaller.CustomActions.CA.dll</TargetCAFileName>
+  </PropertyGroup>
+  <!-- End workaround -->
+
+  <Import Project="$(WixCATargetsPath)" Condition="Exists('$(WixCATargetsPath)')" />
+
+  <!-- Workaround needed because WiX targets don't currently work with SDK projects -->
+  <Target Name="CleanCAFile" DependsOnTargets="CleanCustomAction" BeforeTargets="CoreClean" Condition="'$(DesignTimeBuild)' != 'true'" />
+  <Target Name="CreateCAFile" DependsOnTargets="PackCustomAction" AfterTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'" />
+  <!-- End workaround -->
 
 </Project>
