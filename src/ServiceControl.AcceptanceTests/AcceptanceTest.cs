@@ -9,16 +9,19 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
+    using NLog.Config;
+    using NLog.Filters;
+    using NLog.Targets;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.AcceptanceTests;
+    using NServiceBus.Logging;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
     public abstract class AcceptanceTest : IAcceptanceTestInfrastructureProvider
@@ -65,6 +68,54 @@ namespace ServiceBus.Management.AcceptanceTests
                 var testName = GetType().Name;
                 return t.FullName.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
             };
+
+            Scenario.GetLoggerFactory = SetupLogging;
+        }
+
+        private ILoggerFactory SetupLogging(ScenarioContext context)
+        {
+            var logDir = ".\\logfiles\\";
+
+            Directory.CreateDirectory(logDir);
+
+            var logFile = Path.Combine(logDir, TestContext.CurrentContext.Test.FullName + ".txt");
+
+            if (File.Exists(logFile))
+            {
+                File.Delete(logFile);
+            }
+
+            var nlogConfig = new LoggingConfiguration();
+
+            var fileTarget = new FileTarget
+            {
+                FileName = logFile,
+                Layout = "${longdate}|${level:uppercase=true}|${threadid}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}"
+            };
+
+            nlogConfig.LoggingRules.Add(MakeFilteredLoggingRule(fileTarget, NLog.LogLevel.Warn, "Raven.*"));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", NLog.LogLevel.Debug, fileTarget));
+            nlogConfig.AddTarget("debugger", fileTarget);
+
+            NLog.LogManager.Configuration = nlogConfig;
+
+            return new NLogLoggerFactory();
+
+            LoggingRule MakeFilteredLoggingRule(Target target, NLog.LogLevel logLevel, string text)
+            {
+                var rule = new LoggingRule(text, NLog.LogLevel.Debug, target)
+                {
+                    Final = true
+                };
+
+                rule.Filters.Add(new ConditionBasedFilter
+                {
+                    Action = FilterResult.Ignore,
+                    Condition = $"level < LogLevel.{logLevel.Name}"
+                });
+
+                return rule;
+            }
         }
 
         private void RemoveOtherTransportAssemblies(string name)

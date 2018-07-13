@@ -257,6 +257,7 @@
     <Compile Include="IRequireConnectionString.cs" />
     <Compile Include="ITransportIntegration.cs" />
     <Compile Include="ISequenceContext.cs" />
+    <Compile Include="NLogLoggerFactory.cs" />
     <Compile Include="Sequence.cs" />
     <Compile Include="ServiceControlComponentBehavior.cs" />
     <Compile Include="ServiceControlComponentRunner.cs" />
