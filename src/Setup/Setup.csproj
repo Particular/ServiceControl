@@ -5,10 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="Prerequisites\**\*.*" />
   </ItemGroup>
 

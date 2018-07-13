@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" PrivateAssets="All" />
     <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="1.3.0" PrivateAssets="All" />
   </ItemGroup>
 

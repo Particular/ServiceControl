@@ -16,7 +16,6 @@
   <ItemGroup>
     <PackageReference Include="DotNetZip" Version="1.9.8" />
     <PackageReference Include="Particular.Licensing.Sources" Version="1.0.0" PrivateAssets="All" />
-    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
