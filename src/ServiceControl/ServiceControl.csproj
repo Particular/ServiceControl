@@ -38,9 +38,15 @@
 
   <ItemGroup>
     <None Include="$(NuGetPackageRoot)ravendb.database\3.5.7-patch-35263\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Hosting\Help.txt" />
-    <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
     <EmbeddedResource Include="Hosting\Help.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
   </ItemGroup>
 
