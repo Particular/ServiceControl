@@ -23,7 +23,7 @@
       <Prerequisites Include="Prerequisites\**\*.*" />
     </ItemGroup>
     <PropertyGroup>
-      <SetupExeOutputFolder>$(SolutionDir)..\Assets\</SetupExeOutputFolder>
+      <SetupExeOutputFolder>$(SolutionDir)..\assets\</SetupExeOutputFolder>
       <SetupExeName>Particular.ServiceControl-$(GitVersion_LegacySemVerPadded).exe</SetupExeName>
     </PropertyGroup>
     <MakeDir Directories="$(SetupExeOutputFolder)" />
