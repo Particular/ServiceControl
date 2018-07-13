@@ -9,9 +9,7 @@
     {
         protected override void Validate(object arguments, EngineIntrinsics engineIntrinsics)
         {
-            ProviderInfo provider;
-            PSDriveInfo drive;
-            engineIntrinsics.SessionState.Path.GetUnresolvedProviderPathFromPSPath((string)arguments, out provider, out drive);
+            engineIntrinsics.SessionState.Path.GetUnresolvedProviderPathFromPSPath((string)arguments, out var provider, out _);
             if (provider.ImplementingType != typeof(FileSystemProvider))
             {
                 throw new ArgumentException("Path is invalid");

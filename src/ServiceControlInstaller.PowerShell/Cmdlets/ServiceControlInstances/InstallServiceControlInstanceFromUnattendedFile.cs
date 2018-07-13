@@ -39,9 +39,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-            ProviderInfo provider;
-            PSDriveInfo drive;
-            var psPath =  SessionState.Path.GetUnresolvedProviderPathFromPSPath(UnattendFile, out provider, out drive);
+            var psPath =  SessionState.Path.GetUnresolvedProviderPathFromPSPath(UnattendFile, out _, out _);
             
             var details = ServiceControlNewInstance.Load(psPath);
             details.ServiceAccount = ServiceAccount;

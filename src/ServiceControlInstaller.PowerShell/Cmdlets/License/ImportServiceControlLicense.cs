@@ -22,9 +22,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-            ProviderInfo provider;
-            PSDriveInfo drive;
-            var psPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(File, out provider, out drive);
+            var psPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(File, out var provider, out _);
 
             if (provider.ImplementingType != typeof(FileSystemProvider))
             {
