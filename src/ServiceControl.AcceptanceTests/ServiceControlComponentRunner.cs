@@ -15,7 +15,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Threading.Tasks;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
-    using NLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -24,7 +23,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Settings;
-    using LogManager = NServiceBus.Logging.LogManager;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
