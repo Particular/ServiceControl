@@ -177,7 +177,35 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
             logger.Info(startupMessage);
             endpointConfiguration.SetDiagnosticsPath(loggingSettings.LogPath);
-            endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", startupMessage);
+            endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
+            {
+                Settings = new
+                {
+                    settings.ApiUrl,
+                    settings.AuditLogQueue,
+                    settings.AuditQueue,
+                    settings.DatabaseMaintenancePort,
+                    settings.ErrorLogQueue,
+                    settings.DisableRavenDBPerformanceCounters,
+                    settings.DbPath,
+                    settings.ErrorQueue,
+                    settings.ForwardAuditMessages,
+                    settings.ForwardErrorMessages,
+                    settings.HttpDefaultConnectionLimit,
+                    settings.IngestAuditMessages,
+                    settings.IngestErrorMessages,
+                    settings.MaxBodySizeToStore,
+                    settings.MaximumConcurrencyLevel,
+                    settings.Port,
+                    settings.ProcessRetryBatchesFrequency,
+                    settings.RemoteInstances,
+                    settings.RetryHistoryDepth,
+                    settings.RunInMemory,
+                    settings.SkipQueueCreation,
+                    settings.TransportCustomizationType
+                },
+                LoggingSettings = loggingSettings
+            });
         }
     }
 }
