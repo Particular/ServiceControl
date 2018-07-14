@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AuditLoadGenerator
+﻿namespace ServiceControl.LoadTests.AuditGenerator
 {
     using System.Threading.Tasks;
     using NServiceBus;
@@ -15,7 +15,7 @@
 
         public Task Handle(QueueLengthReport message, IMessageHandlerContext context)
         {
-            return generators.QueueLenghtReported(message.Queue, message.Machine, message.Length);
+            return generators.QueueLengthReported(message.Queue, message.Machine, message.Length);
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿namespace ServiceControl.AuditLoadGenerator
+﻿namespace ServiceControl.LoadTests.AuditGenerator
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using ILog = NServiceBus.Logging.ILog;
 
     class LoadGenerator
     {
@@ -26,7 +25,7 @@
             this.maxLength = maxLength;
         }
 
-        public async Task QueueLenghtReported(int length)
+        public async Task QueueLengthReported(int length)
         {
             await semaphore.WaitAsync().ConfigureAwait(false);
             try

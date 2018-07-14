@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AuditLoadGenerator
+﻿namespace ServiceControl.LoadTests.AuditGenerator
 {
     using System;
     using System.Collections.Concurrent;
@@ -19,11 +19,11 @@
             this.maxLength = maxLength;
         }
 
-        public Task QueueLenghtReported(string queue, string machine, int length)
+        public Task QueueLengthReported(string queue, string machine, int length)
         {
             var destination = $"{queue}@{machine}";
             var gen = generators.GetOrAdd(destination, k => new LoadGenerator(k, generateMessages, minLength, maxLength));
-            return gen.QueueLenghtReported(length);
+            return gen.QueueLengthReported(length);
         }
     }
 }

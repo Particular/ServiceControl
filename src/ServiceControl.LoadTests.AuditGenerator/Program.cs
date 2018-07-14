@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace ServiceControl.AuditLoadGenerator
+﻿namespace ServiceControl.LoadTests.AuditGenerator
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Metrics;
@@ -23,7 +22,7 @@ namespace ServiceControl.AuditLoadGenerator
         {
             if (args.Length < 3)
             {
-                Console.WriteLine("Usage: AuditLoadGenerator <endpoint-name> <min-lenght> <max-length>");
+                Console.WriteLine("Usage: AuditGenerator <endpoint-name> <min-length> <max-length>");
                 return;
             }
 
