@@ -5,7 +5,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Raw;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.Transport;
+    using ServiceControl.Transports;
 
     public class RawEndpointFactory
     {

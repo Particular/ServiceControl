@@ -9,7 +9,7 @@
     using NLog.Common;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy;
-    using ServiceControl.Infrastructure.Transport;
+    using ServiceControl.Transports;
 
     public class Settings
     {

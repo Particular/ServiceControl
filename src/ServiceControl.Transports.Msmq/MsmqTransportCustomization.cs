@@ -2,7 +2,6 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
-    using ServiceControl.Infrastructure.Transport;
 
     public class MsmqTransportCustomization : TransportCustomization
     {

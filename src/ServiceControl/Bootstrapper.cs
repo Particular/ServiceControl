@@ -13,10 +13,10 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
-    using global::ServiceControl.Infrastructure.Transport;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Operations;
+    using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;

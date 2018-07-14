@@ -2,14 +2,11 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
-    using ServiceControl.Infrastructure.Transport;
 
     public class ASQTransportCustomization : TransportCustomization
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, string connectionString)
-        {
-            endpointConfig.UseSerialization<NewtonsoftSerializer>();
-            
+        {           
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
             ConfigureTransport(transport, connectionString);
             CustomizeEndpointTransport(transport);

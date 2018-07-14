@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.Transport
+﻿namespace ServiceControl.Transports
 {
     using NServiceBus;
     using NServiceBus.Raw;

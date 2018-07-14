@@ -4,7 +4,6 @@
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.Transport;
 
     public class SqlServerTransportCustomization : TransportCustomization
     {

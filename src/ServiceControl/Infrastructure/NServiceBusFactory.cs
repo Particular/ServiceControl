@@ -15,8 +15,8 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Infrastructure.Transport;
     using ServiceControl.Operations;
+    using ServiceControl.Transports;
 
     public static class NServiceBusFactory
     {

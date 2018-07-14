@@ -4,14 +4,11 @@
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Raw;
-    using ServiceControl.Infrastructure.Transport;
 
     public class ASBEndpointTopologyTransportCustomization : TransportCustomization
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, string connectionString)
-        {
-            endpointConfig.UseSerialization<NewtonsoftSerializer>();
-            
+        {           
             var remoteInstances = endpointConfig.GetSettings().Get<string[]>("ServiceControl.RemoteInstances");
             var remoteTypesToSubscribeTo = endpointConfig.GetSettings().Get<Type[]>("ServiceControl.RemoteTypesToSubscribeTo");
             var endpointName = endpointConfig.GetSettings().Get<string>("ServiceControl.EndpointName");
