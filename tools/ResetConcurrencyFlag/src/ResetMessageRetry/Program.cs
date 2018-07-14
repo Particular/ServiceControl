@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Threading;
 using Raven.Client.Document;
 
 namespace ResetMessageRetry
@@ -27,7 +25,7 @@ namespace ResetMessageRetry
             Console.Out.WriteLine("Resetting message...");
             ResetMessages(store, args[0]);
             Console.Out.WriteLine("Done");
-            
+
             return 0;
         }
 

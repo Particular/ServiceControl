@@ -7,7 +7,7 @@
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Particular.ServiceControl.Licensing;
+    using Particular.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
@@ -66,7 +66,7 @@
             if (File.Exists(localRavenLicense))
             {
                 Logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
-                documentStore.Configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
+                documentStore.Configuration.Settings["Raven/License"] = NonBlockingReader.ReadAllTextWithoutLocking(localRavenLicense);
             }
             else
             {

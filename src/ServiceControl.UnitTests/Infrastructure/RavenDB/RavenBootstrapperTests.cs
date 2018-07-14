@@ -9,6 +9,7 @@ class RavenBootstrapperTests
     public void ReadLicense()
     {
         var readLicense = RavenBootstrapper.ReadLicense();
-        Assert.IsNotNullOrEmpty(readLicense);
+        Assert.IsNotNull(readLicense);
+        Assert.IsNotEmpty(readLicense);
     }
 }

@@ -10,7 +10,7 @@
     using ServiceControl.Config.Framework.Commands;
     using ICommand = System.Windows.Input.ICommand;
 
-    [ImplementPropertyChanged]
+    [AddINotifyPropertyChangedInterface]
     public partial class ExceptionMessageBox: IProgressViewModel
     {
         static RaygunFeedback reporter;

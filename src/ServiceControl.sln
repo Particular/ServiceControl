@@ -3,38 +3,35 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installer", "Installer", "{55C388DD-2B39-4C2F-AEBD-AFD3444815F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Engine", "ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj", "{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.Engine", "ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj", "{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.PowerShell", "ServiceControlInstaller.PowerShell\ServiceControlInstaller.PowerShell.csproj", "{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.CustomActions", "ServiceControlInstaller.CustomActions\ServiceControlInstaller.CustomActions.csproj", "{2343779D-26D4-4F9D-A42F-32E146632EF0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.Packaging", "ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Config", "ServiceControl.Config\ServiceControl.Config.csproj", "{C0EEF6D1-5DF7-4A26-9964-6376F465B085}"
 	ProjectSection(ProjectDependencies) = postProject
 		{15F811B7-314C-4E9E-B5E9-35596045BBC4} = {15F811B7-314C-4E9E-B5E9-35596045BBC4}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.PowerShell", "ServiceControlInstaller.PowerShell\ServiceControlInstaller.PowerShell.csproj", "{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.CustomActions", "ServiceControlInstaller.CustomActions\ServiceControlInstaller.CustomActions.csproj", "{2343779D-26D4-4F9D-A42F-32E146632EF0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Packaging", "ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
-	ProjectSection(ProjectDependencies) = postProject
-		{4C6B71B2-74EF-4B9E-88FF-C56532727C6D} = {4C6B71B2-74EF-4B9E-88FF-C56532727C6D}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Config", "ServiceControl.Config\ServiceControl.Config.csproj", "{C0EEF6D1-5DF7-4A26-9964-6376F465B085}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Setup", "Setup\Setup.csproj", "{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Setup", "Setup\Setup.csproj", "{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C0EEF6D1-5DF7-4A26-9964-6376F465B085} = {C0EEF6D1-5DF7-4A26-9964-6376F465B085}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Engine.UnitTests", "ServiceControlInstaller.Engine.UnitTests\ServiceControlInstaller.Engine.UnitTests.csproj", "{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.Engine.UnitTests", "ServiceControlInstaller.Engine.UnitTests\ServiceControlInstaller.Engine.UnitTests.csproj", "{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.CustomActions.UnitTests", "ServiceControlInstaller.CustomActions.UnitTests\ServiceControlInstaller.CustomActions.UnitTests.csproj", "{20284C68-6381-4AE9-832C-F094E996D913}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.CustomActions.UnitTests", "ServiceControlInstaller.CustomActions.UnitTests\ServiceControlInstaller.CustomActions.UnitTests.csproj", "{20284C68-6381-4AE9-832C-F094E996D913}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CustomTransportConfigurations", "CustomTransportConfigurations", "{A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}"
 EndProject
@@ -48,15 +45,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LoadTests.Qu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LoadTests.AuditGenerator", "ServiceControl.LoadTests.AuditGenerator\ServiceControl.LoadTests.AuditGenerator.csproj", "{0A6BF34E-B7C3-4D3D-908F-BA74DAC4743F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj", "{114E51C5-8EB1-44C6-AC5A-78C8EF6C7D61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj", "{114E51C5-8EB1-44C6-AC5A-78C8EF6C7D61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.SqlServer", "ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj", "{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.SqlServer", "ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj", "{691074CB-67F0-45CE-B3DE-AC9A94AF29B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.Msmq", "ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj", "{46F65684-6439-4199-806E-9EA4CA0AC31C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Msmq", "ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj", "{46F65684-6439-4199-806E-9EA4CA0AC31C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.ASQ", "ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj", "{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.ASQ", "ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj", "{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.ASB", "ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj", "{24C5A540-EE02-4519-B000-EDA470759C5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.ASB", "ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj", "{24C5A540-EE02-4519-B000-EDA470759C5B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9D957EE6-69D7-4680-AB54-9E8839C6BDBC}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		..\GitVersion.yml = ..\GitVersion.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

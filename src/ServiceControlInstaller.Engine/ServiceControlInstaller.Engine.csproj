@@ -1,197 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
+    <TargetFramework>net40</TargetFramework>
+    <DefineConstants>$(DefineConstants);REGISTRYLICENSESOURCE</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E2F41605-F664-4EC6-9D64-1F142CC3B7B2}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControlInstaller.Engine</RootNamespace>
-    <AssemblyName>ServiceControlInstaller.Engine</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <LangVersion>7</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;REGISTRYLICENSESOURCE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;REGISTRYLICENSESOURCE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Packaging|AnyCPU'">
-    <OutputPath>bin\Packaging\</OutputPath>
-    <DefineConstants>TRACE;REGISTRYLICENSESOURCE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <LangVersion>5</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Ionic.Zip, Version=1.9.8.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
-      <HintPath>..\packages\DotNetZip.1.9.8\lib\net20\Ionic.Zip.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Management" />
-    <Reference Include="System.Runtime">
-      <HintPath>..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\System.Runtime.dll</HintPath>
-    </Reference>
     <Reference Include="System.Security" />
-    <Reference Include="System.ServiceProcess">
-      <HintPath>..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.ServiceProcess.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.ServiceProcess" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Accounts\Lsa.cs" />
-    <Compile Include="Accounts\UserAccount.cs" />
-    <Compile Include="Api\LogonPrivileges.cs" />
-    <Compile Include="Api\LsaObjectAttributes.cs" />
-    <Compile Include="Api\LsaUnicodeString.cs" />
-    <Compile Include="Api\LUID.cs" />
-    <Compile Include="Api\LUID_AND_ATTRIBUTES.cs" />
-    <Compile Include="Api\ProfileInfo.cs" />
-    <Compile Include="Api\SafeTokenHandle.cs" />
-    <Compile Include="Api\ServiceControlManager.cs" />
-    <Compile Include="Api\TokenPrivileges.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FilePathLicenseStore.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\ActiveLicense.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\ActiveLicenseFindResult.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSource.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceAppConfigLicensePathSetting.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceAppConfigLicenseSetting.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceFilePath.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceHKCURegKey.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceHKLMRegKey.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceResult.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\LicenseSourceUserProvided.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\FindActiveLicense\NonBlockingReader.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\License.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\LicenseDeserializer.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\LicenseExpirationChecker.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\LicenseVerifier.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\RegistryLicenseStore.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\ReleaseDateAttribute.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\ReleaseDateReader.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\TrialStartDateStore.cs" />
-    <Compile Include="App_Packages\Particular.Licensing\UniversalDateParser.cs" />
-    <Compile Include="Configuration\AppConfigWrapper.cs" />
-    <Compile Include="Configuration\Monitoring\SettingsList.cs" />
-    <Compile Include="Configuration\ServiceControl\Compatibility.cs" />
-    <Compile Include="Configuration\Monitoring\AppConfig.cs" />
-    <Compile Include="Configuration\RegistryReader.cs" />
-    <Compile Include="Configuration\ServiceControl\AppConfig.cs" />
-    <Compile Include="Configuration\ServiceControl\SettingConstants.cs" />
-    <Compile Include="Configuration\ServiceControl\SettingsList.cs" />
-    <Compile Include="Configuration\SettingInfo.cs" />
-    <Compile Include="Database\DatabaseMigrations.cs" />
-    <Compile Include="Database\DatabaseMigrationsException.cs" />
-    <Compile Include="Database\DatabaseMigrationsTimeoutException.cs" />
-    <Compile Include="FileSystem\ReleaseDateReader.cs" />
-    <Compile Include="FileSystem\MonitoringZipInfo.cs" />
-    <Compile Include="Instances\BaseService.cs" />
-    <Compile Include="Instances\Constants.cs" />
-    <Compile Include="Instances\Instances.cs" />
-    <Compile Include="Instances\InstanceType.cs" />
-    <Compile Include="Instances\ServiceControlUpgradeOptions.cs" />
-    <Compile Include="Instances\MonitoringInstance.cs" />
-    <Compile Include="Instances\MonitoringNewInstance.cs" />
-    <Compile Include="Instances\MonitoringTransports.cs" />
-    <Compile Include="Unattended\UnattendMonitoringInstaller.cs" />
-    <Compile Include="Unattended\XmlTimeSpan.cs" />
-    <Compile Include="Queues\QueueCreationException.cs" />
-    <Compile Include="Queues\QueueCreationTimeoutException.cs" />
-    <Compile Include="ReportCard\TruncatedStringList.cs" />
-    <Compile Include="Validation\ConnectionStringValidator.cs" />
-    <Compile Include="Queues\QueueCreation.cs" />
-    <Compile Include="Validation\EngineValidationException.cs" />
-    <Compile Include="Validation\DatabaseMaintenancePortValidator.cs" />
-    <Compile Include="Validation\MsmqConfigValidator.cs" />
-    <Compile Include="ReportCard\Status.cs" />
-    <Compile Include="ReportCard\ReportCard.cs" />
-    <Compile Include="Services\ServiceRecoveryHelper.cs" />
-    <Compile Include="Configuration\ConfigurationSectionExtensions.cs" />
-    <Compile Include="FileSystem\ServiceControlZipInfo.cs" />
-    <Compile Include="FileSystem\FileUtils.cs" />
-    <Compile Include="FileSystem\NonLockingFileReader.cs" />
-    <Compile Include="Interfaces.cs" />
-    <Compile Include="Validation\PathInfo.cs" />
-    <Compile Include="Validation\PortValidator.cs" />
-    <Compile Include="Validation\ServiceControlQueueNameValidator.cs" />
-    <Compile Include="Instances\ServiceControlInstance.cs" />
-    <Compile Include="Instances\ServiceControlNewInstance.cs" />
-    <Compile Include="Instances\TransportInfo.cs" />
-    <Compile Include="Instances\ServiceControlCoreTransports.cs" />
-    <Compile Include="LicenseMgmt\DetectedLicense.cs" />
-    <Compile Include="LicenseMgmt\LicenseDetails.cs" />
-    <Compile Include="LicenseMgmt\LicenseManager.cs" />
-    <Compile Include="Logging.cs" />
-    <Compile Include="Validation\PortUtils.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\WindowsServiceController.cs" />
-    <Compile Include="Services\WindowsServiceDetails.cs" />
-    <Compile Include="Unattended\UnattendServiceControlInstaller.cs" />
-    <Compile Include="UrlAcl\Api\ErrorCode.cs" />
-    <Compile Include="UrlAcl\Api\HttpApi.cs" />
-    <Compile Include="UrlAcl\Api\HttpApiConstants.cs" />
-    <Compile Include="UrlAcl\Api\HttpApiVersion.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigId.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigIPListenParam.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigIPListenQuery.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigQueryType.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigSslKey.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigSslParam.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigSslQuery.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigSslSet.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclKey.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclParam.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclQuery.cs" />
-    <Compile Include="UrlAcl\Api\HttpServiceConfigUrlAclSet.cs" />
-    <Compile Include="UrlAcl\UrlReservation.cs" />
-    <Compile Include="Validation\ServiceAccountValidation.cs" />
-    <Compile Include="Validation\PathsValidator.cs" />
+    <PackageReference Include="DotNetZip" Version="1.9.8" />
+    <PackageReference Include="Particular.Licensing.Sources" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Particular.Licensing.Sources.1.0.0\build\Particular.Licensing.Sources.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Particular.Licensing.Sources.1.0.0\build\Particular.Licensing.Sources.targets'))" />
-    <Error Condition="!Exists('..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets'))" />
-  </Target>
-  <Import Project="..\packages\Particular.Licensing.Sources.1.0.0\build\Particular.Licensing.Sources.targets" Condition="Exists('..\packages\Particular.Licensing.Sources.1.0.0\build\Particular.Licensing.Sources.targets')" />
-  <Import Project="..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets')" />
+
 </Project>

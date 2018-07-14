@@ -1,129 +1,30 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
+    <TargetFramework>net40</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FA9439BF-37B4-4F27-B7E9-BE3605E66BE7}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControlInstaller.PowerShell</RootNamespace>
-    <AssemblyName>ServiceControlInstaller.PowerShell</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <LangVersion>7</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Packaging|AnyCPU'">
-    <OutputPath>bin\Packaging\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Management.Automation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>True</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Cmdlets\MonitoringInstances\GetMonitoringInstances.cs" />
-    <Compile Include="Cmdlets\MonitoringInstances\InvokeMonitoringUpgrade.cs" />
-    <Compile Include="Cmdlets\MonitoringInstances\NewMonitoringInstance.cs" />
-    <Compile Include="Cmdlets\MonitoringInstances\PsMonitoringService.cs" />
-    <Compile Include="Cmdlets\ServiceControlInstances\PSServiceControl.cs" />
-    <Compile Include="Cmdlets\ServiceControlInstances\NewServiceControlInstance.cs" />
-    <Compile Include="Cmdlets\ServiceControlInstances\NewServiceControlUnattendedFile.cs" />
-    <Compile Include="Cmdlets\MonitoringInstances\RemoveMonitoringInstance.cs" />
-    <Compile Include="Validation\ValidatePathAttribute.cs" />
-    <Compile Include="Validation\ValidateTimeSpanAttribute.cs" />
-    <Compile Include="Cmdlets\Ports\PsPortAvailability.cs" />
-    <Compile Include="Cmdlets\Transports\PsTransportInfo.cs" />
-    <Compile Include="Cmdlets\UrlAcls\AddUrlAcl.cs" />
-    <Compile Include="Cmdlets\UrlAcls\GetUrlAcls.cs" />
-    <Compile Include="Cmdlets\UrlAcls\RemoveUrlAcl.cs" />
-    <Compile Include="Cmdlets\User\GetSecurityIdentifier.cs" />
-    <Compile Include="Cmdlets\ServiceControlInstances\GetServiceControlInstances.cs" />
-    <Compile Include="Cmdlets\License\GetServiceControlLicense.cs" />
-    <Compile Include="Cmdlets\Transports\GetServiceControlTransportTypes.cs" />
-    <Compile Include="Cmdlets\License\ImportServiceControlLicense.cs" />
-    <Compile Include="Cmdlets\ServiceControlInstances\InstallServiceControlInstanceFromUnattendedFile.cs" />
-    <Compile Include="Cmdlets\ServiceControlInstances\InvokeServiceControlInstanceUpgrade.cs" />
-    <Compile Include="Cmdlets\ServiceControlInstances\RemoveServiceControlInstance.cs" />
-    <Compile Include="Cmdlets\Ports\TestIfPortIsAvailable.cs" />
-    <Compile Include="Helpers\Account.cs" />
-    <Compile Include="Helpers\PSLogger.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <PackageReference Include="Microsoft.PowerShell.3.ReferenceAssemblies" Version="1.0.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj">
-      <Project>{e2f41605-f664-4ec6-9d64-1f142cc3b7b2}</Project>
-      <Name>ServiceControlInstaller.Engine</Name>
-    </ProjectReference>
+    <None Update="ServiceControlInstaller.Powershell.dll-help.xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ServiceControlMgmt.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ServiceControlMgmt.psd1" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ServiceControlMgmt.psm1" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ShortcutStartup.ps1" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="ServiceControlInstaller.Powershell.dll-help.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ServiceControlMgmt.psd1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ShortcutStartup.ps1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ServiceControlMgmt.psm1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ServiceControlMgmt.format.ps1xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <UsingTask TaskName="FileUpdate" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+
+  <UsingTask TaskName="FileUpdate" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
-      <Files ParameterType = "Microsoft.Build.Framework.ITaskItem[]" Required="true" />
-      <Pattern ParameterType = "System.String" Required="true" />
-      <ReplacementText ParameterType = "System.String" Required="true" />
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Pattern ParameterType="System.String" Required="true" />
+      <ReplacementText ParameterType="System.String" Required="true" />
     </ParameterGroup>
     <Task>
       <Using Namespace="System.Text.RegularExpressions" />
@@ -131,29 +32,24 @@
       <Code Type="Fragment" Language="cs">
         <![CDATA[
                RegexOptions options = RegexOptions.Multiline | RegexOptions.IgnoreCase;
-               if (Files.Length > 0)  
-               {  
-                    for (int i = 0; i<Files.Length; i++)  
-                    {  
+               if (Files.Length > 0)
+               {
+                    for (int i = 0; i < Files.Length; i++)
+                    {
                         string path = Files[i].GetMetadata("FullPath");
                         File.WriteAllText(path, Regex.Replace(File.ReadAllText(path), Pattern, ReplacementText, options));
-                    }  
-                }  
+                    }
+                }
             ]]>
       </Code>
     </Task>
   </UsingTask>
-  <Target Name="AfterBuild">
+
+  <Target Name="UpdateModuleManifestVersion" AfterTargets="Build">
     <ItemGroup>
       <PSModuleFile Include="$(OutputPath)\ServiceControlMgmt.psd1" />
     </ItemGroup>
     <FileUpdate Files="@(PSModuleFile)" Pattern="{{Version}}" ReplacementText="$(GitVersion_MajorMinorPatch)" />
   </Target>
-  <Import Project="..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.3.6.5\build\portable-net+sl+win+wpa+wp\GitVersionTask.targets'))" />
-  </Target>
+
 </Project>

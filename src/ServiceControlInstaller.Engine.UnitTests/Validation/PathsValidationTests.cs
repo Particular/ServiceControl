@@ -108,7 +108,7 @@
 
             var p = new PathsValidator(newInstance);
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckNoNestedPaths());
-            Assert.That(ex.Message, Is.StringContaining("Nested paths are not supported"));
+            Assert.That(ex.Message, Does.Contain("Nested paths are not supported"));
         }
 
         [Test]

@@ -139,10 +139,10 @@
     <ROW AliasRowId="dialog" AliasRowOperation="2" Data="Res\dialog.jpg"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AppPathsComponent">
-    <ROW Name="CUSTOMACTIONS_PATH" Path="..\ServiceControlInstaller.CustomActions\bin\Release" Type="2" Content="0"/>
-    <ROW Name="POSH_PATH" Path="..\ServiceControlInstaller.PowerShell\bin\Release" Type="2" Content="0"/>
+    <ROW Name="CUSTOMACTIONS_PATH" Path="..\ServiceControlInstaller.CustomActions\bin\Release\net40" Type="2" Content="0"/>
+    <ROW Name="POSH_PATH" Path="..\ServiceControlInstaller.PowerShell\bin\Release\net40" Type="2" Content="0"/>
     <ROW Name="PROJECT_PATH" Path="." Type="2" Content="0"/>
-    <ROW Name="WPF_PATH" Path="..\ServiceControl.Config\bin\Release" Type="2" Content="0"/>
+    <ROW Name="WPF_PATH" Path="..\ServiceControl.Config\bin\Release\net452" Type="2" Content="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="hq" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites"/>
