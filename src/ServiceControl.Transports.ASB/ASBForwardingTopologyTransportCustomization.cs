@@ -5,34 +5,24 @@
 
     public class ASBForwardingTopologyTransportCustomization : TransportCustomization
     {
-        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, string connectionString)
+        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {           
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
-            ConfigureTransport(transport, connectionString);
-            CustomizeEndpointTransport(transport);
+            ConfigureTransport(transport, transportSettings);
         }
 
-        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, string connectionString)
+        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
             transport.ApplyHacksForNsbRaw();
-            ConfigureTransport(transport, connectionString);
-            CustomizeRawEndpointTransport(transport);
+            ConfigureTransport(transport, transportSettings);
         }
-        
-        protected virtual void CustomizeEndpointTransport(TransportExtensions<AzureServiceBusTransport> extensions)
-        {
-        }
-
-        protected virtual void CustomizeRawEndpointTransport(TransportExtensions<AzureServiceBusTransport> extensions)
-        {
-        }
-        
-        static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, string connectionString)
+                
+        static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
             transport.UseForwardingTopology();
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
-            transport.ConnectionString(connectionString);
+            transport.ConnectionString(transportSettings.ConnectionString);
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
         }
     }

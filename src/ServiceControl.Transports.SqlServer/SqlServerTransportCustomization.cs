@@ -3,18 +3,17 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class SqlServerTransportCustomization : TransportCustomization
     {
         static readonly ILog Logger = LogManager.GetLogger(typeof(SqlServerTransportCustomization));
         
-        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, string connectionString)
+        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {          
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
-            transport.ConnectionString(connectionString);
+            transport.ConnectionString(transportSettings.ConnectionString);
 
-            if (SettingsReader<bool>.Read("EnableDtc"))
+            if (transportSettings.EnableDTC)
             {
                 transport.Transactions(TransportTransactionMode.TransactionScope);
                 Logger.Info("DTC has been ENABLED");
@@ -24,23 +23,13 @@
                 transport.Transactions(TransportTransactionMode.ReceiveOnly);
                 Logger.Info("DTC is DISABLED");
             }
-            CustomizeEndpointTransport(transport);
         }
 
-        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, string connectionString)
+        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
-            transport.ConnectionString(connectionString);
+            transport.ConnectionString(transportSettings.ConnectionString);
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
-            CustomizeRawEndpointTransport(transport);
-        }
-
-        protected virtual void CustomizeEndpointTransport(TransportExtensions<SqlServerTransport> extensions)
-        {
-        }
-
-        protected virtual void CustomizeRawEndpointTransport(TransportExtensions<SqlServerTransport> extensions)
-        {
         }
     }
 }

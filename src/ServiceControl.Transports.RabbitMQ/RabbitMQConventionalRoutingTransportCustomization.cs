@@ -5,33 +5,23 @@
 
     public class RabbitMQConventionalRoutingTransportCustomization : TransportCustomization
     {
-        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, string connectionString)
+        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<RabbitMQTransport>();
-            ConfigureTransport(transport, connectionString);
-            CustomizeEndpointTransport(transport);
+            ConfigureTransport(transport, transportSettings);
         }
 
-        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, string connectionString)
+        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<RabbitMQTransport>();
-            ConfigureTransport(transport, connectionString);
-            CustomizeRawEndpointTransport(transport);
+            ConfigureTransport(transport, transportSettings);
         }
 
-        protected virtual void CustomizeEndpointTransport(TransportExtensions<RabbitMQTransport> extensions)
-        {
-        }
-
-        protected virtual void CustomizeRawEndpointTransport(TransportExtensions<RabbitMQTransport> extensions)
-        {
-        }
-
-        static void ConfigureTransport(TransportExtensions<RabbitMQTransport> transport, string connectionString)
+        static void ConfigureTransport(TransportExtensions<RabbitMQTransport> transport, TransportSettings transportSettings)
         {
             transport.UseConventionalRoutingTopology();
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
-            transport.ConnectionString(connectionString);
+            transport.ConnectionString(transportSettings.ConnectionString);
         }
     }
 }
