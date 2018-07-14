@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace ServiceControl.LoadTests.QueueLengthMonitor
+﻿namespace ServiceControl.LoadTests.QueueLengthMonitor
 {
+    using System;
     using System.Messaging;
     using System.Threading.Tasks;
     using NServiceBus;
