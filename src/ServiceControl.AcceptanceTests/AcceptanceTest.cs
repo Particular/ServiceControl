@@ -7,6 +7,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
@@ -262,6 +263,7 @@ namespace ServiceBus.Management.AcceptanceTests
             Trace.WriteLine(message);
             StaticLoggerFactory.CurrentContext.Logs.Enqueue(new ScenarioContext.LogItem
             {
+                Endpoint =  (string) typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).GetValue(StaticLoggerFactory.CurrentContext),
                 Level = messageSeverity,
                 Message = message
             });

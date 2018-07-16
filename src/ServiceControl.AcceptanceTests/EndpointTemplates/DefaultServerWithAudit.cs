@@ -4,8 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Reflection;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
@@ -56,6 +58,8 @@
             builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
             builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
+            
+            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
             
             configurationBuilderCustomization(builder);
 

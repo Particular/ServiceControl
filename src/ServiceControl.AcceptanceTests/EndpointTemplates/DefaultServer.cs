@@ -2,10 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Reflection;
     using System.Threading.Tasks;
     using AcceptanceTesting.Customization;
     using AcceptanceTesting.Support;
     using Features;
+    using NServiceBus.AcceptanceTesting;
     using ServiceBus.Management.AcceptanceTests;
 
     public class DefaultServer : IEndpointSetupTemplate
@@ -47,6 +49,8 @@
 
             await configuration.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
+            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
+            
             configurationBuilderCustomization(configuration);
 
             return configuration;

@@ -9,6 +9,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
+    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading;
@@ -80,6 +81,8 @@ namespace ServiceBus.Management.AcceptanceTests
             var startPort = 33333;
             foreach (var instanceName in instanceNames)
             {
+                typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(context, instanceName);
+                
                 var instancePort = FindAvailablePort(startPort++);
                 var maintenancePort = FindAvailablePort(startPort++);
 
