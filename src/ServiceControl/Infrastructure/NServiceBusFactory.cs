@@ -88,6 +88,7 @@ namespace ServiceBus.Management.Infrastructure
         private static void MapSettings(TransportSettings transportSettings, Settings.Settings settings)
         {
             transportSettings.EndpointName = settings.ServiceName;
+            transportSettings.ConnectionString = settings.TransportConnectionString;
         }
 
         public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
