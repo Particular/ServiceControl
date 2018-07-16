@@ -6,8 +6,6 @@
     {
         public string ConnectionString { get; set; }
         
-        public bool EnableDTC { get; set; }
-
         public string EndpointName { get; set; }
     }
 }

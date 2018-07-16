@@ -37,6 +37,7 @@ namespace ServiceBus.Management.Infrastructure
             MapSettings(transportSettings, settings);
             transportSettings.Set("TransportSettings.RemoteInstances", settings.RemoteInstances.Select(x => x.QueueAddress).ToArray());
             transportSettings.Set("TransportSettings.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
+            transportSettings.Set("TransportSettings.EnableDtc", SettingsReader<bool>.Read("EnableDtc"));
 
             transportCustomization.CustomizeEndpoint(configuration, transportSettings);
 
@@ -86,7 +87,6 @@ namespace ServiceBus.Management.Infrastructure
 
         private static void MapSettings(TransportSettings transportSettings, Settings.Settings settings)
         {
-            transportSettings.EnableDTC = SettingsReader<bool>.Read("EnableDtc");
             transportSettings.EndpointName = settings.ServiceName;
         }
 

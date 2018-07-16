@@ -13,7 +13,7 @@
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             transport.ConnectionString(transportSettings.ConnectionString);
 
-            if (transportSettings.EnableDTC)
+            if (transportSettings.Get<bool>("TransportSettings.EnableDtc"))
             {
                 transport.Transactions(TransportTransactionMode.TransactionScope);
                 Logger.Info("DTC has been ENABLED");
