@@ -33,9 +33,12 @@ namespace ServiceBus.Management.Infrastructure
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set<EmbeddableDocumentStore>(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
+            var remoteInstanceAddresses = settings.RemoteInstances.Select(x => x.QueueAddress).ToArray();
+            configuration.GetSettings().Set("ServiceControl.RemoteInstances", remoteInstanceAddresses);
+            configuration.GetSettings().Set("ServiceControl.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
 
             MapSettings(transportSettings, settings);
-            transportSettings.Set("TransportSettings.RemoteInstances", settings.RemoteInstances.Select(x => x.QueueAddress).ToArray());
+            transportSettings.Set("TransportSettings.RemoteInstances", remoteInstanceAddresses);
             transportSettings.Set("TransportSettings.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
             transportSettings.Set("TransportSettings.EnableDtc", SettingsReader<bool>.Read("EnableDtc"));
 
