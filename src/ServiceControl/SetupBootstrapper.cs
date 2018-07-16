@@ -2,6 +2,7 @@ namespace Particular.ServiceControl
 {
     using Autofac;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -36,16 +37,20 @@ namespace Particular.ServiceControl
 
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
+
+            var transportSettings = new TransportSettings();
+            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+            
             var loggingSettings = new LoggingSettings(settings.ServiceName);
-            containerBuilder.RegisterInstance(loggingSettings);
+            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
             var documentStore = new EmbeddableDocumentStore();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings);
+            containerBuilder.RegisterInstance(settings).SingleInstance();
 
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), loggingSettings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();    
+                NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();    
             }
         }
 

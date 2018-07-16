@@ -13,10 +13,10 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
-    using global::ServiceControl.Infrastructure.Transport;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Operations;
+    using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -39,6 +39,7 @@ namespace Particular.ServiceControl
         private TimeKeeper timeKeeper;
         private IContainer container;
         private BusInstance bus;
+        private TransportSettings transportSettings;
         public IDisposable WebApp;
         TransportCustomization transportCustomization;
 
@@ -86,7 +87,10 @@ namespace Particular.ServiceControl
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
-            var rawEndpointFactory = new RawEndpointFactory(settings, transportCustomization);
+            transportSettings = new TransportSettings();
+            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+            
+            var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
@@ -114,7 +118,7 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             if (!isRunningAcceptanceTests)

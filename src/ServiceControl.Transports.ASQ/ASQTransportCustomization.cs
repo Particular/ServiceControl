@@ -2,40 +2,27 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
-    using ServiceControl.Infrastructure.Transport;
 
     public class ASQTransportCustomization : TransportCustomization
     {
-        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, string connectionString)
-        {
-            endpointConfig.UseSerialization<NewtonsoftSerializer>();
-            
+        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
+        {           
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
-            ConfigureTransport(transport, connectionString);
-            CustomizeEndpointTransport(transport);
+            ConfigureTransport(transport, transportSettings);
         }
 
-        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, string connectionString)
+        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
             transport.ApplyHacksForNsbRaw();
-            ConfigureTransport(transport, connectionString);
-            CustomizeRawEndpointTransport(transport);
+            ConfigureTransport(transport, transportSettings);
         }
-        
-        protected virtual void CustomizeEndpointTransport(TransportExtensions<AzureStorageQueueTransport> extensions)
-        {
-        }
-
-        protected virtual void CustomizeRawEndpointTransport(TransportExtensions<AzureStorageQueueTransport> extensions)
-        {
-        }
-        
-        static void ConfigureTransport(TransportExtensions<AzureStorageQueueTransport> transport, string connectionString)
+                
+        static void ConfigureTransport(TransportExtensions<AzureStorageQueueTransport> transport, TransportSettings transportSettings)
         {
             transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
-            transport.ConnectionString(connectionString);
+            transport.ConnectionString(transportSettings.ConnectionString);
         }
     }
 }

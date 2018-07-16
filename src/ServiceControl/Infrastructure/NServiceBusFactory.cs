@@ -15,12 +15,12 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Infrastructure.Transport;
     using ServiceControl.Operations;
+    using ServiceControl.Transports;
 
     public static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -33,11 +33,16 @@ namespace ServiceBus.Management.Infrastructure
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set<EmbeddableDocumentStore>(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
-            configuration.GetSettings().Set("ServiceControl.RemoteInstances", settings.RemoteInstances.Select(x => x.QueueAddress).ToArray());
+            var remoteInstanceAddresses = settings.RemoteInstances.Select(x => x.QueueAddress).ToArray();
+            configuration.GetSettings().Set("ServiceControl.RemoteInstances", remoteInstanceAddresses);
             configuration.GetSettings().Set("ServiceControl.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
-            configuration.GetSettings().Set("ServiceControl.EndpointName", endpointName);
 
-            transportCustomization.CustomizeEndpoint(configuration, settings.TransportConnectionString);
+            MapSettings(transportSettings, settings);
+            transportSettings.Set("TransportSettings.RemoteInstances", remoteInstanceAddresses);
+            transportSettings.Set("TransportSettings.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
+            transportSettings.Set("TransportSettings.EnableDtc", SettingsReader<bool>.Read("EnableDtc"));
+
+            transportCustomization.CustomizeEndpoint(configuration, transportSettings);
 
             configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
             configuration.GetSettings().Set<LoggingSettings>(loggingSettings);
@@ -83,10 +88,15 @@ namespace ServiceBus.Management.Infrastructure
             return Endpoint.Create(configuration);
         }
 
-
-        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        private static void MapSettings(TransportSettings transportSettings, Settings.Settings settings)
         {
-            var startableEndpoint = await Create(settings, transportCustomization, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            transportSettings.EndpointName = settings.ServiceName;
+            transportSettings.ConnectionString = settings.TransportConnectionString;
+        }
+
+        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        {
+            var startableEndpoint = await Create(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             var domainEvents = container.Resolve<IDomainEvents>();

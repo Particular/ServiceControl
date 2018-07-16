@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using Microsoft.ServiceBus;
-    using ServiceBus.Management.Infrastructure.Settings;
     using NServiceBus.Logging;
 
     public class CheckDeadLetterQueue : CustomCheck
@@ -13,14 +12,14 @@
         NamespaceManager namespaceManager;
         string stagingQueue;
 
-        public CheckDeadLetterQueue(Settings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
+        public CheckDeadLetterQueue(TransportSettings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
         {
             Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             var transportConnectionString = connectionStringSettings.ConnectionString;
             namespaceManager = NamespaceManager.CreateFromConnectionString(transportConnectionString);
-            stagingQueue = $"{settings.ServiceName}.staging";
+            stagingQueue = $"{settings.EndpointName}.staging";
         }
 
         public override Task<CheckResult> PerformCheck()
