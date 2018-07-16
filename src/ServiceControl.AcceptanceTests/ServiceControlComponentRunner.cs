@@ -19,6 +19,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Logging;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Nancy;
@@ -182,7 +183,7 @@ namespace ServiceBus.Management.AcceptanceTests
                         var logitem = new ScenarioContext.LogItem
                         {
                             Endpoint = settings.ServiceName,
-                            Level = NServiceBus.Logging.LogLevel.Fatal,
+                            Level = LogLevel.Fatal,
                             LoggerName = $"{settings.ServiceName}.CriticalError",
                             Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
                         };
