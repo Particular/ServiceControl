@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus" Version="8.0.0" />
+    <PackageReference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus" Version="8.1.0-fred0001" />
     <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.1.0" />
   </ItemGroup>
