@@ -39,7 +39,7 @@ namespace ServiceBus.Management.AcceptanceTests
             ServicePointManager.Expect100Continue = false; // This ensures tcp ports are free up quicker by the OS, prevents starvation of ports
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
         }
-        
+
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
@@ -60,9 +60,9 @@ namespace ServiceBus.Management.AcceptanceTests
 
             var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
             Console.Out.WriteLine($"Using transport {transportToUse.Name}");
-            
+
             AssertTransportNotExplicitlyIgnored(transportToUse);
-            
+
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
 
             RemoveOtherTransportAssemblies(transportToUse.TypeName);
@@ -98,7 +98,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 return;
             }
 
-            var ignoredTransports = (string[])TestContext.CurrentContext.Test.Properties[ignoreTransportsKey][0];
+            var ignoredTransports = (string[])TestContext.CurrentContext.Test.Properties[ignoreTransportsKey].First();
             if (ignoredTransports.Contains(transportToUse.Name))
             {
                 Assert.Inconclusive($"Transport {transportToUse.Name} has been explicitly ignored for test {TestContext.CurrentContext.Test.Name}");
@@ -159,7 +159,7 @@ namespace ServiceBus.Management.AcceptanceTests
     }
 
     class StaticContextAppender : ILog
-    {        
+    {
         public bool IsDebugEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Debug;
         public bool IsInfoEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Info;
         public bool IsWarnEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Warn;
@@ -269,7 +269,7 @@ namespace ServiceBus.Management.AcceptanceTests
             });
         }
 }
-    
+
     public static class HttpExtensions
     {
         public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
@@ -295,7 +295,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 throw new Exception($"Expected status code not received, instead got {response.StatusCode}.");
             }
         }
-        
+
         public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
