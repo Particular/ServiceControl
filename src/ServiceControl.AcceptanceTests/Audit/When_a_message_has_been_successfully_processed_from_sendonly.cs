@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System;
     using System.Collections.Generic;
