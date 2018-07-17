@@ -45,8 +45,7 @@ namespace ServiceControl.Recoverability
 
             protected override Task OnStop(IMessageSession session)
             {
-                returnToSenderDequeuer.Stop();
-                return Task.FromResult(0);
+                return returnToSenderDequeuer.Stop();
             }
         }
     }
