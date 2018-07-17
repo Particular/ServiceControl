@@ -16,7 +16,12 @@
     public class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
         // TODO: Add these transports back if/when then are updated to match this behavior
-        [Test, IgnoreTransports("AzureServiceBus", "AzureStorageQueues", "RabbitMq")]
+        [Test, IgnoreTransports(
+             "AzureServiceBus - Endpoint Topology", 
+             "AzureServiceBus - Forwarding Topology", 
+             "AzureStorageQueues", 
+             "RabbitMq - Conventional Routing Topology",
+             "RabbitMq - Direct Routing Topology")]
         public async Task The_header_should_not_be_changed()
         {
             var context = await Define<ReplyToContext>(ctx => { ctx.ReplyToAddress = "ReplyToAddress@SOMEMACHINE"; })
