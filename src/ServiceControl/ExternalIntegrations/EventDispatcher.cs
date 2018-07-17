@@ -87,7 +87,11 @@
                     await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
                 } while (!tokenSource.IsCancellationRequested);
             }
-            catch (Exception ex) when(!(ex is OperationCanceledException))
+            catch(OperationCanceledException)
+            {
+                // ignore
+            }
+            catch (Exception ex)
             {
                 Logger.Error("An exception occurred when dispatching external integration events", ex);
                 await circuitBreaker.Failure(ex).ConfigureAwait(false);
