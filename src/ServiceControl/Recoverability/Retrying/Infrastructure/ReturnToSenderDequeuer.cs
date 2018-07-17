@@ -9,14 +9,15 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
-    using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
+    using FailedMessage = MessageFailures.FailedMessage;
 
     public class ReturnToSenderDequeuer
     {
         Timer timer;
-        TaskCompletionSource<bool> syncEvent = new TaskCompletionSource<bool>();
+        TaskCompletionSource<bool> syncEvent;
+        TaskCompletionSource<bool> stopCompletionSource;
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
-        bool endedPrematurelly;
+        private bool endedPrematurelly;
         int? targetMessageCount;
         int actualMessageCount;
         Predicate<MessageContext> shouldProcess;
@@ -30,7 +31,7 @@ namespace ServiceControl.Recoverability
         {
             InputAddress = $"{endpointName}.staging";
             this.returnToSender = returnToSender;
-            
+
             createEndpointConfiguration = () =>
             {
                 var config = rawEndpointFactory.CreateRawEndpointConfiguration(InputAddress, Handle, transportDefinition);
@@ -41,7 +42,7 @@ namespace ServiceControl.Recoverability
             };
 
             faultManager = new CaptureIfMessageSendingFails(store, domainEvents, IncrementCounterOrProlongTimer);
-            timer = new Timer(state => StopInternal());
+            timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
         }
 
         async Task Handle(MessageContext message, IDispatchMessages sender)
@@ -86,7 +87,7 @@ namespace ServiceControl.Recoverability
             {
                 Log.DebugFormat("Target count reached. Shutting down forwarder");
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
-                Task.Run(() => StopInternal());
+                Task.Run(StopInternal);
             }
         }
 
@@ -116,8 +117,11 @@ namespace ServiceControl.Recoverability
 
                 var config = createEndpointConfiguration();
                 syncEvent = new TaskCompletionSource<bool>();
-                registration = cancellationToken.Register(() => { Task.Run(() => syncEvent.TrySetCanceled(), CancellationToken.None); });
+                stopCompletionSource = new TaskCompletionSource<bool>();
+                registration = cancellationToken.Register(() => { Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None); });
+
                 processor = await RawEndpoint.Start(config).ConfigureAwait(false);
+
                 if (!expectedMessageCount.HasValue)
                 {
                     Log.Debug("Running in timeout mode. Starting timer");
@@ -134,6 +138,8 @@ namespace ServiceControl.Recoverability
                 {
                     await processor.Stop().ConfigureAwait(false);
                 }
+
+                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None);
                 Log.DebugFormat("{0} finished", GetType().Name);
             }
 
@@ -143,16 +149,17 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        public void Stop()
+        public Task Stop()
         {
             timer.Dispose();
             endedPrematurelly = true;
-            Task.Run(() => syncEvent.TrySetResult(true));
+            return StopInternal();
         }
 
-        void StopInternal()
+        private async Task StopInternal()
         {
-            Task.Run(() => syncEvent.TrySetResult(true));
+            await Task.Run(() => syncEvent?.TrySetResult(true)).ConfigureAwait(false);
+            await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0)).ConfigureAwait(false);
             Log.InfoFormat("{0} stopped", GetType().Name);
         }
 
@@ -169,7 +176,6 @@ namespace ServiceControl.Recoverability
                 this.executeOnFailure = executeOnFailure;
                 this.domainEvents = domainEvents;
             }
-
             public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
                 try

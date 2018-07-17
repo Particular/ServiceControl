@@ -196,7 +196,11 @@
                         }
                     } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
                 }
-                catch (Exception ex) when(!(ex is OperationCanceledException))
+                catch (OperationCanceledException)
+                {
+                    // ignore
+                }
+                catch (Exception ex)
                 {
                     log.Error("Error during retry batch processing", ex);
                 }
