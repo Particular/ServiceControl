@@ -56,9 +56,20 @@ namespace ServiceBus.Management.AcceptanceTests
 #if !NETCOREAPP2_0
             System.Configuration.ConfigurationManager.GetSection("X");
 #endif
+            
+            var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
+            Directory.CreateDirectory(logfilesPath);
+            var logFile = Path.Combine(logfilesPath, $"{TestContext.CurrentContext.Test.ID}-{TestContext.CurrentContext.Test.Name}.txt");
+            if (File.Exists(logFile))
+            {
+                File.Delete(logFile);
+            }
+
+            textWriterTraceListener = new TextWriterTraceListener(logFile);
+            Trace.Listeners.Add(textWriterTraceListener);
 
             var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
-            Console.Out.WriteLine($"Using transport {transportToUse.Name}");
+            TestContext.WriteLine($"Using transport {transportToUse.Name}");
 
             AssertTransportNotExplicitlyIgnored(transportToUse);
 
@@ -72,6 +83,12 @@ namespace ServiceBus.Management.AcceptanceTests
                 var testName = GetType().Name;
                 return t.FullName.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
             };
+        }
+
+        [TearDown]
+        public void Teardown()
+        {
+            Trace.Listeners.Remove(textWriterTraceListener);
         }
 
         private void RemoveOtherTransportAssemblies(string name)
@@ -89,6 +106,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         private static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
         private ServiceControlComponentBehavior serviceControlRunnerBehavior;
+        private TextWriterTraceListener textWriterTraceListener;
 
         private void AssertTransportNotExplicitlyIgnored(ITransportIntegration transportToUse)
         {
