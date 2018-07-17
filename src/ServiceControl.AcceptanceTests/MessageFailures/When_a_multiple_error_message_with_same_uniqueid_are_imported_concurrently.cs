@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Error
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Concurrent;

@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
 {
     using System;
     using System.Collections.Generic;

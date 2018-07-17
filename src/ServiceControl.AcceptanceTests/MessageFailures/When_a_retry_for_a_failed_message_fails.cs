@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Threading.Tasks;
