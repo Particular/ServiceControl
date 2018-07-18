@@ -21,7 +21,7 @@
         {
             var validator = new ServiceControlQueueNameValidator(instance)
             {
-                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.TypeName.Equals(instance.TransportPackage.TypeName, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IServiceControlTransportConfig>().ToList()
+                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlTransportConfig>().ToList()
             };
             validator.RunValidation();
         }
@@ -30,7 +30,7 @@
         {
             var validator = new ServiceControlQueueNameValidator(instance)
             {
-                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name  & p.TransportPackage.TypeName.Equals(instance.TransportPackage.TypeName, StringComparison.OrdinalIgnoreCase)).AsEnumerable<IServiceControlTransportConfig>().ToList()
+                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name  & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlTransportConfig>().ToList()
             };
             validator.RunValidation();
         }

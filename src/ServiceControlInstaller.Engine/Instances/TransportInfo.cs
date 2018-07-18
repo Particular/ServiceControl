@@ -17,5 +17,21 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool Default { get; set; }
 
         public Func<string, bool> Matches { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            var that = obj as TransportInfo;
+            if (that == null)
+            {
+                return false;
+            }
+
+            return Name.Equals(that.Name, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
     }
 }

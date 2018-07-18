@@ -141,8 +141,7 @@ namespace ServiceControlInstaller.PowerShell
                 ForwardAuditMessages = ForwardAuditMessages,
                 ForwardErrorMessages = ForwardErrorMessages,
                 ConnectionString = ConnectionString,
-                // This must change to a proper name
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == Transport),
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod
             };
