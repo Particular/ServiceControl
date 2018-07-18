@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.Config.UI.InstanceEdit
 {
-    using System;
-    using System.Linq;
     using Commands;
     using PropertyChanged;
     using ServiceControlInstaller.Engine.Accounts;

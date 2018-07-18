@@ -1,8 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.Monitoring
 {
-    using System;
     using System.IO;
-    using System.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
     public class AppConfig : AppConfigWrapper
