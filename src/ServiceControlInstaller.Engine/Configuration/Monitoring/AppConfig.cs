@@ -16,11 +16,6 @@
 
         public void Validate()
         {
-            // Pretty sure this is no longer necessary
-            if (MonitoringTransports.FindByName(details.TransportPackage.TypeName) == null)
-            {
-                throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", MonitoringTransports.All.Select(p => p.Name))}");
-            }
         }
 
         public void Save()
