@@ -122,7 +122,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-            var details = new Engine.Instances.ServiceControlNewInstance
+            var details = new ServiceControlNewInstance
             {
                 InstallPath = InstallPath,
                 LogPath = LogPath,
