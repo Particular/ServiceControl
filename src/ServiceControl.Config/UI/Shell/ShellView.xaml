@@ -73,6 +73,7 @@
                        Focusable="False"
                        StaysOpen="False"
                        IsOpen="{Binding ElementName=AddInstanceButton, Path=IsChecked, Mode=TwoWay}"
+                       HorizontalOffset="{Binding ActualWidth, ElementName=ShellContainer}"
                        VerticalOffset="115"
                        AllowsTransparency="True"
                        Width="{Binding ActualWidth, ElementName=ShellContainer}">
