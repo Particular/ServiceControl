@@ -266,7 +266,6 @@
             // Populate the config with common settings even if they are defaults
             // Will not clobber other settings in the config 
             AppConfig = new AppConfig(this);
-            AppConfig.Validate();
             AppConfig.Save();
         }
 
