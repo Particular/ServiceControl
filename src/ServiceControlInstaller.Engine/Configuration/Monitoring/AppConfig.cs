@@ -14,10 +14,6 @@
             this.details = details;
         }
 
-        public void Validate()
-        {
-        }
-
         public void Save()
         {
             Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);

@@ -135,7 +135,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public void WriteConfigurationFile()
         {
             var appConfig = new AppConfig(this);
-            appConfig.Validate();
             appConfig.Save();
         }
 

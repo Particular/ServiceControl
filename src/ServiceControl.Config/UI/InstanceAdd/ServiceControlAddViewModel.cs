@@ -48,7 +48,7 @@
             HostName = "localhost";
             AuditQueueName = "audit";
             AuditForwardingQueueName = "audit.log";
-            AuditForwarding = AuditForwardingOptions.First(p => !p.Value);
+            AuditForwarding = AuditForwardingOptions.First(p => !p.Value); //Default to Off.
             ErrorQueueName = "error";
             ErrorForwardingQueueName = "error.log";
             ErrorForwarding = ErrorForwardingOptions.First(p => !p.Value); //Default to Off.

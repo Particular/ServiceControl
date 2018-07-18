@@ -16,11 +16,6 @@
             this.details = details;
         }
 
-        public void Validate()
-        {
-            // Method is empty, maybe delete? Or are there other validations needed?
-        }
-
         public void EnableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
