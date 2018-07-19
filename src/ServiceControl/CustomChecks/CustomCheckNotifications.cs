@@ -2,10 +2,10 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     class CustomCheckNotifications : IObserver<IndexChangeNotification>
     {
@@ -27,6 +27,16 @@
             }
         }
 
+        public void OnError(Exception error)
+        {
+            //Ignore
+        }
+
+        public void OnCompleted()
+        {
+            //Ignore
+        }
+
         async Task UpdateCount()
         {
             using (var session = store.OpenAsyncSession())
@@ -41,16 +51,6 @@
                     Failed = lastCount
                 }).ConfigureAwait(false);
             }
-        }
-
-        public void OnError(Exception error)
-        {
-            //Ignore
-        }
-
-        public void OnCompleted()
-        {
-            //Ignore
         }
 
         IDomainEvents domainEvents;

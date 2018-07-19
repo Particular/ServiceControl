@@ -1,7 +1,6 @@
-﻿using System.Linq;
-
-namespace ServiceControl.CustomChecks
+﻿namespace ServiceControl.CustomChecks
 {
+    using System.Linq;
     using Raven.Client.Indexes;
 
     public class CustomChecksIndex : AbstractIndexCreationTask<CustomCheck>
@@ -10,12 +9,12 @@ namespace ServiceControl.CustomChecks
         {
             Map = docs => from cc in docs
                 select new CustomCheck
-                       {
-                           Status = cc.Status,
-                           ReportedAt = cc.ReportedAt,
-                           Category = cc.Category,
-                           CustomCheckId = cc.CustomCheckId,
-                       };
+                {
+                    Status = cc.Status,
+                    ReportedAt = cc.ReportedAt,
+                    Category = cc.Category,
+                    CustomCheckId = cc.CustomCheckId
+                };
 
             DisableInMemoryIndexing = true;
         }
