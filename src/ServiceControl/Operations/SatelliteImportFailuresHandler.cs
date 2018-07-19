@@ -15,7 +15,7 @@
         private string logPath;
 
         private Func<FailedTransportMessage, object> messageBuilder;
-        //private ImportFailureCircuitBreaker failureCircuitBreaker;
+        private ImportFailureCircuitBreaker failureCircuitBreaker;
 
         public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<FailedTransportMessage, object> messageBuilder, CriticalError criticalError)
         {
@@ -23,7 +23,7 @@
             this.logPath = logPath;
             this.messageBuilder = messageBuilder;
 
-            //failureCircuitBreaker = new ImportFailureCircuitBreaker(criticalError);
+            failureCircuitBreaker = new ImportFailureCircuitBreaker(criticalError);
 
             Directory.CreateDirectory(logPath);
         }
@@ -42,15 +42,15 @@
 
         private async Task Handle(Exception exception, dynamic failure)
         {
-            //try
-            //{
-            await DoLogging(exception, failure)
-                .ConfigureAwait(false);
-            //}
-            //finally
-            //{
-            //    failureCircuitBreaker.Increment(exception);
-            //}
+            try
+            {
+                await DoLogging(exception, failure)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                failureCircuitBreaker.Increment(exception);
+            }
         }
 
         private async Task DoLogging(Exception exception, dynamic failure)

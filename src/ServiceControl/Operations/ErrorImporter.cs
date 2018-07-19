@@ -27,38 +27,23 @@
                 context.Container.ConfigureComponent<ErrorIngestor>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<FailedMessagePersister>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
-
-                SetupImportFailuresHandler(context);
+                context.Container.ConfigureComponent(b =>
+                    new SatelliteImportFailuresHandler(b.Build<IDocumentStore>(), Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Error"), msg => new FailedErrorImport
+                    {
+                        // TODO: Check if the usage of FailedTransportMessage breaks anything
+                        Message = msg,
+                    }, b.Build<CriticalError>()), DependencyLifecycle.SingleInstance);
 
                 context.AddSatelliteReceiver(
-                    "Error Queue Ingestor", 
-                    context.Settings.ToTransportAddress(settings.ErrorQueue), 
+                    "Error Queue Ingestor",
+                    context.Settings.ToTransportAddress(settings.ErrorQueue),
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnError,
                     (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(builder, messageContext))
-                    );
+                );
             }
 
             // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled
-        }
-
-        private void SetupImportFailuresHandler(FeatureConfigurationContext context)
-        {
-            var store = context.Settings.Get<IDocumentStore>();
-            var loggingSettings = context.Settings.Get<LoggingSettings>();
-
-            importFailuresHandler = new SatelliteImportFailuresHandler(
-                store,
-                Path.Combine(loggingSettings.LogPath, @"FailedImports\Error"),
-                msg => new FailedErrorImport
-                {
-                    // TODO: We need a TransportMessage class to resolve this
-                    //Message = msg
-                    Message = null
-                },
-                // TODO: How do we get CriticalError?
-                null
-            );
         }
 
         private Task OnMessage(IBuilder builder, MessageContext messageContext)
@@ -76,6 +61,24 @@
             }
 
             return recoverabilityAction;
+        }
+
+        class StartupTask : FeatureStartupTask
+        {
+            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, ErrorImporter importer)
+            {
+                importer.importFailuresHandler = importFailuresHandler;
+            }
+
+            protected override Task OnStart(IMessageSession session)
+            {
+                return Task.FromResult(0);
+            }
+
+            protected override Task OnStop(IMessageSession session)
+            {
+                return Task.FromResult(0);
+            }
         }
     }
 }
