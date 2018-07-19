@@ -17,9 +17,8 @@
             {
                 using (var session = Store.OpenAsyncSession())
                 {
-                    RavenQueryStatistics stats;
                     var query =
-                        session.Query<CustomCheck, CustomChecksIndex>().Statistics(out stats);
+                        session.Query<CustomCheck, CustomChecksIndex>().Statistics(out var stats);
 
                     query = AddStatusFilter(query);
 
