@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
+    using Infrastructure.DomainEvents;
     using Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class CustomCheckSucceeded : IDomainEvent
     {
@@ -12,6 +12,5 @@
         public string Category { get; set; }
         public DateTime SucceededAt { get; set; }
         public EndpointDetails OriginatingEndpoint { get; set; }
-
     }
 }

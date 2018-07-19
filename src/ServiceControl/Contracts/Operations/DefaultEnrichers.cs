@@ -3,9 +3,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceControl.Infrastructure;
     using ServiceControl.Operations;
 
     public class DefaultEnrichers : Feature
@@ -43,7 +43,7 @@
 
                 metadata.Add("IsSystemMessage", isSystemMessage);
                 metadata.Add("MessageType", messageType);
-                
+
                 return TaskEx.CompletedTask;
             }
 
@@ -80,7 +80,7 @@
                 {
                     metadata.Add("RelatedToId", relatedToId);
                 }
-                
+
                 return TaskEx.CompletedTask;
             }
         }

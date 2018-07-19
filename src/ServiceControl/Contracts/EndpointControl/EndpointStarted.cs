@@ -1,8 +1,8 @@
 namespace ServiceControl.Contracts.EndpointControl
 {
     using System;
+    using Infrastructure.DomainEvents;
     using Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class EndpointStarted : IDomainEvent
     {
