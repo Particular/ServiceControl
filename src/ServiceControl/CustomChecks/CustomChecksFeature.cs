@@ -16,16 +16,12 @@
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<CustomCheckNotifications>(DependencyLifecycle.SingleInstance);
-            
+
             context.RegisterStartupTask(b => b.Build<WireUpCustomCheckNotifications>());
         }
 
         class WireUpCustomCheckNotifications : FeatureStartupTask
         {
-            CustomCheckNotifications notifications;
-            IDocumentStore store;
-            IDisposable subscription;
-
             public WireUpCustomCheckNotifications(CustomCheckNotifications notifications, IDocumentStore store)
             {
                 this.notifications = notifications;
@@ -43,6 +39,10 @@
                 subscription.Dispose();
                 return Task.FromResult(0);
             }
+
+            CustomCheckNotifications notifications;
+            IDocumentStore store;
+            IDisposable subscription;
         }
     }
 }

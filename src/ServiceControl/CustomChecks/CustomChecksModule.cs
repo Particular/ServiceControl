@@ -11,17 +11,14 @@
 
     public class CustomChecksModule : BaseModule
     {
-        public IMessageSession Bus { get; set; }
-
         public CustomChecksModule()
         {
             Get["/customchecks", true] = async (_, token) =>
             {
                 using (var session = Store.OpenAsyncSession())
                 {
-                    RavenQueryStatistics stats;
                     var query =
-                        session.Query<CustomCheck, CustomChecksIndex>().Statistics(out stats);
+                        session.Query<CustomCheck, CustomChecksIndex>().Statistics(out var stats);
 
                     query = AddStatusFilter(query);
 
@@ -41,19 +38,21 @@
             {
                 Guid id = parameters.id;
 
-                await Bus.SendLocal(new DeleteCustomCheck{Id = id}).ConfigureAwait(false);
+                await Bus.SendLocal(new DeleteCustomCheck {Id = id}).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
         }
 
+        public IMessageSession Bus { get; set; }
+
         IRavenQueryable<CustomCheck> AddStatusFilter(IRavenQueryable<CustomCheck> query)
         {
             string status = null;
 
-            if ((bool) Request.Query.status.HasValue)
+            if ((bool)Request.Query.status.HasValue)
             {
-                status = (string) Request.Query.status;
+                status = (string)Request.Query.status;
             }
 
             if (status == null)
@@ -70,6 +69,7 @@
             {
                 query = query.Where(c => c.Status == Status.Pass);
             }
+
             return query;
         }
     }

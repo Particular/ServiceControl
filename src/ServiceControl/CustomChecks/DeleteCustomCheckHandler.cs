@@ -1,15 +1,12 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     class DeleteCustomCheckHandler : IHandleMessages<DeleteCustomCheck>
     {
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-
         public DeleteCustomCheckHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
@@ -24,5 +21,8 @@
             await domainEvents.Raise(new CustomCheckDeleted {Id = message.Id})
                 .ConfigureAwait(false);
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
     }
 }

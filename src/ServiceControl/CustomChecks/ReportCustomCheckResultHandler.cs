@@ -5,16 +5,13 @@
     using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-
         public ReportCustomCheckResultHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
@@ -37,7 +34,7 @@
             {
                 throw new Exception("Received an custom check message without proper initialization of the HostId in the schema");
             }
-            
+
             var publish = false;
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString(), message.CustomCheckId);
             CustomCheck customCheck;
@@ -106,5 +103,8 @@
                 }
             }
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
     }
 }
