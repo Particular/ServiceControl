@@ -3,9 +3,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceControl.Infrastructure;
     using ServiceControl.Operations;
 
     public class DefaultEnrichers : Feature
@@ -33,8 +33,7 @@
                     isSystemMessage = true;
                 }
 
-                string enclosedMessageTypes;
-                if (headers.TryGetValue(Headers.EnclosedMessageTypes, out enclosedMessageTypes))
+                if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var enclosedMessageTypes))
                 {
                     messageType = GetMessageType(enclosedMessageTypes);
                     isSystemMessage = DetectSystemMessage(messageType);
@@ -43,7 +42,7 @@
 
                 metadata.Add("IsSystemMessage", isSystemMessage);
                 metadata.Add("MessageType", messageType);
-                
+
                 return TaskEx.CompletedTask;
             }
 
@@ -67,20 +66,16 @@
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                string conversationId;
-
-                if (headers.TryGetValue(Headers.ConversationId, out conversationId))
+                if (headers.TryGetValue(Headers.ConversationId, out var conversationId))
                 {
                     metadata.Add("ConversationId", conversationId);
                 }
 
-                string relatedToId;
-
-                if (headers.TryGetValue(Headers.RelatedTo, out relatedToId))
+                if (headers.TryGetValue(Headers.RelatedTo, out var relatedToId))
                 {
                     metadata.Add("RelatedToId", relatedToId);
                 }
-                
+
                 return TaskEx.CompletedTask;
             }
         }

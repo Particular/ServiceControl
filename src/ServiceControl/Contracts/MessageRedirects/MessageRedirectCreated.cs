@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Contracts.MessageRedirects
 {
     using System;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class MessageRedirectCreated : IDomainEvent
     {

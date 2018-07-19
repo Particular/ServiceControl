@@ -1,8 +1,8 @@
 namespace ServiceControl.EndpointControl.Contracts
 {
     using System;
+    using Infrastructure.DomainEvents;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class MonitoringEnabledForEndpoint : IDomainEvent
     {
