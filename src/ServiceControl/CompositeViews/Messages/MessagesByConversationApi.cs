@@ -3,10 +3,10 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
-    using ServiceControl.Infrastructure.Extensions;
 
     public class MessagesByConversationApi : ScatterGatherApiMessageView<string>
     {
@@ -14,10 +14,8 @@ namespace ServiceControl.CompositeViews.Messages
         {
             using (var session = Store.OpenAsyncSession())
             {
-                RavenQueryStatistics stats;
-
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out stats)
+                    .Statistics(out var stats)
                     .Where(m => m.ConversationId == input)
                     .Sort(request)
                     .Paging(request)
