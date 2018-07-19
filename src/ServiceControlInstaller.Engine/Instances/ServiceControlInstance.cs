@@ -423,7 +423,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
         public void SetupInstance()
