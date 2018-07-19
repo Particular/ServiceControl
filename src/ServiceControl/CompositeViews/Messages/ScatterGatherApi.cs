@@ -34,12 +34,15 @@ namespace ServiceControl.CompositeViews.Messages
         }
     }
 
-    public abstract class ScatterGatherApi<TIn, TOut> : IApi
+    // used to host the static jsonSerializer field across the generic instances
+    public abstract class ScatterGatherApiBase
+    {
+        protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+    }
+
+    public abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
-        static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
-        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
-
         public IDocumentStore Store { get; set; }
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }
@@ -148,5 +151,7 @@ namespace ServiceControl.CompositeViews.Messages
                 return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount));
             }
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
     }
 }
