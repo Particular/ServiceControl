@@ -252,7 +252,7 @@
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.MonitoringExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl.Monitoring");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
         
         public void RestoreAppConfig(string sourcePath)
