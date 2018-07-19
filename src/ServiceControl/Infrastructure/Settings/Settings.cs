@@ -5,6 +5,7 @@
     using System.Configuration;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using NLog.Common;
@@ -334,30 +335,33 @@
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
         }
 
-
-        public static Type GetType(string typeName)
-        {
-            var type = Type.GetType(typeName);
-            if (type != null) return type;
-            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                type = a.GetType(typeName);
-                if (type != null)
-                    return type;
-            }
-            return null;
-        }
-
         static string GetTransportType()
         {
             var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
-            var transportType = GetType(typeName);
+            var typeNameAndAssembly = typeName.Split(',');
+            if (typeNameAndAssembly.Length != 2)
+            {
+                throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is a fully qualified assembly name");
+            }
+
+            string transportAssemblyPath = null;
+            try
+            {
+                transportAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{typeNameAndAssembly[1].Trim()}.dll");
+                Assembly.LoadFile(transportAssemblyPath); // load into AppDomain
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Configuration of transport Failed. Ensure the assembly '{transportAssemblyPath}' is present and that type is correctly defined in settings", e);
+            }
+            
+            var transportType = Type.GetType(typeName, false, true);
             if (transportType != null)
             {
                 return typeName;
             }
-            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
-            throw new Exception(errorMsg);
+
+            throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
         }
 
         private static string SanitiseFolderName(string folderName)
