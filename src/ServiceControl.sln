@@ -63,6 +63,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports", "ServiceControl.Transports\ServiceControl.Transports.csproj", "{3D9E3A53-164F-4430-A6A4-D35551F5DC88}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.SQS", "ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj", "{EFB42D88-E935-4601-AC62-62E68F81B3C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,10 @@ Global
 		{3D9E3A53-164F-4430-A6A4-D35551F5DC88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D9E3A53-164F-4430-A6A4-D35551F5DC88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D9E3A53-164F-4430-A6A4-D35551F5DC88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFB42D88-E935-4601-AC62-62E68F81B3C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFB42D88-E935-4601-AC62-62E68F81B3C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFB42D88-E935-4601-AC62-62E68F81B3C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFB42D88-E935-4601-AC62-62E68F81B3C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -175,6 +181,7 @@ Global
 		{EDA26C67-405A-4EC7-A3E6-EBAB7278E70A} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 		{24C5A540-EE02-4519-B000-EDA470759C5B} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 		{3D9E3A53-164F-4430-A6A4-D35551F5DC88} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{EFB42D88-E935-4601-AC62-62E68F81B3C3} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}

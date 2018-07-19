@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net452</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.AmazonSQS" Version="4.1.0" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.1.0" />
+  </ItemGroup>
+
+</Project>

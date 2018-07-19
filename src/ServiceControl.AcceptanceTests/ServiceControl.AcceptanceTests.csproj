@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" />
