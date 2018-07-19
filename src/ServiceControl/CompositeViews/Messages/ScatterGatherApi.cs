@@ -34,7 +34,7 @@ namespace ServiceControl.CompositeViews.Messages
         }
     }
 
-    // used to host the static jsonSerializer field across the generic instances
+    // used to hoist the static jsonSerializer field across the generic instances
     public abstract class ScatterGatherApiBase
     {
         protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
