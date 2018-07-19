@@ -12,9 +12,12 @@ results
 CommonAssemblyInfo.cs
 lib/sqlite/System.Data.SQLite.dll
 *.orig
+*.zip
 Samples/DataBus/storage
 packages
 PrecompiledWeb
+tempstorage
+.learningtransport
 core-only
 Release
 Artifacts
@@ -26,9 +29,10 @@ _NCrunch_NServiceBus/*
 logs
 run-git.cmd
 src/Chocolatey/Build/*
-zip/*
 
-.vs/
+installer/[F|f]iles
+installer/[C|c]ustom[A|a]ctions
+installer/ServiceControl-cache
 
 # Created by https://www.gitignore.io
 
@@ -39,8 +43,15 @@ zip/*
 # User-specific files
 *.suo
 *.user
+*.json.lock
+*.nuget.targets
+*.lock.json
 *.userosscache
 *.sln.docstates
+.vs/
+
+# mac temp file ignore
+.DS_Store
 
 # Build results
 [Dd]ebug/
@@ -73,5 +84,12 @@ _NCrunch_*
 _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
-nugets/
-chocos/
+
+src/scaffolding.config
+
+# Approval tests temp file
+*.received.*
+
+# JetBrains Rider
+.idea/
+*.sln.iml
