@@ -40,9 +40,12 @@
             this.localEventsToSubscribeTo = localEventsToSubscribeTo;
         }
 
-        protected override Task OnStart(IMessageSession session)
+        protected override async Task OnStart(IMessageSession session)
         {
-            return Task.WhenAll(localEventsToSubscribeTo.Select(session.Subscribe));
+            foreach (var localEvent in localEventsToSubscribeTo)
+            {
+                await session.Subscribe(localEvent);
+            }
         }
 
         protected override Task OnStop(IMessageSession session)
