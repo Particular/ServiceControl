@@ -44,7 +44,10 @@
                 var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail)
                     .ConfigureAwait(false);
                 if (lastCount == failedCustomCheckCount)
+                {
                     return;
+                }
+
                 lastCount = failedCustomCheckCount;
                 await domainEvents.Raise(new CustomChecksUpdated
                 {
