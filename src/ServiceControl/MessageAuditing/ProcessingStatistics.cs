@@ -3,10 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
-    using ServiceControl.Infrastructure;
 
     public class ProcessingStatistics : Feature
     {
@@ -76,7 +76,7 @@
                 }
 
                 metadata.Add("DeliveryTime", deliveryTime);
-                
+
                 return TaskEx.CompletedTask;
             }
         }
