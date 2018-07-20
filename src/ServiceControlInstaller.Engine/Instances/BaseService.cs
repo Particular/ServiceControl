@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using FileSystem;
     using Services;
+    using TimeoutException = System.ServiceProcess.TimeoutException;
 
     public abstract class BaseService : IServiceInstance
     {
