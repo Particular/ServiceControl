@@ -5,25 +5,16 @@
     using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private const string Remote1 = "remote1";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
-
-        private string addressOfRemote;
-
         [SetUp]
         public void SetUp()
         {
@@ -54,7 +45,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
@@ -107,21 +98,26 @@
             }
         }
 
+        private string addressOfRemote;
+        private const string Master = "master";
+        private const string Remote1 = "remote1";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
+        private static string AuditRemote = $"{Remote1}.audit1";
+        private static string ErrorRemote = $"{Remote1}.error1";
+
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
         {
             public EndpointThatIsHostingTheSaga()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.EnableFeature<AutoSubscribe>();
-                    c.AuditSagaStateChanges(Remote1);
-                    c.AuditProcessedMessagesTo(AuditRemote);
-                    c.SendFailedMessagesTo(ErrorMaster);
-                }, 
-                publishers =>
-                {
-                    publishers.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga));
-                });
+                    {
+                        c.EnableFeature<AutoSubscribe>();
+                        c.AuditSagaStateChanges(Remote1);
+                        c.AuditProcessedMessagesTo(AuditRemote);
+                        c.SendFailedMessagesTo(ErrorMaster);
+                    },
+                    publishers => { publishers.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga)); });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
@@ -217,5 +213,4 @@
             public Guid SagaId { get; set; }
         }
     }
-
 }

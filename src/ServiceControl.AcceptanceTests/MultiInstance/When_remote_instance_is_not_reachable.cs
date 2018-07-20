@@ -2,23 +2,16 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_remote_instance_is_not_reachable : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-
-        private string addressOfRemote;
-
-
         [Test]
         public async Task Should_not_fail()
         {
@@ -36,7 +29,7 @@
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             addressOfRemote = "http://localhost:12121";
-            settings.RemoteInstances = new []
+            settings.RemoteInstances = new[]
             {
                 new RemoteInstanceSetting
                 {
@@ -47,6 +40,11 @@
             settings.AuditQueue = AuditMaster;
             settings.ErrorQueue = ErrorMaster;
         }
+
+        private string addressOfRemote;
+        private const string Master = "master";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {
@@ -74,7 +72,7 @@
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }

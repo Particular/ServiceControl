@@ -4,29 +4,19 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
 
     public class When_processed_message_multi_instance_by_messages : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private const string Remote1 = "remote1";
-        private static string AuditRemote = $"{Remote1}.audit";
-        private static string ErrorRemote = $"{Remote1}.error";
-        private const string ReceiverHostDisplayName = "Rico";
-
-        private string addressOfRemote;
-
         [Test]
         public async Task Should_be_found()
         {
@@ -89,6 +79,15 @@
             }
         }
 
+        private string addressOfRemote;
+        private const string Master = "master";
+        private const string Remote1 = "remote1";
+        private const string ReceiverHostDisplayName = "Rico";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
+        private static string AuditRemote = $"{Remote1}.audit";
+        private static string ErrorRemote = $"{Remote1}.error";
+
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
@@ -146,7 +145,7 @@
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }
