@@ -8,11 +8,11 @@
 
     class ErrorIngestor
     {
-        private static ILog log = LogManager.GetLogger<ErrorIngestor>();
-        private IForwardMessages messageForwarder;
-        private Settings settings;
-        private FailedMessageAnnouncer failedMessageAnnouncer;
-        private FailedMessagePersister failedMessagePersister;
+        static ILog log = LogManager.GetLogger<ErrorIngestor>();
+        IForwardMessages messageForwarder;
+        Settings settings;
+        FailedMessageAnnouncer failedMessageAnnouncer;
+        FailedMessagePersister failedMessagePersister;
 
         public ErrorIngestor(FailedMessagePersister failedMessagePersister, FailedMessageAnnouncer failedMessageAnnouncer, IForwardMessages messageForwarder, Settings settings)
         {

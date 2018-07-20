@@ -1,16 +1,16 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Collections.Generic;
+    using Contracts.Operations;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Faults;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Recoverability;
-    using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
+    using Recoverability;
+    using FailedMessage = MessageFailures.FailedMessage;
 
     class FailedMessageFactory
     {
-        private IFailedMessageEnricher[] failedEnrichers;
+        IFailedMessageEnricher[] failedEnrichers;
 
         public FailedMessageFactory(IFailedMessageEnricher[] failedEnrichers)
         {
@@ -41,7 +41,7 @@
             return result;
         }
 
-        private static ExceptionDetails GetException(IReadOnlyDictionary<string, string> headers)
+        static ExceptionDetails GetException(IReadOnlyDictionary<string, string> headers)
         {
             var exceptionDetails = new ExceptionDetails();
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,

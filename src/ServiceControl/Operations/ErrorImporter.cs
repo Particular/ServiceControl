@@ -11,7 +11,7 @@
 
     class ErrorImporter : Feature
     {
-        private SatelliteImportFailuresHandler importFailuresHandler;
+        SatelliteImportFailuresHandler importFailuresHandler;
 
         public ErrorImporter()
         {
@@ -31,7 +31,7 @@
                     new SatelliteImportFailuresHandler(b.Build<IDocumentStore>(), Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Error"), msg => new FailedErrorImport
                     {
                         // TODO: Check if the usage of FailedTransportMessage breaks anything
-                        Message = msg,
+                        Message = msg
                     }, b.Build<CriticalError>()), DependencyLifecycle.SingleInstance);
 
                 context.AddSatelliteReceiver(
@@ -46,12 +46,12 @@
             // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled
         }
 
-        private Task OnMessage(IBuilder builder, MessageContext messageContext)
+        Task OnMessage(IBuilder builder, MessageContext messageContext)
         {
             return builder.Build<ErrorIngestor>().Ingest(messageContext);
         }
 
-        private RecoverabilityAction OnError(RecoverabilityConfig config, ErrorContext errorContext)
+        RecoverabilityAction OnError(RecoverabilityConfig config, ErrorContext errorContext)
         {
             var recoverabilityAction = DefaultRecoverabilityPolicy.Invoke(config, errorContext);
 
