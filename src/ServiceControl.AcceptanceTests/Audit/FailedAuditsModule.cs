@@ -21,9 +21,8 @@
             {
                 using (var session = Store.OpenAsyncSession())
                 {
-                    RavenQueryStatistics stats;
                     var query =
-                        session.Query<FailedAuditImport, FailedAuditImportIndex>().Statistics(out stats);
+                        session.Query<FailedAuditImport, FailedAuditImportIndex>().Statistics(out var stats);
 
                     var count = await query.CountAsync();
 
@@ -44,6 +43,6 @@
             };
         }
 
-        public Lazy<ImportFailedAudits> ImportFailedAudits { get; set; }
+        Lazy<ImportFailedAudits> ImportFailedAudits { get; set; }
     }
 }
