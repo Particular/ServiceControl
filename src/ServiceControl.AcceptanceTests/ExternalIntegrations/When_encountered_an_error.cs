@@ -4,18 +4,17 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure.DomainEvents;
-
 
     /// <summary>
     /// The test simulates the heartbeat subsystem by publishing EndpointFailedToHeartbeat event.
@@ -51,7 +50,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     HostId = Guid.NewGuid(),
                     Name = "UnluckyEndpoint"
                 }
-
             }));
 
             var context = await Define<MyContext>()
@@ -73,8 +71,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
         private class FaultyPublisher : IEventPublisher
         {
-            bool failed;
-
             public MyContext Context { get; set; }
 
             public bool Handles(IDomainEvent @event)
@@ -98,6 +94,8 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 
                 return Task.FromResult(Enumerable.Empty<object>());
             }
+
+            bool failed;
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder
@@ -108,10 +106,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
-                }, publisherMetadata =>
-                {
-                    publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME);
-                });
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
             public class FailureHandler : IHandleMessages<HeartbeatStopped>

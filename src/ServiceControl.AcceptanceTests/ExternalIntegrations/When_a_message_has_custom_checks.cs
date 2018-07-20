@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.Operations;
 
@@ -37,7 +37,7 @@
                         HostId = Guid.Empty,
                         Name = "Testing"
                     },
-                    SucceededAt = DateTime.Now,
+                    SucceededAt = DateTime.Now
                 });
                 await domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
                 {
@@ -50,7 +50,7 @@
                         Name = "Testing"
                     },
                     FailedAt = DateTime.Now,
-                    FailureReason = "Because I can",
+                    FailureReason = "Because I can"
                 });
             });
 

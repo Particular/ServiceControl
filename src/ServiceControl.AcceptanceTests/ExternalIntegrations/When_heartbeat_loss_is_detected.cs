@@ -2,11 +2,11 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
@@ -40,7 +40,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     HostId = Guid.NewGuid(),
                     Name = "UnluckyEndpoint"
                 }
-
             }));
 
             var context = await Define<MyContext>()
@@ -67,10 +66,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
-                }, publisherMetadata =>
-                {
-                    publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME);
-                });
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
             public class FailureHandler : IHandleMessages<HeartbeatStopped>

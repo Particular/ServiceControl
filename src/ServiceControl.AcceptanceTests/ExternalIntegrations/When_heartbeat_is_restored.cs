@@ -2,11 +2,11 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts;
     using ServiceControl.Contracts.HeartbeatMonitoring;
     using ServiceControl.Contracts.Operations;
@@ -21,7 +21,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         public async Task Notification_is_published_on_a_bus()
         {
             var externalProcessorSubscribed = false;
-            
+
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -39,7 +39,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     HostId = Guid.NewGuid(),
                     Name = "LuckyEndpoint"
                 }
-
             }));
 
             var context = await Define<MyContext>()
@@ -51,7 +50,6 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                     {
                         externalProcessorSubscribed = true;
                     }
-
                 }))
                 .Done(c => c.NotificationDelivered)
                 .Run();
@@ -67,10 +65,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
-                }, publisherMetadata =>
-                {
-                    publisherMetadata.RegisterPublisherFor<HeartbeatRestored>(Settings.DEFAULT_SERVICE_NAME);
-                });
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatRestored>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
             public class FailureHandler : IHandleMessages<HeartbeatRestored>
