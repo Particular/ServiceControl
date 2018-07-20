@@ -7,6 +7,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net.Http;
     using System.Threading.Tasks;
     using Autofac;
+    using Infrastructure.Settings;
     using Nancy;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
@@ -15,7 +16,6 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.Settings;
     using HttpStatusCode = System.Net.HttpStatusCode;
 
     public interface IApi
@@ -34,12 +34,15 @@ namespace ServiceControl.CompositeViews.Messages
         }
     }
 
-    public abstract class ScatterGatherApi<TIn, TOut> : IApi
+    // used to hoist the static jsonSerializer field across the generic instances
+    public abstract class ScatterGatherApiBase
+    {
+        protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+    }
+
+    public abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
-        static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
-        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
-
         public IDocumentStore Store { get; set; }
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }
@@ -65,7 +68,7 @@ namespace ServiceControl.CompositeViews.Messages
             return negotiate.WithQueryResult(response, currentRequest);
         }
 
-        private async Task<QueryResult<TOut>> LocalCall(Request request, TIn input, string instanceId)
+        async Task<QueryResult<TOut>> LocalCall(Request request, TIn input, string instanceId)
         {
             var result = await LocalQuery(request, input).ConfigureAwait(false);
             result.InstanceId = instanceId;
@@ -97,7 +100,7 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        private async Task<QueryResult<TOut>> RemoteCall(Request currentRequest, string remoteUri, string instanceId)
+        async Task<QueryResult<TOut>> RemoteCall(Request currentRequest, string remoteUri, string instanceId)
         {
             var fetched = await FetchAndParse(currentRequest, remoteUri, instanceId).ConfigureAwait(false);
             fetched.InstanceId = instanceId;
@@ -133,16 +136,14 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 var remoteResults = jsonSerializer.Deserialize<TOut>(jsonReader);
 
-                IEnumerable<string> totalCounts;
                 var totalCount = 0;
-                if (responseMessage.Headers.TryGetValues("Total-Count", out totalCounts))
+                if (responseMessage.Headers.TryGetValues("Total-Count", out var totalCounts))
                 {
                     totalCount = int.Parse(totalCounts.ElementAt(0));
                 }
 
-                IEnumerable<string> etags;
                 string etag = null;
-                if (responseMessage.Headers.TryGetValues("ETag", out etags))
+                if (responseMessage.Headers.TryGetValues("ETag", out var etags))
                 {
                     etag = etags.ElementAt(0);
                 }
@@ -150,5 +151,7 @@ namespace ServiceControl.CompositeViews.Messages
                 return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount));
             }
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
     }
 }

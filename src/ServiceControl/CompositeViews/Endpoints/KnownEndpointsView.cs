@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.CompositeViews.Endpoints
 {
     using System;
-    using ServiceControl.Contracts.Operations;
+    using Contracts.Operations;
 
     public class KnownEndpointsView
     {

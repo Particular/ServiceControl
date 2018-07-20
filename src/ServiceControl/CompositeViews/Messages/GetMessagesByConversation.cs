@@ -4,8 +4,6 @@
 
     public class GetMessagesByConversation : BaseModule
     {
-        public MessagesByConversationApi MessagesByConversationApi { get; set; }
-
         public GetMessagesByConversation()
         {
             Get["/conversations/{conversationid}", true] = (parameters, token) =>
@@ -15,5 +13,7 @@
                 return MessagesByConversationApi.Execute(this, conversationId);
             };
         }
+
+        public MessagesByConversationApi MessagesByConversationApi { get; set; }
     }
 }

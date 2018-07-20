@@ -16,7 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
     }
 
     public class QueryResult<TOut> : QueryResult
-        where TOut: class 
+        where TOut : class
     {
         public QueryResult(TOut results, QueryStatsInfo queryStatsInfo) : base(results, queryStatsInfo)
         {

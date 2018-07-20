@@ -9,17 +9,6 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
     {
-        public class Result
-        {
-            public string Id { get; set; }
-            public string UniqueMessageId { get; set; }
-            public DateTime ProcessedAt { get; set; }
-            public Dictionary<string, string> Headers { get; set; }
-            public Dictionary<string, object> MessageMetadata { get; set; }
-            public List<FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
-            public FailedMessageStatus Status { get; set; }
-        }
-
         public MessagesViewTransformer()
         {
             TransformResults = messages => from message in messages
@@ -48,12 +37,12 @@ namespace ServiceControl.CompositeViews.Messages
                     MessageType = metadata["MessageType"],
                     SendingEndpoint = metadata["SendingEndpoint"],
                     ReceivingEndpoint = metadata["ReceivingEndpoint"],
-                    TimeSent = (DateTime?) metadata["TimeSent"],
+                    TimeSent = (DateTime?)metadata["TimeSent"],
                     ProcessedAt = processedAt,
-                    CriticalTime = (TimeSpan) metadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan) metadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan) metadata["DeliveryTime"],
-                    IsSystemMessage = (bool) metadata["IsSystemMessage"],
+                    CriticalTime = (TimeSpan)metadata["CriticalTime"],
+                    ProcessingTime = (TimeSpan)metadata["ProcessingTime"],
+                    DeliveryTime = (TimeSpan)metadata["DeliveryTime"],
+                    IsSystemMessage = (bool)metadata["IsSystemMessage"],
                     ConversationId = metadata["ConversationId"],
                     //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
                     // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
@@ -65,6 +54,17 @@ namespace ServiceControl.CompositeViews.Messages
                     InvokedSagas = metadata["InvokedSagas"],
                     OriginatesFromSaga = metadata["OriginatesFromSaga"]
                 };
+        }
+
+        public class Result
+        {
+            public string Id { get; set; }
+            public string UniqueMessageId { get; set; }
+            public DateTime ProcessedAt { get; set; }
+            public Dictionary<string, string> Headers { get; set; }
+            public Dictionary<string, object> MessageMetadata { get; set; }
+            public List<FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
+            public FailedMessageStatus Status { get; set; }
         }
     }
 }

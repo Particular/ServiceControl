@@ -5,33 +5,14 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using Nancy;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.Settings;
-    using HttpStatusCode = System.Net.HttpStatusCode;
 
     public abstract class RoutedApi<TIn> : IApi
     {
-        static ILog logger = LogManager.GetLogger(typeof(RoutedApi<TIn>));
-
-        // Comes from System.Net.Http.Headers.HttpContentHeaders
-        private static HashSet<string> contentHeaders = new HashSet<string>
-        {
-            "Allow",
-            "Content-Disposition",
-            "Content-Encoding",
-            "Content-Language",
-            "Content-Length",
-            "Content-Location",
-            "Content-MD5",
-            "Content-Range",
-            "Content-Type",
-            "Expires",
-            "Last-Modified"
-        };
-
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }
 
@@ -63,7 +44,7 @@ namespace ServiceControl.CompositeViews.Messages
             var remoteUri = InstanceIdGenerator.ToApiUrl(instanceId);
 
             var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
-                
+
             var httpClient = HttpClientFactory();
             try
             {
@@ -90,13 +71,13 @@ namespace ServiceControl.CompositeViews.Messages
                 var rawResponse = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
 
                 var headers = rawResponse.Headers.Union(rawResponse.Content.Headers).ToDictionary(k => k.Key, v => v.Value.FirstOrDefault());
-                var httpStatusCode = (Nancy.HttpStatusCode) Enum.Parse(typeof(HttpStatusCode), rawResponse.StatusCode.ToString(), ignoreCase: true);
+                var httpStatusCode = (HttpStatusCode)Enum.Parse(typeof(System.Net.HttpStatusCode), rawResponse.StatusCode.ToString(), ignoreCase: true);
 
                 return new Response
                 {
                     Contents = stream =>
                     {
-                        if (httpStatusCode == Nancy.HttpStatusCode.NotFound)
+                        if (httpStatusCode == HttpStatusCode.NotFound)
                         {
                             Response.NoBody(stream);
                         }
@@ -116,10 +97,27 @@ namespace ServiceControl.CompositeViews.Messages
 
                 return new Response
                 {
-                    StatusCode = Nancy.HttpStatusCode.InternalServerError,
+                    StatusCode = HttpStatusCode.InternalServerError
                 };
             }
-
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(RoutedApi<TIn>));
+
+        // Comes from System.Net.Http.Headers.HttpContentHeaders
+        private static HashSet<string> contentHeaders = new HashSet<string>
+        {
+            "Allow",
+            "Content-Disposition",
+            "Content-Encoding",
+            "Content-Language",
+            "Content-Length",
+            "Content-Location",
+            "Content-MD5",
+            "Content-Range",
+            "Content-Type",
+            "Expires",
+            "Last-Modified"
+        };
     }
 }
