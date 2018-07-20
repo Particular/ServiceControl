@@ -22,8 +22,6 @@ namespace ServiceControl.Operations
 
         public class UpdateLicenseEnricher : ImportEnricher
         {
-            LicenseStatusKeeper licenseStatusKeeper;
-
             public UpdateLicenseEnricher(LicenseStatusKeeper licenseStatusKeeper)
             {
                 this.licenseStatusKeeper = licenseStatusKeeper;
@@ -60,6 +58,8 @@ namespace ServiceControl.Operations
 
                 return hasLicenseExpired ? "expired" : "valid";
             }
+
+            LicenseStatusKeeper licenseStatusKeeper;
         }
     }
 }

@@ -11,8 +11,6 @@
 
     class ErrorImporter : Feature
     {
-        SatelliteImportFailuresHandler importFailuresHandler;
-
         public ErrorImporter()
         {
             EnableByDefault();
@@ -62,6 +60,8 @@
 
             return recoverabilityAction;
         }
+
+        SatelliteImportFailuresHandler importFailuresHandler;
 
         class StartupTask : FeatureStartupTask
         {

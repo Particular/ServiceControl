@@ -19,9 +19,6 @@
 
     class FailedMessagePersister
     {
-        static RavenJObject JObjectMetadata;
-        static JsonSerializer Serializer;
-
         static FailedMessagePersister()
         {
             Serializer = JsonExtensions.CreateDefaultJsonSerializer();
@@ -33,11 +30,6 @@
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
                                     }}");
         }
-
-        IEnrichImportedMessages[] enrichers;
-        BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
-        FailedMessageFactory failedMessageFactory;
-        IDocumentStore store;
 
         public FailedMessagePersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
         {
@@ -102,7 +94,7 @@
                     {
                         Name = nameof(FailedMessage.Status),
                         Type = PatchCommandType.Set,
-                        Value = (int) FailedMessageStatus.Unresolved
+                        Value = (int)FailedMessageStatus.Unresolved
                     },
                     new PatchRequest
                     {
@@ -129,7 +121,7 @@
                     {
                         Name = nameof(FailedMessage.Status),
                         Type = PatchCommandType.Set,
-                        Value = (int) FailedMessageStatus.Unresolved
+                        Value = (int)FailedMessageStatus.Unresolved
                     },
                     new PatchRequest
                     {
@@ -146,5 +138,12 @@
                 }, JObjectMetadata
             );
         }
+
+        IEnrichImportedMessages[] enrichers;
+        BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        FailedMessageFactory failedMessageFactory;
+        IDocumentStore store;
+        static RavenJObject JObjectMetadata;
+        static JsonSerializer Serializer;
     }
 }

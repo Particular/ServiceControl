@@ -8,12 +8,6 @@
 
     public class AuditIngestor
     {
-        static ILog log = LogManager.GetLogger<ErrorIngestor>();
-        AuditImporter auditImporter;
-        IDocumentStore store;
-        IForwardMessages messageForwarder;
-        Settings settings;
-
         public AuditIngestor(AuditImporter auditImporter, IDocumentStore store, IForwardMessages messageForwarder, Settings settings)
         {
             this.auditImporter = auditImporter;
@@ -25,7 +19,7 @@
         public async Task Ingest(MessageContext context)
         {
             log.DebugFormat("Ingesting audit message {0}", context.MessageId);
-            
+
             var processedMessage = await auditImporter.ConvertToSaveMessage(context)
                 .ConfigureAwait(false);
 
@@ -44,5 +38,11 @@
                     .ConfigureAwait(false);
             }
         }
+
+        AuditImporter auditImporter;
+        IDocumentStore store;
+        IForwardMessages messageForwarder;
+        Settings settings;
+        static ILog log = LogManager.GetLogger<ErrorIngestor>();
     }
 }

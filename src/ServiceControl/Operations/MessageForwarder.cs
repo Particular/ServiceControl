@@ -11,8 +11,6 @@
 
     public class MessageForwarder : IForwardMessages
     {
-        IDispatchMessages messageDispatcher;
-
         public MessageForwarder(IDispatchMessages messageDispatcher)
         {
             this.messageDispatcher = messageDispatcher;
@@ -21,7 +19,7 @@
         public Task Forward(MessageContext messageContext, string forwardingAddress)
         {
             var outgoingMessage = new OutgoingMessage(
-                messageContext.MessageId, 
+                messageContext.MessageId,
                 messageContext.Headers,
                 messageContext.Body);
 
@@ -35,5 +33,7 @@
                 messageContext.Extensions
             );
         }
+
+        IDispatchMessages messageDispatcher;
     }
 }

@@ -26,7 +26,7 @@
         {
             var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
 
-            if(settings.IngestAuditMessages)
+            if (settings.IngestAuditMessages)
             {
                 context.Container.ConfigureComponent<AuditImporter>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
@@ -35,7 +35,7 @@
 
                 context.AddSatelliteReceiver(
                     "Audit Import",
-                    context.Settings.ToTransportAddress(settings.AuditQueue), 
+                    context.Settings.ToTransportAddress(settings.AuditQueue),
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnAuditError,
                     (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(builder, messageContext))
@@ -51,12 +51,12 @@
             var loggingSettings = context.Settings.Get<LoggingSettings>();
 
             importFailuresHandler = new SatelliteImportFailuresHandler(
-                store, 
+                store,
                 Path.Combine(loggingSettings.LogPath, @"FailedImports\Audit"),
                 msg => new FailedAuditImport
                 {
                     Message = msg
-                }, 
+                },
                 // TODO: How do we get CriticalError?
                 null
             );
@@ -85,9 +85,6 @@
 
     public class AuditImporter
     {
-        readonly IEnrichImportedMessages[] enrichers;
-        readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
-
         public AuditImporter(IBuilder builder, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
         {
             this.bodyStorageEnricher = bodyStorageEnricher;
@@ -100,6 +97,7 @@
             {
                 messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
             }
+
             var metadata = new Dictionary<string, object>
             {
                 ["MessageId"] = messageId,
@@ -124,5 +122,8 @@
             };
             return auditMessage;
         }
+
+        readonly IEnrichImportedMessages[] enrichers;
+        readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
     }
 }

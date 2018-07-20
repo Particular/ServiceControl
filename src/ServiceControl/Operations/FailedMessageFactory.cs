@@ -10,8 +10,6 @@
 
     class FailedMessageFactory
     {
-        IFailedMessageEnricher[] failedEnrichers;
-
         public FailedMessageFactory(IFailedMessageEnricher[] failedEnrichers)
         {
             this.failedEnrichers = failedEnrichers;
@@ -25,6 +23,7 @@
             {
                 groups.AddRange(enricher.Enrich(messageType, failureDetails, processingAttempt));
             }
+
             return groups;
         }
 
@@ -71,5 +70,6 @@
             };
         }
 
+        IFailedMessageEnricher[] failedEnrichers;
     }
 }

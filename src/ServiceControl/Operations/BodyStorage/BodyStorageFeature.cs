@@ -28,9 +28,6 @@
 
         public class BodyStorageEnricher
         {
-            IBodyStorage bodyStorage;
-            Settings settings;
-
             public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
             {
                 this.bodyStorage = bodyStorage;
@@ -112,6 +109,9 @@
                     return bodyUrl;
                 }
             }
+
+            IBodyStorage bodyStorage;
+            Settings settings;
 
             static int LargeObjectHeapThreshold = 85 * 1024;
         }

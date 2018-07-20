@@ -39,7 +39,7 @@ namespace ServiceControl.Operations
                         FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
                         try
                         {
-                            var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);                            
+                            var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
                             var entity = await auditImporter.ConvertToSaveMessage(messageContext)
                                 .ConfigureAwait(false);
                             using (var storeSession = store.OpenAsyncSession())
@@ -47,6 +47,7 @@ namespace ServiceControl.Operations
                                 await storeSession.StoreAsync(entity, token).ConfigureAwait(false);
                                 await storeSession.SaveChangesAsync(token).ConfigureAwait(false);
                             }
+
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
                             succeeded++;
@@ -60,6 +61,7 @@ namespace ServiceControl.Operations
                     }
                 }
             }
+
             Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messaged. Failed re-importing {failed} messages.");
 
             if (failed > 0)
@@ -71,7 +73,7 @@ namespace ServiceControl.Operations
         IDocumentStore store;
         AuditImporter auditImporter;
         CancellationTokenSource source;
-        
+
         static TransportTransaction EmptyTransaction = new TransportTransaction();
         static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
         static ContextBag EmptyContextBag = new ContextBag();

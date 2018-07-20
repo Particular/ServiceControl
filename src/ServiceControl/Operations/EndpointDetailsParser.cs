@@ -33,7 +33,7 @@ namespace ServiceControl.Contracts.Operations
 
             return null;
         }
-        
+
         public static EndpointDetails ReceivingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
             var endpoint = new EndpointDetails();
@@ -67,7 +67,7 @@ namespace ServiceControl.Contracts.Operations
             if (address != null)
             {
                 var queueAndMachinename = ExtractQueueAndMachineName(address);
-                
+
                 if (string.IsNullOrEmpty(endpoint.Name))
                 {
                     endpoint.Name = queueAndMachinename.Queue;
@@ -87,19 +87,27 @@ namespace ServiceControl.Contracts.Operations
 
             return null;
         }
-        
+
         static QueueAndMachine ExtractQueueAndMachineName(string address)
-        {           
+        {
             var atIndex = address?.IndexOf("@", StringComparison.InvariantCulture);
 
             if (atIndex.HasValue && atIndex.Value > -1)
             {
                 var queue = address.Substring(0, atIndex.Value);
                 var machine = address.Substring(atIndex.Value + 1);
-                return new QueueAndMachine { Queue = queue, Machine = machine };
+                return new QueueAndMachine
+                {
+                    Queue = queue,
+                    Machine = machine
+                };
             }
 
-            return new QueueAndMachine { Queue = address, Machine = null };
+            return new QueueAndMachine
+            {
+                Queue = address,
+                Machine = null
+            };
         }
 
         struct QueueAndMachine

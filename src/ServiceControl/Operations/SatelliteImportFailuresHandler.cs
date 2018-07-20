@@ -30,7 +30,7 @@
 
         public Task Handle(ErrorContext errorContext)
         {
-            var failure = (dynamic) messageBuilder(new FailedTransportMessage
+            var failure = (dynamic)messageBuilder(new FailedTransportMessage
             {
                 Id = errorContext.Message.MessageId,
                 Headers = errorContext.Message.Headers,

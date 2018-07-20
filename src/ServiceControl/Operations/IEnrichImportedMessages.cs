@@ -5,8 +5,8 @@ namespace ServiceControl.Operations
 
     interface IEnrichImportedMessages
     {
-        Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata);
         bool EnrichErrors { get; }
         bool EnrichAudits { get; }
+        Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata);
     }
 }

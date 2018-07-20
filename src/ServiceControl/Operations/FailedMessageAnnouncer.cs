@@ -8,8 +8,6 @@
 
     class FailedMessageAnnouncer
     {
-        IDomainEvents domainEvents;
-
         public FailedMessageAnnouncer(IDomainEvents domainEvents)
         {
             this.domainEvents = domainEvents;
@@ -37,5 +35,7 @@
                 FailedMessageId = headers.UniqueId()
             });
         }
+
+        IDomainEvents domainEvents;
     }
 }

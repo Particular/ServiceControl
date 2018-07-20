@@ -6,14 +6,15 @@
 
     public class ImportFailureCircuitBreaker : IDisposable
     {
-        readonly CriticalError criticalError;
-        Timer timer;
-        long failureCount;
-
         public ImportFailureCircuitBreaker(CriticalError criticalError)
         {
             this.criticalError = criticalError;
             timer = new Timer(_ => FlushHistory(), null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(20));
+        }
+
+        public void Dispose()
+        {
+            timer?.Dispose();
         }
 
         void FlushHistory()
@@ -30,9 +31,8 @@
             }
         }
 
-        public void Dispose()
-        {
-            timer?.Dispose();
-        }
+        readonly CriticalError criticalError;
+        Timer timer;
+        long failureCount;
     }
 }
