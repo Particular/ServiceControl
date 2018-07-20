@@ -77,6 +77,6 @@
         }
 
         // line length = 80
-        static readonly Regex SpliceTextPattern = new Regex($"(.{{80}})", RegexOptions.Compiled);
+        static readonly Regex SpliceTextPattern = new Regex("(.{80})", RegexOptions.Compiled);
     }
 }
