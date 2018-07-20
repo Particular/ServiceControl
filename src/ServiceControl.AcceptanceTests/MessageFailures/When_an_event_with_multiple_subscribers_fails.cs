@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
     class When_an_event_with_multiple_subscribers_fails : AcceptanceTest
@@ -39,25 +39,25 @@
                     }
                 }).DoNotFailOnErrorMessages())
                 .WithEndpoint<Publisher>(behavior => behavior
-                        .CustomConfig(cfg => cfg.OnEndpointSubscribed<FailingEventContext>((s, ctx) =>
+                    .CustomConfig(cfg => cfg.OnEndpointSubscribed<FailingEventContext>((s, ctx) =>
+                        {
+                            if (s.SubscriberReturnAddress.IndexOf("Subscriber1", StringComparison.OrdinalIgnoreCase) >= 0)
                             {
-                                if (s.SubscriberReturnAddress.IndexOf("Subscriber1", StringComparison.OrdinalIgnoreCase) >= 0)
-                                {
-                                    ctx.Subscriber1Subscribed = true;
-                                }
-                                else if (s.SubscriberReturnAddress.IndexOf("Subscriber2", StringComparison.OrdinalIgnoreCase) >= 0)
-                                {
-                                    ctx.Subscriber2Subscribed = true;
-                                }
-                                else
-                                {
-                                    throw new Exception($"Unknown subscriber subscribed to publisher: {s.SubscriberReturnAddress}");
-                                }
-                            })
-                        ).When(
-                            ctx => ctx.Subscriber1Subscribed && ctx.Subscriber2Subscribed,
-                            bus => bus.Publish<SampleEvent>()
-                        ).DoNotFailOnErrorMessages()
+                                ctx.Subscriber1Subscribed = true;
+                            }
+                            else if (s.SubscriberReturnAddress.IndexOf("Subscriber2", StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                ctx.Subscriber2Subscribed = true;
+                            }
+                            else
+                            {
+                                throw new Exception($"Unknown subscriber subscribed to publisher: {s.SubscriberReturnAddress}");
+                            }
+                        })
+                    ).When(
+                        ctx => ctx.Subscriber1Subscribed && ctx.Subscriber2Subscribed,
+                        bus => bus.Publish<SampleEvent>()
+                    ).DoNotFailOnErrorMessages()
                 ).Done(async ctx =>
                 {
                     var result = await this.TryGetMany<FailedMessageView>("/api/errors");
@@ -130,7 +130,7 @@
             }
         }
 
-        
+
         public class SampleEvent : IEvent
         {
         }

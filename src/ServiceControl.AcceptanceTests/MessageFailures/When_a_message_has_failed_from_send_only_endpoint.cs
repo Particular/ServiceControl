@@ -3,12 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
     public class When_a_message_has_failed_from_send_only_endpoint : AcceptanceTest
@@ -32,7 +32,7 @@
                 .Run();
             Assert.IsNotNull(failure);
             Assert.IsTrue(failure.ReceivingEndpoint.Name.Contains("SomeEndpoint"), $"The sending endpoint should be SomeEndpoint and not {failure.ReceivingEndpoint.Name}");
-         }
+        }
 
         [Test]
         public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_present()

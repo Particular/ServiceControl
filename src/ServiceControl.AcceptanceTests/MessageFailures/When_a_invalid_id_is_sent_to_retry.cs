@@ -1,14 +1,12 @@
-﻿
-
-namespace ServiceBus.Management.AcceptanceTests.MessageFailures
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
 
     public class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
@@ -54,7 +52,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
                 });
             }
 
-            public class MessageThatWillFailHandler: IHandleMessages<MessageThatWillFail>
+            public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {
                 public MyContext Context { get; set; }
                 public ReadOnlySettings Settings { get; set; }
@@ -82,7 +80,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageFailures
             public string UniqueMessageId { get; set; }
         }
 
-        
+
         public class MessageThatWillFail : ICommand
         {
         }

@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -17,10 +17,7 @@
         {
             FailedMessage failure = null;
 
-            await Define<MyContext>(ctx =>
-                {
-                    ctx.Succeed = false;
-                })
+            await Define<MyContext>(ctx => { ctx.Succeed = false; })
                 .WithEndpoint<FailureEndpoint>(b =>
                     b.When(bus => bus.SendLocal(new MyMessage()))
                         .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
@@ -46,24 +43,21 @@
         {
             FailedMessage failure = null;
 
-            await Define<MyContext>(ctx =>
-                {
-                    ctx.Succeed = false;
-                })
+            await Define<MyContext>(ctx => { ctx.Succeed = false; })
                 .WithEndpoint<FailureEndpoint>(b =>
                     b.When(bus => bus.SendLocal(new MyMessage()))
-                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
-                          (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
-                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
-                          (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
-                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 3),
-                         async (bus, ctx) =>
-                         {
-                             ctx.Succeed = true;
-                             await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                         })
+                        .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
+                            (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                        .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
+                            (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                        .When(async ctx => await CheckProcessingAttemptsIs(ctx, 3),
+                            async (bus, ctx) =>
+                            {
+                                ctx.Succeed = true;
+                                await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                            })
                         .DoNotFailOnErrorMessages()
-                    )
+                )
                 .Done(async ctx =>
                 {
                     var result = await GetFailedMessage(ctx, f => f.Status == FailedMessageStatus.Resolved);
@@ -95,10 +89,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.NoDelayedRetries();
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoDelayedRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -118,13 +109,14 @@
                         Console.WriteLine("Message processing failure");
                         throw new Exception("Simulated exception");
                     }
+
                     Console.WriteLine("Message processing success");
                     return Task.FromResult(0);
                 }
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }

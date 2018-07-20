@@ -2,12 +2,12 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -46,7 +46,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(failedMessage.Status, FailedMessageStatus.RetryIssued,"Status was not set to RetryIssued");
+            Assert.AreEqual(failedMessage.Status, FailedMessageStatus.RetryIssued, "Status was not set to RetryIssued");
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder
@@ -56,25 +56,25 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.EnableFeature<Outbox>();
-                    
+
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(1));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
             }
-            
+
             class StartFeature : Feature
             {
                 public StartFeature()
                 {
                     EnableByDefault();
                 }
-                
+
                 protected override void Setup(FeatureConfigurationContext context)
                 {
                     context.RegisterStartupTask(new SendMessageAtStart());
                 }
-                
+
                 class SendMessageAtStart : FeatureStartupTask
                 {
                     protected override Task OnStart(IMessageSession session)
@@ -120,6 +120,7 @@
         }
 
         public class MyMessage : ICommand
-        { }
+        {
+        }
     }
 }

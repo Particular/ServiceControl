@@ -3,25 +3,25 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
 
-    class Is_System_Message_Tests: AcceptanceTest
+    class Is_System_Message_Tests : AcceptanceTest
     {
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
         {
             FailedMessageView failure = null;
             await Define<SystemMessageTestContext>(ctx =>
-            {
-                ctx.MessageId = Guid.NewGuid().ToString();
-                ctx.EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
-                ctx.IncludeControlMessageHeader = false;
+                {
+                    ctx.MessageId = Guid.NewGuid().ToString();
+                    ctx.EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+                    ctx.IncludeControlMessageHeader = false;
                 })
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
@@ -160,11 +160,12 @@
                     {
                         headers[Headers.EnclosedMessageTypes] = context.EnclosedMessageType;
                     }
+
                     if (context.IncludeControlMessageHeader)
                     {
-                        headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool) context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
+                        headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool)context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
                     }
-                    
+
                     return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("error")));
                 }
             }
@@ -177,6 +178,5 @@
             public bool? ControlMessageHeaderValue { get; set; }
             public string EnclosedMessageType { get; set; }
         }
-
     }
 }

@@ -3,13 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -102,21 +102,19 @@
                         [Headers.ReplyToAddress] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)) // TODO: Correct?
                     };
 
-                var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
+                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
 
                     return new TransportOperations(
-                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))    
+                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))
                     );
                 }
             }
 
             public class LookForControlMessage : IMutateIncomingTransportMessages
             {
-                readonly MyContext myContext;
-
                 public LookForControlMessage(MyContext context)
                 {
-                    this.myContext = context;
+                    myContext = context;
                 }
 
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
@@ -130,6 +128,8 @@
 
                     return Task.FromResult(0);
                 }
+
+                readonly MyContext myContext;
             }
         }
 

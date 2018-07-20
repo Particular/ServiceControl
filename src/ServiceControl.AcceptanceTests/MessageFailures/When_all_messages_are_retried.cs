@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -87,10 +87,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.NoRetries();
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -124,7 +121,7 @@
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
             public int MessageNumber { get; set; }
