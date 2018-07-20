@@ -3,11 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Monitoring;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
     using ServiceControl.Contracts.Operations;
-    using ServiceControl.Monitoring;
 
     public class EndpointDetectionFeature : Feature
     {
@@ -23,8 +23,6 @@
 
         class DetectNewEndpointsFromImportsEnricher : ImportEnricher
         {
-            private EndpointInstanceMonitoring monitoring;
-
             public DetectNewEndpointsFromImportsEnricher(EndpointInstanceMonitoring monitoring)
             {
                 this.monitoring = monitoring;
@@ -65,6 +63,8 @@
                 await monitoring.DetectEndpointFromLocalAudit(endpointDetails)
                     .ConfigureAwait(false);
             }
+
+            private EndpointInstanceMonitoring monitoring;
         }
     }
 }

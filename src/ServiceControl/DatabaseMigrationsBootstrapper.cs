@@ -1,9 +1,9 @@
 namespace Particular.ServiceControl
 {
     using Autofac;
+    using DbMigrations;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.RavenDB;
-    using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;

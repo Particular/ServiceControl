@@ -12,7 +12,12 @@
             return current;
         }
 
-        public static readonly StaleIndexInfo NotInProgress = new StaleIndexInfo { InProgress = false, StartedAt = null };
         StaleIndexInfo current = NotInProgress;
+
+        public static readonly StaleIndexInfo NotInProgress = new StaleIndexInfo
+        {
+            InProgress = false,
+            StartedAt = null
+        };
     }
 }
