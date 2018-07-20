@@ -347,7 +347,7 @@
             {
                 throw new Exception($"Configuration of transport Failed. Ensure the assembly '{transportAssemblyPath}' is present and that type is correctly defined in settings", e);
             }
-            
+
             var transportType = Type.GetType(typeName, false, true);
             if (transportType != null)
             {

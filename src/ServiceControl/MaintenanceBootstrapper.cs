@@ -3,7 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.RavenDB;
-    using Particular.ServiceControl.Hosting;
+    using Hosting;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -24,6 +24,7 @@ namespace Particular.ServiceControl
                 while (Console.ReadKey().Key != ConsoleKey.Enter)
                 {
                 }
+
                 documentStore.Dispose();
 
                 return;

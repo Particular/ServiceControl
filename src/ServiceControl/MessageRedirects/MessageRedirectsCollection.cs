@@ -9,8 +9,6 @@
 
     public class MessageRedirectsCollection
     {
-        const string DefaultId = "messageredirects";
-
         public string Id { get; set; } = DefaultId;
 
         public Etag ETag { get; set; }
@@ -43,5 +41,7 @@
 
             return new MessageRedirectsCollection();
         }
+
+        const string DefaultId = "messageredirects";
     }
 }

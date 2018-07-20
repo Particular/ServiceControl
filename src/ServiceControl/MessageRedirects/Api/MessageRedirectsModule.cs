@@ -2,28 +2,18 @@
 {
     using System;
     using System.Linq;
+    using Contracts.MessageRedirects;
+    using Infrastructure;
+    using Infrastructure.DomainEvents;
+    using MessageFailures.InternalMessages;
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Contracts.MessageRedirects;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class MessageRedirectsModule : BaseModule
     {
-        public IMessageSession Bus { get; set; }
-        public IDomainEvents DomainEvents { get; set; }
-
-        private class MessageRedirectRequest
-        {
-            public string fromphysicaladdress { get; set; }
-            public string tophysicaladdress { get; set; }
-            public bool retryexisting { get; set; }
-        }
-
         public MessageRedirectsModule()
         {
             Post["/redirects", true] = async (parameters, token) =>
@@ -121,7 +111,7 @@
                         MessageRedirectId = messageRedirectId,
                         PreviousToPhysicalAddress = messageRedirect.ToPhysicalAddress,
                         FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
-                        ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.tophysicaladdress,
+                        ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.tophysicaladdress
                     };
 
                     messageRedirect.LastModifiedTicks = DateTime.UtcNow.Ticks;
@@ -200,6 +190,16 @@
                         .WithPagingLinksAndTotalCount(redirects.Redirects.Count, Request);
                 }
             };
+        }
+
+        public IMessageSession Bus { get; set; }
+        public IDomainEvents DomainEvents { get; set; }
+
+        private class MessageRedirectRequest
+        {
+            public string fromphysicaladdress { get; set; }
+            public string tophysicaladdress { get; set; }
+            public bool retryexisting { get; set; }
         }
     }
 }

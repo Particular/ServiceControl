@@ -28,7 +28,9 @@
 
         public class CheckerTask : FeatureStartupTask
         {
-            public CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, LoggingSettings loggingSettings) : this(staleIndexChecker, staleIndexInfoStore, loggingSettings, null) { }
+            public CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, LoggingSettings loggingSettings) : this(staleIndexChecker, staleIndexInfoStore, loggingSettings, null)
+            {
+            }
 
             protected CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, LoggingSettings loggingSettings, string baseDirectory)
             {
@@ -64,7 +66,11 @@
                 var latest = DateTime.FromFileTimeUtc(fileTime);
 
                 // File exists, so assume in progress
-                staleIndexInfoStore.Store(new StaleIndexInfo { InProgress = true, StartedAt = latest });
+                staleIndexInfoStore.Store(new StaleIndexInfo
+                {
+                    InProgress = true,
+                    StartedAt = latest
+                });
 
                 checkTask = Task.Run(async () =>
                 {
@@ -100,13 +106,13 @@
                 return checkTask ?? Task.FromResult(0);
             }
 
-            static ILog logger = LogManager.GetLogger(typeof(CheckerTask));
             string directory;
             Task checkTask;
             CancellationTokenSource tokenSource;
             StaleIndexChecker staleIndexChecker;
             StaleIndexInfoStore staleIndexInfoStore;
 
+            static ILog logger = LogManager.GetLogger(typeof(CheckerTask));
         }
     }
 }

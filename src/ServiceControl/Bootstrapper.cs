@@ -14,35 +14,21 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Monitoring;
-    using global::ServiceControl.Recoverability;
     using global::ServiceControl.Operations;
+    using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
-    using LogManager = NServiceBus.Logging.LogManager;
 
     public class Bootstrapper
     {
-        private static HttpClient httpClient;
-        private EndpointConfiguration configuration;
-        private LoggingSettings loggingSettings;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private Action<ICriticalErrorContext> onCriticalError;
-        private ShutdownNotifier notifier = new ShutdownNotifier();
-        private Settings settings;
-        private TimeKeeper timeKeeper;
-        private IContainer container;
-        private BusInstance bus;
-        private TransportSettings transportSettings;
-        public IDisposable WebApp;
-        TransportCustomization transportCustomization;
-
         // Windows Service
         public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
@@ -50,6 +36,7 @@ namespace Particular.ServiceControl
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
+
             this.onCriticalError = onCriticalError;
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
@@ -89,7 +76,7 @@ namespace Particular.ServiceControl
 
             transportSettings = new TransportSettings();
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-            
+
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
@@ -140,6 +127,7 @@ namespace Particular.ServiceControl
             {
                 await bus.Stop().ConfigureAwait(false);
             }
+
             timeKeeper.Dispose();
             documentStore.Dispose();
             WebApp?.Dispose();
@@ -211,5 +199,19 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                 LoggingSettings = loggingSettings
             });
         }
+
+        public IDisposable WebApp;
+        private EndpointConfiguration configuration;
+        private LoggingSettings loggingSettings;
+        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        private Action<ICriticalErrorContext> onCriticalError;
+        private ShutdownNotifier notifier = new ShutdownNotifier();
+        private Settings settings;
+        private TimeKeeper timeKeeper;
+        private IContainer container;
+        private BusInstance bus;
+        private TransportSettings transportSettings;
+        TransportCustomization transportCustomization;
+        private static HttpClient httpClient;
     }
 }

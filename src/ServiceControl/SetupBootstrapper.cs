@@ -12,8 +12,6 @@ namespace Particular.ServiceControl
 
     public class SetupBootstrapper
     {
-        private readonly Settings settings;
-
         public SetupBootstrapper(Settings settings)
         {
             this.settings = settings;
@@ -24,7 +22,7 @@ namespace Particular.ServiceControl
             var configuration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = configuration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-            
+
             configuration.EnableInstallers(username);
 
             if (settings.SkipQueueCreation)
@@ -40,7 +38,7 @@ namespace Particular.ServiceControl
 
             var transportSettings = new TransportSettings();
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-            
+
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
             var documentStore = new EmbeddableDocumentStore();
@@ -50,9 +48,11 @@ namespace Particular.ServiceControl
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();    
+                NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();
             }
         }
+
+        private readonly Settings settings;
 
         private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }

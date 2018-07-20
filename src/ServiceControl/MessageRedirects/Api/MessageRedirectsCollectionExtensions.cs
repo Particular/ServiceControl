@@ -12,7 +12,7 @@ namespace ServiceControl.MessageRedirects.Api
 
             if (request.Query.direction.HasValue)
             {
-                direction = (string) request.Query.direction;
+                direction = (string)request.Query.direction;
             }
 
             if (direction != "asc" && direction != "desc")
@@ -30,7 +30,7 @@ namespace ServiceControl.MessageRedirects.Api
 
             if (request.Query.sort.HasValue)
             {
-                sort = (string) request.Query.sort;
+                sort = (string)request.Query.sort;
             }
 
             if (!sortOptions.Contains(sort))
@@ -44,7 +44,6 @@ namespace ServiceControl.MessageRedirects.Api
             }
 
             return direction == "asc" ? source.Redirects.OrderBy(r => r.FromPhysicalAddress) : source.Redirects.OrderByDescending(r => r.FromPhysicalAddress);
-
         }
 
         public static IEnumerable<MessageRedirect> Paging(this IEnumerable<MessageRedirect> source, Request request)

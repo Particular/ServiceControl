@@ -13,6 +13,7 @@
                 return Negotiate.WithModel(info);
             };
         }
+
         public StaleIndexInfoStore InfoStore { get; set; }
     }
 }
