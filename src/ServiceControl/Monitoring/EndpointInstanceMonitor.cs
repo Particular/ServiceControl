@@ -48,7 +48,7 @@ namespace ServiceControl.Monitoring
             status = newStatus;
         }
 
-        private async Task RaiseStateChangeEvents(HeartbeatStatus newStatus, DateTime? latestTimestamp)
+        async Task RaiseStateChangeEvents(HeartbeatStatus newStatus, DateTime? latestTimestamp)
         {
             if (newStatus == HeartbeatStatus.Alive)
             {
@@ -88,13 +88,17 @@ namespace ServiceControl.Monitoring
             if (Monitored)
             {
                 if (status == HeartbeatStatus.Alive)
+                {
                     stats.RecordActive();
+                }
                 else
+                {
                     stats.RecordFailing();
+                }
             }
         }
 
-        private static EndpointDetails Convert(EndpointInstanceId endpointInstanceId)
+        static EndpointDetails Convert(EndpointInstanceId endpointInstanceId)
         {
             return new EndpointDetails
             {
@@ -132,7 +136,7 @@ namespace ServiceControl.Monitoring
         }
 
         IDomainEvents domainEvents;
-        private DateTime? lastSeen;
-        private HeartbeatStatus status;
+        DateTime? lastSeen;
+        HeartbeatStatus status;
     }
 }

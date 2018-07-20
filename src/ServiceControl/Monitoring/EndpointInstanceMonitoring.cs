@@ -26,7 +26,7 @@ namespace ServiceControl.Monitoring
             {
                 var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
 
-                EndpointInstanceId endpointInstanceId = entry.Key;
+                var endpointInstanceId = entry.Key;
                 var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
                 await monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp)
                     .ConfigureAwait(false);
@@ -75,7 +75,7 @@ namespace ServiceControl.Monitoring
             endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
         }
 
-        private async Task Update(EndpointMonitoringStats stats)
+        async Task Update(EndpointMonitoringStats stats)
         {
             var previousActive = previousStats?.Active ?? 0;
             var previousDead = previousStats?.Failing ?? 0;

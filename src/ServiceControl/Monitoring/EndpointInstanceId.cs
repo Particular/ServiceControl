@@ -17,8 +17,16 @@ namespace ServiceControl.Monitoring
 
         public bool Equals(EndpointInstanceId other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return string.Equals(LogicalName, other.LogicalName) && string.Equals(HostName, other.HostName) && HostGuid.Equals(other.HostGuid);
         }
 
