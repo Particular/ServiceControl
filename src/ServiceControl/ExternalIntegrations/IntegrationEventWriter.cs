@@ -4,20 +4,18 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class IntegrationEventWriter : IDomainHandler<IDomainEvent>
     {
-        private readonly IDocumentStore store;
-        private readonly IEnumerable<IEventPublisher> eventPublishers;
-
         public IntegrationEventWriter(IDocumentStore store, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
             this.eventPublishers = eventPublishers;
         }
+
         public async Task Handle(IDomainEvent message)
         {
             var dispatchContexts = eventPublishers
@@ -38,6 +36,7 @@
                     {
                         Logger.Debug("Storing dispatch request.");
                     }
+
                     var dispatchRequest = new ExternalIntegrationDispatchRequest
                     {
                         Id = $"ExternalIntegrationDispatchRequests/{Guid.NewGuid()}",
@@ -52,6 +51,9 @@
                     .ConfigureAwait(false);
             }
         }
+
+        readonly IDocumentStore store;
+        readonly IEnumerable<IEventPublisher> eventPublishers;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(IntegrationEventWriter));
     }

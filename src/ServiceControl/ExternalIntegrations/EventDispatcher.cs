@@ -6,6 +6,7 @@
     using System.Reactive.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
@@ -13,24 +14,9 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class EventDispatcher : FeatureStartupTask
     {
-        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
-        IMessageSession bus;
-        CriticalError criticalError;
-        IEnumerable<IEventPublisher> eventPublishers;
-        Settings settings;
-        ManualResetEventSlim signal = new ManualResetEventSlim();
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-        RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
-        IDisposable subscription;
-        Task task;
-        CancellationTokenSource tokenSource;
-        Etag latestEtag = Etag.Empty;
-
         public EventDispatcher(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
@@ -56,13 +42,13 @@
             return Task.FromResult(0);
         }
 
-        private void OnNext(DocumentChangeNotification documentChangeNotification)
+        void OnNext(DocumentChangeNotification documentChangeNotification)
         {
             latestEtag = Etag.Max(documentChangeNotification.Etag, latestEtag);
             signal.Set();
         }
 
-        private void StartDispatcher()
+        void StartDispatcher()
         {
             task = StartDispatcherTask();
         }
@@ -87,7 +73,7 @@
                     await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
                 } while (!tokenSource.IsCancellationRequested);
             }
-            catch(OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 // ignore
             }
@@ -103,7 +89,7 @@
             }
         }
 
-        private async Task DispatchEvents(CancellationToken token)
+        async Task DispatchEvents(CancellationToken token)
         {
             bool more;
 
@@ -122,12 +108,11 @@
             } while (!token.IsCancellationRequested && more);
         }
 
-        private async Task<bool> TryDispatchEventBatch()
+        async Task<bool> TryDispatchEventBatch()
         {
             using (var session = store.OpenAsyncSession())
             {
-                RavenQueryStatistics stats;
-                var awaitingDispatching = await session.Query<ExternalIntegrationDispatchRequest>().Statistics(out stats).Take(settings.ExternalIntegrationsDispatchingBatchSize).ToListAsync();
+                var awaitingDispatching = await session.Query<ExternalIntegrationDispatchRequest>().Statistics(out var stats).Take(settings.ExternalIntegrationsDispatchingBatchSize).ToListAsync();
 
                 if (awaitingDispatching.Count == 0)
                 {
@@ -144,11 +129,11 @@
                 var eventsToBePublished = new List<object>();
                 foreach (var publisher in eventPublishers)
                 {
-                    var @events = await publisher.PublishEventsForOwnContexts(allContexts, session)
+                    var events = await publisher.PublishEventsForOwnContexts(allContexts, session)
                         .ConfigureAwait(false);
-                    eventsToBePublished.AddRange(@events);
+                    eventsToBePublished.AddRange(events);
                 }
-                
+
                 foreach (var eventToBePublished in eventsToBePublished)
                 {
                     if (Logger.IsDebugEnabled)
@@ -177,10 +162,12 @@
                         {
                             m.Reason = "Failed to retrieve reason!";
                         }
+
                         await domainEvents.Raise(m)
                             .ConfigureAwait(false);
                     }
                 }
+
                 foreach (var dispatchedEvent in awaitingDispatching)
                 {
                     session.Delete(dispatchedEvent);
@@ -206,5 +193,19 @@
             tokenSource.Dispose();
             circuitBreaker.Dispose();
         }
+
+        IMessageSession bus;
+        CriticalError criticalError;
+        IEnumerable<IEventPublisher> eventPublishers;
+        Settings settings;
+        ManualResetEventSlim signal = new ManualResetEventSlim();
+        IDocumentStore store;
+        IDomainEvents domainEvents;
+        RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
+        IDisposable subscription;
+        Task task;
+        CancellationTokenSource tokenSource;
+        Etag latestEtag = Etag.Empty;
+        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
     }
 }
