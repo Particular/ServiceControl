@@ -45,10 +45,8 @@
 
             pipelines.OnError.AddItemToEndOfPipeline((c, ex) =>
             {
-                var aggregateEx = ex as AggregateException;
-
                 //this is a workaround for the nlog issue https://github.com/Particular/NServiceBus/issues/1842
-                if (aggregateEx != null)
+                if (ex is AggregateException aggregateEx)
                 {
                     var builder = new StringBuilder();
 
@@ -146,20 +144,20 @@
 
         public event EventHandler<LifetimeScopeBeginningEventArgs> ChildLifetimeScopeBeginning
         {
-            add { realScope.ChildLifetimeScopeBeginning += value; }
-            remove { realScope.ChildLifetimeScopeBeginning -= value; }
+            add => realScope.ChildLifetimeScopeBeginning += value;
+            remove => realScope.ChildLifetimeScopeBeginning -= value;
         }
 
         public event EventHandler<LifetimeScopeEndingEventArgs> CurrentScopeEnding
         {
-            add { realScope.CurrentScopeEnding += value; }
-            remove { realScope.CurrentScopeEnding -= value; }
+            add => realScope.CurrentScopeEnding += value;
+            remove => realScope.CurrentScopeEnding -= value;
         }
 
         public event EventHandler<ResolveOperationBeginningEventArgs> ResolveOperationBeginning
         {
-            add { realScope.ResolveOperationBeginning += value; }
-            remove { realScope.ResolveOperationBeginning -= value; }
+            add => realScope.ResolveOperationBeginning += value;
+            remove => realScope.ResolveOperationBeginning -= value;
         }
 
         private readonly ILifetimeScope realScope;

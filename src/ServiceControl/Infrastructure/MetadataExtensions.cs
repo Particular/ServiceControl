@@ -7,8 +7,7 @@
     {
         public static T GetOrDefault<T>(this IDictionary<string, object> metadata, string key)
         {
-            object foundValue;
-            if (metadata.TryGetValue(key, out foundValue))
+            if (metadata.TryGetValue(key, out var foundValue))
             {
                 return (T)foundValue;
             }
@@ -18,8 +17,7 @@
 
         public static string GetAsStringOrNull(this IDictionary<string, object> metadata, string key)
         {
-            object foundValue;
-            if (metadata.TryGetValue(key, out foundValue))
+            if (metadata.TryGetValue(key, out var foundValue))
             {
                 return foundValue?.ToString();
             }

@@ -77,8 +77,7 @@
                 await subscriptionsLock.WaitAsync().ConfigureAwait(false);
 
                 var needsSave = false;
-                Subscription subscription;
-                if (subscriptions.All.TryGetValue(FormatId(messageType), out subscription))
+                if (subscriptions.All.TryGetValue(FormatId(messageType), out var subscription))
                 {
                     var client = CreateSubscriptionClient(subscriber);
                     if (subscription.Subscribers.Remove(client))
@@ -109,8 +108,7 @@
 
             var subscriptionClient = CreateSubscriptionClient(subscriber);
 
-            Subscription subscription;
-            if (subscriptions.All.TryGetValue(key, out subscription))
+            if (subscriptions.All.TryGetValue(key, out var subscription))
             {
                 if (subscription.Subscribers.Contains(subscriptionClient))
                 {

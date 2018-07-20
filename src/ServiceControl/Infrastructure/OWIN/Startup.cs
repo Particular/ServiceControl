@@ -77,8 +77,7 @@
 
         public override object GetService(Type serviceType)
         {
-            object service;
-            if (container.TryResolve(serviceType, out service))
+            if (container.TryResolve(serviceType, out var service))
             {
                 return service;
             }
@@ -88,9 +87,7 @@
 
         public override IEnumerable<object> GetServices(Type serviceType)
         {
-            object services;
-
-            if (container.TryResolve(IEnumerableType.MakeGenericType(serviceType), out services))
+            if (container.TryResolve(IEnumerableType.MakeGenericType(serviceType), out var services))
             {
                 return (IEnumerable<object>)services;
             }

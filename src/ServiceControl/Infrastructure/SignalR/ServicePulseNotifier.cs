@@ -15,8 +15,7 @@ namespace ServiceControl.Infrastructure.SignalR
 
         public async Task Handle(IDomainEvent domainEvent)
         {
-            var userInteraceEvent = domainEvent as IUserInterfaceEvent;
-            if (userInteraceEvent != null)
+            if (domainEvent is IUserInterfaceEvent userInteraceEvent)
             {
                 await broadcaster.Broadcast(userInteraceEvent)
                     .ConfigureAwait(false);

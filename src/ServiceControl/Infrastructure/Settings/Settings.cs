@@ -346,8 +346,7 @@
             var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
             if (valueRead != null)
             {
-                TimeSpan result;
-                if (TimeSpan.TryParse(valueRead, out result))
+                if (TimeSpan.TryParse(valueRead, out var result))
                 {
                     string message;
                     if (ValidateConfiguration && result < TimeSpan.FromHours(1))
@@ -371,9 +370,8 @@
             return TimeSpan.FromDays(14);
         }
 
-        private TimeSpan GetErrorRetentionPeriod()
+        TimeSpan GetErrorRetentionPeriod()
         {
-            TimeSpan result;
             string message;
             var valueRead = SettingsReader<string>.Read("ErrorRetentionPeriod");
             if (valueRead == null)
@@ -383,7 +381,7 @@
                 throw new Exception(message);
             }
 
-            if (TimeSpan.TryParse(valueRead, out result))
+            if (TimeSpan.TryParse(valueRead, out var result))
             {
                 if (ValidateConfiguration && result < TimeSpan.FromDays(10))
                 {
@@ -409,9 +407,8 @@
             return result;
         }
 
-        private TimeSpan GetAuditRetentionPeriod()
+        TimeSpan GetAuditRetentionPeriod()
         {
-            TimeSpan result;
             string message;
             var valueRead = SettingsReader<string>.Read("AuditRetentionPeriod");
             if (valueRead == null)
@@ -421,7 +418,7 @@
                 throw new Exception(message);
             }
 
-            if (TimeSpan.TryParse(valueRead, out result))
+            if (TimeSpan.TryParse(valueRead, out var result))
             {
                 if (ValidateConfiguration && result < TimeSpan.FromHours(1))
                 {
@@ -447,7 +444,7 @@
             return result;
         }
 
-        private static RemoteInstanceSetting[] GetRemoteInstances()
+        static RemoteInstanceSetting[] GetRemoteInstances()
         {
             var valueRead = SettingsReader<string>.Read("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
@@ -477,16 +474,16 @@
         }
 
 
-        private ILog logger = LogManager.GetLogger(typeof(Settings));
-        private int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
-        private int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
-        private int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+        ILog logger = LogManager.GetLogger(typeof(Settings));
+        int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
+        int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
+        int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public const string Disabled = "!disable";
 
-        private const int ExpirationProcessTimerInSecondsDefault = 600;
-        private const int ExpirationProcessBatchSizeDefault = 65512;
-        private const int ExpirationProcessBatchSizeMinimum = 10240;
-        private const int MaxBodySizeToStoreDefault = 102400; //100 kb
+        const int ExpirationProcessTimerInSecondsDefault = 600;
+        const int ExpirationProcessBatchSizeDefault = 65512;
+        const int ExpirationProcessBatchSizeMinimum = 10240;
+        const int MaxBodySizeToStoreDefault = 102400; //100 kb
     }
 }

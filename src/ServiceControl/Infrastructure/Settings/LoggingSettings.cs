@@ -22,8 +22,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
-            string levelText;
-            if (!ConfigFileSettingsReader<string>.TryRead("ServiceControl", key, out levelText))
+            if (!ConfigFileSettingsReader<string>.TryRead("ServiceControl", key, out var levelText))
             {
                 return defaultLevel;
             }

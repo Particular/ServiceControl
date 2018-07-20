@@ -57,8 +57,7 @@
                             Key = id
                         });
 
-                        string bodyId;
-                        if (TryGetBodyId(doc, out bodyId))
+                        if (TryGetBodyId(doc, out var bodyId))
                         {
                             attachments.Add(bodyId);
                         }

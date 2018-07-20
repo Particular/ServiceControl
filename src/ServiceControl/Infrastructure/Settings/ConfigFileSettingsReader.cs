@@ -12,8 +12,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public static T Read(string root, string name, T defaultValue = default)
         {
-            T value;
-            if (TryRead(root, name, out value))
+            if (TryRead(root, name, out var value))
             {
                 return value;
             }
