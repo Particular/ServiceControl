@@ -2,28 +2,18 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
 
     public class When_issuing_retry_on_master : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private const string Remote1 = "remote1";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
-
-        private string addressOfRemote;
-
-
         [Test]
         public async Task Should_be_forwarded_and_resolved_on_remote()
         {
@@ -87,16 +77,24 @@
             return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
         }
 
+        private string addressOfRemote;
+        private const string Master = "master";
+        private const string Remote1 = "remote1";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
+        private static string AuditRemote = $"{Remote1}.audit1";
+        private static string ErrorRemote = $"{Remote1}.error1";
+
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
-                    {
-                        c.NoRetries();
-                        c.AuditProcessedMessagesTo(AuditRemote);
-                        c.SendFailedMessagesTo(ErrorRemote);
-                    });
+                {
+                    c.NoRetries();
+                    c.AuditProcessedMessagesTo(AuditRemote);
+                    c.SendFailedMessagesTo(ErrorRemote);
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -123,7 +121,7 @@
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }

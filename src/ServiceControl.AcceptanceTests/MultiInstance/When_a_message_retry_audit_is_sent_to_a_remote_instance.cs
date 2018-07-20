@@ -2,27 +2,17 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
     public class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private const string Remote1 = "remote1";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
-
-        private string addressOfRemote;
-
-
         [Test]
         public async Task Should_mark_as_resolved_on_master()
         {
@@ -32,7 +22,7 @@
             FailedMessage failure;
 
             await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<FailureEndpoint>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed, 
+                .WithEndpoint<FailureEndpoint>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
                     bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
@@ -111,6 +101,14 @@
             }
         }
 
+        private string addressOfRemote;
+        private const string Master = "master";
+        private const string Remote1 = "remote1";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
+        private static string AuditRemote = $"{Remote1}.audit1";
+        private static string ErrorRemote = $"{Remote1}.error1";
+
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
@@ -147,7 +145,7 @@
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }

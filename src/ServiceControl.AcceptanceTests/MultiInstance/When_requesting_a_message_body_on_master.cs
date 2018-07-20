@@ -6,26 +6,17 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
 
     public class When_requesting_a_message_body_on_master : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private const string Remote1 = "remote1";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
-
-        private string addressOfRemote;
-
         [Test]
         public async Task Should_be_forwarded_to_remote()
         {
@@ -33,7 +24,7 @@
 
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;
-            
+
             var context = await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<RemoteEndpoint>(b => b.When(async (bus, ctx) =>
                 {
@@ -55,6 +46,7 @@
                         {
                             return false;
                         }
+
                         c.Remote1MessageAudited = true;
                         capturedMessage = messages.Single(msg => msg.MessageId == c.Remote1MessageId);
                     }
@@ -73,7 +65,7 @@
             Assert.NotNull(response.Content.Headers.ContentLength, "ContentLength not set");
 
             Assert.AreEqual(context.Remote1MessageBody.Length, response.Content.Headers.ContentLength.Value, "ContentLength mismatch");
-            
+
             var body = await response.Content.ReadAsByteArrayAsync();
 
             Assert.AreEqual(context.Remote1MessageBody, body, "Body bytes mismatch");
@@ -105,7 +97,16 @@
             }
         }
 
-        class MyContext : ScenarioContext {
+        private string addressOfRemote;
+        private const string Master = "master";
+        private const string Remote1 = "remote1";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
+        private static string AuditRemote = $"{Remote1}.audit1";
+        private static string ErrorRemote = $"{Remote1}.error1";
+
+        class MyContext : ScenarioContext
+        {
             public string Remote1MessageId { get; set; }
             public byte[] Remote1MessageBody { get; set; }
             public string Remote1MessageContentType { get; set; }
@@ -132,7 +133,7 @@
             public class MessageBodySpy : IMutateIncomingTransportMessages
             {
                 public MyContext Context { get; set; }
-                
+
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     Context.Remote1MessageContentType = context.Headers[Headers.ContentType];
@@ -141,7 +142,7 @@
                 }
             }
 
-        public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 

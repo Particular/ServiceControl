@@ -4,26 +4,17 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Monitoring;
 
     public class When_endpoint_detected_via_audits_on_slave : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private const string Slave = "slave";
-        private static string AuditSlave = $"{Slave}.audit";
-        private static string ErrorSlave = $"{Slave}.error";
-
-        private string addressOfRemote;
-
         [Test]
         public async Task Should_be_configurable_on_master()
         {
@@ -33,7 +24,7 @@
             List<EndpointsView> response = null;
 
             await Define<MyContext>(Slave, Master)
-                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed, 
+                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
                     (bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -64,30 +55,6 @@
 
             Assert.IsNotNull(response.First());
             Assert.IsTrue(response.First().MonitorHeartbeat);
-        }
-
-        public class Sender : EndpointConfigurationBuilder
-        {
-            public Sender()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.AuditProcessedMessagesTo(AuditSlave);
-                    c.SendFailedMessagesTo(ErrorMaster);
-                });
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public MyContext Context { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
-
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
-                {
-                    return Task.FromResult(0);
-                }
-            }
         }
 
         void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
@@ -125,6 +92,38 @@
                         ctx.MasterSubscribed = true;
                     }
                 });
+            }
+        }
+
+        private string addressOfRemote;
+        private const string Master = "master";
+        private const string Slave = "slave";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
+        private static string AuditSlave = $"{Slave}.audit";
+        private static string ErrorSlave = $"{Slave}.error";
+
+        public class Sender : EndpointConfigurationBuilder
+        {
+            public Sender()
+            {
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.AuditProcessedMessagesTo(AuditSlave);
+                    c.SendFailedMessagesTo(ErrorMaster);
+                });
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public ReadOnlySettings Settings { get; set; }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    return Task.FromResult(0);
+                }
             }
         }
 
