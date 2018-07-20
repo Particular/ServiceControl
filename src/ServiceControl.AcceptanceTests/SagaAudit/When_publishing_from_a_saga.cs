@@ -7,8 +7,8 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_publishing_from_a_saga : AcceptanceTest
@@ -103,5 +103,4 @@
             public string Id { get; set; }
         }
     }
-
 }

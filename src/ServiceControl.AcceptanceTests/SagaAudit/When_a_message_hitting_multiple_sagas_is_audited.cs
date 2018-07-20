@@ -6,8 +6,8 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     class When_a_message_hitting_multiple_sagas_is_audited : AcceptanceTest
@@ -53,8 +53,6 @@
 
             public class MySaga : Saga<MySaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                public MyContext Context { get; set; }
-
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     Context.SagaId = Data.Id;
@@ -71,12 +69,12 @@
                 {
                     mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
                 }
+
+                public MyContext Context { get; set; }
             }
 
             public class MyOtherSaga : Saga<MyOtherSaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                public MyContext Context { get; set; }
-
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     Context.OtherSagaId = Data.Id;
@@ -96,11 +94,11 @@
                 {
                     mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
                 }
-            }
 
+                public MyContext Context { get; set; }
+            }
         }
 
-        
         public class MessageInitiatingSaga : ICommand
         {
             public string Id { get; set; }

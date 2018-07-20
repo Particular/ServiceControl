@@ -8,8 +8,8 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
@@ -59,7 +59,7 @@
                     // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
                     c.EnableFeature<AutoSubscribe>();
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-                    
+
                 }, metadata =>
                 {
                     metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga));
@@ -97,71 +97,63 @@
 
             class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
             {
-                public MyContext Context { get; set; }
-
                 public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done1 = true;
                     return Task.FromResult(0);
                 }
+                public MyContext Context { get; set; }
             }
 
             class MessagePublishedBySagaHandler : IHandleMessages<MessagePublishedBySaga>
             {
-                public MyContext Context { get; set; }
-
                 public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done2 = true;
                     return Task.FromResult(0);
                 }
+                public MyContext Context { get; set; }
             }
 
             class MessageReplyToOriginatorBySagaHandler : IHandleMessages<MessageReplyToOriginatorBySaga>
             {
-                public MyContext Context { get; set; }
-
                 public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done3 = true;
                     return Task.FromResult(0);
                 }
+
+                public MyContext Context { get; set; }
             }
 
             class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
             {
-                public MyContext Context { get; set; }
-
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done4 = true;
                     return Task.FromResult(0);
                 }
+                public MyContext Context { get; set; }
             }
         }
 
-        
         public class MessageInitiatingSaga : ICommand
         {
             public string Id { get; set; }
         }
 
-        
         public class MessageSentBySaga : ICommand
         {
         }
 
-        
         public class MessagePublishedBySaga : IEvent
         {
         }
 
-        
         public class MessageReplyBySaga : IMessage
         {
         }
 
-        
         public class MessageReplyToOriginatorBySaga : IMessage
         {
         }
@@ -177,5 +169,4 @@
             public Guid SagaId { get; set; }
         }
     }
-
 }

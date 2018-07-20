@@ -6,13 +6,12 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
     {
-
         [Test]
         public async Task Saga_info_should_be_available_through_the_http_api()
         {
@@ -71,7 +70,6 @@
             }
         }
 
-        
         public class MessageInitiatingSaga : ICommand
         {
             public string Id { get; set; }
@@ -83,6 +81,4 @@
             public Guid SagaId { get; set; }
         }
     }
-
-
 }

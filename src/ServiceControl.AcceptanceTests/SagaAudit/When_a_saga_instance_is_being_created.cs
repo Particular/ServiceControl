@@ -6,13 +6,12 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_a_saga_instance_is_being_created : AcceptanceTest
     {
-
         [Test]
         public async Task Saga_audit_trail_should_contain_the_state_change()
         {
@@ -31,7 +30,7 @@
             Assert.NotNull(sagaHistory);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(MySaga).FullName,sagaHistory.SagaType);
+            Assert.AreEqual(typeof(MySaga).FullName, sagaHistory.SagaType);
 
             var change = sagaHistory.Changes.Single();
 
@@ -51,8 +50,6 @@
         public class MySaga : Saga<MySagaData>,
             IAmStartedByMessages<StartSagaMessage>
         {
-            public MyContext Context { get; set; }
-
             public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
                 Context.SagaId = Data.Id;
@@ -64,6 +61,8 @@
             {
                 mapper.ConfigureMapping<StartSagaMessage>(msg => msg.Id).ToSaga(saga => saga.MessageId);
             }
+
+            public MyContext Context { get; set; }
         }
 
         public class MySagaData : ContainSagaData
@@ -83,5 +82,4 @@
             public bool InitiatingMessageReceived { get; set; }
         }
     }
-
 }

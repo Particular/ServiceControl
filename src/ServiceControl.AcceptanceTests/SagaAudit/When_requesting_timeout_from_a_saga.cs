@@ -6,13 +6,12 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_requesting_timeout_from_a_saga : AcceptanceTest
     {
-
         [Test]
         public async Task Saga_audit_trail_should_contain_the_state_change()
         {
@@ -49,8 +48,6 @@
             IAmStartedByMessages<StartSagaMessage>,
             IHandleTimeouts<TimeoutMessage>
         {
-            public MyContext Context { get; set; }
-
             public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
                 Context.SagaId = Data.Id;
@@ -67,6 +64,7 @@
             {
                 mapper.ConfigureMapping<StartSagaMessage>(msg => msg.Id).ToSaga(saga => saga.MessageId);
             }
+            public MyContext Context { get; set; }
         }
 
         public class MySagaData : ContainSagaData
@@ -89,5 +87,4 @@
             public bool ReceivedTimeoutMessage { get; set; }
         }
     }
-
 }
