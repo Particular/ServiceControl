@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Engine.Configuration.ServiceControl;
+    using Engine.FileSystem;
+    using Engine.Instances;
+    using Engine.LicenseMgmt;
+    using Engine.Unattended;
     using Microsoft.Deployment.WindowsInstaller;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
-    using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
-    using ServiceControlInstaller.Engine.Unattended;
 
     public class CustomActionsInstall
     {
@@ -20,11 +20,11 @@
 
             var unattendedInstaller = new UnattendServiceControlInstaller(logger, session["APPDIR"]);
             var zipInfo = ServiceControlZipInfo.Find(session["APPDIR"] ?? ".");
-            
+
             if (!zipInfo.Present)
             {
-               logger.Error("Zip file not found. Service Control service instances can not be upgraded or installed");
-               return ActionResult.Failure;
+                logger.Error("Zip file not found. Service Control service instances can not be upgraded or installed");
+                return ActionResult.Failure;
             }
 
             UpgradeInstances(session, zipInfo, logger, unattendedInstaller);
@@ -32,14 +32,17 @@
             ImportLicenseInstall(session, logger);
             return ActionResult.Success;
         }
-        
+
         static void UpgradeInstances(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
         {
             var options = new ServiceControlUpgradeOptions();
 
             var upgradeInstancesPropertyValue = session["UPGRADEINSTANCES"];
             if (string.IsNullOrWhiteSpace(upgradeInstancesPropertyValue))
+            {
                 return;
+            }
+
             upgradeInstancesPropertyValue = upgradeInstancesPropertyValue.Trim();
 
             var forwardErrorMessagesPropertyValue = session["FORWARDERRORMESSAGES"];
@@ -65,7 +68,7 @@
             var errorRetentionPeriodPropertyValue = session["ERRORRETENTIONPERIOD"];
             try
             {
-               options.ErrorRetentionPeriod = TimeSpan.Parse(errorRetentionPeriodPropertyValue);
+                options.ErrorRetentionPeriod = TimeSpan.Parse(errorRetentionPeriodPropertyValue);
             }
             catch
             {
@@ -94,7 +97,7 @@
                         logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{SettingsList.ForwardErrorMessages.Name}'");
                         continue;
                     }
-                    
+
                     if (!options.AuditRetentionPeriod.HasValue)
                     {
                         if (!instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
@@ -136,7 +139,9 @@
 
             var unattendedFilePropertyValue = session["UNATTENDEDFILE"];
             if (string.IsNullOrWhiteSpace(unattendedFilePropertyValue))
+            {
                 return;
+            }
 
             var serviceAccount = session["SERVICEACCOUNT"];
             var password = session["PASSWORD"];
@@ -156,6 +161,7 @@
                     instanceToInstallDetails.ServiceAccount = serviceAccount;
                     instanceToInstallDetails.ServiceAccountPwd = password;
                 }
+
                 unattendedInstaller.Add(instanceToInstallDetails, s => false);
             }
             else
@@ -170,7 +176,9 @@
 
             var licenseFilePropertyValue = session["LICENSEFILE"];
             if (string.IsNullOrWhiteSpace(licenseFilePropertyValue))
+            {
                 return;
+            }
 
             logger.Info($"LICENSEFILE: {licenseFilePropertyValue}");
             var currentDirectory = session["CURRENTDIRECTORY"];
@@ -181,8 +189,7 @@
             if (File.Exists(licenseFilePath))
             {
                 logger.Info($"File Exists : {licenseFilePropertyValue}");
-                string errormessage;
-                if (!LicenseManager.TryImportLicense(licenseFilePath, out errormessage))
+                if (!LicenseManager.TryImportLicense(licenseFilePath, out var errormessage))
                 {
                     logger.Error(errormessage);
                 }
