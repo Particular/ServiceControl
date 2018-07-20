@@ -8,15 +8,13 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_message_groups_are_sorted_by_a_web_api_call : AcceptanceTest
     {
-        const string MessageId = "014b048-2b7b-4f94-8eda-d5be0fe50e92";
-
         [Test]
         public async Task All_messages_in_group_should_be_sorted_by_time_sent()
         {
@@ -94,7 +92,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 protected override TransportOperations CreateMessage(MyContext context)
                 {
                     var errorAddress = new UnicastAddressTag("error");
-                    
+
                     return new TransportOperations(
                         new TransportOperation(CreateTransportMessage(1), errorAddress),
                         new TransportOperation(CreateTransportMessage(2), errorAddress),
@@ -124,7 +122,8 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
         public class MyContext : ScenarioContext
         {
-
         }
+
+        const string MessageId = "014b048-2b7b-4f94-8eda-d5be0fe50e92";
     }
 }

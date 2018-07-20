@@ -9,7 +9,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -124,13 +124,11 @@
                 }
             }
         }
-
         
         public class MyMessageA : ICommand
         {
         }
 
-        
         public class MyMessageB : ICommand
         {
         }
@@ -139,9 +137,7 @@
         {
             public string MessageIdA { get; set; }
             public string MessageIdB { get; set; }
-
             public string EndpointNameOfReceivingEndpoint { get; set; }
-
             public string UniqueMessageIdA => DeterministicGuid.MakeId(MessageIdA, EndpointNameOfReceivingEndpoint).ToString();
             public string UniqueMessageIdB => DeterministicGuid.MakeId(MessageIdB, EndpointNameOfReceivingEndpoint).ToString();
         }

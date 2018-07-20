@@ -9,7 +9,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -75,7 +75,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             }
         }
 
-
         public class MeowReceiver : EndpointConfigurationBuilder
         {
             public MeowReceiver()
@@ -88,9 +87,6 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
             public class FailingMessageHandler : IHandleMessages<Meow>
             {
-                public MeowContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
-
                 public Task Handle(Meow message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
@@ -105,14 +101,14 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
 
                     throw new HttpException("The website is not responding");
                 }
+
+                public MeowContext Context { get; set; }
+                public ReadOnlySettings Settings { get; set; }
             }
         }
 
-
-        
         public class Meow : ICommand
         {
-
         }
 
         public class MeowContext : ScenarioContext

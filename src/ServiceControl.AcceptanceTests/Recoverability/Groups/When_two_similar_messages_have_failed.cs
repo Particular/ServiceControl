@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -36,7 +36,9 @@
                 .Done(async c =>
                 {
                     if (!c.FirstDone || !c.SecondDone)
+                    {
                         return false;
+                    }
 
                     var result = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
                     exceptionTypeAndStackTraceGroups = result;
@@ -61,12 +63,8 @@
 
                     var secondFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.SecondMessageId}");
                     secondFailure = secondFailureResult;
-                    if (!secondFailureResult)
-                    {
-                        return false;
-                    }
 
-                    return true;
+                    return secondFailureResult;
                 })
                 .Run();
 
@@ -111,9 +109,7 @@
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-
                     var messageId = context.MessageId.Replace(@"\", "-");
-
                     var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (message.IsFirst)
@@ -132,7 +128,6 @@
             }
         }
 
-        
         public class MyMessage : ICommand
         {
             public bool IsFirst { get; set; }
@@ -142,7 +137,6 @@
         {
             public bool FirstDone { get; set; }
             public string FirstMessageId { get; set; }
-
             public bool SecondDone { get; set; }
             public string SecondMessageId { get; set; }
         }

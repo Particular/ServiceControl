@@ -7,7 +7,7 @@
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
     using NServiceBus.Settings;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.Infrastructure;
 
     public class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
@@ -66,9 +66,6 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext TestContext { get; set; }
-                public ReadOnlySettings Settings { get; set; }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
@@ -84,6 +81,9 @@
                     TestContext.RetryHandled = true;
                     return Task.FromResult(0);
                 }
+
+                public MyContext TestContext { get; set; }
+                public ReadOnlySettings Settings { get; set; }
             }
 
             class CorrelationIdRemover : IMutateOutgoingTransportMessages

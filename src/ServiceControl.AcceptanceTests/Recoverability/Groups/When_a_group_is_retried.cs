@@ -6,7 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -123,7 +123,6 @@
             }
         }
 
-        
         public class MyMessage : ICommand
         {
             public int MessageNumber { get; set; }

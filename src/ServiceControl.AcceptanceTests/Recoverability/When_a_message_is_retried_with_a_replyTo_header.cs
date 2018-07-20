@@ -9,7 +9,7 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -89,8 +89,7 @@
             {
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
-                    string replyToAddress;
-                    if (context.Headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+                    if (context.Headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
                     {
                         replyToContext.ReceivedReplyToAddress = replyToAddress;
                     }
@@ -99,7 +98,7 @@
                     return Task.FromResult(0);
                 }
 
-                private ReplyToContext replyToContext;
+                ReplyToContext replyToContext;
 
                 public VerifyHeaderIsUnchanged(ReplyToContext context)
                 {
