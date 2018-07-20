@@ -25,13 +25,14 @@
             using (var installerKey = Registry.LocalMachine.OpenSubKey(upgradeKeyPath, true))
             {
                 if (installerKey == null)
+                {
                     return;
+                }
 
                 logger.Info($"Found upgrade code for old version {UpgradeCode:B}");
                 foreach (var flippedProductCodeString in installerKey.GetValueNames())
                 {
-                    Guid flippedProductCode;
-                    if (!Guid.TryParse(flippedProductCodeString, out flippedProductCode))
+                    if (!Guid.TryParse(flippedProductCodeString, out var flippedProductCode))
                     {
                         continue;
                     }

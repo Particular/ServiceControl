@@ -22,7 +22,9 @@
             var logger = new MSILogger(session);
             var removeInstancesPropertyValue = session["REMOVEALLINSTANCESANDDATA"];
             if (string.IsNullOrWhiteSpace(removeInstancesPropertyValue))
+            {
                 return ActionResult.NotExecuted;
+            }
 
             switch (removeInstancesPropertyValue.ToUpper())
             {

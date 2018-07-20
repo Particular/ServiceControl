@@ -39,7 +39,10 @@
 
             var upgradeInstancesPropertyValue = session["UPGRADEINSTANCES"];
             if (string.IsNullOrWhiteSpace(upgradeInstancesPropertyValue))
+            {
                 return;
+            }
+
             upgradeInstancesPropertyValue = upgradeInstancesPropertyValue.Trim();
 
             var forwardErrorMessagesPropertyValue = session["FORWARDERRORMESSAGES"];
@@ -136,7 +139,9 @@
 
             var unattendedFilePropertyValue = session["UNATTENDEDFILE"];
             if (string.IsNullOrWhiteSpace(unattendedFilePropertyValue))
+            {
                 return;
+            }
 
             var serviceAccount = session["SERVICEACCOUNT"];
             var password = session["PASSWORD"];
@@ -171,7 +176,9 @@
 
             var licenseFilePropertyValue = session["LICENSEFILE"];
             if (string.IsNullOrWhiteSpace(licenseFilePropertyValue))
+            {
                 return;
+            }
 
             logger.Info($"LICENSEFILE: {licenseFilePropertyValue}");
             var currentDirectory = session["CURRENTDIRECTORY"];
@@ -182,8 +189,7 @@
             if (File.Exists(licenseFilePath))
             {
                 logger.Info($"File Exists : {licenseFilePropertyValue}");
-                string errormessage;
-                if (!LicenseManager.TryImportLicense(licenseFilePath, out errormessage))
+                if (!LicenseManager.TryImportLicense(licenseFilePath, out var errormessage))
                 {
                     logger.Error(errormessage);
                 }
