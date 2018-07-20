@@ -7,8 +7,8 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_a_message_that_is_handled_by_a_saga : AcceptanceTest

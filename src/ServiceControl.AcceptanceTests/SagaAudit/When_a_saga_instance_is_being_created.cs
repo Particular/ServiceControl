@@ -6,8 +6,8 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_a_saga_instance_is_being_created : AcceptanceTest
