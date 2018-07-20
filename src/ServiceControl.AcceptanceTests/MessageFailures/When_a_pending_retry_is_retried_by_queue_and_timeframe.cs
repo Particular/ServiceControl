@@ -3,11 +3,11 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -23,10 +23,7 @@
                     return ctx.UniqueMessageId != null
                            && await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                 })
-                .Do("Retry", async ctx =>
-                {
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                })
+                .Do("Retry", async ctx => { await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"); })
                 .Do("WaitForRetryIssued", async ctx =>
                 {
                     return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
@@ -93,6 +90,7 @@
         }
 
         public class MyMessage : ICommand
-        { }
+        {
+        }
     }
 }

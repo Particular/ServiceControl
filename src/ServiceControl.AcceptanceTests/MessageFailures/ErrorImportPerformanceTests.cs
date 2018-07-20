@@ -4,10 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class ErrorImportPerformanceTests : AcceptanceTest
@@ -52,14 +52,13 @@
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }
 
         public class MyContext : ScenarioContext
         {
-
         }
     }
 }

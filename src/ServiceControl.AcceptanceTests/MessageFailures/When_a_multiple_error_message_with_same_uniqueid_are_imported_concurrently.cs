@@ -5,47 +5,24 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
 
     class When_a_multiple_error_message_with_same_uniqueid_are_imported_concurrently : AcceptanceTest
     {
-        class CounterEnricher : ImportEnricher
-        {
-            public MyContext Context { get; set; }
-
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
-                string counter;
-                if (headers.TryGetValue("Counter", out counter))
-                {
-                    Context.OnMessage(counter);
-                }
-                else
-                {
-                    Console.WriteLine("No Counter header found");
-                }
-
-                return Task.FromResult(0);
-            }
-        }
-
         [Test]
         public async Task The_import_should_support_it()
         {
             var criticalErrorExecuted = false;
-            
-            SetSettings = settings =>
-            {
-                settings.MaximumConcurrencyLevel = 10;
-            };
+
+            SetSettings = settings => { settings.MaximumConcurrencyLevel = 10; };
             CustomConfiguration = config =>
             {
                 config.DefineCriticalErrorAction(ctx =>
@@ -79,6 +56,26 @@
             Assert.IsFalse(criticalErrorExecuted);
             Assert.NotNull(failure);
             Assert.AreEqual(10, failure.ProcessingAttempts.Count);
+        }
+
+        class CounterEnricher : ImportEnricher
+        {
+            public MyContext Context { get; set; }
+
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
+                string counter;
+                if (headers.TryGetValue("Counter", out counter))
+                {
+                    Context.OnMessage(counter);
+                }
+                else
+                {
+                    Console.WriteLine("No Counter header found");
+                }
+
+                return Task.FromResult(0);
+            }
         }
 
         public class SourceEndpoint : EndpointConfigurationBuilder
@@ -128,14 +125,14 @@
 
         class MyContext : ScenarioContext
         {
-            ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
+            public string UniqueId { get; set; }
 
             public void OnMessage(string counter)
             {
                 receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
             }
 
-            public string UniqueId { get; set; }
+            ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
         }
     }
 }

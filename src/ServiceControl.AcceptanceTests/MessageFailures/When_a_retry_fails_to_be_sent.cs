@@ -3,13 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
@@ -28,20 +28,14 @@
 
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
-                    .When(async ctx =>
-                    {
-                        return !ctx.RetryForInvalidAddressIssued && await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId);
-                    },
+                    .When(async ctx => { return !ctx.RetryForInvalidAddressIssued && await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.DecommissionedEndpointUniqueMessageId); },
                         async (bus, ctx) =>
                         {
                             await this.Post<object>($"/api/errors/{ctx.DecommissionedEndpointUniqueMessageId}/retry");
                             await bus.SendLocal(new MessageThatWillFail());
                             ctx.RetryForInvalidAddressIssued = true;
                         }).DoNotFailOnErrorMessages()
-                    .When(async ctx =>
-                    {
-                        return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId);
-                    },
+                    .When(async ctx => { return !ctx.RetryForMessageThatWillFailAndThenBeResolvedIssued && await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == ctx.MessageThatWillFailUniqueMessageId); },
                         async (bus, ctx) =>
                         {
                             await this.Post<object>($"/api/errors/{ctx.MessageThatWillFailUniqueMessageId}/retry");
@@ -72,10 +66,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                    {
-                        c.NoRetries();
-                    });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
@@ -138,15 +129,13 @@
             public bool Done { get; set; }
         }
 
-        
+
         public class MessageThatWillFail : ICommand
         {
         }
 
         public class FakeReturnToSender : ReturnToSender
         {
-            private MyContext myContext;
-
             public FakeReturnToSender(IBodyStorage bodyStorage, MyContext myContext) : base(bodyStorage)
             {
                 this.myContext = myContext;
@@ -158,8 +147,11 @@
                 {
                     throw new Exception("This endpoint is unreachable");
                 }
+
                 return base.HandleMessage(message, sender);
             }
+
+            private MyContext myContext;
         }
     }
 }

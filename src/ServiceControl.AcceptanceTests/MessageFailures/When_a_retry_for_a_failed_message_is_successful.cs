@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.EventLog;
@@ -34,6 +34,7 @@
                     {
                         return false;
                     }
+
                     if (failure.Status == FailedMessageStatus.Resolved)
                     {
                         var eventLogItemsResult = await this.TryGetMany<EventLogItem>("/api/eventlogitems");
@@ -76,7 +77,7 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => this.Post("/api/errors/retry", new List<string> { c.UniqueMessageId }));
+                    await IssueRetry(c, () => this.Post("/api/errors/retry", new List<string> {c.UniqueMessageId}));
 
                     return false;
                 })
@@ -201,10 +202,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.NoRetries();
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -230,7 +228,7 @@
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }

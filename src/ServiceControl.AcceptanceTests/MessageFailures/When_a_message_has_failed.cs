@@ -5,8 +5,16 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
+    using Microsoft.AspNet.SignalR.Client;
+    using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
+    using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
@@ -17,14 +25,7 @@
     using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using Microsoft.AspNet.SignalR.Client;
-    using Microsoft.AspNet.SignalR.Client.Transports;
-    using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Features;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
@@ -45,7 +46,7 @@
 
             Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
 
-           // The message Ids may contain a \ if they are from older versions.
+            // The message Ids may contain a \ if they are from older versions.
             Assert.AreEqual(context.MessageId, failedMessage.ProcessingAttempts.Last().MessageId,
                 "The returned message should match the processed one");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
@@ -84,7 +85,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m=>m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -121,7 +122,7 @@
         [Test]
         public async Task Should_raise_a_signalr_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => this.Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -188,6 +189,7 @@
                     {
                         return false;
                     }
+
                     var result = await this.TryGetMany<QueueAddress>($"/api/errors/queues/addresses/search/{searchTerm}");
                     searchResults = result;
                     return result;
@@ -226,6 +228,15 @@
 
                 class SignalRStarter : FeatureStartupTask
                 {
+                    public SignalRStarter(MyContext context)
+                    {
+                        this.context = context;
+                        connection = new Connection("http://localhost/api/messagestream")
+                        {
+                            JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
+                        };
+                    }
+
                     protected override Task OnStart(IMessageSession session)
                     {
                         connection.Received += ConnectionOnReceived;
@@ -251,15 +262,6 @@
 
                     private MyContext context;
                     private Connection connection;
-
-                    public SignalRStarter(MyContext context)
-                    {
-                        this.context = context;
-                        connection = new Connection("http://localhost/api/messagestream")
-                        {
-                            JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
-                        };
-                    }
                 }
             }
         }
@@ -302,7 +304,6 @@
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public QueueSearchContext Context { get; set; }
-                static object lockObj = new object();
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
@@ -310,12 +311,15 @@
                     {
                         Context.FailedMessageCount++;
                     }
+
                     throw new Exception("Simulated exception");
                 }
+
+                static object lockObj = new object();
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }
