@@ -28,24 +28,18 @@
                 var timeSent = DateTime.MinValue;
                 var processingStarted = DateTime.MinValue;
 
-                string timeSentValue;
-
-                if (headers.TryGetValue(Headers.TimeSent, out timeSentValue))
+                if (headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
                 {
                     timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
                     metadata.Add("TimeSent", timeSent);
                 }
 
-                string processingStartedValue;
-
-                if (headers.TryGetValue(Headers.ProcessingStarted, out processingStartedValue))
+                if (headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue))
                 {
                     processingStarted = DateTimeExtensions.ToUtcDateTime(processingStartedValue);
                 }
 
-                string processingEndedValue;
-
-                if (headers.TryGetValue(Headers.ProcessingEnded, out processingEndedValue))
+                if (headers.TryGetValue(Headers.ProcessingEnded, out var processingEndedValue))
                 {
                     processingEnded = DateTimeExtensions.ToUtcDateTime(processingEndedValue);
                 }
