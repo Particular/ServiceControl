@@ -4,13 +4,13 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure.Extensions;
+    using MessageFailures.Api;
+    using MessageFailures.InternalMessages;
     using Nancy;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using Infrastructure.Extensions;
-    using MessageFailures.Api;
-    using MessageFailures.InternalMessages;
 
     public class FailureGroupsApi : BaseModule
     {
@@ -22,12 +22,12 @@ namespace ServiceControl.Recoverability
             Post["/recoverability/groups/reclassify", true] = (parameters, token) => ReclassifyErrors();
 
             Get["/recoverability/groups/{classifier?Exception Type and Stack Trace}", true] =
-               (parameters, token) =>
-               {
-                   var classifierFilter = Request.Query["classifierFilter"] != "undefined" ? Request.Query["classifierFilter"] : null;
+                (parameters, token) =>
+                {
+                    var classifierFilter = Request.Query["classifierFilter"] != "undefined" ? Request.Query["classifierFilter"] : null;
 
-                   return GetAllGroups(parameters.Classifier, classifierFilter);
-               };
+                    return GetAllGroups(parameters.Classifier, classifierFilter);
+                };
 
             Get["/recoverability/groups/{groupId}/errors", true] =
                 (parameters, token) => GetGroupErrors(parameters.GroupId);
@@ -36,11 +36,15 @@ namespace ServiceControl.Recoverability
                 (parameters, token) => GetGroupErrorsCount(parameters.GroupId);
 
             Get["/recoverability/history/", true] =
-            (_, token) => GetRetryHistory();
+                (_, token) => GetRetryHistory();
 
             Get["/recoverability/groups/id/{groupId}", true] =
                 (parameters, token) => GetGroup(parameters.GroupId);
         }
+
+        public Lazy<IEndpointInstance> Bus { get; set; }
+        public GroupFetcher GroupFetcher { get; set; }
+        public IEnumerable<IFailureClassifier> Classifiers { get; set; }
 
         async Task<dynamic> ReclassifyErrors()
         {
@@ -90,17 +94,17 @@ namespace ServiceControl.Recoverability
             using (var session = Store.OpenAsyncSession())
             {
                 var queryResult = await session.Advanced
-                                    .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
-                                    .Statistics(out var stats)
-                                    .WhereEquals(group => group.Id, groupId)
-                                    .FilterByStatusWhere(Request)
-                                    .FilterByLastModifiedRange(Request)
-                                    .ToListAsync()
-                                    .ConfigureAwait(false);
+                    .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
+                    .Statistics(out var stats)
+                    .WhereEquals(group => group.Id, groupId)
+                    .FilterByStatusWhere(Request)
+                    .FilterByLastModifiedRange(Request)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
 
                 return Negotiate
-                         .WithModel(queryResult.FirstOrDefault())
-                         .WithEtag(stats);
+                    .WithModel(queryResult.FirstOrDefault())
+                    .WithEtag(stats);
             }
         }
 
@@ -140,13 +144,9 @@ namespace ServiceControl.Recoverability
                     .ConfigureAwait(false);
 
                 return Negotiate
-                         .WithTotalCount(queryResult.TotalResults)
-                         .WithEtag(queryResult.IndexEtag);
+                    .WithTotalCount(queryResult.TotalResults)
+                    .WithEtag(queryResult.IndexEtag);
             }
         }
-        
-        public Lazy<IEndpointInstance> Bus { get; set; }
-        public GroupFetcher GroupFetcher { get; set; }
-        public IEnumerable<IFailureClassifier> Classifiers { get; set; }
     }
 }

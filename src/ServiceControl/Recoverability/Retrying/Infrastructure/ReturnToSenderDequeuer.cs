@@ -3,30 +3,15 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
+    using MessageFailures;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures;
-    using FailedMessage = MessageFailures.FailedMessage;
 
     public class ReturnToSenderDequeuer
     {
-        Timer timer;
-        TaskCompletionSource<bool> syncEvent;
-        TaskCompletionSource<bool> stopCompletionSource;
-        static ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
-        private bool endedPrematurelly;
-        int? targetMessageCount;
-        int actualMessageCount;
-        Predicate<MessageContext> shouldProcess;
-        CaptureIfMessageSendingFails faultManager;
-        Func<RawEndpointConfiguration> createEndpointConfiguration;
-        private ReturnToSender returnToSender;
-
-        public string InputAddress { get; }
-
         public ReturnToSenderDequeuer(TransportDefinition transportDefinition, ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName, RawEndpointFactory rawEndpointFactory)
         {
             InputAddress = $"{endpointName}.staging";
@@ -44,6 +29,10 @@ namespace ServiceControl.Recoverability
             faultManager = new CaptureIfMessageSendingFails(store, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
         }
+
+        public string InputAddress { get; }
+
+        bool IsCounting => targetMessageCount.HasValue;
 
         async Task Handle(MessageContext message, IDispatchMessages sender)
         {
@@ -76,8 +65,6 @@ namespace ServiceControl.Recoverability
                 timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
             }
         }
-
-        bool IsCounting => targetMessageCount.HasValue;
 
         void CountMessageAndStopIfReachedTarget()
         {
@@ -127,6 +114,7 @@ namespace ServiceControl.Recoverability
                     Log.Debug("Running in timeout mode. Starting timer");
                     timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
                 }
+
                 Log.InfoFormat("{0} started", GetType().Name);
             }
             finally
@@ -163,19 +151,27 @@ namespace ServiceControl.Recoverability
             Log.InfoFormat("{0} stopped", GetType().Name);
         }
 
+        Timer timer;
+        TaskCompletionSource<bool> syncEvent;
+        TaskCompletionSource<bool> stopCompletionSource;
+        private bool endedPrematurelly;
+        int? targetMessageCount;
+        int actualMessageCount;
+        Predicate<MessageContext> shouldProcess;
+        CaptureIfMessageSendingFails faultManager;
+        Func<RawEndpointConfiguration> createEndpointConfiguration;
+        private ReturnToSender returnToSender;
+        static ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
+
         class CaptureIfMessageSendingFails : IErrorHandlingPolicy
         {
-            static ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
-            IDocumentStore store;
-            IDomainEvents domainEvents;
-            readonly Action executeOnFailure;
-
             public CaptureIfMessageSendingFails(IDocumentStore store, IDomainEvents domainEvents, Action executeOnFailure)
             {
                 this.store = store;
                 this.executeOnFailure = executeOnFailure;
                 this.domainEvents = domainEvents;
             }
+
             public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
                 try
@@ -234,6 +230,11 @@ namespace ServiceControl.Recoverability
 
                 return ErrorHandleResult.Handled;
             }
+
+            readonly Action executeOnFailure;
+            IDocumentStore store;
+            IDomainEvents domainEvents;
+            static ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
         }
     }
 }

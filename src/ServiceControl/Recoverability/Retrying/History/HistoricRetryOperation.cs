@@ -1,5 +1,4 @@
-﻿
-namespace ServiceControl.Recoverability
+﻿namespace ServiceControl.Recoverability
 {
     using System;
 

@@ -2,14 +2,12 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using System.Linq;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.MessageFailures;
+    using Contracts.Operations;
+    using Infrastructure;
+    using MessageFailures;
 
     class ClassifyFailedMessageEnricher : IFailedMessageEnricher
     {
-        private IFailureClassifier[] classifiers;
-
         public ClassifyFailedMessageEnricher(IEnumerable<IFailureClassifier> classifiers)
         {
             this.classifiers = classifiers.ToArray();
@@ -36,5 +34,7 @@ namespace ServiceControl.Recoverability
                 };
             }
         }
+
+        private IFailureClassifier[] classifiers;
     }
 }

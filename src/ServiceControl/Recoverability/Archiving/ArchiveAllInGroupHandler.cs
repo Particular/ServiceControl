@@ -2,10 +2,10 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
-    using Infrastructure.DomainEvents;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
@@ -99,7 +99,7 @@ namespace ServiceControl.Recoverability
             logger.Info($"Archiving of group {message.GroupId} is complete. Waiting for index updates.");
             await archiveOperationManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType)
                 .ConfigureAwait(false);
-            if (! await documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, archiveOperation.ArchiveType, TimeSpan.FromMinutes(5))
+            if (!await documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, archiveOperation.ArchiveType, TimeSpan.FromMinutes(5))
                 .ConfigureAwait(false))
             {
                 logger.Warn($"Archiving group {message.GroupId} completed but index not updated.");
@@ -118,13 +118,13 @@ namespace ServiceControl.Recoverability
             }).ConfigureAwait(false);
         }
 
-        static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
-        const int batchSize = 1000;
-
         IDocumentStore store;
         IDomainEvents domainEvents;
         ArchiveDocumentManager documentManager;
         ArchivingManager archiveOperationManager;
         RetryingManager retryingManager;
+        const int batchSize = 1000;
+
+        static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
     }
 }

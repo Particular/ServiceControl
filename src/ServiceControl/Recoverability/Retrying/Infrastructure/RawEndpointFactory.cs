@@ -5,14 +5,10 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Raw;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Transports;
+    using Transports;
 
     public class RawEndpointFactory
     {
-        Settings settings;
-        TransportCustomization transportCustomization;
-        private TransportSettings transportSettings;
-
         public RawEndpointFactory(Settings settings, TransportSettings transportSettings, TransportCustomization transportCustomization)
         {
             this.transportSettings = transportSettings;
@@ -29,5 +25,9 @@ namespace ServiceControl.Recoverability
             transportCustomization.CustomizeRawEndpoint(config, transportSettings);
             return config;
         }
+
+        Settings settings;
+        TransportCustomization transportCustomization;
+        private TransportSettings transportSettings;
     }
 }

@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
-    using Raven.Client;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using MessageFailures;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using Raven.Client;
 
     public class ArchiveDocumentManager
     {
@@ -96,19 +96,19 @@
         {
             var patchCommands = batch?.DocumentIds
                 .Select(documentId =>
-                new PatchCommandData
-                {
-                    Key = documentId,
-                    Patches = new[]
+                    new PatchCommandData
                     {
-                        new PatchRequest
+                        Key = documentId,
+                        Patches = new[]
                         {
-                            Type = PatchCommandType.Set,
-                            Name = "Status",
-                            Value = (int) FailedMessageStatus.Archived
+                            new PatchRequest
+                            {
+                                Type = PatchCommandType.Set,
+                                Name = "Status",
+                                Value = (int)FailedMessageStatus.Archived
+                            }
                         }
-                    }
-                });
+                    });
 
             if (patchCommands != null)
             {

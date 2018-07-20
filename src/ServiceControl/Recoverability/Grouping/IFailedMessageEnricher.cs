@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.MessageFailures;
+    using Contracts.Operations;
+    using MessageFailures;
 
     public interface IFailedMessageEnricher
     {

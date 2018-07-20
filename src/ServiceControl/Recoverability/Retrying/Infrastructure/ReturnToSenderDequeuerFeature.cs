@@ -1,11 +1,11 @@
 namespace ServiceControl.Recoverability
 {
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Transport;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class ReturnToSenderDequeuerFeature : Feature
     {
@@ -31,8 +31,6 @@ namespace ServiceControl.Recoverability
 
         class StartupTask : FeatureStartupTask
         {
-            ReturnToSenderDequeuer returnToSenderDequeuer;
-
             public StartupTask(ReturnToSenderDequeuer returnToSenderDequeuer)
             {
                 this.returnToSenderDequeuer = returnToSenderDequeuer;
@@ -47,6 +45,8 @@ namespace ServiceControl.Recoverability
             {
                 return returnToSenderDequeuer.Stop();
             }
+
+            ReturnToSenderDequeuer returnToSenderDequeuer;
         }
     }
 }

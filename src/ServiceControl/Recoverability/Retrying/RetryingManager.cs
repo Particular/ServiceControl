@@ -1,16 +1,13 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Linq;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class RetryingManager
     {
-        IDomainEvents domainEvents;
-        Dictionary<string, InMemoryRetry> retryOperations = new Dictionary<string, InMemoryRetry>();
-
         public RetryingManager(IDomainEvents domainEvents)
         {
             this.domainEvents = domainEvents;
@@ -139,6 +136,7 @@
                 summary = new InMemoryRetry(requestId, retryType, domainEvents);
                 retryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)] = summary;
             }
+
             return summary;
         }
 
@@ -154,5 +152,8 @@
 
             return summary;
         }
+
+        IDomainEvents domainEvents;
+        Dictionary<string, InMemoryRetry> retryOperations = new Dictionary<string, InMemoryRetry>();
     }
 }

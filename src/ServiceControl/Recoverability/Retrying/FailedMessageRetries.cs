@@ -3,19 +3,18 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure;
 
     public class FailedMessageRetries : Feature
     {
         public FailedMessageRetries()
         {
             EnableByDefault();
-
         }
 
         protected override void Setup(FeatureConfigurationContext context)
@@ -23,7 +22,7 @@
             context.Container.ConfigureComponent<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetriesGateway>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetryProcessor>(DependencyLifecycle.SingleInstance);
-            
+
             context.RegisterStartupTask(b => b.Build<RebuildRetryGroupStatuses>());
             context.RegisterStartupTask(b => b.Build<BulkRetryBatchCreation>());
             context.RegisterStartupTask(b => b.Build<AdoptOrphanBatchesFromPreviousSession>());
@@ -32,11 +31,6 @@
 
         class BulkRetryBatchCreation : FeatureStartupTask
         {
-            readonly RetriesGateway retries;
-            private readonly TimeKeeper timeKeeper;
-            private Timer timer;
-            private bool abortProcessing;
-
             public BulkRetryBatchCreation(RetriesGateway retries, TimeKeeper timeKeeper)
             {
                 this.retries = retries;
@@ -61,7 +55,7 @@
                     abortProcessing = true;
                     timeKeeper.Release(timer);
                 }
-                
+
                 return Task.FromResult(0);
             }
 
@@ -74,6 +68,11 @@
                         .ConfigureAwait(false);
                 } while (processedRequests && !abortProcessing);
             }
+
+            readonly RetriesGateway retries;
+            private readonly TimeKeeper timeKeeper;
+            private Timer timer;
+            private bool abortProcessing;
         }
 
         class RebuildRetryGroupStatuses : FeatureStartupTask
@@ -103,9 +102,6 @@
 
         internal class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
-            private Timer timer;
-            private DateTime startTime;
-
             public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper, IDocumentStore store)
             {
                 this.retryDocumentManager = retryDocumentManager;
@@ -150,17 +146,16 @@
                 return Task.FromResult(0);
             }
 
+            private readonly TimeKeeper timeKeeper;
+            private Timer timer;
+            private DateTime startTime;
+
             IDocumentStore store;
             RetryDocumentManager retryDocumentManager;
-            private readonly TimeKeeper timeKeeper;
         }
 
         class ProcessRetryBatches : FeatureStartupTask
         {
-            static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
-            private Timer timer;
-            private readonly Settings settings;
-
             public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, TimeKeeper timeKeeper, Settings settings)
             {
                 this.processor = processor;
@@ -206,10 +201,14 @@
                 }
             }
 
+            private readonly Settings settings;
+            private readonly TimeKeeper timeKeeper;
+            private Timer timer;
+
             IDocumentStore store;
             RetryProcessor processor;
-            private readonly TimeKeeper timeKeeper;
             private CancellationTokenSource shuttingDown = new CancellationTokenSource();
+            static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
         }
     }
 }

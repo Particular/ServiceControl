@@ -11,6 +11,9 @@ namespace ServiceControl.Recoverability
             Delete["/recoverability/unacknowledgedgroups/{groupId}", true] = (parameters, token) => AcknowledgeOperation(parameters);
         }
 
+        public ArchivingManager ArchiveOperationManager { get; set; }
+        public RetryingManager RetryingOperationManager { get; set; }
+
         async Task<dynamic> AcknowledgeOperation(dynamic parameters)
         {
             var groupId = parameters.groupId;
@@ -37,8 +40,5 @@ namespace ServiceControl.Recoverability
 
             return HttpStatusCode.NotFound;
         }
-
-        public ArchivingManager ArchiveOperationManager { get; set; }
-        public RetryingManager RetryingOperationManager { get; set; }
     }
 }

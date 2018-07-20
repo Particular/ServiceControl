@@ -14,6 +14,9 @@ namespace ServiceControl.Recoverability
                 (parameters, ctx) => ArchiveGroupErrors(parameters.GroupId);
         }
 
+        public ArchivingManager ArchiveOperationManager { get; set; }
+        public Lazy<IEndpointInstance> Bus { get; set; }
+
         async Task<dynamic> ArchiveGroupErrors(string groupId)
         {
             if (string.IsNullOrWhiteSpace(groupId))
@@ -26,16 +29,10 @@ namespace ServiceControl.Recoverability
                 await ArchiveOperationManager.StartArchiving(groupId, ArchiveType.FailureGroup)
                     .ConfigureAwait(false);
 
-                await Bus.Value.SendLocal<ArchiveAllInGroup>(m =>
-                {
-                    m.GroupId = groupId;
-                }).ConfigureAwait(false);
+                await Bus.Value.SendLocal<ArchiveAllInGroup>(m => { m.GroupId = groupId; }).ConfigureAwait(false);
             }
 
             return HttpStatusCode.Accepted;
         }
-        
-        public ArchivingManager ArchiveOperationManager { get; set; }
-        public Lazy<IEndpointInstance> Bus { get; set; }
     }
 }

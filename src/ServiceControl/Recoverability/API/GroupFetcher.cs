@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
-    using Raven.Client;
     using System.Linq;
     using System.Threading.Tasks;
+    using Raven.Client;
 
     public class GroupFetcher
     {
@@ -56,8 +56,8 @@
         static UnacknowledgedRetryOperation[] MapAcksToOpenGroups(IList<FailureGroupView> groups, UnacknowledgedRetryOperation[] acks)
         {
             return (from g in groups
-                    join unack in acks on g.Id equals unack.RequestId
-                    select unack).ToArray();
+                join unack in acks on g.Id equals unack.RequestId
+                select unack).ToArray();
         }
 
         static Task<IList<FailureGroupView>> GetDBGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
@@ -147,7 +147,7 @@
                 OperationStartTime = archiveOperation.Started,
                 OperationCompletionTime = archiveOperation.CompletionTime,
                 OperationMessagesCompletedCount = archiveOperation.GetProgress().NumberOfMessagesArchived,
-                NeedUserAcknowledgement = archiveOperation.NeedsAcknowledgement(),
+                NeedUserAcknowledgement = archiveOperation.NeedsAcknowledgement()
             });
         }
 

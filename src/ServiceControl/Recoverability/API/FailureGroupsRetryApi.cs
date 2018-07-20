@@ -14,6 +14,9 @@ namespace ServiceControl.Recoverability
                 (parameters, ctx) => RetryAllGroupErrors(parameters.GroupId);
         }
 
+        public Lazy<IEndpointInstance> Bus { get; set; }
+        public RetryingManager RetryOperationManager { get; set; }
+
         async Task<dynamic> RetryAllGroupErrors(string groupId)
         {
             if (String.IsNullOrWhiteSpace(groupId))
@@ -28,13 +31,14 @@ namespace ServiceControl.Recoverability
                 await RetryOperationManager.Wait(groupId, RetryType.FailureGroup, started)
                     .ConfigureAwait(false);
 
-                await Bus.Value.SendLocal(new RetryAllInGroup { GroupId = groupId, Started = started }).ConfigureAwait(false);
+                await Bus.Value.SendLocal(new RetryAllInGroup
+                {
+                    GroupId = groupId,
+                    Started = started
+                }).ConfigureAwait(false);
             }
 
             return HttpStatusCode.Accepted;
         }
-        
-        public Lazy<IEndpointInstance> Bus { get; set; }
-        public RetryingManager RetryOperationManager { get; set; }
     }
 }

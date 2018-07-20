@@ -26,7 +26,8 @@ namespace ServiceControl.Recoverability
                 {
                     result.RequestId,
                     result.RetryType
-                }  into g
+                }
+                into g
                 select new
                 {
                     g.Key.RequestId,
@@ -36,7 +37,7 @@ namespace ServiceControl.Recoverability
                     HasForwardingBatches = g.Any(x => x.HasForwardingBatches),
                     InitialBatchSize = g.Sum(x => x.InitialBatchSize),
                     g.First().StartTime,
-                    Last = g.Max(x =>x.Last),
+                    Last = g.Max(x => x.Last),
                     g.First().Classifier
                 };
 

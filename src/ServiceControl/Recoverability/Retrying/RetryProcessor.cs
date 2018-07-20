@@ -5,6 +5,9 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
+    using MessageFailures;
+    using MessageRedirects;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
@@ -12,25 +15,9 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Support;
     using NServiceBus.Transport;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.MessageRedirects;
 
     class RetryProcessor
     {
-        static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
-        {
-            "NServiceBus.Retries",
-            "NServiceBus.FailedQ",
-            "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace"
-        };
-
-        static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
-
         public RetryProcessor(IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
             this.sender = sender;
@@ -62,13 +49,13 @@ namespace ServiceControl.Recoverability
                 await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
                     .ConfigureAwait(false);
 
-                if ( stagedMessages > 0)
+                if (stagedMessages > 0)
                 {
                     await session.StoreAsync(new RetryBatchNowForwarding
-                    {
-                        RetryBatchId = stagingBatch.Id
-                    }, RetryBatchNowForwarding.Id)
-                    .ConfigureAwait(false);
+                        {
+                            RetryBatchId = stagingBatch.Id
+                        }, RetryBatchNowForwarding.Id)
+                        .ConfigureAwait(false);
                 }
 
                 return true;
@@ -258,5 +245,18 @@ namespace ServiceControl.Recoverability
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
+
+        static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
+        {
+            "NServiceBus.Retries",
+            "NServiceBus.FailedQ",
+            "NServiceBus.TimeOfFailure",
+            "NServiceBus.ExceptionInfo.ExceptionType",
+            "NServiceBus.ExceptionInfo.AuditMessage",
+            "NServiceBus.ExceptionInfo.Source",
+            "NServiceBus.ExceptionInfo.StackTrace"
+        };
+
+        static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
     }
 }

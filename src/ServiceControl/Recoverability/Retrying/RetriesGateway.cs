@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
+    using MessageFailures;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -13,70 +14,16 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
-    using ServiceControl.MessageFailures;
-
 
     public class RetriesGateway
     {
-        const int BatchSize = 1000;
-
-        private IDocumentStore store;
-        private RetryDocumentManager retryDocumentManager;
-        public RetryingManager OperationManager { get; set; }
-        private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
-
         public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
         {
             this.store = store;
             retryDocumentManager = documentManager;
         }
 
-        interface IBulkRetryRequest
-        {
-            string RequestId { get; }
-            RetryType RetryType { get; }
-            string Originator { get; set; }
-            string Classifier { get; set; }
-            DateTime StartTime { get; set; }
-            Task<IAsyncEnumerator<StreamResult<FailedMessage>>> GetDocuments(IAsyncDocumentSession session);
-        }
-
-        class IndexBasedBulkRetryRequest<TType, TIndex> : IBulkRetryRequest
-            where TIndex : AbstractIndexCreationTask, new()
-            where TType : IHaveStatus
-        {
-            Expression<Func<TType, bool>> filter;
-
-            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string originator, string classifier, DateTime startTime, Expression<Func<TType, bool>> filter)
-            {
-                RequestId = requestId;
-                RetryType = retryType;
-                Originator = originator;
-                this.filter = filter;
-                StartTime = startTime;
-                Classifier = classifier;
-            }
-
-            public string RequestId { get; set; }
-            public RetryType RetryType { get; set; }
-            public string Originator { get; set; }
-            public string Classifier { get; set; }
-            public DateTime StartTime { get; set; }
-
-            public Task<IAsyncEnumerator<StreamResult<FailedMessage>>> GetDocuments(IAsyncDocumentSession session)
-            {
-                var query = session.Query<TType, TIndex>();
-
-                query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
-
-                if (filter != null)
-                {
-                    query = query.Where(filter);
-                }
-
-                return session.Advanced.StreamAsync(query.As<FailedMessage>());
-            }
-        }
+        public RetryingManager OperationManager { get; set; }
 
         async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IBulkRetryRequest request)
         {
@@ -232,6 +179,58 @@ namespace ServiceControl.Recoverability
             return $"'{context}' batch {pageNum} of {totalPages}";
         }
 
+        private IDocumentStore store;
+        private RetryDocumentManager retryDocumentManager;
+        private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
+        const int BatchSize = 1000;
+
         static ILog log = LogManager.GetLogger(typeof(RetriesGateway));
+
+        interface IBulkRetryRequest
+        {
+            string RequestId { get; }
+            RetryType RetryType { get; }
+            string Originator { get; set; }
+            string Classifier { get; set; }
+            DateTime StartTime { get; set; }
+            Task<IAsyncEnumerator<StreamResult<FailedMessage>>> GetDocuments(IAsyncDocumentSession session);
+        }
+
+        class IndexBasedBulkRetryRequest<TType, TIndex> : IBulkRetryRequest
+            where TIndex : AbstractIndexCreationTask, new()
+            where TType : IHaveStatus
+        {
+            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string originator, string classifier, DateTime startTime, Expression<Func<TType, bool>> filter)
+            {
+                RequestId = requestId;
+                RetryType = retryType;
+                Originator = originator;
+                this.filter = filter;
+                StartTime = startTime;
+                Classifier = classifier;
+            }
+
+            public string RequestId { get; set; }
+            public RetryType RetryType { get; set; }
+            public string Originator { get; set; }
+            public string Classifier { get; set; }
+            public DateTime StartTime { get; set; }
+
+            public Task<IAsyncEnumerator<StreamResult<FailedMessage>>> GetDocuments(IAsyncDocumentSession session)
+            {
+                var query = session.Query<TType, TIndex>();
+
+                query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
+
+                if (filter != null)
+                {
+                    query = query.Where(filter);
+                }
+
+                return session.Advanced.StreamAsync(query.As<FailedMessage>());
+            }
+
+            Expression<Func<TType, bool>> filter;
+        }
     }
 }

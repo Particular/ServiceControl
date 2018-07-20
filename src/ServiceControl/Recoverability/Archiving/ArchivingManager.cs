@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Linq;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
@@ -40,6 +40,7 @@
                 summary = new InMemoryArchive(requestId, archiveType, domainEvents);
                 archiveOperations[InMemoryArchive.MakeId(requestId, archiveType)] = summary;
             }
+
             return summary;
         }
 
