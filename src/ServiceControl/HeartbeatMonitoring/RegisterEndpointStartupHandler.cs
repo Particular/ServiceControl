@@ -1,15 +1,13 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System.Threading.Tasks;
+    using Contracts.Operations;
+    using Monitoring;
     using NServiceBus;
     using Plugin.Heartbeat.Messages;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Monitoring;
 
     class RegisterEndpointStartupHandler : IHandleMessages<RegisterEndpointStartup>
     {
-        EndpointInstanceMonitoring monitoring;
-
         public RegisterEndpointStartupHandler(EndpointInstanceMonitoring monitoring)
         {
             this.monitoring = monitoring;
@@ -25,5 +23,7 @@
             };
             return monitoring.DetectEndpointFromHeartbeatStartup(endpointDetails, message.StartedAt);
         }
+
+        EndpointInstanceMonitoring monitoring;
     }
 }
