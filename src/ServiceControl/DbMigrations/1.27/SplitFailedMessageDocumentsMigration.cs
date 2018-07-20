@@ -11,8 +11,6 @@
 
     public class SplitFailedMessageDocumentsMigration : IMigration
     {
-        private readonly IFailureClassifier[] classifiers;
-
         public SplitFailedMessageDocumentsMigration(IFailureClassifier[] classifiers)
         {
             this.classifiers = classifiers;
@@ -28,14 +26,14 @@
 
             int retrievedResults;
             var currentPage = 0;
-            List<string> toBeDeleted = new List<string>();
+            var toBeDeleted = new List<string>();
 
             do
             {
                 using (var session = store.OpenSession())
                 {
                     var failedMessages = session.Advanced.LoadStartingWith<FailedMessage>(
-                        $"FailedMessages/",
+                        "FailedMessages/",
                         start: PageSize * currentPage++,
                         pageSize: PageSize);
 
@@ -59,7 +57,9 @@
             return $"Found {stats.FoundProblem} issue(s) in {stats.Checked} Failed Message document(s). Created {stats.Created} new document(s). Deleted {stats.Deleted} old document(s).";
         }
 
-        private MigrationStats MigrateFromTemporaryCollection(FailedMessage originalFailedMessage, IDocumentSession session, List<string> toBeDeleted)
+        public string MigrationId { get; } = "Split Failed Message Documents Once Again";
+
+        MigrationStats MigrateFromTemporaryCollection(FailedMessage originalFailedMessage, IDocumentSession session, List<string> toBeDeleted)
         {
             var stats = new MigrationStats();
 
@@ -88,7 +88,10 @@
                 }).ToList();
 
             //Do nothing if we don't split the document
-            if (failedMessages.Count == 1) return stats;
+            if (failedMessages.Count == 1)
+            {
+                return stats;
+            }
 
             stats.FoundProblem++;
 
@@ -114,7 +117,10 @@
 
                 failedMessage.FailureGroups = CreateFailureGroups(messageType, lastAttempt).ToList();
 
-                if (failedMessage.UniqueMessageId == originalFailedMessage.UniqueMessageId) return;
+                if (failedMessage.UniqueMessageId == originalFailedMessage.UniqueMessageId)
+                {
+                    return;
+                }
 
                 foreach (var processingAttempt in failedMessage.ProcessingAttempts)
                 {
@@ -129,7 +135,7 @@
             return stats;
         }
 
-        private IEnumerable<FailedMessage.FailureGroup> CreateFailureGroups(string messageType, FailedMessage.ProcessingAttempt attempt)
+        IEnumerable<FailedMessage.FailureGroup> CreateFailureGroups(string messageType, FailedMessage.ProcessingAttempt attempt)
         {
             var failureDetails = new ClassifiableMessageDetails(messageType, attempt.FailureDetails, attempt);
 
@@ -153,15 +159,22 @@
             }
         }
 
-        private static string GetMessageType(FailedMessage.ProcessingAttempt processingAttempt)
+        static string GetMessageType(FailedMessage.ProcessingAttempt processingAttempt)
         {
-            object messageType;
-            if (processingAttempt.MessageMetadata.TryGetValue("MessageType", out messageType))
+            if (processingAttempt.MessageMetadata.TryGetValue("MessageType", out var messageType))
             {
                 return messageType as string;
             }
+
             return null;
         }
+
+        readonly IFailureClassifier[] classifiers;
+
+        public const int PageSize = 1024;
+        public const string SplitFromUniqueMessageIdHeader = "CollapsedSubscribers.SplitFromUniqueMessageId";
+        public const string OriginalStatusHeader = "CollapsedSubscribers.OriginalStatus";
+        public const string GroupPrefixFormat = "Issue 842 - {0} - ";
 
         class ProcessingAttemptRecord
         {
@@ -177,15 +190,15 @@
                 IsRetry = headers.ContainsKey("ServiceControl.Retry.UniqueMessageId");
             }
 
-            static string NewUniqueId(IReadOnlyDictionary<string, string> headers)
-            {
-                return DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
-            }
-
             public FailedMessage.ProcessingAttempt Attempt { get; }
             public string UniqueMessageId { get; }
             public int Index { get; }
             public bool IsRetry { get; }
+
+            static string NewUniqueId(IReadOnlyDictionary<string, string> headers)
+            {
+                return DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
+            }
         }
 
         struct MigrationStats
@@ -203,12 +216,5 @@
                 Deleted = left.Deleted + right.Deleted
             };
         }
-
-        public string MigrationId { get; } = "Split Failed Message Documents Once Again";
-
-        public const int PageSize = 1024;
-        public const string SplitFromUniqueMessageIdHeader = "CollapsedSubscribers.SplitFromUniqueMessageId";
-        public const string OriginalStatusHeader = "CollapsedSubscribers.OriginalStatus";
-        public const string GroupPrefixFormat = "Issue 842 - {0} - ";
     }
 }
