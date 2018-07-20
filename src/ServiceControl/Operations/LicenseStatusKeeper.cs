@@ -13,9 +13,7 @@ namespace ServiceControl.Operations
 
         public string Get(string key)
         {
-            string value;
-
-            return cache.TryGetValue(key, out value) ? value : "unknown";
+            return cache.TryGetValue(key, out var value) ? value : "unknown";
         }
     }
 }

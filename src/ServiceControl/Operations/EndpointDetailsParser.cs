@@ -37,16 +37,13 @@ namespace ServiceControl.Contracts.Operations
         public static EndpointDetails ReceivingEndpoint(IReadOnlyDictionary<string, string> headers)
         {
             var endpoint = new EndpointDetails();
-            string hostIdHeader;
 
-            if (headers.TryGetValue(Headers.HostId, out hostIdHeader))
+            if (headers.TryGetValue(Headers.HostId, out var hostIdHeader))
             {
                 endpoint.HostId = Guid.Parse(hostIdHeader);
             }
 
-            string hostDisplayNameHeader;
-
-            if (headers.TryGetValue(Headers.HostDisplayName, out hostDisplayNameHeader))
+            if (headers.TryGetValue(Headers.HostDisplayName, out var hostDisplayNameHeader))
             {
                 endpoint.Host = hostDisplayNameHeader;
             }

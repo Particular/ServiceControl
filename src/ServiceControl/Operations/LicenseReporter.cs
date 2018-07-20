@@ -3,9 +3,9 @@ namespace ServiceControl.Operations
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Contracts.Operations;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceControl.Infrastructure;
 
     public class LicenseReporter : Feature
     {
@@ -46,8 +46,7 @@ namespace ServiceControl.Operations
 
             public string GetLicenseStatus(IReadOnlyDictionary<string, string> headers)
             {
-                string expired;
-                if (!headers.TryGetValue("$.diagnostics.license.expired", out expired))
+                if (!headers.TryGetValue("$.diagnostics.license.expired", out var expired))
                 {
                     return "unknown";
                 }
@@ -57,8 +56,7 @@ namespace ServiceControl.Operations
                     return "unknown";
                 }
 
-                bool hasLicenseExpired;
-                bool.TryParse(expired, out hasLicenseExpired);
+                bool.TryParse(expired, out var hasLicenseExpired);
 
                 return hasLicenseExpired ? "expired" : "valid";
             }

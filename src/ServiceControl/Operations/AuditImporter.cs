@@ -5,15 +5,15 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using BodyStorage;
+    using Infrastructure;
+    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.MessageAuditing;
-    using ServiceControl.Operations.BodyStorage;
 
     public class AuditImporterFeature : Feature
     {
@@ -45,7 +45,7 @@
             // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled
         }
 
-        private void SetupImportFailuresHandler(FeatureConfigurationContext context)
+        void SetupImportFailuresHandler(FeatureConfigurationContext context)
         {
             var store = context.Settings.Get<IDocumentStore>();
             var loggingSettings = context.Settings.Get<LoggingSettings>();
@@ -62,12 +62,12 @@
             );
         }
 
-        private Task OnAuditMessage(IBuilder builder, MessageContext messageContext)
+        Task OnAuditMessage(IBuilder builder, MessageContext messageContext)
         {
             return builder.Build<AuditIngestor>().Ingest(messageContext);
         }
 
-        private RecoverabilityAction OnAuditError(RecoverabilityConfig config, ErrorContext errorContext)
+        RecoverabilityAction OnAuditError(RecoverabilityConfig config, ErrorContext errorContext)
         {
             var recoverabilityAction = DefaultRecoverabilityPolicy.Invoke(config, errorContext);
 
@@ -79,14 +79,14 @@
             return recoverabilityAction;
         }
 
-        private SatelliteImportFailuresHandler importFailuresHandler;
+        SatelliteImportFailuresHandler importFailuresHandler;
     }
 
 
     public class AuditImporter
     {
-        private readonly IEnrichImportedMessages[] enrichers;
-        private readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        readonly IEnrichImportedMessages[] enrichers;
+        readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
 
         public AuditImporter(IBuilder builder, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
         {
@@ -96,8 +96,7 @@
 
         public async Task<ProcessedMessage> ConvertToSaveMessage(MessageContext message)
         {
-            string messageId;
-            if (!message.Headers.TryGetValue(Headers.MessageId, out messageId))
+            if (!message.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
                 messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
             }

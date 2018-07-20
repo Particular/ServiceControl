@@ -44,10 +44,10 @@ namespace ServiceControl.Operations
                                 .ConfigureAwait(false);
                             using (var storeSession = store.OpenAsyncSession())
                             {
-                                await storeSession.StoreAsync(entity).ConfigureAwait(false);
-                                await storeSession.SaveChangesAsync().ConfigureAwait(false);
+                                await storeSession.StoreAsync(entity, token).ConfigureAwait(false);
+                                await storeSession.SaveChangesAsync(token).ConfigureAwait(false);
                             }
-                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null)
+                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
                             succeeded++;
                             Logger.Info($"Successfully re-imported failed audit message {dto.Id}.");

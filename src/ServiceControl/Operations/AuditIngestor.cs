@@ -8,11 +8,11 @@
 
     public class AuditIngestor
     {
-        private static ILog log = LogManager.GetLogger<ErrorIngestor>();
-        private AuditImporter auditImporter;
-        private IDocumentStore store;
-        private IForwardMessages messageForwarder;
-        private Settings settings;
+        static ILog log = LogManager.GetLogger<ErrorIngestor>();
+        AuditImporter auditImporter;
+        IDocumentStore store;
+        IForwardMessages messageForwarder;
+        Settings settings;
 
         public AuditIngestor(AuditImporter auditImporter, IDocumentStore store, IForwardMessages messageForwarder, Settings settings)
         {

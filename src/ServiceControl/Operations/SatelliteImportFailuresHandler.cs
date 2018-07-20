@@ -11,11 +11,11 @@
 
     class SatelliteImportFailuresHandler
     {
-        private IDocumentStore store;
-        private string logPath;
+        IDocumentStore store;
+        string logPath;
 
-        private Func<FailedTransportMessage, object> messageBuilder;
-        private ImportFailureCircuitBreaker failureCircuitBreaker;
+        Func<FailedTransportMessage, object> messageBuilder;
+        ImportFailureCircuitBreaker failureCircuitBreaker;
 
         public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<FailedTransportMessage, object> messageBuilder, CriticalError criticalError)
         {
@@ -40,7 +40,7 @@
             return Handle(errorContext.Exception, failure);
         }
 
-        private async Task Handle(Exception exception, dynamic failure)
+        async Task Handle(Exception exception, dynamic failure)
         {
             try
             {
@@ -53,7 +53,7 @@
             }
         }
 
-        private async Task DoLogging(Exception exception, dynamic failure)
+        async Task DoLogging(Exception exception, dynamic failure)
         {
             var id = Guid.NewGuid();
 
@@ -79,7 +79,7 @@
         }
 
 #if DEBUG
-        private async Task WriteEvent(string message)
+        async Task WriteEvent(string message)
         {
             await new CreateEventSource().Install(null)
                 .ConfigureAwait(false);

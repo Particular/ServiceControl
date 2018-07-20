@@ -2,13 +2,13 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Contracts.MessageFailures;
+    using Contracts.Operations;
+    using Infrastructure.DomainEvents;
 
     class FailedMessageAnnouncer
     {
-        private IDomainEvents domainEvents;
+        IDomainEvents domainEvents;
 
         public FailedMessageAnnouncer(IDomainEvents domainEvents)
         {
@@ -19,8 +19,7 @@
         {
             var failingEndpointId = headers.ProcessingEndpointName();
 
-            string failedMessageId;
-            if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out failedMessageId))
+            if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var failedMessageId))
             {
                 return domainEvents.Raise(new MessageFailed
                 {
@@ -35,7 +34,7 @@
             {
                 FailureDetails = failureDetails,
                 EndpointId = failingEndpointId,
-                FailedMessageId = headers.UniqueId(),
+                FailedMessageId = headers.UniqueId()
             });
         }
     }

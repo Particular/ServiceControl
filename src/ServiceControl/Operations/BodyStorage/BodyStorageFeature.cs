@@ -28,8 +28,8 @@
 
         public class BodyStorageEnricher
         {
-            private IBodyStorage bodyStorage;
-            private Settings settings;
+            IBodyStorage bodyStorage;
+            Settings settings;
 
             public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
             {
@@ -47,7 +47,7 @@
                 return StoreMessageBody(body, headers, metadata, isFailedMessage: true);
             }
 
-            private async Task StoreMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, bool isFailedMessage)
+            async Task StoreMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, bool isFailedMessage)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.Add("ContentLength", bodySize);
@@ -69,9 +69,7 @@
 
             static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
             {
-                string contentType;
-
-                if (!headers.TryGetValue(Headers.ContentType, out contentType))
+                if (!headers.TryGetValue(Headers.ContentType, out var contentType))
                 {
                     contentType = defaultContentType;
                 }
