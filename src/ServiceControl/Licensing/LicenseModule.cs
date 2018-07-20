@@ -7,8 +7,6 @@
 
     public class LicenseModule : BaseModule
     {
-        public ActiveLicense ActiveLicense { get; set; }
-
         public LicenseModule()
         {
             Get["/license"] = parameters =>
@@ -30,6 +28,8 @@
                 return Negotiate.WithModel(licenseInfo);
             };
         }
+
+        public ActiveLicense ActiveLicense { get; set; }
 
         class LicenseInfo
         {

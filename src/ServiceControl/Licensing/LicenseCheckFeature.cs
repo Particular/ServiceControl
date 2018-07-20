@@ -23,10 +23,6 @@
 
     class LicenseCheckFeatureStartup : FeatureStartupTask
     {
-        private ActiveLicense activeLicense;
-        private readonly TimeKeeper timeKeeper;
-        private Timer timer;
-
         public LicenseCheckFeatureStartup(ActiveLicense activeLicense, TimeKeeper timeKeeper)
         {
             this.timeKeeper = timeKeeper;
@@ -36,10 +32,7 @@
         protected override Task OnStart(IMessageSession session)
         {
             var due = TimeSpan.FromHours(8);
-            timer = timeKeeper.New(() =>
-            {
-                activeLicense.Refresh();
-            }, due, due);
+            timer = timeKeeper.New(() => { activeLicense.Refresh(); }, due, due);
             return Task.FromResult(0);
         }
 
@@ -48,5 +41,9 @@
             timeKeeper.Release(timer);
             return Task.FromResult(0);
         }
+
+        readonly TimeKeeper timeKeeper;
+        ActiveLicense activeLicense;
+        Timer timer;
     }
 }
