@@ -20,15 +20,15 @@
             };
 
             var response = new List<MessageRedirectFromJson>();
-            
+
             await Define<Context>()
                 .Done(async ctx =>
                 {
                     await this.Post("/api/redirects", redirect);
-                    
+
                     var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
                     response = result;
-                    
+
                     return result;
                 }).Run();
 
@@ -104,7 +104,7 @@
             };
 
             var response = new List<MessageRedirectFromJson>();
-            
+
             await Define<Context>()
                 .Done(async ctx =>
                 {
@@ -145,7 +145,7 @@
                         fromphysicaladdress = toAddress,
                         tophysicaladdress = "endpointX@machineX"
                     }, status => status != HttpStatusCode.Conflict);
-                    
+
                     return true;
                 }).Run();
         }

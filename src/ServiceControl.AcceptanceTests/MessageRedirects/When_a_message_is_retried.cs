@@ -3,11 +3,11 @@
     using System;
     using System.Net;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -20,24 +20,24 @@
             var context = await Define<Context>()
                 .WithEndpoint<FromEndpoint>(b => b.When(bus => bus.SendLocal(new MessageToRetry()))
                     .When(async ctx =>
-                {
-                    if (ctx.UniqueMessageId == null)
                     {
-                        return false;
-                    }
+                        if (ctx.UniqueMessageId == null)
+                        {
+                            return false;
+                        }
 
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                }, async (bus, ctx) =>
-                {
-                    await this.Post("/api/redirects", new RedirectRequest
+                        return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    }, async (bus, ctx) =>
                     {
-                        fromphysicaladdress = ctx.FromAddress,
-                        tophysicaladdress = ctx.ToAddress
-                    }, status => status != HttpStatusCode.Created);
+                        await this.Post("/api/redirects", new RedirectRequest
+                        {
+                            fromphysicaladdress = ctx.FromAddress,
+                            tophysicaladdress = ctx.ToAddress
+                        }, status => status != HttpStatusCode.Created);
 
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                }).DoNotFailOnErrorMessages())
-                .WithEndpoint<ToNewEndpoint>(c => 
+                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    }).DoNotFailOnErrorMessages())
+                .WithEndpoint<ToNewEndpoint>(c =>
                     c.When((session, ctx) =>
                     {
                         ctx.ToAddress = Conventions.EndpointNamingConvention(typeof(ToNewEndpoint));
@@ -53,10 +53,7 @@
         {
             public FromEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                    {
-                        c.NoRetries();
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
             }
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
