@@ -7,14 +7,14 @@
 
     public class ActiveLicense
     {
-        public bool IsValid { get; set; }
-
-        internal License Details { get; set; }
-
         public ActiveLicense()
         {
             Refresh();
         }
+
+        public bool IsValid { get; set; }
+
+        internal License Details { get; set; }
 
         public void Refresh()
         {
@@ -30,8 +30,10 @@
                 {
                     Logger.Info(report);
                 }
+
                 Logger.Warn("License has expired");
             }
+
             Details = result.License;
             IsValid = !result.HasExpired;
         }
