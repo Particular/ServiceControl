@@ -53,10 +53,14 @@
         public void ValidateZip()
         {
             if (!Present)
+            {
                 throw new FileNotFoundException("No ServiceControl Monitoring zip file found", FilePath);
+            }
 
             if (!ZipFile.CheckZip(FilePath))
+            {
                 throw new Exception($"Corrupt Zip File - {FilePath}");
+            }
         }
 
         public bool TryReadMonitoringReleaseDate(out DateTime releaseDate)

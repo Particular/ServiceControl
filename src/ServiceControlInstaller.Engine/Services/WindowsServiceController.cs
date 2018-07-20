@@ -259,7 +259,9 @@ namespace ServiceControlInstaller.Engine.Services
                             {
                                 serviceKey = servicesBaseKey.OpenSubKey(serviceName);
                                 if (serviceKey == null)
+                                {
                                     continue;
+                                }
                             }
                             catch (SecurityException)
                             {
@@ -268,11 +270,15 @@ namespace ServiceControlInstaller.Engine.Services
 
                             var entryType = (int)serviceKey.GetValue("Type", 0);
                             if (entryType == 1) // driver not a service
+                            {
                                 continue;
+                            }
 
                             var imagePath = serviceKey.GetValue("ImagePath", null) as string;
                             if (imagePath == null)
+                            {
                                 continue;
+                            }
 
                             var match = imagePathRegex.Match(imagePath);
                             if (match.Success)

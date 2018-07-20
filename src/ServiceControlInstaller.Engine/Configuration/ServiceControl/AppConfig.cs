@@ -94,7 +94,10 @@
             foreach (var key in keys)
             {
                 if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                {
                     continue;
+                }
+
                 var folderpath = settings[key].Value;
                 yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
                     ? Path.Combine(details.InstallPath, folderpath.Remove(0, 1))

@@ -22,7 +22,9 @@
             }
 
             if (!PortUtils.CheckAvailable(instance.DatabaseMaintenancePort.Value))
+            {
                 throw new EngineValidationException($"Port {instance.DatabaseMaintenancePort} is not available");
+            }
         }
     }
 }

@@ -20,16 +20,22 @@
             if (keyInfo.SupportedFrom != null || keyInfo.RemovedFrom != null)
             {
                 if (currentVersion == null)
+                {
                     throw new ArgumentNullException(nameof(currentVersion), $"Version info is required before setting or removing {keyInfo.Name}");
+                }
             }
 
             collection.Remove(keyInfo.Name);
 
             if (keyInfo.SupportedFrom != null && currentVersion < keyInfo.SupportedFrom)
+            {
                 return;
+            }
 
             if (keyInfo.RemovedFrom != null && currentVersion >= keyInfo.RemovedFrom)
+            {
                 return;
+            }
 
             if (!string.IsNullOrWhiteSpace(value))
             {
@@ -41,7 +47,9 @@
         public static void RemoveIfRetired(this KeyValueConfigurationCollection collection, SettingInfo keyInfo, Version currentVersion)
         {
             if (keyInfo.RemovedFrom == null)
+            {
                 return;
+            }
 
             if (currentVersion == null)
             {

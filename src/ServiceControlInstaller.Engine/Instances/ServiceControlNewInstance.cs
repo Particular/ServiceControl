@@ -342,7 +342,9 @@ namespace ServiceControlInstaller.Engine.Instances
             foreach (var flagFile in FlagFiles)
             {
                 if (File.Exists(flagFile))
+                {
                     File.Delete(flagFile);
+                }
             }
         }
 
@@ -351,7 +353,9 @@ namespace ServiceControlInstaller.Engine.Instances
             foreach (var flagFile in FlagFiles)
             {
                 if (!File.Exists(flagFile))
+                {
                     File.CreateText(flagFile).Close();
+                }
             }
         }
     }

@@ -249,7 +249,6 @@ namespace ServiceControlInstaller.Engine.Unattended
 
         internal CheckLicenseResult CheckLicenseIsValid()
         {
-            DateTime releaseDate;
             var license = LicenseManager.FindLicense();
             if (license.Details.HasLicenseExpired())
             {
@@ -261,7 +260,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadMonitoringReleaseDate(out releaseDate))
+            if (ZipInfo.TryReadMonitoringReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {

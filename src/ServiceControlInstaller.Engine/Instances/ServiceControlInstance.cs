@@ -158,14 +158,12 @@ namespace ServiceControlInstaller.Engine.Instances
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
-            TimeSpan errorRetentionPeriod;
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string)null), out errorRetentionPeriod))
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
             {
                 ErrorRetentionPeriod = errorRetentionPeriod;
             }
 
-            TimeSpan auditRetentionPeriod;
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out auditRetentionPeriod))
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
@@ -262,8 +260,15 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
             {
-                if (!ForwardErrorMessages) ErrorLogQueue = null;
-                if (!ForwardAuditMessages) AuditLogQueue = null;
+                if (!ForwardErrorMessages)
+                {
+                    ErrorLogQueue = null;
+                }
+
+                if (!ForwardAuditMessages)
+                {
+                    AuditLogQueue = null;
+                }
             }
 
             settings.Set(SettingsList.ErrorLogQueue, ErrorLogQueue);

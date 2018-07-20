@@ -122,7 +122,9 @@ namespace ServiceControlInstaller.Engine.Validation
                 foreach (var possibleChild in paths)
                 {
                     if (path.Name == possibleChild.Name)
+                    {
                         continue;
+                    }
 
                     if (Path.GetDirectoryName(possibleChild.Path).IndexOf(path.Path, StringComparison.OrdinalIgnoreCase) > -1)
                     {
@@ -148,9 +150,7 @@ namespace ServiceControlInstaller.Engine.Validation
 
             foreach (var path in paths)
             {
-                Uri uri;
-
-                if (!Uri.TryCreate(path.Path, UriKind.Absolute, out uri))
+                if (!Uri.TryCreate(path.Path, UriKind.Absolute, out var uri))
                 {
                     throw new EngineValidationException($"The {path.Name} is set to an invalid path");
                 }

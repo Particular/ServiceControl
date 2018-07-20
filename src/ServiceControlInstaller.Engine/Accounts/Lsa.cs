@@ -22,8 +22,7 @@ namespace ServiceControlInstaller.Engine.Accounts
             {
                 var privileges = new List<string>();
 
-                uint rightsCount;
-                var result = LsaEnumerateAccountRights(hPolicy, sidPtr, out rightsPtr, out rightsCount);
+                var result = LsaEnumerateAccountRights(hPolicy, sidPtr, out rightsPtr, out var rightsCount);
                 var win32ErrorCode = LsaNtStatusToWinError(result);
                 // the user has no privileges
                 if (win32ErrorCode == StatusObjectNameNotFound)
@@ -151,7 +150,6 @@ namespace ServiceControlInstaller.Engine.Accounts
         static IntPtr GetLsaPolicyHandle()
         {
             var computerName = Environment.MachineName;
-            IntPtr hPolicy;
             var objectAttributes = new LsaObjectAttributes
             {
                 Length = 0,
@@ -163,7 +161,7 @@ namespace ServiceControlInstaller.Engine.Accounts
 
             const uint accessMask = POLICY_CREATE_SECRET | POLICY_LOOKUP_NAMES | POLICY_VIEW_LOCAL_INFORMATION;
             var machineNameLsa = new LsaUnicodeString(computerName);
-            var result = LsaOpenPolicy(ref machineNameLsa, ref objectAttributes, accessMask, out hPolicy);
+            var result = LsaOpenPolicy(ref machineNameLsa, ref objectAttributes, accessMask, out var hPolicy);
             HandleLsaResult(result);
             return hPolicy;
         }
@@ -173,7 +171,9 @@ namespace ServiceControlInstaller.Engine.Accounts
             var win32ErrorCode = LsaNtStatusToWinError(returnCode);
 
             if (win32ErrorCode == StatusSuccess)
+            {
                 return;
+            }
 
             if (ErrorMessages.ContainsKey(win32ErrorCode))
             {

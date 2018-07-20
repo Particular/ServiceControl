@@ -13,11 +13,17 @@
         public void SetStatus()
         {
             if (HasErrors)
+            {
                 Status = Status.Failed;
+            }
             else if (HasWarnings)
+            {
                 Status = Status.CompletedWithWarnings;
+            }
             else
+            {
                 Status = Status.Completed;
+            }
         }
 
         public IList<string> Warnings = new TruncatedStringList(700);

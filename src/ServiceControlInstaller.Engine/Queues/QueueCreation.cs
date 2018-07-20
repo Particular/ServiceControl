@@ -32,7 +32,7 @@
         {
             var userAccount = UserAccount.ParseAccountName(serviceAccount);
 
-            string args = $"--setup --serviceName={serviceName}";
+            var args = $"--setup --serviceName={serviceName}";
 
             if (!userAccount.IsLocalSystem())
             {
