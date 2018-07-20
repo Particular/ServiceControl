@@ -1,4 +1,5 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
+
 namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
@@ -10,17 +11,66 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Security.Principal;
     using System.Xml;
     using System.Xml.Serialization;
-    using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
-    using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
-    using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
-    using ServiceControlInstaller.Engine.Validation;
+    using Accounts;
+    using Configuration.ServiceControl;
+    using FileSystem;
+    using Queues;
+    using ReportCard;
+    using Services;
+    using UrlAcl;
+    using Validation;
 
     public class ServiceControlNewInstance : IServiceControlInstance
     {
+        public ServiceControlNewInstance()
+        {
+            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var zipInfo = ServiceControlZipInfo.Find(appDirectory);
+            Version = zipInfo.Version;
+        }
+
+        public string ServiceDescription { get; set; }
+
+        [XmlIgnore]
+        public ReportCard ReportCard { get; set; }
+
+        public string AclUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
+            }
+        }
+
+        public string AclMaintenanceUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+                return baseUrl;
+            }
+        }
+
+        string[] FlagFiles
+        {
+            get
+            {
+                const string flagFileName = ".notconfigured";
+                return new[]
+                {
+                    Path.Combine(InstallPath, flagFileName),
+                    Path.Combine(DBPath, flagFileName),
+                    Path.Combine(LogPath, flagFileName)
+                };
+            }
+        }
+
         public string LogPath { get; set; }
         public string DBPath { get; set; }
         public string HostName { get; set; }
@@ -45,26 +95,18 @@ namespace ServiceControlInstaller.Engine.Instances
         public string ConnectionString { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
-        public string ServiceDescription { get; set; }
         public bool SkipQueueCreation { get; set; }
         public bool IsUpdatingDataStore { get; set; }
 
 
         [XmlIgnore]
         public Version Version { get; set; }
+
         [XmlIgnore]
         public string ServiceAccount { get; set; }
+
         [XmlIgnore]
         public string ServiceAccountPwd { get; set; }
-        [XmlIgnore]
-        public ReportCard ReportCard { get; set; }
-
-        public ServiceControlNewInstance()
-        {
-            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var zipInfo = ServiceControlZipInfo.Find(appDirectory);
-            Version = zipInfo.Version;
-        }
 
         public string Url
         {
@@ -74,30 +116,14 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     return $"http://{HostName}:{Port}/api/";
                 }
+
                 return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
             }
         }
 
-        public string AclUrl
+        public string BrowsableUrl
         {
-            get
-            {
-                var baseUrl = $"http://{HostName}:{Port}/";
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return baseUrl;
-                }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
-            }
-        }
-
-        public string AclMaintenanceUrl
-        {
-            get
-            {
-                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
-                return baseUrl;
-            }
+            get { throw new NotImplementedException("Not available until the instance is installed"); }
         }
 
         public void CopyFiles(string zipFilePath)
@@ -154,6 +180,7 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 dependencies.Add("MSMQ");
             }
+
             WindowsServiceController.RegisterNewService(serviceDetails, dependencies.ToArray());
 
             // Service registered so pull out not configured flag files.
@@ -200,7 +227,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var serializer = new XmlSerializer(typeof(ServiceControlNewInstance));
             using (var stream = File.OpenRead(path))
             {
-                instanceData = (ServiceControlNewInstance) serializer.Deserialize(stream);
+                instanceData = (ServiceControlNewInstance)serializer.Deserialize(stream);
             }
 
             var doc = new XmlDocument();
@@ -214,10 +241,12 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
             }
+
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
             {
                 throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
             }
+
             return instanceData;
         }
 
@@ -229,7 +258,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 {
                     MsmqConfigValidator.Validate();
                 }
-                catch(EngineValidationException ex)
+                catch (EngineValidationException ex)
                 {
                     ReportCard.Errors.Add(ex.Message);
                 }
@@ -313,7 +342,9 @@ namespace ServiceControlInstaller.Engine.Instances
             foreach (var flagFile in FlagFiles)
             {
                 if (File.Exists(flagFile))
+                {
                     File.Delete(flagFile);
+                }
             }
         }
 
@@ -322,30 +353,10 @@ namespace ServiceControlInstaller.Engine.Instances
             foreach (var flagFile in FlagFiles)
             {
                 if (!File.Exists(flagFile))
-                    File.CreateText(flagFile).Close();
-            }
-        }
-
-        string[] FlagFiles
-        {
-            get
-            {
-                const string flagFileName = ".notconfigured";
-                return new[]
                 {
-                    Path.Combine(InstallPath, flagFileName),
-                    Path.Combine(DBPath, flagFileName),
-                    Path.Combine(LogPath, flagFileName),
-                };
+                    File.CreateText(flagFile).Close();
+                }
             }
-        }
-
-        public string BrowsableUrl
-        {
-            get
-            {
-                throw new NotImplementedException("Not available until the instance is installed");
-            } 
         }
     }
 }

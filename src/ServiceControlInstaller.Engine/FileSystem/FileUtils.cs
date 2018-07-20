@@ -15,13 +15,13 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
         public static void DeleteDirectory(string path, bool recursive, bool contentsOnly, params string[] excludes)
         {
-           if (!Directory.Exists(path))
-           {
-               return;
-           }
+            if (!Directory.Exists(path))
+            {
+                return;
+            }
 
-           if (recursive)
-           {
+            if (recursive)
+            {
                 var subfolders = Directory.GetDirectories(path);
                 foreach (var s in subfolders)
                 {
@@ -29,6 +29,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     {
                         continue;
                     }
+
                     DeleteDirectory(s, true, false, excludes);
                 }
             }
@@ -40,6 +41,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 {
                     continue;
                 }
+
                 var fi = new FileInfo(f);
                 fi.Attributes &= ~FileAttributes.ReadOnly;
                 fi.Attributes &= ~FileAttributes.System;
@@ -50,6 +52,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
             {
                 return;
             }
+
             var di = new DirectoryInfo(path);
             if (di.Exists)
             {
@@ -66,6 +69,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
             {
                 destination.Create();
             }
+
             var accessRules = destination.GetAccessControl(AccessControlSections.Access);
 
             accessRules.ResetAccessRule(accessRule);
@@ -94,6 +98,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                             Directory.CreateDirectory(filename);
                             continue;
                         }
+
                         using (var stream = new FileStream(filename, FileMode.OpenOrCreate))
                         {
                             e.Extract(stream);

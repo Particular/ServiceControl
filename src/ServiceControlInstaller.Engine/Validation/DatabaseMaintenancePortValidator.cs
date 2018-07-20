@@ -1,6 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Validation
 {
-    using ServiceControlInstaller.Engine.Ports;
+    using Ports;
 
     public class DatabaseMaintenancePortValidator
     {
@@ -22,7 +22,9 @@
             }
 
             if (!PortUtils.CheckAvailable(instance.DatabaseMaintenancePort.Value))
+            {
                 throw new EngineValidationException($"Port {instance.DatabaseMaintenancePort} is not available");
+            }
         }
     }
 }

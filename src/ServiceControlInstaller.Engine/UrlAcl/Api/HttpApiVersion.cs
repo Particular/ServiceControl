@@ -1,4 +1,5 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
+
 namespace ServiceControlInstaller.Engine.UrlAcl.Api
 {
     using System.Runtime.InteropServices;
@@ -8,6 +9,7 @@ namespace ServiceControlInstaller.Engine.UrlAcl.Api
     {
         public ushort Major;
         public ushort Minor;
+
         public HttpApiVersion(ushort majorVersion, ushort minorVersion)
         {
             Major = majorVersion;

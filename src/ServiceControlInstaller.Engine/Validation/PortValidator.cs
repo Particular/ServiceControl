@@ -1,6 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Validation
 {
-    using ServiceControlInstaller.Engine.Ports;
+    using Ports;
 
     public class PortValidator
     {
@@ -12,7 +12,9 @@
             }
 
             if (!PortUtils.CheckAvailable(instance.Port))
+            {
                 throw new EngineValidationException($"Port {instance.Port} is not available");
+            }
         }
     }
 }

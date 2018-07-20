@@ -1,12 +1,10 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.Monitoring
 {
     using System.IO;
-    using ServiceControlInstaller.Engine.Instances;
+    using Instances;
 
     public class AppConfig : AppConfigWrapper
     {
-        IMonitoringInstance details;
-        
         public AppConfig(IMonitoringInstance details) : base(Path.Combine(details.InstallPath, $"{Constants.MonitoringExe}.config"))
         {
             this.details = details;
@@ -24,5 +22,7 @@
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
             Config.Save();
         }
+
+        IMonitoringInstance details;
     }
 }

@@ -6,11 +6,6 @@
 
     public class MonitoringTransports
     {
-        public static TransportInfo FindByName(string name)
-        {
-            return All.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
-        }
-
         public static List<TransportInfo> All => new List<TransportInfo>
         {
             new TransportInfo
@@ -19,7 +14,6 @@
                 ZipName = "AzureServiceBus",
                 TypeName = "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>"
-
             },
             new TransportInfo
             {
@@ -60,5 +54,10 @@
                 Help = "AccessKeyId will be promoted to AWS_ACCESS_KEY_ID, SecretAccessKey to AWS_SECRET_ACCESS_KEY and Region to AWS_REGION environment variable."
             }
         };
+
+        public static TransportInfo FindByName(string name)
+        {
+            return All.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }

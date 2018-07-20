@@ -13,11 +13,10 @@
             var tempDomain = AppDomain.CreateDomain("TemporaryAppDomain");
             try
             {
-                    var loaderType = typeof(AssemblyReleaseDateReader);
-                    var loader = (AssemblyReleaseDateReader)tempDomain.CreateInstanceFrom(Assembly.GetExecutingAssembly().Location, loaderType.FullName).Unwrap();
-                    releaseDate = loader.GetReleaseDate(exe);
-                    return true;
-                
+                var loaderType = typeof(AssemblyReleaseDateReader);
+                var loader = (AssemblyReleaseDateReader)tempDomain.CreateInstanceFrom(Assembly.GetExecutingAssembly().Location, loaderType.FullName).Unwrap();
+                releaseDate = loader.GetReleaseDate(exe);
+                return true;
             }
             catch
             {

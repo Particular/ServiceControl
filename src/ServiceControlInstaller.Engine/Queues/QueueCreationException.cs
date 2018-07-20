@@ -1,6 +1,7 @@
 namespace ServiceControlInstaller.Engine.Queues
 {
     using System;
+    using System.Runtime.Serialization;
 
     public class QueueCreationFailedException : Exception
     {
@@ -13,8 +14,9 @@ namespace ServiceControlInstaller.Engine.Queues
         }
 
         protected QueueCreationFailedException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context) : base(info, context)
-        { }
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
+        {
+        }
     }
 }
