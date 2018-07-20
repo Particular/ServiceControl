@@ -3,6 +3,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using BodyStorage;
+    using Contracts.Operations;
+    using Infrastructure;
+    using MessageFailures;
     using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
@@ -10,11 +14,7 @@
     using Raven.Client;
     using Raven.Imports.Newtonsoft.Json;
     using Raven.Json.Linq;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.Operations.BodyStorage;
-    using ServiceControl.Recoverability;
+    using Recoverability;
     using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
     class FailedMessagePersister
@@ -34,23 +34,22 @@
                                     }}");
         }
 
-        private IEnrichImportedMessages[] enrichers;
-        private BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
-        private FailedMessageFactory failedMessageFactory;
-        private IDocumentStore store;
+        IEnrichImportedMessages[] enrichers;
+        BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        FailedMessageFactory failedMessageFactory;
+        IDocumentStore store;
 
         public FailedMessagePersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers.Where(x => x.EnrichErrors).ToArray();
-            this.failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
+            failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
         public async Task<FailureDetails> Persist(MessageContext message)
         {
-            string messageId;
-            if (!message.Headers.TryGetValue(Headers.MessageId, out messageId))
+            if (!message.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
                 messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
             }
@@ -92,7 +91,7 @@
             return failureDetails;
         }
 
-        private Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
+        Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
         {
             var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
 

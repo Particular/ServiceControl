@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Indexes;
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
 
     class FailedErrorImportCustomCheck : CustomCheck
     {

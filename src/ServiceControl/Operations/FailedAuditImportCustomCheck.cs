@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
+    using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client;
-    using System;
-    using System.Threading.Tasks;
 
     class FailedAuditImportCustomCheck : CustomCheck
     {
@@ -14,7 +14,7 @@
             this.store = store;
         }
 
-        public async override Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck()
         {
             using (var session = store.OpenAsyncSession())
             {

@@ -11,7 +11,7 @@
 
     public class MessageForwarder : IForwardMessages
     {
-        private IDispatchMessages messageDispatcher;
+        IDispatchMessages messageDispatcher;
 
         public MessageForwarder(IDispatchMessages messageDispatcher)
         {
