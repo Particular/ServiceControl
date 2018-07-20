@@ -3,12 +3,12 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.EventLog;
 
@@ -41,13 +41,9 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-
             public EndpointWithFailingCustomCheck()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                {
-                    c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
-                });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
             }
 
             class FailingCustomCheck : CustomCheck

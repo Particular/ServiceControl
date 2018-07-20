@@ -4,6 +4,8 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus;
@@ -11,11 +13,10 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure.SignalR;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
     public class When_a_periodic_custom_check_fails : AcceptanceTest
@@ -44,10 +45,7 @@
         public async Task Should_raise_a_signalr_event()
         {
             var context = await Define<MyContext>(
-                    ctx =>
-                    {
-                        ctx.Handler = () => this.Handlers[Settings.DEFAULT_SERVICE_NAME];
-                    })
+                    ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -81,15 +79,12 @@
 
                 class SignalrStarter : FeatureStartupTask
                 {
-                    private readonly MyContext context;
-                    Connection connection;
-
                     public SignalrStarter(MyContext context)
                     {
                         this.context = context;
                         connection = new Connection("http://localhost/api/messagestream")
                         {
-                            JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
+                            JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
                         };
                     }
 
@@ -115,6 +110,9 @@
                         connection.Stop();
                         return Task.FromResult(0);
                     }
+
+                    private readonly MyContext context;
+                    Connection connection;
                 }
             }
         }
@@ -123,17 +121,11 @@
         {
             public EndpointWithFailingCustomCheck()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                {
-                    c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
-                });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
             }
 
             class FailingCustomCheck : CustomCheck
             {
-                private readonly MyContext context;
-                bool executed;
-
                 public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
                 {
                     this.context = context;
@@ -150,6 +142,9 @@
 
                     return Task.FromResult(CheckResult.Pass);
                 }
+
+                private readonly MyContext context;
+                bool executed;
             }
         }
     }
