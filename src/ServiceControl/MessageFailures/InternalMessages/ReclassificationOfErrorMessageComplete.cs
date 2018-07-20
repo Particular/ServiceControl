@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.InternalMessages
 {
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class ReclassificationOfErrorMessageComplete : IDomainEvent
     {

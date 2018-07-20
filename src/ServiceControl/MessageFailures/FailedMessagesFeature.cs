@@ -4,14 +4,14 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Api;
+    using Contracts.MessageFailures;
+    using Infrastructure;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Features;
+    using Operations;
     using Raven.Client;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.Operations;
 
     public class FailedMessagesFeature : Feature
     {
@@ -30,8 +30,6 @@
 
         class DetectSuccessfullRetriesEnricher : ImportEnricher
         {
-            IDomainEvents domainEvents;
-
             public DetectSuccessfullRetriesEnricher(IDomainEvents domainEvents)
             {
                 this.domainEvents = domainEvents;
@@ -41,9 +39,8 @@
 
             public override async Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                string newRetryMessageId;
                 var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out _);
-                var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out newRetryMessageId);
+                var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var newRetryMessageId);
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
 
@@ -61,23 +58,20 @@
                 }).ConfigureAwait(false);
             }
 
-            private IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)
+            IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)
             {
                 var messageId = headers.MessageId();
-                string processingEndpoint;
-                if (headers.TryGetValue(Headers.ProcessingEndpoint, out processingEndpoint))
+                if (headers.TryGetValue(Headers.ProcessingEndpoint, out var processingEndpoint))
                 {
                     yield return DeterministicGuid.MakeId(messageId, processingEndpoint).ToString();
                 }
 
-                string failedQ;
-                if (headers.TryGetValue("NServiceBus.FailedQ", out failedQ))
+                if (headers.TryGetValue("NServiceBus.FailedQ", out var failedQ))
                 {
                     yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(failedQ)).ToString();
                 }
 
-                string replyToAddress;
-                if (headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+                if (headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
                 {
                     yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(replyToAddress)).ToString();
                 }
@@ -94,14 +88,12 @@
 
                 return address;
             }
+
+            IDomainEvents domainEvents;
         }
 
         class WireUpFailedMessageNotifications : FeatureStartupTask
         {
-            FailedMessageViewIndexNotifications notifications;
-            IDocumentStore store;
-            IDisposable subscription;
-
             public WireUpFailedMessageNotifications(FailedMessageViewIndexNotifications notifications, IDocumentStore store)
             {
                 this.notifications = notifications;
@@ -119,6 +111,10 @@
                 subscription.Dispose();
                 return Task.FromResult(true);
             }
+
+            FailedMessageViewIndexNotifications notifications;
+            IDocumentStore store;
+            IDisposable subscription;
         }
     }
 }

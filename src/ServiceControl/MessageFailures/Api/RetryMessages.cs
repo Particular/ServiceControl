@@ -6,13 +6,11 @@
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
+    using Recoverability;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Recoverability;
 
     public class RetryMessages : BaseModule
     {
-        public RetryMessagesApi RetryMessagesApi { get; set; }
-
         public RetryMessages()
         {
             Post["/errors/{messageid}/retry", true] = async (parameters, token) =>
@@ -60,7 +58,7 @@
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/errors/retry/all", true] =  async (_, token) =>
+            Post["/errors/retry/all", true] = async (_, token) =>
             {
                 var request = new RequestRetryAll();
 
@@ -72,13 +70,15 @@
 
             Post["/errors/{name}/retry/all", true] = async (parameters, token) =>
             {
-                var request = new RequestRetryAll { Endpoint = parameters.name };
+                var request = new RequestRetryAll {Endpoint = parameters.name};
 
                 await Bus.SendLocal(request).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
         }
+
+        public RetryMessagesApi RetryMessagesApi { get; set; }
 
         public IMessageSession Bus { get; set; }
     }

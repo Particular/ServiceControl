@@ -2,20 +2,15 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Api;
+    using Contracts.MessageFailures;
+    using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.Api;
 
     class FailedMessageViewIndexNotifications : IObserver<IndexChangeNotification>
     {
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-        int lastUnresolvedCount, lastArchivedCount;
-        ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
-
         public FailedMessageViewIndexNotifications(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
@@ -57,6 +52,7 @@
                 {
                     return;
                 }
+
                 lastUnresolvedCount = failedUnresolvedMessageCount;
                 lastArchivedCount = failedArchivedMessageCount;
 
@@ -68,5 +64,10 @@
                 }).ConfigureAwait(false);
             }
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
+        int lastUnresolvedCount, lastArchivedCount;
+        ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
     }
 }

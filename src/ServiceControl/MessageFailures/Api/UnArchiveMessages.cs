@@ -12,8 +12,6 @@
 
     public class UnArchiveMessages : BaseModule
     {
-        public IMessageSession MessageSession { get; set; }
-
         public UnArchiveMessages()
         {
             Patch["/errors/unarchive", true] = async (_, token) =>
@@ -25,7 +23,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                var request = new InternalMessages.UnArchiveMessages { FailedMessageIds = ids };
+                var request = new InternalMessages.UnArchiveMessages {FailedMessageIds = ids};
 
                 await MessageSession.SendLocal(request);
 
@@ -56,5 +54,7 @@
                 return HttpStatusCode.Accepted;
             };
         }
+
+        public IMessageSession MessageSession { get; set; }
     }
 }

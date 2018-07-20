@@ -4,24 +4,14 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using InternalMessages;
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class ResolveMessages : BaseModule
     {
-        public IMessageSession Bus { get; set; }
-
-        private class ResolveRequest
-        {
-            public string queueaddress { get; set; }
-            public List<string> uniquemessageids { get; set; }
-            public string from { get; set; }
-            public string to { get; set; }
-        }
-
         public ResolveMessages()
         {
             Patch["/pendingretries/resolve", true] = async (_, ctx) =>
@@ -37,7 +27,7 @@
 
                     foreach (var id in request.uniquemessageids)
                     {
-                        await Bus.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id })
+                        await Bus.SendLocal(new MarkPendingRetryAsResolved {FailedMessageId = id})
                             .ConfigureAwait(false);
                     }
 
@@ -58,14 +48,14 @@
 
                 await Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
                 {
-                    m.PeriodFrom = @from;
+                    m.PeriodFrom = from;
                     m.PeriodTo = to;
                 }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Patch["/pendingretries/queues/resolve", true] = async(parameters, ctx) =>
+            Patch["/pendingretries/queues/resolve", true] = async (parameters, ctx) =>
             {
                 var request = this.Bind<ResolveRequest>();
 
@@ -89,12 +79,22 @@
                 await Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
                 {
                     m.QueueAddress = request.queueaddress;
-                    m.PeriodFrom = @from;
+                    m.PeriodFrom = from;
                     m.PeriodTo = to;
                 }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
+        }
+
+        public IMessageSession Bus { get; set; }
+
+        private class ResolveRequest
+        {
+            public string queueaddress { get; set; }
+            public List<string> uniquemessageids { get; set; }
+            public string from { get; set; }
+            public string to { get; set; }
         }
     }
 }

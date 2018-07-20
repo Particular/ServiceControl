@@ -10,8 +10,6 @@
 
     public class ArchiveMessages : BaseModule
     {
-        public IMessageSession Bus { get; set; }
-
         public ArchiveMessages()
         {
             Post["/errors/archive", true] = Patch["/errors/archive", true] = async (_, ctx) =>
@@ -25,7 +23,7 @@
 
                 foreach (var id in ids)
                 {
-                    var request = new ArchiveMessage { FailedMessageId = id };
+                    var request = new ArchiveMessage {FailedMessageId = id};
 
                     await Bus.SendLocal(request).ConfigureAwait(false);
                 }
@@ -42,13 +40,12 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                await Bus.SendLocal<ArchiveMessage>(m =>
-                {
-                    m.FailedMessageId = failedMessageId;
-                }).ConfigureAwait(false);
+                await Bus.SendLocal<ArchiveMessage>(m => { m.FailedMessageId = failedMessageId; }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
         }
+
+        public IMessageSession Bus { get; set; }
     }
 }

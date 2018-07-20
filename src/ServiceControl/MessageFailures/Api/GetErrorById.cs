@@ -2,10 +2,10 @@
 {
     using System;
     using System.Linq;
+    using Contracts.Operations;
     using Nancy;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Contracts.Operations;
 
     public class GetErrorById : BaseModule
     {
@@ -44,7 +44,6 @@
                     var result = Map(message, session);
 
                     return Negotiate.WithModel(result);
-
                 }
             };
         }

@@ -5,15 +5,8 @@
     using Contracts.Operations;
     using NServiceBus;
 
-    public class FailedMessage: IHaveStatus
+    public class FailedMessage : IHaveStatus
     {
-        public const string CollectionName = "FailedMessages";
-
-        public static string MakeDocumentId(string messageUniqueId)
-        {
-            return $"{CollectionName}/{messageUniqueId}";
-        }
-
         public FailedMessage()
         {
             ProcessingAttempts = new List<ProcessingAttempt>();
@@ -25,9 +18,16 @@
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
         public List<FailureGroup> FailureGroups { get; set; }
 
+        public string UniqueMessageId { get; set; }
+
         public FailedMessageStatus Status { get; set; }
 
-        public string UniqueMessageId { get; set; }
+        public static string MakeDocumentId(string messageUniqueId)
+        {
+            return $"{CollectionName}/{messageUniqueId}";
+        }
+
+        public const string CollectionName = "FailedMessages";
 
         public class ProcessingAttempt
         {

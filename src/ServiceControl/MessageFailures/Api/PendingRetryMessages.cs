@@ -4,21 +4,14 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using InternalMessages;
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class PendingRetryMessages : BaseModule
     {
-        private class PendingRetryRequest
-        {
-            public string queueaddress { get; set; }
-            public string from { get; set; }
-            public string to { get; set; }
-        }
-
         public PendingRetryMessages()
         {
             Post["/pendingretries/retry", true] = async (_, ctx) =>
@@ -60,7 +53,7 @@
                 await Bus.SendLocal<RetryPendingMessages>(m =>
                 {
                     m.QueueAddress = request.queueaddress;
-                    m.PeriodFrom = @from;
+                    m.PeriodFrom = from;
                     m.PeriodTo = to;
                 }).ConfigureAwait(false);
 
@@ -69,5 +62,12 @@
         }
 
         public IMessageSession Bus { get; set; }
+
+        private class PendingRetryRequest
+        {
+            public string queueaddress { get; set; }
+            public string from { get; set; }
+            public string to { get; set; }
+        }
     }
 }
