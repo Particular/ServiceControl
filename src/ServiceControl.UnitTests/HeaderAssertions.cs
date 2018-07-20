@@ -1,4 +1,5 @@
-﻿namespace ServiceControl.UnitTests {
+﻿namespace ServiceControl.UnitTests
+{
     using System.Collections.Generic;
     using NUnit.Framework;
 

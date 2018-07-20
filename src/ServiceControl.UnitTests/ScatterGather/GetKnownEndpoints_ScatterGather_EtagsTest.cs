@@ -8,11 +8,6 @@
 
     class GetKnownEndpoints_ScatterGather_EtagsTest
     {
-        protected const string LocalInstanceID = nameof(LocalInstanceID);
-        protected const string LocalETag = nameof(LocalETag);
-        protected const string RemoteInstanceId = nameof(RemoteInstanceId);
-        protected const string RemoteETag = nameof(RemoteETag);
-
         [Test]
         public void ResultOrderDoesNotEffectEtag()
         {
@@ -46,7 +41,11 @@
             });
 
             Assert.AreEqual(localFirst.QueryStats.ETag, remoteFirst.QueryStats.ETag, "etag should not depend on result ordering");
-
         }
+
+        protected const string LocalInstanceID = nameof(LocalInstanceID);
+        protected const string LocalETag = nameof(LocalETag);
+        protected const string RemoteInstanceId = nameof(RemoteInstanceId);
+        protected const string RemoteETag = nameof(RemoteETag);
     }
 }

@@ -21,7 +21,7 @@
             {
                 var processedMessage = new ProcessedMessage
                 {
-                    Id = "1",
+                    Id = "1"
                 };
 
                 processedMessage.MakeSystemMessage();
@@ -29,7 +29,7 @@
 
                 var processedMessage2 = new ProcessedMessage
                 {
-                    Id = "2",
+                    Id = "2"
                 };
                 processedMessage2.MakeSystemMessage(false);
                 session.Store(processedMessage2);
@@ -57,27 +57,29 @@
                 session.Store(new ProcessedMessage
                 {
                     Id = "1",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10) } }
+                    MessageMetadata = new Dictionary<string, object> {{"CriticalTime", TimeSpan.FromSeconds(10)}}
                 });
 
                 session.Store(new ProcessedMessage
                 {
                     Id = "2",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20) } }
+                    MessageMetadata = new Dictionary<string, object> {{"CriticalTime", TimeSpan.FromSeconds(20)}}
                 });
 
                 session.Store(new ProcessedMessage
                 {
                     Id = "3",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
+                    MessageMetadata = new Dictionary<string, object> {{"CriticalTime", TimeSpan.FromSeconds(15)}}
                 });
 
                 session.Store(new FailedMessage
                 {
                     Id = "4",
                     Status = FailedMessageStatus.Unresolved,
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>{new FailedMessage.ProcessingAttempt{MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }}
-                    },
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    {
+                        new FailedMessage.ProcessingAttempt {MessageMetadata = new Dictionary<string, object> {{"CriticalTime", TimeSpan.FromSeconds(15)}}}
+                    }
                 });
                 session.SaveChanges();
             }
@@ -102,6 +104,7 @@
                 Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
             }
         }
+
         [Test]
         public void Order_by_time_sent()
         {
@@ -110,18 +113,18 @@
                 session.Store(new ProcessedMessage
                 {
                     Id = "1",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(20) } }
+                    MessageMetadata = new Dictionary<string, object> {{"TimeSent", DateTime.Today.AddSeconds(20)}}
                 });
 
                 session.Store(new ProcessedMessage
                 {
                     Id = "2",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(10) } }
+                    MessageMetadata = new Dictionary<string, object> {{"TimeSent", DateTime.Today.AddSeconds(10)}}
                 });
                 session.Store(new ProcessedMessage
                 {
                     Id = "3",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddDays(-1) } }
+                    MessageMetadata = new Dictionary<string, object> {{"TimeSent", DateTime.Today.AddDays(-1)}}
                 });
                 session.SaveChanges();
             }
@@ -151,15 +154,35 @@
             {
                 session.Store(new ProcessedMessage
                 {
-                    MessageMetadata = new Dictionary<string, object> { { "MessageIntent", "1" }, { "TimeSent", null } }
+                    MessageMetadata = new Dictionary<string, object>
+                    {
+                        {"MessageIntent", "1"},
+                        {"TimeSent", null}
+                    }
                 });
                 session.Store(new FailedMessage
                 {
                     ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                     {
-                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}, { "TimeSent", null }}},
-                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}, { "TimeSent", null }} }
-                    },
+                        new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = DateTime.Today,
+                            MessageMetadata = new Dictionary<string, object>
+                            {
+                                {"MessageIntent", "1"},
+                                {"TimeSent", null}
+                            }
+                        },
+                        new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = DateTime.Today,
+                            MessageMetadata = new Dictionary<string, object>
+                            {
+                                {"MessageIntent", "1"},
+                                {"TimeSent", null}
+                            }
+                        }
+                    }
                 });
 
                 session.SaveChanges();
@@ -170,9 +193,9 @@
             using (var session = documentStore.OpenSession())
             {
                 var messageWithNoTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .TransformWith<MessagesViewTransformer, MessagesView>()
-                        .Customize(x => x.WaitForNonStaleResults())
-                        .ToArray();
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .Customize(x => x.WaitForNonStaleResults())
+                    .ToArray();
                 Assert.AreEqual(null, messageWithNoTimeSent[0].TimeSent);
                 Assert.AreEqual(null, messageWithNoTimeSent[1].TimeSent);
             }
@@ -188,9 +211,17 @@
                     Id = "1",
                     ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                     {
-                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}}},
-                        new FailedMessage.ProcessingAttempt{AttemptedAt = DateTime.Today, MessageMetadata = new Dictionary<string, object>{{"MessageIntent", "1"}} }
-                    },
+                        new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = DateTime.Today,
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                        },
+                        new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = DateTime.Today,
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                        }
+                    }
                 });
 
                 session.SaveChanges();

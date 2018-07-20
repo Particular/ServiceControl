@@ -10,13 +10,7 @@
 
     public abstract class MessageView_ScatterGatherTest
     {
-        protected const string LocalInstanceID = nameof(LocalInstanceID);
-        protected const string LocalETag = nameof(LocalETag);
-        protected const string RemoteInstanceId = nameof(RemoteInstanceId);
-        protected const string RemoteETag = nameof(RemoteETag);
-        protected const int PageSize = 50;
-
-        protected QueryResult<List<MessagesView>> Results;
+        protected virtual string QueryString => string.Empty;
 
         [SetUp]
         public void SetUp()
@@ -28,8 +22,6 @@
             Results = api.AggregateResults(request, GetData().ToArray());
         }
 
-        protected virtual string QueryString => string.Empty;
- 
         protected abstract IEnumerable<QueryResult<List<MessagesView>>> GetData();
 
         protected QueryResult<List<MessagesView>> LocalPage(int page, int pageSize = PageSize)
@@ -66,6 +58,13 @@
                 yield return new MessagesView();
             }
         }
+
+        protected QueryResult<List<MessagesView>> Results;
+        protected const string LocalInstanceID = nameof(LocalInstanceID);
+        protected const string LocalETag = nameof(LocalETag);
+        protected const string RemoteInstanceId = nameof(RemoteInstanceId);
+        protected const string RemoteETag = nameof(RemoteETag);
+        protected const int PageSize = 50;
 
         class TestApi : ScatterGatherApiMessageView<NoInput>
         {

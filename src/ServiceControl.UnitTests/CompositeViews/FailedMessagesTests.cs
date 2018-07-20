@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
+    using Contracts.Operations;
     using MessageFailures;
+    using MessageFailures.Api;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.MessageFailures.Api;
 
     [TestFixture]
     public class FailedMessagesTests
@@ -19,17 +19,20 @@
             using (var session = documentStore.OpenSession())
             {
                 var processedMessage = new FailedMessage
-                                       {
-                                           Id = "1",
-                                           UniqueMessageId = "xyz",
-                                           Status = FailedMessageStatus.Unresolved,
-                                           ProcessingAttempts = new List<FailedMessage.ProcessingAttempt> { new FailedMessage.ProcessingAttempt
-                                           {
-                                               AttemptedAt = DateTime.UtcNow,
-                                               MessageMetadata = new Dictionary<string, object>(),
-                                               FailureDetails = new FailureDetails()
-                                           }}
-                                       };
+                {
+                    Id = "1",
+                    UniqueMessageId = "xyz",
+                    Status = FailedMessageStatus.Unresolved,
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    {
+                        new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = DateTime.UtcNow,
+                            MessageMetadata = new Dictionary<string, object>(),
+                            FailureDetails = new FailureDetails()
+                        }
+                    }
+                };
 
                 session.Store(processedMessage);
 
@@ -43,10 +46,10 @@
                 using (var session = documentStore.OpenSession())
                 {
                     var results = session.Advanced.DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                                        .SetResultTransformer(FailedMessageViewTransformer.Name)
-                                        .Statistics(out stats)
-                                        .SelectFields<FailedMessageView>()
-                                        .ToList();
+                        .SetResultTransformer(FailedMessageViewTransformer.Name)
+                        .Statistics(out stats)
+                        .SelectFields<FailedMessageView>()
+                        .ToList();
 
 
                     if (!stats.IsStale)
@@ -59,13 +62,9 @@
                 }
 
 
-
                 if (stats.IsStale)
                     Thread.Sleep(1000);
-
             } while (stats.IsStale);
-
-
         }
 
 

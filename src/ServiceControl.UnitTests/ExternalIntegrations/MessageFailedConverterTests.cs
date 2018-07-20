@@ -3,12 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Contracts;
+    using Contracts.Operations;
+    using MessageFailures;
     using NUnit.Framework;
-    using ServiceControl.Contracts;
     using ServiceControl.ExternalIntegrations;
-    using ServiceControl.MessageFailures;
-    using ExceptionDetails = ServiceControl.Contracts.Operations.ExceptionDetails;
-    using FailureDetails = ServiceControl.Contracts.Operations.FailureDetails;
 
     [TestFixture]
     public class MessageFailedConverterTests
@@ -96,11 +95,6 @@
 
         private class FailedMessageBuilder
         {
-            private readonly FailedMessageStatus messageStatus;
-            string messageType = "SomeMessage";
-            string contentType = "application/json";
-            private List<Action<FailedMessage.ProcessingAttempt>> processingAttempts = new List<Action<FailedMessage.ProcessingAttempt>>();
-
             public FailedMessageBuilder(FailedMessageStatus messageStatus)
             {
                 this.messageStatus = messageStatus;
@@ -132,24 +126,26 @@
                     {
                         var messageMetadata = new Dictionary<string, object>
                         {
-                            {"SendingEndpoint",new Contracts.Operations.EndpointDetails()},
-                            {"ReceivingEndpoint",new Contracts.Operations.EndpointDetails()},
+                            {"SendingEndpoint", new EndpointDetails()},
+                            {"ReceivingEndpoint", new EndpointDetails()}
                         };
                         if (messageType != null)
                         {
                             messageMetadata["MessageType"] = messageType;
                         }
+
                         if (contentType != null)
                         {
                             messageMetadata["ContentType"] = contentType;
                         }
+
                         var attempt = new FailedMessage.ProcessingAttempt
                         {
                             FailureDetails = new FailureDetails
                             {
                                 Exception = new ExceptionDetails()
                             },
-                            MessageMetadata = messageMetadata,
+                            MessageMetadata = messageMetadata
                         };
                         x(attempt);
                         return attempt;
@@ -157,6 +153,11 @@
                     Status = messageStatus
                 };
             }
+
+            private readonly FailedMessageStatus messageStatus;
+            string messageType = "SomeMessage";
+            string contentType = "application/json";
+            private List<Action<FailedMessage.ProcessingAttempt>> processingAttempts = new List<Action<FailedMessage.ProcessingAttempt>>();
         }
     }
 }

@@ -44,9 +44,6 @@
 
     public class DisposableCulture : IDisposable
     {
-        private CultureInfo oldCulture;
-        private CultureInfo oldUICulture;
-
         public DisposableCulture(string culture)
         {
             oldCulture = CultureInfo.CurrentCulture;
@@ -61,5 +58,8 @@
             Thread.CurrentThread.CurrentCulture = oldCulture;
             Thread.CurrentThread.CurrentUICulture = oldUICulture;
         }
+
+        private CultureInfo oldCulture;
+        private CultureInfo oldUICulture;
     }
 }

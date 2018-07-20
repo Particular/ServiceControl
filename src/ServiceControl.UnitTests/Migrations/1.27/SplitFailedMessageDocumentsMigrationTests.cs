@@ -3,22 +3,21 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Contracts.Operations;
+    using MessageFailures;
     using NServiceBus;
     using NServiceBus.Faults;
     using NUnit.Framework;
     using Particular.ServiceControl.DbMigrations;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
-    using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
-    using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
+    using FailedMessage = MessageFailures.FailedMessage;
 
     [TestFixture]
     public class When_splitting_multisubscriber_failure_attempts
     {
-
         [Test]
         public void Should_combine_attempts_from_the_same_endpoint_v4()
         {
@@ -100,7 +99,7 @@
             const int multiplier = 2;
             using (var session = documentStore.OpenSession())
             {
-                for (var i = 0; i < SplitFailedMessageDocumentsMigration.PageSize*multiplier; i++)
+                for (var i = 0; i < SplitFailedMessageDocumentsMigration.PageSize * multiplier; i++)
                 {
                     var scenarioInfo = new PreSplitScenario();
                     scenarioInfo.AddV5ProcessingAttempt(PreSplitScenario.Subscriber1InputQueue, PreSplitScenario.Subscriber1Endpoint);
@@ -323,10 +322,16 @@
 
                 session.SaveChanges();
             }
+
             AddClassifier(new ExceptionTypeAndStackTraceFailureClassifier());
             AddClassifier(new MessageTypeFailureClassifier());
 
-            var attempts = scenarios.SelectMany(s => s.ProcessingAttempts.Select(pa => new { s.OriginalFailedMessageStatus, pa.ExpectedUniqueMessageId, EndpointName = pa.Attempt.Headers.ProcessingEndpointName() })).ToList();
+            var attempts = scenarios.SelectMany(s => s.ProcessingAttempts.Select(pa => new
+            {
+                s.OriginalFailedMessageStatus,
+                pa.ExpectedUniqueMessageId,
+                EndpointName = pa.Attempt.Headers.ProcessingEndpointName()
+            })).ToList();
 
             // Act
             var migration = CreateMigration();
@@ -359,31 +364,36 @@
             }
         }
 
+        private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration(failureClassifiers.ToArray());
+
+        void AddClassifier(IFailureClassifier classifier)
+        {
+            failureClassifiers.Add(classifier);
+        }
+
+        [SetUp]
+        public void Setup()
+        {
+            failureClassifiers = new List<IFailureClassifier>();
+            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
+        }
+
+        [TearDown]
+        public void Teardown()
+        {
+            documentStore.Dispose();
+        }
+
+        private EmbeddableDocumentStore documentStore;
+        private IList<IFailureClassifier> failureClassifiers;
+
         class PreSplitScenario
         {
-            public const string Subscriber1InputQueue = "Subscriber1@SUBSCRIBER1-MACHINE";
-            public const string Subscriber1Endpoint = "Subscriber1";
-            public const string Subscriber2InputQueue = "Subscriber2@SUBSCRIBER2-MACHINE";
-            public const string Subscriber2Endpoint = "Subscriber2";
-
-            public readonly string MessageId = Guid.NewGuid().ToString();
-            public readonly string ReplyToAddress = "SomePublisher@PUBLISHING-MACHINE";
-
-            public FailedMessage FailedMessage { get; }
-
-            public FailedMessageStatus OriginalFailedMessageStatus { get; }
-
-            public List<ProcessingAttemptInfo> ProcessingAttempts { get; } = new List<ProcessingAttemptInfo>();
-
-            public List<FailedMessage.FailureGroup> FailureGroups { get; } = new List<FailedMessage.FailureGroup>();
-
-            public string UniqueMessageId { get; }
-
             public PreSplitScenario(FailedMessageStatus originalStatus)
             {
                 UniqueMessageId = DeterministicGuid.MakeId(MessageId, ReplyToAddress).ToString();
                 OriginalFailedMessageStatus = originalStatus;
-                FailedMessage = new FailedMessage()
+                FailedMessage = new FailedMessage
                 {
                     Id = FailedMessage.MakeDocumentId(UniqueMessageId),
                     UniqueMessageId = UniqueMessageId,
@@ -394,7 +404,18 @@
             }
 
             public PreSplitScenario() : this(FailedMessageStatus.Unresolved)
-            { }
+            {
+            }
+
+            public FailedMessage FailedMessage { get; }
+
+            public FailedMessageStatus OriginalFailedMessageStatus { get; }
+
+            public List<ProcessingAttemptInfo> ProcessingAttempts { get; } = new List<ProcessingAttemptInfo>();
+
+            public List<FailedMessage.FailureGroup> FailureGroups { get; } = new List<FailedMessage.FailureGroup>();
+
+            public string UniqueMessageId { get; }
 
             public void AddV4ProcessingAttempt(string failedQ, bool isRetry = false)
             {
@@ -421,18 +442,17 @@
                 FailureGroups.Add(failureGroup);
                 FailedMessage.FailureGroups.Add(failureGroup);
             }
+
+            public readonly string MessageId = Guid.NewGuid().ToString();
+            public readonly string ReplyToAddress = "SomePublisher@PUBLISHING-MACHINE";
+            public const string Subscriber1InputQueue = "Subscriber1@SUBSCRIBER1-MACHINE";
+            public const string Subscriber1Endpoint = "Subscriber1";
+            public const string Subscriber2InputQueue = "Subscriber2@SUBSCRIBER2-MACHINE";
+            public const string Subscriber2Endpoint = "Subscriber2";
         }
 
         class ProcessingAttemptInfo
         {
-            public const string MessageType = "SomeMessageType";
-            const string V4RetryUniqueMessageIdHeader = "ServiceControl.RetryId";
-            const string V5RetryUniqueMessageIdHeader = "ServiceControl.Retry.UniqueMessageId";
-            public FailedMessage.ProcessingAttempt Attempt { get; }
-            public string ExpectedUniqueMessageId { get; }
-            public string FailedQ { get; }
-            public string EndpoingName { get; }
-
             public ProcessingAttemptInfo(PreSplitScenario scenario, string failedQ, bool isRetry)
             {
                 FailedQ = failedQ;
@@ -459,6 +479,11 @@
                 }
             }
 
+            public FailedMessage.ProcessingAttempt Attempt { get; }
+            public string ExpectedUniqueMessageId { get; }
+            public string FailedQ { get; }
+            public string EndpoingName { get; }
+
             static FailedMessage.ProcessingAttempt CreateAttempt(PreSplitScenario scenario, string failedQ)
             {
                 return new FailedMessage.ProcessingAttempt
@@ -478,39 +503,20 @@
                     },
                     Headers = new Dictionary<string, string>
                     {
-                        { FaultsHeaderKeys.FailedQ, failedQ },
-                        { Headers.MessageId, scenario.MessageId },
-                        { Headers.ReplyToAddress, scenario.ReplyToAddress }
+                        {FaultsHeaderKeys.FailedQ, failedQ},
+                        {Headers.MessageId, scenario.MessageId},
+                        {Headers.ReplyToAddress, scenario.ReplyToAddress}
                     },
                     MessageMetadata = new Dictionary<string, object>
                     {
-                        { "MessageType",  MessageType }
+                        {"MessageType", MessageType}
                     }
                 };
             }
-        }
 
-        private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration(failureClassifiers.ToArray());
-
-        private EmbeddableDocumentStore documentStore;
-        private IList<IFailureClassifier> failureClassifiers;
-
-        void AddClassifier(IFailureClassifier classifier)
-        {
-            failureClassifiers.Add(classifier);
-        }
-
-        [SetUp]
-        public void Setup()
-        {
-            failureClassifiers = new List<IFailureClassifier>();
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
-        }
-
-        [TearDown]
-        public void Teardown()
-        {
-            documentStore.Dispose();
+            public const string MessageType = "SomeMessageType";
+            const string V4RetryUniqueMessageIdHeader = "ServiceControl.RetryId";
+            const string V5RetryUniqueMessageIdHeader = "ServiceControl.Retry.UniqueMessageId";
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿
-namespace ServiceControl.UnitTests.Expiration
+﻿namespace ServiceControl.UnitTests.Expiration
 {
     using System.Collections.Generic;
     using NUnit.Framework;

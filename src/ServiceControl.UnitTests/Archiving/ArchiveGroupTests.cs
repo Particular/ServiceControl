@@ -1,12 +1,11 @@
-﻿using NUnit.Framework;
-using ServiceControl.Recoverability;
-using System;
-
-namespace ServiceControl.UnitTests.Archiving
+﻿namespace ServiceControl.UnitTests.Archiving
 {
+    using System;
     using System.Threading.Tasks;
     using NServiceBus.Testing;
-    using ServiceControl.UnitTests.Operations;
+    using NUnit.Framework;
+    using Operations;
+    using ServiceControl.Recoverability;
 
     [TestFixture]
     public class ArchiveGroupTests
@@ -22,7 +21,7 @@ namespace ServiceControl.UnitTests.Archiving
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    var previousAchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
+                    var previousAchiveBatch = new ArchiveBatch {Id = previousArchiveBatchId};
                     await session.StoreAsync(previousAchiveBatch)
                         .ConfigureAwait(false);
 
@@ -52,7 +51,7 @@ namespace ServiceControl.UnitTests.Archiving
                 var handler = new ArchiveAllInGroupHandler(documentStore, domainEvents, documentManager, archivingManager, retryingManager);
 
                 var context = new TestableMessageHandlerContext();
-                var message = new ArchiveAllInGroup { GroupId = groupId };
+                var message = new ArchiveAllInGroup {GroupId = groupId};
 
                 // Act
                 await handler.Handle(message, context)

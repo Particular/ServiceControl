@@ -2,28 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
+    using Contracts.Operations;
     using Nancy;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Contracts.Operations;
 
     [TestFixture]
     class MessageViewComparerTests
     {
-        private const int ASCENDING = -1;
-        private const int DESCENDING = 1;
-
-        private static MessageStatus LowMessageStatus = (MessageStatus) 1;
-        private static MessageStatus HighMessageStatus = (MessageStatus) 2;
-        private static string LowMessageId = "a";
-        private static string HighMessageId = "b";
-        private static string LowMessageType = "A";
-        private static string HighMessageType = "B";
-        private static DateTime LowMessageSent = DateTime.UtcNow;
-        private static DateTime HighMessageSent = LowMessageSent.AddMilliseconds(1);
-        private static TimeSpan LowProcessingTime = TimeSpan.FromMilliseconds(5);
-        private static TimeSpan HighProcessingTime = TimeSpan.FromMilliseconds(6);
-
         [Test]
         [TestCase("", DESCENDING)]
         [TestCase("asc", ASCENDING)]
@@ -139,7 +125,7 @@
 
             var lower = new MessagesView
             {
-                Status = HighMessageStatus, 
+                Status = HighMessageStatus,
                 MessageId = HighMessageId,
                 MessageType = HighMessageType,
                 ProcessingTime = HighProcessingTime,
@@ -179,5 +165,19 @@
             var request = new Request("GET", new Url($"http://get/messages?{queryString}"));
             return MessageViewComparer.FromRequest(request);
         }
+
+        private const int ASCENDING = -1;
+        private const int DESCENDING = 1;
+
+        private static MessageStatus LowMessageStatus = (MessageStatus)1;
+        private static MessageStatus HighMessageStatus = (MessageStatus)2;
+        private static string LowMessageId = "a";
+        private static string HighMessageId = "b";
+        private static string LowMessageType = "A";
+        private static string HighMessageType = "B";
+        private static DateTime LowMessageSent = DateTime.UtcNow;
+        private static DateTime HighMessageSent = LowMessageSent.AddMilliseconds(1);
+        private static TimeSpan LowProcessingTime = TimeSpan.FromMilliseconds(5);
+        private static TimeSpan HighProcessingTime = TimeSpan.FromMilliseconds(6);
     }
 }

@@ -20,12 +20,12 @@
             {
                 File.Delete(file);
             }
-            
+
             File.Create(Path.Combine(currentDirectory, $"{DateTime.UtcNow.ToFileTimeUtc()}.upgrade")).Close();
             var latestTime = DateTime.UtcNow.AddMinutes(1);
             var latest = Path.Combine(currentDirectory, $"{latestTime.ToFileTimeUtc()}.upgrade");
             File.Create(latest).Close();
-            
+
             var staleIndexChecker = new TestableStaleIndexChecker();
             var indexStore = new StaleIndexInfoStore();
             staleIndexChecker.Result = false; // stale
@@ -47,13 +47,13 @@
             {
                 checker.Stop();
             }
-            
+
             Assert.False(File.Exists(latest));
             Assert.AreEqual(staleIndexChecker.CutoffTime, latestTime);
             Assert.IsTrue(infoInProgress.Value.InProgress);
             Assert.IsFalse(infoDone.Value.InProgress);
         }
-        
+
         [Test]
         public async Task Should_indicate_not_in_progress_even_if_file_cant_be_deleted()
         {
@@ -64,13 +64,13 @@
             {
                 File.Delete(file);
             }
-            
+
             File.Create(Path.Combine(currentDirectory, $"{DateTime.UtcNow.ToFileTimeUtc()}.upgrade")).Close();
             var latestTime = DateTime.UtcNow.AddMinutes(1);
             var latest = Path.Combine(currentDirectory, $"{latestTime.ToFileTimeUtc()}.upgrade");
             File.Create(latest).Close();
             var latestFile = File.Open(latest, FileMode.Open, FileAccess.Read); // leave it open to prevent deletion
-            
+
             var staleIndexChecker = new TestableStaleIndexChecker();
             var indexStore = new StaleIndexInfoStore();
             staleIndexChecker.Result = false; // stale
@@ -93,7 +93,7 @@
                 checker.Stop();
                 latestFile.Close();
             }
-            
+
             Assert.AreEqual(staleIndexChecker.CutoffTime, latestTime);
             Assert.IsTrue(infoInProgress.Value.InProgress);
             Assert.IsFalse(infoDone.Value.InProgress);
@@ -109,21 +109,21 @@
             {
                 OnStart(null);
             }
-            
+
             public void Stop()
             {
                 OnStop(null);
             }
         }
-        
-        class TestableStaleIndexChecker : StaleIndexChecker 
+
+        class TestableStaleIndexChecker : StaleIndexChecker
         {
             public TestableStaleIndexChecker() : base(null)
             {
             }
 
             public bool Result { get; set; }
-            
+
             public DateTime CutoffTime { get; private set; }
 
             public override Task<bool> IsReindexingInComplete(DateTime cutOffTime, CancellationToken cancellationToken)
