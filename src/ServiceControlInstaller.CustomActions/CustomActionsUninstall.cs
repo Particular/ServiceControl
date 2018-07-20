@@ -1,9 +1,9 @@
 ﻿namespace ServiceControlInstaller.CustomActions
 {
     using System;
+    using Engine.Instances;
+    using Engine.Unattended;
     using Microsoft.Deployment.WindowsInstaller;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Unattended;
 
     public class CustomActionsUninstall
     {
@@ -26,8 +26,8 @@
 
             switch (removeInstancesPropertyValue.ToUpper())
             {
-                case "YES" :
-                case "TRUE" :
+                case "YES":
+                case "TRUE":
                     break;
                 default:
                     return ActionResult.NotExecuted;
@@ -37,7 +37,7 @@
             {
                 return ActionResult.Success;
             }
-            
+
             var unattendedInstaller = new UnattendServiceControlInstaller(logger, session["APPDIR"]);
             foreach (var instance in InstanceFinder.ServiceControlInstances())
             {
@@ -50,6 +50,7 @@
                     logger.Error($"Error thrown when removing instance {instance.Name} - {ex}");
                 }
             }
+
             return ActionResult.Success;
         }
     }
