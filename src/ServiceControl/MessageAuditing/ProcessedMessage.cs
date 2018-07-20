@@ -8,7 +8,7 @@
     {
         public ProcessedMessage()
         {
-           MessageMetadata = new Dictionary<string, object>();
+            MessageMetadata = new Dictionary<string, object>();
         }
 
         public ProcessedMessage(Dictionary<string, string> headers, Dictionary<string, object> metadata)
@@ -17,9 +17,7 @@
             MessageMetadata = metadata;
             Headers = headers;
 
-            string processedAt;
-
-            if (Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out processedAt))
+            if (Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt))
             {
                 ProcessedAt = DateTimeExtensions.ToUtcDateTime(processedAt);
             }
