@@ -59,7 +59,7 @@
                     // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
                     c.EnableFeature<AutoSubscribe>();
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-                    
+
                 }, metadata =>
                 {
                     metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga));
@@ -140,28 +140,28 @@
             }
         }
 
-        
+
         public class MessageInitiatingSaga : ICommand
         {
             public string Id { get; set; }
         }
 
-        
+
         public class MessageSentBySaga : ICommand
         {
         }
 
-        
+
         public class MessagePublishedBySaga : IEvent
         {
         }
 
-        
+
         public class MessageReplyBySaga : IMessage
         {
         }
 
-        
+
         public class MessageReplyToOriginatorBySaga : IMessage
         {
         }

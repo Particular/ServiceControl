@@ -31,7 +31,7 @@
             Assert.NotNull(sagaHistory);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(MySaga).FullName,sagaHistory.SagaType);
+            Assert.AreEqual(typeof(MySaga).FullName, sagaHistory.SagaType);
 
             var change = sagaHistory.Changes.Single();
 
