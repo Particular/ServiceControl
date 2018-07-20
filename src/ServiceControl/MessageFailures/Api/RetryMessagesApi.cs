@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Threading.Tasks;
+    using CompositeViews.Messages;
+    using InternalMessages;
     using Nancy;
     using NServiceBus;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class RetryMessagesApi : RoutedApi<string>
     {

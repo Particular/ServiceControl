@@ -2,20 +2,17 @@
 {
     using System.Globalization;
     using System.Threading.Tasks;
+    using Api;
+    using Contracts.MessageFailures;
+    using Infrastructure.DomainEvents;
+    using InternalMessages;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
     {
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-
         public UnArchiveMessagesByRangeHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
@@ -32,7 +29,7 @@
                 new FailedMessageViewIndex().IndexName,
                 new IndexQuery
                 {
-                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", message.From.Ticks, message.To.Ticks, (int) FailedMessageStatus.Archived),
+                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", message.From.Ticks, message.To.Ticks, (int)FailedMessageStatus.Archived),
                     Cutoff = message.CutOff
                 }, new ScriptedPatchRequest
                 {
@@ -43,8 +40,8 @@ if(this.Status === archivedStatus) {
 ",
                     Values =
                     {
-                        {"archivedStatus", (int) FailedMessageStatus.Archived},
-                        {"unresolvedStatus", (int) FailedMessageStatus.Unresolved}
+                        {"archivedStatus", (int)FailedMessageStatus.Archived},
+                        {"unresolvedStatus", (int)FailedMessageStatus.Unresolved}
                     }
                 }, options).ConfigureAwait(false);
 
@@ -56,6 +53,9 @@ if(this.Status === archivedStatus) {
                 MessagesCount = patchedDocumentIds.Length
             }).ConfigureAwait(false);
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
         class DocumentPatchResult
         {

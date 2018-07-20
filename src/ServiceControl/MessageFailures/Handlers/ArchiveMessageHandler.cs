@@ -3,16 +3,13 @@
     using System;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-
         public ArchiveMessageHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
@@ -44,5 +41,8 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
     }
 }

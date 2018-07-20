@@ -89,11 +89,23 @@
                 {
                     var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
                         .ToFacetsAsync(new List<Facet>
-                                    {
-                                        new Facet {Name = "Name", DisplayName="Endpoints"},
-                                        new Facet {Name = "Host", DisplayName = "Hosts"},
-                                        new Facet {Name = "MessageType", DisplayName = "Message types"},
-                                    })
+                        {
+                            new Facet
+                            {
+                                Name = "Name",
+                                DisplayName = "Endpoints"
+                            },
+                            new Facet
+                            {
+                                Name = "Host",
+                                DisplayName = "Hosts"
+                            },
+                            new Facet
+                            {
+                                Name = "MessageType",
+                                DisplayName = "Message types"
+                            }
+                        })
                         .ConfigureAwait(false);
 
                     return Negotiate.WithModel(facetResults.Results);

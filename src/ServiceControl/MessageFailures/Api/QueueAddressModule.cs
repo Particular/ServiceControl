@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Linq;
+    using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Infrastructure.Extensions;
 
     public class QueueAddressModule : BaseModule
     {
@@ -51,12 +51,12 @@
 
                     var failedMessageQueues =
                         await session.Query<QueueAddress, QueueAddressIndex>()
-                        .Statistics(out stats)
-                        .Where(q => q.PhysicalAddress.StartsWith(search))
-                        .OrderBy(q => q.PhysicalAddress)
-                        .Paging(Request)
-                        .ToListAsync()
-                        .ConfigureAwait(false);
+                            .Statistics(out stats)
+                            .Where(q => q.PhysicalAddress.StartsWith(search))
+                            .OrderBy(q => q.PhysicalAddress)
+                            .Paging(Request)
+                            .ToListAsync()
+                            .ConfigureAwait(false);
 
                     return Negotiate
                         .WithModel(failedMessageQueues)

@@ -4,14 +4,14 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Api;
+    using Contracts.MessageFailures;
+    using Infrastructure;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Features;
+    using Operations;
     using Raven.Client;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.Operations;
 
     public class FailedMessagesFeature : Feature
     {
@@ -30,8 +30,6 @@
 
         class DetectSuccessfullRetriesEnricher : ImportEnricher
         {
-            IDomainEvents domainEvents;
-
             public DetectSuccessfullRetriesEnricher(IDomainEvents domainEvents)
             {
                 this.domainEvents = domainEvents;
@@ -94,14 +92,12 @@
 
                 return address;
             }
+
+            IDomainEvents domainEvents;
         }
 
         class WireUpFailedMessageNotifications : FeatureStartupTask
         {
-            FailedMessageViewIndexNotifications notifications;
-            IDocumentStore store;
-            IDisposable subscription;
-
             public WireUpFailedMessageNotifications(FailedMessageViewIndexNotifications notifications, IDocumentStore store)
             {
                 this.notifications = notifications;
@@ -119,6 +115,10 @@
                 subscription.Dispose();
                 return Task.FromResult(true);
             }
+
+            FailedMessageViewIndexNotifications notifications;
+            IDocumentStore store;
+            IDisposable subscription;
         }
     }
 }
