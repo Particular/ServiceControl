@@ -79,7 +79,7 @@
             // Arrange
             var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName);
 
-            var replyToAddressWithNoMachineName = $"SomeEndpoint";
+            var replyToAddressWithNoMachineName = "SomeEndpoint";
 
             var headers = new Dictionary<string, string>
             {

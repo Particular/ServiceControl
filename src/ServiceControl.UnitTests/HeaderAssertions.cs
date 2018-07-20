@@ -7,8 +7,7 @@
     {
         public static void AssertHeader(this IDictionary<string, string> headers, string key, string expectedValue)
         {
-            string value;
-            bool result = headers.TryGetValue(key, out value);
+            var result = headers.TryGetValue(key, out var value);
             Assert.IsTrue(result, $"Expected header [{key}] missing");
             Assert.AreEqual(expectedValue, value, $"Header [{key}] has incorrect value\nExpected: {expectedValue}\nActual: {value}");
         }

@@ -9,7 +9,6 @@
     using NServiceBus.Faults;
     using NUnit.Framework;
     using Particular.ServiceControl.DbMigrations;
-    using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceControl.Infrastructure;
     using ServiceControl.Recoverability;
@@ -121,9 +120,8 @@
             // Assert
             using (var session = documentStore.OpenSession())
             {
-                RavenQueryStatistics stats;
                 // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
-                session.Query<FailedMessage>().Customize(q => q.WaitForNonStaleResultsAsOfNow()).Statistics(out stats).Take(0).ToArray();
+                session.Query<FailedMessage>().Customize(q => q.WaitForNonStaleResultsAsOfNow()).Statistics(out var stats).Take(0).ToArray();
 
                 var expectedCount = SplitFailedMessageDocumentsMigration.PageSize * multiplier * multiplier;
 
@@ -364,7 +362,7 @@
             }
         }
 
-        private SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration(failureClassifiers.ToArray());
+        SplitFailedMessageDocumentsMigration CreateMigration() => new SplitFailedMessageDocumentsMigration(failureClassifiers.ToArray());
 
         void AddClassifier(IFailureClassifier classifier)
         {
@@ -384,8 +382,8 @@
             documentStore.Dispose();
         }
 
-        private EmbeddableDocumentStore documentStore;
-        private IList<IFailureClassifier> failureClassifiers;
+        EmbeddableDocumentStore documentStore;
+        IList<IFailureClassifier> failureClassifiers;
 
         class PreSplitScenario
         {

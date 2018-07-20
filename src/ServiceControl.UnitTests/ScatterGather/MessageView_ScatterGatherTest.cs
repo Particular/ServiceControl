@@ -45,7 +45,7 @@
 
         protected IEnumerable<MessagesView> LocalData()
         {
-            for (int i = 0; i < 200; i++)
+            for (var i = 0; i < 200; i++)
             {
                 yield return new MessagesView();
             }
@@ -53,7 +53,7 @@
 
         protected IEnumerable<MessagesView> RemoteData()
         {
-            for (int i = 0; i < 55; i++)
+            for (var i = 0; i < 55; i++)
             {
                 yield return new MessagesView();
             }
