@@ -1,6 +1,6 @@
 namespace ServiceControl.Monitoring
 {
-    using ServiceControl.Contracts.Operations;
+    using Contracts.Operations;
 
     public static class EndpointDetailsExtensions
     {

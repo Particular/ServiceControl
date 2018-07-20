@@ -2,23 +2,15 @@ namespace ServiceControl.Monitoring
 {
     using System;
     using System.Threading.Tasks;
-    using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.EndpointControl.Contracts;
-    using ServiceControl.HeartbeatMonitoring;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using CompositeViews.Endpoints;
+    using Contracts.HeartbeatMonitoring;
+    using Contracts.Operations;
+    using EndpointControl.Contracts;
+    using HeartbeatMonitoring;
+    using Infrastructure.DomainEvents;
 
     public class EndpointInstanceMonitor
     {
-        IDomainEvents domainEvents;
-
-        public EndpointInstanceId Id { get; }
-        private DateTime? lastSeen;
-        private HeartbeatStatus status;
-
-        public bool Monitored { get; private set; }
-
         public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, IDomainEvents domainEvents)
         {
             Id = endpointInstanceId;
@@ -26,16 +18,20 @@ namespace ServiceControl.Monitoring
             this.domainEvents = domainEvents;
         }
 
+        public EndpointInstanceId Id { get; }
+
+        public bool Monitored { get; private set; }
+
         public async Task EnableMonitoring()
         {
-            await domainEvents.Raise(new MonitoringEnabledForEndpoint { Endpoint = Convert(Id) })
+            await domainEvents.Raise(new MonitoringEnabledForEndpoint {Endpoint = Convert(Id)})
                 .ConfigureAwait(false);
             Monitored = true;
         }
 
         public async Task DisableMonitoring()
         {
-            await domainEvents.Raise(new MonitoringDisabledForEndpoint { Endpoint = Convert(Id) })
+            await domainEvents.Raise(new MonitoringDisabledForEndpoint {Endpoint = Convert(Id)})
                 .ConfigureAwait(false);
             Monitored = false;
         }
@@ -134,5 +130,9 @@ namespace ServiceControl.Monitoring
                 EndpointDetails = Convert(Id)
             };
         }
+
+        IDomainEvents domainEvents;
+        private DateTime? lastSeen;
+        private HeartbeatStatus status;
     }
 }
