@@ -87,7 +87,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
                     {
                         tophysicaladdress = newTo
                     }, status => status != HttpStatusCode.NotFound);
-                    
+
                     return true;
                 }).Run();
         }
@@ -120,7 +120,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
                     {
                         tophysicaladdress = conflictRedirect.fromphysicaladdress
                     }, status => status != HttpStatusCode.Conflict);
-                    
+
                     return true;
                 }).Run();
         }

@@ -11,7 +11,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
         public async Task Listing_redirects_should_not_error()
         {
             var response = new List<MessageRedirectFromJson>();
-            
+
             await Define<Context>()
                 .Done(async ctx =>
                 {
@@ -25,6 +25,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
         }
 
         public class Context : ScenarioContext
-        { }
+        {
+        }
     }
 }
