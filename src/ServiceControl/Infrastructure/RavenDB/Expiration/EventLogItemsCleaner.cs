@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -12,8 +13,6 @@
 
     public static class EventLogItemsCleaner
     {
-        static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(EventLogItemsCleaner));
-
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -29,7 +28,7 @@
                     Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
                     FieldsToFetch = new[]
                     {
-                        "__document_id",
+                        "__document_id"
                     },
                     SortedFields = new[]
                     {
@@ -81,5 +80,7 @@
                 logger.InfoFormat("Deleted {0} expired eventlogitem documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
             }
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(EventLogItemsCleaner));
     }
 }

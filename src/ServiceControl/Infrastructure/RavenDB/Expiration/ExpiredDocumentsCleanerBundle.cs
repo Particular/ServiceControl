@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
-
     using System;
     using System.ComponentModel.Composition;
     using System.Threading;
@@ -12,8 +11,22 @@
     [ExportMetadata("Bundle", "customDocumentExpiration")]
     public class ExpiredDocumentsCleanerBundle : IStartupTask, IDisposable
     {
-        ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
-        Timer timer;
+        public void Dispose()
+        {
+            if (timer != null)
+            {
+                lock (timer)
+                {
+                    using (var manualResetEvent = new ManualResetEvent(false))
+                    {
+                        timer.Dispose(manualResetEvent);
+                        manualResetEvent.WaitOne();
+                    }
+
+                    timer = null;
+                }
+            }
+        }
 
         public void Execute(DocumentDatabase database)
         {
@@ -23,6 +36,7 @@
             {
                 return;
             }
+
             var deletionBatchSize = RavenBootstrapper.Settings.ExpirationProcessBatchSize;
 
             logger.Info("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
@@ -46,20 +60,7 @@
             }, null, due, Timeout.InfiniteTimeSpan);
         }
 
-        public void Dispose()
-        {
-            if (timer != null)
-            {
-                lock (timer)
-                {
-                    using (var manualResetEvent = new ManualResetEvent(false))
-                    {
-                        timer.Dispose(manualResetEvent);
-                        manualResetEvent.WaitOne();
-                    }
-                    timer = null;
-                }
-            }
-        }
+        ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
+        Timer timer;
     }
 }

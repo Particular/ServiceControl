@@ -5,18 +5,19 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
     public static class ConfigFileSettingsReader<T>
     {
-        public static T Read(string name, T defaultValue = default(T))
+        public static T Read(string name, T defaultValue = default)
         {
             return Read("ServiceControl", name, defaultValue);
         }
 
-        public static T Read(string root, string name, T defaultValue = default(T))
+        public static T Read(string root, string name, T defaultValue = default)
         {
             T value;
             if (TryRead(root, name, out value))
             {
                 return value;
             }
+
             return defaultValue;
         }
 
@@ -30,7 +31,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 return true;
             }
 
-            value = default(T);
+            value = default;
             return false;
         }
     }

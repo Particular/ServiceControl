@@ -7,17 +7,15 @@
     using Autofac.Core;
     using Autofac.Core.Lifetime;
     using Autofac.Core.Resolving;
-    using NServiceBus.Logging;
     using global::Nancy;
     using global::Nancy.Bootstrapper;
     using global::Nancy.Bootstrappers.Autofac;
     using global::Nancy.Diagnostics;
     using global::Nancy.Responses;
+    using NServiceBus.Logging;
 
     public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
-        private readonly ILifetimeScope container;
-
         public NServiceBusContainerBootstrapper(IContainer container)
         {
             this.container = new ILifetimeScopeWrapperNotDisposable(container);
@@ -26,10 +24,7 @@
 
         protected override NancyInternalConfiguration InternalConfiguration
         {
-            get
-            {
-                return NancyInternalConfiguration.WithOverrides(c => c.Serializers.Remove(typeof(DefaultJsonSerializer)));
-            }
+            get { return NancyInternalConfiguration.WithOverrides(c => c.Serializers.Remove(typeof(DefaultJsonSerializer))); }
         }
 
         protected override DiagnosticsConfiguration DiagnosticsConfiguration => new DiagnosticsConfiguration
@@ -102,13 +97,13 @@
             return container.Resolve<INancyModule>();
         }
 
+        private readonly ILifetimeScope container;
+
         static ILog Logger = LogManager.GetLogger(typeof(NServiceBusContainerBootstrapper));
     }
 
-    class ILifetimeScopeWrapperNotDisposable: ILifetimeScope
+    class ILifetimeScopeWrapperNotDisposable : ILifetimeScope
     {
-        private readonly ILifetimeScope realScope;
-
         public ILifetimeScopeWrapperNotDisposable(ILifetimeScope realScope)
         {
             this.realScope = realScope;
@@ -116,7 +111,7 @@
 
         public object ResolveComponent(IComponentRegistration registration, IEnumerable<Parameter> parameters)
         {
-           return realScope.ResolveComponent(registration, parameters);
+            return realScope.ResolveComponent(registration, parameters);
         }
 
         public IComponentRegistry ComponentRegistry => realScope.ComponentRegistry;
@@ -128,7 +123,7 @@
 
         public ILifetimeScope BeginLifetimeScope()
         {
-           return  realScope.BeginLifetimeScope();
+            return realScope.BeginLifetimeScope();
         }
 
         public ILifetimeScope BeginLifetimeScope(object tag)
@@ -166,5 +161,7 @@
             add { realScope.ResolveOperationBeginning += value; }
             remove { realScope.ResolveOperationBeginning -= value; }
         }
+
+        private readonly ILifetimeScope realScope;
     }
 }

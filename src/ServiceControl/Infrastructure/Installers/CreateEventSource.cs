@@ -6,8 +6,6 @@
 
     public class CreateEventSource : INeedToInstallSomething
     {
-        public const string SourceName = "ServiceControl";
-
         public Task Install(string identity)
         {
             if (!EventLog.SourceExists(SourceName))
@@ -17,5 +15,7 @@
 
             return Task.FromResult(0);
         }
+
+        public const string SourceName = "ServiceControl";
     }
 }

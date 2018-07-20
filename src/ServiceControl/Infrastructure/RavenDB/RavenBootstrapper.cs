@@ -4,6 +4,8 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
+    using CompositeViews.Endpoints;
+    using EndpointControl;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -13,20 +15,11 @@
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.EndpointControl;
-    using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+    using Subscriptions;
 
     public class RavenBootstrapper : INeedInitialization
     {
-        public static string ReadLicense()
-        {
-            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
-            using (var reader = new StreamReader(resourceStream))
-            {
-                return reader.ReadToEnd();
-            }
-        }
+        public static Settings Settings { get; set; }
 
         public void Customize(EndpointConfiguration configuration)
         {
@@ -41,7 +34,14 @@
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
-        public static Settings Settings { get; set; }
+        public static string ReadLicense()
+        {
+            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
+            using (var reader = new StreamReader(resourceStream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
 
         public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, MarkerFileService markerFileService, bool maintenanceMode)
         {

@@ -2,22 +2,20 @@
 {
     using System;
     using System.Collections.Generic;
-    using global::Nancy.Owin;
-    using Microsoft.AspNet.SignalR;
-    using Nancy;
-    using Owin;
-    using ServiceControl.Infrastructure.SignalR;
     using Autofac;
+    using global::Nancy.Owin;
     using Metrics;
+    using Microsoft.AspNet.SignalR;
     using Microsoft.Owin.Cors;
+    using Nancy;
+    using Newtonsoft.Json;
+    using Owin;
     using Owin.Metrics;
     using ServiceControl.Infrastructure.OWIN;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
+    using ServiceControl.Infrastructure.SignalR;
 
     public class Startup
     {
-        private readonly IContainer container;
-
         public Startup(IContainer container)
         {
             this.container = container;
@@ -66,14 +64,12 @@
             var jsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
         }
+
+        private readonly IContainer container;
     }
 
     class AutofacDependencyResolver : DefaultDependencyResolver
     {
-        static Type IEnumerableType = typeof(IEnumerable<>);
-
-        private readonly IContainer container;
-
         public AutofacDependencyResolver(IContainer container)
         {
             this.container = container;
@@ -86,6 +82,7 @@
             {
                 return service;
             }
+
             return base.GetService(serviceType);
         }
 
@@ -95,10 +92,13 @@
 
             if (container.TryResolve(IEnumerableType.MakeGenericType(serviceType), out services))
             {
-                return (IEnumerable<object>) services;
+                return (IEnumerable<object>)services;
             }
 
             return base.GetServices(serviceType);
         }
+
+        private readonly IContainer container;
+        static Type IEnumerableType = typeof(IEnumerable<>);
     }
 }

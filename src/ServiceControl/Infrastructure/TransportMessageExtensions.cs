@@ -38,7 +38,6 @@
             }
 
             throw new Exception($"No processing endpoint could be determined for message ({headers.MessageId()})");
-
         }
 
         public static string UniqueId(this IReadOnlyDictionary<string, string> headers)
@@ -53,7 +52,7 @@
         public static string MessageId(this IReadOnlyDictionary<string, string> headers)
         {
             string str;
-            return headers.TryGetValue(Headers.MessageId, out str) ? str : default(string);
+            return headers.TryGetValue(Headers.MessageId, out str) ? str : default;
         }
 
         // NOTE: Duplicated from TransportMessage

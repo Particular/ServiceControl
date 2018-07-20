@@ -19,11 +19,11 @@
         static string GetFileVersion()
         {
             var customAttributes = typeof(VersionExtension).Assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute),
-                    false);
+                false);
 
             if (customAttributes.Length >= 1)
             {
-                var fileVersionAttribute = (AssemblyInformationalVersionAttribute) customAttributes[0];
+                var fileVersionAttribute = (AssemblyInformationalVersionAttribute)customAttributes[0];
                 var informationalVersion = fileVersionAttribute.InformationalVersion;
                 return informationalVersion.Split('+')[0];
             }

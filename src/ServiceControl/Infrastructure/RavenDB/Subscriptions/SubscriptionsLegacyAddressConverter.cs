@@ -22,7 +22,6 @@
 
         public void AfterConversionToDocument(string key, object entity, RavenJObject document, RavenJObject metadata)
         {
-            
         }
 
         public void BeforeConversionToEntity(string key, RavenJObject document, RavenJObject metadata)

@@ -12,7 +12,8 @@
             {
                 return (T)foundValue;
             }
-            return default(T);
+
+            return default;
         }
 
         public static string GetAsStringOrNull(this IDictionary<string, object> metadata, string key)
@@ -34,7 +35,7 @@
             {
                 return DateTime.Parse(datetimeAsString);
             }
-            
+
             return null;
         }
     }

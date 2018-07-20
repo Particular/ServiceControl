@@ -1,15 +1,10 @@
 ﻿namespace ServiceControl
 {
     using System.Collections.Generic;
-    using ServiceControl.Contracts.Operations;
+    using Contracts.Operations;
 
     public class EndpointInstanceId
     {
-        public string EndpointName { get; }
-        public string InstanceId { get; }
-        public string InstanceName { get; }
-
-
         public EndpointInstanceId(string endpointName, string instanceId)
             : this(endpointName, instanceId, instanceId)
         {
@@ -21,6 +16,10 @@
             InstanceId = instanceId;
             InstanceName = instanceName;
         }
+
+        public string EndpointName { get; }
+        public string InstanceId { get; }
+        public string InstanceName { get; }
 
         public static EndpointInstanceId From(IReadOnlyDictionary<string, string> headers)
         {

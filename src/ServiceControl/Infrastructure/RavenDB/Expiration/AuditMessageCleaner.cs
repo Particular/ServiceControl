@@ -14,8 +14,6 @@
 
     public static class AuditMessageCleaner
     {
-        static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
-
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -94,6 +92,7 @@
                         accessor.Attachments.DeleteAttachment(attachments[idx], null);
 #pragma warning restore 618
                     }
+
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
                 });
             });
@@ -116,13 +115,17 @@
             {
                 return false;
             }
+
             var messageId = doc.SelectToken("MessageMetadata.MessageId", false);
             if (messageId == null)
             {
                 return false;
             }
+
             bodyId = "messagebodies/" + messageId.Value<string>();
             return true;
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
     }
 }

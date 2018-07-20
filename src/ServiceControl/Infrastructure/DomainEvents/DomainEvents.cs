@@ -6,13 +6,6 @@
 
     public class DomainEvents : IDomainEvents
     {
-        IContainer container;
-
-        public void SetContainer(IContainer container)
-        {
-            this.container = container;
-        }
-
         public async Task Raise<T>(T domainEvent) where T : IDomainEvent
         {
             if (container == null)
@@ -36,5 +29,12 @@
                     .ConfigureAwait(false);
             }
         }
+
+        public void SetContainer(IContainer container)
+        {
+            this.container = container;
+        }
+
+        IContainer container;
     }
 }

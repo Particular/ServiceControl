@@ -33,7 +33,7 @@
                 // generate a guid from the hash:
                 g = new Guid(hashBytes);
             }
-            
+
             return g;
         }
     }

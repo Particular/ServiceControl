@@ -1,14 +1,12 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Nancy.Modules
 {
     using System;
+    using global::Nancy;
     using Particular.ServiceControl.Licensing;
     using Settings;
-    using global::Nancy;
 
     public class RootModule : BaseModule
     {
-        public LoggingSettings LoggingSettings { get; set; }
-
         public RootModule()
         {
             Get["/"] = parameters =>
@@ -54,12 +52,12 @@
                     },
                     DataRetention = new
                     {
-                        AuditRetentionPeriod = Settings.AuditRetentionPeriod,
-                        ErrorRetentionPeriod = Settings.ErrorRetentionPeriod
+                        Settings.AuditRetentionPeriod,
+                        Settings.ErrorRetentionPeriod
                     },
                     PerformanceTunning = new
                     {
-                        MaxBodySizeToStore= Settings.MaxBodySizeToStore,
+                        Settings.MaxBodySizeToStore,
                         Settings.HttpDefaultConnectionLimit,
                         Settings.ExternalIntegrationsDispatchingBatchSize,
                         Settings.ExpirationProcessBatchSize,
@@ -68,21 +66,23 @@
                     Transport = new
                     {
                         Settings.TransportCustomizationType,
-                        AuditLogQueue = Settings.AuditLogQueue,
-                        AuditQueue = Settings.AuditQueue,
-                        ErrorLogQueue = Settings.ErrorLogQueue,
-                        ErrorQueue = Settings.ErrorQueue,
+                        Settings.AuditLogQueue,
+                        Settings.AuditQueue,
+                        Settings.ErrorLogQueue,
+                        Settings.ErrorQueue,
                         Settings.ForwardAuditMessages,
                         Settings.ForwardErrorMessages
                     },
                     Plugins = new
                     {
-                        HeartbeatGracePeriod = Settings.HeartbeatGracePeriod
+                        Settings.HeartbeatGracePeriod
                     }
                 });
 
             Get["/instance-info"] = Get["/configuration"] = configuration;
         }
+
+        public LoggingSettings LoggingSettings { get; set; }
 
         public ActiveLicense License { get; set; }
 

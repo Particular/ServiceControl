@@ -16,7 +16,7 @@
 
             if (ConfigurationManager.AppSettings[fullKey] != null)
             {
-                return (T) Convert.ChangeType(ConfigurationManager.AppSettings[fullKey], typeof(T));
+                return (T)Convert.ChangeType(ConfigurationManager.AppSettings[fullKey], typeof(T));
             }
 
             return RegistryReader<T?>.Read(root, name, defaultValue);

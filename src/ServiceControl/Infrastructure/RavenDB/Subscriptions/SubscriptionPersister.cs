@@ -17,15 +17,7 @@
 
     internal class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
     {
-        private IDocumentStore store;
-        private SubscriptionClient localClient;
-        private Subscriptions subscriptions;
-        private ILookup<MessageType, Subscriber> subscriptionsLookup;
-        private MessageType[] locallyHandledEventTypes;
-
-        private SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
-
-        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings) : 
+        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings) :
             this(store, settings, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
         {
         }
@@ -33,7 +25,7 @@
         public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
         {
             this.store = store;
-            localClient = new SubscriptionClient()
+            localClient = new SubscriptionClient
             {
                 Endpoint = endpointName,
                 TransportAddress = localAddress
@@ -43,6 +35,17 @@
 
 
             SetSubscriptions(new Subscriptions()).GetAwaiter().GetResult();
+        }
+
+        public async Task Prime()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var primeSubscriptions = await LoadSubscriptions(session).ConfigureAwait(false) ?? await MigrateSubscriptions(session, localClient).ConfigureAwait(false);
+
+                await SetSubscriptions(primeSubscriptions)
+                    .ConfigureAwait(false);
+            }
         }
 
         public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context)
@@ -55,7 +58,7 @@
             try
             {
                 await subscriptionsLock.WaitAsync().ConfigureAwait(false);
-                
+
                 if (AddOrUpdateSubscription(messageType, subscriber))
                 {
                     await SaveSubscriptions().ConfigureAwait(false);
@@ -67,10 +70,43 @@
             }
         }
 
+        public async Task Unsubscribe(Subscriber subscriber, MessageType messageType, ContextBag context)
+        {
+            try
+            {
+                await subscriptionsLock.WaitAsync().ConfigureAwait(false);
+
+                var needsSave = false;
+                Subscription subscription;
+                if (subscriptions.All.TryGetValue(FormatId(messageType), out subscription))
+                {
+                    var client = CreateSubscriptionClient(subscriber);
+                    if (subscription.Subscribers.Remove(client))
+                    {
+                        needsSave = true;
+                    }
+                }
+
+                if (needsSave)
+                {
+                    await SaveSubscriptions().ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                subscriptionsLock.Release();
+            }
+        }
+
+        public Task<IEnumerable<Subscriber>> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes, ContextBag context)
+        {
+            return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct());
+        }
+
         private bool AddOrUpdateSubscription(MessageType messageType, Subscriber subscriber)
         {
             var key = FormatId(messageType);
-            
+
             var subscriptionClient = CreateSubscriptionClient(subscriber);
 
             Subscription subscription;
@@ -80,6 +116,7 @@
                 {
                     return false;
                 }
+
                 subscription.Subscribers.Add(subscriptionClient);
                 return true;
             }
@@ -124,18 +161,18 @@
         private void UpdateLookup()
         {
             subscriptionsLookup = (from subscription in subscriptions.All.Values
-                                   from client in subscription.Subscribers
-                                   select new
-                                   {
-                                       subscription.MessageType,
-                                       Subscriber = new Subscriber(client.TransportAddress, client.Endpoint)
-                                   }).Union(from eventType in locallyHandledEventTypes
-                                            select new
-                                            {
-                                                MessageType = eventType,
-                                                Subscriber = new Subscriber(localClient.TransportAddress, localClient.Endpoint)
-                                            }
-                                    ).ToLookup(x => x.MessageType, x => x.Subscriber);
+                from client in subscription.Subscribers
+                select new
+                {
+                    subscription.MessageType,
+                    Subscriber = new Subscriber(client.TransportAddress, client.Endpoint)
+                }).Union(from eventType in locallyHandledEventTypes
+                select new
+                {
+                    MessageType = eventType,
+                    Subscriber = new Subscriber(localClient.TransportAddress, localClient.Endpoint)
+                }
+            ).ToLookup(x => x.MessageType, x => x.Subscriber);
         }
 
         private string FormatId(MessageType messageType)
@@ -158,24 +195,13 @@
             {
                 await subscriptionsLock.WaitAsync()
                     .ConfigureAwait(false);
-                
+
                 subscriptions = newSubscriptions;
                 UpdateLookup();
             }
             finally
             {
                 subscriptionsLock.Release();
-            }
-        }
-
-        public async Task Prime()
-        {
-            using (var session = store.OpenAsyncSession())
-            {
-                var primeSubscriptions = await LoadSubscriptions(session).ConfigureAwait(false) ?? await MigrateSubscriptions(session, localClient).ConfigureAwait(false);
-
-                await SetSubscriptions(primeSubscriptions)
-                    .ConfigureAwait(false);
             }
         }
 
@@ -206,46 +232,20 @@
             return subscriptions;
         }
 
+        private IDocumentStore store;
+        private SubscriptionClient localClient;
+        private Subscriptions subscriptions;
+        private ILookup<MessageType, Subscriber> subscriptionsLookup;
+        private MessageType[] locallyHandledEventTypes;
+
+        private SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
+
         private static ILog logger = LogManager.GetLogger<SubscriptionPersister>();
-
-        public async Task Unsubscribe(Subscriber subscriber, MessageType messageType, ContextBag context)
-        {
-            try
-            {
-                await subscriptionsLock.WaitAsync().ConfigureAwait(false);
-                
-                var needsSave = false;
-                Subscription subscription;
-                if (subscriptions.All.TryGetValue(FormatId(messageType), out subscription))
-                {
-                    var client = CreateSubscriptionClient(subscriber);
-                    if (subscription.Subscribers.Remove(client))
-                    {
-                        needsSave = true;
-                    }
-                }
-
-                if (needsSave)
-                {
-                    await SaveSubscriptions().ConfigureAwait(false);
-                }
-            }
-            finally
-            {
-                subscriptionsLock.Release();
-            }
-        }
-
-        public Task<IEnumerable<Subscriber>> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes, ContextBag context)
-        {
-            return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct());
-        }
     }
 
     class Subscriptions
     {
-        public const string SingleDocumentId = "Subscriptions/All";
-
         public IDictionary<string, Subscription> All { get; set; } = new Dictionary<string, Subscription>();
+        public const string SingleDocumentId = "Subscriptions/All";
     }
 }

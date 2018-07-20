@@ -22,9 +22,9 @@
             this.sender = sender;
 
             messageTypes = settings.GetAvailableTypes()
-                                        .Where(conventions.IsMessageType)
-                                        .GroupBy(x => x.Name)
-                                        .ToDictionary(x => x.Key, x => x.FirstOrDefault().AssemblyQualifiedName);
+                .Where(conventions.IsMessageType)
+                .GroupBy(x => x.Name)
+                .ToDictionary(x => x.Key, x => x.FirstOrDefault().AssemblyQualifiedName);
             localAddress = settings.LocalAddress();
         }
 
@@ -53,10 +53,11 @@
             }
         }
 
-        static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));
         readonly Dictionary<string, string> messageTypes;
         readonly IDispatchMessages sender;
         string localAddress;
+
+        static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));
         static TransportTransaction transportTransaction = new TransportTransaction();
         static ContextBag contextBag = new ContextBag();
     }

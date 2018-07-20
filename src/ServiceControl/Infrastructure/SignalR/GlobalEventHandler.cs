@@ -6,8 +6,6 @@
 
     public class GlobalEventHandler
     {
-        static string[] emptyArray = new string[0];
-
         public Task Broadcast(object @event)
         {
             var typeName = @event.GetType().Name;
@@ -17,7 +15,13 @@
             };
             var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
 
-            return context.Connection.Broadcast(new Envelope { Types = types, Message = @event }, emptyArray);
+            return context.Connection.Broadcast(new Envelope
+            {
+                Types = types,
+                Message = @event
+            }, emptyArray);
         }
+
+        static string[] emptyArray = new string[0];
     }
 }
