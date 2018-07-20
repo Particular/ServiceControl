@@ -1,4 +1,5 @@
 ﻿// ReSharper disable HeuristicUnreachableCode
+
 namespace ServiceControl.Config.Extensions
 {
     using System.Windows;
@@ -37,10 +38,8 @@ namespace ServiceControl.Config.Extensions
                 }
                 else
                 {
-                    var frameworkElement = child as FrameworkElement;
-
                     // If the child is in error
-                    if (frameworkElement != null && Validation.GetHasError(frameworkElement))
+                    if (child is FrameworkElement frameworkElement && Validation.GetHasError(frameworkElement))
                     {
                         foundChild = (Control)child;
                         break;

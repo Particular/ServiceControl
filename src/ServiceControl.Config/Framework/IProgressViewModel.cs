@@ -49,10 +49,8 @@
             progress.Report(new ProgressDetails((int)(100.0 / total * step), message));
         }
 
-        private class Progress : IProgressObject
+        class Progress : IProgressObject
         {
-            private readonly IProgressViewModel viewModel;
-
             public Progress(IProgressViewModel viewModel)
             {
                 this.viewModel = viewModel;
@@ -70,6 +68,8 @@
                 viewModel.InProgress = false;
                 CommandManager.InvalidateRequerySuggested();
             }
+
+            readonly IProgressViewModel viewModel;
         }
     }
 }

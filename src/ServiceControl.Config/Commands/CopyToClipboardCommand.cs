@@ -1,7 +1,7 @@
 namespace ServiceControl.Config.Commands
 {
     using System.Windows;
-    using ServiceControl.Config.Framework.Commands;
+    using Framework.Commands;
 
     class CopyToClipboardCommand : AbstractCommand<string>
     {

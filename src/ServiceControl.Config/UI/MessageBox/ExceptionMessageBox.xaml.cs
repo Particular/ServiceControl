@@ -5,20 +5,32 @@
     using System.Windows;
     using System.Windows.Input;
     using System.Windows.Threading;
+    using Framework;
+    using Framework.Commands;
     using PropertyChanged;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
     using ICommand = System.Windows.Input.ICommand;
 
     [AddINotifyPropertyChangedInterface]
-    public partial class ExceptionMessageBox: IProgressViewModel
+    public partial class ExceptionMessageBox : IProgressViewModel
     {
-        static RaygunFeedback reporter;
-
         static ExceptionMessageBox()
         {
-
         }
+
+        public ExceptionMessageBox()
+        {
+            InitializeComponent();
+        }
+
+        public bool IncludeSystemInfo { get; set; }
+        Exception Exception { get; set; }
+
+        public ICommand ReportClick => new AwaitableDelegateCommand(CallReportClick);
+
+        public string ProgressTitle { get; set; }
+        public bool InProgress { get; set; }
+        public string ProgressMessage { get; set; }
+        public int ProgressPercent { get; set; }
 
         public static void Attach()
         {
@@ -29,8 +41,7 @@
 
         static void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            var ex = e.ExceptionObject as Exception;
-            if (ex != null)
+            if (e.ExceptionObject is Exception ex)
             {
                 handleException(ex);
             }
@@ -48,21 +59,8 @@
             handleException(e.Exception);
         }
 
-        static Action<Exception> handleException = ex =>
-        {
-            if (ex == null)
-            {
-                return;
-            }
-
-            var rootError = ex.GetBaseException();
-
-            ShowExceptionDialog(rootError);
-        };
-
         static void ShowExceptionDialog(Exception ex)
         {
-
             reporter = new RaygunFeedback();
 
             var dialog = new ExceptionMessageBox
@@ -78,17 +76,9 @@
             {
                 dialog.Owner = Application.Current.MainWindow;
             }
+
             dialog.ShowDialog();
-
         }
-
-        public ExceptionMessageBox()
-        {
-            InitializeComponent();
-        }
-
-        public bool IncludeSystemInfo { get; set; }
-        Exception Exception { get; set; }
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
@@ -105,8 +95,6 @@
             Clipboard.SetText(ErrorDetails.Text);
         }
 
-        public ICommand ReportClick => new AwaitableDelegateCommand(CallReportClick);
-
         async Task CallReportClick(object sender)
         {
             ProgressTitle = "Processing";
@@ -115,7 +103,7 @@
 
             try
             {
-                await Task.Factory.StartNew(() => reporter.SendException(Exception,  IncludeSystemInfo));
+                await Task.Factory.StartNew(() => reporter.SendException(Exception, IncludeSystemInfo));
             }
             finally
             {
@@ -125,9 +113,18 @@
             }
         }
 
-        public string ProgressTitle { get; set; }
-        public bool InProgress { get; set; }
-        public string ProgressMessage { get; set; }
-        public int ProgressPercent { get; set; }
+        static RaygunFeedback reporter;
+
+        static Action<Exception> handleException = ex =>
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            var rootError = ex.GetBaseException();
+
+            ShowExceptionDialog(rootError);
+        };
     }
 }

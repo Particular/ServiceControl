@@ -1,12 +1,13 @@
-﻿using System;
-using Caliburn.Micro;
-using ReactiveUI;
-
-namespace ServiceControl.Config.Framework.Rx
+﻿namespace ServiceControl.Config.Framework.Rx
 {
+    using System;
+    using Caliburn.Micro;
+    using PropertyChanging;
+    using ReactiveUI;
+
     public class RxPropertyChanged : ReactiveObject, INotifyPropertyChangedEx
     {
-        [PropertyChanging.DoNotNotify]
+        [DoNotNotify]
         [PropertyChanged.DoNotNotify]
         [Obsolete("Use SuppressChangeNotifications() instead.", true)]
         bool INotifyPropertyChangedEx.IsNotifying

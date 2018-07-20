@@ -1,11 +1,10 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
-
-namespace ServiceControl.Config.Xaml.Controls
+﻿namespace ServiceControl.Config.Xaml.Controls
 {
     using System;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Data;
+    using System.Windows.Input;
 
     public class FormPathTextBox : TextBox
     {
@@ -31,26 +30,23 @@ namespace ServiceControl.Config.Xaml.Controls
             set { SetValue(HeaderProperty, value); }
         }
 
-        public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(String.Empty));
-
         public ICommand SelectCommand
         {
             get { return (ICommand)GetValue(SelectCommandProperty); }
             set { SetValue(SelectCommandProperty, value); }
         }
 
-        public static readonly DependencyProperty SelectCommandProperty =
-            DependencyProperty.Register("SelectCommand", typeof(ICommand), typeof(FormPathTextBox), new PropertyMetadata(null));
-
         public string Warning
         {
             get { return (string)GetValue(WarningProperty); }
-            set
-            {
-                SetValue(WarningProperty, value);
-            }
+            set { SetValue(WarningProperty, value); }
         }
+
+        public static readonly DependencyProperty HeaderProperty =
+            DependencyProperty.Register("Header", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(String.Empty));
+
+        public static readonly DependencyProperty SelectCommandProperty =
+            DependencyProperty.Register("SelectCommand", typeof(ICommand), typeof(FormPathTextBox), new PropertyMetadata(null));
 
         public static readonly DependencyProperty WarningProperty =
             DependencyProperty.Register("Warning", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(String.Empty));

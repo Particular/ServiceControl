@@ -1,10 +1,9 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-
-namespace ServiceControl.Config.Xaml.Controls
+﻿namespace ServiceControl.Config.Xaml.Controls
 {
     using System;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Data;
 
     public class FormTextBox : TextBox
     {
@@ -30,17 +29,14 @@ namespace ServiceControl.Config.Xaml.Controls
             set { SetValue(HeaderProperty, value); }
         }
 
-        public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormTextBox), new PropertyMetadata(String.Empty));
-
         public string Warning
         {
             get { return (string)GetValue(WarningProperty); }
-            set
-            {
-                SetValue(WarningProperty, value);
-            }
+            set { SetValue(WarningProperty, value); }
         }
+
+        public static readonly DependencyProperty HeaderProperty =
+            DependencyProperty.Register("Header", typeof(string), typeof(FormTextBox), new PropertyMetadata(String.Empty));
 
         public static readonly DependencyProperty WarningProperty =
             DependencyProperty.Register("Warning", typeof(string), typeof(FormTextBox), new PropertyMetadata(String.Empty));

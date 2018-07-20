@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Caliburn.Micro;
-
-namespace ServiceControl.Config.Framework.Rx
+﻿namespace ServiceControl.Config.Framework.Rx
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using Caliburn.Micro;
+
     public abstract class RxConductorBase<T> : RxScreen, IConductor, IParent<T> where T : class
     {
-        ICloseStrategy<T> closeStrategy;
-
         public ICloseStrategy<T> CloseStrategy
         {
             get { return closeStrategy ?? (closeStrategy = new DefaultCloseStrategy<T>()); }
@@ -54,11 +52,14 @@ namespace ServiceControl.Config.Framework.Rx
 
         protected virtual T EnsureItem(T newItem)
         {
-            var node = newItem as IChild;
-            if (node != null && node.Parent != this)
+            if (newItem is IChild node && node.Parent != this)
+            {
                 node.Parent = this;
+            }
 
             return newItem;
         }
+
+        ICloseStrategy<T> closeStrategy;
     }
 }

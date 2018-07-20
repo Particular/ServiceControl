@@ -1,9 +1,9 @@
-﻿using System;
-using System.Windows.Threading;
-using Caliburn.Micro;
-
-namespace ServiceControl.Config
+﻿namespace ServiceControl.Config
 {
+    using System;
+    using System.Windows.Threading;
+    using Caliburn.Micro;
+
     static class DeactivateExtensions
     {
         public static void RunModal(this IDeactivate item)
@@ -20,5 +20,4 @@ namespace ServiceControl.Config
             }
         }
     }
-
 }

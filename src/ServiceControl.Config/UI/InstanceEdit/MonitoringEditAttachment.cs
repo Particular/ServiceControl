@@ -4,18 +4,14 @@ namespace ServiceControl.Config.UI.InstanceEdit
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Events;
+    using Framework;
+    using Framework.Modules;
     using ReactiveUI;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Modules;
     using Validation;
 
     class MonitoringEditAttachment : Attachment<MonitoringEditViewModel>
     {
-        private readonly IWindowManagerEx windowManager;
-        private readonly IEventAggregator eventAggregator;
-        private readonly MonitoringInstanceInstaller installer;
-
         public MonitoringEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
         {
             this.windowManager = windowManager;
@@ -34,7 +30,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 viewModel.TryClose(false);
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
             }, IsInProgress);
-
         }
 
         bool IsInProgress()
@@ -50,7 +45,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 viewModel.NotifyOfPropertyChange(string.Empty);
                 viewModel.SubmitAttempted = false;
                 windowManager.ScrollFirstErrorIntoView(viewModel);
-                
+
                 return;
             }
 
@@ -95,5 +90,9 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
+
+        readonly IWindowManagerEx windowManager;
+        readonly IEventAggregator eventAggregator;
+        readonly MonitoringInstanceInstaller installer;
     }
 }

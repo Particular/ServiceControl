@@ -1,9 +1,9 @@
-﻿using System.Windows.Input;
-using ServiceControl.Config.Framework;
-using ServiceControl.Config.Framework.Rx;
-
-namespace ServiceControl.Config.UI.DeleteInstanceConfirmation
+﻿namespace ServiceControl.Config.UI.DeleteInstanceConfirmation
 {
+    using System.Windows.Input;
+    using Framework;
+    using Framework.Rx;
+
     class DeleteServiceControlConfirmationViewModel : RxScreen
     {
         public DeleteServiceControlConfirmationViewModel()

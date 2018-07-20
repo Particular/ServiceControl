@@ -21,7 +21,7 @@
             registration.Activated += OnComponentActivated;
         }
 
-        private void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
+        void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
         {
             var instanceType = e.Instance.GetType();
 

@@ -1,23 +1,23 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Interactivity;
-using System.Windows.Interop;
-using ServiceControl.Config.Xaml.Native;
-
-namespace ServiceControl.Config.Xaml.Behaviours
+﻿namespace ServiceControl.Config.Xaml.Behaviours
 {
+    using System;
+    using System.Windows;
+    using System.Windows.Interactivity;
+    using System.Windows.Interop;
+    using Native;
+
     public class BorderlessWindowBehavior : Behavior<Window>
     {
-        private const int resizeWidth = 6;
-        private HwndSource hwndSource;
-        private IntPtr hwnd;
-
         protected override void OnAttached()
         {
             if (PresentationSource.FromVisual(AssociatedObject) != null)
+            {
                 AddHwndHook();
+            }
             else
+            {
                 AssociatedObject.SourceInitialized += AssociatedObject_SourceInitialized;
+            }
 
             AssociatedObject.WindowStyle = WindowStyle.None;
             base.OnAttached();
@@ -29,25 +29,25 @@ namespace ServiceControl.Config.Xaml.Behaviours
             base.OnDetaching();
         }
 
-        private void AddHwndHook()
+        void AddHwndHook()
         {
             hwndSource = HwndSource.FromVisual(AssociatedObject) as HwndSource;
             hwndSource.AddHook(HwndHook);
             hwnd = new WindowInteropHelper(AssociatedObject).Handle;
         }
 
-        private void RemoveHwndHook()
+        void RemoveHwndHook()
         {
             AssociatedObject.SourceInitialized -= AssociatedObject_SourceInitialized;
             hwndSource.RemoveHook(HwndHook);
         }
 
-        private void AssociatedObject_SourceInitialized(object sender, EventArgs e)
+        void AssociatedObject_SourceInitialized(object sender, EventArgs e)
         {
             AddHwndHook();
         }
 
-        private IntPtr HwndHook(IntPtr hWnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+        IntPtr HwndHook(IntPtr hWnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             var returnval = IntPtr.Zero;
             switch (message)
@@ -58,23 +58,30 @@ namespace ServiceControl.Config.Xaml.Behaviours
                     break;
 
                 case NativeConstants.WM_NCPAINT:
+                {
+                    if (Environment.OSVersion.Version.Major >= 6)
                     {
-                        if (Environment.OSVersion.Version.Major >= 6)
+                        var m = new MARGINS
                         {
-                            var m = new MARGINS { bottomHeight = 1, leftWidth = 1, rightWidth = 1, topHeight = 1 };
-                            UnsafeNativeMethods.DwmExtendFrameIntoClientArea(hwnd, ref m);
-                        }
-                        handled = true;
+                            bottomHeight = 1,
+                            leftWidth = 1,
+                            rightWidth = 1,
+                            topHeight = 1
+                        };
+                        UnsafeNativeMethods.DwmExtendFrameIntoClientArea(hwnd, ref m);
                     }
+
+                    handled = true;
+                }
                     break;
 
                 case NativeConstants.WM_NCACTIVATE:
-                    {
-                        /* As per http://msdn.microsoft.com/en-us/library/ms632633(VS.85).aspx , "-1" lParam
-                         * "does not repaint the nonclient area to reflect the state change." */
-                        returnval = UnsafeNativeMethods.DefWindowProc(hWnd, message, wParam, new IntPtr(-1));
-                        handled = true;
-                    }
+                {
+                    /* As per http://msdn.microsoft.com/en-us/library/ms632633(VS.85).aspx , "-1" lParam
+                     * "does not repaint the nonclient area to reflect the state change." */
+                    returnval = UnsafeNativeMethods.DefWindowProc(hWnd, message, wParam, new IntPtr(-1));
+                    handled = true;
+                }
                     break;
 
                 case NativeConstants.WM_GETMINMAXINFO:
@@ -91,7 +98,9 @@ namespace ServiceControl.Config.Xaml.Behaviours
                     // don't process the message on windows that can't be resized
                     var resizeMode = AssociatedObject.ResizeMode;
                     if (resizeMode == ResizeMode.CanMinimize || resizeMode == ResizeMode.NoResize)
+                    {
                         break;
+                    }
 
                     // get X & Y out of the message
                     var screenPoint = new Point((short)lParam, (short)(lParam.ToInt32() >> 16));
@@ -104,7 +113,9 @@ namespace ServiceControl.Config.Xaml.Behaviours
 
                     // don't process the message if the mouse is outside the 6px resize border
                     if (windowRect.Contains(windowPoint))
+                    {
                         break;
+                    }
 
                     var windowHeight = (int)windowSize.Height;
                     var windowWidth = (int)windowSize.Width;
@@ -123,29 +134,51 @@ namespace ServiceControl.Config.Xaml.Behaviours
 
                     // check if the mouse is within one of the rectangles
                     if (topLeft.Contains(windowPoint))
+                    {
                         returnval = (IntPtr)NativeConstants.HTTOPLEFT;
+                    }
                     else if (top.Contains(windowPoint))
+                    {
                         returnval = (IntPtr)NativeConstants.HTTOP;
+                    }
                     else if (topRight.Contains(windowPoint))
+                    {
                         returnval = (IntPtr)NativeConstants.HTTOPRIGHT;
+                    }
                     else if (left.Contains(windowPoint))
+                    {
                         returnval = (IntPtr)NativeConstants.HTLEFT;
+                    }
                     else if (right.Contains(windowPoint))
+                    {
                         returnval = (IntPtr)NativeConstants.HTRIGHT;
+                    }
                     else if (bottomLeft.Contains(windowPoint))
+                    {
                         returnval = (IntPtr)NativeConstants.HTBOTTOMLEFT;
+                    }
                     else if (bottom.Contains(windowPoint))
+                    {
                         returnval = (IntPtr)NativeConstants.HTBOTTOM;
+                    }
                     else if (bottomRight.Contains(windowPoint))
+                    {
                         returnval = (IntPtr)NativeConstants.HTBOTTOMRIGHT;
+                    }
 
                     if (returnval != IntPtr.Zero)
+                    {
                         handled = true;
+                    }
 
                     break;
             }
 
             return returnval;
         }
+
+        HwndSource hwndSource;
+        IntPtr hwnd;
+        const int resizeWidth = 6;
     }
 }

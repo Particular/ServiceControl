@@ -10,7 +10,7 @@
     [InjectValidation]
     public class MonitoringEditViewModel : SharedMonitoringEditorViewModel
     {
-        public MonitoringEditViewModel(MonitoringInstance instance) 
+        public MonitoringEditViewModel(MonitoringInstance instance)
         {
             DisplayName = "EDIT MONITORING INSTANCE";
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
@@ -37,12 +37,10 @@
             ConnectionString = instance.ConnectionString;
             MonitoringInstance = instance;
         }
-        
+
         public MonitoringInstance MonitoringInstance { get; set; }
 
         public string ErrorQueueName { get; set; }
-        
-        TransportInfo selectedTransport;
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName")]
         public TransportInfo SelectedTransport
@@ -64,5 +62,7 @@
 
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+
+        TransportInfo selectedTransport;
     }
 }

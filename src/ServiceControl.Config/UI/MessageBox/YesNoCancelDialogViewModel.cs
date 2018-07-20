@@ -2,8 +2,8 @@ namespace ServiceControl.Config.UI.MessageBox
 {
     using System.Windows.Input;
     using Caliburn.Micro;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Rx;
+    using Framework;
+    using Framework.Rx;
 
     class YesNoCancelViewModel : RxScreen
     {
@@ -14,9 +14,21 @@ namespace ServiceControl.Config.UI.MessageBox
             YesText = yesText;
             NoText = noText;
             Question = question;
-            Cancel = Command.Create(() => { Result = null; ((IDeactivate)this).Deactivate(true); });
-            No = Command.Create(() => { Result = false; ((IDeactivate)this).Deactivate(true); });
-            Yes = Command.Create(() => { Result = true; ((IDeactivate)this).Deactivate(true); });
+            Cancel = Command.Create(() =>
+            {
+                Result = null;
+                ((IDeactivate)this).Deactivate(true);
+            });
+            No = Command.Create(() =>
+            {
+                Result = false;
+                ((IDeactivate)this).Deactivate(true);
+            });
+            Yes = Command.Create(() =>
+            {
+                Result = true;
+                ((IDeactivate)this).Deactivate(true);
+            });
             ShowCancelButton = true;
         }
 

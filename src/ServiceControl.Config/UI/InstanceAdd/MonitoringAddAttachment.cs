@@ -3,20 +3,16 @@
     using System;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Events;
+    using Framework;
+    using Framework.Modules;
     using ReactiveUI;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Modules;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
     using Validation;
 
-    internal class MonitoringAddAttachment : Attachment<MonitoringAddViewModel>
+    class MonitoringAddAttachment : Attachment<MonitoringAddViewModel>
     {
-        private readonly IWindowManagerEx windowManager;
-        private readonly IEventAggregator eventAggregator;
-        private readonly MonitoringInstanceInstaller installer;
-
         public MonitoringAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
         {
             this.windowManager = windowManager;
@@ -42,7 +38,7 @@
             return viewModel != null && !viewModel.InProgress;
         }
 
-        private async Task Add(object arg)
+        async Task Add(object arg)
         {
             viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())
@@ -50,7 +46,7 @@
                 viewModel.NotifyOfPropertyChange(string.Empty);
                 viewModel.SubmitAttempted = false;
                 windowManager.ScrollFirstErrorIntoView(viewModel);
-                
+
                 return;
             }
 
@@ -71,7 +67,7 @@
                 ServiceAccount = viewModel.ServiceAccount,
                 ServiceAccountPwd = viewModel.Password
             };
-            
+
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
             {
                 var reportCard = await Task.Run(() => installer.Add(instanceMetadata, progress, PromptToProceed));
@@ -93,16 +89,17 @@
             eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
 
-        private bool PromptToProceed(PathInfo pathInfo)
+        bool PromptToProceed(PathInfo pathInfo)
         {
             var result = false;
 
-            Execute.OnUIThread(() =>
-            {
-                result = windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it");
-            });
+            Execute.OnUIThread(() => { result = windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
 
             return result;
         }
+
+        readonly IWindowManagerEx windowManager;
+        readonly IEventAggregator eventAggregator;
+        readonly MonitoringInstanceInstaller installer;
     }
 }

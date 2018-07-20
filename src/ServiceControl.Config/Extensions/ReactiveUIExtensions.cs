@@ -1,10 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using ReactiveUI;
-
-namespace ServiceControl.Config
+﻿namespace ServiceControl.Config
 {
-    internal static class ReactiveUIExtensions
+    using System;
+    using System.Threading.Tasks;
+    using ReactiveUI;
+
+    static class ReactiveUIExtensions
     {
         public static ReactiveCommand DoAction(this ReactiveCommand command, Action<object> action)
         {

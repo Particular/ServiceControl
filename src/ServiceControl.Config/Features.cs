@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace ServiceControl.Config
+﻿namespace ServiceControl.Config
 {
+    using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Configuration;
@@ -10,12 +9,12 @@ namespace ServiceControl.Config
     [AttributeUsage(AttributeTargets.Property)]
     public class FeatureToggleAttribute : Attribute
     {
-        public string Feature { get; }
-
         public FeatureToggleAttribute(string feature)
         {
             Feature = feature;
         }
+
+        public string Feature { get; }
     }
 
     public static class Feature
@@ -26,8 +25,6 @@ namespace ServiceControl.Config
 
     public class FeatureToggles
     {
-        private HashSet<string> features = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-
         public bool IsEnabled(string feature)
         {
             return features.Contains(feature);
@@ -37,12 +34,12 @@ namespace ServiceControl.Config
         {
             features.Add(feature);
         }
+
+        HashSet<string> features = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
     }
 
     public class FeatureToggleDefaults : IStartable
     {
-        private FeatureToggles featureToggles;
-
         public FeatureToggleDefaults(FeatureToggles featureToggles)
         {
             this.featureToggles = featureToggles;
@@ -53,13 +50,12 @@ namespace ServiceControl.Config
             featureToggles.Enable(Feature.MonitoringInstances);
             featureToggles.Enable(Feature.LicenseChecks);
         }
+
+        FeatureToggles featureToggles;
     }
 
     public class ToggleFeaturesFromConfig : IStartable
     {
-        private FeatureToggles featureToggles;
-        private const string EnableFeaturePrefix = "Enable-Feature:";
-
         public ToggleFeaturesFromConfig(FeatureToggles featureToggles)
         {
             this.featureToggles = featureToggles;
@@ -70,7 +66,7 @@ namespace ServiceControl.Config
             ConfigureFeatures(ConfigurationManager.AppSettings);
         }
 
-        private void ConfigureFeatures(NameValueCollection appSettings)
+        void ConfigureFeatures(NameValueCollection appSettings)
         {
             foreach (var key in appSettings.AllKeys)
             {
@@ -81,10 +77,9 @@ namespace ServiceControl.Config
             }
         }
 
-        private void ConfigureFeature(string feature, string value)
+        void ConfigureFeature(string feature, string value)
         {
-            bool result;
-            if (bool.TryParse(value, out result))
+            if (bool.TryParse(value, out var result))
             {
                 if (result)
                 {
@@ -95,7 +90,9 @@ namespace ServiceControl.Config
             {
                 throw new Exception($"Config setting {EnableFeaturePrefix}{feature} should be a boolean. Cannot parse {value}");
             }
-
         }
+
+        FeatureToggles featureToggles;
+        const string EnableFeaturePrefix = "Enable-Feature:";
     }
 }

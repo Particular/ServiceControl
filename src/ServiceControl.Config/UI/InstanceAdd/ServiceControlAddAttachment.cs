@@ -3,20 +3,16 @@
     using System;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Events;
+    using Framework;
+    using Framework.Modules;
     using ReactiveUI;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Modules;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
     using Validation;
 
-    internal class ServiceControlAddAttachment : Attachment<ServiceControlAddViewModel>
+    class ServiceControlAddAttachment : Attachment<ServiceControlAddViewModel>
     {
-        private readonly IWindowManagerEx windowManager;
-        private readonly IEventAggregator eventAggregator;
-        private readonly ServiceControlInstanceInstaller installer;
-
         public ServiceControlAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
         {
             this.windowManager = windowManager;
@@ -42,7 +38,7 @@
             return viewModel != null && !viewModel.InProgress;
         }
 
-        private async Task Add(object arg)
+        async Task Add(object arg)
         {
             viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())
@@ -68,11 +64,11 @@
                 Port = Convert.ToInt32(viewModel.PortNumber),
                 DatabaseMaintenancePort = Convert.ToInt32(viewModel.DatabaseMaintenancePortNumber),
                 VirtualDirectory = null, // TODO
-                AuditLogQueue = viewModel.AuditForwarding.Value ? viewModel.AuditForwardingQueueName  : null,
+                AuditLogQueue = viewModel.AuditForwarding.Value ? viewModel.AuditForwardingQueueName : null,
                 AuditQueue = viewModel.AuditQueueName,
                 ForwardAuditMessages = viewModel.AuditForwarding.Value,
                 ErrorQueue = viewModel.ErrorQueueName,
-                ErrorLogQueue = viewModel.ErrorForwarding.Value ? viewModel.ErrorForwardingQueueName : null ,
+                ErrorLogQueue = viewModel.ErrorForwarding.Value ? viewModel.ErrorForwardingQueueName : null,
                 TransportPackage = viewModel.SelectedTransport,
                 ConnectionString = viewModel.ConnectionString,
                 ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod,
@@ -102,16 +98,17 @@
             eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
 
-        private bool PromptToProceed(PathInfo pathInfo)
+        bool PromptToProceed(PathInfo pathInfo)
         {
             var result = false;
 
-            Execute.OnUIThread(() =>
-            {
-                result = windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it");
-            });
+            Execute.OnUIThread(() => { result = windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
 
             return result;
         }
+
+        readonly IWindowManagerEx windowManager;
+        readonly IEventAggregator eventAggregator;
+        readonly ServiceControlInstanceInstaller installer;
     }
 }

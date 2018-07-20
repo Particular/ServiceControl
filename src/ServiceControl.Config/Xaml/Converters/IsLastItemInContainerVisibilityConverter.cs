@@ -8,9 +8,11 @@
 
     public class IsLastItemInContainerVisibilityConverter : IValueConverter
     {
+        public Visibility LastItemVisibility { get; set; }
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var item = (DependencyObject) value;
+            var item = (DependencyObject)value;
             if (item != null)
             {
                 var itemsControl = ItemsControl.ItemsControlFromItemContainer(item);
@@ -22,8 +24,6 @@
 
             return DependencyProperty.UnsetValue;
         }
-
-        public Visibility LastItemVisibility { get; set; }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
