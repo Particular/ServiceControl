@@ -1,19 +1,24 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System.Threading.Tasks;
+    using CompositeViews.Endpoints;
+    using Contracts.HeartbeatMonitoring;
+    using EndpointControl;
+    using EndpointControl.Contracts;
+    using Infrastructure;
+    using Infrastructure.DomainEvents;
     using Raven.Client;
-    using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
-    using ServiceControl.EndpointControl;
-    using ServiceControl.EndpointControl.Contracts;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class MonitoringDataPersister : 
+    public class MonitoringDataPersister :
         IDomainHandler<HeartbeatingEndpointDetected>,
         IDomainHandler<MonitoringEnabledForEndpoint>,
         IDomainHandler<MonitoringDisabledForEndpoint>
     {
+        public MonitoringDataPersister(IDocumentStore store, EndpointInstanceMonitoring monitoring)
+        {
+            this.store = store;
+            this.monitoring = monitoring;
+        }
 
         public async Task Handle(HeartbeatingEndpointDetected domainEvent)
         {
@@ -37,30 +42,6 @@
             }
         }
 
-        public async Task Handle(MonitoringEnabledForEndpoint domainEvent)
-        {
-            var id = DeterministicGuid.MakeId(domainEvent.Endpoint.Name, domainEvent.Endpoint.HostId.ToString());
-            using (var session = store.OpenAsyncSession())
-            {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
-                    .ConfigureAwait(false);
-                if (knownEndpoint == null)
-                {
-                    knownEndpoint = new KnownEndpoint
-                    {
-                        Id = id,
-                        EndpointDetails = domainEvent.Endpoint,
-                        HostDisplayName = domainEvent.Endpoint.Host,
-                    };
-                    await session.StoreAsync(knownEndpoint);
-                }
-
-                knownEndpoint.Monitored = true;
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
-        }
-
         public async Task Handle(MonitoringDisabledForEndpoint domainEvent)
         {
             var id = DeterministicGuid.MakeId(domainEvent.Endpoint.Name, domainEvent.Endpoint.HostId.ToString());
@@ -74,13 +55,37 @@
                     {
                         Id = id,
                         EndpointDetails = domainEvent.Endpoint,
-                        HostDisplayName = domainEvent.Endpoint.Host,
+                        HostDisplayName = domainEvent.Endpoint.Host
                     };
                     await session.StoreAsync(knownEndpoint)
                         .ConfigureAwait(false);
                 }
 
                 knownEndpoint.Monitored = false;
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+        }
+
+        public async Task Handle(MonitoringEnabledForEndpoint domainEvent)
+        {
+            var id = DeterministicGuid.MakeId(domainEvent.Endpoint.Name, domainEvent.Endpoint.HostId.ToString());
+            using (var session = store.OpenAsyncSession())
+            {
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
+                    .ConfigureAwait(false);
+                if (knownEndpoint == null)
+                {
+                    knownEndpoint = new KnownEndpoint
+                    {
+                        Id = id,
+                        EndpointDetails = domainEvent.Endpoint,
+                        HostDisplayName = domainEvent.Endpoint.Host
+                    };
+                    await session.StoreAsync(knownEndpoint);
+                }
+
+                knownEndpoint.Monitored = true;
                 await session.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -104,11 +109,5 @@
 
         private IDocumentStore store;
         private EndpointInstanceMonitoring monitoring;
-
-        public MonitoringDataPersister(IDocumentStore store, EndpointInstanceMonitoring monitoring)
-        {
-            this.store = store;
-            this.monitoring = monitoring;
-        }
     }
 }

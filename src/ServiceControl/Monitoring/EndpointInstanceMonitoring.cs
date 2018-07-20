@@ -5,19 +5,14 @@ namespace ServiceControl.Monitoring
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.Contracts.EndpointControl;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using CompositeViews.Endpoints;
+    using Contracts.EndpointControl;
+    using Contracts.HeartbeatMonitoring;
+    using Contracts.Operations;
+    using Infrastructure.DomainEvents;
 
     public class EndpointInstanceMonitoring
     {
-        IDomainEvents domainEvents;
-        ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
-        ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
-        EndpointMonitoringStats previousStats;
-
         public EndpointInstanceMonitoring(IDomainEvents domainEvents)
         {
             this.domainEvents = domainEvents;
@@ -31,7 +26,7 @@ namespace ServiceControl.Monitoring
             {
                 var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
 
-                EndpointInstanceId endpointInstanceId = entry.Key;
+                var endpointInstanceId = entry.Key;
                 var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
                 await monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp)
                     .ConfigureAwait(false);
@@ -47,7 +42,11 @@ namespace ServiceControl.Monitoring
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
             if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))
             {
-                await domainEvents.Raise(new NewEndpointDetected { DetectedAt = DateTime.UtcNow, Endpoint = newEndpointDetails })
+                await domainEvents.Raise(new NewEndpointDetected
+                    {
+                        DetectedAt = DateTime.UtcNow,
+                        Endpoint = newEndpointDetails
+                    })
                     .ConfigureAwait(false);
             }
         }
@@ -76,7 +75,7 @@ namespace ServiceControl.Monitoring
             endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
         }
 
-        private async Task Update(EndpointMonitoringStats stats)
+        async Task Update(EndpointMonitoringStats stats)
         {
             var previousActive = previousStats?.Active ?? 0;
             var previousDead = previousStats?.Failing ?? 0;
@@ -99,6 +98,7 @@ namespace ServiceControl.Monitoring
             {
                 monitor.AddTo(stats);
             }
+
             return stats;
         }
 
@@ -126,5 +126,10 @@ namespace ServiceControl.Monitoring
         {
             return endpoints.Values.Select(endpoint => endpoint.GetKnownView()).ToList();
         }
+
+        IDomainEvents domainEvents;
+        ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
+        ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
+        EndpointMonitoringStats previousStats;
     }
 }

@@ -3,11 +3,11 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure;
 
     class InMemoryMonitoring : Feature
     {
@@ -28,13 +28,10 @@
             });
         }
 
+        private static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
+
         class MonitorEndpointInstances : FeatureStartupTask
         {
-            private readonly EndpointInstanceMonitoring monitor;
-            private readonly TimeKeeper timeKeeper;
-            private readonly MonitoringDataPersister persistence;
-            private Timer timer;
-
             public MonitorEndpointInstances(EndpointInstanceMonitoring monitor, TimeKeeper timeKeeper, MonitoringDataPersister persistence)
             {
                 this.monitor = monitor;
@@ -70,8 +67,11 @@
                 timeKeeper.Release(timer);
                 return Task.FromResult(0);
             }
-        }
 
-        private static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
+            private readonly EndpointInstanceMonitoring monitor;
+            private readonly TimeKeeper timeKeeper;
+            private readonly MonitoringDataPersister persistence;
+            private Timer timer;
+        }
     }
 }

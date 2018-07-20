@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Monitoring.Handler
 {
     using System.Threading.Tasks;
+    using Contracts.EndpointControl;
     using NServiceBus;
-    using ServiceControl.Contracts.EndpointControl;
 
     public class NewEndpointDetectedHandler : IHandleMessages<NewEndpointDetected>
     {
-        readonly EndpointInstanceMonitoring endpointInstanceMonitoring;
-
         public NewEndpointDetectedHandler(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             this.endpointInstanceMonitoring = endpointInstanceMonitoring;
@@ -18,5 +16,7 @@
             endpointInstanceMonitoring.DetectEndpointFromRemoteAudit(message.Endpoint);
             return Task.FromResult(0);
         }
+
+        readonly EndpointInstanceMonitoring endpointInstanceMonitoring;
     }
 }
