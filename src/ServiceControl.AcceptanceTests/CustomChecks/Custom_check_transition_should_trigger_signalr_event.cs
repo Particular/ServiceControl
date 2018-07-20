@@ -4,16 +4,17 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
-    using NUnit.Framework;
-    using ServiceControl.Infrastructure.SignalR;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using NUnit.Framework;
+    using ServiceControl.Infrastructure.SignalR;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
     public class Custom_check_transition_should_trigger_signalr_event : AcceptanceTest
@@ -21,7 +22,7 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => this.Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -55,15 +56,12 @@
 
             class SignalrStarter : FeatureStartupTask
             {
-                private readonly MyContext context;
-                Connection connection;
-
                 public SignalrStarter(MyContext context)
                 {
                     this.context = context;
                     connection = new Connection("http://localhost/api/messagestream")
                     {
-                        JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
+                        JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
                     };
                 }
 
@@ -91,12 +89,14 @@
                     connection.Stop();
                     return Task.FromResult(0);
                 }
+
+                private readonly MyContext context;
+                Connection connection;
             }
         }
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-
             public EndpointWithFailingCustomCheck()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
@@ -104,10 +104,10 @@
 
             public class EventuallyFailingCustomCheck : CustomCheck
             {
-                private static int counter;
-
                 public EventuallyFailingCustomCheck()
-                    : base("EventuallyFailingCustomCheck", "Testing", TimeSpan.FromSeconds(1)) { }
+                    : base("EventuallyFailingCustomCheck", "Testing", TimeSpan.FromSeconds(1))
+                {
+                }
 
                 public override Task<CheckResult> PerformCheck()
                 {
@@ -115,8 +115,11 @@
                     {
                         return Task.FromResult(CheckResult.Failed("fail!"));
                     }
+
                     return Task.FromResult(CheckResult.Pass);
                 }
+
+                private static int counter;
             }
         }
     }
