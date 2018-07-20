@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using Hosting;
 
-    internal class CommandRunner
+    class CommandRunner
     {
         public CommandRunner(List<Type> commands)
         {

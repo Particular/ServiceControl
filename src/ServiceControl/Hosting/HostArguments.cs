@@ -11,14 +11,6 @@ namespace Particular.ServiceControl.Hosting
 
     public class HostArguments
     {
-        public List<Type> Commands { get; private set; }
-
-        public bool Help { get; set; }
-        public string ServiceName { get; set; }
-        public string Username { get; set; }
-        public bool Portable { get; set; }
-        public bool SkipQueueCreation { get; set; }
-
         public HostArguments(string[] args)
         {
             if (ConfigFileSettingsReader<bool>.Read("MaintenanceMode"))
@@ -30,30 +22,31 @@ namespace Particular.ServiceControl.Hosting
             }
 
             var executionMode = ExecutionMode.Run;
-            Commands = new List<Type> { typeof(RunCommand) };
+            Commands = new List<Type> {typeof(RunCommand)};
             ServiceName = Settings.DEFAULT_SERVICE_NAME;
 
             var defaultOptions = new OptionSet
             {
                 {
                     "?|h|help", "Help about the command line options.", key => { Help = true; }
-                },
+                }
             };
 
             var maintenanceOptions = new OptionSet
-                                           {
-                                               {
-                                                   "m|maint|maintenance",
-                                                   @"Run RavenDB only - use for DB maintenance",
-                                                   s => {
-                                                            Commands = new List<Type>
-                                                                       {
-                                                                           typeof(MaintCommand)
-                                                                       };
-                                                            executionMode = ExecutionMode.Maintenance;
-                                                   }
-                                               }
-                                           };
+            {
+                {
+                    "m|maint|maintenance",
+                    @"Run RavenDB only - use for DB maintenance",
+                    s =>
+                    {
+                        Commands = new List<Type>
+                        {
+                            typeof(MaintCommand)
+                        };
+                        executionMode = ExecutionMode.Maintenance;
+                    }
+                }
+            };
 
             // Not documented in help - Used by SC installer only
 
@@ -61,42 +54,35 @@ namespace Particular.ServiceControl.Hosting
             {
                 {
                     "d|database",
-                    @"Internal use - for installer"
-                    , s =>
+                    @"Internal use - for installer", s =>
                     {
-
-                        Commands = new List<Type>{typeof(DatabaseMigrationsCommand) };
+                        Commands = new List<Type> {typeof(DatabaseMigrationsCommand)};
                         executionMode = ExecutionMode.DatabaseMigrations;
                     }
                 },
                 {
                     "serviceName=",
-                    @"Specify the service name for the installed service."
-                    , s => { ServiceName = s; }
-                },
+                    @"Specify the service name for the installed service.", s => { ServiceName = s; }
+                }
             };
 
             var externalInstallerOptions = new OptionSet
             {
                 {
                     "s|setup",
-                    @"Internal use - for new installer"
-                    , s =>
+                    @"Internal use - for new installer", s =>
                     {
-
-                        Commands = new List<Type>{typeof(SetupCommand)};
+                        Commands = new List<Type> {typeof(SetupCommand)};
                         executionMode = ExecutionMode.RunInstallers;
                     }
                 },
                 {
                     "serviceName=",
-                    @"Specify the service name for the installed service."
-                    , s => { ServiceName = s; }
+                    @"Specify the service name for the installed service.", s => { ServiceName = s; }
                 },
                 {
                     "userName=",
-                    @"Username for the account the service should run under."
-                    , s => { Username = s; }
+                    @"Username for the account the service should run under.", s => { Username = s; }
                 },
                 {
                     "skip-queue-creation",
@@ -121,7 +107,7 @@ namespace Particular.ServiceControl.Hosting
                     "Import failed audit messages",
                     s =>
                     {
-                        Commands = new List<Type>{typeof(ImportFailedAuditsCommand)};
+                        Commands = new List<Type> {typeof(ImportFailedAuditsCommand)};
                         executionMode = ExecutionMode.ImportFailedAudits;
                     }
                 }
@@ -162,6 +148,14 @@ namespace Particular.ServiceControl.Hosting
                 Help = true;
             }
         }
+
+        public List<Type> Commands { get; private set; }
+
+        public bool Help { get; set; }
+        public string ServiceName { get; set; }
+        public string Username { get; set; }
+        public bool Portable { get; set; }
+        public bool SkipQueueCreation { get; set; }
 
 
         public void PrintUsage()
