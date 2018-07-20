@@ -46,10 +46,10 @@
                     context.Response
                         .WithHeader("ETag", currentEtag);
                 }
+
                 if (currentLastModified != null)
                 {
-                    context.Response.
-                        WithHeader("Last-Modified", currentLastModified);
+                    context.Response.WithHeader("Last-Modified", currentLastModified);
                 }
             }
         }

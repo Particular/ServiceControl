@@ -6,30 +6,33 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using global::Nancy.Extensions;
+    using global::Nancy.ModelBinding;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using ServiceControl.Infrastructure.SignalR;
-    using global::Nancy.Extensions;
-    using global::Nancy.ModelBinding;
 
     public class JsonNetBodyDeserializer : IBodyDeserializer
     {
         /// <summary>
-        ///     Empty constructor if no converters are needed
+        /// Empty constructor if no converters are needed
         /// </summary>
         public JsonNetBodyDeserializer()
         {
             var serializerSettings = new JsonSerializerSettings
             {
                 ContractResolver = new UnderscoreMappingResolver(),
-                Converters = {new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind}, new StringEnumConverter{CamelCaseText = true}
+                Converters =
+                {
+                    new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind},
+                    new StringEnumConverter {CamelCaseText = true}
                 }
             };
             serializer = JsonSerializer.Create(serializerSettings);
         }
 
         /// <summary>
-        ///     Constructor to use when a custom serializer are needed.
+        /// Constructor to use when a custom serializer are needed.
         /// </summary>
         /// <param name="serializer">Json serializer used when deserializing.</param>
         public JsonNetBodyDeserializer(JsonSerializer serializer)
@@ -43,7 +46,7 @@
         }
 
         /// <summary>
-        ///     Deserialize the request body to a model
+        /// Deserialize the request body to a model
         /// </summary>
         /// <param name="contentType">Content type to deserialize</param>
         /// <param name="bodyStream">Request body stream</param>
@@ -79,7 +82,7 @@
 
             foreach (var item in (IEnumerable)items)
             {
-                collectionAddMethod.Invoke(returnCollection, new[] { item });
+                collectionAddMethod.Invoke(returnCollection, new[] {item});
             }
 
             return returnCollection;

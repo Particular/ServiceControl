@@ -6,7 +6,9 @@
 
     class LogApiCalls : OwinMiddleware
     {
-        public LogApiCalls(OwinMiddleware next) : base(next) { }
+        public LogApiCalls(OwinMiddleware next) : base(next)
+        {
+        }
 
         public override async Task Invoke(IOwinContext context)
         {

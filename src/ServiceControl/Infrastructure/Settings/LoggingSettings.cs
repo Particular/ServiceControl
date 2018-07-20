@@ -14,13 +14,19 @@ namespace ServiceBus.Management.Infrastructure.Settings
             LogPath = Environment.ExpandEnvironmentVariables(ConfigFileSettingsReader<string>.Read("LogPath", logPath ?? DefaultLogPathForInstance(serviceName)));
         }
 
+        public LogLevel LoggingLevel { get; }
+
+        public LogLevel RavenDBLogLevel { get; }
+
+        public string LogPath { get; }
+
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
-            string levelText;
-            if (!ConfigFileSettingsReader<string>.TryRead("ServiceControl", key, out levelText))
+            if (!ConfigFileSettingsReader<string>.TryRead("ServiceControl", key, out var levelText))
             {
                 return defaultLevel;
             }
+
             try
             {
                 return LogLevel.FromString(levelText);
@@ -32,18 +38,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
         }
 
-        public LogLevel LoggingLevel { get; }
-
-        public LogLevel RavenDBLogLevel { get; }
-
-        public string LogPath { get; }
-
         private static string DefaultLogPathForInstance(string serviceName)
         {
             if (serviceName.Equals(Settings.DEFAULT_SERVICE_NAME, StringComparison.OrdinalIgnoreCase))
             {
                 return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl\\logs");
             }
+
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"Particular\\{serviceName}\\logs");
         }
     }

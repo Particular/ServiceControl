@@ -5,7 +5,6 @@
 
     public class MarkerFileService
     {
-        private string rootPath;
         public MarkerFileService(string rootPath)
         {
             this.rootPath = rootPath;
@@ -20,10 +19,10 @@
             }
         }
 
+        private string rootPath;
+
         class MarkerFile : IDisposable
         {
-            private string fileName;
-
             public MarkerFile(string fileName)
             {
                 this.fileName = fileName;
@@ -37,9 +36,10 @@
                 }
                 catch (IOException)
                 {
-
                 }
             }
+
+            private string fileName;
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     using NServiceBus.Features;
     using NServiceBus.Transport;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
 
     public class AuditLoqQueue : Feature
     {

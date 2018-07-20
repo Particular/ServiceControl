@@ -1,15 +1,13 @@
 namespace ServiceControl.Infrastructure.SignalR
 {
     using System.Threading.Tasks;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using DomainEvents;
 
     /// <summary>
     /// Forwards all domain events via SignalR
     /// </summary>
     public class ServicePulseNotifier : IDomainHandler<IDomainEvent>
     {
-        GlobalEventHandler broadcaster;
-
         public ServicePulseNotifier(GlobalEventHandler broadcaster)
         {
             this.broadcaster = broadcaster;
@@ -17,12 +15,13 @@ namespace ServiceControl.Infrastructure.SignalR
 
         public async Task Handle(IDomainEvent domainEvent)
         {
-            var userInteraceEvent = domainEvent as IUserInterfaceEvent;
-            if (userInteraceEvent != null)
+            if (domainEvent is IUserInterfaceEvent userInteraceEvent)
             {
                 await broadcaster.Broadcast(userInteraceEvent)
                     .ConfigureAwait(false);
             }
         }
+
+        GlobalEventHandler broadcaster;
     }
 }

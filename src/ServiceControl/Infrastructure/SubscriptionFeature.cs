@@ -33,8 +33,6 @@
 
     class SubscriptionStartupTask : FeatureStartupTask
     {
-        private readonly Type[] localEventsToSubscribeTo;
-
         public SubscriptionStartupTask(Type[] localEventsToSubscribeTo)
         {
             this.localEventsToSubscribeTo = localEventsToSubscribeTo;
@@ -49,5 +47,7 @@
         {
             return Task.FromResult(0);
         }
+
+        private readonly Type[] localEventsToSubscribeTo;
     }
 }

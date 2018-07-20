@@ -45,8 +45,7 @@
 
         static bool ContentLengthIsTooSmall(Response response)
         {
-            string contentLength;
-            if (response.Headers.TryGetValue("Content-Length", out contentLength))
+            if (response.Headers.TryGetValue("Content-Length", out var contentLength))
             {
                 var length = long.Parse(contentLength);
                 if (length < 4096)
@@ -54,6 +53,7 @@
                     return true;
                 }
             }
+
             return false;
         }
 

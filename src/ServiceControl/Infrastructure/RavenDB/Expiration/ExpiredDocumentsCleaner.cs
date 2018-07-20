@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
-
     using System;
     using System.Globalization;
     using Raven.Abstractions;
@@ -10,8 +9,6 @@
 
     public class ExpiredDocumentsCleaner
     {
-        static ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
-
         public static void RunCleanup(int deletionBatchSize, DocumentDatabase database, Settings settings)
         {
             try
@@ -37,5 +34,7 @@
                 logger.ErrorException("Error when trying to find expired documents", e);
             }
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleaner));
     }
 }

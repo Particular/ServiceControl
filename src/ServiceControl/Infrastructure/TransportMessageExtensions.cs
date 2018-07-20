@@ -10,9 +10,7 @@
     {
         public static string ProcessingEndpointName(this IReadOnlyDictionary<string, string> headers)
         {
-            string endpoint;
-
-            if (headers.TryGetValue(Headers.ProcessingEndpoint, out endpoint))
+            if (headers.TryGetValue(Headers.ProcessingEndpoint, out var endpoint))
             {
                 return endpoint;
             }
@@ -31,20 +29,17 @@
                 return ExtractQueue(replyToAddress);
             }
 
-            string messageTypes;
-            if (headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes))
+            if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes))
             {
                 throw new Exception($"No processing endpoint could be determined for message ({headers.MessageId()}) with EnclosedMessageTypes ({messageTypes})");
             }
 
             throw new Exception($"No processing endpoint could be determined for message ({headers.MessageId()})");
-
         }
 
         public static string UniqueId(this IReadOnlyDictionary<string, string> headers)
         {
-            string existingUniqueMessageId;
-            return headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out existingUniqueMessageId)
+            return headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var existingUniqueMessageId)
                 ? existingUniqueMessageId
                 : DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
         }
@@ -52,21 +47,18 @@
         // NOTE: Duplicated from TransportMessage
         public static string MessageId(this IReadOnlyDictionary<string, string> headers)
         {
-            string str;
-            return headers.TryGetValue(Headers.MessageId, out str) ? str : default(string);
+            return headers.TryGetValue(Headers.MessageId, out var str) ? str : default;
         }
 
         // NOTE: Duplicated from TransportMessage
         public static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
         {
-            string destination;
-            return headers.TryGetValue(Headers.ReplyToAddress, out destination) ? destination : null;
+            return headers.TryGetValue(Headers.ReplyToAddress, out var destination) ? destination : null;
         }
 
         public static string CorrelationId(this IReadOnlyDictionary<string, string> headers)
         {
-            string correlationId;
-            return headers.TryGetValue(Headers.CorrelationId, out correlationId) ? correlationId : null;
+            return headers.TryGetValue(Headers.CorrelationId, out var correlationId) ? correlationId : null;
         }
 
         // NOTE: Duplicated from TransportMessage
@@ -74,8 +66,7 @@
         {
             var messageIntent = default(MessageIntentEnum);
 
-            string messageIntentString;
-            if (headers.TryGetValue(Headers.MessageIntent, out messageIntentString))
+            if (headers.TryGetValue(Headers.MessageIntent, out var messageIntentString))
             {
                 Enum.TryParse(messageIntentString, true, out messageIntent);
             }

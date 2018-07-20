@@ -44,7 +44,7 @@
             context.Container.ConfigureComponent<PrimeSubscriptions>(DependencyLifecycle.SingleInstance);
             context.RegisterStartupTask(b => b.Build<PrimeSubscriptions>());
         }
-        
+
         class PrimeSubscriptions : FeatureStartupTask
         {
             public IPrimableSubscriptionStorage Persister { get; set; }

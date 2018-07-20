@@ -88,7 +88,7 @@
                 return true;
             }
 
-            return obj is LegacyAddress && Equals((LegacyAddress) obj);
+            return obj is LegacyAddress && Equals((LegacyAddress)obj);
         }
 
         bool Equals(LegacyAddress obj) => string.Equals(Queue, obj.Queue) && string.Equals(Machine, obj.Machine);

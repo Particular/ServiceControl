@@ -11,9 +11,6 @@
         [JsonConverter(typeof(MessageTypeConverter))]
         public MessageType MessageType { get; set; }
 
-        List<SubscriptionClient> subscribers;
-        List<LegacyAddress> legacySubscriptions;
-
         public List<SubscriptionClient> Subscribers
         {
             get
@@ -22,6 +19,7 @@
                 {
                     subscribers = new List<SubscriptionClient>();
                 }
+
                 return subscribers;
             }
             set { subscribers = value; }
@@ -36,8 +34,12 @@
                 {
                     legacySubscriptions = new List<LegacyAddress>();
                 }
+
                 return legacySubscriptions;
             }
         }
+
+        List<SubscriptionClient> subscribers;
+        List<LegacyAddress> legacySubscriptions;
     }
 }

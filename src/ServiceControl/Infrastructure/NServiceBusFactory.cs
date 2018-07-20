@@ -10,13 +10,13 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus.Features;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations;
     using ServiceControl.Transports;
+    using Settings;
 
     public static class NServiceBusFactory
     {
@@ -113,16 +113,17 @@ namespace ServiceBus.Management.Infrastructure
             return new BusInstance(endpointInstance, domainEvents, importFailedAudits);
         }
 
-        static Type[] remoteTypesToSubscribeTo = {
+        static bool IsExternalContract(Type t)
+        {
+            return t.Namespace != null
+                   && t.Namespace.StartsWith("ServiceControl.Contracts")
+                   && t.Assembly.GetName().Name == "ServiceControl.Contracts";
+        }
+
+        static Type[] remoteTypesToSubscribeTo =
+        {
             typeof(MessageFailureResolvedByRetry),
             typeof(NewEndpointDetected)
         };
-
-        static bool IsExternalContract(Type t)
-        {
-            return t.Namespace != null 
-                   && t.Namespace.StartsWith("ServiceControl.Contracts") 
-                   && t.Assembly.GetName().Name == "ServiceControl.Contracts";
-        }
     }
 }

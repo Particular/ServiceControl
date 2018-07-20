@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
-
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -13,8 +13,6 @@
 
     public static class SagaHistoryCleaner
     {
-        static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(SagaHistoryCleaner));
-
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -30,7 +28,7 @@
                     Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
                     FieldsToFetch = new[]
                     {
-                        "__document_id",
+                        "__document_id"
                     },
                     SortedFields = new[]
                     {
@@ -82,5 +80,7 @@
                 logger.InfoFormat("Deleted {0} expired sagahistory documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
             }
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(SagaHistoryCleaner));
     }
 }

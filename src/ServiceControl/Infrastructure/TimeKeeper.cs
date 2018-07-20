@@ -8,12 +8,20 @@
 
     public class TimeKeeper : IDisposable
     {
-        ConcurrentDictionary<Timer, object> timers = new ConcurrentDictionary<Timer, object>();
-        private ILog log = LogManager.GetLogger<TimeKeeper>();
-        private bool disposed;
-        private int disposeSignaled;
-        private static Task<bool> TrueTask = Task.FromResult(true);
-        private static Task<bool> FalseTask = Task.FromResult(true);
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref disposeSignaled, 1) != 0)
+            {
+                return;
+            }
+
+            foreach (var pair in timers)
+            {
+                WaitAndDispose(pair.Key);
+            }
+
+            disposed = true;
+        }
 
         public Timer NewTimer(Func<Task<bool>> callback, TimeSpan dueTime, TimeSpan period)
         {
@@ -72,7 +80,7 @@
                 return true;
             }, dueTime, period);
         }
-        
+
         public Timer New(Func<Task> callback, TimeSpan dueTime, TimeSpan period)
         {
             ThrowIfDisposed();
@@ -83,6 +91,7 @@
                 return true;
             }, dueTime, period);
         }
+
         public void Release(Timer timer)
         {
             ThrowIfDisposed();
@@ -90,21 +99,6 @@
             object _;
             timers.TryRemove(timer, out _);
             WaitAndDispose(timer);
-        }
-
-        public void Dispose()
-        {
-            if (Interlocked.Exchange(ref disposeSignaled, 1) != 0)
-            {
-                return;
-            }
-
-            foreach (var pair in timers)
-            {
-                WaitAndDispose(pair.Key);
-            }
-
-            disposed = true;
         }
 
         private static void WaitAndDispose(Timer timer)
@@ -123,5 +117,12 @@
                 throw new ObjectDisposedException("TimeKeeper");
             }
         }
+
+        ConcurrentDictionary<Timer, object> timers = new ConcurrentDictionary<Timer, object>();
+        private ILog log = LogManager.GetLogger<TimeKeeper>();
+        private bool disposed;
+        private int disposeSignaled;
+        private static Task<bool> TrueTask = Task.FromResult(true);
+        private static Task<bool> FalseTask = Task.FromResult(true);
     }
 }

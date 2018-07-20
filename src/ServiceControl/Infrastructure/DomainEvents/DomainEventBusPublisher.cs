@@ -6,21 +6,16 @@ namespace ServiceControl.Infrastructure.DomainEvents
 
     public class DomainEventBusPublisher : FeatureStartupTask, IDomainHandler<IDomainEvent>
     {
-        IMessageSession messageSession;
-
 #pragma warning disable 1998
         public Task Handle(IDomainEvent domainEvent)
 #pragma warning restore 1998
         {
-            var busEvent = domainEvent as IBusEvent;
-
-            if (busEvent != null)
+            if (domainEvent is IBusEvent busEvent)
             {
                 return messageSession.Publish(busEvent);
             }
 
-            var busCommand = domainEvent as IMessage;
-            if (busCommand != null)
+            if (domainEvent is IMessage busCommand)
             {
                 return messageSession.SendLocal(busCommand);
             }
@@ -38,5 +33,7 @@ namespace ServiceControl.Infrastructure.DomainEvents
         {
             return Task.FromResult(true);
         }
+
+        IMessageSession messageSession;
     }
 }
