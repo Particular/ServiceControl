@@ -9,8 +9,6 @@
 
     class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
-        private readonly IDocumentStore store;
-
         public SagaUpdatedHandler(IDocumentStore store)
         {
             this.store = store;
@@ -64,7 +62,7 @@
                 OriginatingMachine = initiator.OriginatingMachine,
                 TimeSent = initiator.TimeSent,
                 MessageType = initiator.MessageType,
-                Intent = initiator.Intent,
+                Intent = initiator.Intent
             };
         }
 
@@ -78,6 +76,7 @@
                     resultingMessage = new ResultingMessage();
                     sagaStateChange.OutgoingMessages.Add(resultingMessage);
                 }
+
                 resultingMessage.MessageType = toAdd.MessageType;
                 resultingMessage.MessageId = toAdd.ResultingMessageId;
                 resultingMessage.TimeSent = toAdd.TimeSent;
@@ -87,5 +86,7 @@
                 resultingMessage.Intent = toAdd.Intent;
             }
         }
+
+        readonly IDocumentStore store;
     }
 }
