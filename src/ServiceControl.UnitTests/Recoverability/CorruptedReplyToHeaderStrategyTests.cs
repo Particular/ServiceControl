@@ -8,9 +8,6 @@
     [TestFixture]
     class CorruptedReplyToHeaderStrategyTests
     {
-        private const string ServiceControlMachineName = nameof(ServiceControlMachineName);
-        private const string SendingMachineName = nameof(SendingMachineName);
-
         [Test]
         public void Handle_corrupted_header()
         {
@@ -82,7 +79,7 @@
             // Arrange
             var strategy = new CorruptedReplyToHeaderStrategy(ServiceControlMachineName);
 
-            var replyToAddressWithNoMachineName = $"SomeEndpoint";
+            var replyToAddressWithNoMachineName = "SomeEndpoint";
 
             var headers = new Dictionary<string, string>
             {
@@ -97,5 +94,8 @@
             headers.AssertHeader(Headers.ReplyToAddress, replyToAddressWithNoMachineName);
             headers.AssertHeaderMissing("ServiceControl.OldReplyToAddress");
         }
+
+        private const string ServiceControlMachineName = nameof(ServiceControlMachineName);
+        private const string SendingMachineName = nameof(SendingMachineName);
     }
 }

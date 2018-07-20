@@ -35,6 +35,7 @@
                     session.Store(processedMessage);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 using (var session = documentStore.OpenSession())
@@ -59,6 +60,7 @@
                     {
                         session.Store(message);
                     }
+
                     session.SaveChanges();
                 }
 
@@ -72,6 +74,7 @@
                     session.Store(recentMessage);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
                 foreach (dynamic message in expiredMessages)
                 {
@@ -87,8 +90,6 @@
                 }
             }
         }
-
-        private static int doctestrange = 999;
 
         IEnumerable<object> BuildExpiredMessaged(DateTime dateTime)
         {
@@ -140,6 +141,7 @@
                     session.Store(recentMessage);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 using (var session = documentStore.OpenSession())
@@ -195,6 +197,7 @@
                 {
                     await bodyStorage.Store(messageId, "binary", 5, stream);
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 // Verify message expired
@@ -225,6 +228,7 @@
                     session.Store(message);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
                 using (var session = documentStore.OpenSession())
                 {
@@ -240,7 +244,7 @@
             {
                 var failedMsg = new FailedMessage
                 {
-                    Id = "1",
+                    Id = "1"
                 };
 
                 using (var session = documentStore.OpenSession())
@@ -250,6 +254,7 @@
 
                     Debug.WriteLine(session.Advanced.GetMetadataFor(failedMsg)["Last-Modified"]);
                 }
+
                 Thread.Sleep(100);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
@@ -260,5 +265,6 @@
             }
         }
 
+        private static int doctestrange = 999;
     }
 }

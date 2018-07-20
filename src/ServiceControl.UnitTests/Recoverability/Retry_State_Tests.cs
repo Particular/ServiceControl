@@ -1,21 +1,21 @@
 ﻿namespace ServiceControl.UnitTests.Recoverability
 {
-    using NServiceBus.Extensibility;
-    using NServiceBus.Transport;
-    using NUnit.Framework;
-    using Raven.Client;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.Operations.BodyStorage.RavenAttachments;
-    using ServiceControl.Recoverability;
-    using ServiceControl.UnitTests.Operations;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Contracts.Operations;
+    using MessageFailures;
+    using NServiceBus.Extensibility;
+    using NServiceBus.Transport;
+    using NUnit.Framework;
+    using Operations;
+    using Raven.Client;
+    using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Operations.BodyStorage.RavenAttachments;
+    using ServiceControl.Recoverability;
 
     [TestFixture]
     public class Retry_State_Tests
@@ -247,8 +247,6 @@
 
     public class CustomRetryDocumentManager : RetryDocumentManager
     {
-        private bool progressToStaged;
-
         public CustomRetryDocumentManager(bool progressToStaged, IDocumentStore documentStore)
             : base(new ShutdownNotifier(), documentStore)
         {
@@ -265,6 +263,8 @@
 
             return Task.FromResult(0);
         }
+
+        private bool progressToStaged;
     }
 
     public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
@@ -282,7 +282,6 @@
 
     public class TestSender : IDispatchMessages
     {
-
         public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
         {
             return Task.FromResult(0);

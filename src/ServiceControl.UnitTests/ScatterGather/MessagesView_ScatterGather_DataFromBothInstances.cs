@@ -45,6 +45,5 @@
 
             Assert.AreEqual(highestInstanceCount, Results.QueryStats.HighestTotalCountOfAllTheInstances);
         }
-
     }
 }

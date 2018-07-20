@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using NUnit.Framework;
-using Particular.Approvals;
-using ServiceControl.SagaAudit;
-
-namespace ServiceControl.UnitTests.SagaAudit
+﻿namespace ServiceControl.UnitTests.SagaAudit
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using NUnit.Framework;
+    using Particular.Approvals;
+    using ServiceControl.SagaAudit;
+
     [TestFixture]
     class SagaListIndexTests
     {
@@ -22,6 +22,7 @@ namespace ServiceControl.UnitTests.SagaAudit
                     {
                         session.Store(sagaHistory);
                     }
+
                     session.SaveChanges();
                 }
 
@@ -42,7 +43,7 @@ namespace ServiceControl.UnitTests.SagaAudit
             {
                 SagaId = new Guid("00000000-0000-0000-0000-000000000003"),
                 SagaType = "MySaga3",
-                FinishTime = new DateTime(2000, 1, 1, 10, 0, 0),
+                FinishTime = new DateTime(2000, 1, 1, 10, 0, 0)
             };
             yield return new SagaHistory
             {
@@ -52,7 +53,7 @@ namespace ServiceControl.UnitTests.SagaAudit
                 {
                     new SagaStateChange
                     {
-                        FinishTime = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc),
+                        FinishTime = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc)
                     }
                 }
             };
@@ -60,7 +61,7 @@ namespace ServiceControl.UnitTests.SagaAudit
             {
                 SagaId = new Guid("00000000-0000-0000-0000-000000000002"),
                 SagaType = "MySaga2",
-                FinishTime = new DateTime(2000, 1, 1, 15, 0, 0),
+                FinishTime = new DateTime(2000, 1, 1, 15, 0, 0)
             };
         }
     }

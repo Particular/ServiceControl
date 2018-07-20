@@ -11,7 +11,7 @@ public class InMemoryStoreBuilder
             {
                 RunInUnreliableYetFastModeThatIsNotSuitableForProduction = true,
                 RunInMemory = true,
-                CompiledIndexCacheDirectory = Path.GetTempPath(), // RavenDB-2236
+                CompiledIndexCacheDirectory = Path.GetTempPath() // RavenDB-2236
             },
             Conventions =
             {

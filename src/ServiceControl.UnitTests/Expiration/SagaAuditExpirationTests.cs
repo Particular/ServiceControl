@@ -25,7 +25,7 @@
                 var sagaHistoryId = Guid.NewGuid();
                 var sagaHistory = new SagaSnapshot
                 {
-                    Id = sagaHistoryId,
+                    Id = sagaHistoryId
                 };
 
                 using (new RavenLastModifiedScope(expiredDate))
@@ -34,6 +34,7 @@
                     session.Store(sagaHistory);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 using (var session = documentStore.OpenSession())
@@ -60,6 +61,7 @@
                         {
                             session.Store(message);
                         }
+
                         session.SaveChanges();
                     }
                 }
@@ -69,11 +71,12 @@
                 {
                     var recentSagaHistory = new SagaSnapshot
                     {
-                        Id = Guid.NewGuid(),
+                        Id = Guid.NewGuid()
                     };
                     session.Store(recentSagaHistory);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 using (var session = documentStore.OpenSession())
@@ -89,7 +92,7 @@
             {
                 yield return new SagaSnapshot
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.NewGuid()
                 };
             }
         }
@@ -113,7 +116,7 @@
 
                 var expiredSagaHistory = new SagaSnapshot
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.NewGuid()
                 };
 
                 using (new RavenLastModifiedScope(expiredDate))
@@ -125,7 +128,7 @@
 
                 var recentSagaHistory = new SagaSnapshot
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.NewGuid()
                 };
                 using (new RavenLastModifiedScope(recentDate))
                 using (var session = documentStore.OpenSession())
@@ -133,6 +136,7 @@
                     session.Store(recentSagaHistory);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 using (var session = documentStore.OpenSession())
@@ -153,7 +157,7 @@
                 var recentDate = DateTime.UtcNow.AddDays(-1);
                 var sagaHistory = new SagaSnapshot
                 {
-                    Id = Guid.NewGuid(),
+                    Id = Guid.NewGuid()
                 };
 
                 using (new RavenLastModifiedScope(recentDate))
@@ -162,6 +166,7 @@
                     session.Store(sagaHistory);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
                 using (var session = documentStore.OpenSession())
                 {
@@ -169,6 +174,7 @@
                 }
             }
         }
+
         [Test]
         public void Errors_are_not_being_expired()
         {
@@ -176,7 +182,7 @@
             {
                 var failedMsg = new FailedMessage
                 {
-                    Id = "1",
+                    Id = "1"
                 };
 
                 using (var session = documentStore.OpenSession())
@@ -186,6 +192,7 @@
 
                     Debug.WriteLine(session.Advanced.GetMetadataFor(failedMsg)["Last-Modified"]);
                 }
+
                 Thread.Sleep(100);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
@@ -195,6 +202,5 @@
                 }
             }
         }
-
     }
 }

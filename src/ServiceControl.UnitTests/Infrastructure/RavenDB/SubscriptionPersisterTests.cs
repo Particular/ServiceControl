@@ -45,7 +45,7 @@
 
             await subscriptionPersister.Subscribe(v2Subscriber, v2MessageType, new ContextBag());
 
-            var foundSubscriptions = await subscriptionPersister.GetSubscriberAddressesForMessage(new[] { v1MessageType }, new ContextBag());
+            var foundSubscriptions = await subscriptionPersister.GetSubscriberAddressesForMessage(new[] {v1MessageType}, new ContextBag());
 
             var foundSubscriber = foundSubscriptions.Single();
             Assert.AreEqual(v2Subscriber.Endpoint, foundSubscriber.Endpoint);
@@ -67,5 +67,7 @@
         IDocumentStore documentStore;
     }
 
-    public class SampleMessageType { }
+    public class SampleMessageType
+    {
+    }
 }

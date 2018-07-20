@@ -19,10 +19,10 @@
         private MessageContext CreateMessage(string id, Dictionary<string, string> headers)
         {
             return new MessageContext(
-                id, 
-                headers, 
+                id,
+                headers,
                 new byte[0],
-                new TransportTransaction(), 
+                new TransportTransaction(),
                 new CancellationTokenSource(),
                 new ContextBag()
             );
@@ -93,7 +93,7 @@
             var headers = new Dictionary<string, string>
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
-                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
+                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint"
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
@@ -113,7 +113,7 @@
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
-                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
+                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId"
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
@@ -126,6 +126,7 @@
             {
                 //Intentionally empty catch
             }
+
             Assert.IsTrue(message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"));
             Assert.IsTrue(message.Headers.ContainsKey("ServiceControl.Retry.Attempt.MessageId"));
         }
@@ -163,7 +164,11 @@
             public Task<StreamResult> TryFetch(string bodyId)
             {
                 var stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)); //Echo back the body ID.
-                return Task.FromResult(new StreamResult { HasResult = true, Stream = stream });
+                return Task.FromResult(new StreamResult
+                {
+                    HasResult = true,
+                    Stream = stream
+                });
             }
         }
     }

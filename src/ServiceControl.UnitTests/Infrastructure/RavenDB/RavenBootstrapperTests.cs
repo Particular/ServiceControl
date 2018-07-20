@@ -1,5 +1,4 @@
-﻿
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using ServiceControl.Infrastructure.RavenDB;
 
 [TestFixture]
