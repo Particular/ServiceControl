@@ -23,7 +23,7 @@
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            List<MessagesView> response = new List<MessagesView>();
+            var response = new List<MessagesView>();
 
             var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
 
@@ -46,7 +46,7 @@
             Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -70,14 +70,14 @@
             }
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private const string ReceiverHostDisplayName = "Rico";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit";
-        private static string ErrorRemote = $"{Remote1}.error";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Remote1 = "remote1";
+        const string ReceiverHostDisplayName = "Rico";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditRemote = $"{Remote1}.audit";
+        static string ErrorRemote = $"{Remote1}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {
