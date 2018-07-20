@@ -4,13 +4,12 @@ namespace ServiceControl.ExternalIntegrations
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Contracts.CustomChecks;
     using Raven.Client;
-    using CustomCheckFailed = ServiceControl.Contracts.CustomCheckFailed;
 
-
-    public class CustomCheckFailedPublisher : EventPublisher<Contracts.CustomChecks.CustomCheckFailed, CustomCheckFailedPublisher.DispatchContext>
+    public class CustomCheckFailedPublisher : EventPublisher<CustomCheckFailed, CustomCheckFailedPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(Contracts.CustomChecks.CustomCheckFailed @event)
+        protected override DispatchContext CreateDispatchRequest(CustomCheckFailed @event)
         {
             return new DispatchContext
             {
@@ -20,13 +19,13 @@ namespace ServiceControl.ExternalIntegrations
                 FailedAt = @event.FailedAt,
                 Category = @event.Category,
                 FailureReason = @event.FailureReason,
-                CustomCheckId = @event.CustomCheckId,
+                CustomCheckId = @event.CustomCheckId
             };
         }
 
         protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return Task.FromResult(contexts.Select(r => (object)new CustomCheckFailed
+            return Task.FromResult(contexts.Select(r => (object)new Contracts.CustomCheckFailed
             {
                 FailedAt = r.FailedAt,
                 Category = r.Category,

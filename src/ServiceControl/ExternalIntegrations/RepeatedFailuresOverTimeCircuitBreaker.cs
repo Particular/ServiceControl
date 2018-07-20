@@ -17,6 +17,11 @@ namespace NServiceBus
             timer = new Timer(CircuitBreakerTriggered);
         }
 
+        public void Dispose()
+        {
+            //Injected
+        }
+
         public void Success()
         {
             var oldValue = Interlocked.Exchange(ref failureCount, 0);
@@ -44,11 +49,6 @@ namespace NServiceBus
             return Task.Delay(delayAfterFailure);
         }
 
-        public void Dispose()
-        {
-            //Injected
-        }
-
         void CircuitBreakerTriggered(object state)
         {
             if (Interlocked.Read(ref failureCount) > 0)
@@ -57,6 +57,8 @@ namespace NServiceBus
                 triggerAction(lastException);
             }
         }
+
+        private readonly TimeSpan delayAfterFailure;
 
         long failureCount;
         Exception lastException;
@@ -68,6 +70,5 @@ namespace NServiceBus
 
         static TimeSpan NoPeriodicTriggering = TimeSpan.FromMilliseconds(-1);
         static ILog Logger = LogManager.GetLogger<RepeatedFailuresOverTimeCircuitBreaker>();
-        private readonly TimeSpan delayAfterFailure;
     }
 }

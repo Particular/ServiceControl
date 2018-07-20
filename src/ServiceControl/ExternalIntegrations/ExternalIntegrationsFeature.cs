@@ -13,7 +13,7 @@ namespace ServiceControl.ExternalIntegrations
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.RegisterStartupTask(b => b.Build<EventDispatcher>());
-            
+
             var eventPublisherTypes = context.Settings.GetAvailableTypes().Implementing<IEventPublisher>();
 
             foreach (var eventPublisherType in eventPublisherTypes)

@@ -4,9 +4,9 @@ namespace ServiceControl.ExternalIntegrations
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Contracts.MessageFailures;
+    using MessageFailures;
     using Raven.Client;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.MessageFailures;
 
     public class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
@@ -23,7 +23,7 @@ namespace ServiceControl.ExternalIntegrations
             var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
             var failedMessageData = await session.LoadAsync<FailedMessage>(documentIds)
                 .ConfigureAwait(false);
-            
+
             var failedMessages = new List<object>(failedMessageData.Length);
             foreach (var entity in failedMessageData)
             {

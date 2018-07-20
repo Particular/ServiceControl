@@ -4,9 +4,9 @@ namespace ServiceControl.ExternalIntegrations
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Contracts;
+    using Contracts.HeartbeatMonitoring;
     using Raven.Client;
-    using ServiceControl.Contracts;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
 
     public class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
     {

@@ -2,8 +2,8 @@ namespace ServiceControl.ExternalIntegrations
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public interface IEventPublisher
     {
