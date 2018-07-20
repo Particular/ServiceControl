@@ -4,6 +4,7 @@
 
     public struct StaleIndexInfo
     {
+        // ReSharper disable once NotAccessedField.Global
         public DateTime? StartedAt;
         public bool InProgress;
     }

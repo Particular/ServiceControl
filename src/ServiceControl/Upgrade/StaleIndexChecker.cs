@@ -9,9 +9,6 @@
 
     public class StaleIndexChecker
     {
-        private IDocumentStore documentStore;
-        private static ILog logger = LogManager.GetLogger(typeof(StaleIndexChecker));
-
         public StaleIndexChecker(IDocumentStore store)
         {
             documentStore = store;
@@ -26,11 +23,10 @@
                 {
                     cts.CancelAfter(TimeSpan.FromMinutes(1));
 
-                    RavenQueryStatistics stats;
                     await session.Advanced.AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         .SetResultTransformer(FailedMessageViewTransformer.Name)
                         .Take(1)
-                        .Statistics(out stats)
+                        .Statistics(out var stats)
                         .WaitForNonStaleResultsAsOf(cutOffTime)
                         .SelectFields<FailedMessageView>()
                         .ToListAsync(cts.Token);
@@ -49,5 +45,8 @@
                 return false;
             }
         }
+
+        IDocumentStore documentStore;
+        static ILog logger = LogManager.GetLogger(typeof(StaleIndexChecker));
     }
 }

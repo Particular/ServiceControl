@@ -5,8 +5,6 @@
 
     public class UpgradeModuleApi : BaseModule
     {
-        public StaleIndexInfoStore InfoStore { get; set; }
-        
         public UpgradeModuleApi()
         {
             Get["/upgrade"] = parameters =>
@@ -15,5 +13,6 @@
                 return Negotiate.WithModel(info);
             };
         }
+        public StaleIndexInfoStore InfoStore { get; set; }
     }
 }
