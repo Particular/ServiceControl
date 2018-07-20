@@ -2,12 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class EventLogMappings
     {
-        Dictionary<Type, Type> mappings;
-
         public EventLogMappings(Dictionary<Type, Type> mappings)
         {
             this.mappings = mappings;
@@ -24,5 +22,7 @@
 
             return mapping.Apply(@event);
         }
+
+        Dictionary<Type, Type> mappings;
     }
 }

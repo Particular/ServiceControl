@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.EventLog
 {
     using System.Linq;
+    using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Infrastructure.Extensions;
 
     public class EventLogApiModule : BaseModule
     {
@@ -15,11 +15,10 @@
             {
                 using (var session = Store.OpenAsyncSession())
                 {
-                    RavenQueryStatistics stats;
-                    var results = await session.Query<EventLogItem>().Statistics(out stats).OrderByDescending(p => p.RaisedAt)
-                    .Paging(Request)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    var results = await session.Query<EventLogItem>().Statistics(out var stats).OrderByDescending(p => p.RaisedAt)
+                        .Paging(Request)
+                        .ToListAsync()
+                        .ConfigureAwait(false);
 
                     return Negotiate.WithModel(results)
                         .WithPagingLinksAndTotalCount(stats, Request)

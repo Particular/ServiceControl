@@ -1,6 +1,6 @@
 namespace ServiceControl.EventLog.Definitions
 {
-    using ServiceControl.Contracts.MessageFailures;
+    using Contracts.MessageFailures;
 
     public class FailedMessageUnArchivedDefinition : EventLogMappingDefinition<FailedMessagesUnArchived>
     {

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.EventLog
 {
-    using ServiceControl.Infrastructure.DomainEvents;
-
+    using Infrastructure.DomainEvents;
 
     public interface IEventLogMappingDefinition
     {

@@ -8,11 +8,11 @@
         {
             TreatAsError();
 
-            Description(m=> $"{m.CustomCheckId}: {m.FailureReason}");
+            Description(m => $"{m.CustomCheckId}: {m.FailureReason}");
 
             RelatesToEndpoint(m => m.OriginatingEndpoint.Name);
             RelatesToHost(m => m.OriginatingEndpoint.HostId);
-            RelatesToCustomCheck(m=>m.CustomCheckId);
+            RelatesToCustomCheck(m => m.CustomCheckId);
 
             RaisedAt(m => m.FailedAt);
         }
