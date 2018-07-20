@@ -3,16 +3,16 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_a_message_has_been_successfully_processed_from_sendonly: AcceptanceTest
+    public class When_a_message_has_been_successfully_processed_from_sendonly : AcceptanceTest
     {
         [Test]
         public async Task Should_import_messages_from_sendonly_endpoint()
@@ -25,6 +25,7 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                     {
                         return false;
                     }
+
                     return true;
                 })
                 .Run(TimeSpan.FromSeconds(40));

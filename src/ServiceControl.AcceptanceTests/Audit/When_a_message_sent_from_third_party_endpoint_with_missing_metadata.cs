@@ -3,15 +3,15 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
-    
+
     public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata : AcceptanceTest
     {
         [Test]
@@ -47,7 +47,7 @@
                     var headers = new Dictionary<string, string>
                     {
                         {Headers.ProcessingEndpoint, Conventions.EndpointNamingConvention(typeof(ThirdPartyEndpoint))},
-                        {Headers.MessageId, context.MessageId},
+                        {Headers.MessageId, context.MessageId}
                     };
                     return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
@@ -60,4 +60,3 @@
         }
     }
 }
-

@@ -2,16 +2,14 @@
 {
     using System.Net;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest
     {
-        const int MAX_BODY_SIZE = 20536;
-
         [Test]
         public async Task Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
         {
@@ -30,23 +28,23 @@
                 )
                 .Done(
                     async c =>
+                    {
+                        if (c.MessageId == null)
                         {
-                            if (c.MessageId == null)
-                            {
-                                return false;
-                            }
+                            return false;
+                        }
 
-                            var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
-                            MessagesView auditMessage = result;
-                            if (!result)
-                            {
-                                return false;
-                            }
+                        var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                        MessagesView auditMessage = result;
+                        if (!result)
+                        {
+                            return false;
+                        }
 
-                            body = await this.DownloadData(auditMessage.BodyUrl);
+                        body = await this.DownloadData(auditMessage.BodyUrl);
 
-                            return true;
-                        })
+                        return true;
+                    })
                 .Run();
 
             //Assert
@@ -76,6 +74,7 @@
                         {
                             return false;
                         }
+
                         var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
                         MessagesView auditMessage = result;
                         if (!result)
@@ -93,6 +92,8 @@
             Assert.AreEqual(0, body.Length);
         }
 
+        const int MAX_BODY_SIZE = 20536;
+
         class ServerEndpoint : EndpointConfigurationBuilder
         {
             public ServerEndpoint()
@@ -102,8 +103,6 @@
 
             public class BigFatMessageHandler : IHandleMessages<BigFatMessage>
             {
-                readonly Context testContext;
-
                 public BigFatMessageHandler(Context testContext)
                 {
                     this.testContext = testContext;
@@ -114,6 +113,8 @@
                     testContext.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
                     return Task.FromResult(0);
                 }
+
+                readonly Context testContext;
             }
         }
 
@@ -126,6 +127,5 @@
         {
             public string MessageId { get; set; }
         }
-
     }
 }

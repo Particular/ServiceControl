@@ -2,10 +2,10 @@
 {
     using System;
     using System.Threading;
+    using Infrastructure.Extensions;
+    using Infrastructure.Nancy.Modules;
     using Nancy;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Extensions;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.Operations;
 
     public class FailedAuditsCountReponse
@@ -15,8 +15,6 @@
 
     public class FailedAuditsModule : BaseModule
     {
-        public Lazy<ImportFailedAudits> ImportFailedAudits { get; set; }
-
         public FailedAuditsModule()
         {
             Get["/failedaudits/count", true] = async (_, token) =>
@@ -45,5 +43,7 @@
                 return HttpStatusCode.OK;
             };
         }
+
+        public Lazy<ImportFailedAudits> ImportFailedAudits { get; set; }
     }
 }

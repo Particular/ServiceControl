@@ -2,13 +2,13 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_processed_message_searched_by_messageBody : AcceptanceTest
@@ -25,7 +25,7 @@
                 .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + c.PropertyToSearchFor))
                 .Run(TimeSpan.FromSeconds(40));
         }
-        
+
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()

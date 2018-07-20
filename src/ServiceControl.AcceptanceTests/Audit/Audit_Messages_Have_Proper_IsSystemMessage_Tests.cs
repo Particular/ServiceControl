@@ -4,15 +4,15 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
-    class Audit_Messages_Have_Proper_IsSystemMessage_Tests: AcceptanceTest
+    class Audit_Messages_Have_Proper_IsSystemMessage_Tests : AcceptanceTest
     {
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
@@ -126,9 +126,9 @@
             {
                 EndpointSetup<DefaultServerWithAudit>();
             }
-           
+
             public class SendMessageLowLevel : DispatchRawMessages<SystemMessageTestContext>
-            {               
+            {
                 protected override TransportOperations CreateMessage(SystemMessageTestContext context)
                 {
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
@@ -140,16 +140,17 @@
                         ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
                         ["$.diagnostics.hostdisplayname"] = "SELENE"
                     };
-                    
+
                     if (!string.IsNullOrEmpty(context.EnclosedMessageType))
                     {
                         headers[Headers.EnclosedMessageTypes] = context.EnclosedMessageType;
                     }
+
                     if (context.IncludeControlMessageHeader)
                     {
-                        headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool) context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
+                        headers[Headers.ControlMessageHeader] = context.ControlMessageHeaderValue != null && (bool)context.ControlMessageHeaderValue ? context.ControlMessageHeaderValue.ToString() : null;
                     }
-                    
+
                     return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
 
@@ -183,6 +184,5 @@
             public string EnclosedMessageType { get; set; }
             public bool QueryForMessages { get; set; }
         }
-
     }
 }

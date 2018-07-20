@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -11,7 +12,6 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
 
@@ -47,7 +47,6 @@
                     body = await this.DownloadData(auditedMessage.BodyUrl);
 
                     return true;
-
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
@@ -80,7 +79,7 @@
 
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
 
-            Assert.True(auditedMessage.Headers.Any(_=>_.Key == Headers.MessageId));
+            Assert.True(auditedMessage.Headers.Any(_ => _.Key == Headers.MessageId));
         }
 
         public class Sender : EndpointConfigurationBuilder
