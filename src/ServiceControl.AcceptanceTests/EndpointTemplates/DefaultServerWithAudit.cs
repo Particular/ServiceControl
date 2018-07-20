@@ -43,24 +43,21 @@
             builder.DisableFeature<AutoSubscribe>();
             builder.EnableInstallers();
             builder.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-            
+
             await builder.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
             builder.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
             await builder.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
-            builder.RegisterComponents(r =>
-            {
-                builder.GetSettings().Set("SC.ConfigureComponent", r);
-            });
+            builder.RegisterComponents(r => { builder.GetSettings().Set("SC.ConfigureComponent", r); });
             builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
             builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
             builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
-            
+
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
-            
+
             configurationBuilderCustomization(builder);
 
             return builder;
