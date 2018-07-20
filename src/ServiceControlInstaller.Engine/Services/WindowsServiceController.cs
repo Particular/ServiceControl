@@ -1,18 +1,20 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
+
 namespace ServiceControlInstaller.Engine.Services
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq;
     using System.Management;
     using System.Security;
     using System.ServiceProcess;
     using System.Text.RegularExpressions;
+    using Accounts;
+    using Api;
     using Microsoft.Win32;
-    using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Api;
 
-    [System.ComponentModel.DesignerCategory("Code")]
+    [DesignerCategory("Code")]
     public class WindowsServiceController : ServiceController
     {
         public WindowsServiceController(string serviceName, string exePath) : base(serviceName)
@@ -24,19 +26,32 @@ namespace ServiceControlInstaller.Engine.Services
 
         public string Description
         {
+            get { return (string)ReadValue("Description"); }
+            set { WriteValue("Description", value ?? string.Empty); }
+        }
+
+        public string Account
+        {
             get
             {
-                return (string) ReadValue("Description");
-            }
-            set
-            {
-                WriteValue("Description", value ?? string.Empty);
+                var account = (string)ReadValue("ObjectName");
+                if (account == null)
+                {
+                    throw new NullReferenceException("ServiceAccount entry not found in the registry");
+                }
+
+                return account;
             }
         }
 
         public void SetStartupMode(string startMode)
         {
-            var validModes = new[] { "Automatic", "Manual", "Disabled" };
+            var validModes = new[]
+            {
+                "Automatic",
+                "Manual",
+                "Disabled"
+            };
             if (!validModes.Any(p => p.Equals(startMode, StringComparison.OrdinalIgnoreCase)))
             {
                 throw new ArgumentException($"Invalid startmode:'{startMode}'. Valid options are: {string.Join(", ", validModes)}");
@@ -53,25 +68,13 @@ namespace ServiceControlInstaller.Engine.Services
                     {
                         throw new ManagementException($"Failed to set service to {startMode}");
                     }
+
                     var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                     if (wmiReturnCode != 0)
                     {
                         throw new ManagementException($"Failed to set service to {startMode} - {Win32ServiceErrorMessages[wmiReturnCode]}");
                     }
                 }
-            }
-        }
-
-        public string Account
-        {
-            get
-            {
-                var account = (string) ReadValue("ObjectName");
-                if (account == null)
-                {
-                    throw new NullReferenceException("ServiceAccount entry not found in the registry");
-                }
-                return account;
             }
         }
 
@@ -89,7 +92,7 @@ namespace ServiceControlInstaller.Engine.Services
                 }
             }
 
-            var  objPath = $"Win32_Service.Name='{ServiceName}'";
+            var objPath = $"Win32_Service.Name='{ServiceName}'";
             using (var win32Service = new ManagementObject(new ManagementPath(objPath)))
             {
                 var inParams = win32Service.GetMethodParameters("Change");
@@ -142,6 +145,7 @@ namespace ServiceControlInstaller.Engine.Services
                 {
                     throw new ManagementException($"Failed to create service {serviceInfo.Name}");
                 }
+
                 var wmiReturnCode = Convert.ToInt32(outParams["ReturnValue"]);
                 if (wmiReturnCode != 0)
                 {
@@ -171,6 +175,7 @@ namespace ServiceControlInstaller.Engine.Services
                         }
                     }
                 }
+
                 ServiceRecoveryHelper.SetRecoveryOptions(serviceInfo.Name);
             }
         }
@@ -183,9 +188,10 @@ namespace ServiceControlInstaller.Engine.Services
             {
                 return @".\LOCALSYSTEM";
             }
+
             if (userAccount.IsLocalService())
             {
-               return @"NT AUTHORITY\LOCALSERVICE";
+                return @"NT AUTHORITY\LOCALSERVICE";
             }
 
             return userAccount.QualifiedName;
@@ -219,6 +225,7 @@ namespace ServiceControlInstaller.Engine.Services
                     }
                 }
             }
+
             return null;
         }
 
@@ -254,12 +261,12 @@ namespace ServiceControlInstaller.Engine.Services
                                 if (serviceKey == null)
                                     continue;
                             }
-                            catch(SecurityException)
+                            catch (SecurityException)
                             {
-                               continue;
+                                continue;
                             }
 
-                            var entryType = (int) serviceKey.GetValue("Type", 0);
+                            var entryType = (int)serviceKey.GetValue("Type", 0);
                             if (entryType == 1) // driver not a service
                                 continue;
 
@@ -283,60 +290,62 @@ namespace ServiceControlInstaller.Engine.Services
         }
 
 
-        static readonly string[] Win32ChangeErrorMessages = {
-                                    "The request was accepted",
-                                    "The request is not supported",
-                                    "Access Denied",
-                                    "The service cannot be stopped because other services that are running are dependent on it",
-                                    "The requested control code is not valid, or it is unacceptable to the service",
-                                    "The requested control code cannot be sent to the service because the of the service state",
-                                    "The service has not been started",
-                                    "The service did not respond to the start request in a timely fashion",
-                                    "Unknown failure when starting the service",
-                                    "The directory path to the service executable file was not found",
-                                    "The service is already running",
-                                    "The database to add a new service is locked",
-                                    "A dependency this service relies on has been removed from the system",
-                                    "The service failed to find the service needed from a dependent service",
-                                    "The service has been disabled from the system",
-                                    "The service does not have the correct authentication to run on the system",
-                                    "This service is being removed from the system",
-                                    "The service has no execution thread",
-                                    "The service has circular dependencies when it starts",
-                                    "A service is running under the same name",
-                                    "The service name has invalid characters",
-                                    "Invalid parameters have been passed to the service",
-                                    "The account under which this service runs is either invalid or lacks the permissions to run the service",
-                                    "The service exists in the database of services available from the system",
-                                    "The service is currently paused in the system"
+        static readonly string[] Win32ChangeErrorMessages =
+        {
+            "The request was accepted",
+            "The request is not supported",
+            "Access Denied",
+            "The service cannot be stopped because other services that are running are dependent on it",
+            "The requested control code is not valid, or it is unacceptable to the service",
+            "The requested control code cannot be sent to the service because the of the service state",
+            "The service has not been started",
+            "The service did not respond to the start request in a timely fashion",
+            "Unknown failure when starting the service",
+            "The directory path to the service executable file was not found",
+            "The service is already running",
+            "The database to add a new service is locked",
+            "A dependency this service relies on has been removed from the system",
+            "The service failed to find the service needed from a dependent service",
+            "The service has been disabled from the system",
+            "The service does not have the correct authentication to run on the system",
+            "This service is being removed from the system",
+            "The service has no execution thread",
+            "The service has circular dependencies when it starts",
+            "A service is running under the same name",
+            "The service name has invalid characters",
+            "Invalid parameters have been passed to the service",
+            "The account under which this service runs is either invalid or lacks the permissions to run the service",
+            "The service exists in the database of services available from the system",
+            "The service is currently paused in the system"
         };
 
-        static readonly string[] Win32ServiceErrorMessages = {
-                                    "The request was accepted.",
-                                    "The request is not supported.",
-                                    "The user did not have the necessary access.",
-                                    "The service cannot be stopped because other services that are running are dependent on it.",
-                                    "The requested control code is not valid, or it is unacceptable to the service.",
-                                    "The requested control code cannot be sent to the service because the state of the service (Win32_BaseService State property) is equal to 0, 1, or 2.",
-                                    "The service has not been started.",
-                                    "The service did not respond to the start request in a timely fashion.",
-                                    "Unknown failure when starting the service.",
-                                    "The directory path to the service executable file was not found.",
-                                    "The service is already running.",
-                                    "The database to add a new service is locked.",
-                                    "A dependency this service relies on has been removed from the system.",
-                                    "The service failed to find the service needed from a dependent service.",
-                                    "The service has been disabled from the system.",
-                                    "The service does not have the correct authentication to run on the system.",
-                                    "This service is being removed from the system.",
-                                    "The service has no execution thread.",
-                                    "The service has circular dependencies when it starts.",
-                                    "A service is running under the same name.",
-                                    "The service name has invalid characters.",
-                                    "Invalid parameters have been passed to the service.",
-                                    "The account under which this service runs is either invalid or lacks the permissions to run the service.",
-                                    "The service exists in the database of services available from the system.",
-                                    "The service is currently paused in the system."
-                                };
+        static readonly string[] Win32ServiceErrorMessages =
+        {
+            "The request was accepted.",
+            "The request is not supported.",
+            "The user did not have the necessary access.",
+            "The service cannot be stopped because other services that are running are dependent on it.",
+            "The requested control code is not valid, or it is unacceptable to the service.",
+            "The requested control code cannot be sent to the service because the state of the service (Win32_BaseService State property) is equal to 0, 1, or 2.",
+            "The service has not been started.",
+            "The service did not respond to the start request in a timely fashion.",
+            "Unknown failure when starting the service.",
+            "The directory path to the service executable file was not found.",
+            "The service is already running.",
+            "The database to add a new service is locked.",
+            "A dependency this service relies on has been removed from the system.",
+            "The service failed to find the service needed from a dependent service.",
+            "The service has been disabled from the system.",
+            "The service does not have the correct authentication to run on the system.",
+            "This service is being removed from the system.",
+            "The service has no execution thread.",
+            "The service has circular dependencies when it starts.",
+            "A service is running under the same name.",
+            "The service name has invalid characters.",
+            "Invalid parameters have been passed to the service.",
+            "The account under which this service runs is either invalid or lacks the permissions to run the service.",
+            "The service exists in the database of services available from the system.",
+            "The service is currently paused in the system."
+        };
     }
 }

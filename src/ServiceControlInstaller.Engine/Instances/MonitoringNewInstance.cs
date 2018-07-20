@@ -7,41 +7,17 @@
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Configuration.Monitoring;
-    using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
-    using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
-    using ServiceControlInstaller.Engine.Validation;
+    using Accounts;
+    using Configuration.Monitoring;
+    using FileSystem;
+    using Queues;
+    using ReportCard;
+    using Services;
+    using UrlAcl;
+    using Validation;
 
     public class MonitoringNewInstance : IMonitoringInstance
     {
-        public string HostName { get; set; }
-        public int Port { get; set; }
-
-        public string ErrorQueue { get; set; }
-        
-        
-        public string InstallPath { get; set; }
-        public string LogPath { get; set; }
-
-        public TransportInfo TransportPackage { get; set; }
-        public string ConnectionString { get; set; }
-
-        public ReportCard ReportCard { get; set; }
-
-        public string Name { get; set; }
-        public string DisplayName { get; set; }
-        public string ServiceDescription { get; set; }
-        public string ServiceAccount { get; set; }
-        public string ServiceAccountPwd { get; set; }
-        public bool SkipQueueCreation { get; set; }
-
-
-        public Version Version { get; }
-
         public MonitoringNewInstance()
         {
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -49,7 +25,49 @@
             Version = zipInfo.Version;
         }
 
+        public ReportCard ReportCard { get; set; }
+        public string ServiceDescription { get; set; }
+
+        string[] FlagFiles
+        {
+            get
+            {
+                const string flagFileName = ".notconfigured";
+                return new[]
+                {
+                    Path.Combine(InstallPath, flagFileName),
+                    Path.Combine(LogPath, flagFileName)
+                };
+            }
+        }
+
+        public string HostName { get; set; }
+        public int Port { get; set; }
+
+        public string ErrorQueue { get; set; }
+
+
+        public string InstallPath { get; set; }
+        public string LogPath { get; set; }
+
+        public TransportInfo TransportPackage { get; set; }
+        public string ConnectionString { get; set; }
+
+        public string Name { get; set; }
+        public string DisplayName { get; set; }
+        public string ServiceAccount { get; set; }
+        public string ServiceAccountPwd { get; set; }
+        public bool SkipQueueCreation { get; set; }
+
+
+        public Version Version { get; }
+
         public string Url => $"http://{HostName}:{Port}/";
+
+        public string BrowsableUrl
+        {
+            get { throw new NotImplementedException("Not available until the instance is installed"); }
+        }
 
         public void CopyFiles(string zipFilePath)
         {
@@ -100,6 +118,7 @@
             {
                 dependencies.Add("MSMQ");
             }
+
             WindowsServiceController.RegisterNewService(serviceDetails, dependencies.ToArray());
 
             // Service registered so pull out not configured flag files.
@@ -163,7 +182,7 @@
             try
             {
                 //TODO : QUEUE Validation
-               // QueueNameValidator.Validate(this);
+                // QueueNameValidator.Validate(this);
             }
             catch (EngineValidationException ex)
             {
@@ -222,27 +241,6 @@
             {
                 if (!File.Exists(flagFile))
                     File.CreateText(flagFile).Close();
-            }
-        }
-
-        string[] FlagFiles
-        {
-            get
-            {
-                const string flagFileName = ".notconfigured";
-                return new[]
-                {
-                    Path.Combine(InstallPath, flagFileName),
-                    Path.Combine(LogPath, flagFileName),
-                };
-            }
-        }
-
-        public string BrowsableUrl
-        {
-            get
-            {
-                throw new NotImplementedException("Not available until the instance is installed");
             }
         }
     }

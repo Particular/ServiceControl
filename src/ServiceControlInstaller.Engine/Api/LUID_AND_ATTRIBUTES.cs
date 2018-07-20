@@ -1,4 +1,5 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
+
 namespace ServiceControlInstaller.Engine.Api
 {
     using System;

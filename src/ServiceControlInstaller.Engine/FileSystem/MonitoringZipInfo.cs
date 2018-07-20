@@ -5,8 +5,8 @@
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using Instances;
     using Ionic.Zip;
-    using ServiceControlInstaller.Engine.Instances;
 
     public class MonitoringZipInfo
     {
@@ -15,7 +15,8 @@
         public bool Present { get; private set; }
 
         /// <summary>
-        /// Find the latest servicecontrol zip based on the version number in the file name - file name must be in form particular.servicecontrol-&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;.zip
+        /// Find the latest servicecontrol zip based on the version number in the file name - file name must be in form
+        /// particular.servicecontrol-&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;.zip
         /// </summary>
         public static MonitoringZipInfo Find(string deploymentCachePath)
         {
@@ -30,6 +31,7 @@
                 {
                     continue;
                 }
+
                 var v = new Version(matchResult.Groups["version"].Value);
                 list.Add(file.FullName, v);
             }
@@ -70,6 +72,7 @@
                     {
                         return false;
                     }
+
                     entry.Extract(Path.GetTempPath(), ExtractExistingFileAction.OverwriteSilently);
                     return ReleaseDateReader.TryReadReleaseDateAttribute(tempFile, out releaseDate);
                 }

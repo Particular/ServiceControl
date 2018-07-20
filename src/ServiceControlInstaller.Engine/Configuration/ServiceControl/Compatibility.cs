@@ -6,12 +6,12 @@
 
     public static class Compatibility
     {
+        public static CompatibilityInfo ForwardingQueuesAreOptional = new CompatibilityInfo {SupportedFrom = new Version(1, 29)};
+
         public class CompatibilityInfo
         {
             public Version SupportedFrom { get; set; }
             public Version RemovedFrom { get; set; }
         }
-
-        public static CompatibilityInfo ForwardingQueuesAreOptional = new CompatibilityInfo{SupportedFrom = new Version(1, 29)};
     }
 }

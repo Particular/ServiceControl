@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace ServiceControlInstaller.Engine.Instances
+﻿namespace ServiceControlInstaller.Engine.Instances
 {
+    using System;
+
     public class TransportInfo
     {
         public TransportInfo()

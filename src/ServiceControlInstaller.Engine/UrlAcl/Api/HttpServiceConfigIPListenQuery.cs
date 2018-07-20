@@ -1,5 +1,5 @@
-﻿
-// ReSharper disable MemberCanBePrivate.Global
+﻿// ReSharper disable MemberCanBePrivate.Global
+
 namespace ServiceControlInstaller.Engine.UrlAcl.Api
 {
     using System;

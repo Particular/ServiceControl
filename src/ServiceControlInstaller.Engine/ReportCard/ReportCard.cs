@@ -5,14 +5,10 @@
     public class ReportCard
     {
         public Status Status { get; set; }
-        public IList<string> Warnings = new TruncatedStringList(700);
-        public IList<string> Errors = new TruncatedStringList(700);
 
         public bool HasErrors => Errors.Count > 0;
 
         public bool HasWarnings => Warnings.Count > 0;
-
-        public bool CancelRequested;
 
         public void SetStatus()
         {
@@ -23,5 +19,10 @@
             else
                 Status = Status.Completed;
         }
+
+        public IList<string> Warnings = new TruncatedStringList(700);
+        public IList<string> Errors = new TruncatedStringList(700);
+
+        public bool CancelRequested;
     }
 }

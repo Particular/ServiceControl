@@ -7,19 +7,33 @@
     using System.ServiceProcess;
     using System.Threading;
     using System.Threading.Tasks;
-    using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Services;
-    using TimeoutException = System.ServiceProcess.TimeoutException;
+    using FileSystem;
+    using Services;
 
     public abstract class BaseService : IServiceInstance
     {
         public string Description { get; set; }
-        public string DisplayName { get; set; }
-        public string Name => Service.ServiceName;
         public WindowsServiceController Service { get; set; }
         public string InstallPath => Path.GetDirectoryName(Service.ExePath);
+        public string DisplayName { get; set; }
+        public string Name => Service.ServiceName;
         public string ServiceAccount { get; set; }
         public string ServiceAccountPwd { get; set; }
+
+        public Version Version
+        {
+            get
+            {
+                // Service Can be registered but file deleted!
+                if (File.Exists(Service.ExePath))
+                {
+                    var fileVersion = FileVersionInfo.GetVersionInfo(Service.ExePath);
+                    return new Version(fileVersion.FileMajorPart, fileVersion.FileMinorPart, fileVersion.FileBuildPart);
+                }
+
+                return new Version(0, 0, 0);
+            }
+        }
 
         protected string GetDescription()
         {
@@ -59,6 +73,7 @@
             {
                 return false;
             }
+
             return true;
         }
 
@@ -80,6 +95,7 @@
             {
                 return false;
             }
+
             return true;
         }
 
@@ -97,6 +113,7 @@
             {
                 //Service isn't accessible 
             }
+
             return true;
         }
 
@@ -107,6 +124,7 @@
             {
                 Directory.CreateDirectory(backupDirectory);
             }
+
             var configFile = $"{Service.ExePath}.config";
             if (!File.Exists(configFile))
             {
@@ -116,20 +134,6 @@
             var destinationFile = Path.Combine(backupDirectory, $"{Guid.NewGuid():N}.config");
             File.Copy(configFile, destinationFile);
             return destinationFile;
-        }
-
-        public Version Version
-        {
-            get
-            {
-                // Service Can be registered but file deleted!
-                if (File.Exists(Service.ExePath))
-                {
-                    var fileVersion = FileVersionInfo.GetVersionInfo(Service.ExePath);
-                    return new Version(fileVersion.FileMajorPart, fileVersion.FileMinorPart, fileVersion.FileBuildPart);
-                }
-                return new Version(0, 0, 0);
-            }
         }
 
         public virtual void RefreshServiceProperties()

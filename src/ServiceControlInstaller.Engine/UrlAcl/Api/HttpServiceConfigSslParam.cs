@@ -1,4 +1,5 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
+
 namespace ServiceControlInstaller.Engine.UrlAcl.Api
 {
     using System;
@@ -21,11 +22,9 @@ namespace ServiceControlInstaller.Engine.UrlAcl.Api
 
         public int DefaultRevocationUrlRetrievalTimeout;
 
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string DefaultSslCtlIdentifier;
+        [MarshalAs(UnmanagedType.LPWStr)] public string DefaultSslCtlIdentifier;
 
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string DefaultSslCtlStoreName;
+        [MarshalAs(UnmanagedType.LPWStr)] public string DefaultSslCtlStoreName;
 
         public uint DefaultFlags;
     }

@@ -3,18 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using ServiceControlInstaller.Engine.Instances;
+    using Instances;
 
     internal class ServiceControlQueueNameValidator
     {
-        internal List<IServiceControlTransportConfig> Instances;
-        List<QueueInfo> queues;
-
-        class QueueInfo
+        internal ServiceControlQueueNameValidator(IServiceControlTransportConfig instance)
         {
-            public string ConnectionString { get; set; }
-            public string PropertyName { get; set; }
-            public string QueueName { get; set; }
+            DetermineQueueNames(instance.AuditQueue, instance.ErrorQueue, instance.AuditLogQueue, instance.ErrorLogQueue, instance.ConnectionString);
         }
 
         public static void Validate(ServiceControlNewInstance instance)
@@ -30,14 +25,9 @@
         {
             var validator = new ServiceControlQueueNameValidator(instance)
             {
-                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name  & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlTransportConfig>().ToList()
+                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlTransportConfig>().ToList()
             };
             validator.RunValidation();
-        }
-
-        internal ServiceControlQueueNameValidator(IServiceControlTransportConfig instance)
-        {
-            DetermineQueueNames(instance.AuditQueue, instance.ErrorQueue, instance.AuditLogQueue, instance.ErrorLogQueue, instance.ConnectionString);
         }
 
         void DetermineQueueNames(string audit, string error, string auditLog, string errorLog, string connectionString)
@@ -106,11 +96,11 @@
 
             var duplicates = (
                 from queue in queues
-                where allQueues.Any(p => 
-                      string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) && 
-                      string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase) &&
-                      string.Compare("!disable", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0 &&
-                      string.Compare("!disable.log", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0)
+                where allQueues.Any(p =>
+                    string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase) &&
+                    string.Compare("!disable", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0 &&
+                    string.Compare("!disable.log", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0)
                 select queue.PropertyName
             ).ToList();
 
@@ -123,6 +113,16 @@
             {
                 throw new EngineValidationException($"Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {string.Join(", ", duplicates)}");
             }
+        }
+
+        internal List<IServiceControlTransportConfig> Instances;
+        List<QueueInfo> queues;
+
+        class QueueInfo
+        {
+            public string ConnectionString { get; set; }
+            public string PropertyName { get; set; }
+            public string QueueName { get; set; }
         }
     }
 }

@@ -5,7 +5,7 @@
     using System.IO;
     using System.Text;
     using System.Text.RegularExpressions;
-    using ServiceControlInstaller.Engine.Instances;
+    using Instances;
 
     public class DatabaseMigrations
     {

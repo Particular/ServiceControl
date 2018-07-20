@@ -6,29 +6,18 @@
     using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Configuration;
-    using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
-    using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
-    using ServiceControlInstaller.Engine.Validation;
-    using AppConfig = ServiceControlInstaller.Engine.Configuration.Monitoring.AppConfig;
-    using SettingsList = ServiceControlInstaller.Engine.Configuration.Monitoring.SettingsList;
+    using Accounts;
+    using Configuration;
+    using Configuration.Monitoring;
+    using FileSystem;
+    using Queues;
+    using ReportCard;
+    using Services;
+    using UrlAcl;
+    using Validation;
 
     public class MonitoringInstance : BaseService, IMonitoringInstance
     {
-        public int Port { get; set; }
-        public string HostName { get; set; }
-        public TransportInfo TransportPackage { get; set; }
-        public string ErrorQueue { get; set; }
-        public string ConnectionString { get; set; }
-        public string LogPath { get; set; }
-        public AppConfig AppConfig { get; set; }
-        public ReportCard ReportCard { get; set; }
-        public bool SkipQueueCreation { get; set; }
-
         public MonitoringInstance(WindowsServiceController service)
         {
             Service = service;
@@ -36,18 +25,15 @@
             Reload();
         }
 
-        public void Reload()
-        {
-            Service.Refresh();
-            HostName = AppConfig.Read(SettingsList.HostName, "localhost");
-            Port = AppConfig.Read(SettingsList.Port, 1234);
-            LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
-            ErrorQueue = AppConfig.Read(SettingsList.ErrorQueue, "error");
-            TransportPackage = DetermineTransportPackage();
-            ConnectionString = ReadConnectionString();
-            Description = GetDescription();
-            ServiceAccount = Service.Account;
-        }
+        public AppConfig AppConfig { get; set; }
+        public ReportCard ReportCard { get; set; }
+        public int Port { get; set; }
+        public string HostName { get; set; }
+        public TransportInfo TransportPackage { get; set; }
+        public string ErrorQueue { get; set; }
+        public string ConnectionString { get; set; }
+        public string LogPath { get; set; }
+        public bool SkipQueueCreation { get; set; }
 
         public string Url => $"http://{HostName}:{Port}/";
 
@@ -69,8 +55,22 @@
                         host = HostName;
                         break;
                 }
+
                 return $"http://{host}:{Port}/";
             }
+        }
+
+        public void Reload()
+        {
+            Service.Refresh();
+            HostName = AppConfig.Read(SettingsList.HostName, "localhost");
+            Port = AppConfig.Read(SettingsList.Port, 1234);
+            LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
+            ErrorQueue = AppConfig.Read(SettingsList.ErrorQueue, "error");
+            TransportPackage = DetermineTransportPackage();
+            ConnectionString = ReadConnectionString();
+            Description = GetDescription();
+            ServiceAccount = Service.Account;
         }
 
 
@@ -82,9 +82,10 @@
             {
                 return null;
             }
-            return Path.Combine(profilePath,$@"AppData\Local\Particular\{Name}\logs");
+
+            return Path.Combine(profilePath, $@"AppData\Local\Particular\{Name}\logs");
         }
-        
+
         string ReadConnectionString()
         {
             if (File.Exists(Service.ExePath))
@@ -96,9 +97,10 @@
                     return namedConnectionString.ConnectionString;
                 }
             }
+
             return null;
         }
-        
+
         TransportInfo DetermineTransportPackage()
         {
             var transportAppSetting = AppConfig.Read(SettingsList.TransportType, MonitoringTransports.All.Single(t => t.Default).TypeName).Trim();
@@ -107,9 +109,10 @@
             {
                 return transport;
             }
+
             return MonitoringTransports.All.First(p => p.Default);
         }
-        
+
         public void ValidateChanges()
         {
             try
@@ -120,7 +123,7 @@
             {
                 ReportCard.Errors.Add(ex.Message);
             }
-            
+
             var oldSettings = InstanceFinder.FindMonitoringInstance(Name);
             var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
             var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
@@ -141,6 +144,7 @@
                     return;
                 }
             }
+
             try
             {
                 ConnectionStringValidator.Validate(this);
@@ -150,7 +154,7 @@
                 ReportCard.Errors.Add(ex.Message);
             }
         }
-       
+
         public void ApplyConfigChange()
         {
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
@@ -166,6 +170,7 @@
                 var modifyAccessRule = new FileSystemAccessRule(account, FileSystemRights.Modify | FileSystemRights.Traverse | FileSystemRights.ListDirectory, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
             }
+
             Service.Description = Description;
             var configuration = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
             var settings = configuration.AppSettings.Settings;
@@ -208,7 +213,7 @@
             var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             reservation.Create();
         }
-        
+
         public void RemoveUrlAcl()
         {
             foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(Url, StringComparison.OrdinalIgnoreCase)))
@@ -254,13 +259,14 @@
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl.Monitoring");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
-        
+
         public void RestoreAppConfig(string sourcePath)
         {
             if (sourcePath == null)
             {
                 return;
             }
+
             File.Copy(sourcePath, $"{Service.ExePath}.config", true);
 
             // Populate the config with common settings even if they are defaults

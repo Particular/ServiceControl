@@ -5,12 +5,10 @@
     using System.IO;
     using System.Linq;
     using System.Xml.Linq;
-    using ServiceControlInstaller.Engine.Instances;
+    using Instances;
 
     public class AppConfig : AppConfigWrapper
     {
-        IServiceControlInstance details;
-        
         public AppConfig(IServiceControlInstance details) : base(Path.Combine(details.InstallPath, $"{Constants.ServiceControlExe}.config"))
         {
             this.details = details;
@@ -57,6 +55,7 @@
             {
                 settings.Add("Raven/Esent/MaxVerPages", "2048");
             }
+
             UpdateRuntimeSection();
 
             Config.Save();
@@ -64,13 +63,12 @@
 
         void UpdateRuntimeSection()
         {
-
             var runtimesection = Config.GetSection("runtime");
             var runtimeXml = XDocument.Parse(runtimesection.SectionInformation.GetRawXml() ?? "<runtime/>");
 
             // Set gcServer Value if it does not exist
             var gcServer = runtimeXml.Descendants("gcServer").SingleOrDefault();
-            if (gcServer == null)  //So no config so we can set
+            if (gcServer == null) //So no config so we can set
             {
                 gcServer = new XElement("gcServer");
                 gcServer.SetAttributeValue("enabled", "true");
@@ -84,10 +82,11 @@
 
         public IEnumerable<string> RavenDataPaths()
         {
-            string[] keys = {
-                 "Raven/IndexStoragePath"
-                ,"Raven/CompiledIndexCacheDirectory"
-                ,"Raven/Esent/LogsPath",
+            string[] keys =
+            {
+                "Raven/IndexStoragePath",
+                "Raven/CompiledIndexCacheDirectory",
+                "Raven/Esent/LogsPath",
                 SettingsList.DBPath.Name
             };
 
@@ -97,10 +96,12 @@
                 if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
                     continue;
                 var folderpath = settings[key].Value;
-                yield return folderpath.StartsWith("~")    //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
+                yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
                     ? Path.Combine(details.InstallPath, folderpath.Remove(0, 1))
                     : folderpath;
             }
         }
+
+        IServiceControlInstance details;
     }
 }

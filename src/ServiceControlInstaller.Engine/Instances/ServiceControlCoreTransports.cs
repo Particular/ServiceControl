@@ -4,13 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public  class ServiceControlCoreTransports
+    public class ServiceControlCoreTransports
     {
-        public static TransportInfo Find(string name)
-        {
-            return All.FirstOrDefault(p => p.Matches(name));
-        }
-
         public static List<TransportInfo> All => new List<TransportInfo>
         {
             new TransportInfo
@@ -30,7 +25,7 @@
                 ZipName = "AzureStorageQueue",
                 SampleConnectionString = "DefaultEndpointsProtocol=[http|https];AccountName=<MyAccountName>;AccountKey=<MyAccountKey>",
                 Matches = name => name.Equals("AzureStorageQueue", StringComparison.OrdinalIgnoreCase)
-                                  ||name.Equals("ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
@@ -66,5 +61,10 @@
                                   || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             }
         };
+
+        public static TransportInfo Find(string name)
+        {
+            return All.FirstOrDefault(p => p.Matches(name));
+        }
     }
 }

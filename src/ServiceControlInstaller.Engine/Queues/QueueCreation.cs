@@ -3,8 +3,8 @@
     using System;
     using System.Diagnostics;
     using System.IO;
-    using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Instances;
+    using Accounts;
+    using Instances;
 
     internal class QueueCreation
     {
@@ -14,7 +14,7 @@
             RunQueueCreation(instance.InstallPath,
                 Constants.ServiceControlExe,
                 instance.Name,
-                accountName, 
+                accountName,
                 instance.SkipQueueCreation);
         }
 
@@ -24,7 +24,7 @@
             RunQueueCreation(instance.InstallPath,
                 Constants.MonitoringExe,
                 instance.Name,
-                accountName, 
+                accountName,
                 instance.SkipQueueCreation);
         }
 

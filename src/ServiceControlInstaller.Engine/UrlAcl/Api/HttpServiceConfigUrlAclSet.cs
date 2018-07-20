@@ -1,5 +1,4 @@
-﻿
-namespace ServiceControlInstaller.Engine.UrlAcl.Api
+﻿namespace ServiceControlInstaller.Engine.UrlAcl.Api
 {
     using System.Runtime.InteropServices;
 

@@ -2,8 +2,6 @@
 {
     public class Logging
     {
-        ILogging logger;
-
         public Logging(ILogging loggingInstance)
         {
             logger = loggingInstance;
@@ -23,5 +21,7 @@
         {
             logger?.Warn(string.Format(message, args));
         }
+
+        ILogging logger;
     }
 }

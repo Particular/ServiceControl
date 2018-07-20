@@ -1,6 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Validation
 {
-    using ServiceControlInstaller.Engine.Ports;
+    using Ports;
 
     public class DatabaseMaintenancePortValidator
     {

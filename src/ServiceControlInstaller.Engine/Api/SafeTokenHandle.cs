@@ -8,7 +8,8 @@ namespace ServiceControlInstaller.Engine.Api
 
     internal class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
-        private SafeTokenHandle(): base(true){
+        private SafeTokenHandle() : base(true)
+        {
         }
 
         [DllImport("kernel32.dll")]
