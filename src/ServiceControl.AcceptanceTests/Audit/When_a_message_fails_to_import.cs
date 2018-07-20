@@ -4,41 +4,22 @@
     using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
     using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
 
     public class When_a_message_fails_to_import : AcceptanceTest
     {
-        class FailOnceEnricher : ImportEnricher
-        {
-            public MyContext Context { get; set; }
-
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
-                if (!Context.FailedImport)
-                {
-                    Console.WriteLine("Simulating message processing failure");
-                    throw new MessageDeserializationException("ID", null);
-                }
-                Console.WriteLine("Message processed correctly");
-                return Task.FromResult(0);
-            }
-        }
-
         [Test]
         public async Task It_can_be_reimported()
         {
             //Make sure the audit import attempt fails
-            CustomConfiguration = config =>
-            {
-                config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance));
-            };
+            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
 
             FailedAuditsCountReponse failedAuditsCountReponse;
 
@@ -51,6 +32,7 @@
                     {
                         return false;
                     }
+
                     if (!c.WasReimported)
                     {
                         var result = await this.TryGet<FailedAuditsCountReponse>("/api/failedaudits/count");
@@ -67,16 +49,35 @@
                                         c.WasReimported = true;
                                         return false;
                                     }
+
                                     return true;
                                 });
                             }
                         }
+
                         return false;
                     }
 
                     return await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}");
                 })
                 .Run(TimeSpan.FromSeconds(40));
+        }
+
+        class FailOnceEnricher : ImportEnricher
+        {
+            public MyContext Context { get; set; }
+
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
+                if (!Context.FailedImport)
+                {
+                    Console.WriteLine("Simulating message processing failure");
+                    throw new MessageDeserializationException("ID", null);
+                }
+
+                Console.WriteLine("Message processed correctly");
+                return Task.FromResult(0);
+            }
         }
 
         public class Sender : EndpointConfigurationBuilder
