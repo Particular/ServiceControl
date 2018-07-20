@@ -12,7 +12,6 @@
 
     public class When_a_saga_instance_is_being_created : AcceptanceTest
     {
-
         [Test]
         public async Task Saga_audit_trail_should_contain_the_state_change()
         {
@@ -51,8 +50,6 @@
         public class MySaga : Saga<MySagaData>,
             IAmStartedByMessages<StartSagaMessage>
         {
-            public MyContext Context { get; set; }
-
             public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
                 Context.SagaId = Data.Id;
@@ -64,6 +61,8 @@
             {
                 mapper.ConfigureMapping<StartSagaMessage>(msg => msg.Id).ToSaga(saga => saga.MessageId);
             }
+
+            public MyContext Context { get; set; }
         }
 
         public class MySagaData : ContainSagaData
@@ -83,5 +82,4 @@
             public bool InitiatingMessageReceived { get; set; }
         }
     }
-
 }

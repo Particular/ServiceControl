@@ -73,13 +73,8 @@
 
             public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
             {
-                public MyContext Context { get; set; }
-
-                //static Guid myId = Guid.NewGuid();
-
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    //Data.MyId = myId;
                     return context.SendLocal(new UpdateSaga1 { MyId = message.Saga1Id });
                 }
 
@@ -107,17 +102,14 @@
                 {
                     public Guid MyId { get; set; }
                 }
+
+                public MyContext Context { get; set; }
             }
 
             public class Saga2 : Saga<Saga2.Saga2Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga2>, IHandleMessages<CompleteSaga2>
             {
-                public MyContext Context { get; set; }
-
-                //static Guid myId = Guid.NewGuid();
-
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    //Data.MyId = myId;
                     return context.SendLocal(new UpdateSaga2 { MyId = message.Saga2Id });
                 }
 
@@ -134,45 +126,42 @@
                     return Task.FromResult(0);
                 }
 
-                public class Saga2Data : ContainSagaData
-                {
-                    public Guid MyId { get; set; }
-                }
-
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga2Data> mapper)
                 {
                     mapper.ConfigureMapping<InitiateSaga>(d => d.Saga2Id).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<UpdateSaga2>(d => d.MyId).ToSaga(s => s.MyId);
                     mapper.ConfigureMapping<CompleteSaga2>(d => d.MyId).ToSaga(s => s.MyId);
                 }
+
+                public class Saga2Data : ContainSagaData
+                {
+                    public Guid MyId { get; set; }
+                }
+
+                public MyContext Context { get; set; }
             }
         }
-
-
+        
         public class InitiateSaga : ICommand
         {
             public Guid Saga1Id { get; set; }
             public Guid Saga2Id { get; set; }
         }
 
-
         public class UpdateSaga1 : ICommand
         {
             public Guid MyId { get; set; }
         }
-
 
         public class CompleteSaga1 : ICommand
         {
             public Guid MyId { get; set; }
         }
 
-
         public class UpdateSaga2 : ICommand
         {
             public Guid MyId { get; set; }
         }
-
 
         public class CompleteSaga2 : ICommand
         {

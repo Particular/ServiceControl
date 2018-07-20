@@ -66,12 +66,10 @@
             }
         }
 
-
         public class MessageInitiatingSaga : ICommand
         {
             public int OrderId { get; set; }
         }
-
 
         public class MyMessage : ICommand
         {
