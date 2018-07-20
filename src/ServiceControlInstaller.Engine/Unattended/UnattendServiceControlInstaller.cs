@@ -44,6 +44,7 @@ namespace ServiceControlInstaller.Engine.Unattended
 
             var instanceInstaller = details;
             instanceInstaller.ReportCard = new ReportCard();
+            instanceInstaller.Version = ZipInfo.Version;
 
             //Validation
             instanceInstaller.Validate(promptToProceed);
