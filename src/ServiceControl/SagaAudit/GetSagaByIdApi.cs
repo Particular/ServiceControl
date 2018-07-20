@@ -5,7 +5,7 @@ namespace ServiceControl.SagaAudit
     using System.Threading.Tasks;
     using Nancy;
     using Raven.Client;
-    using ServiceControl.CompositeViews.Messages;
+    using CompositeViews.Messages;
 
     public class GetSagaByIdApi : ScatterGatherApi<Guid, SagaHistory>
     {
@@ -13,10 +13,9 @@ namespace ServiceControl.SagaAudit
         {
             using (var session = Store.OpenAsyncSession())
             {
-                RavenQueryStatistics stats;
                 var sagaHistory = await 
                     session.Query<SagaHistory, SagaDetailsIndex>()
-                        .Statistics(out stats)
+                        .Statistics(out var stats)
                         .SingleOrDefaultAsync(x => x.SagaId == sagaId)
                         .ConfigureAwait(false);
 

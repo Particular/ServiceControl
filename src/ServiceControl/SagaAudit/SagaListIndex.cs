@@ -20,14 +20,14 @@ namespace ServiceControl.SagaAudit
                        {
                            Id = doc.SagaId,
                            Uri = "api/sagas/" + doc.SagaId,
-                           SagaType = doc.SagaType,
+                           SagaType = doc.SagaType
                        });
             AddMap<SagaHistory>(docs => from doc in docs
                 select new Result
                        {
                            Id = doc.SagaId,
                            Uri = "api/sagas/" + doc.SagaId,
-                           SagaType = doc.SagaType,
+                           SagaType = doc.SagaType
                        });
 
             Reduce = results => from result in results

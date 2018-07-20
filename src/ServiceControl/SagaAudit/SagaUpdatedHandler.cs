@@ -9,8 +9,6 @@
 
     class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
-        private readonly IDocumentStore store;
-
         public SagaUpdatedHandler(IDocumentStore store)
         {
             this.store = store;
@@ -87,5 +85,7 @@
                 resultingMessage.Intent = toAdd.Intent;
             }
         }
+
+        readonly IDocumentStore store;
     }
 }
