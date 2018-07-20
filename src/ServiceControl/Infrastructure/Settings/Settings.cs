@@ -354,12 +354,7 @@
                 return typeName;
             }
 
-<<<<<<< HEAD
-            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
-            throw new Exception(errorMsg);
-=======
             throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
->>>>>>> Switch to attempt which directly loads transport assembly type
         }
 
         private static string SanitiseFolderName(string folderName)
