@@ -17,19 +17,19 @@
         {
             EnableByDefault();
         }
-        
+
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<StaleIndexChecker>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<StaleIndexInfoStore>(DependencyLifecycle.SingleInstance);
-            
+
             context.RegisterStartupTask(b => b.Build<CheckerTask>());
         }
-        
-        public class CheckerTask : FeatureStartupTask 
+
+        public class CheckerTask : FeatureStartupTask
         {
-            public CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, LoggingSettings loggingSettings) : this(staleIndexChecker, staleIndexInfoStore, loggingSettings, null) {}
-            
+            public CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, LoggingSettings loggingSettings) : this(staleIndexChecker, staleIndexInfoStore, loggingSettings, null) { }
+
             protected CheckerTask(StaleIndexChecker staleIndexChecker, StaleIndexInfoStore staleIndexInfoStore, LoggingSettings loggingSettings, string baseDirectory)
             {
                 this.staleIndexInfoStore = staleIndexInfoStore;
@@ -50,7 +50,7 @@
                         latestUpgrade.Add(upgradeTime);
                     }
                 }
-    
+
                 if (latestUpgrade.Count == 0)
                 {
                     return Task.FromResult(0);
@@ -58,7 +58,7 @@
 
                 latestUpgrade.Sort(); // ascending
                 latestUpgrade.Reverse(); // descending
-                
+
                 tokenSource = new CancellationTokenSource();
                 var fileTime = latestUpgrade[0];
                 var latest = DateTime.FromFileTimeUtc(fileTime);
@@ -90,7 +90,7 @@
                         break;
                     }
                 });
-                
+
                 return Task.FromResult(0);
             }
 
