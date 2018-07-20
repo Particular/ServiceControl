@@ -5,6 +5,7 @@
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
+    using System.Linq;
 
     [TestFixture]
     public class QueueValidationTests
@@ -15,14 +16,14 @@
         public void Init()
         {
             var instanceA = new Mock<IServiceControlTransportConfig>();
-            instanceA.SetupGet(p => p.TransportPackage).Returns(@"MSMQ");
+            instanceA.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"));
             instanceA.SetupGet(p => p.AuditQueue).Returns(@"audit");
             instanceA.SetupGet(p => p.AuditLogQueue).Returns(@"auditlog");
             instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
             
             var instanceB = new Mock<IServiceControlTransportConfig>();
-            instanceB.SetupGet(p => p.TransportPackage).Returns(@"RabbitMQ");
+            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ"));
             instanceB.SetupGet(p => p.AuditQueue).Returns(@"RMQaudit");
             instanceB.SetupGet(p => p.AuditLogQueue).Returns(@"RMQauditlog");
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
@@ -41,7 +42,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-               TransportPackage = "MSMQ",
+               TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
                AuditLogQueue = "auditlog",
                ErrorLogQueue = "errorlog",
                AuditQueue =    "audit",
@@ -60,7 +61,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "MSMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
                 AuditLogQueue = "audit",
                 ErrorLogQueue = "error",
                 AuditQueue = "audit",
@@ -81,7 +82,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "MSMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
                 AuditLogQueue = "auditlog2",
                 ErrorLogQueue = "errorlog2",
                 AuditQueue = "audit2",
@@ -100,7 +101,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "MSMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
                 AuditLogQueue = "auditlog",
                 ErrorLogQueue = "errorlog",
                 AuditQueue = "audit",
@@ -129,7 +130,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "RabbitMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ"),
                 AuditLogQueue = "auditlog",
                 ErrorLogQueue = "errorlog",
                 AuditQueue = "audit",
@@ -158,7 +159,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "RabbitMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ"),
                 AuditQueue = "RMQaudit",
                 AuditLogQueue = "RMQauditlog",
                 ErrorQueue = "RMQerror",

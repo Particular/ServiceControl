@@ -1,8 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.Monitoring
 {
-    using System;
     using System.IO;
-    using System.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
     public class AppConfig : AppConfigWrapper
@@ -14,14 +12,6 @@
             this.details = details;
         }
 
-        public void Validate()
-        {
-            if (MonitoringTransports.FindByName(details.TransportPackage) == null)
-            {
-                throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", MonitoringTransports.All.Select(p => p.Name))}");
-            }
-        }
-
         public void Save()
         {
             Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
@@ -30,7 +20,7 @@
             settings.Set(SettingsList.Port, details.Port.ToString());
             settings.Set(SettingsList.HostName, details.HostName);
             settings.Set(SettingsList.LogPath, details.LogPath);
-            settings.Set(SettingsList.TransportType, MonitoringTransports.FindByName(details.TransportPackage).TypeName, version);
+            settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
             Config.Save();
         }

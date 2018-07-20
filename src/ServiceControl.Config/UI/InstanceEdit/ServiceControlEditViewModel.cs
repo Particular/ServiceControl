@@ -49,7 +49,7 @@
 
             ErrorQueueName = instance.ErrorQueue;
             ErrorForwardingQueueName = instance.ErrorLogQueue;
-            SelectedTransport = Transports.First(t => StringComparer.InvariantCultureIgnoreCase.Equals(t.Name, instance.TransportPackage));
+            SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
             ServiceControlInstance = instance;
 

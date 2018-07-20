@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.Config.UI.InstanceEdit
 {
-    using System;
-    using System.Linq;
     using Commands;
     using PropertyChanged;
     using ServiceControlInstaller.Engine.Accounts;
@@ -35,7 +33,7 @@
             PortNumber = instance.Port.ToString();
             LogPath = instance.LogPath;
             ErrorQueueName = instance.ErrorQueue;
-            SelectedTransport = Transports.First(t => StringComparer.InvariantCultureIgnoreCase.Equals(t.Name, instance.TransportPackage));
+            SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
             MonitoringInstance = instance;
         }

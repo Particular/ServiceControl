@@ -16,14 +16,6 @@
             this.details = details;
         }
 
-        public void Validate()
-        {
-            if (ServiceControlCoreTransports.FindByName(details.TransportPackage) == null)
-            {
-                throw new Exception($"Invalid Transport - Must be one of: {string.Join(",", ServiceControlCoreTransports.All.Select(p => p.Name))}");
-            }
-        }
-
         public void EnableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
@@ -51,7 +43,7 @@
             settings.Set(SettingsList.DBPath, details.DBPath);
             settings.Set(SettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
-            settings.Set(SettingsList.TransportType, ServiceControlCoreTransports.FindByName(details.TransportPackage).TypeName, version);
+            settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
             settings.Set(SettingsList.AuditQueue, details.AuditQueue);
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
             settings.Set(SettingsList.ErrorLogQueue, details.ErrorLogQueue);

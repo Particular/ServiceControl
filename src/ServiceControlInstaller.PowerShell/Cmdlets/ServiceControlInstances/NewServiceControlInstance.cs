@@ -10,6 +10,7 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Unattended;
     using ServiceControlInstaller.Engine.Validation;
     using PathInfo = Engine.Validation.PathInfo;
+    using System.Linq;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlInstance")]
     public class NewServiceControlInstance : PSCmdlet
@@ -172,7 +173,7 @@ namespace ServiceControlInstaller.PowerShell
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
-                TransportPackage = Transport,
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
                 SkipQueueCreation = SkipQueueCreation
             };
 

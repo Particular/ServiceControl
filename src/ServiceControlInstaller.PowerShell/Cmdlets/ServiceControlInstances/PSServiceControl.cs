@@ -20,7 +20,7 @@ namespace ServiceControlInstaller.PowerShell
                 InstallPath = instance.InstallPath,
                 LogPath = instance.LogPath,
                 DBPath = instance.DBPath,
-                TransportPackage = instance.TransportPackage,
+                TransportPackageName = instance.TransportPackage.Name,
                 ConnectionString = instance.ConnectionString,
                 AuditQueue = instance.AuditQueue,
                 AuditLogQueue = instance.AuditLogQueue,
@@ -43,7 +43,7 @@ namespace ServiceControlInstaller.PowerShell
         public string DBPath { get; set; }
         public string LogPath { get; set; }
 
-        public string TransportPackage { get;  set; }
+        public string TransportPackageName { get;  set; }
         public string ConnectionString { get; set; }
 
         public string ErrorQueue { get;  set; }

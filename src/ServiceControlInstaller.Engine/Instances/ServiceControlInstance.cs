@@ -34,7 +34,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string AuditLogQueue { get; set; }
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
-        public string TransportPackage { get; set; }
+        public TransportInfo TransportPackage { get; set; }
         public string ConnectionString { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
@@ -195,15 +195,15 @@ namespace ServiceControlInstaller.Engine.Instances
             return null;
         }
 
-        string DetermineTransportPackage()
+        TransportInfo DetermineTransportPackage()
         {
             var transportAppSetting = AppConfig.Read(SettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
             var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
             if (transport != null)
             {
-                return transport.Name;
+                return transport;
             }
-            return ServiceControlCoreTransports.All.First(p => p.Default).Name;
+            return ServiceControlCoreTransports.All.First(p => p.Default);
         }
 
         public void ApplyConfigChange()
@@ -416,7 +416,6 @@ namespace ServiceControlInstaller.Engine.Instances
             // Populate the config with common settings even if they are defaults
             // Will not clobber other settings in the config
             AppConfig = new AppConfig(this);
-            AppConfig.Validate();
             AppConfig.Save();
         }
 
@@ -424,7 +423,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
         public void SetupInstance()

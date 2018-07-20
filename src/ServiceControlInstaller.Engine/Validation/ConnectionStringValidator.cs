@@ -14,7 +14,7 @@
         public static void Validate(IServiceControlInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage == "SQLServer")
+            if (instance.TransportPackage.ZipName.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
             {
                 validator.CheckMsSqlConnectionString();
             }
@@ -23,7 +23,7 @@
         public static void Validate(IMonitoringInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage == "SQLServer")
+            if (instance.TransportPackage.ZipName.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
             {
                 validator.CheckMsSqlConnectionString();
             }

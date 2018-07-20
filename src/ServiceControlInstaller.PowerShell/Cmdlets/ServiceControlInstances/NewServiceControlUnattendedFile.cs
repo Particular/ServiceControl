@@ -3,12 +3,11 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace ServiceControlInstaller.PowerShell
 {
-
-
-
     using System;
     using System.Management.Automation;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
+    using ServiceControlInstaller.Engine.Instances;
+    using System.Linq;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlUnattendedFile")]
     public class NewServiceControlUnattendedFile : PSCmdlet
@@ -123,7 +122,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-            var details = new Engine.Instances.ServiceControlNewInstance
+            var details = new ServiceControlNewInstance
             {
                 InstallPath = InstallPath,
                 LogPath = LogPath,
@@ -142,7 +141,7 @@ namespace ServiceControlInstaller.PowerShell
                 ForwardAuditMessages = ForwardAuditMessages,
                 ForwardErrorMessages = ForwardErrorMessages,
                 ConnectionString = ConnectionString,
-                TransportPackage = Transport,
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod
             };

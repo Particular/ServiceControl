@@ -27,7 +27,7 @@
         public string InstallPath { get; set; }
         public string LogPath { get; set; }
 
-        public string TransportPackage { get; set; }
+        public TransportInfo TransportPackage { get; set; }
         public string ConnectionString { get; set; }
 
         public ReportCard ReportCard { get; set; }
@@ -75,13 +75,12 @@
 
             // Copy the binaries from a zip
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl.Monitoring");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
         public void WriteConfigurationFile()
         {
             var appConfig = new AppConfig(this);
-            appConfig.Validate();
             appConfig.Save();
         }
 
@@ -97,7 +96,7 @@
                 ServiceDescription = ServiceDescription
             };
             var dependencies = new List<string>();
-            if (TransportPackage.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
+            if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
                 dependencies.Add("MSMQ");
             }
@@ -131,7 +130,7 @@
 
         public void Validate(Func<PathInfo, bool> promptToProceed)
         {
-            if (TransportPackage.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
+            if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {

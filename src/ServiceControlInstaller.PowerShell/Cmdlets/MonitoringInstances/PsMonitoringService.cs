@@ -15,7 +15,7 @@
                 Port = instance.Port,
                 InstallPath = instance.InstallPath,
                 LogPath = instance.LogPath,
-                TransportPackage = instance.TransportPackage,
+                TransportPackageName = instance.TransportPackage.Name,
                 ConnectionString = instance.ConnectionString,
                 ErrorQueue = instance.ErrorQueue,
                 ServiceAccount = instance.ServiceAccount,
@@ -31,7 +31,7 @@
         public string InstallPath { get; set; }
         public string LogPath { get; set; }
 
-        public string TransportPackage { get; set; }
+        public string TransportPackageName { get; set; }
         public string ConnectionString { get; set; }
         public string ErrorQueue { get; set; }
         public string ServiceAccount { get; set; }

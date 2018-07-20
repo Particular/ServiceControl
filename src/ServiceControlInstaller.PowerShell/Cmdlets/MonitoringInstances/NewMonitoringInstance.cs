@@ -11,6 +11,7 @@ namespace ServiceControlInstaller.PowerShell
     using ServiceControlInstaller.Engine.Validation;
     using ServiceControlInstaller.PowerShell.Cmdlets.Instances;
     using PathInfo = ServiceControlInstaller.Engine.Validation.PathInfo;
+    using System.Linq;
 
     [Cmdlet(VerbsCommon.New, "MonitoringInstance")]
     public class NewMonitoringInstance : PSCmdlet
@@ -105,7 +106,7 @@ namespace ServiceControlInstaller.PowerShell
                 Port = Port,
                 ErrorQueue = ErrorQueue,
                 ConnectionString = ConnectionString,
-                TransportPackage = Transport, 
+                TransportPackage = MonitoringTransports.All.First(t => t.Name.Equals(Transport, StringComparison.OrdinalIgnoreCase)), 
                 SkipQueueCreation = SkipQueueCreation
             };
             
