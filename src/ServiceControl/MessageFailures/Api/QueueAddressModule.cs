@@ -15,11 +15,9 @@
             {
                 using (var session = Store.OpenAsyncSession())
                 {
-                    RavenQueryStatistics stats;
-
                     var addresses = await session
                         .Query<QueueAddress, QueueAddressIndex>()
-                        .Statistics(out stats)
+                        .Statistics(out var stats)
                         .Paging(Request)
                         .ToListAsync()
                         .ConfigureAwait(false);
@@ -47,11 +45,9 @@
                         return HttpStatusCode.BadRequest;
                     }
 
-                    RavenQueryStatistics stats;
-
                     var failedMessageQueues =
                         await session.Query<QueueAddress, QueueAddressIndex>()
-                            .Statistics(out stats)
+                            .Statistics(out var stats)
                             .Where(q => q.PhysicalAddress.StartsWith(search))
                             .OrderBy(q => q.PhysicalAddress)
                             .Paging(Request)

@@ -39,9 +39,8 @@
 
             public override async Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                string newRetryMessageId;
                 var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out _);
-                var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out newRetryMessageId);
+                var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var newRetryMessageId);
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
 
@@ -59,23 +58,20 @@
                 }).ConfigureAwait(false);
             }
 
-            private IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)
+            IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)
             {
                 var messageId = headers.MessageId();
-                string processingEndpoint;
-                if (headers.TryGetValue(Headers.ProcessingEndpoint, out processingEndpoint))
+                if (headers.TryGetValue(Headers.ProcessingEndpoint, out var processingEndpoint))
                 {
                     yield return DeterministicGuid.MakeId(messageId, processingEndpoint).ToString();
                 }
 
-                string failedQ;
-                if (headers.TryGetValue("NServiceBus.FailedQ", out failedQ))
+                if (headers.TryGetValue("NServiceBus.FailedQ", out var failedQ))
                 {
                     yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(failedQ)).ToString();
                 }
 
-                string replyToAddress;
-                if (headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+                if (headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
                 {
                     yield return DeterministicGuid.MakeId(messageId, ExtractQueueNameForLegacyReasons(replyToAddress)).ToString();
                 }

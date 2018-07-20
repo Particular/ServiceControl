@@ -34,11 +34,9 @@
             {
                 using (var session = Store.OpenAsyncSession())
                 {
-                    RavenQueryStatistics stats;
-
                     var results = await session.Advanced
                         .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .Statistics(out stats)
+                        .Statistics(out var stats)
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
                         .FilterByQueueAddress(Request)
@@ -61,10 +59,9 @@
                 {
                     string endpoint = parameters.name;
 
-                    RavenQueryStatistics stats;
                     var results = await session.Advanced
                         .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .Statistics(out stats)
+                        .Statistics(out var stats)
                         .FilterByStatusWhere(Request)
                         .AndAlso()
                         .WhereEquals("ReceivingEndpointName", endpoint)
