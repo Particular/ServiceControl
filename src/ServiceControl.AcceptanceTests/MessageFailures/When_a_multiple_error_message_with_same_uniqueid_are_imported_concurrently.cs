@@ -64,8 +64,7 @@
 
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                string counter;
-                if (headers.TryGetValue("Counter", out counter))
+                if (headers.TryGetValue("Counter", out var counter))
                 {
                     Context.OnMessage(counter);
                 }
