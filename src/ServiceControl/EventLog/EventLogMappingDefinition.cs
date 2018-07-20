@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T : IDomainEvent
     {
@@ -11,7 +11,7 @@
 
         public EventLogItem Apply(IDomainEvent @event)
         {
-            var eventMessage = (T) @event;
+            var eventMessage = (T)@event;
             var eventId = Guid.NewGuid().ToString();
             var item = new EventLogItem
             {
@@ -84,14 +84,14 @@
             Severity(m => severityToUse);
         }
 
-        protected void Severity(Func<T,Severity> severity)
+        protected void Severity(Func<T, Severity> severity)
         {
             severityFunc = severity;
         }
 
-        readonly List<Func<T, string>> relatedToLinks = new List<Func<T,string>>();
+        readonly List<Func<T, string>> relatedToLinks = new List<Func<T, string>>();
         readonly List<Func<T, IEnumerable<string>>> relatedToMultiLinks = new List<Func<T, IEnumerable<string>>>();
-        Func<T, string> descriptionFunc = m =>  m.ToString();
+        Func<T, string> descriptionFunc = m => m.ToString();
         Func<T, Severity> severityFunc = arg => EventLog.Severity.Info;
 
         Func<T, DateTime> raisedAtFunc = arg => DateTime.UtcNow;

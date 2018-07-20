@@ -2,9 +2,9 @@
 {
     using System.Threading.Tasks;
     using Contracts.EventLog;
+    using Infrastructure.DomainEvents;
+    using Infrastructure.SignalR;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Infrastructure.SignalR;
 
     /// <summary>
     /// Only for events that have been defined (under EventLog\Definitions), a logentry item will
@@ -12,11 +12,6 @@
     /// </summary>
     public class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {
-        static string[] emptyArray = new string[0];
-        private readonly GlobalEventHandler broadcaster;
-        private readonly IDocumentStore store;
-        private readonly EventLogMappings mappings;
-
         public AuditEventLogWriter(GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings)
         {
             this.broadcaster = broadcaster;
@@ -54,5 +49,10 @@
                 RelatedTo = emptyArray
             }).ConfigureAwait(false);
         }
+
+        readonly GlobalEventHandler broadcaster;
+        readonly IDocumentStore store;
+        readonly EventLogMappings mappings;
+        static string[] emptyArray = new string[0];
     }
 }
