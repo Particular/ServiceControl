@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.Infrastructure;
 
     public class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
@@ -44,9 +44,13 @@
             Assert.AreEqual("Originating Endpoint", context.ReplyHandledBy, "Reply handled by incorrect endpoint");
         }
 
-        class OriginalMessage : IMessage { }
+        class OriginalMessage : IMessage
+        {
+        }
 
-        class ReplyMessage : IMessage { }
+        class ReplyMessage : IMessage
+        {
+        }
 
         class RetryReplyContext : ScenarioContext
         {
@@ -68,13 +72,13 @@
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
             {
-                public RetryReplyContext Context { get; set; }
-
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     Context.ReplyHandledBy = "Originating Endpoint";
                     return Task.FromResult(0);
                 }
+
+                public RetryReplyContext Context { get; set; }
             }
         }
 
@@ -90,9 +94,6 @@
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>
             {
-                public RetryReplyContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
-
                 public Task Handle(OriginalMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
@@ -105,6 +106,9 @@
                     }
                     return context.Reply(new ReplyMessage());
                 }
+
+                public RetryReplyContext Context { get; set; }
+                public ReadOnlySettings Settings { get; set; }
             }
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>

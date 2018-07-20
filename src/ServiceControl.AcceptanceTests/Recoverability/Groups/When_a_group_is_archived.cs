@@ -6,7 +6,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -93,7 +93,7 @@
                 })
                 .Do("DetectSecondFailure", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}", 
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
                         e => e.Status == FailedMessageStatus.Unresolved);
                 })
                 .Do("RetrySecond", async ctx =>
@@ -133,10 +133,6 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
@@ -159,10 +155,12 @@
 
                     return Task.FromResult(0);
                 }
+
+                public MyContext Context { get; set; }
+                public ReadOnlySettings Settings { get; set; }
             }
         }
 
-        
         public class MyMessage : ICommand
         {
             public int MessageNumber { get; set; }
