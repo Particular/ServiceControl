@@ -79,7 +79,7 @@
 
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
 
-            Assert.True(auditedMessage.Headers.Any(_ => _.Key == Headers.MessageId));
+            Assert.True(auditedMessage.Headers.Any(h => h.Key == Headers.MessageId));
         }
 
         public class Sender : EndpointConfigurationBuilder
