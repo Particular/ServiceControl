@@ -1,9 +1,8 @@
-﻿using ServiceControl.Config.Framework.Rx;
-
-namespace ServiceControl.Config.UI.NoInstances
+﻿namespace ServiceControl.Config.UI.NoInstances
 {
     using System.Windows.Input;
-    using ServiceControl.Config.Commands;
+    using Commands;
+    using Framework.Rx;
 
     class NoInstancesViewModel : RxScreen
     {

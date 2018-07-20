@@ -1,10 +1,10 @@
-﻿using System.Windows.Input;
-using Caliburn.Micro;
-using ServiceControl.Config.Framework;
-using ServiceControl.Config.Framework.Rx;
-
-namespace ServiceControl.Config.UI.MessageBox
+﻿namespace ServiceControl.Config.UI.MessageBox
 {
+    using System.Windows.Input;
+    using Caliburn.Micro;
+    using Framework;
+    using Framework.Rx;
+
     class MessageBoxViewModel : RxScreen
     {
         public MessageBoxViewModel(string title, string message, string acceptText, bool hideCancel)
@@ -13,8 +13,16 @@ namespace ServiceControl.Config.UI.MessageBox
             Message = message;
             AcceptText = acceptText;
 
-            Ok = Command.Create(() => { Result = true; ((IDeactivate)this).Deactivate(true); });
-            Cancel = Command.Create(() => { Result = false; ((IDeactivate)this).Deactivate(true); });
+            Ok = Command.Create(() =>
+            {
+                Result = true;
+                ((IDeactivate)this).Deactivate(true);
+            });
+            Cancel = Command.Create(() =>
+            {
+                Result = false;
+                ((IDeactivate)this).Deactivate(true);
+            });
             HideCancel = hideCancel;
         }
 

@@ -3,17 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Windows.Input;
+    using Framework.Rx;
     using PropertyChanged;
-    using ServiceControl.Config.Framework.Rx;
-    using ServiceControl.Config.Validation;
     using ServiceControlInstaller.Engine.Instances;
+    using Validation;
 
     public class SharedMonitoringEditorViewModel : RxProgressScreen
     {
-        string hostName;
-        string serviceAccount;
-        string password;
-
         public SharedMonitoringEditorViewModel()
         {
             Transports = MonitoringTransports.All;
@@ -87,10 +83,12 @@
                 {
                     return false;
                 }
+
                 if ((ServiceAccount != null) && ServiceAccount.EndsWith("$"))
                 {
                     return false;
                 }
+
                 return true;
             }
         }
@@ -104,13 +102,14 @@
                 {
                     Password = null;
                 }
+
                 return managedAccount;
             }
         }
 
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
-       
+
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
 
@@ -122,5 +121,9 @@
         protected virtual void OnInstanceNameChanged()
         {
         }
+
+        string hostName;
+        string serviceAccount;
+        string password;
     }
 }

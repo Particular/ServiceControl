@@ -3,19 +3,15 @@
     using System;
     using System.Collections.Generic;
     using System.Windows.Input;
+    using Framework.Rx;
     using PropertyChanged;
-    using ServiceControl.Config.Framework.Rx;
-    using ServiceControl.Config.Validation;
-    using ServiceControl.Config.Xaml.Controls;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
+    using Validation;
+    using Xaml.Controls;
 
     public class SharedServiceControlEditorViewModel : RxProgressScreen
     {
-        string hostName;
-        string serviceAccount;
-        string password;
-      
         public SharedServiceControlEditorViewModel()
         {
             Transports = ServiceControlCoreTransports.All;
@@ -118,10 +114,12 @@
                 {
                     return false;
                 }
+
                 if (ServiceAccount != null && ServiceAccount.EndsWith("$"))
                 {
                     return false;
                 }
+
                 return true;
             }
         }
@@ -135,6 +133,7 @@
                 {
                     Password = null;
                 }
+
                 return managedAccount;
             }
         }
@@ -146,7 +145,7 @@
         public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInHours;
         public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Hours;
 
-        public IEnumerable<ForwardingOption> AuditForwardingOptions{ get; }
+        public IEnumerable<ForwardingOption> AuditForwardingOptions { get; }
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; }
 
         public double AuditRetention { get; set; }
@@ -156,6 +155,14 @@
         public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
 
         public IEnumerable<TransportInfo> Transports { get; }
+
+        public string LogPath { get; set; }
+        public ICommand SelectLogPath { get; set; }
+
+        public ICommand Save { get; set; }
+        public ICommand Cancel { get; set; }
+
+        public bool SubmitAttempted { get; set; }
 
 
         protected void UpdateAuditRetention(TimeSpan value)
@@ -168,16 +175,12 @@
             ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
         }
 
-        public string LogPath { get; set; }
-        public ICommand SelectLogPath { get; set; }
-
-        public ICommand Save { get; set; }
-        public ICommand Cancel { get; set; }
-
-        public bool SubmitAttempted { get; set; }
-
         protected virtual void OnInstanceNameChanged()
         {
         }
+
+        string hostName;
+        string serviceAccount;
+        string password;
     }
 }

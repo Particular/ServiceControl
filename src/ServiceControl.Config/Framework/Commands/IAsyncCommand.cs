@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-
-namespace ServiceControl.Config.Framework.Commands
+﻿namespace ServiceControl.Config.Framework.Commands
 {
+    using System.Threading.Tasks;
+
     public interface IAsyncCommand : IAsyncCommand<object>
     {
     }

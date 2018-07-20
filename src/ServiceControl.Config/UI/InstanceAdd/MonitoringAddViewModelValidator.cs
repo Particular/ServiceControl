@@ -15,12 +15,12 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEmpty();
 
             RuleFor(x => x.PortNumber)
-               .NotEmpty()
-               .ValidPort()
-               .PortAvailable()
-               .MustNotBeIn(x => UsedPorts(x.InstanceName))
-               .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
-               .When(x => x.SubmitAttempted);
+                .NotEmpty()
+                .ValidPort()
+                .PortAvailable()
+                .MustNotBeIn(x => UsedPorts(x.InstanceName))
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
@@ -28,7 +28,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);
-            
+
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty();
 

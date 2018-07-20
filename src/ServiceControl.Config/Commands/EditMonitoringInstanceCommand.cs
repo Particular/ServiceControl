@@ -1,17 +1,14 @@
 namespace ServiceControl.Config.Commands
 {
     using System;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.UI.InstanceDetails;
-    using ServiceControl.Config.UI.InstanceEdit;
+    using Framework;
+    using Framework.Commands;
     using ServiceControlInstaller.Engine.Instances;
-    
+    using UI.InstanceDetails;
+    using UI.InstanceEdit;
+
     class EditMonitoringInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        private readonly Func<MonitoringInstance, MonitoringEditViewModel> editViewModel;
-        private readonly IWindowManagerEx windowManager;
-
         public EditMonitoringInstanceCommand(IWindowManagerEx windowManager, Func<MonitoringInstance, MonitoringEditViewModel> editViewModel) : base(null)
         {
             this.windowManager = windowManager;
@@ -24,5 +21,8 @@ namespace ServiceControl.Config.Commands
 
             windowManager.ShowInnerDialog(editVM);
         }
+
+        readonly Func<MonitoringInstance, MonitoringEditViewModel> editViewModel;
+        readonly IWindowManagerEx windowManager;
     }
 }

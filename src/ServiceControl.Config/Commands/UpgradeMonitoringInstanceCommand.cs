@@ -4,30 +4,29 @@
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Events;
     using Framework;
     using Framework.Commands;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework.Modules;
-    using ServiceControl.Config.UI.InstanceDetails;
+    using Framework.Modules;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
+    using UI.InstanceDetails;
 
     class UpgradeMonitoringInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
-        private readonly IEventAggregator eventAggregator;
-        private readonly MonitoringInstanceInstaller installer;
-        private readonly IWindowManagerEx windowManager;
-
         public UpgradeMonitoringInstanceCommand(Func<InstanceDetailsViewModel, bool> canExecuteMethod = null) : base(canExecuteMethod)
         {
         }
 
-        public UpgradeMonitoringInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator,MonitoringInstanceInstaller installer)
+        public UpgradeMonitoringInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.installer = installer;
         }
+
+        [FeatureToggle(Feature.LicenseChecks)]
+        public bool LicenseChecks { get; set; }
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
@@ -42,13 +41,13 @@
             }
 
             var instance = InstanceFinder.FindMonitoringInstance(model.Name);
-            
+
 
             instance.Service.Refresh();
-            
+
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
                           windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes I want to proceed", "No");
-            
+
             if (confirm)
             {
                 using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
@@ -61,7 +60,7 @@
                     if (!stopped)
                     {
                         eventAggregator.PublishOnUIThread(new RefreshInstances());
-                        
+
                         reportCard.Errors.Add("Failed to stop the service");
                         reportCard.SetStatus();
                         windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
@@ -79,7 +78,7 @@
                     {
                         if (restartAgain)
                         {
-                           var serviceStarted =  await model.StartService(progress);
+                            var serviceStarted = await model.StartService(progress);
                             if (!serviceStarted)
                             {
                                 reportCard.Errors.Add("The Service failed to start. Please consult the  logs for this instance");
@@ -88,11 +87,13 @@
                         }
                     }
                 }
+
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
         }
 
-        [FeatureToggle(Feature.LicenseChecks)]
-        public bool LicenseChecks { get; set; }
+        readonly IEventAggregator eventAggregator;
+        readonly MonitoringInstanceInstaller installer;
+        readonly IWindowManagerEx windowManager;
     }
 }

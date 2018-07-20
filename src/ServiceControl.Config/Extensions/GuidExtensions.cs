@@ -1,8 +1,8 @@
-﻿using System;
-
-namespace ServiceControl.Config.Extensions
+﻿namespace ServiceControl.Config.Extensions
 {
-    internal static class GuidExtensions
+    using System;
+
+    static class GuidExtensions
     {
         public static string BareString(this Guid guid)
         {

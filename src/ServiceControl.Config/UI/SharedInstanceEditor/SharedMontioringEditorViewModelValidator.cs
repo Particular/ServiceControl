@@ -9,32 +9,6 @@ namespace ServiceControl.Config.Validation
 
     public class SharedMonitoringEditorViewModelValidator<T> : AbstractValidator<T> where T : SharedMonitoringEditorViewModel
     {
-        ReadOnlyCollection<MonitoringInstance> MonitoringInstances;
-
-        // We need this to ignore the instance that represents the edit screen
-        protected List<string> UsedPaths(string instanceName = null)
-        {
-            return MonitoringInstances
-               .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-               .SelectMany(p => new[]
-               {
-                    p.LogPath,
-                    p.InstallPath
-               })
-               .Distinct()
-               .ToList();
-        }
-
-        // We need this to ignore the instance that represents the edit screen
-        protected List<string> UsedPorts(string instanceName = null)
-        {
-            return MonitoringInstances
-               .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-               .Select(p => p.Port.ToString())
-               .Distinct()
-               .ToList();
-        }
-
         protected SharedMonitoringEditorViewModelValidator()
         {
             MonitoringInstances = InstanceFinder.MonitoringInstances();
@@ -47,7 +21,6 @@ namespace ServiceControl.Config.Validation
             RuleFor(x => x.HostName)
                 .NotEmpty().When(x => x.SubmitAttempted);
 
-           
 
             RuleFor(x => x.LogPath)
                 .NotEmpty()
@@ -56,5 +29,31 @@ namespace ServiceControl.Config.Validation
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);
         }
+
+        // We need this to ignore the instance that represents the edit screen
+        protected List<string> UsedPaths(string instanceName = null)
+        {
+            return MonitoringInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
+                    p.LogPath,
+                    p.InstallPath
+                })
+                .Distinct()
+                .ToList();
+        }
+
+        // We need this to ignore the instance that represents the edit screen
+        protected List<string> UsedPorts(string instanceName = null)
+        {
+            return MonitoringInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .Select(p => p.Port.ToString())
+                .Distinct()
+                .ToList();
+        }
+
+        ReadOnlyCollection<MonitoringInstance> MonitoringInstances;
     }
 }

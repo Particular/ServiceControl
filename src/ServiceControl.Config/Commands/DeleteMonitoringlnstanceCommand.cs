@@ -3,20 +3,15 @@
     using System;
     using System.Threading.Tasks;
     using Caliburn.Micro;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.Framework.Modules;
-    using ServiceControl.Config.UI.AdvancedOptions;
-    using ServiceControl.Config.UI.DeleteInstanceConfirmation;
+    using Events;
+    using Framework;
+    using Framework.Commands;
+    using Framework.Modules;
+    using UI.AdvancedOptions;
+    using UI.DeleteInstanceConfirmation;
 
     class DeleteMonitoringlnstanceCommand : AwaitableAbstractCommand<MonitoringAdvancedViewModel>
     {
-        private readonly Func<DeleteMonitoringConfirmationViewModel> deleteInstanceConfirmation;
-        private readonly IEventAggregator eventAggregator;
-        private readonly MonitoringInstanceInstaller installer;
-        private readonly IWindowManagerEx windowManager;
-
         public DeleteMonitoringlnstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, Func<DeleteMonitoringConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
         {
             this.windowManager = windowManager;
@@ -44,8 +39,14 @@
                         model.TryClose(true);
                     }
                 }
+
                 eventAggregator.PublishOnUIThread(new ResetInstances());
             }
         }
+
+        readonly Func<DeleteMonitoringConfirmationViewModel> deleteInstanceConfirmation;
+        readonly IEventAggregator eventAggregator;
+        readonly MonitoringInstanceInstaller installer;
+        readonly IWindowManagerEx windowManager;
     }
 }

@@ -10,53 +10,6 @@ namespace ServiceControl.Config.Validation
 
     public class SharedServiceControlEditorViewModelValidator<T> : AbstractValidator<T> where T : SharedServiceControlEditorViewModel
     {
-        ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances;
-
-        // We need this to ignore the instance that represents the edit screen
-        protected List<string> UsedPaths(string instanceName = null)
-        {
-            return ServiceControlInstances
-               .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-               .SelectMany(p => new[]
-               {
-                    p.DBPath,
-                    p.LogPath,
-                    p.InstallPath
-               })
-               .Distinct()
-               .ToList();
-        }
-
-        // We need this to ignore the instance that represents the edit screen
-        protected List<string> UsedQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
-        {
-            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
-                            string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            return instancesByTransport
-                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-                .SelectMany(p => new[]
-                {
-                    p.ErrorLogQueue,
-                    p.ErrorQueue,
-                    p.AuditQueue,
-                    p.AuditLogQueue
-                }).Where(queuename => string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
-                                      string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0)
-                .Distinct()
-                .ToList();
-        }
-
-        // We need this to ignore the instance that represents the edit screen
-        protected List<string> UsedPorts(string instanceName = null)
-        {
-            return ServiceControlInstances
-               .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-               .SelectMany(p => new[] { p.Port.ToString(), p.DatabaseMaintenancePort.ToString() })
-               .Distinct()
-               .ToList();
-        }
-
         protected SharedServiceControlEditorViewModelValidator()
         {
             ServiceControlInstances = InstanceFinder.ServiceControlInstances();
@@ -84,5 +37,56 @@ namespace ServiceControl.Config.Validation
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
                 .When(x => x.SubmitAttempted);
         }
+
+        // We need this to ignore the instance that represents the edit screen
+        protected List<string> UsedPaths(string instanceName = null)
+        {
+            return ServiceControlInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
+                    p.DBPath,
+                    p.LogPath,
+                    p.InstallPath
+                })
+                .Distinct()
+                .ToList();
+        }
+
+        // We need this to ignore the instance that represents the edit screen
+        protected List<string> UsedQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
+        {
+            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
+                                                                          string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            return instancesByTransport
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
+                    p.ErrorLogQueue,
+                    p.ErrorQueue,
+                    p.AuditQueue,
+                    p.AuditLogQueue
+                }).Where(queuename => string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
+                                      string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0)
+                .Distinct()
+                .ToList();
+        }
+
+        // We need this to ignore the instance that represents the edit screen
+        protected List<string> UsedPorts(string instanceName = null)
+        {
+            return ServiceControlInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
+                    p.Port.ToString(),
+                    p.DatabaseMaintenancePort.ToString()
+                })
+                .Distinct()
+                .ToList();
+        }
+
+        ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances;
     }
 }

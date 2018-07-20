@@ -3,16 +3,21 @@
     using System.Net;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Extensions;
     using Mindscape.Raygun4Net;
-    using ServiceControl.Config.Extensions;
 
     public class RaygunReporter
     {
-        protected const string RaygunApiKey = "zdm49nndHCXZ3NVzM8Kzug==";
-        const string RaygunUrl = "https://raygun.io";
-        RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
-        private Task init;
-        private bool enabled;
+        protected RaygunReporter()
+        {
+            init = Task.Run(() =>
+            {
+                enabled = TestAndSetCreds(null) ||
+                          TestAndSetCreds(CredentialCache.DefaultCredentials) ||
+                          TestAndSetCreds(CredentialCache.DefaultNetworkCredentials);
+                Version = GetVersion();
+            });
+        }
 
         public bool Enabled
         {
@@ -28,17 +33,6 @@
         }
 
         protected string Version { get; private set; }
-
-        protected RaygunReporter()
-        {
-            init = Task.Run(() =>
-            {
-                enabled = TestAndSetCreds(null) ||
-                      TestAndSetCreds(CredentialCache.DefaultCredentials) ||
-                      TestAndSetCreds(CredentialCache.DefaultNetworkCredentials);
-                Version = GetVersion();
-            });
-        }
 
         bool TestAndSetCreds(ICredentials credentials)
         {
@@ -65,5 +59,11 @@
             var versionParts = assemblyInfo?.InformationalVersion.Split('+');
             return versionParts?[0];
         }
+
+        RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
+        Task init;
+        bool enabled;
+        protected const string RaygunApiKey = "zdm49nndHCXZ3NVzM8Kzug==";
+        const string RaygunUrl = "https://raygun.io";
     }
 }

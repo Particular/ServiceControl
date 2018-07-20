@@ -22,13 +22,13 @@
 
     public class ServiceControlInstanceInstaller
     {
-        public ServiceControlZipInfo ZipInfo { get; }
-
         public ServiceControlInstanceInstaller()
         {
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             ZipInfo = ServiceControlZipInfo.Find(appDirectory);
         }
+
+        public ServiceControlZipInfo ZipInfo { get; }
 
         internal ReportCard Add(ServiceControlNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
@@ -66,6 +66,7 @@
                     instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
             }
+
             instanceInstaller.ReportCard.SetStatus();
             return instanceInstaller.ReportCard;
         }
@@ -83,7 +84,7 @@
             {
                 return new ReportCard
                 {
-                    Errors = { "Service failed to stop" },
+                    Errors = {"Service failed to stop"},
                     Status = Status.Failed
                 };
             }
@@ -143,6 +144,7 @@
                         instance.ReportCard.Warnings.Add($"Service did not start after changes - please check configuration for {instance.Name}");
                     }
                 }
+
                 instance.ReportCard.SetStatus();
                 return instance.ReportCard;
             }
@@ -163,10 +165,11 @@
             {
                 return new ReportCard
                 {
-                    Errors = { "Service failed to stop" },
+                    Errors = {"Service failed to stop"},
                     Status = Status.Failed
                 };
             }
+
             instance.BackupAppConfig();
 
             progress.Report(1, 7, "Disabling startup...");
@@ -186,6 +189,7 @@
                 progress.Report(5, 7, "Deleting logs...");
                 instance.RemoveLogsFolder();
             }
+
             if (removeDB)
             {
                 progress.Report(6, 7, "Deleting database...");
@@ -200,7 +204,6 @@
 
         internal CheckLicenseResult CheckLicenseIsValid()
         {
-            DateTime releaseDate;
             var license = LicenseManager.FindLicense();
             if (license.Details.HasLicenseExpired())
             {
@@ -212,7 +215,7 @@
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadServiceControlReleaseDate(out releaseDate))
+            if (ZipInfo.TryReadServiceControlReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {
@@ -223,6 +226,7 @@
             {
                 throw new Exception("Failed to retrieve release date for new version");
             }
+
             return new CheckLicenseResult(true);
         }
 
@@ -241,13 +245,13 @@
 
     public class MonitoringInstanceInstaller
     {
-        public MonitoringZipInfo ZipInfo { get; }
-
         public MonitoringInstanceInstaller()
         {
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             ZipInfo = MonitoringZipInfo.Find(appDirectory);
         }
+
+        public MonitoringZipInfo ZipInfo { get; }
 
         internal ReportCard Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
@@ -285,6 +289,7 @@
                     instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
             }
+
             instanceInstaller.ReportCard.SetStatus();
             return instanceInstaller.ReportCard;
         }
@@ -302,7 +307,7 @@
             {
                 return new ReportCard
                 {
-                    Errors = { "Service failed to stop" },
+                    Errors = {"Service failed to stop"},
                     Status = Status.Failed
                 };
             }
@@ -353,6 +358,7 @@
                         instance.ReportCard.Warnings.Add($"Service did not start after changes - please check configuration for {instance.Name}");
                     }
                 }
+
                 instance.ReportCard.SetStatus();
                 return instance.ReportCard;
             }
@@ -373,10 +379,11 @@
             {
                 return new ReportCard
                 {
-                    Errors = { "Service failed to stop" },
+                    Errors = {"Service failed to stop"},
                     Status = Status.Failed
                 };
             }
+
             instance.BackupAppConfig();
 
             progress.Report(1, 7, "Disabling startup...");
@@ -396,6 +403,7 @@
                 progress.Report(5, 7, "Deleting logs...");
                 instance.RemoveLogsFolder();
             }
+
             progress.Report(new ProgressDetails());
 
             instance.ReportCard.SetStatus();
@@ -404,7 +412,6 @@
 
         internal CheckLicenseResult CheckLicenseIsValid()
         {
-            DateTime releaseDate;
             var license = LicenseManager.FindLicense();
             if (license.Details.HasLicenseExpired())
             {
@@ -416,7 +423,7 @@
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadMonitoringReleaseDate(out releaseDate))
+            if (ZipInfo.TryReadMonitoringReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {
@@ -427,6 +434,7 @@
             {
                 throw new Exception("Failed to retrieve release date for new version");
             }
+
             return new CheckLicenseResult(true);
         }
 

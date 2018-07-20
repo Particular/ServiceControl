@@ -1,19 +1,11 @@
-﻿using System.Windows;
-using System.Windows.Interactivity;
-using PropertyChanged;
-
-namespace ServiceControl.Config.Xaml.Behaviours
+﻿namespace ServiceControl.Config.Xaml.Behaviours
 {
+    using System.Windows;
+    using System.Windows.Interactivity;
+    using PropertyChanged;
+
     public class StylizedBehaviors
     {
-        private static readonly DependencyProperty OriginalBehaviorProperty = DependencyProperty.RegisterAttached(@"OriginalBehaviorInternal", typeof(Behavior), typeof(StylizedBehaviors), new UIPropertyMetadata(null));
-
-        public static readonly DependencyProperty BehaviorsProperty = DependencyProperty.RegisterAttached(
-            @"Behaviors",
-            typeof(StylizedBehaviorCollection),
-            typeof(StylizedBehaviors),
-            new FrameworkPropertyMetadata(null, OnPropertyChanged));
-
         public static StylizedBehaviorCollection GetBehaviors(DependencyObject uie)
         {
             return (StylizedBehaviorCollection)uie.GetValue(BehaviorsProperty);
@@ -24,20 +16,20 @@ namespace ServiceControl.Config.Xaml.Behaviours
             uie.SetValue(BehaviorsProperty, value);
         }
 
-        private static Behavior GetOriginalBehavior(DependencyObject obj)
+        static Behavior GetOriginalBehavior(DependencyObject obj)
         {
             return obj.GetValue(OriginalBehaviorProperty) as Behavior;
         }
 
-        private static int GetIndexOf(BehaviorCollection itemBehaviors, Behavior behavior)
+        static int GetIndexOf(BehaviorCollection itemBehaviors, Behavior behavior)
         {
-            int index = -1;
+            var index = -1;
 
-            Behavior orignalBehavior = GetOriginalBehavior(behavior);
+            var orignalBehavior = GetOriginalBehavior(behavior);
 
-            for (int i = 0; i < itemBehaviors.Count; i++)
+            for (var i = 0; i < itemBehaviors.Count; i++)
             {
-                Behavior currentBehavior = itemBehaviors[i];
+                var currentBehavior = itemBehaviors[i];
 
                 if (currentBehavior == behavior
                     || currentBehavior == orignalBehavior)
@@ -46,7 +38,7 @@ namespace ServiceControl.Config.Xaml.Behaviours
                     break;
                 }
 
-                Behavior currentOrignalBehavior = GetOriginalBehavior(currentBehavior);
+                var currentOrignalBehavior = GetOriginalBehavior(currentBehavior);
 
                 if (currentOrignalBehavior == behavior
                     || currentOrignalBehavior == orignalBehavior)
@@ -59,7 +51,7 @@ namespace ServiceControl.Config.Xaml.Behaviours
             return index;
         }
 
-        private static void OnPropertyChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e)
+        static void OnPropertyChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e)
         {
             var uie = dpo as UIElement;
 
@@ -68,7 +60,7 @@ namespace ServiceControl.Config.Xaml.Behaviours
                 return;
             }
 
-            BehaviorCollection itemBehaviors = Interaction.GetBehaviors(uie);
+            var itemBehaviors = Interaction.GetBehaviors(uie);
 
             var newBehaviors = e.NewValue as StylizedBehaviorCollection;
             var oldBehaviors = e.OldValue as StylizedBehaviorCollection;
@@ -82,7 +74,7 @@ namespace ServiceControl.Config.Xaml.Behaviours
             {
                 foreach (var behavior in oldBehaviors)
                 {
-                    int index = GetIndexOf(itemBehaviors, behavior);
+                    var index = GetIndexOf(itemBehaviors, behavior);
 
                     if (index >= 0)
                     {
@@ -95,7 +87,7 @@ namespace ServiceControl.Config.Xaml.Behaviours
             {
                 foreach (var behavior in newBehaviors)
                 {
-                    int index = GetIndexOf(itemBehaviors, behavior);
+                    var index = GetIndexOf(itemBehaviors, behavior);
 
                     if (index < 0)
                     {
@@ -107,13 +99,21 @@ namespace ServiceControl.Config.Xaml.Behaviours
             }
         }
 
-        private static void SetOriginalBehavior(DependencyObject obj, Behavior value)
+        static void SetOriginalBehavior(DependencyObject obj, Behavior value)
         {
             obj.SetValue(OriginalBehaviorProperty, value);
         }
+
+        static readonly DependencyProperty OriginalBehaviorProperty = DependencyProperty.RegisterAttached(@"OriginalBehaviorInternal", typeof(Behavior), typeof(StylizedBehaviors), new UIPropertyMetadata(null));
+
+        public static readonly DependencyProperty BehaviorsProperty = DependencyProperty.RegisterAttached(
+            @"Behaviors",
+            typeof(StylizedBehaviorCollection),
+            typeof(StylizedBehaviors),
+            new FrameworkPropertyMetadata(null, OnPropertyChanged));
     }
 
-    [DoNotNotifyAttribute]
+    [DoNotNotify]
     public class StylizedBehaviorCollection : FreezableCollection<Behavior>
     {
         protected override Freezable CreateInstanceCore()

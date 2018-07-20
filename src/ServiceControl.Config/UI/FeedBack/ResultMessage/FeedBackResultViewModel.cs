@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.Framework.Rx;
+    using Framework;
+    using Framework.Commands;
+    using Framework.Rx;
 
     class FeedBackResultViewModel : RxScreen
     {

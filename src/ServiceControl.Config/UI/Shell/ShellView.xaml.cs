@@ -1,8 +1,8 @@
-﻿using Caliburn.Micro;
-using ServiceControl.Config.Events;
-
-namespace ServiceControl.Config.UI.Shell
+﻿namespace ServiceControl.Config.UI.Shell
 {
+    using Caliburn.Micro;
+    using Events;
+
     partial class ShellView
     {
         public ShellView()

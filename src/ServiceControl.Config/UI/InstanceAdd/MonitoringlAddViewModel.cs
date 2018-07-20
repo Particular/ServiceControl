@@ -4,8 +4,8 @@
     using System.IO;
     using System.Linq;
     using System.Windows.Input;
+    using Commands;
     using PropertyChanged;
-    using ServiceControl.Config.Commands;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
     using Validar;
@@ -38,8 +38,9 @@
                     }
                 }
             }
+
             Description = "A Monitoring Instance";
-            HostName = "localhost"; 
+            HostName = "localhost";
             ErrorQueueName = "error";
             UseSystemAccount = true;
         }
@@ -47,15 +48,7 @@
         public string DestinationPath { get; set; }
         public ICommand SelectDestinationPath { get; private set; }
 
-        protected override void OnInstanceNameChanged()
-        {
-            DestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", InstanceName);
-            LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "Logs");
-        }
-
         public string ErrorQueueName { get; set; }
-
-        TransportInfo selectedTransport;
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName")]
         public TransportInfo SelectedTransport
@@ -77,5 +70,13 @@
 
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+
+        protected override void OnInstanceNameChanged()
+        {
+            DestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", InstanceName);
+            LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "Logs");
+        }
+
+        TransportInfo selectedTransport;
     }
 }

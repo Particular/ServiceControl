@@ -8,25 +8,17 @@
     using System.Linq;
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
+    using Extensions;
     using FluentValidation;
     using FluentValidation.Results;
     using Framework.Rx;
-    using ServiceControl.Config.Extensions;
 
     public class ValidationTemplate : IDataErrorInfo, INotifyDataErrorInfo
     {
-        RxPropertyChanged target;
-        IValidator validator;
-        List<ValidationFailure> validationResults = new List<ValidationFailure>();
-        static ConcurrentDictionary<RuntimeTypeHandle, IValidator> validators = new ConcurrentDictionary<RuntimeTypeHandle, IValidator>();
-        Subject<DataErrorsChangedEventArgs> errorsChangedSubject;
-        HashSet<string> properties;
-
         public ValidationTemplate(RxPropertyChanged target)
         {
             this.target = target;
-            var providesValidator = target as IProvideValidator;
-            if (providesValidator != null)
+            if (target is IProvideValidator providesValidator)
             {
                 validator = providesValidator.Validator;
             }
@@ -34,61 +26,13 @@
             {
                 validator = GetValidator(target.GetType());
             }
+
             errorsChangedSubject = new Subject<DataErrorsChangedEventArgs>();
             target.PropertyChanged += Validate;
             properties = new HashSet<string>(target.GetType().GetProperties().Select(p => p.Name));
         }
 
-        public bool Validate()
-        {
-            validationResults.Clear();
-            var validationResult = validator.Validate(target);
-            validationResults.AddRange(validationResult.Errors);
-            RaiseErrorsChanged();
-            return validationResults.Count == 0;
-        }
-
-        static IValidator GetValidator(Type modelType)
-        {
-            IValidator validator;
-            if (!validators.TryGetValue(modelType.TypeHandle, out validator))
-            {
-                var typeName = $"{modelType.Namespace}.{modelType.Name}Validator";
-                var type = modelType.Assembly.GetType(typeName, true);
-                validators[modelType.TypeHandle] = validator = (IValidator)Activator.CreateInstance(type);
-            }
-            return validator;
-        }
-
-        void Validate(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Error" || e.PropertyName == "HasErrors")
-                return;
-
-            if (properties.Contains(e.PropertyName))
-            {
-                validationResults.RemoveAll(x => x.PropertyName == e.PropertyName);
-                var validationResult = validator.Validate(target, e.PropertyName);
-                validationResults.AddRange(validationResult.Errors);
-            }
-            else
-            {
-                validationResults.Clear();
-                var validationResult = validator.Validate(target);
-                validationResults.AddRange(validationResult.Errors);
-            }
-
-            RaiseErrorsChanged();
-        }
-
-        public IEnumerable GetErrors(string propertyName)
-        {
-            return validationResults
-                .Where(x => x.PropertyName == propertyName)
-                .Select(x => x.ErrorMessage);
-        }
-
-        public bool HasErrors => validationResults.Any();
+        public IObservable<DataErrorsChangedEventArgs> ErrorsChangedObservable => errorsChangedSubject.AsObservable();
 
         public string Error
         {
@@ -113,9 +57,60 @@
             }
         }
 
+        public IEnumerable GetErrors(string propertyName)
+        {
+            return validationResults
+                .Where(x => x.PropertyName == propertyName)
+                .Select(x => x.ErrorMessage);
+        }
+
+        public bool HasErrors => validationResults.Any();
+
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
 
-        public IObservable<DataErrorsChangedEventArgs> ErrorsChangedObservable => errorsChangedSubject.AsObservable();
+        public bool Validate()
+        {
+            validationResults.Clear();
+            var validationResult = validator.Validate(target);
+            validationResults.AddRange(validationResult.Errors);
+            RaiseErrorsChanged();
+            return validationResults.Count == 0;
+        }
+
+        static IValidator GetValidator(Type modelType)
+        {
+            if (!validators.TryGetValue(modelType.TypeHandle, out var validator))
+            {
+                var typeName = $"{modelType.Namespace}.{modelType.Name}Validator";
+                var type = modelType.Assembly.GetType(typeName, true);
+                validators[modelType.TypeHandle] = validator = (IValidator)Activator.CreateInstance(type);
+            }
+
+            return validator;
+        }
+
+        void Validate(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Error" || e.PropertyName == "HasErrors")
+            {
+                return;
+            }
+
+            if (properties.Contains(e.PropertyName))
+            {
+                validationResults.RemoveAll(x => x.PropertyName == e.PropertyName);
+                var validationResult = validator.Validate(target, e.PropertyName);
+                validationResults.AddRange(validationResult.Errors);
+            }
+            else
+            {
+                validationResults.Clear();
+                var validationResult = validator.Validate(target);
+                validationResults.AddRange(validationResult.Errors);
+            }
+
+            RaiseErrorsChanged();
+        }
 
         void RaiseErrorsChanged()
         {
@@ -124,8 +119,11 @@
             {
                 RaiseErrorsChanged(error);
             }
+
             if (!hashSet.Any())
+            {
                 RaiseErrorsChanged(null);
+            }
 
             // Manually trigger other property updates.
             target.NotifyOfPropertyChange("Error");
@@ -141,5 +139,12 @@
 
             errorsChangedSubject.OnNext(dataErrorsChangedEventArgs);
         }
+
+        RxPropertyChanged target;
+        IValidator validator;
+        List<ValidationFailure> validationResults = new List<ValidationFailure>();
+        Subject<DataErrorsChangedEventArgs> errorsChangedSubject;
+        HashSet<string> properties;
+        static ConcurrentDictionary<RuntimeTypeHandle, IValidator> validators = new ConcurrentDictionary<RuntimeTypeHandle, IValidator>();
     }
 }

@@ -5,25 +5,17 @@
     using System.IO;
     using System.Windows.Input;
     using Caliburn.Micro;
+    using Commands;
+    using Events;
+    using Framework.Rx;
     using Microsoft.WindowsAPICodePack.Dialogs;
-    using ServiceControl.Config.Commands;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework.Rx;
     using ServiceControlInstaller.Engine.LicenseMgmt;
 
     class LicenseViewModel : RxScreen
     {
-        private IEventAggregator EventAggregator;
-
         public LicenseViewModel(IEventAggregator eventAggregator)
         {
             EventAggregator = eventAggregator;
-        }
-
-
-        protected override void OnActivate()
-        {
-            RefreshLicenseInfo();
         }
 
         public string LicenseWarning { get; set; }
@@ -36,9 +28,13 @@
 
         public ICommand OpenUrl => new OpenURLCommand();
 
-        public ICommand BrowseForFile =>  new SelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] { new CommonFileDialogFilter("License File", "xml") });
+        public ICommand BrowseForFile => new SelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] {new CommonFileDialogFilter("License File", "xml")});
 
-        DetectedLicense license;
+
+        protected override void OnActivate()
+        {
+            RefreshLicenseInfo();
+        }
 
         void RefreshLicenseInfo()
         {
@@ -51,6 +47,7 @@
             {
                 details.Add("License Edition:", license.Details.Edition);
             }
+
             details.Add("Licensed To:", license.Details.RegisteredTo);
             if (license.Details.ExpirationDate.HasValue)
             {
@@ -65,13 +62,13 @@
                     LicenseWarning = "This license will expire soon";
                 }
             }
+
             LicenseInfo = details;
         }
 
         void OpenLicenseFile(string path)
         {
-            string importError;
-            if (LicenseManager.TryImportLicense(path, out importError))
+            if (LicenseManager.TryImportLicense(path, out var importError))
             {
                 ApplyLicenseError = null;
                 RefreshLicenseInfo();
@@ -94,5 +91,9 @@
         {
             return licenseDate < DateTime.Now;
         }
+
+        IEventAggregator EventAggregator;
+
+        DetectedLicense license;
     }
 }

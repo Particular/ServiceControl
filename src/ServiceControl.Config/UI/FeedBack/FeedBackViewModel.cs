@@ -1,17 +1,14 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
     using System.Windows.Input;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Rx;
-    using ServiceControl.Config.Validation;
+    using Framework;
+    using Framework.Rx;
     using Validar;
+    using Validation;
 
     [InjectValidation]
     public class FeedBackViewModel : RxScreen
     {
-        RaygunFeedback feedBack;
-        ValidationTemplate validationTemplate;
-
         public FeedBackViewModel(RaygunFeedback raygunFeedBack)
         {
             feedBack = raygunFeedBack;
@@ -41,6 +38,7 @@
                 SubmitAttempted = false;
                 return;
             }
+
             try
             {
                 feedBack.SendFeedBack(EmailAddress, Message, IncludeSystemInfo);
@@ -50,7 +48,11 @@
             {
                 Success = false;
             }
+
             TryClose(true);
         }
+
+        RaygunFeedback feedBack;
+        ValidationTemplate validationTemplate;
     }
 }

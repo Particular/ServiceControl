@@ -1,17 +1,14 @@
 namespace ServiceControl.Config.Commands
 {
     using System;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.UI.AdvancedOptions;
-    using ServiceControl.Config.UI.InstanceDetails;
+    using Framework;
+    using Framework.Commands;
     using ServiceControlInstaller.Engine.Instances;
+    using UI.AdvancedOptions;
+    using UI.InstanceDetails;
 
     class AdvancedServiceControlOptionsCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        private readonly Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel;
-        private readonly IWindowManagerEx windowManager;
-
         public AdvancedServiceControlOptionsCommand(IWindowManagerEx windowManager, Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel)
         {
             this.windowManager = windowManager;
@@ -24,5 +21,8 @@ namespace ServiceControl.Config.Commands
 
             windowManager.ShowInnerDialog(screen);
         }
+
+        readonly Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel;
+        readonly IWindowManagerEx windowManager;
     }
 }

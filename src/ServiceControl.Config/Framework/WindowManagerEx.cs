@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows;
-using Caliburn.Micro;
-using ServiceControl.Config.Framework.Rx;
-using ServiceControl.Config.UI.MessageBox;
-using ServiceControl.Config.UI.Shell;
-using ServiceControlInstaller.Engine.ReportCard;
-
-namespace ServiceControl.Config.Framework
+﻿namespace ServiceControl.Config.Framework
 {
-    using ServiceControl.Config.Extensions;
+    using System;
+    using System.Collections.Generic;
+    using System.Windows;
+    using Caliburn.Micro;
+    using Extensions;
+    using Rx;
+    using ServiceControlInstaller.Engine.ReportCard;
+    using UI.MessageBox;
+    using UI.Shell;
 
     public interface IWindowManagerEx : IWindowManager
     {
@@ -36,8 +35,6 @@ namespace ServiceControl.Config.Framework
 
     class WindowManagerEx : WindowManager, IWindowManagerEx
     {
-        readonly Func<ReportCard, ReportCardViewModel> reportCardViewModelFactory;
-
         public WindowManagerEx(Func<ReportCard, ReportCardViewModel> reportCardViewModelFactory)
         {
             this.reportCardViewModelFactory = reportCardViewModelFactory;
@@ -63,8 +60,7 @@ namespace ServiceControl.Config.Framework
             shell.IsModal = false;
             shell.ActiveContext = previousContext;
 
-            var modalResult = screen as IModalResult;
-            if (modalResult != null)
+            if (screen is IModalResult modalResult)
             {
                 return modalResult.Result;
             }
@@ -110,7 +106,7 @@ namespace ServiceControl.Config.Framework
 
         public bool ShowSliderDialog(SliderDialogViewModel viewModel)
         {
-            var result =  ShowOverlayDialog(viewModel);
+            var result = ShowOverlayDialog(viewModel);
             return result ?? false;
         }
 
@@ -137,7 +133,7 @@ namespace ServiceControl.Config.Framework
             controlInError?.BringIntoView();
         }
 
-        private ShellViewModel GetShell()
+        ShellViewModel GetShell()
         {
             var shell = Application.Current.MainWindow.DataContext as ShellViewModel;
 
@@ -145,7 +141,10 @@ namespace ServiceControl.Config.Framework
             {
                 throw new Exception("Main window is not a shell.");
             }
+
             return shell;
         }
+
+        readonly Func<ReportCard, ReportCardViewModel> reportCardViewModelFactory;
     }
 }

@@ -1,30 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using Caliburn.Micro;
-
-namespace ServiceControl.Config.Framework.Rx
+﻿namespace ServiceControl.Config.Framework.Rx
 {
+    using System;
+    using System.Collections.Generic;
+    using Caliburn.Micro;
+
     public class RxViewAware : RxPropertyChanged, IViewAware
     {
-        private readonly IDictionary<object, object> views;
-
         /// <summary>
-        /// The default view context.
+        /// Creates an instance of <see cref="ViewAware" />.
         /// </summary>
-        public static readonly object DefaultContext = new object();
+        public RxViewAware()
+        {
+            Views = new WeakValueDictionary<object, object>();
+        }
 
         /// <summary>
         /// The view chache for this instance.
         /// </summary>
-        protected IDictionary<object, object> Views => views;
-
-        /// <summary>
-        /// Creates an instance of <see cref="ViewAware"/>.
-        /// </summary>
-        public RxViewAware()
-        {
-            views = new WeakValueDictionary<object, object>();
-        }
+        protected IDictionary<object, object> Views { get; }
 
         /// <summary>
         /// Raised when a view is attached.
@@ -55,17 +48,28 @@ namespace ServiceControl.Config.Framework.Rx
             }
         }
 
-        private static void AttachViewReadyOnActivated(IActivate activatable, object nonGeneratedView)
+        /// <summary>
+        /// Gets a view previously attached to this instance.
+        /// </summary>
+        /// <param name="context">The context denoting which view to retrieve.</param>
+        /// <returns>The view.</returns>
+        public virtual object GetView(object context = null)
+        {
+            Views.TryGetValue(context ?? DefaultContext, out var view);
+            return view;
+        }
+
+        static void AttachViewReadyOnActivated(IActivate activatable, object nonGeneratedView)
         {
             var viewReference = new WeakReference(nonGeneratedView);
             EventHandler<ActivationEventArgs> handler = null;
             handler = (s, e) =>
             {
-                ((IActivate) s).Activated -= handler;
+                ((IActivate)s).Activated -= handler;
                 var view = viewReference.Target;
                 if (view != null)
                 {
-                    PlatformProvider.Current.ExecuteOnLayoutUpdated(view, ((RxViewAware) s).OnViewReady);
+                    PlatformProvider.Current.ExecuteOnLayoutUpdated(view, ((RxViewAware)s).OnViewReady);
                 }
             };
             activatable.Activated += handler;
@@ -83,7 +87,7 @@ namespace ServiceControl.Config.Framework.Rx
         /// <summary>
         /// Called when an attached view's Loaded event fires.
         /// </summary>
-        /// <param name = "view"></param>
+        /// <param name="view"></param>
         protected virtual void OnViewLoaded(object view)
         {
         }
@@ -91,21 +95,14 @@ namespace ServiceControl.Config.Framework.Rx
         /// <summary>
         /// Called the first time the page's LayoutUpdated event fires after it is navigated to.
         /// </summary>
-        /// <param name = "view"></param>
+        /// <param name="view"></param>
         protected virtual void OnViewReady(object view)
         {
         }
 
         /// <summary>
-        /// Gets a view previously attached to this instance.
+        /// The default view context.
         /// </summary>
-        /// <param name = "context">The context denoting which view to retrieve.</param>
-        /// <returns>The view.</returns>
-        public virtual object GetView(object context = null)
-        {
-            object view;
-            Views.TryGetValue(context ?? DefaultContext, out view);
-            return view;
-        }
+        public static readonly object DefaultContext = new object();
     }
 }

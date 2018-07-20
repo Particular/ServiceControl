@@ -7,25 +7,21 @@
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Events;
     using FluentValidation;
     using Framework;
     using Framework.Commands;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework.Modules;
-    using ServiceControl.Config.UI.InstanceDetails;
-    using ServiceControl.Config.UI.MessageBox;
-    using ServiceControl.Config.Validation;
-    using ServiceControl.Config.Xaml.Controls;
+    using Framework.Modules;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
+    using UI.InstanceDetails;
+    using UI.MessageBox;
+    using Validation;
+    using Xaml.Controls;
 
     class UpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
-        private readonly IEventAggregator eventAggregator;
-        private readonly ServiceControlInstanceInstaller installer;
-        private readonly IWindowManagerEx windowManager;
-
         public UpgradeServiceControlInstanceCommand(Func<InstanceDetailsViewModel, bool> canExecuteMethod = null) : base(canExecuteMethod)
         {
         }
@@ -36,6 +32,9 @@
             this.eventAggregator = eventAggregator;
             this.installer = installer;
         }
+
+        [FeatureToggle(Feature.LicenseChecks)]
+        public bool LicenseChecks { get; set; }
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
@@ -64,6 +63,7 @@
                     eventAggregator.PublishOnUIThread(new RefreshInstances());
                     return;
                 }
+
                 upgradeOptions.OverrideEnableErrorForwarding = !result.Value;
             }
 
@@ -109,15 +109,15 @@
             if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
             {
                 var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",
-                        "Service Control periodically purges resolved and archived error messages from the database.",
-                        "ERROR RETENTION PERIOD",
-                        "Please specify the age at which these records should be removed",
-                        TimeSpanUnits.Days,
-                        SettingConstants.ErrorRetentionPeriodMinInDays,
-                        SettingConstants.ErrorRetentionPeriodMaxInDays,
-                        1,
-                        1,
-                        SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
+                    "Service Control periodically purges resolved and archived error messages from the database.",
+                    "ERROR RETENTION PERIOD",
+                    "Please specify the age at which these records should be removed",
+                    TimeSpanUnits.Days,
+                    SettingConstants.ErrorRetentionPeriodMinInDays,
+                    SettingConstants.ErrorRetentionPeriodMaxInDays,
+                    1,
+                    1,
+                    SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
 
                 if (windowManager.ShowSliderDialog(viewModel))
                 {
@@ -166,8 +166,8 @@
                 var dbSize = instance.GetDatabaseSizeInGb();
                 if (dbSize >= 100) // 100GB
                 {
-                    if (!windowManager.ShowYesNoDialog($"MIGRATE LARGE DATABASE", $"The database being upgraded is {dbSize.ToString("N0")} GB. Migrating this much data could take a long "
-                        + "time and ServiceControl will be stopped for that entire duration. It is recommended that you consider one of the other upgrade approaches instead.",
+                    if (!windowManager.ShowYesNoDialog("MIGRATE LARGE DATABASE", $"The database being upgraded is {dbSize.ToString("N0")} GB. Migrating this much data could take a long "
+                                                                                  + "time and ServiceControl will be stopped for that entire duration. It is recommended that you consider one of the other upgrade approaches instead.",
                         "Are you sure you want to migrate this database?", "Yes", "No"))
                     {
                         return;
@@ -176,11 +176,11 @@
             }
             else
             {
-                if(instance.Service.Status != ServiceControllerStatus.Stopped &&
-                          !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
-                          $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.",
-                          "Do you want to proceed?",
-                          "Yes I want to proceed", "No"))
+                if (instance.Service.Status != ServiceControllerStatus.Stopped &&
+                    !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
+                        $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.",
+                        "Do you want to proceed?",
+                        "Yes I want to proceed", "No"))
                 {
                     return;
                 }
@@ -227,13 +227,12 @@
             eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
 
-        [FeatureToggle(Feature.LicenseChecks)]
-        public bool LicenseChecks { get; set; }
+        readonly IEventAggregator eventAggregator;
+        readonly ServiceControlInstanceInstaller installer;
+        readonly IWindowManagerEx windowManager;
 
         class MaintenancePortValidator : AbstractValidator<TextBoxDialogViewModel>
         {
-            ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances;
-
             public MaintenancePortValidator()
             {
                 ServiceControlInstances = InstanceFinder.ServiceControlInstances();
@@ -248,10 +247,16 @@
             List<string> UsedPorts()
             {
                 return ServiceControlInstances
-                    .SelectMany(p => new[] { p.Port.ToString(), p.DatabaseMaintenancePort.ToString() })
+                    .SelectMany(p => new[]
+                    {
+                        p.Port.ToString(),
+                        p.DatabaseMaintenancePort.ToString()
+                    })
                     .Distinct()
                     .ToList();
             }
+
+            ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances;
         }
     }
 }

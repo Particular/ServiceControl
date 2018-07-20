@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using ServiceControl.Config.Framework.Commands;
-
 namespace ServiceControl.Config.Commands
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Windows;
+    using Framework.Commands;
+    using Microsoft.WindowsAPICodePack.Dialogs;
+
     class SelectPathCommand : AbstractCommand<object>
     {
-        private readonly Action<string> setPath;
-        private readonly CommonOpenFileDialog dlg;
-
         public SelectPathCommand(Action<string> setPath, string title = null, bool isFolderPicker = false, IEnumerable<CommonFileDialogFilter> filters = null, string defaultPath = "")
         {
             this.setPath = setPath;
@@ -31,6 +28,7 @@ namespace ServiceControl.Config.Commands
             {
                 dlg.DefaultFileName = defaultPath;
             }
+
             if (filters != null)
             {
                 foreach (var filter in filters)
@@ -49,5 +47,8 @@ namespace ServiceControl.Config.Commands
                 setPath(dlg.FileName);
             }
         }
+
+        readonly Action<string> setPath;
+        readonly CommonOpenFileDialog dlg;
     }
 }

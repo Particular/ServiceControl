@@ -1,11 +1,11 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using System.Windows;
-
-namespace ServiceControl.Config.Xaml.Native
+﻿namespace ServiceControl.Config.Xaml.Native
 {
+    using System;
+    using System.Runtime.InteropServices;
+    using System.Windows;
+
     [StructLayout(LayoutKind.Sequential)]
-    internal struct MARGINS
+    struct MARGINS
     {
         public int leftWidth;
         public int rightWidth;
@@ -14,7 +14,7 @@ namespace ServiceControl.Config.Xaml.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct MINMAXINFO
+    struct MINMAXINFO
     {
         public POINT ptReserved;
         public POINT ptMaxSize;
@@ -24,7 +24,7 @@ namespace ServiceControl.Config.Xaml.Native
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    internal class MONITORINFO
+    class MONITORINFO
     {
         public int cbSize = Marshal.SizeOf(typeof(MONITORINFO));
 
@@ -38,7 +38,7 @@ namespace ServiceControl.Config.Xaml.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct POINT
+    struct POINT
     {
         public int x;
         public int y;
@@ -51,14 +51,14 @@ namespace ServiceControl.Config.Xaml.Native
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    internal struct RECT
+    struct RECT
     {
         public int left;
         public int top;
         public int right;
         public int bottom;
 
-        public static readonly RECT Empty = new RECT();
+        public static readonly RECT Empty;
 
         public int Width => Math.Abs(right - left);
 
@@ -74,10 +74,10 @@ namespace ServiceControl.Config.Xaml.Native
 
         public RECT(RECT rcSrc)
         {
-            this.left = rcSrc.left;
-            this.top = rcSrc.top;
-            this.right = rcSrc.right;
-            this.bottom = rcSrc.bottom;
+            left = rcSrc.left;
+            top = rcSrc.top;
+            right = rcSrc.right;
+            bottom = rcSrc.bottom;
         }
 
         public bool IsEmpty => left >= right || top >= bottom;
@@ -85,14 +85,22 @@ namespace ServiceControl.Config.Xaml.Native
         /// <summary> Return a user friendly representation of this struct </summary>
         public override string ToString()
         {
-            if (this == RECT.Empty) { return "RECT {Empty}"; }
+            if (this == Empty)
+            {
+                return "RECT {Empty}";
+            }
+
             return "RECT { left : " + left + " / top : " + top + " / right : " + right + " / bottom : " + bottom + " }";
         }
 
         /// <summary> Determine if 2 RECT are equal (deep compare) </summary>
         public override bool Equals(object obj)
         {
-            if (!(obj is Rect)) { return false; }
+            if (!(obj is Rect))
+            {
+                return false;
+            }
+
             return this == (RECT)obj;
         }
 

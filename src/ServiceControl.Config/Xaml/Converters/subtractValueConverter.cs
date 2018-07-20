@@ -1,9 +1,9 @@
-﻿using System;
-using System.Globalization;
-using System.Windows.Data;
-
-namespace ServiceControl.Config.Xaml.Converters
+﻿namespace ServiceControl.Config.Xaml.Converters
 {
+    using System;
+    using System.Globalization;
+    using System.Windows.Data;
+
     public class SubtractValueConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
