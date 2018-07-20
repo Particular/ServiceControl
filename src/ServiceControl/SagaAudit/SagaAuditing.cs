@@ -4,10 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
-    using Infrastructure;
 
     public class SagaAuditing : Feature
     {
@@ -42,7 +42,7 @@
                             }
                             else
                             {
-                                if (thisChange == "Completed"   //Completed overrides everything
+                                if (thisChange == "Completed" //Completed overrides everything
                                     || thisChange == "New" && previousChange == "Updated") //New overrides Updated
                                 {
                                     sagasChanges[id] = thisChange;
@@ -118,6 +118,7 @@
                         SagaType = sagaType
                     });
                 }
+
                 return TaskEx.CompletedTask;
             }
 
@@ -137,6 +138,7 @@
                     {
                         yield return part;
                     }
+
                     yield return tail;
                 }
                 else

@@ -7,7 +7,7 @@ namespace ServiceControl.SagaAudit
     {
         public ApiModule()
         {
-            Get["/sagas/{id}", true] = (parameters, token) => GetSagaByIdApi.Execute(this, (Guid) parameters.id);
+            Get["/sagas/{id}", true] = (parameters, token) => GetSagaByIdApi.Execute(this, (Guid)parameters.id);
         }
 
         public GetSagaByIdApi GetSagaByIdApi { get; set; }

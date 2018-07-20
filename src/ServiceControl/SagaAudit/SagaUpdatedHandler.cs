@@ -62,7 +62,7 @@
                 OriginatingMachine = initiator.OriginatingMachine,
                 TimeSent = initiator.TimeSent,
                 MessageType = initiator.MessageType,
-                Intent = initiator.Intent,
+                Intent = initiator.Intent
             };
         }
 
@@ -76,6 +76,7 @@
                     resultingMessage = new ResultingMessage();
                     sagaStateChange.OutgoingMessages.Add(resultingMessage);
                 }
+
                 resultingMessage.MessageType = toAdd.MessageType;
                 resultingMessage.MessageId = toAdd.ResultingMessageId;
                 resultingMessage.TimeSent = toAdd.TimeSent;
