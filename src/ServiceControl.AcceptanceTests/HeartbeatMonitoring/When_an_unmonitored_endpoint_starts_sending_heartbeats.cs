@@ -3,11 +3,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -38,7 +38,7 @@
                 .WithEndpoint<MyEndpointWithHeartbeat>()
                 .Done(async c =>
                 {
-                    var result =  await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
                     endpoints = result;
                     return result;
                 })
@@ -74,10 +74,7 @@
         {
             public MyEndpointWithHeartbeat()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                {
-                    c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
-                }).CustomEndpointName(EndpointName);
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
             }
         }
 

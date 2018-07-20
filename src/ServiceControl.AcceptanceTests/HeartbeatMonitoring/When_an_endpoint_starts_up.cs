@@ -3,19 +3,17 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.EventLog;
 
     public class When_an_endpoint_starts_up : AcceptanceTest
     {
-        static Guid hostIdentifier = Guid.NewGuid();
-        
         [Test]
         public async Task Should_result_in_a_startup_event()
         {
@@ -35,6 +33,8 @@
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + hostIdentifier));
         }
 
+        static Guid hostIdentifier = Guid.NewGuid();
+
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
             public StartingEndpoint()
@@ -42,7 +42,7 @@
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
-                    
+
                     c.GetSettings().Set("ServiceControl.CustomHostIdentifier", hostIdentifier);
                     c.UniquelyIdentifyRunningInstance().UsingCustomIdentifier(hostIdentifier);
                 });

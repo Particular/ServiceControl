@@ -4,22 +4,16 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Monitoring;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_an_unmonitored_endpoint_is_marked_as_monitored : AcceptanceTest
     {
-        enum State
-        {
-            WaitingForEndpointDetection,
-            WaitingForHeartbeatFailure
-        }
-
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(MyEndpoint));
 
         [Test]
@@ -39,13 +33,14 @@
                         if (intermediateResult)
                         {
                             var endpointId = endpoints.First(e => e.Name == EndpointName).Id;
-                            await this.Patch($"/api/endpoints/{endpointId}",new EndpointUpdateModel
+                            await this.Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
                             {
                                 MonitorHeartbeat = true
                             });
                             state = State.WaitingForHeartbeatFailure;
                             Console.WriteLine("Patch successful");
                         }
+
                         return false;
                     }
 
@@ -60,6 +55,12 @@
             Assert.IsTrue(myEndpoint.Monitored);
             Assert.IsTrue(myEndpoint.MonitorHeartbeat);
             Assert.IsFalse(myEndpoint.IsSendingHeartbeats);
+        }
+
+        enum State
+        {
+            WaitingForEndpointDetection,
+            WaitingForHeartbeatFailure
         }
 
         public class MyContext : ScenarioContext
