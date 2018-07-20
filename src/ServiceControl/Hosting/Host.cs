@@ -19,12 +19,12 @@
             }
         }
 
-        private void RunInteractive()
+        void RunInteractive()
         {
             OnStart(null);
         }
 
-        private void RunAsService()
+        void RunAsService()
         {
             Run(this);
         }
@@ -41,8 +41,6 @@
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 
-        internal Action OnStopping = () => { };
-
         protected override void OnStop()
         {
             bootstrapper?.Stop().GetAwaiter().GetResult();
@@ -54,6 +52,8 @@
         {
             OnStop();
         }
+
+        internal Action OnStopping = () => { };
 
         Bootstrapper bootstrapper;
     }
