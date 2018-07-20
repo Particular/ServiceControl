@@ -33,7 +33,7 @@ namespace ServiceControl.Recoverability
 
             return HttpStatusCode.Accepted;
         }
-
+        
         public Lazy<IEndpointInstance> Bus { get; set; }
         public RetryingManager RetryOperationManager { get; set; }
     }

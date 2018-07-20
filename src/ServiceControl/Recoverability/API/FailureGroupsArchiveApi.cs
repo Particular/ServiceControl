@@ -34,7 +34,7 @@ namespace ServiceControl.Recoverability
 
             return HttpStatusCode.Accepted;
         }
-
+        
         public ArchivingManager ArchiveOperationManager { get; set; }
         public Lazy<IEndpointInstance> Bus { get; set; }
     }

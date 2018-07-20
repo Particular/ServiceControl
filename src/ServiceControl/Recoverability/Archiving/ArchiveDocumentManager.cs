@@ -1,10 +1,9 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
-    using NServiceBus.Logging;
     using Raven.Client;
     using System.Linq;
-    using ServiceControl.MessageFailures;
+    using MessageFailures;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using System.Collections.Generic;
@@ -12,8 +11,6 @@
 
     public class ArchiveDocumentManager
     {
-        private static ILog logger = LogManager.GetLogger<ArchiveDocumentManager>();
-
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
         {
             return session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
@@ -36,7 +33,7 @@
 
             await session.StoreAsync(operation).ConfigureAwait(false);
 
-            int documentCount = 0;
+            var documentCount = 0;
             var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName);
 
             var docQuery = indexQuery
@@ -48,10 +45,7 @@
             var docs = await StreamResults(session, docQuery);
 
             var batches = docs
-                .GroupBy(d =>
-                {
-                    return documentCount++ / batchSize;
-                });
+                .GroupBy(d => documentCount++ / batchSize);
 
             foreach (var batch in batches)
             {

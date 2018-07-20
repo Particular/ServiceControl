@@ -11,7 +11,7 @@ namespace ServiceControl.Recoverability
             Delete["/recoverability/unacknowledgedgroups/{groupId}", true] = (parameters, token) => AcknowledgeOperation(parameters);
         }
 
-        private async Task<dynamic> AcknowledgeOperation(dynamic parameters)
+        async Task<dynamic> AcknowledgeOperation(dynamic parameters)
         {
             var groupId = parameters.groupId;
             if (ArchiveOperationManager.IsArchiveInProgressFor(groupId))

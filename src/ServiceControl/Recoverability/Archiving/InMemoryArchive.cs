@@ -1,31 +1,17 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
     using System;
     using System.Threading.Tasks;
 
     public class InMemoryArchive // in memory
     {
-        IDomainEvents domainEvents;
-
         public InMemoryArchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
         {
             RequestId = requestId;
             ArchiveType = archiveType;
             this.domainEvents = domainEvents;
         }
-
-        public int TotalNumberOfMessages { get; set; }
-        public int NumberOfMessagesArchived { get; set; }
-        public int NumberOfBatches { get; set; }
-        public int CurrentBatch { get; set; }
-        public DateTime? CompletionTime { get; set; }
-        public DateTime? Last { get; set; }
-        public DateTime Started { get; set; }
-        public ArchiveState ArchiveState { get; set; }
-        public string GroupName { get; set; }
-        public string RequestId { get; set; }
-        public ArchiveType ArchiveType { get; set; }
 
         public static string MakeId(string requestId, ArchiveType archiveType)
         {
@@ -128,5 +114,18 @@
         {
             return ArchiveState == ArchiveState.ArchiveCompleted;
         }
+
+        IDomainEvents domainEvents;
+        public int TotalNumberOfMessages { get; set; }
+        public int NumberOfMessagesArchived { get; set; }
+        public int NumberOfBatches { get; set; }
+        public int CurrentBatch { get; set; }
+        public DateTime? CompletionTime { get; set; }
+        public DateTime? Last { get; set; }
+        public DateTime Started { get; set; }
+        public ArchiveState ArchiveState { get; set; }
+        public string GroupName { get; set; }
+        public string RequestId { get; set; }
+        public ArchiveType ArchiveType { get; set; }
     }
 }

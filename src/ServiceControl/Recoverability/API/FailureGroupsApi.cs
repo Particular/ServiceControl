@@ -6,21 +6,14 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Nancy;
     using NServiceBus;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Infrastructure.Extensions;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.MessageFailures.InternalMessages;
+    using Infrastructure.Extensions;
+    using MessageFailures.Api;
+    using MessageFailures.InternalMessages;
 
     public class FailureGroupsApi : BaseModule
     {
-        public Lazy<IEndpointInstance> Bus { get; set; }
-
-        public GroupFetcher GroupFetcher { get; set; }
-
-        public IEnumerable<IFailureClassifier> Classifiers { get; set; }
-
         public FailureGroupsApi()
         {
             Get["/recoverability/classifiers"] =
@@ -96,11 +89,9 @@ namespace ServiceControl.Recoverability
         {
             using (var session = Store.OpenAsyncSession())
             {
-                RavenQueryStatistics stats;
-
                 var queryResult = await session.Advanced
                                     .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
-                                    .Statistics(out stats)
+                                    .Statistics(out var stats)
                                     .WhereEquals(group => group.Id, groupId)
                                     .FilterByStatusWhere(Request)
                                     .FilterByLastModifiedRange(Request)
@@ -117,11 +108,9 @@ namespace ServiceControl.Recoverability
         {
             using (var session = Store.OpenAsyncSession())
             {
-                RavenQueryStatistics stats;
-
                 var results = await session.Advanced
                     .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
-                    .Statistics(out stats)
+                    .Statistics(out var stats)
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
                     .FilterByLastModifiedRange(Request)
@@ -155,5 +144,9 @@ namespace ServiceControl.Recoverability
                          .WithEtag(queryResult.IndexEtag);
             }
         }
+        
+        public Lazy<IEndpointInstance> Bus { get; set; }
+        public GroupFetcher GroupFetcher { get; set; }
+        public IEnumerable<IFailureClassifier> Classifiers { get; set; }
     }
 }

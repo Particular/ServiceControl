@@ -5,19 +5,10 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
-        static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
-        const int batchSize = 1000;
-
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-        ArchiveDocumentManager documentManager;
-        ArchivingManager archiveOperationManager;
-        RetryingManager retryingManager;
-
         public ArchiveAllInGroupHandler(IDocumentStore store, IDomainEvents domainEvents, ArchiveDocumentManager documentManager, ArchivingManager archiveOperationManager, RetryingManager retryingManager)
         {
             this.store = store;
@@ -126,5 +117,14 @@ namespace ServiceControl.Recoverability
                 MessagesCount = archiveOperation.TotalNumberOfMessages
             }).ConfigureAwait(false);
         }
+
+        static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
+        const int batchSize = 1000;
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
+        ArchiveDocumentManager documentManager;
+        ArchivingManager archiveOperationManager;
+        RetryingManager retryingManager;
     }
 }
