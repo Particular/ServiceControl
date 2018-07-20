@@ -1,19 +1,16 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
-    using NServiceBus.Logging;
-    using Raven.Client;
+    using System.Collections.Generic;
     using System.Linq;
-    using ServiceControl.MessageFailures;
+    using System.Threading.Tasks;
+    using MessageFailures;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using Raven.Client;
 
     public class ArchiveDocumentManager
     {
-        private static ILog logger = LogManager.GetLogger<ArchiveDocumentManager>();
-
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
         {
             return session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
@@ -36,7 +33,7 @@
 
             await session.StoreAsync(operation).ConfigureAwait(false);
 
-            int documentCount = 0;
+            var documentCount = 0;
             var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName);
 
             var docQuery = indexQuery
@@ -48,10 +45,7 @@
             var docs = await StreamResults(session, docQuery);
 
             var batches = docs
-                .GroupBy(d =>
-                {
-                    return documentCount++ / batchSize;
-                });
+                .GroupBy(d => documentCount++ / batchSize);
 
             foreach (var batch in batches)
             {
@@ -102,19 +96,19 @@
         {
             var patchCommands = batch?.DocumentIds
                 .Select(documentId =>
-                new PatchCommandData
-                {
-                    Key = documentId,
-                    Patches = new[]
+                    new PatchCommandData
                     {
-                        new PatchRequest
+                        Key = documentId,
+                        Patches = new[]
                         {
-                            Type = PatchCommandType.Set,
-                            Name = "Status",
-                            Value = (int) FailedMessageStatus.Archived
+                            new PatchRequest
+                            {
+                                Type = PatchCommandType.Set,
+                                Name = "Status",
+                                Value = (int)FailedMessageStatus.Archived
+                            }
                         }
-                    }
-                });
+                    });
 
             if (patchCommands != null)
             {

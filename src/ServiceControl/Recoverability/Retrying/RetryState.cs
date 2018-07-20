@@ -5,6 +5,6 @@
         Waiting,
         Preparing,
         Forwarding,
-        Completed,
+        Completed
     }
 }

@@ -8,6 +8,11 @@ namespace ServiceControl.Recoverability
 
     public class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
     {
+        public RetriesGateway Retries { get; set; }
+        public IDocumentStore Store { get; set; }
+        public RetryingManager RetryingManager { get; set; }
+        public ArchivingManager ArchivingManager { get; set; }
+
         public async Task Handle(RetryAllInGroup message, IMessageHandlerContext context)
         {
             if (Retries == null)
@@ -26,27 +31,23 @@ namespace ServiceControl.Recoverability
 
             using (var session = Store.OpenAsyncSession())
             {
-                @group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
                     .FirstOrDefaultAsync(x => x.Id == message.GroupId)
                     .ConfigureAwait(false);
             }
 
             string originator = null;
-            if (@group?.Title != null)
+            if (group?.Title != null)
             {
-                originator = @group.Title;
+                originator = group.Title;
             }
 
             var started = message.Started ?? DateTime.UtcNow;
-            await RetryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, @group?.Type, @group?.Last)
+            await RetryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last)
                 .ConfigureAwait(false);
-            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, @group?.Type);
+            Retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
         }
 
-        public RetriesGateway Retries { get; set; }
-        public IDocumentStore Store { get; set; }
-        public RetryingManager RetryingManager { get; set; }
-        public ArchivingManager ArchivingManager { get; set; }
         static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }
 }

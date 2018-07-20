@@ -3,6 +3,8 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using MessageFailures;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -10,30 +12,16 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.MessageFailures;
 
     public class RetryDocumentManager
     {
-        protected static string RetrySessionId = Guid.NewGuid().ToString();
-        public RetryingManager OperationManager { get; set; }
-
-        private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
-                                    }}");
-
-        private static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
-
-        private IDocumentStore store;
-        private bool abort;
-
         public RetryDocumentManager(ShutdownNotifier notifier, IDocumentStore store)
         {
             this.store = store;
             notifier.Register(() => { abort = true; });
         }
+
+        public RetryingManager OperationManager { get; set; }
 
         public async Task<string> CreateBatchDocument(string requestId, RetryType retryType, string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
         {
@@ -57,6 +45,7 @@ namespace ServiceControl.Recoverability
                 }).ConfigureAwait(false);
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
+
             return batchDocumentId;
         }
 
@@ -96,8 +85,8 @@ namespace ServiceControl.Recoverability
                         {
                             Type = PatchCommandType.Set,
                             Name = "Status",
-                            Value = (int) RetryBatchStatus.Staging,
-                            PrevVal = (int) RetryBatchStatus.MarkingDocuments
+                            Value = (int)RetryBatchStatus.Staging,
+                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
                         }
                     }).ConfigureAwait(false);
             }
@@ -165,6 +154,18 @@ namespace ServiceControl.Recoverability
                 }
             }
         }
+
+        private IDocumentStore store;
+        private bool abort;
+        protected static string RetrySessionId = Guid.NewGuid().ToString();
+
+        private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
+                                    {{
+                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
+                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
+                                    }}");
+
+        private static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
     }

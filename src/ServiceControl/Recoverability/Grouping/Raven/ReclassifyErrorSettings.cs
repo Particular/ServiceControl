@@ -1,10 +1,7 @@
 namespace ServiceControl.Recoverability
 {
-
     public class ReclassifyErrorSettings
     {
-        public const string IdentifierCase = "ReclassifyErrorSettings/1";
-
         public ReclassifyErrorSettings()
         {
             Id = IdentifierCase;
@@ -13,5 +10,6 @@ namespace ServiceControl.Recoverability
         public string Id { get; set; }
 
         public bool ReclassificationDone { get; set; }
+        public const string IdentifierCase = "ReclassifyErrorSettings/1";
     }
 }

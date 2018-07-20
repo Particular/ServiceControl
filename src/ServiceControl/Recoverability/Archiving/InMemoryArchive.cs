@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    using ServiceControl.Infrastructure.DomainEvents;
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
 
     public class InMemoryArchive // in memory
     {
-        IDomainEvents domainEvents;
-
         public InMemoryArchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
         {
             RequestId = requestId;
@@ -128,5 +126,7 @@
         {
             return ArchiveState == ArchiveState.ArchiveCompleted;
         }
+
+        IDomainEvents domainEvents;
     }
 }

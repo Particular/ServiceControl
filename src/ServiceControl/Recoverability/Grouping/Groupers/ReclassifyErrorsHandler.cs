@@ -3,20 +3,14 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.DomainEvents;
+    using MessageFailures.InternalMessages;
     using NServiceBus;
     using Raven.Client;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
-        IDomainEvents domainEvents;
-        IDocumentStore store;
-        IEnumerable<IFailureClassifier> classifiers;
-        Reclassifier reclassifier;
-        static int executing;
-
         public ReclassifyErrorsHandler(IDocumentStore store, IDomainEvents domainEvents, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
         {
             this.store = store;
@@ -52,5 +46,11 @@ namespace ServiceControl.Recoverability
                 Interlocked.Exchange(ref executing, 0);
             }
         }
+
+        IDomainEvents domainEvents;
+        IDocumentStore store;
+        IEnumerable<IFailureClassifier> classifiers;
+        Reclassifier reclassifier;
+        static int executing;
     }
 }

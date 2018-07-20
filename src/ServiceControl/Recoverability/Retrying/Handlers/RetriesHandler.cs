@@ -2,11 +2,11 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading.Tasks;
+    using Contracts.MessageFailures;
+    using MessageFailures;
+    using MessageFailures.Api;
+    using MessageFailures.InternalMessages;
     using NServiceBus;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class RetriesHandler : IHandleMessages<RequestRetryAll>,
         IHandleMessages<RetryMessagesById>,
@@ -18,6 +18,21 @@ namespace ServiceControl.Recoverability
         public RetriesGateway Retries { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
 
+        public Task Handle(MessageFailed message, IMessageHandlerContext context)
+        {
+            if (message.RepeatedFailure)
+            {
+                return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+            }
+
+            return Task.FromResult(0);
+        }
+
+        public Task Handle(MessageFailedRepeatedly message, IMessageHandlerContext context)
+        {
+            return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+        }
+
         public Task Handle(RequestRetryAll message, IMessageHandlerContext context)
         {
             if (!string.IsNullOrWhiteSpace(message.Endpoint))
@@ -28,12 +43,8 @@ namespace ServiceControl.Recoverability
             {
                 Retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>("All", RetryType.All, DateTime.UtcNow, originator: "all messages");
             }
-            return Task.FromResult(0);
-        }
 
-        public Task Handle(RetryMessagesById message, IMessageHandlerContext context)
-        {
-            return Retries.StartRetryForMessageSelection(message.MessageUniqueIds);
+            return Task.FromResult(0);
         }
 
         public Task Handle(RetryMessage message, IMessageHandlerContext context)
@@ -41,18 +52,9 @@ namespace ServiceControl.Recoverability
             return Retries.StartRetryForSingleMessage(message.FailedMessageId);
         }
 
-        public Task Handle(MessageFailedRepeatedly message, IMessageHandlerContext context)
+        public Task Handle(RetryMessagesById message, IMessageHandlerContext context)
         {
-            return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
-        }
-
-        public Task Handle(MessageFailed message, IMessageHandlerContext context)
-        {
-            if (message.RepeatedFailure)
-            {
-                return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
-            }
-            return Task.FromResult(0);
+            return Retries.StartRetryForMessageSelection(message.MessageUniqueIds);
         }
 
         public Task Handle(RetryMessagesByQueueAddress message, IMessageHandlerContext context)

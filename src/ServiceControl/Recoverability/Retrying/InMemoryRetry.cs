@@ -2,15 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class InMemoryRetry
     {
-        static readonly ILog Log = LogManager.GetLogger(typeof(InMemoryRetry));
-
-        IDomainEvents domainEvents;
-
         public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents)
         {
             this.requestId = requestId;
@@ -23,14 +19,12 @@
         public int NumberOfMessagesForwarded { get; private set; }
         public int NumberOfMessagesSkipped { get; set; }
         public DateTime? CompletionTime { get; private set; }
-        public DateTime? Last{ get; private set; }
+        public DateTime? Last { get; private set; }
         public bool Failed { get; private set; }
         public string Originator { get; private set; }
         public string Classifier { get; private set; }
         public DateTime Started { get; private set; }
         public RetryState RetryState { get; private set; }
-        private readonly string requestId;
-        private readonly RetryType retryType;
 
 
         public static string MakeOperationId(string requestId, RetryType retryType)
@@ -95,7 +89,7 @@
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
                 IsFailed = Failed,
-                StartTime = Started,
+                StartTime = Started
             });
         }
 
@@ -135,7 +129,7 @@
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
                 IsFailed = Failed,
-                StartTime = Started,
+                StartTime = Started
             }).ConfigureAwait(false);
 
             await CheckForCompletion();
@@ -168,7 +162,7 @@
                 Originator = Originator,
                 NumberOfMessagesProcessed = NumberOfMessagesForwarded,
                 Last = Last ?? DateTime.MaxValue,
-                Classifier = Classifier,
+                Classifier = Classifier
             }).ConfigureAwait(false);
 
             if (retryType == RetryType.FailureGroup)
@@ -203,5 +197,11 @@
         {
             return RetryState != RetryState.Completed && RetryState != RetryState.Waiting;
         }
+
+        private readonly string requestId;
+        private readonly RetryType retryType;
+
+        IDomainEvents domainEvents;
+        static readonly ILog Log = LogManager.GetLogger(typeof(InMemoryRetry));
     }
 }

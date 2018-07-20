@@ -1,15 +1,12 @@
 ﻿namespace ServiceControl.Recoverability.Retrying
 {
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.DomainEvents;
 
-    public class StoreHistoryHandler: IDomainHandler<RetryOperationCompleted>
+    public class StoreHistoryHandler : IDomainHandler<RetryOperationCompleted>
     {
-        private readonly IDocumentStore store;
-        private readonly Settings settings;
-
         public StoreHistoryHandler(IDocumentStore store, Settings settings)
         {
             this.store = store;
@@ -20,7 +17,7 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ?? 
+                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ??
                                    RetryHistory.CreateNew();
 
                 retryHistory.AddToHistory(new HistoricRetryOperation
@@ -44,7 +41,7 @@
                     Classifier = message.Classifier,
                     Failed = message.Failed,
                     NumberOfMessagesProcessed = message.NumberOfMessagesProcessed,
-                    Last = message.Last,
+                    Last = message.Last
                 });
 
                 await session.StoreAsync(retryHistory)
@@ -53,5 +50,8 @@
                     .ConfigureAwait(false);
             }
         }
+
+        private readonly IDocumentStore store;
+        private readonly Settings settings;
     }
 }

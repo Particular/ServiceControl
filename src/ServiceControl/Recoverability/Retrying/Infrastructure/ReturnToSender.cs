@@ -6,14 +6,10 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using ServiceControl.Operations.BodyStorage;
+    using Operations.BodyStorage;
 
     public class ReturnToSender
     {
-        static ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
-
-        private readonly IBodyStorage bodyStorage;
-
         public ReturnToSender(IBodyStorage bodyStorage)
         {
             this.bodyStorage = bodyStorage;
@@ -40,12 +36,14 @@ namespace ServiceControl.Recoverability
                     {
                         body = ReadFully(result.Stream);
                     }
+
                     Log.DebugFormat("{0}: Body size: {1} bytes", messageId, body.LongLength);
                 }
                 else
                 {
                     Log.WarnFormat("{0}: Message Body not found for attempt Id {1}", messageId, attemptMessageId);
                 }
+
                 outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
             }
             else
@@ -73,7 +71,6 @@ namespace ServiceControl.Recoverability
             await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions)
                 .ConfigureAwait(false);
             Log.DebugFormat("{0}: Forwarded message to {1}", messageId, retryTo);
-
         }
 
         static byte[] ReadFully(Stream input)
@@ -86,9 +83,12 @@ namespace ServiceControl.Recoverability
                 {
                     ms.Write(buffer, 0, read);
                 }
+
                 return ms.ToArray();
             }
         }
 
+        private readonly IBodyStorage bodyStorage;
+        static ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
     }
 }

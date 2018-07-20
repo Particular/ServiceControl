@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
+    using MessageFailures;
     using NServiceBus;
-    using ServiceControl.MessageFailures;
 
     public class RetryMessagesByQueueAddress : ICommand
     {

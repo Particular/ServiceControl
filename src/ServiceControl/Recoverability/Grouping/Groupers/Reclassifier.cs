@@ -1,26 +1,21 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
-    using Raven.Client;
-    using Raven.Json.Linq;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Api;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using MessageFailures;
+    using MessageFailures.Api;
+    using NServiceBus.Logging;
+    using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
+    using Raven.Client;
+    using Raven.Json.Linq;
 
     public class Reclassifier
     {
-        const int BatchSize = 1000;
-        private bool abort;
-
-        ILog logger = LogManager.GetLogger<Reclassifier>();
-
         internal Reclassifier(ShutdownNotifier notifier)
         {
             notifier?.Register(() => { abort = true; });
@@ -50,7 +45,7 @@
                 }
 
                 var query = session.Query<FailedMessage, FailedMessageViewIndex>()
-                            .Where(f => f.Status == FailedMessageStatus.Unresolved);
+                    .Where(f => f.Status == FailedMessageStatus.Unresolved);
 
                 var totalMessagesReclassified = 0;
 
@@ -109,7 +104,7 @@
                             {
                                 Type = PatchCommandType.Set,
                                 Name = "FailureGroups",
-                                Value = new RavenJArray(failureGroups),
+                                Value = new RavenJArray(failureGroups)
                             }
                         });
 
@@ -144,5 +139,10 @@
                 };
             }
         }
+
+        private bool abort;
+
+        ILog logger = LogManager.GetLogger<Reclassifier>();
+        const int BatchSize = 1000;
     }
 }
