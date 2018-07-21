@@ -72,6 +72,26 @@
                 options.ErrorRetentionPeriod = null;
             }
 
+            var confirmDatabaseHasBeenBackedUpValue = session["CONFIRMDATABASEHASBEENBACKEDUP"];
+            try
+            {
+                options.ConfirmDatabaseHasBeenBackedUp = bool.Parse(confirmDatabaseHasBeenBackedUpValue);
+            }
+            catch
+            {
+                options.ConfirmDatabaseHasBeenBackedUp = false;
+            }
+
+            var allowLargeDatabaseUpgradeValue = session["ALLOWLARGEDATABASEUPGRADE"];
+            try
+            {
+                options.AllowLargeDatabaseUpdate = bool.Parse(allowLargeDatabaseUpgradeValue);
+            }
+            catch
+            {
+                options.ConfirmDatabaseHasBeenBackedUp = false;
+            }
+
             //determine what to upgrade
             var instancesToUpgrade = new List<ServiceControlInstance>();
             if (upgradeInstancesPropertyValue.Equals("*", StringComparison.OrdinalIgnoreCase) || upgradeInstancesPropertyValue.Equals("ALL", StringComparison.OrdinalIgnoreCase))
@@ -124,6 +144,24 @@
                     {
                         logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{SettingsList.ErrorRetentionPeriod.Name}'");
                         continue;
+                    }
+
+                    if (upgradeInfo.DataBaseUpdate) //Database is being updated -> recommend DB backup
+                    {
+                        if (!options.ConfirmDatabaseHasBeenBackedUp)
+                        {
+                            logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. This upgrade requires a database update and the database should be backed up prior to updating. CONFIRMDATABASEHASBEENBACKEDUP MSI parameter was required to allow the database upgrade.'");
+                            continue;
+                        }
+
+                        var dbSize = instance.GetDatabaseSizeInGb();
+                        if (dbSize >= 100) // 100GB
+                        {
+                            logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. Upgrade requires a database update and the database being upgraded is {dbSize:N0} GB. " +
+                                        "Migrating this much data could take a long time and ServiceControl will be stopped for that entire duration. It is recommended that you consider one of the other upgrade approaches instead. " +
+                                        "ALLOWLARGEDATABASEUPGRADE MSI parameter can be used to allow an unattended database upgrade.'");
+                            continue;
+                        }
                     }
 
                     if (!unattendedInstaller.Upgrade(instance, options))
