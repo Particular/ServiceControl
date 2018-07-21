@@ -1,6 +1,7 @@
 namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
 
     public class ServiceControlUpgradeOptions
     {
@@ -9,6 +10,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan? AuditRetentionPeriod { get; set; }
         public int? MaintenancePort { get; set; }
         public bool SkipQueueCreation { get; set; }
+        public UpgradeInfo UpgradeInfo { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlInstance instance)
         {
