@@ -204,7 +204,7 @@
                     return;
                 }
 
-                reportCard = await Task.Run(() => installer.Upgrade(model.Name, upgradeOptions, progress));
+                reportCard = await Task.Run(() => installer.Upgrade(instance, upgradeOptions, progress));
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {

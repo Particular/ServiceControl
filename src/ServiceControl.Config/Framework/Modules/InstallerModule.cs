@@ -71,11 +71,10 @@
             return instanceInstaller.ReportCard;
         }
 
-        internal ReportCard Upgrade(string instanceName, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
 
-            var instance = InstanceFinder.FindServiceControlInstance(instanceName);
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
