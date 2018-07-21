@@ -171,7 +171,7 @@
                 }
             }
 
-            if (instance.Version.Major != installer.ZipInfo.Version.Major) //Upgrade to different major -> recommend DB backup
+            if (upgradeInfo.DataBaseUpdate) //Database is being updated -> recommend DB backup
             {
                 if (!windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
                     $"{model.Name} is going to be upgraded to version {installer.ZipInfo.Version} which uses a different storage format. Database migration will be conducted "
