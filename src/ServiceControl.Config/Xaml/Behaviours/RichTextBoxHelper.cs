@@ -50,7 +50,14 @@
                             parser.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
                             var doc = new FlowDocument();
 
-                            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes($"<Paragraph>{GetDocumentXaml(richTextBox)}</Paragraph>")))
+                            var xaml = GetDocumentXaml(richTextBox);
+
+                            if (!xaml.Contains("</"))
+                            {
+                                xaml = $"<Paragraph>{xaml}</Paragraph>";
+                            }
+
+                            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(xaml)))
                             {
                                 var block = (Block)XamlReader.Load(stream, parser);
                                 doc.Blocks.Add(block);

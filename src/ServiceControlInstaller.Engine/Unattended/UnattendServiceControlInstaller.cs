@@ -97,6 +97,12 @@ namespace ServiceControlInstaller.Engine.Unattended
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
+            if (instance.Version < options.UpgradeInfo.CurrentMinimumVersion)
+            {
+                logger.Error($"Upgrade aborted. An interim upgrade to version {options.UpgradeInfo.RecommendedUpgradeVersion} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{options.UpgradeInfo.RecommendedUpgradeVersion}");
+                return false;
+            }
+
             ZipInfo.ValidateZip();
 
             var checkLicenseResult = CheckLicenseIsValid();
@@ -127,6 +133,17 @@ namespace ServiceControlInstaller.Engine.Unattended
                 }
 
                 options.ApplyChangesToInstance(instance);
+
+                if (options.UpgradeInfo.DeleteIndexes)
+                {
+                    instance.RemoveDatabaseIndexes();
+                }
+
+                if (options.UpgradeInfo.DataBaseUpdate)
+                {
+                    instance.UpdateDatabase(msg => { });
+                }
+
                 instance.SetupInstance();
 
                 if (instance.ReportCard.HasErrors)

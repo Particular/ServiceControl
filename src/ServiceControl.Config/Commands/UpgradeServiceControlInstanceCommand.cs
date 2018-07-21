@@ -52,7 +52,27 @@
 
             instance.Service.Refresh();
 
-            var upgradeOptions = new ServiceControlUpgradeOptions();
+            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
+
+            var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
+
+            if (instance.Version < upgradeInfo.CurrentMinimumVersion)
+            {
+                windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
+                    "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
+                    $"<Paragraph>You must upgrade to version {upgradeInfo.RecommendedUpgradeVersion} before upgrading to version {installer.ZipInfo.Version}:</Paragraph>\r\n" +
+                    "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Uninstall version {installer.ZipInfo.Version}.</Paragraph></ListItem>\r\n" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {upgradeInfo.RecommendedUpgradeVersion} from https://github.com/Particular/ServiceControl/releases/tag/{upgradeInfo.RecommendedUpgradeVersion}</Paragraph></ListItem>" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {upgradeInfo.RecommendedUpgradeVersion}.</Paragraph></ListItem>\r\n" +
+                    "<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install the latest version from https://particular.net/start-servicecontrol-download</Paragraph></ListItem>\r\n" +
+                    "<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to the latest version of ServiceControl.</Paragraph></ListItem>\r\n" +
+                    "</List>\r\n" +
+                    "</Section>",
+                    hideCancel: true);
+
+                return;
+            }
 
             if (!instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
             {
@@ -151,7 +171,7 @@
                 }
             }
 
-            if (instance.Version.Major != installer.ZipInfo.Version.Major) //Upgrade to different major -> recommend DB backup
+            if (upgradeInfo.DataBaseUpdate) //Database is being updated -> recommend DB backup
             {
                 if (!windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
                     $"{model.Name} is going to be upgraded to version {installer.ZipInfo.Version} which uses a different storage format. Database migration will be conducted "
@@ -204,7 +224,7 @@
                     return;
                 }
 
-                reportCard = await Task.Run(() => installer.Upgrade(model.Name, upgradeOptions, progress));
+                reportCard = await Task.Run(() => installer.Upgrade(instance, upgradeOptions, progress));
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
