@@ -109,9 +109,12 @@
             progress.Report(currentStep++, totalSteps, "Removing database indexes...");
             instance.RemoveDatabaseIndexes();
 
-            progress.Report(currentStep, totalSteps, "Updating Database...");
-            // ReSharper disable once AccessToModifiedClosure
-            instance.UpdateDatabase(msg => progress.Report(currentStep, totalSteps, $"Updating Database...{Environment.NewLine}{msg}"));
+            if (upgradeOptions.UpgradeInfo.DataBaseUpdate)
+            {
+                progress.Report(currentStep, totalSteps, "Updating Database...");
+                // ReSharper disable once AccessToModifiedClosure
+                instance.UpdateDatabase(msg => progress.Report(currentStep, totalSteps, $"Updating Database...{Environment.NewLine}{msg}"));
+            }
 
             progress.Report(++currentStep, totalSteps, "Running Queue Creation...");
             instance.SetupInstance();
