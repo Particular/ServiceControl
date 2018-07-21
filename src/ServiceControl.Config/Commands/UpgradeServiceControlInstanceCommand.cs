@@ -53,7 +53,9 @@
 
             instance.Service.Refresh();
 
-            var upgradeOptions = new ServiceControlUpgradeOptions();
+            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
+
+            var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
 
             if (!instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
             {
