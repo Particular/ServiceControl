@@ -56,6 +56,24 @@
 
             var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
 
+            if (instance.Version < upgradeInfo.CurrentMinimumVersion)
+            {
+                windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
+                    "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
+                    $"<Paragraph>You must upgrade to version {upgradeInfo.RecommendedUpgradeVersion} before upgrading to version {installer.ZipInfo.Version}:</Paragraph>\r\n" +
+                    "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Uninstall version {installer.ZipInfo.Version}.</Paragraph></ListItem>\r\n" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {upgradeInfo.RecommendedUpgradeVersion} from https://github.com/Particular/ServiceControl/releases/tag/{upgradeInfo.RecommendedUpgradeVersion}</Paragraph></ListItem>" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {upgradeInfo.RecommendedUpgradeVersion}.</Paragraph></ListItem>\r\n" +
+                    "<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install the latest version from https://particular.net/start-servicecontrol-download</Paragraph></ListItem>\r\n" +
+                    "<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to the latest version of ServiceControl.</Paragraph></ListItem>\r\n" +
+                    "</List>\r\n" +
+                    "</Section>",
+                    hideCancel: true);
+
+                return;
+            }
+
             if (!instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
             {
                 var result = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
