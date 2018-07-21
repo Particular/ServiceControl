@@ -133,6 +133,17 @@ namespace ServiceControlInstaller.Engine.Unattended
                 }
 
                 options.ApplyChangesToInstance(instance);
+
+                if (options.UpgradeInfo.DeleteIndexes)
+                {
+                    instance.RemoveDatabaseIndexes();
+                }
+
+                if (options.UpgradeInfo.DataBaseUpdate)
+                {
+                    instance.UpdateDatabase(msg => { });
+                }
+
                 instance.SetupInstance();
 
                 if (instance.ReportCard.HasErrors)
