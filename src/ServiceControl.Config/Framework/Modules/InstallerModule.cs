@@ -105,8 +105,11 @@
 
             upgradeOptions.ApplyChangesToInstance(instance);
 
-            progress.Report(currentStep++, totalSteps, "Removing database indexes...");
-            instance.RemoveDatabaseIndexes();
+            if (upgradeOptions.UpgradeInfo.DeleteIndexes)
+            {
+                progress.Report(currentStep++, totalSteps, "Removing database indexes...");
+                instance.RemoveDatabaseIndexes();
+            }
 
             if (upgradeOptions.UpgradeInfo.DataBaseUpdate)
             {
