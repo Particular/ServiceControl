@@ -111,6 +111,8 @@
     <Compile Include="Configuration\ServiceControl\AppConfig.cs" />
     <Compile Include="Configuration\ServiceControl\SettingConstants.cs" />
     <Compile Include="Configuration\ServiceControl\SettingsList.cs" />
+    <Compile Include="Configuration\ServiceControl\UpgradeControl.cs" />
+    <Compile Include="Configuration\ServiceControl\UpgradeControl.Details.cs" />
     <Compile Include="Configuration\SettingInfo.cs" />
     <Compile Include="Database\DatabaseMigrations.cs" />
     <Compile Include="Database\DatabaseMigrationsException.cs" />

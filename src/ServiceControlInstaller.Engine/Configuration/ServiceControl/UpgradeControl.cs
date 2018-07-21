@@ -37,8 +37,8 @@
         /// </summary>
         public Version RecommendedUpgradeVersion
         {
-            get => recommendedUpgradeVersion ?? TargetMinimumVersion;
-            set => recommendedUpgradeVersion = ConvertToCleanVersion(value);
+            get { return  recommendedUpgradeVersion ?? TargetMinimumVersion; }
+            set { recommendedUpgradeVersion = ConvertToCleanVersion(value); }
         }
 
         /// <summary>
