@@ -7,17 +7,13 @@ using ServiceControl.Transports.ASQ;
 
 public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
 {
-    public string Name => "AzureStorageQueues";
-    public string TypeName => "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ";
-    public string ConnectionString { get; set; }
-    
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         var transportConfig = configuration
             .UseTransport<AzureStorageQueueTransport>()
             .ConnectionString(ConnectionString)
             .MessageInvisibleTime(TimeSpan.FromSeconds(30));
-        
+
         transportConfig.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
 
         transportConfig.DelayedDelivery().DisableTimeoutManager();
@@ -31,7 +27,7 @@ public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
                 routingConfig.RegisterPublisher(eventType, publisher.PublisherName);
             }
         }
-        
+
         return Task.FromResult(0);
     }
 
@@ -39,4 +35,7 @@ public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
     {
         return Task.FromResult(0);
     }
+    public string Name => "AzureStorageQueues";
+    public string TypeName => "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ";
+    public string ConnectionString { get; set; }
 }

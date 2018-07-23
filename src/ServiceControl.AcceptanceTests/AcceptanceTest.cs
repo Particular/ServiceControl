@@ -17,19 +17,14 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Logging;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Infrastructure;
+    using Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
     public abstract class AcceptanceTest : IAcceptanceTestInfrastructureProvider
     {
-        protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
-        protected Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
-        protected Action<Settings> SetSettings = _ => { };
-        protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
-
         protected AcceptanceTest()
         {
             ServicePointManager.DefaultConnectionLimit = int.MaxValue;
@@ -56,7 +51,7 @@ namespace ServiceBus.Management.AcceptanceTests
 #if !NETCOREAPP2_0
             System.Configuration.ConfigurationManager.GetSection("X");
 #endif
-            
+
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
             var logFile = Path.Combine(logfilesPath, $"{TestContext.CurrentContext.Test.ID}-{TestContext.CurrentContext.Test.Name}.txt");
@@ -81,7 +76,7 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 var baseNs = typeof(AcceptanceTest).Namespace;
                 var testName = GetType().Name;
-                return t.FullName.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
+                return t.FullName?.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
             };
         }
 
@@ -91,7 +86,7 @@ namespace ServiceBus.Management.AcceptanceTests
             Trace.Listeners.Remove(textWriterTraceListener);
         }
 
-        private void RemoveOtherTransportAssemblies(string name)
+        void RemoveOtherTransportAssemblies(string name)
         {
             var assembly = Type.GetType(name, true).Assembly;
 
@@ -104,11 +99,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        private static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
-        private ServiceControlComponentBehavior serviceControlRunnerBehavior;
-        private TextWriterTraceListener textWriterTraceListener;
-
-        private void AssertTransportNotExplicitlyIgnored(ITransportIntegration transportToUse)
+        void AssertTransportNotExplicitlyIgnored(ITransportIntegration transportToUse)
         {
             if (!TestContext.CurrentContext.Test.Properties.ContainsKey(ignoreTransportsKey))
             {
@@ -153,6 +144,15 @@ namespace ServiceBus.Management.AcceptanceTests
         public Dictionary<string, Settings> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
         public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
         public Dictionary<string, BusInstance> Busses => serviceControlRunnerBehavior.Busses;
+
+        static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
+        ServiceControlComponentBehavior serviceControlRunnerBehavior;
+        TextWriterTraceListener textWriterTraceListener;
+
+        protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
+        protected Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
+        protected Action<Settings> SetSettings = _ => { };
+        protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
     }
 
     class StaticLoggerFactory : ILoggerFactory
@@ -280,12 +280,12 @@ namespace ServiceBus.Management.AcceptanceTests
             Trace.WriteLine(message);
             StaticLoggerFactory.CurrentContext.Logs.Enqueue(new ScenarioContext.LogItem
             {
-                Endpoint =  (string) typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).GetValue(StaticLoggerFactory.CurrentContext),
+                Endpoint = (string)typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.GetValue(StaticLoggerFactory.CurrentContext),
                 Level = messageSeverity,
                 Message = message
             });
         }
-}
+    }
 
     public static class HttpExtensions
     {
@@ -313,7 +313,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
@@ -342,7 +342,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return ManyResult<T>.New(true, response);
         }
 
-        public static  async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
@@ -353,12 +353,12 @@ namespace ServiceBus.Management.AcceptanceTests
             var httpClient = provider.HttpClients[instanceName];
             var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
 
-            Console.WriteLine($"PATCH - {url} - {(int) response.StatusCode}");
+            Console.WriteLine($"PATCH - {url} - {(int)response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
+                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
 
             return response.StatusCode;
@@ -451,7 +451,7 @@ namespace ServiceBus.Management.AcceptanceTests
             var httpClient = provider.HttpClients[instanceName];
             var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
 
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
             if (requestHasFailed != null)
             {
@@ -465,7 +465,7 @@ namespace ServiceBus.Management.AcceptanceTests
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
+                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
         }
 
@@ -497,7 +497,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             var httpClient = provider.HttpClients[instanceName];
             var response = await httpClient.GetAsync(url);
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
             if (response.StatusCode != successCode)
             {
                 throw new Exception($"Expected status code of {successCode}, but instead got {response.StatusCode}.");
@@ -506,7 +506,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return await response.Content.ReadAsByteArrayAsync();
         }
 
-        private static async Task<T> GetInternal<T>(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        static async Task<T> GetInternal<T>(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             var response = await provider.GetRaw(url, instanceName).ConfigureAwait(false);
 

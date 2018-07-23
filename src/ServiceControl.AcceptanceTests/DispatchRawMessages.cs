@@ -15,13 +15,13 @@
         {
             EnableByDefault();
         }
-        
+
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.RegisterStartupTask(b => new DispatchTask(
-                b.Build<IDispatchMessages>(), 
-                () => CreateMessage((TContext)b.Build<ScenarioContext>()), 
-                s => BeforeDispatch(s, (TContext)b.Build<ScenarioContext>()), 
+                b.Build<IDispatchMessages>(),
+                () => CreateMessage((TContext)b.Build<ScenarioContext>()),
+                s => BeforeDispatch(s, (TContext)b.Build<ScenarioContext>()),
                 s => AfterDispatch(s, (TContext)b.Build<ScenarioContext>()),
                 b.Build<ScenarioContext>()));
         }
@@ -32,12 +32,12 @@
         {
             return Task.FromResult(0);
         }
-        
+
         protected virtual Task AfterDispatch(IMessageSession session, TContext context)
         {
             return Task.FromResult(0);
         }
-        
+
         class DispatchTask : FeatureStartupTask
         {
             IDispatchMessages dispatchMessages;
@@ -54,7 +54,7 @@
                 this.operationFactory = operationFactory;
                 dispatchMessages = dispatcher;
             }
-            
+
             protected override async Task OnStart(IMessageSession session)
             {
                 await before(session).ConfigureAwait(false);
@@ -69,7 +69,7 @@
                 }
                 await dispatchMessages.Dispatch(operations, new TransportTransaction(), new ContextBag())
                     .ConfigureAwait(false);
-                await after(session).ConfigureAwait(false);                
+                await after(session).ConfigureAwait(false);
             }
 
             protected override Task OnStop(IMessageSession session)

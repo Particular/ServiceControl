@@ -8,10 +8,10 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Pipeline;
     using NServiceBus.Settings;
 
-    internal class TraceOutgoingBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
+    class TraceOutgoingBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
     {
-        private ScenarioContext scenarioContext;
-        private ReadOnlySettings settings;
+        ScenarioContext scenarioContext;
+        ReadOnlySettings settings;
 
         public TraceOutgoingBehavior(ScenarioContext scenarioContext, ReadOnlySettings settings)
         {
@@ -19,7 +19,7 @@ namespace ServiceBus.Management.AcceptanceTests
             this.settings = settings;
         }
 
-        internal class Registration : RegisterStep
+        public class Registration : RegisterStep
         {
             public Registration()
                 : base("TraceOutgoingBehavior", typeof(TraceOutgoingBehavior), "Adds outgoing messages to the acceptance test trace")
@@ -31,8 +31,8 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             scenarioContext.Logs.Enqueue(new ScenarioContext.LogItem
             {
-                Endpoint = settings.EndpointName(), 
-                Level = LogLevel.Info, 
+                Endpoint = settings.EndpointName(),
+                Level = LogLevel.Info,
                 LoggerName = "Trace",
                 Message = $"-> {context.Headers[Headers.MessageIntent]} {context.Message.MessageType.Name} ({context.Headers[Headers.MessageId].Substring(context.Headers[Headers.MessageId].Length - 4)})"
             });

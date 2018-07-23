@@ -7,7 +7,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using EndpointTemplates;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -17,7 +17,7 @@
         public async Task Should_register_a_new_endpoint()
         {
             var endpointName = Conventions.EndpointNamingConvention(typeof(Sender));
-            
+
             EndpointsView endpoint = null;
 
             await Define<MyContext>()
@@ -68,7 +68,7 @@
             }
         }
 
-        
+
         public class MyMessage : ICommand
         {
         }

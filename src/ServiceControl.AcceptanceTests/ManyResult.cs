@@ -7,7 +7,8 @@ namespace ServiceBus.Management.AcceptanceTests
     {
         public static ManyResult<T> Empty = new ManyResult<T>
         {
-            HasResult = false, Items = new List<T>()
+            HasResult = false,
+            Items = new List<T>()
         };
 
         public static ManyResult<T> New(bool hasResult, List<T> items)

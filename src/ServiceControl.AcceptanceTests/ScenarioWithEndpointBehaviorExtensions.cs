@@ -12,7 +12,7 @@
         public static IScenarioWithEndpointBehavior<TContext> Done<TContext>(this IScenarioWithEndpointBehavior<TContext> endpointBehavior, Func<TContext, Task<bool>> func) where TContext : ScenarioContext
         {
             var behavior = new ServiceControlClient<TContext>(func);
-            
+
             return endpointBehavior.WithComponent(behavior).Done(ctx => behavior.Done);
         }
 
@@ -60,7 +60,7 @@
     }
 
     public class ServiceControlClient<TContext> : IComponentBehavior
-        where TContext: ScenarioContext
+        where TContext : ScenarioContext
     {
         Func<TContext, Task<bool>> checkDone;
         volatile bool isDone;
