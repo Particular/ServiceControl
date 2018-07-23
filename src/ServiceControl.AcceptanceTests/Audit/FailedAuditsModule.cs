@@ -43,6 +43,7 @@
             };
         }
 
-        Lazy<ImportFailedAudits> ImportFailedAudits { get; set; }
+        // ReSharper disable once MemberCanBePrivate.Global
+        public Lazy<ImportFailedAudits> ImportFailedAudits { get; set; }
     }
 }
