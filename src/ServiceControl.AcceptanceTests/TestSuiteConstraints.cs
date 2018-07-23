@@ -9,12 +9,12 @@
         static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
         {
             var transportCustomizationToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.TransportCustomization") ?? typeof(ConfigureEndpointMsmqTransport).Name;
-            var transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(transportCustomizationToUseString));
+            var transportToUse = (ITransportIntegration)Activator.CreateInstance(Type.GetType(transportCustomizationToUseString));
 
             var connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
             if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                transportToUse.ConnectionString = connectionString; 
+                transportToUse.ConnectionString = connectionString;
             }
 
             return transportToUse;

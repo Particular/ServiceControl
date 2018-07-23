@@ -6,7 +6,8 @@ namespace ServiceBus.Management.AcceptanceTests
     {
         public static SingleResult<T> Empty = new SingleResult<T>
         {
-            HasResult = false, Item = default(T)
+            HasResult = false,
+            Item = default(T)
         };
 
         public static SingleResult<T> New(T item)

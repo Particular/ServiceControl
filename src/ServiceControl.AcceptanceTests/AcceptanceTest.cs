@@ -51,7 +51,7 @@ namespace ServiceBus.Management.AcceptanceTests
 #if !NETCOREAPP2_0
             System.Configuration.ConfigurationManager.GetSection("X");
 #endif
-            
+
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
             var logFile = Path.Combine(logfilesPath, $"{TestContext.CurrentContext.Test.ID}-{TestContext.CurrentContext.Test.Name}.txt");
@@ -280,12 +280,12 @@ namespace ServiceBus.Management.AcceptanceTests
             Trace.WriteLine(message);
             StaticLoggerFactory.CurrentContext.Logs.Enqueue(new ScenarioContext.LogItem
             {
-                Endpoint =  (string) typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.GetValue(StaticLoggerFactory.CurrentContext),
+                Endpoint = (string)typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.GetValue(StaticLoggerFactory.CurrentContext),
                 Level = messageSeverity,
                 Message = message
             });
         }
-}
+    }
 
     public static class HttpExtensions
     {
@@ -342,7 +342,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return ManyResult<T>.New(true, response);
         }
 
-        public static  async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (!url.StartsWith("http://"))
             {
@@ -353,12 +353,12 @@ namespace ServiceBus.Management.AcceptanceTests
             var httpClient = provider.HttpClients[instanceName];
             var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
 
-            Console.WriteLine($"PATCH - {url} - {(int) response.StatusCode}");
+            Console.WriteLine($"PATCH - {url} - {(int)response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
+                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
 
             return response.StatusCode;
@@ -451,7 +451,7 @@ namespace ServiceBus.Management.AcceptanceTests
             var httpClient = provider.HttpClients[instanceName];
             var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
 
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
             if (requestHasFailed != null)
             {
@@ -465,7 +465,7 @@ namespace ServiceBus.Management.AcceptanceTests
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new InvalidOperationException($"Call failed: {(int) response.StatusCode} - {response.ReasonPhrase} - {body}");
+                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
         }
 
@@ -497,7 +497,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             var httpClient = provider.HttpClients[instanceName];
             var response = await httpClient.GetAsync(url);
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int) response.StatusCode}");
+            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
             if (response.StatusCode != successCode)
             {
                 throw new Exception($"Expected status code of {successCode}, but instead got {response.StatusCode}.");

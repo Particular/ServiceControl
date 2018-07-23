@@ -31,8 +31,8 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             scenarioContext.Logs.Enqueue(new ScenarioContext.LogItem
             {
-                Endpoint = settings.EndpointName(), 
-                Level = LogLevel.Info, 
+                Endpoint = settings.EndpointName(),
+                Level = LogLevel.Info,
                 LoggerName = "Trace",
                 Message = $"-> {context.Headers[Headers.MessageIntent]} {context.Message.MessageType.Name} ({context.Headers[Headers.MessageId].Substring(context.Headers[Headers.MessageId].Length - 4)})"
             });

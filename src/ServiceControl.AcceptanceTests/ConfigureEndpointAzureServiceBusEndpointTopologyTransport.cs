@@ -4,7 +4,7 @@ using NServiceBus.AcceptanceTesting.Support;
 using ServiceBus.Management.AcceptanceTests;
 
 public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransportIntegration
-{   
+{
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         configuration.UseSerialization<NewtonsoftSerializer>();

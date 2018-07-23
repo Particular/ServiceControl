@@ -13,7 +13,7 @@ public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
             .UseTransport<AzureStorageQueueTransport>()
             .ConnectionString(ConnectionString)
             .MessageInvisibleTime(TimeSpan.FromSeconds(30));
-        
+
         transportConfig.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
 
         transportConfig.DelayedDelivery().DisableTimeoutManager();
@@ -27,7 +27,7 @@ public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
                 routingConfig.RegisterPublisher(eventType, publisher.PublisherName);
             }
         }
-        
+
         return Task.FromResult(0);
     }
 

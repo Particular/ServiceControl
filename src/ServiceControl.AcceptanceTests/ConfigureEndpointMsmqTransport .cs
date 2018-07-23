@@ -14,10 +14,10 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         queueBindings = configuration.GetSettings().Get<QueueBindings>();
-     
+
         var transportConfig = configuration.UseTransport<MsmqTransport>();
         transportConfig.DisableConnectionCachingForSends();
-        
+
         var routingConfig = transportConfig.Routing();
 
         foreach (var publisher in publisherMetadata.Publishers)

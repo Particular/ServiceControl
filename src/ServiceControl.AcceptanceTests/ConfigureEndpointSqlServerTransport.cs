@@ -9,7 +9,7 @@ using NServiceBus.Transport;
 using ServiceBus.Management.AcceptanceTests;
 
 public class ConfigureEndpointSqlServerTransport : ITransportIntegration
-{   
+{
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         queueBindings = configuration.GetSettings().Get<QueueBindings>();

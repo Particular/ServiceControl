@@ -83,7 +83,7 @@ namespace ServiceBus.Management.AcceptanceTests
             foreach (var instanceName in instanceNames)
             {
                 typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
-                
+
                 var instancePort = FindAvailablePort(startPort++);
                 var maintenancePort = FindAvailablePort(startPort++);
 

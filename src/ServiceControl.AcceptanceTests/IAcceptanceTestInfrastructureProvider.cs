@@ -9,9 +9,9 @@ namespace ServiceBus.Management.AcceptanceTests
     public interface IAcceptanceTestInfrastructureProvider
     {
         Dictionary<string, HttpClient> HttpClients { get; }
-        
+
         JsonSerializerSettings SerializerSettings { get; }
-        
+
         Dictionary<string, Settings> SettingsPerInstance { get; }
         Dictionary<string, OwinHttpMessageHandler> Handlers { get; }
         Dictionary<string, BusInstance> Busses { get; }

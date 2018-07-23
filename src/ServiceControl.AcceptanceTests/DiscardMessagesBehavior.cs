@@ -33,7 +33,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             var currentSession = scenarioContext.TestRunId.ToString();
-            if (!context.Message.Headers.TryGetValue("SC.SessionID", out var session) 
+            if (!context.Message.Headers.TryGetValue("SC.SessionID", out var session)
                 || session != currentSession)
             {
                 context.Message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
