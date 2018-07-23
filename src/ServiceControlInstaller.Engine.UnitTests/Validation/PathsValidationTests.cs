@@ -1,6 +1,5 @@
 ﻿namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using Engine.Validation;
@@ -18,11 +17,6 @@
             instanceA.SetupGet(p => p.InstallPath).Returns(@"c:\test\1\bin");
             instanceA.SetupGet(p => p.LogPath).Returns(@"c:\test\1\logs");
             instanceA.SetupGet(p => p.DBPath).Returns(@"c:\test\1\db");
-
-            instances = new List<IServiceControlPaths>
-            {
-                instanceA.Object
-            };
         }
 
         [Test]
@@ -144,7 +138,5 @@
             var driveletters = DriveInfo.GetDrives().SelectMany(q => q.Name[0].ToString().ToUpper()).ToArray();
             return letters.Except(driveletters).First();
         }
-
-        List<IServiceControlPaths> instances;
     }
 }
