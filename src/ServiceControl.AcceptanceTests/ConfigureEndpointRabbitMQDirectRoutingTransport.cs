@@ -44,8 +44,7 @@ public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegra
             UseBackgroundThreadsForIO = true
         };
 
-        object value;
-        if (connectionStringBuilder.TryGetValue("username", out value))
+        if (connectionStringBuilder.TryGetValue("username", out var value))
         {
             connectionFactory.UserName = value.ToString();
         }

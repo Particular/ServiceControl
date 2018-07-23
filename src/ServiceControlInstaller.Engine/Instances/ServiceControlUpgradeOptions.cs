@@ -1,7 +1,7 @@
 namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
+    using Configuration.ServiceControl;
 
     public class ServiceControlUpgradeOptions
     {
