@@ -1,12 +1,13 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System.IO;
     using System.Management.Automation;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Unattended;
+    using Engine.Instances;
+    using Engine.Unattended;
 
     [Cmdlet(VerbsCommon.Remove, "ServiceControlInstance")]
     public class RemoveServiceControlInstance : PSCmdlet
@@ -40,6 +41,7 @@ namespace ServiceControlInstaller.PowerShell
                     WriteWarning($"No action taken. An instance called {name} was not found");
                     break;
                 }
+
                 WriteObject(installer.Delete(instance.Name, RemoveDB.ToBool(), RemoveLogs.ToBool()));
             }
         }

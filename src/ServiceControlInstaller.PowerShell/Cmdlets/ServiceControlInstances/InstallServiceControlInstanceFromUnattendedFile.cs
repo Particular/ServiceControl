@@ -1,15 +1,15 @@
-﻿
-// ReSharper disable UnassignedField.Global
+﻿// ReSharper disable UnassignedField.Global
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
     using System.IO;
     using System.Management.Automation;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Unattended;
-    using ServiceControlInstaller.Engine.Validation;
+    using Engine.Instances;
+    using Engine.Unattended;
+    using Engine.Validation;
     using PathInfo = Engine.Validation.PathInfo;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlInstanceFromUnattendedFile")]
@@ -18,7 +18,7 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNullOrEmpty]
         [Alias("FullName")]
         [ValidatePath]
-        [Parameter(Mandatory = true, ValueFromPipeline = true,ValueFromPipelineByPropertyName= true, Position = 0, HelpMessage = "Specify the path to the XML file")]
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the path to the XML file")]
         public string UnattendFile { get; set; }
 
         [ValidateNotNullOrEmpty]
@@ -39,8 +39,8 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-            var psPath =  SessionState.Path.GetUnresolvedProviderPathFromPSPath(UnattendFile, out _, out _);
-            
+            var psPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(UnattendFile, out _, out _);
+
             var details = ServiceControlNewInstance.Load(psPath);
             details.ServiceAccount = ServiceAccount;
             details.ServiceAccountPwd = Password;
@@ -71,13 +71,18 @@ namespace ServiceControlInstaller.PowerShell
 
         private bool PromptToProceed(PathInfo pathInfo)
         {
-            if (!pathInfo.CheckIfEmpty) return false;
+            if (!pathInfo.CheckIfEmpty)
+            {
+                return false;
+            }
+
             if (!Force.ToBool())
+            {
                 throw new EngineValidationException($"Thr directory specified for {pathInfo.Name} is not empty.  Use -Force to if you are sure you want to use this path");
+            }
+
             WriteWarning($"Thr directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");
             return false;
         }
     }
 }
-
-

@@ -1,13 +1,14 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
-    using System.Management.Automation;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
-    using ServiceControlInstaller.Engine.Instances;
     using System.Linq;
+    using System.Management.Automation;
+    using Engine.Configuration.ServiceControl;
+    using Engine.Instances;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlUnattendedFile")]
     public class NewServiceControlUnattendedFile : PSCmdlet
@@ -38,7 +39,7 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = true, HelpMessage = "Specify the port number to listen on. If this is the only ServiceControl instance then 33333 is recommended")]
         [ValidateRange(1, 49151)]
         public int Port { get; set; }
-        
+
         [Parameter(Mandatory = true, HelpMessage = "Specify the database maintenance port number to listen on. If this is the only ServiceControl instance then 33334 is recommended")]
         [ValidateRange(1, 49151)]
         public int DatabaseMaintenancePort { get; set; }
@@ -104,7 +105,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void BeginProcessing()
         {
-            WriteWarning("New-ServiceControlUnattendedFile is deprecated. Please New-ServiceControlInstance via PSScript it automate installation" );
+            WriteWarning("New-ServiceControlUnattendedFile is deprecated. Please New-ServiceControlInstance via PSScript it automate installation");
 
             EnsureDependentPropertyIsBoundIfSet(ForwardErrorMessages, nameof(ErrorLogQueue), "ErrorLogQueue must be specified if ForwardErrorMessages is true");
             EnsureDependentPropertyIsBoundIfSet(ForwardAuditMessages, nameof(AuditLogQueue), "AuditLogQueue must be specified if ForwardAuditMessages is true");
