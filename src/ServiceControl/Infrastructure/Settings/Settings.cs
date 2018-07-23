@@ -332,7 +332,7 @@
         {
             var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
             var typeNameAndAssembly = typeName.Split(',');
-            if (typeNameAndAssembly.Length != 2)
+            if (typeNameAndAssembly.Length < 2)
             {
                 throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is a fully qualified assembly name");
             }
