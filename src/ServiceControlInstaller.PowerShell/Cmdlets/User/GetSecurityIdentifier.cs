@@ -1,6 +1,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System.Linq;

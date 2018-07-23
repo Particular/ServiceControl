@@ -1,7 +1,7 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System.Management.Automation;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
+    using Engine.LicenseMgmt;
 
     [Cmdlet(VerbsCommon.Get, "ServiceControlLicense")]
     public class GetServiceControlLicense : PSCmdlet
@@ -14,14 +14,14 @@ namespace ServiceControlInstaller.PowerShell
             {
                 Properties =
                 {
-                    new PSNoteProperty( "Location", license.Location),
-                    new PSNoteProperty( "ExpirationDate", license.Details.ExpirationDate),
-                    new PSNoteProperty( "LicenseType", license.Details.LicenseType),
-                    new PSNoteProperty( "LicensedTo", license.Details.RegisteredTo),
-                    new PSNoteProperty( "UpgradeProtectionExpiration", license.Details.UpgradeProtectionExpiration),
-                    new PSNoteProperty( "TrialLicense", license.Details.IsExtendedTrial | license.Details.IsTrialLicense)
+                    new PSNoteProperty("Location", license.Location),
+                    new PSNoteProperty("ExpirationDate", license.Details.ExpirationDate),
+                    new PSNoteProperty("LicenseType", license.Details.LicenseType),
+                    new PSNoteProperty("LicensedTo", license.Details.RegisteredTo),
+                    new PSNoteProperty("UpgradeProtectionExpiration", license.Details.UpgradeProtectionExpiration),
+                    new PSNoteProperty("TrialLicense", license.Details.IsExtendedTrial | license.Details.IsTrialLicense)
                 },
-                TypeNames = { "ServiceControlLicense.Information" }
+                TypeNames = {"ServiceControlLicense.Information"}
             };
             WriteObject(p);
         }

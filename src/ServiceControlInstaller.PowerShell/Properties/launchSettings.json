@@ -3,7 +3,8 @@
     "ServiceControlInstaller.PowerShell": {
       "commandName": "Executable",
       "executablePath": "%SystemRoot%\\system32\\WindowsPowerShell\\v1.0\\powershell.exe",
-      "commandLineArgs": "-noexit -command \"&{ Push-Location \\\"C:\\Particular\\ServiceControl\\zip\\\" \"; import-module .\\ServiceControlInstaller.PowerShell.dll -verbose}\""
+      "commandLineArgs":
+        "-noexit -command \"&{ Push-Location \\\"C:\\Particular\\ServiceControl\\zip\\\" \"; import-module .\\ServiceControlInstaller.PowerShell.dll -verbose}\""
     }
   }
 }

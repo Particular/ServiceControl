@@ -1,17 +1,18 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
     using System.IO;
-    using System.Management.Automation;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Unattended;
-    using ServiceControlInstaller.Engine.Validation;
-    using ServiceControlInstaller.PowerShell.Cmdlets.Instances;
-    using PathInfo = ServiceControlInstaller.Engine.Validation.PathInfo;
     using System.Linq;
+    using System.Management.Automation;
+    using Cmdlets.Instances;
+    using Engine.Instances;
+    using Engine.Unattended;
+    using Engine.Validation;
+    using PathInfo = Engine.Validation.PathInfo;
 
     [Cmdlet(VerbsCommon.New, "MonitoringInstance")]
     public class NewMonitoringInstance : PSCmdlet
@@ -49,7 +50,7 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
         [ValidateNotNullOrEmpty]
         public string DisplayName { get; set; }
-        
+
         [Parameter(Mandatory = false, HelpMessage = "Specify the connection string to use to connect to the queuing system.  Can be left blank for MSMQ")]
         [ValidateNotNullOrEmpty]
         public string ConnectionString { get; set; }
@@ -57,7 +58,7 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Specify the description to use on the Windows Service for this instance")]
         [ValidateNotNullOrEmpty]
         public string Description { get; set; }
-        
+
         [Parameter(HelpMessage = "The Account to run the Windows service. If not specified then LocalSystem is used")]
         public string ServiceAccount { get; set; }
 
@@ -106,10 +107,10 @@ namespace ServiceControlInstaller.PowerShell
                 Port = Port,
                 ErrorQueue = ErrorQueue,
                 ConnectionString = ConnectionString,
-                TransportPackage = MonitoringTransports.All.First(t => t.Name.Equals(Transport, StringComparison.OrdinalIgnoreCase)), 
+                TransportPackage = MonitoringTransports.All.First(t => t.Name.Equals(Transport, StringComparison.OrdinalIgnoreCase)),
                 SkipQueueCreation = SkipQueueCreation
             };
-            
+
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var logger = new PSLogger(Host);
 

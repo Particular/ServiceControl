@@ -7,7 +7,6 @@
     {
         public static void TestIfAdmin()
         {
-
             // ReSharper disable once AssignNullToNotNullAttribute
             var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
             if (principal.IsInRole(WindowsBuiltInRole.Administrator))
