@@ -84,7 +84,7 @@
                     return false;
                 }
 
-                if ((ServiceAccount != null) && ServiceAccount.EndsWith("$"))
+                if (ServiceAccount != null && ServiceAccount.EndsWith("$"))
                 {
                     return false;
                 }

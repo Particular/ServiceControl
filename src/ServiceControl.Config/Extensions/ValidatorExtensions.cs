@@ -15,8 +15,7 @@
 
         public static ValidationResult Validate(this IValidator validator, ValidationContext context, string propertyName)
         {
-            var validatorWrapper = validator as IEnumerable<IValidationRule>;
-            if (validatorWrapper == null)
+            if (!(validator is IEnumerable<IValidationRule> validatorWrapper))
             {
                 return validator.Validate(context);
             }
