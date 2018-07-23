@@ -4,8 +4,8 @@
     using System.DirectoryServices.AccountManagement;
     using System.Linq;
     using System.Security.Principal;
+    using Accounts;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Accounts;
 
     [TestFixture]
     public class AccountCredsTests
@@ -27,6 +27,6 @@
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName(@"NT Authority\NotAValidAccount").CheckPassword(null), "Test for Invalid System Account should throw IdentityNotMappedException");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName("missingaccount").CheckPassword("foo"), "Test for Missing Account should should throw IdentityNotMappedException");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName(@"UnknownDomain\AUser").CheckPassword("foo"), "Test for unknown domain should throw IdentityNotMappedException");
-         }
+        }
     }
 }

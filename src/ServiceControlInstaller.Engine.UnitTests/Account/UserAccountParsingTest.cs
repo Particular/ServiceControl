@@ -2,8 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using Accounts;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Accounts;
 
     [TestFixture]
     public class UserAccountParsingTest
@@ -11,14 +11,14 @@
         [Test]
         public void ParseAccountNamesTest()
         {
-            var accountNames = new List<string>()
+            var accountNames = new List<string>
             {
                 @"NT Authority\system",
                 "local system",
                 "system",
                 "localsystem",
                 Environment.UserName,
-                "networkservice",
+                "networkservice"
             };
 
             foreach (var accountName in accountNames)

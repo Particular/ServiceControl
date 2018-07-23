@@ -1,17 +1,15 @@
 ﻿namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
     using System.Collections.Generic;
+    using System.Linq;
+    using Engine.Validation;
+    using Instances;
     using Moq;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Validation;
-    using System.Linq;
 
     [TestFixture]
     public class QueueValidationTests
     {
-        List<IServiceControlTransportConfig> instances;
-
         [SetUp]
         public void Init()
         {
@@ -21,7 +19,7 @@
             instanceA.SetupGet(p => p.AuditLogQueue).Returns(@"auditlog");
             instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
-            
+
             var instanceB = new Mock<IServiceControlTransportConfig>();
             instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ"));
             instanceB.SetupGet(p => p.AuditQueue).Returns(@"RMQaudit");
@@ -29,7 +27,7 @@
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
             instanceB.SetupGet(p => p.ConnectionString).Returns(@"afakeconnectionstring");
-            
+
             instances = new List<IServiceControlTransportConfig>
             {
                 instanceA.Object,
@@ -42,11 +40,11 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-               TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
-               AuditLogQueue = "auditlog",
-               ErrorLogQueue = "errorlog",
-               AuditQueue =    "audit",
-               ErrorQueue = "error"
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
+                AuditLogQueue = "auditlog",
+                ErrorLogQueue = "errorlog",
+                AuditQueue = "audit",
+                ErrorQueue = "error"
             };
 
             var p = new ServiceControlQueueNameValidator(newInstance)
@@ -180,7 +178,8 @@
                 Instances = instances
             };
             Assert.DoesNotThrow(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
-
         }
+
+        List<IServiceControlTransportConfig> instances;
     }
 }

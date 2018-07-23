@@ -1,8 +1,8 @@
 ﻿namespace ServiceControlInstaller.Engine.UnitTests.Licenses
 {
     using System;
+    using LicenseMgmt;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
 
     [TestFixture]
     public class LicenseTests

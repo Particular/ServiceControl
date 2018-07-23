@@ -3,23 +3,25 @@
     using System;
     using System.IO;
     using System.Linq;
+    using FileSystem;
     using Ionic.Zip;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.FileSystem;
 
     [TestFixture]
     public class UnpackTest
     {
-        string zipFilePath;
-        DirectoryInfo workingFolder;
-
         [SetUp]
         public void Setup()
         {
             var identifier = Guid.NewGuid().ToString("N");
             zipFilePath = Path.Combine(Path.GetTempPath(), $"{identifier}.zip");
-            var folders = new [] { "a", "b", "c"};
-            workingFolder =  Directory.CreateDirectory( Path.Combine(Path.GetTempPath(), identifier ));
+            var folders = new[]
+            {
+                "a",
+                "b",
+                "c"
+            };
+            workingFolder = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), identifier));
 
             foreach (var folder in folders)
             {
@@ -41,8 +43,8 @@
                 zip.AddDirectory(workingFolder.FullName, null);
                 zip.Save(zipFilePath);
             }
-            Console.WriteLine(zipFilePath);
 
+            Console.WriteLine(zipFilePath);
         }
 
         [Test]
@@ -63,5 +65,8 @@
             workingFolder.Delete(true);
             File.Delete(zipFilePath);
         }
+
+        string zipFilePath;
+        DirectoryInfo workingFolder;
     }
 }

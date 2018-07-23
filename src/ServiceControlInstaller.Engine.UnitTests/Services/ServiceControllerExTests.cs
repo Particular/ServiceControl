@@ -2,9 +2,9 @@
 {
     using System.IO;
     using System.Linq;
+    using Engine.Services;
+    using Instances;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Services;
 
     [TestFixture]
     public class ServiceControllerExTests
@@ -18,7 +18,7 @@
             Assert.IsTrue(allServiceHostInstances.All(p => File.Exists(p.ExePath)));
         }
 
-        [Explicit,Test]
+        [Explicit, Test]
         public void CreateAService()
         {
             var s = new WindowsServiceDetails
@@ -35,8 +35,9 @@
             {
                 InstanceFinder.ServiceControlInstances().First(p => p.Name == s.Name).Service.Delete();
             }
+
             WindowsServiceController.RegisterNewService(s);
             InstanceFinder.ServiceControlInstances().First(p => p.Name == s.Name).Service.Delete();
-        }   
+        }
     }
 }
