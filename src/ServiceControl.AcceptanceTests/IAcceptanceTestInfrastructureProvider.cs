@@ -3,8 +3,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Collections.Generic;
     using System.Net.Http;
     using Newtonsoft.Json;
-    using ServiceBus.Management.Infrastructure;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Infrastructure;
+    using Infrastructure.Settings;
 
     public interface IAcceptanceTestInfrastructureProvider
     {

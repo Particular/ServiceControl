@@ -8,10 +8,10 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Pipeline;
     using NServiceBus.Settings;
 
-    internal class TraceOutgoingBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
+    class TraceOutgoingBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
     {
-        private ScenarioContext scenarioContext;
-        private ReadOnlySettings settings;
+        ScenarioContext scenarioContext;
+        ReadOnlySettings settings;
 
         public TraceOutgoingBehavior(ScenarioContext scenarioContext, ReadOnlySettings settings)
         {
@@ -19,7 +19,7 @@ namespace ServiceBus.Management.AcceptanceTests
             this.settings = settings;
         }
 
-        internal class Registration : RegisterStep
+        public class Registration : RegisterStep
         {
             public Registration()
                 : base("TraceOutgoingBehavior", typeof(TraceOutgoingBehavior), "Adds outgoing messages to the acceptance test trace")

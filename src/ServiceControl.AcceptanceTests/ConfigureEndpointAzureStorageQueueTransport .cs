@@ -7,10 +7,6 @@ using ServiceControl.Transports.ASQ;
 
 public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
 {
-    public string Name => "AzureStorageQueues";
-    public string TypeName => "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ";
-    public string ConnectionString { get; set; }
-    
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         var transportConfig = configuration
@@ -39,4 +35,7 @@ public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
     {
         return Task.FromResult(0);
     }
+    public string Name => "AzureStorageQueues";
+    public string TypeName => "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ";
+    public string ConnectionString { get; set; }
 }

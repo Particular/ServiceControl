@@ -7,18 +7,18 @@ namespace ServiceBus.Management.AcceptanceTests
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using ServiceBus.Management.Infrastructure;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Infrastructure;
+    using Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        private ITransportIntegration transportIntegration;
-        private Action<string, Settings> setInstanceSettings;
-        private Action<Settings> setSettings;
-        private Action<EndpointConfiguration> customConfiguration;
-        private Action<string, EndpointConfiguration> customInstanceConfiguration;
-        private string[] instanceNames;
-        private ServiceControlComponentRunner runner;
+        ITransportIntegration transportIntegration;
+        Action<string, Settings> setInstanceSettings;
+        Action<Settings> setSettings;
+        Action<EndpointConfiguration> customConfiguration;
+        Action<string, EndpointConfiguration> customInstanceConfiguration;
+        string[] instanceNames;
+        ServiceControlComponentRunner runner;
 
 
         public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<string, Settings> setInstanceSettings, Action<EndpointConfiguration> customConfiguration, Action<string, EndpointConfiguration> customInstanceConfiguration)

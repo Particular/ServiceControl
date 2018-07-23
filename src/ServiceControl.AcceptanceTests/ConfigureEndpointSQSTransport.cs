@@ -1,17 +1,10 @@
 ﻿using System.Threading.Tasks;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
-using TestConventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 using ServiceBus.Management.AcceptanceTests;
 
 public class ConfigureEndpointSQSTransport : ITransportIntegration
 {
-    public string Name => "SQS";
-
-    public string TypeName => "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS";
-
-    public string ConnectionString { get; set; }
-    
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         configuration.UseSerialization<NewtonsoftSerializer>();
@@ -34,4 +27,9 @@ public class ConfigureEndpointSQSTransport : ITransportIntegration
     {
         return Task.FromResult(0);
     }
+    public string Name => "SQS";
+
+    public string TypeName => "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS";
+
+    public string ConnectionString { get; set; }
 }

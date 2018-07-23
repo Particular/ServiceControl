@@ -8,17 +8,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
 
-    internal class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
+    class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
     {
-        static string[] pluginMessages = new[]
-        {
-            "ServiceControl.Plugin.CustomChecks.Messages.ReportCustomCheckResult",
-            "ServiceControl.EndpointPlugin.Messages.SagaState.SagaChangeInitiator",
-            "ServiceControl.EndpointPlugin.Messages.SagaState.SagaUpdatedMessage",
-            "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat",
-            "ServiceControl.Plugin.Heartbeat.Messages.RegisterEndpointStartup"
-        };
-        private ScenarioContext scenarioContext;
 
         public DiscardMessagesBehavior(ScenarioContext scenarioContext)
         {
@@ -27,25 +18,22 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public Task Invoke(ITransportReceiveContext context, Func<ITransportReceiveContext, Task> next)
         {
-            string session;
-            string intent;
-            string messageTypes;
             //Do not filter out CC and HB messages as they can't be stamped
-            if (context.Message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes)
+            if (context.Message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
                 && pluginMessages.Any(t => messageTypes.StartsWith(t)))
             {
                 return next(context);
             }
 
             //Do not filter out subscribe messages as they can't be stamped
-            if (context.Message.Headers.TryGetValue(Headers.MessageIntent, out intent)
+            if (context.Message.Headers.TryGetValue(Headers.MessageIntent, out var intent)
                 && intent == MessageIntentEnum.Subscribe.ToString())
             {
                 return next(context);
             }
 
             var currentSession = scenarioContext.TestRunId.ToString();
-            if (!context.Message.Headers.TryGetValue("SC.SessionID", out session) 
+            if (!context.Message.Headers.TryGetValue("SC.SessionID", out var session) 
                 || session != currentSession)
             {
                 context.Message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
@@ -56,6 +44,16 @@ namespace ServiceBus.Management.AcceptanceTests
             return next(context);
         }
 
-        private static ILog log = LogManager.GetLogger<DiscardMessagesBehavior>();
+        ScenarioContext scenarioContext;
+        static ILog log = LogManager.GetLogger<DiscardMessagesBehavior>();
+
+        static string[] pluginMessages =
+        {
+            "ServiceControl.Plugin.CustomChecks.Messages.ReportCustomCheckResult",
+            "ServiceControl.EndpointPlugin.Messages.SagaState.SagaChangeInitiator",
+            "ServiceControl.EndpointPlugin.Messages.SagaState.SagaUpdatedMessage",
+            "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat",
+            "ServiceControl.Plugin.Heartbeat.Messages.RegisterEndpointStartup"
+        };
     }
 }

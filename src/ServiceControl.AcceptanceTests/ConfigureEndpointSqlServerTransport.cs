@@ -9,11 +9,7 @@ using NServiceBus.Transport;
 using ServiceBus.Management.AcceptanceTests;
 
 public class ConfigureEndpointSqlServerTransport : ITransportIntegration
-{
-    public string Name => "SqlServer";
-    public string TypeName => $"{typeof(ServiceControl.Transports.SqlServer.SqlServerTransportCustomization).AssemblyQualifiedName}";
-    public string ConnectionString { get; set; }
-    
+{   
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         queueBindings = configuration.GetSettings().Get<QueueBindings>();
@@ -72,8 +68,6 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
         }
     }
 
-    QueueBindings queueBindings;
-
     class QueueAddress
     {
         public QueueAddress(string table, string schemaName, string catalogName)
@@ -99,8 +93,7 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
             var tableName = address.Substring(0, firstAtIndex);
             address = firstAtIndex + 1 < address.Length ? address.Substring(firstAtIndex + 1) : string.Empty;
 
-            string schemaName;
-            address = ExtractNextPart(address, out schemaName);
+            address = ExtractNextPart(address, out var schemaName);
 
             string catalogName = null;
 
@@ -176,4 +169,9 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
                 .Substring(prefix.Length, quotedString.Length - prefix.Length - suffix.Length).Replace(suffix + suffix, suffix);
         }
     }
+
+    QueueBindings queueBindings;
+    public string Name => "SqlServer";
+    public string TypeName => $"{typeof(ServiceControl.Transports.SqlServer.SqlServerTransportCustomization).AssemblyQualifiedName}";
+    public string ConnectionString { get; set; }
 }

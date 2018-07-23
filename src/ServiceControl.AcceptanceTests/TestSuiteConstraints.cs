@@ -6,15 +6,7 @@
 
     public partial class TestSuiteConstraints
     {
-        public bool SupportsDtc => false;
-        public bool SupportsCrossQueueTransactions => true;
-        public bool SupportsNativePubSub => true;
-        public bool SupportsNativeDeferral => true;
-        public bool SupportsOutbox => false;
-        public IConfigureEndpointTestExecution CreateTransportConfiguration() => GetTransportIntegrationFromEnvironmentVar();
-        public IConfigureEndpointTestExecution CreatePersistenceConfiguration() => new ConfigureEndpointInMemoryPersistence();
-        
-        private static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
+        static ITransportIntegration GetTransportIntegrationFromEnvironmentVar()
         {
             var transportCustomizationToUseString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.TransportCustomization") ?? typeof(ConfigureEndpointMsmqTransport).Name;
             var transportToUse = (ITransportIntegration) Activator.CreateInstance(Type.GetType(transportCustomizationToUseString));
@@ -27,5 +19,13 @@
 
             return transportToUse;
         }
+
+        public bool SupportsDtc => false;
+        public bool SupportsCrossQueueTransactions => true;
+        public bool SupportsNativePubSub => true;
+        public bool SupportsNativeDeferral => true;
+        public bool SupportsOutbox => false;
+        public IConfigureEndpointTestExecution CreateTransportConfiguration() => GetTransportIntegrationFromEnvironmentVar();
+        public IConfigureEndpointTestExecution CreatePersistenceConfiguration() => new ConfigureEndpointInMemoryPersistence();
     }
 }

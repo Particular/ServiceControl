@@ -22,20 +22,20 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
-    using ServiceBus.Management.Infrastructure;
-    using ServiceBus.Management.Infrastructure.Nancy;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Infrastructure;
+    using Infrastructure.Nancy;
+    using Infrastructure.Settings;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        private Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
-        private Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
-        private ITransportIntegration transportToUse;
-        private Action<string, Settings> setInstanceSettings;
-        private Action<Settings> setSettings;
-        private Action<EndpointConfiguration> customConfiguration;
-        private Action<string, EndpointConfiguration> customInstanceConfiguration;
-        private string[] instanceNames;
+        Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
+        Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
+        ITransportIntegration transportToUse;
+        Action<string, Settings> setInstanceSettings;
+        Action<Settings> setSettings;
+        Action<EndpointConfiguration> customConfiguration;
+        Action<string, EndpointConfiguration> customInstanceConfiguration;
+        string[] instanceNames;
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
 
@@ -54,7 +54,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return InitializeServiceControl(run.ScenarioContext, instanceNames);
         }
 
-        private static int FindAvailablePort(int startPort)
+        static int FindAvailablePort(int startPort)
         {
             var activeTcpListeners = IPGlobalProperties
                 .GetIPGlobalProperties()
@@ -72,7 +72,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return startPort;
         }
 
-        private async Task InitializeServiceControl(ScenarioContext context, string[] instanceNames)
+        async Task InitializeServiceControl(ScenarioContext context, string[] instanceNames)
         {
             if (instanceNames.Length == 0)
             {
@@ -82,7 +82,7 @@ namespace ServiceBus.Management.AcceptanceTests
             var startPort = 33333;
             foreach (var instanceName in instanceNames)
             {
-                typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(context, instanceName);
+                typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
                 
                 var instancePort = FindAvailablePort(startPort++);
                 var maintenancePort = FindAvailablePort(startPort++);
@@ -108,25 +108,22 @@ namespace ServiceBus.Management.AcceptanceTests
                         headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                         log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
 
-                        string session;
-                        string intent;
-                        string messageTypes;
                         //Do not filter out CC, SA and HB messages as they can't be stamped
-                        if (headers.TryGetValue(Headers.EnclosedMessageTypes, out messageTypes)
+                        if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
                             && messageTypes.StartsWith("ServiceControl."))
                         {
                             return @continue();
                         }
 
                         //Do not filter out subscribe messages as they can't be stamped
-                        if (headers.TryGetValue(Headers.MessageIntent, out intent)
+                        if (headers.TryGetValue(Headers.MessageIntent, out var intent)
                             && intent == MessageIntentEnum.Subscribe.ToString())
                         {
                             return @continue();
                         }
 
                         var currentSession = context.TestRunId.ToString();
-                        if (!headers.TryGetValue("SC.SessionID", out session) || session != currentSession)
+                        if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                         {
                             log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
                             return Task.FromResult(0);
@@ -240,7 +237,7 @@ namespace ServiceBus.Management.AcceptanceTests
             Handlers.Clear();
         }
 
-        private static void DeleteFolder(string path)
+        static void DeleteFolder(string path)
         {
             DirectoryInfo emptyTempDirectory = null;
 
@@ -261,7 +258,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     CreateNoWindow = true
                 }))
                 {
-                    process.WaitForExit();
+                    process?.WaitForExit();
                 }
 
                 using (var windowsIdentity = WindowsIdentity.GetCurrent())
@@ -282,7 +279,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        private HttpClient HttpClientFactory()
+        HttpClient HttpClientFactory()
         {
             var httpClient = new HttpClient(new ForwardingHandler(portToHandler));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -291,7 +288,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         class ForwardingHandler : DelegatingHandler
         {
-            private Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers;
+            Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers;
 
             public ForwardingHandler(Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers)
             {

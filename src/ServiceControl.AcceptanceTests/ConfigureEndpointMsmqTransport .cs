@@ -11,10 +11,6 @@ using ServiceBus.Management.AcceptanceTests;
 
 public class ConfigureEndpointMsmqTransport : ITransportIntegration
 {
-    public string Name => "Msmq";
-    public string TypeName => $"{typeof(ServiceControl.Transports.Msmq.MsmqTransportCustomization).AssemblyQualifiedName}";
-    public string ConnectionString { get; set; }
-    
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         queueBindings = configuration.GetSettings().Get<QueueBindings>();
@@ -78,4 +74,7 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
     }
 
     QueueBindings queueBindings;
+    public string Name => "Msmq";
+    public string TypeName => $"{typeof(ServiceControl.Transports.Msmq.MsmqTransportCustomization).AssemblyQualifiedName}";
+    public string ConnectionString { get; set; }
 }
