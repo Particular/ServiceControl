@@ -25,7 +25,7 @@
         {
             logger.Info("Reclassification of failures started.");
 
-            int failedMessagesReclassified = 0;
+            var failedMessagesReclassified = 0;
             var currentBatch = new List<Tuple<string, ClassifiableMessageDetails>>();
 
             using (var session = store.OpenAsyncSession())
@@ -89,7 +89,7 @@
 
         int ReclassifyBatch(IDocumentStore store, IEnumerable<Tuple<string, ClassifiableMessageDetails>> docs, IEnumerable<IFailureClassifier> classifiers)
         {
-            int failedMessagesReclassified = 0;
+            var failedMessagesReclassified = 0;
 
             Parallel.ForEach(docs, doc =>
             {

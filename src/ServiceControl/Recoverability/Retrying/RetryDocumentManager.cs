@@ -103,12 +103,10 @@ namespace ServiceControl.Recoverability
 
         internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
         {
-            RavenQueryStatistics stats;
-
             var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
                 .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
-                .Statistics(out stats)
+                .Statistics(out var stats)
                 .ToListAsync()
                 .ConfigureAwait(false);
 

@@ -11,10 +11,14 @@ namespace ServiceControl.Recoverability
             var exception = failure.Details?.Exception;
 
             if (exception == null)
+            {
                 return null;
+            }
 
             if (string.IsNullOrWhiteSpace(exception.StackTrace))
+            {
                 return GetNonStandardClassification(exception.ExceptionType);
+            }
 
             var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
             {
@@ -26,7 +30,9 @@ namespace ServiceControl.Recoverability
             }).FirstOrDefault();
 
             if (firstStackTraceFrame != null)
+            {
                 return exception.ExceptionType + ": " + firstStackTraceFrame.ToMethodIdentifier();
+            }
 
             return GetNonStandardClassification(exception.ExceptionType);
         }
