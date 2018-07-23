@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Messaging;
     using System.ServiceProcess;
-    using Configuration.ServiceControl;
+    using Engine.Configuration.ServiceControl;
     using Instances;
     using NUnit.Framework;
     using ReportCard;
