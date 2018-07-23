@@ -10,7 +10,10 @@
             // ReSharper disable once AssignNullToNotNullAttribute
             var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
             if (principal.IsInRole(WindowsBuiltInRole.Administrator))
+            {
                 return;
+            }
+
             throw new Exception("You must have administrative permissions to use this method");
         }
     }

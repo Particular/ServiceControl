@@ -33,8 +33,7 @@ namespace ServiceControlInstaller.PowerShell
                 return;
             }
 
-            string errorMsg;
-            if (!LicenseManager.TryImportLicense(psPath, out errorMsg))
+            if (!LicenseManager.TryImportLicense(psPath, out var errorMsg))
             {
                 WriteError(new ErrorRecord(new Exception(errorMsg), "ServiceControlLicense", ErrorCategory.InvalidData, null));
             }

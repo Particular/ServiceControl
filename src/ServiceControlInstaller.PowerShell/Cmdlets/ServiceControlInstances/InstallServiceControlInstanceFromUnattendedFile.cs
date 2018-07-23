@@ -71,9 +71,16 @@ namespace ServiceControlInstaller.PowerShell
 
         private bool PromptToProceed(PathInfo pathInfo)
         {
-            if (!pathInfo.CheckIfEmpty) return false;
+            if (!pathInfo.CheckIfEmpty)
+            {
+                return false;
+            }
+
             if (!Force.ToBool())
+            {
                 throw new EngineValidationException($"Thr directory specified for {pathInfo.Name} is not empty.  Use -Force to if you are sure you want to use this path");
+            }
+
             WriteWarning($"Thr directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");
             return false;
         }

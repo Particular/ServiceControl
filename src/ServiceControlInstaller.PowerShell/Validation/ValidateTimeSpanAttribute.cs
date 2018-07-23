@@ -14,10 +14,14 @@ namespace ServiceControlInstaller.PowerShell
             var span = (TimeSpan)arguments;
 
             if (span.TotalHours < MinimumHours)
+            {
                 throw new Exception($"Timespan value is lower than the minimum of {MinimumHours} hours");
+            }
 
             if (span.TotalHours > MaximumHours)
+            {
                 throw new Exception($"Timespan value is greater than the maximum of {MaximumHours} hours");
+            }
         }
     }
 }
