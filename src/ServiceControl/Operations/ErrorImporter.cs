@@ -28,7 +28,6 @@
                 context.Container.ConfigureComponent(b =>
                     new SatelliteImportFailuresHandler(b.Build<IDocumentStore>(), Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Error"), msg => new FailedErrorImport
                     {
-                        // TODO: Check if the usage of FailedTransportMessage breaks anything
                         Message = msg
                     }, b.Build<CriticalError>()), DependencyLifecycle.SingleInstance);
 
