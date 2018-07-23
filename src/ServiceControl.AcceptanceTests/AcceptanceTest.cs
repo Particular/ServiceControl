@@ -73,8 +73,6 @@ namespace ServiceBus.Management.AcceptanceTests
             var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
             TestContext.WriteLine($"Using transport {transportToUse.Name}");
 
-            AssertTransportNotExplicitlyIgnored(transportToUse);
-
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
 
             RemoveOtherTransportAssemblies(transportToUse.TypeName);
@@ -103,20 +101,6 @@ namespace ServiceBus.Management.AcceptanceTests
             foreach (var transportAssembly in otherAssemblies)
             {
                 File.Delete(transportAssembly);
-            }
-        }
-
-        void AssertTransportNotExplicitlyIgnored(ITransportIntegration transportToUse)
-        {
-            if (!TestContext.CurrentContext.Test.Properties.ContainsKey(ignoreTransportsKey))
-            {
-                return;
-            }
-
-            var ignoredTransports = (string[])TestContext.CurrentContext.Test.Properties[ignoreTransportsKey].First();
-            if (ignoredTransports.Contains(transportToUse.Name))
-            {
-                Assert.Inconclusive($"Transport {transportToUse.Name} has been explicitly ignored for test {TestContext.CurrentContext.Test.Name}");
             }
         }
 
@@ -152,8 +136,6 @@ namespace ServiceBus.Management.AcceptanceTests
         protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;
-
-        static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
     }
 
     class StaticLoggerFactory : ILoggerFactory
