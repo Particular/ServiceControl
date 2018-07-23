@@ -313,7 +313,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))
             {
