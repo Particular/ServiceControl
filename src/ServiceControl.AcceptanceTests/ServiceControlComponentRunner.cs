@@ -51,7 +51,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public Task Initialize(RunDescriptor run)
         {
-            return InitializeServiceControl(run.ScenarioContext, instanceNames);
+            return InitializeServiceControl(run.ScenarioContext);
         }
 
         static int FindAvailablePort(int startPort)
@@ -72,7 +72,7 @@ namespace ServiceBus.Management.AcceptanceTests
             return startPort;
         }
 
-        async Task InitializeServiceControl(ScenarioContext context, string[] instanceNames)
+        async Task InitializeServiceControl(ScenarioContext context)
         {
             if (instanceNames.Length == 0)
             {
