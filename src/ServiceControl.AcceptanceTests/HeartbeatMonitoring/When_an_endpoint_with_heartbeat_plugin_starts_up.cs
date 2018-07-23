@@ -3,11 +3,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -44,18 +44,11 @@
         {
             public StartingEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public void Handle(MyMessage message)
-                {
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     return Task.FromResult(0);
