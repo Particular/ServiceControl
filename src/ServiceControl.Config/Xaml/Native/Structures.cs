@@ -33,7 +33,9 @@
         public RECT rcWork = new RECT();
 
 #pragma warning disable 169
+#pragma warning disable 414
         public int dwFlags = 0;
+#pragma warning restore 414
 #pragma warning restore 169
     }
 
