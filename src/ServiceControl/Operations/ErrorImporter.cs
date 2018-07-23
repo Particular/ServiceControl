@@ -40,7 +40,7 @@
                     (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(builder, messageContext))
                 );
                 
-                context.RegisterStartupTask(b => b.Build<StartupTask>());
+                context.RegisterStartupTask(b => new StartupTask(b.Build<SatelliteImportFailuresHandler>(), this));
             }
 
             // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled
