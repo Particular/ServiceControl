@@ -70,15 +70,17 @@
             return instanceInstaller.ReportCard;
         }
 
-        internal ReportCard Upgrade(string instanceName, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
 
-            var instance = InstanceFinder.FindServiceControlInstance(instanceName);
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
-            progress.Report(0, 7, "Stopping instance...");
+            var totalSteps = 7 - (upgradeOptions.UpgradeInfo.DeleteIndexes ? 0 : 1) - (upgradeOptions.UpgradeInfo.DataBaseUpdate ? 0 : 1);
+            var currentStep = 0;
+
+            progress.Report(currentStep++, totalSteps, "Stopping instance...");
             if (!instance.TryStopService())
             {
                 return new ReportCard
@@ -88,28 +90,35 @@
                 };
             }
 
-            progress.Report(1, 7, "Backing up app.config...");
+            progress.Report(currentStep++, totalSteps, "Backing up app.config...");
             var backupFile = instance.BackupAppConfig();
             try
             {
-                progress.Report(2, 7, "Upgrading Files...");
+                progress.Report(currentStep++, totalSteps, "Upgrading Files...");
                 instance.UpgradeFiles(ZipInfo.FilePath);
             }
             finally
             {
-                progress.Report(3, 7, "Restoring app.config...");
+                progress.Report(currentStep++, totalSteps, "Restoring app.config...");
                 instance.RestoreAppConfig(backupFile);
             }
 
             upgradeOptions.ApplyChangesToInstance(instance);
 
-            progress.Report(4, 6, "Removing database indexes...");
-            instance.RemoveDatabaseIndexes();
+            if (upgradeOptions.UpgradeInfo.DeleteIndexes)
+            {
+                progress.Report(currentStep++, totalSteps, "Removing database indexes...");
+                instance.RemoveDatabaseIndexes();
+            }
 
-            progress.Report(4, 6, "Updating Database...");
-            instance.UpdateDatabase(msg => progress.Report(5, 7, $"Updating Database...{Environment.NewLine}{msg}"));
+            if (upgradeOptions.UpgradeInfo.DataBaseUpdate)
+            {
+                progress.Report(currentStep, totalSteps, "Updating Database...");
+                // ReSharper disable once AccessToModifiedClosure
+                instance.UpdateDatabase(msg => progress.Report(currentStep, totalSteps, $"Updating Database...{Environment.NewLine}{msg}"));
+            }
 
-            progress.Report(6, 7, "Running Queue Creation...");
+            progress.Report(++currentStep, totalSteps, "Running Queue Creation...");
             instance.SetupInstance();
 
             instance.ReportCard.SetStatus();
