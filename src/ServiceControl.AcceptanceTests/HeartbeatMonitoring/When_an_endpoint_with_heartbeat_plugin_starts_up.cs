@@ -53,10 +53,6 @@
                 {
                     return Task.FromResult(0);
                 }
-
-                public void Handle(MyMessage message)
-                {
-                }
             }
         }
 
