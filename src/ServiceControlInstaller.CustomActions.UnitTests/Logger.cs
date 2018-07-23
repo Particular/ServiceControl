@@ -1,7 +1,7 @@
 ﻿namespace ServiceControlInstaller.CustomActions.UnitTests
 {
     using System;
-    using ServiceControlInstaller.Engine;
+    using Engine;
 
     public class TestLogger : ILogging
     {

@@ -136,8 +136,7 @@ namespace ServiceControl.Recoverability
 
         internal async Task<bool> ProcessNextBulkRetry()
         {
-            IBulkRetryRequest request;
-            if (!bulkRequests.TryDequeue(out request))
+            if (!bulkRequests.TryDequeue(out var request))
             {
                 return false;
             }
@@ -175,7 +174,10 @@ namespace ServiceControl.Recoverability
         private string GetBatchName(int pageNum, int totalPages, string context)
         {
             if (context == null)
+            {
                 return null;
+            }
+
             return $"'{context}' batch {pageNum} of {totalPages}";
         }
 

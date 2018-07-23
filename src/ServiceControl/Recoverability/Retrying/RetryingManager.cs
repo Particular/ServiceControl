@@ -27,8 +27,7 @@
 
         public bool IsOperationInProgressFor(string requestId, RetryType retryType)
         {
-            InMemoryRetry summary;
-            if (!retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary))
+            if (!retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out var summary))
             {
                 return false;
             }
@@ -130,8 +129,7 @@
 
         private InMemoryRetry GetOrCreate(RetryType retryType, string requestId)
         {
-            InMemoryRetry summary;
-            if (!retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary))
+            if (!retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out var summary))
             {
                 summary = new InMemoryRetry(requestId, retryType, domainEvents);
                 retryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)] = summary;
@@ -147,8 +145,7 @@
 
         public InMemoryRetry GetStatusForRetryOperation(string requestId, RetryType retryType)
         {
-            InMemoryRetry summary;
-            retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out summary);
+            retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out var summary);
 
             return summary;
         }

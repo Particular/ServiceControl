@@ -25,8 +25,7 @@ namespace ServiceControl.Recoverability
             var messageId = message.MessageId;
             Log.DebugFormat("{0}: Retrieving message body", messageId);
 
-            string attemptMessageId;
-            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
+            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
             {
                 var result = await bodyStorage.TryFetch(attemptMessageId)
                     .ConfigureAwait(false);
@@ -55,8 +54,7 @@ namespace ServiceControl.Recoverability
 
             var destination = outgoingHeaders["ServiceControl.TargetEndpointAddress"];
             Log.DebugFormat("{0}: Forwarding message to {1}", messageId, destination);
-            string retryTo;
-            if (!outgoingHeaders.TryGetValue("ServiceControl.RetryTo", out retryTo))
+            if (!outgoingHeaders.TryGetValue("ServiceControl.RetryTo", out var retryTo))
             {
                 retryTo = destination;
                 outgoingHeaders.Remove("ServiceControl.TargetEndpointAddress");

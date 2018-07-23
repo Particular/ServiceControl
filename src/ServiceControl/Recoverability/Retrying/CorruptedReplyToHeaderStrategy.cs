@@ -13,14 +13,12 @@ namespace ServiceControl.Recoverability
 
         public void FixCorruptedReplyToHeader(IDictionary<string, string> headers)
         {
-            string replyToAddress;
-            if (!headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+            if (!headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
             {
                 return;
             }
 
-            string originatingMachine;
-            if (!headers.TryGetValue(Headers.OriginatingMachine, out originatingMachine))
+            if (!headers.TryGetValue(Headers.OriginatingMachine, out var originatingMachine))
             {
                 return;
             }
