@@ -33,9 +33,6 @@
             return sanitized;
         }
 
-        static Regex invalidCharacters = new Regex(@"[^a-zA-Z0-9\-]", RegexOptions.Compiled);
-        static Regex multipleDashes = new Regex(@"\-+", RegexOptions.Compiled);
-
         static string ShortenWithMd5(string test)
         {
             //use MD5 hash to get a 16-byte hash of the string
@@ -47,5 +44,8 @@
                 return new Guid(hashBytes).ToString();
             }
         }
+
+        static Regex invalidCharacters = new Regex(@"[^a-zA-Z0-9\-]", RegexOptions.Compiled);
+        static Regex multipleDashes = new Regex(@"\-+", RegexOptions.Compiled);
     }
 }

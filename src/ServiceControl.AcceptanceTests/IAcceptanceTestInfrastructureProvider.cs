@@ -2,9 +2,9 @@ namespace ServiceBus.Management.AcceptanceTests
 {
     using System.Collections.Generic;
     using System.Net.Http;
-    using Newtonsoft.Json;
     using Infrastructure;
     using Infrastructure.Settings;
+    using Newtonsoft.Json;
 
     public interface IAcceptanceTestInfrastructureProvider
     {

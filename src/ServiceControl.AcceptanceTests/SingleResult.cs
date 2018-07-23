@@ -4,19 +4,17 @@ namespace ServiceBus.Management.AcceptanceTests
 
     public class SingleResult<T>
     {
-        public static SingleResult<T> Empty = new SingleResult<T>
-        {
-            HasResult = false,
-            Item = default(T)
-        };
+        public bool HasResult { get; private set; }
+        public T Item { get; private set; }
 
         public static SingleResult<T> New(T item)
         {
-            return new SingleResult<T> { HasResult = true, Item = item };
+            return new SingleResult<T>
+            {
+                HasResult = true,
+                Item = item
+            };
         }
-
-        public bool HasResult { get; private set; }
-        public T Item { get; private set; }
 
         public static implicit operator bool(SingleResult<T> result)
         {
@@ -32,5 +30,11 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             return result.Item;
         }
+
+        public static SingleResult<T> Empty = new SingleResult<T>
+        {
+            HasResult = false,
+            Item = default
+        };
     }
 }

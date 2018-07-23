@@ -1,8 +1,8 @@
 ﻿namespace ServiceControlInstaller.Engine.UnitTests.Configuration.ServiceControl
 {
     using System;
+    using Engine.Configuration.ServiceControl;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
 
     [TestFixture]
     public class UpgradeControlTests
@@ -53,4 +53,3 @@
         }
     }
 }
-

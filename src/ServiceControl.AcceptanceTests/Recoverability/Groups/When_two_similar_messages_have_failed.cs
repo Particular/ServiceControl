@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -82,10 +82,10 @@
             Assert.AreEqual(2, messageTypeGroups.First().Count, "Message Type Group should have both messages in it");
 
             var failureTimes = firstFailure.ProcessingAttempts
-                        .Union(secondFailure.ProcessingAttempts)
-                        .Where(x => x.FailureDetails != null)
-                        .Select(x => x.FailureDetails.TimeOfFailure)
-                        .ToList();
+                .Union(secondFailure.ProcessingAttempts)
+                .Where(x => x.FailureDetails != null)
+                .Select(x => x.FailureDetails.TimeOfFailure)
+                .ToList();
 
             Assert.AreEqual(failureTimes.Min(), failureGroup.First, "Failure Group should start when the earliest failure occurred");
             Assert.AreEqual(failureTimes.Max(), failureGroup.Last, "Failure Group should end when the latest failure occurred");
@@ -95,10 +95,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                    {
-                        c.NoRetries();
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

@@ -31,9 +31,6 @@
     public class SequenceBuilder<TContext>
         where TContext : ScenarioContext, ISequenceContext
     {
-        IScenarioWithEndpointBehavior<TContext> endpointBehavior;
-        Sequence<TContext> sequence = new Sequence<TContext>();
-
         public SequenceBuilder(IScenarioWithEndpointBehavior<TContext> endpointBehavior, string step, Func<TContext, Task<bool>> handler)
         {
             this.endpointBehavior = endpointBehavior;
@@ -57,14 +54,14 @@
             var behavior = new ServiceControlClient<TContext>(context => sequence.Continue(context));
             return endpointBehavior.WithComponent(behavior).Done(ctx => sequence.IsFinished(ctx) && doneCriteria(ctx));
         }
+
+        IScenarioWithEndpointBehavior<TContext> endpointBehavior;
+        Sequence<TContext> sequence = new Sequence<TContext>();
     }
 
     public class ServiceControlClient<TContext> : IComponentBehavior
         where TContext : ScenarioContext
     {
-        Func<TContext, Task<bool>> checkDone;
-        volatile bool isDone;
-
         public ServiceControlClient(Func<TContext, Task<bool>> checkDone)
         {
             this.checkDone = checkDone;
@@ -77,14 +74,11 @@
             return Task.FromResult<ComponentRunner>(new Runner(checkDone, () => isDone = true, (TContext)run.ScenarioContext));
         }
 
+        Func<TContext, Task<bool>> checkDone;
+        volatile bool isDone;
+
         class Runner : ComponentRunner
         {
-            Func<TContext, Task<bool>> isDone;
-            Action setDone;
-            TContext scenarioContext;
-            Task checkTask;
-            CancellationTokenSource tokenSource;
-
             public Runner(Func<TContext, Task<bool>> isDone, Action setDone, TContext scenarioContext)
             {
                 this.isDone = isDone;
@@ -136,6 +130,12 @@
                     tokenSource.Dispose();
                 }
             }
+
+            Func<TContext, Task<bool>> isDone;
+            Action setDone;
+            TContext scenarioContext;
+            Task checkTask;
+            CancellationTokenSource tokenSource;
         }
     }
 }

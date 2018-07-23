@@ -16,6 +16,12 @@
 
     public class UpgradeInfo
     {
+        public UpgradeInfo(Version targetMinimum, Version currentMinimum)
+        {
+            TargetMinimumVersion = ConvertToCleanVersion(targetMinimum);
+            CurrentMinimumVersion = ConvertToCleanVersion(currentMinimum);
+        }
+
         /// <summary>
         /// Minimum version targeted for install that will trigger this
         /// </summary>
@@ -25,12 +31,6 @@
         /// Minimum version instance must be to satisfy target version pre-conditions
         /// </summary>
         public Version CurrentMinimumVersion { get; }
-
-        public UpgradeInfo(Version targetMinimum, Version currentMinimum)
-        {
-            TargetMinimumVersion = ConvertToCleanVersion(targetMinimum);
-            CurrentMinimumVersion = ConvertToCleanVersion(currentMinimum);
-        }
 
         /// <summary>
         /// Version recommended for upgrade if instance version does not meet the CurrentMinimumVersion
@@ -51,8 +51,6 @@
         /// </summary>
         public bool DeleteIndexes { get; set; }
 
-        Version recommendedUpgradeVersion;
-
         static Version ConvertToCleanVersion(Version version)
         {
             return new Version(
@@ -65,5 +63,7 @@
         {
             return $"[{CurrentMinimumVersion} -> {TargetMinimumVersion}]";
         }
+
+        Version recommendedUpgradeVersion;
     }
 }

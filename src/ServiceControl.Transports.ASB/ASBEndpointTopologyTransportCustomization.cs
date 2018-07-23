@@ -7,11 +7,11 @@
     public class ASBEndpointTopologyTransportCustomization : TransportCustomization
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
-        {           
+        {
             var remoteInstances = transportSettings.Get<string[]>("TransportSettings.RemoteInstances");
             var remoteTypesToSubscribeTo = transportSettings.Get<Type[]>("TransportSettings.RemoteTypesToSubscribeTo");
             var endpointName = transportSettings.EndpointName;
-            
+
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
             var topology = transport.UseEndpointOrientedTopology();
@@ -22,7 +22,7 @@
                     topology.RegisterPublisher(remoteType, remoteInstance);
                 }
             }
-            
+
             foreach (var remoteType in remoteTypesToSubscribeTo)
             {
                 topology.RegisterPublisher(remoteType, endpointName);
@@ -38,7 +38,7 @@
             transport.ApplyHacksForNsbRaw();
             ConfigureTransport(transport, transportSettings);
         }
-                
+
         static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
             transport.Transactions(TransportTransactionMode.ReceiveOnly);

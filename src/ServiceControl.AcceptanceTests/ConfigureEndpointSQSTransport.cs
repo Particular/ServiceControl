@@ -27,6 +27,7 @@ public class ConfigureEndpointSQSTransport : ITransportIntegration
     {
         return Task.FromResult(0);
     }
+
     public string Name => "SQS";
 
     public string TypeName => $"{typeof(ServiceControl.Transports.SQS.SQSTransportCustomization).AssemblyQualifiedName}";

@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Sagas;
     using NUnit.Framework;
-    using EndpointTemplates;
 
     public class When_a_message_hitting_a_saga_is_not_a_start_message : AcceptanceTest
     {
@@ -14,7 +14,7 @@
         public async Task Saga_info_should_not_be_available_through_the_http_api()
         {
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MyMessage { OrderId = 1 })))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MyMessage {OrderId = 1})))
                 .Done(c => c.SagaNotFound)
                 .Run(TimeSpan.FromSeconds(40));
 

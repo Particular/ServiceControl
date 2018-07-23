@@ -7,8 +7,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
     class StampDispatchBehavior : IBehavior<IDispatchContext, IDispatchContext>
     {
-        ScenarioContext scenarioContext;
-
         public StampDispatchBehavior(ScenarioContext scenarioContext)
         {
             this.scenarioContext = scenarioContext;
@@ -23,5 +21,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             return next(context);
         }
+
+        ScenarioContext scenarioContext;
     }
 }

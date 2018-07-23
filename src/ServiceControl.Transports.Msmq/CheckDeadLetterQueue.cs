@@ -1,15 +1,13 @@
 ﻿namespace ServiceControl.MSMQ.DLQMonitor
 {
     using System;
-    using NServiceBus.CustomChecks;
     using System.Diagnostics;
     using System.Threading.Tasks;
+    using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
 
     public class CheckDeadLetterQueue : CustomCheck
     {
-        PerformanceCounter dlqPerformanceCounter;
-
         public CheckDeadLetterQueue() :
             base("Dead Letter Queue", "Transport", TimeSpan.FromHours(1))
         {
@@ -38,6 +36,8 @@
             Logger.Warn(result);
             return CheckResult.Failed(result);
         }
+
+        PerformanceCounter dlqPerformanceCounter;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
     }

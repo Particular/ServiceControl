@@ -3,11 +3,11 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using EndpointTemplates;
-    using Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_requesting_timeout_from_a_saga : AcceptanceTest
@@ -18,7 +18,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage { Id = "Id" })))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage {Id = "Id"})))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", sh => sh.Changes.Any(change => change.Status == SagaStateChangeStatus.Updated));
@@ -42,12 +42,14 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }
-
         }
+
         public class MySaga : Saga<MySagaData>,
             IAmStartedByMessages<StartSagaMessage>,
             IHandleTimeouts<TimeoutMessage>
         {
+            public MyContext Context { get; set; }
+
             public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
                 Context.SagaId = Data.Id;
@@ -64,7 +66,6 @@
             {
                 mapper.ConfigureMapping<StartSagaMessage>(msg => msg.Id).ToSaga(saga => saga.MessageId);
             }
-            public MyContext Context { get; set; }
         }
 
         public class MySagaData : ContainSagaData

@@ -2,6 +2,7 @@ namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -10,6 +11,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -17,8 +20,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Logging;
     using NUnit.Framework;
-    using Infrastructure;
-    using Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -33,6 +34,12 @@ namespace ServiceBus.Management.AcceptanceTests
             ServicePointManager.Expect100Continue = false; // This ensures tcp ports are free up quicker by the OS, prevents starvation of ports
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
         }
+
+        public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
+        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
+        public Dictionary<string, Settings> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
+        public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
+        public Dictionary<string, BusInstance> Busses => serviceControlRunnerBehavior.Busses;
 
         [OneTimeSetUp]
         public void OneTimeSetup()
@@ -49,7 +56,7 @@ namespace ServiceBus.Management.AcceptanceTests
             CustomInstanceConfiguration = (i, c) => { };
 
 #if !NETCOREAPP2_0
-            System.Configuration.ConfigurationManager.GetSection("X");
+            ConfigurationManager.GetSection("X");
 #endif
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
@@ -139,26 +146,18 @@ namespace ServiceBus.Management.AcceptanceTests
                 .WithComponent(serviceControlRunnerBehavior);
         }
 
-        public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
-        public Dictionary<string, Settings> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
-        public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
-        public Dictionary<string, BusInstance> Busses => serviceControlRunnerBehavior.Busses;
-
-        static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
-        ServiceControlComponentBehavior serviceControlRunnerBehavior;
-        TextWriterTraceListener textWriterTraceListener;
-
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
         protected Action<Settings> SetSettings = _ => { };
         protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
+        ServiceControlComponentBehavior serviceControlRunnerBehavior;
+        TextWriterTraceListener textWriterTraceListener;
+
+        static string ignoreTransportsKey = nameof(IgnoreTransportsAttribute).Replace("Attribute", "");
     }
 
     class StaticLoggerFactory : ILoggerFactory
     {
-        public static ScenarioContext CurrentContext;
-
         public StaticLoggerFactory(ScenarioContext currentContext)
         {
             CurrentContext = currentContext;
@@ -173,6 +172,8 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             return new StaticContextAppender();
         }
+
+        public static ScenarioContext CurrentContext;
     }
 
     class StaticContextAppender : ILog
@@ -459,6 +460,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                     throw new Exception($"Expected status code not received, instead got {response.StatusCode}.");
                 }
+
                 return;
             }
 

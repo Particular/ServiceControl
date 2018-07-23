@@ -3,16 +3,13 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Messages;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Support;
-    using Messages;
 
     class Program
     {
-        static IEndpointInstance endpointInstance;
-        static Guid hostId;
-
         static void Main(string[] args)
         {
             Start(args).GetAwaiter().GetResult();
@@ -94,5 +91,8 @@
                 }, token);
             }
         }
+
+        static IEndpointInstance endpointInstance;
+        static Guid hostId;
     }
 }

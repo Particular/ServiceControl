@@ -7,11 +7,6 @@
 
     class LoadGenerators
     {
-        Func<string, CancellationToken, Task> generateMessages;
-        ConcurrentDictionary<string, LoadGenerator> generators = new ConcurrentDictionary<string, LoadGenerator>();
-        int minLength;
-        int maxLength;
-
         public LoadGenerators(Func<string, CancellationToken, Task> generateMessages, int minLength, int maxLength)
         {
             this.generateMessages = generateMessages;
@@ -25,5 +20,10 @@
             var gen = generators.GetOrAdd(destination, k => new LoadGenerator(k, generateMessages, minLength, maxLength));
             return gen.QueueLengthReported(length);
         }
+
+        Func<string, CancellationToken, Task> generateMessages;
+        ConcurrentDictionary<string, LoadGenerator> generators = new ConcurrentDictionary<string, LoadGenerator>();
+        int minLength;
+        int maxLength;
     }
 }

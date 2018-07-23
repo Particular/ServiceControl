@@ -1,26 +1,26 @@
 // Equal to NServiceBus.NLog but required for setting up Scenario.GetLoggerFactory due to private methods on the package's implementation.
+
 namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
     using NLog;
     using NServiceBus.Logging;
+    using LogManager = NLog.LogManager;
 
     class NLogLoggerFactory : ILoggerFactory
     {
         public ILog GetLogger(Type type)
         {
-            return new NLogLogger(NLog.LogManager.GetLogger(type.FullName));
+            return new NLogLogger(LogManager.GetLogger(type.FullName));
         }
 
         public ILog GetLogger(string name)
         {
-            return new NLogLogger(NLog.LogManager.GetLogger(name));
+            return new NLogLogger(LogManager.GetLogger(name));
         }
 
         class NLogLogger : ILog
         {
-            Logger logger;
-
             public NLogLogger(Logger logger)
             {
                 this.logger = logger;
@@ -106,6 +106,7 @@ namespace ServiceBus.Management.AcceptanceTests
             public bool IsWarnEnabled => logger.IsWarnEnabled;
             public bool IsErrorEnabled => logger.IsErrorEnabled;
             public bool IsFatalEnabled => logger.IsFatalEnabled;
+            Logger logger;
         }
     }
 }

@@ -35,6 +35,7 @@ public class ConfigureEndpointAzureStorageQueueTransport : ITransportIntegration
     {
         return Task.FromResult(0);
     }
+
     public string Name => "AzureStorageQueues";
     public string TypeName => $"{typeof(ASQTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }

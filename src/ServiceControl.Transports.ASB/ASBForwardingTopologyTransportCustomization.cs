@@ -6,7 +6,7 @@
     public class ASBForwardingTopologyTransportCustomization : TransportCustomization
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
-        {           
+        {
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
             ConfigureTransport(transport, transportSettings);
         }
@@ -17,7 +17,7 @@
             transport.ApplyHacksForNsbRaw();
             ConfigureTransport(transport, transportSettings);
         }
-                
+
         static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
             transport.UseForwardingTopology();

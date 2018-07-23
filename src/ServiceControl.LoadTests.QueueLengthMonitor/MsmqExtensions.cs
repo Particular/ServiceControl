@@ -9,14 +9,14 @@ static class MsmqExtensions
     /// </remarks>
     public static int GetCount(this MessageQueue self)
     {
-        var props = new Win32.MQMGMTPROPS { cProp = 1 };
+        var props = new Win32.MQMGMTPROPS {cProp = 1};
         try
         {
             props.aPropID = Marshal.AllocHGlobal(sizeof(int));
             Marshal.WriteInt32(props.aPropID, Win32.PROPID_MGMT_QUEUE_MESSAGE_COUNT);
 
             props.aPropVar = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(Win32.MQPROPVariant)));
-            Marshal.StructureToPtr(new Win32.MQPROPVariant { vt = Win32.VT_NULL }, props.aPropVar, false);
+            Marshal.StructureToPtr(new Win32.MQPROPVariant {vt = Win32.VT_NULL}, props.aPropVar, false);
 
             props.status = Marshal.AllocHGlobal(sizeof(int));
             Marshal.WriteInt32(props.status, 0);

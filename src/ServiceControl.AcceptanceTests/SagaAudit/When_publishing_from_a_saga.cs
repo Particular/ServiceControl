@@ -3,12 +3,12 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using EndpointTemplates;
-    using Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_publishing_from_a_saga : AcceptanceTest
@@ -19,7 +19,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage { Id = "Id" })))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage {Id = "Id"})))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
@@ -48,10 +48,7 @@
                         c.EnableFeature<AutoSubscribe>();
                         c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
                     },
-                    metadata =>
-                    {
-                        metadata.RegisterPublisherFor<MyEvent>(typeof(EndpointThatIsHostingTheSaga));
-                    });
+                    metadata => { metadata.RegisterPublisherFor<MyEvent>(typeof(EndpointThatIsHostingTheSaga)); });
             }
         }
 
@@ -60,11 +57,12 @@
             IHandleMessages<MyEvent>
         {
             public MyContext Context { get; set; }
+
             public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
                 Context.SagaId = Data.Id;
                 Context.ReceivedInitiatingMessage = true;
-                return context.Publish(new MyEvent { Id = message.Id });
+                return context.Publish(new MyEvent {Id = message.Id});
             }
 
             public Task Handle(MyEvent message, IMessageHandlerContext context)

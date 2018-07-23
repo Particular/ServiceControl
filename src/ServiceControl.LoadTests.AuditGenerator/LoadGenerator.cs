@@ -7,16 +7,6 @@
 
     class LoadGenerator
     {
-        static ILog log = LogManager.GetLogger<LoadGenerator>();
-
-        string destination;
-        Func<string, CancellationToken, Task> generateMessages;
-        int minLength;
-        int maxLength;
-        CancellationTokenSource tokenSource;
-        Task generationTask;
-        SemaphoreSlim semaphore = new SemaphoreSlim(1);
-
         public LoadGenerator(string destination, Func<string, CancellationToken, Task> generateMessages, int minLength, int maxLength)
         {
             this.destination = destination;
@@ -53,6 +43,7 @@
                     generationTask = null;
                     return;
                 }
+
                 if (length < minLength && tokenSource == null)
                 {
                     log.Info($"Starting sending messages to {destination} as the current queue length ({length}) is under the defined threshold ({minLength}).");
@@ -65,5 +56,14 @@
                 semaphore.Release();
             }
         }
+
+        string destination;
+        Func<string, CancellationToken, Task> generateMessages;
+        int minLength;
+        int maxLength;
+        CancellationTokenSource tokenSource;
+        Task generationTask;
+        SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        static ILog log = LogManager.GetLogger<LoadGenerator>();
     }
 }

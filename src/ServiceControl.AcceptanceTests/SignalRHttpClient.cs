@@ -5,8 +5,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
     public class SignalRHttpClient : DefaultHttpClient
     {
-        private readonly HttpMessageHandler handler;
-
         public SignalRHttpClient(HttpMessageHandler handler)
         {
             this.handler = handler;
@@ -16,5 +14,7 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             return handler;
         }
+
+        private readonly HttpMessageHandler handler;
     }
 }

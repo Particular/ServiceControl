@@ -6,6 +6,8 @@
     [AttributeUsage(AttributeTargets.Method)]
     public class IgnoreTransportsAttribute : PropertyAttribute
     {
-        public IgnoreTransportsAttribute(params string[] transportTypesToIgnore) : base(transportTypesToIgnore) { }
+        public IgnoreTransportsAttribute(params string[] transportTypesToIgnore) : base(transportTypesToIgnore)
+        {
+        }
     }
 }

@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using EndpointTemplates;
-    using Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     public class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
@@ -20,7 +20,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
@@ -59,11 +59,7 @@
                     // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
                     c.EnableFeature<AutoSubscribe>();
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-
-                }, metadata =>
-                {
-                    metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga));
-                });
+                }, metadata => { metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga)); });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
@@ -97,43 +93,46 @@
 
             class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done1 = true;
                     return Task.FromResult(0);
                 }
-                public MyContext Context { get; set; }
             }
 
             class MessagePublishedBySagaHandler : IHandleMessages<MessagePublishedBySaga>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done2 = true;
                     return Task.FromResult(0);
                 }
-                public MyContext Context { get; set; }
             }
 
             class MessageReplyToOriginatorBySagaHandler : IHandleMessages<MessageReplyToOriginatorBySaga>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done3 = true;
                     return Task.FromResult(0);
                 }
-
-                public MyContext Context { get; set; }
             }
 
             class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
                     Context.Done4 = true;
                     return Task.FromResult(0);
                 }
-                public MyContext Context { get; set; }
             }
         }
 

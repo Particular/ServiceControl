@@ -2,13 +2,13 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using EndpointTemplates;
     using ServiceControl.Infrastructure;
 
     public class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
@@ -32,6 +32,7 @@
                         {
                             return false;
                         }
+
                         c.RetryIssued = true;
                         await this.Post<object>($"/api/errors/{c.UniqueMessageId}/retry");
                         return false;
@@ -72,13 +73,13 @@
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
             {
+                public RetryReplyContext Context { get; set; }
+
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     Context.ReplyHandledBy = "Originating Endpoint";
                     return Task.FromResult(0);
                 }
-
-                public RetryReplyContext Context { get; set; }
             }
         }
 
@@ -86,14 +87,14 @@
         {
             public ReceivingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                    {
-                        c.NoRetries();
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
             }
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>
             {
+                public RetryReplyContext Context { get; set; }
+                public ReadOnlySettings Settings { get; set; }
+
                 public Task Handle(OriginalMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
@@ -104,16 +105,15 @@
                     {
                         throw new Exception("This is still the original attempt");
                     }
+
                     return context.Reply(new ReplyMessage());
                 }
-
-                public RetryReplyContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
             }
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
             {
                 public RetryReplyContext Context { get; set; }
+
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     Context.ReplyHandledBy = "Receiving Endpoint";
