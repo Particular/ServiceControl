@@ -5,17 +5,15 @@
     using System.Linq;
     using System.Messaging;
     using System.ServiceProcess;
+    using Configuration.ServiceControl;
+    using Instances;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Unattended;
+    using ReportCard;
+    using Unattended;
 
     [TestFixture]
     public class RunEngine
     {
-        const string DeploymentCache = @"..\..\..\..\Zip";
-
         [Test, Explicit]
         public void DeleteInstance()
         {
@@ -32,7 +30,12 @@
             var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
             foreach (var instance in InstanceFinder.ServiceControlInstances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
             {
-                installer.Upgrade(instance, new ServiceControlUpgradeOptions { AuditRetentionPeriod = TimeSpan.FromDays(30), ErrorRetentionPeriod = TimeSpan.FromDays(15), OverrideEnableErrorForwarding = true });
+                installer.Upgrade(instance, new ServiceControlUpgradeOptions
+                {
+                    AuditRetentionPeriod = TimeSpan.FromDays(30),
+                    ErrorRetentionPeriod = TimeSpan.FromDays(15),
+                    OverrideEnableErrorForwarding = true
+                });
             }
         }
 
@@ -62,7 +65,7 @@
                 ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI),
                 ErrorQueue = "testerror",
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
-                ReportCard = new ReportCard(),
+                ReportCard = new ReportCard()
             };
 
             // constructer of ServiceControlInstanceMetadata extracts version from zip
@@ -74,6 +77,7 @@
             {
                 throw new Exception($"Validation errors:  {string.Join("\r\n", details.ReportCard.Errors)}");
             }
+
             Assert.DoesNotThrow(() => installer.Add(details, s => false));
         }
 
@@ -132,5 +136,7 @@
                 }
             }
         }
+
+        const string DeploymentCache = @"..\..\..\..\Zip";
     }
 }

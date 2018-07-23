@@ -3,14 +3,12 @@
     using System;
     using System.Linq;
     using System.Security.Principal;
+    using Engine.UrlAcl;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.UrlAcl;
 
     [TestFixture]
     public class UrlReservationTests
     {
-        const string url = "http://bogushostname:12345/";
-
         [Test]
         public void GetAllResults()
         {
@@ -33,9 +31,10 @@
             var reservation = new UrlReservation(url);
             if (UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)))
             {
-                 UrlReservation.Delete(reservation);
-                 Assert.IsFalse(UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)), "UrlAcl exists after deletion");
+                UrlReservation.Delete(reservation);
+                Assert.IsFalse(UrlReservation.GetAll().Any(p => p.Url.Equals(reservation.Url, StringComparison.OrdinalIgnoreCase)), "UrlAcl exists after deletion");
             }
+
             Assert.Throws<Exception>(() => UrlReservation.Create(reservation), "UrlAcl incorrectly created with empty delegation");
         }
 
@@ -63,7 +62,7 @@
 
             //Overwrite Reservation
             var newSid = new SecurityIdentifier(WellKnownSidType.NetworkServiceSid, null);
-            var account = (NTAccount) newSid.Translate(typeof(NTAccount));
+            var account = (NTAccount)newSid.Translate(typeof(NTAccount));
             var reservation2 = new UrlReservation(url, newSid);
             reservation2.Create();
 
@@ -87,11 +86,10 @@
             reservation.AddSecurityIdentifier(newAccountSid);
             reservation.Create();
 
-            var account = (NTAccount) newAccountSid.Translate(typeof(NTAccount));
+            var account = (NTAccount)newAccountSid.Translate(typeof(NTAccount));
             reservation = UrlReservation.GetAll().First(p => p.Url == reservation.Url);
             Assert.IsTrue(reservation.Users.Count == 2, "User count is not 2");
             Assert.IsTrue(reservation.Users.Contains(account.Value, StringComparer.OrdinalIgnoreCase), "Added User not found");
-
         }
 
         [Test]
@@ -138,5 +136,7 @@
                 urlReservation.Delete();
             }
         }
+
+        const string url = "http://bogushostname:12345/";
     }
 }

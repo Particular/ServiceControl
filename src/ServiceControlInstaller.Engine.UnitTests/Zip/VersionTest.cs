@@ -3,19 +3,24 @@
     using System;
     using System.IO;
     using System.Linq;
+    using FileSystem;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.FileSystem;
 
     [TestFixture]
     public class VersionTest
     {
-        const string basefilename = "particular.servicecontrol-{0}.zip";
-
         [SetUp]
         public void Setup()
         {
             Cleanup();
-            foreach (var tag in  new[] { "1.1.0", "1.9.0", "1.10.0", "1.10.1-unstable", "1.2-0" })
+            foreach (var tag in new[]
+            {
+                "1.1.0",
+                "1.9.0",
+                "1.10.0",
+                "1.10.1-unstable",
+                "1.2-0"
+            })
             {
                 using (var x = File.CreateText(Path.Combine(Path.GetTempPath(), string.Format(basefilename, tag))))
                 {
@@ -46,5 +51,7 @@
                 file.Delete();
             }
         }
+
+        const string basefilename = "particular.servicecontrol-{0}.zip";
     }
 }

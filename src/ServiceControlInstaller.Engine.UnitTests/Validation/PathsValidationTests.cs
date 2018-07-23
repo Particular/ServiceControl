@@ -1,18 +1,15 @@
 ﻿namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Engine.Validation;
+    using Instances;
     using Moq;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Validation;
 
     [TestFixture]
     public class PathsValidationTests
     {
-        List<IServiceControlPaths> instances;
-
         [SetUp]
         public void Init()
         {
@@ -20,11 +17,6 @@
             instanceA.SetupGet(p => p.InstallPath).Returns(@"c:\test\1\bin");
             instanceA.SetupGet(p => p.LogPath).Returns(@"c:\test\1\logs");
             instanceA.SetupGet(p => p.DBPath).Returns(@"c:\test\1\db");
-
-            instances = new List<IServiceControlPaths>
-            {
-                instanceA.Object
-            };
         }
 
         [Test]
@@ -38,7 +30,7 @@
             };
 
             var p = new PathsValidator(newInstance);
-            
+
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreUnique());
             Assert.That(ex.Message, Is.EqualTo("The installation path, log path and database path must be unique"));
         }
@@ -57,7 +49,7 @@
             Assert.DoesNotThrow(() => p.CheckPathsAreUnique());
         }
 
-        
+
         [Test]
         public void CheckPathsAreValid_ShouldSucceed()
         {
@@ -76,8 +68,8 @@
         public void CheckPathsAreValid_ShouldThrow()
         {
             //Invalid path
-            var p = new PathsValidator(new ServiceControlNewInstance{InstallPath = @"?>c:\test\1\bin"});
-            
+            var p = new PathsValidator(new ServiceControlNewInstance {InstallPath = @"?>c:\test\1\bin"});
+
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path is set to an invalid path"));
 
@@ -91,7 +83,7 @@
             Assert.That(ex.Message, Is.EqualTo("The install path is set to an invalid path"));
 
             //No Drive
-            p = new PathsValidator(new ServiceControlNewInstance { InstallPath = $@"{GetAnUnsedDriveLetter()}:\test\1\bin"});
+            p = new PathsValidator(new ServiceControlNewInstance {InstallPath = $@"{GetAnUnsedDriveLetter()}:\test\1\bin"});
             ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path does not go to a supported drive"));
         }
@@ -136,7 +128,7 @@
             };
 
             var p = new PathsValidator(newInstance);
-            
+
             Assert.DoesNotThrow(() => p.CheckNoNestedPaths());
         }
 
@@ -146,6 +138,5 @@
             var driveletters = DriveInfo.GetDrives().SelectMany(q => q.Name[0].ToString().ToUpper()).ToArray();
             return letters.Except(driveletters).First();
         }
-
     }
 }
