@@ -2,7 +2,7 @@
 {
     using System.Threading.Tasks;
     using NServiceBus;
-    using ServiceControl.LoadTests.Messages;
+    using Messages;
 
     class QueueLengthMessageHandler : IHandleMessages<QueueLengthReport>
     {

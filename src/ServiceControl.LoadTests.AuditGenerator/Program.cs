@@ -6,7 +6,7 @@
     using Metrics;
     using NServiceBus;
     using NServiceBus.Support;
-    using ServiceControl.LoadTests.Messages;
+    using Messages;
 
     class Program
     {
