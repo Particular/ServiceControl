@@ -29,7 +29,7 @@ public class ConfigureEndpointSQSTransport : ITransportIntegration
     }
     public string Name => "SQS";
 
-    public string TypeName => "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS";
+    public string TypeName => $"{typeof(ServiceControl.Transports.SQS.SQSTransportCustomization).AssemblyQualifiedName}";
 
     public string ConnectionString { get; set; }
 }

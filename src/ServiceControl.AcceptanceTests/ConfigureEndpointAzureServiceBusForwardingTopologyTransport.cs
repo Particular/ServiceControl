@@ -25,7 +25,7 @@ public class ConfigureEndpointAzureServiceBusForwardingTopologyTransport : ITran
     }
     public string Name => "AzureServiceBus - Forwarding Topology";
 
-    public string TypeName => "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB";
+    public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization).AssemblyQualifiedName}";
 
     public string ConnectionString { get; set; }
 
