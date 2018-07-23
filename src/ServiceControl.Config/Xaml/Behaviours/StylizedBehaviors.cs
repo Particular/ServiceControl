@@ -53,9 +53,7 @@
 
         static void OnPropertyChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e)
         {
-            var uie = dpo as UIElement;
-
-            if (uie == null)
+            if (!(dpo is UIElement uie))
             {
                 return;
             }
