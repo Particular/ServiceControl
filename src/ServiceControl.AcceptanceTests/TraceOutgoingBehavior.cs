@@ -10,21 +10,10 @@ namespace ServiceBus.Management.AcceptanceTests
 
     class TraceOutgoingBehavior : IBehavior<IOutgoingLogicalMessageContext, IOutgoingLogicalMessageContext>
     {
-        ScenarioContext scenarioContext;
-        ReadOnlySettings settings;
-
         public TraceOutgoingBehavior(ScenarioContext scenarioContext, ReadOnlySettings settings)
         {
             this.scenarioContext = scenarioContext;
             this.settings = settings;
-        }
-
-        public class Registration : RegisterStep
-        {
-            public Registration()
-                : base("TraceOutgoingBehavior", typeof(TraceOutgoingBehavior), "Adds outgoing messages to the acceptance test trace")
-            {
-            }
         }
 
         public Task Invoke(IOutgoingLogicalMessageContext context, Func<IOutgoingLogicalMessageContext, Task> next)
@@ -37,6 +26,17 @@ namespace ServiceBus.Management.AcceptanceTests
                 Message = $"-> {context.Headers[Headers.MessageIntent]} {context.Message.MessageType.Name} ({context.Headers[Headers.MessageId].Substring(context.Headers[Headers.MessageId].Length - 4)})"
             });
             return next(context);
+        }
+
+        ScenarioContext scenarioContext;
+        ReadOnlySettings settings;
+
+        public class Registration : RegisterStep
+        {
+            public Registration()
+                : base("TraceOutgoingBehavior", typeof(TraceOutgoingBehavior), "Adds outgoing messages to the acceptance test trace")
+            {
+            }
         }
     }
 }

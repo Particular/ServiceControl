@@ -3,13 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -19,10 +19,7 @@
         [Test, IgnoreTransports("AzureServiceBus", "AzureStorageQueues", "RabbitMq")]
         public async Task The_header_should_not_be_changed()
         {
-            var context = await Define<ReplyToContext>(ctx =>
-            {
-                ctx.ReplyToAddress = "ReplyToAddress@SOMEMACHINE";
-            })
+            var context = await Define<ReplyToContext>(ctx => { ctx.ReplyToAddress = "ReplyToAddress@SOMEMACHINE"; })
                 .WithEndpoint<VerifyHeaderEndpoint>()
                 .Done(async x =>
                 {
@@ -39,7 +36,9 @@
             Assert.AreEqual(context.ReplyToAddress, context.ReceivedReplyToAddress);
         }
 
-        class OriginalMessage : IMessage { }
+        class OriginalMessage : IMessage
+        {
+        }
 
         class ReplyToContext : ScenarioContext
         {
@@ -87,6 +86,11 @@
 
             class VerifyHeaderIsUnchanged : IMutateIncomingTransportMessages
             {
+                public VerifyHeaderIsUnchanged(ReplyToContext context)
+                {
+                    replyToContext = context;
+                }
+
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     if (context.Headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
@@ -99,11 +103,6 @@
                 }
 
                 ReplyToContext replyToContext;
-
-                public VerifyHeaderIsUnchanged(ReplyToContext context)
-                {
-                    replyToContext = context;
-                }
             }
         }
     }

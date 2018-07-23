@@ -7,9 +7,6 @@
     class Sequence<TContext>
         where TContext : ISequenceContext
     {
-        List<Func<TContext, Task<bool>>> steps = new List<Func<TContext, Task<bool>>>();
-        List<string> stepNames = new List<string>();
-
         public Sequence<TContext> Do(string step, Func<TContext, Task<bool>> handler)
         {
             steps.Add(handler);
@@ -59,7 +56,11 @@
                 context.Step = nextStep;
                 return finished;
             }
+
             return false;
         }
+
+        List<Func<TContext, Task<bool>>> steps = new List<Func<TContext, Task<bool>>>();
+        List<string> stepNames = new List<string>();
     }
 }

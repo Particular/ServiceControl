@@ -7,6 +7,7 @@ using NServiceBus.AcceptanceTesting.Support;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Transport;
 using ServiceBus.Management.AcceptanceTests;
+using ServiceControl.Transports.SqlServer;
 
 public class ConfigureEndpointSqlServerTransport : ITransportIntegration
 {
@@ -49,6 +50,10 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
         }
     }
 
+    public string Name => "SqlServer";
+    public string TypeName => $"{typeof(SqlServerTransportCustomization).AssemblyQualifiedName}";
+    public string ConnectionString { get; set; }
+
     static async Task TryDeleteTable(SqlConnection conn, QueueAddress address)
     {
         try
@@ -68,6 +73,8 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
         }
     }
 
+    QueueBindings queueBindings;
+
     class QueueAddress
     {
         public QueueAddress(string table, string schemaName, string catalogName)
@@ -80,6 +87,8 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
         public string Catalog { get; }
         public string Table { get; }
         public string Schema { get; }
+
+        public string QualifiedTableName => $"{Quote(Catalog)}.{Quote(Schema)}.{Quote(Table)}";
 
         public static QueueAddress Parse(string address)
         {
@@ -101,10 +110,9 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
             {
                 ExtractNextPart(address, out catalogName);
             }
+
             return new QueueAddress(tableName, schemaName, catalogName);
         }
-
-        public string QualifiedTableName => $"{Quote(Catalog)}.{Quote(Schema)}.{Quote(Table)}";
 
         static string ExtractNextPart(string address, out string part)
         {
@@ -140,6 +148,7 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
             {
                 return null;
             }
+
             return prefix + name.Replace(suffix, suffix + suffix) + suffix;
         }
 
@@ -151,8 +160,6 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
                 : result;
         }
 
-        const string prefix = "[";
-        const string suffix = "]";
         static string Unquote(string quotedString)
         {
             if (quotedString == null)
@@ -168,10 +175,8 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
             return quotedString
                 .Substring(prefix.Length, quotedString.Length - prefix.Length - suffix.Length).Replace(suffix + suffix, suffix);
         }
-    }
 
-    QueueBindings queueBindings;
-    public string Name => "SqlServer";
-    public string TypeName => $"{typeof(ServiceControl.Transports.SqlServer.SqlServerTransportCustomization).AssemblyQualifiedName}";
-    public string ConnectionString { get; set; }
+        const string prefix = "[";
+        const string suffix = "]";
+    }
 }

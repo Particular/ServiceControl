@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -77,12 +77,14 @@
                     {
                         return false;
                     }
+
                     // Don't retry until the message has been added to a group
                     var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
                     if (!groups)
                     {
                         return false;
                     }
+
                     ctx.GroupId = groups.Items[0].Id;
                     return true;
                 })
@@ -106,10 +108,7 @@
                     return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
                         e => e.Status == FailedMessageStatus.Resolved);
                 })
-                .Do("Archive", async ctx =>
-                {
-                    await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive");
-                })
+                .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
                 .Do("EnsureFirstArchived", async ctx =>
                 {
                     return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FirstMessageId}",
@@ -133,6 +132,9 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
+                public MyContext Context { get; set; }
+                public ReadOnlySettings Settings { get; set; }
+
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
@@ -155,9 +157,6 @@
 
                     return Task.FromResult(0);
                 }
-
-                public MyContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
             }
         }
 
@@ -171,8 +170,8 @@
             public string FirstMessageId { get; set; }
             public string SecondMessageId { get; set; }
             public string GroupId { get; set; }
-            public int Step { get; set; }
             public bool FailProcessing { get; set; } = true;
+            public int Step { get; set; }
         }
     }
 }

@@ -40,12 +40,6 @@
 
         class DispatchTask : FeatureStartupTask
         {
-            IDispatchMessages dispatchMessages;
-            Func<TransportOperations> operationFactory;
-            Func<IMessageSession, Task> before;
-            Func<IMessageSession, Task> after;
-            ScenarioContext scenarioContext;
-
             public DispatchTask(IDispatchMessages dispatcher, Func<TransportOperations> operationFactory, Func<IMessageSession, Task> before, Func<IMessageSession, Task> after, ScenarioContext scenarioContext)
             {
                 this.after = after;
@@ -63,10 +57,12 @@
                 {
                     op.Message.Headers["SC.SessionID"] = scenarioContext.TestRunId.ToString();
                 }
+
                 foreach (var op in operations.MulticastTransportOperations)
                 {
                     op.Message.Headers["SC.SessionID"] = scenarioContext.TestRunId.ToString();
                 }
+
                 await dispatchMessages.Dispatch(operations, new TransportTransaction(), new ContextBag())
                     .ConfigureAwait(false);
                 await after(session).ConfigureAwait(false);
@@ -76,6 +72,12 @@
             {
                 return Task.FromResult(0);
             }
+
+            IDispatchMessages dispatchMessages;
+            Func<TransportOperations> operationFactory;
+            Func<IMessageSession, Task> before;
+            Func<IMessageSession, Task> after;
+            ScenarioContext scenarioContext;
         }
     }
 }

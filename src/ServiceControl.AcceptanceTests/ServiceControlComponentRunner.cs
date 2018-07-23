@@ -14,6 +14,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.Nancy;
+    using Infrastructure.Settings;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -22,23 +25,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
-    using Infrastructure;
-    using Infrastructure.Nancy;
-    using Infrastructure.Settings;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
-        Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
-        ITransportIntegration transportToUse;
-        Action<string, Settings> setInstanceSettings;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
-        Action<string, EndpointConfiguration> customInstanceConfiguration;
-        string[] instanceNames;
-
-        public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-
         public ServiceControlComponentRunner(string[] instanceNames, ITransportIntegration transportToUse, Action<Settings> setSettings, Action<string, Settings> setInstanceSettings, Action<EndpointConfiguration> customConfiguration, Action<string, EndpointConfiguration> customInstanceConfiguration)
         {
             this.instanceNames = instanceNames;
@@ -48,6 +37,15 @@ namespace ServiceBus.Management.AcceptanceTests
             this.setInstanceSettings = setInstanceSettings;
             this.customInstanceConfiguration = customInstanceConfiguration;
         }
+
+        public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
+
+
+        public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
+        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializer.CreateDefault();
+        public Dictionary<string, Settings> SettingsPerInstance { get; } = new Dictionary<string, Settings>();
+        public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
+        public Dictionary<string, BusInstance> Busses { get; } = new Dictionary<string, BusInstance>();
 
         public Task Initialize(RunDescriptor run)
         {
@@ -76,7 +74,7 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (instanceNames.Length == 0)
             {
-                instanceNames = new[] { Settings.DEFAULT_SERVICE_NAME };
+                instanceNames = new[] {Settings.DEFAULT_SERVICE_NAME};
             }
 
             var startPort = 33333;
@@ -193,6 +191,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     bootstrappers[instanceName] = bootstrapper;
                     bootstrapper.HttpClientFactory = HttpClientFactory;
                 }
+
                 using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
                 {
                     var app = new AppBuilder();
@@ -232,6 +231,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     DeleteFolder(settings.DbPath);
                 }
             }
+
             bootstrappers.Clear();
             HttpClients.Clear();
             Handlers.Clear();
@@ -286,10 +286,17 @@ namespace ServiceBus.Management.AcceptanceTests
             return httpClient;
         }
 
+        Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
+        Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
+        ITransportIntegration transportToUse;
+        Action<string, Settings> setInstanceSettings;
+        Action<Settings> setSettings;
+        Action<EndpointConfiguration> customConfiguration;
+        Action<string, EndpointConfiguration> customInstanceConfiguration;
+        string[] instanceNames;
+
         class ForwardingHandler : DelegatingHandler
         {
-            Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers;
-
             public ForwardingHandler(Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers)
             {
                 this.portsToHttpMessageHandlers = portsToHttpMessageHandlers;
@@ -302,13 +309,8 @@ namespace ServiceBus.Management.AcceptanceTests
                 await Task.Yield();
                 return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
             }
+
+            Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers;
         }
-
-
-        public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializer.CreateDefault();
-        public Dictionary<string, Settings> SettingsPerInstance { get; } = new Dictionary<string, Settings>();
-        public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
-        public Dictionary<string, BusInstance> Busses { get; } = new Dictionary<string, BusInstance>();
     }
 }

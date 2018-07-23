@@ -5,19 +5,17 @@ namespace ServiceBus.Management.AcceptanceTests
 
     public class ManyResult<T>
     {
-        public static ManyResult<T> Empty = new ManyResult<T>
-        {
-            HasResult = false,
-            Items = new List<T>()
-        };
+        public bool HasResult { get; private set; }
+        public List<T> Items { get; private set; }
 
         public static ManyResult<T> New(bool hasResult, List<T> items)
         {
-            return new ManyResult<T> { HasResult = hasResult, Items = items };
+            return new ManyResult<T>
+            {
+                HasResult = hasResult,
+                Items = items
+            };
         }
-
-        public bool HasResult { get; private set; }
-        public List<T> Items { get; private set; }
 
         public static implicit operator bool(ManyResult<T> result)
         {
@@ -33,5 +31,11 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             return result.Items;
         }
+
+        public static ManyResult<T> Empty = new ManyResult<T>
+        {
+            HasResult = false,
+            Items = new List<T>()
+        };
     }
 }

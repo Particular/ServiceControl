@@ -8,12 +8,13 @@ using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Transport;
 using RabbitMQ.Client;
 using ServiceBus.Management.AcceptanceTests;
+using ServiceControl.Transports.RabbitMQ;
 
 public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegration
 {
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
-        connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
+        connectionStringBuilder = new DbConnectionStringBuilder {ConnectionString = ConnectionString};
 
         var transport = configuration.UseTransport<RabbitMQTransport>();
         transport.UseDirectRoutingTopology();
@@ -30,6 +31,10 @@ public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegra
 
         return Task.FromResult(0);
     }
+
+    public string Name => "RabbitMq - Direct Routing Topology";
+    public string TypeName => $"{typeof(RabbitMQDirectRoutingTransportCustomization).AssemblyQualifiedName}";
+    public string ConnectionString { get; set; }
 
     void PurgeQueues()
     {
@@ -89,8 +94,4 @@ public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegra
 
     DbConnectionStringBuilder connectionStringBuilder;
     QueueBindings queueBindings;
-
-    public string Name => "RabbitMq - Direct Routing Topology";
-    public string TypeName => $"{typeof(ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization).AssemblyQualifiedName}";
-    public string ConnectionString { get; set; }
 }

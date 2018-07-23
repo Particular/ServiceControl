@@ -3,12 +3,12 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -74,17 +74,19 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
             return localErrors;
         }
 
+        const string MessageId = "014b048-2b7b-4f94-8eda-d5be0fe50e92";
+
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
-                    {
-                        var recoverability = c.Recoverability();
-                        recoverability.Immediate(x => x.NumberOfRetries(0));
-                        recoverability.Delayed(x => x.NumberOfRetries(0));
-                        c.LimitMessageProcessingConcurrencyTo(1);
-                    });
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(x => x.NumberOfRetries(0));
+                    recoverability.Delayed(x => x.NumberOfRetries(0));
+                    c.LimitMessageProcessingConcurrencyTo(1);
+                });
             }
 
             class SendFailedMessages : DispatchRawMessages<MyContext>
@@ -113,7 +115,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                         {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(Receiver))}, // TODO: Correct?
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
                         {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
-                        {Headers.EnclosedMessageTypes, $"MessageThatWillFail{i}"},
+                        {Headers.EnclosedMessageTypes, $"MessageThatWillFail{i}"}
                     }, new byte[0]);
                     return msg;
                 }
@@ -123,7 +125,5 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         public class MyContext : ScenarioContext
         {
         }
-
-        const string MessageId = "014b048-2b7b-4f94-8eda-d5be0fe50e92";
     }
 }

@@ -3,15 +3,12 @@
     using System;
     using System.Configuration;
     using System.Threading.Tasks;
-    using NServiceBus.CustomChecks;
     using Microsoft.ServiceBus;
+    using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
 
     public class CheckDeadLetterQueue : CustomCheck
     {
-        NamespaceManager namespaceManager;
-        string stagingQueue;
-
         public CheckDeadLetterQueue(TransportSettings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
         {
             Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
@@ -40,6 +37,9 @@
             Logger.Debug("No messages in Dead Letter Queue");
             return CheckResult.Pass;
         }
+
+        NamespaceManager namespaceManager;
+        string stagingQueue;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
     }

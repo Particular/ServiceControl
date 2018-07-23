@@ -10,21 +10,10 @@ namespace ServiceBus.Management.AcceptanceTests
 
     class TraceIncomingBehavior : IBehavior<IIncomingLogicalMessageContext, IIncomingLogicalMessageContext>
     {
-        ScenarioContext scenarioContext;
-        ReadOnlySettings settings;
-
         public TraceIncomingBehavior(ScenarioContext scenarioContext, ReadOnlySettings settings)
         {
             this.scenarioContext = scenarioContext;
             this.settings = settings;
-        }
-
-        public class Registration : RegisterStep
-        {
-            public Registration()
-                : base("TraceIncomingBehavior", typeof(TraceIncomingBehavior), "Adds incoming messages to the acceptance test trace")
-            {
-            }
         }
 
         public Task Invoke(IIncomingLogicalMessageContext context, Func<IIncomingLogicalMessageContext, Task> next)
@@ -37,6 +26,17 @@ namespace ServiceBus.Management.AcceptanceTests
                 Message = $"<- {context.Message.MessageType.Name} ({context.Headers[Headers.MessageId].Substring(context.Headers[Headers.MessageId].Length - 4)})"
             });
             return next(context);
+        }
+
+        ScenarioContext scenarioContext;
+        ReadOnlySettings settings;
+
+        public class Registration : RegisterStep
+        {
+            public Registration()
+                : base("TraceIncomingBehavior", typeof(TraceIncomingBehavior), "Adds incoming messages to the acceptance test trace")
+            {
+            }
         }
     }
 }

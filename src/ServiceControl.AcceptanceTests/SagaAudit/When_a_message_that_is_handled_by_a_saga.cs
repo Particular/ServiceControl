@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using EndpointTemplates;
-    using Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
@@ -19,7 +19,11 @@
             var messages = new List<MessagesView>();
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga { Saga1Id = Guid.NewGuid(), Saga2Id = Guid.NewGuid() })))
+                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga
+                {
+                    Saga1Id = Guid.NewGuid(),
+                    Saga2Id = Guid.NewGuid()
+                })))
                 .Done(async c =>
                 {
                     if (c.Saga1Complete && c.Saga2Complete)
@@ -73,14 +77,11 @@
 
             public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    return context.SendLocal(new UpdateSaga1 { MyId = message.Saga1Id });
-                }
-
-                public Task Handle(UpdateSaga1 message, IMessageHandlerContext context)
-                {
-                    return context.SendLocal(new CompleteSaga1 { MyId = message.MyId });
+                    return context.SendLocal(new UpdateSaga1 {MyId = message.Saga1Id});
                 }
 
                 public Task Handle(CompleteSaga1 message, IMessageHandlerContext context)
@@ -89,6 +90,11 @@
                     Context.Saga1Id = Data.Id;
                     Context.Saga1Complete = true;
                     return Task.FromResult(0);
+                }
+
+                public Task Handle(UpdateSaga1 message, IMessageHandlerContext context)
+                {
+                    return context.SendLocal(new CompleteSaga1 {MyId = message.MyId});
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga1Data> mapper)
@@ -102,20 +108,15 @@
                 {
                     public Guid MyId { get; set; }
                 }
-
-                public MyContext Context { get; set; }
             }
 
             public class Saga2 : Saga<Saga2.Saga2Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga2>, IHandleMessages<CompleteSaga2>
             {
+                public MyContext Context { get; set; }
+
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    return context.SendLocal(new UpdateSaga2 { MyId = message.Saga2Id });
-                }
-
-                public Task Handle(UpdateSaga2 message, IMessageHandlerContext context)
-                {
-                    return context.SendLocal(new CompleteSaga2 { MyId = message.MyId });
+                    return context.SendLocal(new UpdateSaga2 {MyId = message.Saga2Id});
                 }
 
                 public Task Handle(CompleteSaga2 message, IMessageHandlerContext context)
@@ -124,6 +125,11 @@
                     Context.Saga2Id = Data.Id;
                     Context.Saga2Complete = true;
                     return Task.FromResult(0);
+                }
+
+                public Task Handle(UpdateSaga2 message, IMessageHandlerContext context)
+                {
+                    return context.SendLocal(new CompleteSaga2 {MyId = message.MyId});
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga2Data> mapper)
@@ -137,11 +143,9 @@
                 {
                     public Guid MyId { get; set; }
                 }
-
-                public MyContext Context { get; set; }
             }
         }
-        
+
         public class InitiateSaga : ICommand
         {
             public Guid Saga1Id { get; set; }

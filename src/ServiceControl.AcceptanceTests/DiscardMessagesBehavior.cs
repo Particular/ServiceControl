@@ -10,7 +10,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
     class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
     {
-
         public DiscardMessagesBehavior(ScenarioContext scenarioContext)
         {
             this.scenarioContext = scenarioContext;

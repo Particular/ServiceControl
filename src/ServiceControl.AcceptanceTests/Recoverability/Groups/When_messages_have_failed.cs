@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -96,10 +96,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                    {
-                        c.NoRetries();
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler :
@@ -124,7 +121,7 @@
                 }
             }
         }
-        
+
         public class MyMessageA : ICommand
         {
         }

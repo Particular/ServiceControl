@@ -3,9 +3,9 @@
     using System;
     using System.Messaging;
     using System.Threading.Tasks;
+    using Messages;
     using NServiceBus;
     using NServiceBus.Support;
-    using Messages;
 
     class Program
     {

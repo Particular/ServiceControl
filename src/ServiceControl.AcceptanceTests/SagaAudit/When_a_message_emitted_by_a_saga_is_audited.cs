@@ -2,10 +2,10 @@
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using EndpointTemplates;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_a_message_emitted_by_a_saga_is_audited : AcceptanceTest
@@ -16,7 +16,7 @@
             MessagesView auditedMessage = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);

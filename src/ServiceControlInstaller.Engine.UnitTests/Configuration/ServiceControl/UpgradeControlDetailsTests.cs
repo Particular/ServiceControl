@@ -2,11 +2,10 @@
 {
     using System;
     using System.Linq;
+    using Engine.Configuration.ServiceControl;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
 
     [TestFixture]
-
     public class UpgradeControlDetailsTests
     {
         [Test]

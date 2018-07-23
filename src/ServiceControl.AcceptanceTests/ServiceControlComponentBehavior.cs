@@ -4,23 +4,14 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using Infrastructure;
-    using Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        ITransportIntegration transportIntegration;
-        Action<string, Settings> setInstanceSettings;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
-        Action<string, EndpointConfiguration> customInstanceConfiguration;
-        string[] instanceNames;
-        ServiceControlComponentRunner runner;
-
-
         public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<string, Settings> setInstanceSettings, Action<EndpointConfiguration> customConfiguration, Action<string, EndpointConfiguration> customInstanceConfiguration)
         {
             this.customInstanceConfiguration = customInstanceConfiguration;
@@ -30,10 +21,11 @@ namespace ServiceBus.Management.AcceptanceTests
             transportIntegration = transportToUse;
         }
 
-        public void Initialize(string[] instanceNames)
-        {
-            this.instanceNames = instanceNames;
-        }
+        public Dictionary<string, HttpClient> HttpClients => runner.HttpClients;
+        public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
+        public Dictionary<string, Settings> SettingsPerInstance => runner.SettingsPerInstance;
+        public Dictionary<string, OwinHttpMessageHandler> Handlers => runner.Handlers;
+        public Dictionary<string, BusInstance> Busses => runner.Busses;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
@@ -42,10 +34,17 @@ namespace ServiceBus.Management.AcceptanceTests
             return runner;
         }
 
-        public Dictionary<string, HttpClient> HttpClients => runner.HttpClients;
-        public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
-        public Dictionary<string, Settings> SettingsPerInstance => runner.SettingsPerInstance;
-        public Dictionary<string, OwinHttpMessageHandler> Handlers => runner.Handlers;
-        public Dictionary<string, BusInstance> Busses => runner.Busses;
+        public void Initialize(string[] instanceNames)
+        {
+            this.instanceNames = instanceNames;
+        }
+
+        ITransportIntegration transportIntegration;
+        Action<string, Settings> setInstanceSettings;
+        Action<Settings> setSettings;
+        Action<EndpointConfiguration> customConfiguration;
+        Action<string, EndpointConfiguration> customInstanceConfiguration;
+        string[] instanceNames;
+        ServiceControlComponentRunner runner;
     }
 }

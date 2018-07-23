@@ -8,6 +8,7 @@ using NServiceBus.AcceptanceTesting.Support;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Transport;
 using ServiceBus.Management.AcceptanceTests;
+using ServiceControl.Transports.Msmq;
 
 public class ConfigureEndpointMsmqTransport : ITransportIntegration
 {
@@ -47,6 +48,7 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
                     {
                         ra = ra.Substring(0, indexOfAt);
                     }
+
                     return messageQueue.QueueName.StartsWith(@"private$\" + ra, StringComparison.OrdinalIgnoreCase);
                 }))
                 {
@@ -73,8 +75,9 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
         return Task.FromResult(0);
     }
 
-    QueueBindings queueBindings;
     public string Name => "Msmq";
-    public string TypeName => $"{typeof(ServiceControl.Transports.Msmq.MsmqTransportCustomization).AssemblyQualifiedName}";
+    public string TypeName => $"{typeof(MsmqTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
+
+    QueueBindings queueBindings;
 }

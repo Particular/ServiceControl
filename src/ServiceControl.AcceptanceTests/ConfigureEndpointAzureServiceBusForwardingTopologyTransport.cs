@@ -23,10 +23,10 @@ public class ConfigureEndpointAzureServiceBusForwardingTopologyTransport : ITran
     {
         return Task.FromResult(0);
     }
+
     public string Name => "AzureServiceBus - Forwarding Topology";
 
     public string TypeName => "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB";
 
     public string ConnectionString { get; set; }
-
 }
