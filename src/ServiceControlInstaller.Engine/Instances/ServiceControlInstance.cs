@@ -241,12 +241,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var version = Version;
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
-
-            if (oldSettings.Version.Major >= 2) //Maintenance port was introduced in Version 2
-            {
-                settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString());
-            }
-
+            settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString(), version);
             settings.Set(SettingsList.LogPath, LogPath);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);

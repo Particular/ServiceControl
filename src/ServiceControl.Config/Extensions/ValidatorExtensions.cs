@@ -10,7 +10,7 @@
     {
         public static ValidationResult Validate(this IValidator validator, object instance, string propertyName)
         {
-            return Validate(validator, (object)new ValidationContext(instance, new PropertyChain(), new DefaultValidatorSelector()), propertyName);
+            return validator.Validate(new ValidationContext(instance, new PropertyChain(), new DefaultValidatorSelector()), propertyName);
         }
 
         public static ValidationResult Validate(this IValidator validator, ValidationContext context, string propertyName)
