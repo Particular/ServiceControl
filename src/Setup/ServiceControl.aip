@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<DOCUMENT Type="Advanced Installer" CreateVersion="10.6" version="12.6.1" Modules="enterprise" RootPath="." Language="en" Id="{D5FBDAF4-B426-436A-ABC2-D10F5C54F8FF}">
+<DOCUMENT Type="Advanced Installer" CreateVersion="10.6" version="13.5" Modules="enterprise" RootPath="." Language="en" Id="{D5FBDAF4-B426-436A-ABC2-D10F5C54F8FF}">
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_EXTERNALUIUNINSTALLERNAME" MultiBuildValue="DefaultBuild:aiui"/>
     <ROW Property="AI_FINDEXE_TITLE" Value="Select the installation package for [|ProductName]" ValueLocId="AI.Property.FindExeTitle"/>
     <ROW Property="AI_PREDEF_LCONDS_PROPS" Value="AI_DETECTED_DOTNET_VERSION"/>
     <ROW Property="AI_PRODUCTNAME_ARP" Value="Particular Software ServiceControl Management"/>
-    <ROW Property="AI_REQUIRED_DOTNET_DISPLAY" MultiBuildValue="DefaultBuild:4.5.2" ValueLocId="-"/>
-    <ROW Property="AI_REQUIRED_DOTNET_VERSION" MultiBuildValue="DefaultBuild:4.5.2" ValueLocId="-"/>
+    <ROW Property="AI_REQUIRED_DOTNET_DISPLAY" MultiBuildValue="DefaultBuild:4.6.1" ValueLocId="-"/>
+    <ROW Property="AI_REQUIRED_DOTNET_VERSION" MultiBuildValue="DefaultBuild:4.6.1" ValueLocId="-"/>
     <ROW Property="AI_UNINSTALLER" Value="msiexec.exe"/>
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="Particular Software ServiceControl version [|ProductVersion] for NServiceBus" ValueLocId="*"/>
@@ -142,7 +142,7 @@
     <ROW Name="CUSTOMACTIONS_PATH" Path="..\ServiceControlInstaller.CustomActions\bin\Release\net40" Type="2" Content="0"/>
     <ROW Name="POSH_PATH" Path="..\ServiceControlInstaller.PowerShell\bin\Release\net40" Type="2" Content="0"/>
     <ROW Name="PROJECT_PATH" Path="." Type="2" Content="0"/>
-    <ROW Name="WPF_PATH" Path="..\ServiceControl.Config\bin\Release\net452" Type="2" Content="0"/>
+    <ROW Name="WPF_PATH" Path="..\ServiceControl.Config\bin\Release\net461" Type="2" Content="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="hq" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites"/>
@@ -388,11 +388,11 @@
     <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqComponent">
-    <ROW PrereqKey="E275424811B28D95B40CAB85CC" DisplayName=".NET Framework 4.5.2 (web installer)" SetupFileUrl="Prerequisites\.NET Framework 4.5.2\NDP452-KB2901954-Web.exe" Location="0" ExactSize="0" WinNTVersions="Windows XP x86, Windows XP x86 Service Pack 1, Windows XP x86 Service Pack 2, Windows XP x86 Service Pack 3, Windows Server 2003 x86, Windows Server 2003 x86 Service Pack 1, Windows Server 2003 x86 Service Pack 2, Windows 10 x86" WinNT64Versions="Windows XP x64, Windows XP x64 Service Pack 1, Windows XP x64 Service Pack 2, Windows Server 2003 x64, Windows Server 2003 x64 Service Pack 1, Windows Server 2003 x64 Service Pack 2, Windows 10 x64" Operator="1" Options="x" TargetName=".NET Framework 4.5.2\NDP452-KB2901954-Web.exe"/>
-    <ATTRIBUTE name="PrereqsOrder" value="E275424811B28D95B40CAB85CC"/>
+    <ROW PrereqKey="BB9062A4604BB61146D7C9AA49D" DisplayName=".NET Framework 4.6.1 (web installer)" SetupFileUrl="Prerequisites\.NET Framework 4.6.1\NDP461-KB3102438-Web.exe" Location="0" ExactSize="0" WinNTVersions="Windows XP x86 Service Pack 3, Windows Server 2003 x86 Service Pack 2, Windows Vista x86, Windows Vista x86 Service Pack 1, Windows Vista x86 Service Pack 2, Windows Server 2008 x86, Windows 7 x86" WinNT64Versions="Windows XP x64 Service Pack 2, Windows Server 2003 x64 Service Pack 2, Windows Vista x64, Windows Vista x64 Service Pack 1, Windows Vista x64 Service Pack 2, Windows Server 2008 x64, Windows 7 x64, Windows Server 2008 R2 x64, Windows Server 2016 x64" Operator="1" NoUiComLine="/q /norestart" Options="xy" TargetName=".NET Framework 4.6.1\NDP461-KB3102438-Web.exe"/>
+    <ATTRIBUTE name="PrereqsOrder" value="BB9062A4604BB61146D7C9AA49D"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">
-    <ROW SearchKey="E275424811B28D95B40CAB85CCRelease" Prereq="E275424811B28D95B40CAB85CC" SearchType="9" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release" RefContent="G379892" Order="1" Property="PreReqSearch_E275424811B28D95B40CAB85CC"/>
+    <ROW SearchKey="BB9062A4604BB61146D7C9AA49DRelease" Prereq="BB9062A4604BB61146D7C9AA49D" SearchType="9" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release" RefContent="G394253" Order="1" Property="PreReqSearch_BB9062A4604BB61146D7C9AA49D"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.SynchronizedFolderComponent">
     <ROW Directory_="APPDIR" SourcePath="&lt;WPF_PATH&gt;" Feature="ServiceControlManagment" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store|\*|*.vshost.*" ExcludeFlags="6"/>
