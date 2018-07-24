@@ -35,8 +35,6 @@
             HostName = instance.HostName;
             PortNumber = instance.Port.ToString();
             DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
-            DatabaseMaintenancePortNumberRequired = instance.Version.Major >= 2;
-
             LogPath = instance.LogPath;
 
             AuditForwardingQueueName = instance.AuditLogQueue;
@@ -64,7 +62,7 @@
 
         public ServiceControlInstance ServiceControlInstance { get; set; }
 
-        public bool DatabaseMaintenancePortNumberRequired { get; set; }
+        public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= SettingsList.DatabaseMaintenancePort.SupportedFrom;
 
         public string ErrorQueueName { get; set; }
         public string ErrorForwardingQueueName { get; set; }
