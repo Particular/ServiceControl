@@ -3,7 +3,6 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Infrastructure.DomainEvents;
     using MessageFailures;
     using NServiceBus.Logging;
@@ -46,7 +45,7 @@ namespace ServiceControl.Recoverability
             if (shouldProcess(message))
             {
                 await returnToSender.HandleMessage(message, sender);
-                await IncrementCounterOrProlongTimer();
+                IncrementCounterOrProlongTimer();
             }
             else
             {
@@ -54,29 +53,29 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        Task IncrementCounterOrProlongTimer()
+        void IncrementCounterOrProlongTimer()
         {
             if (IsCounting)
             {
-                return CountMessageAndStopIfReachedTarget();
+                CountMessageAndStopIfReachedTarget();
             }
-
-            Log.Debug("Resetting timer");
-            timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
-            return TaskEx.CompletedTask;
+            else
+            {
+                Log.Debug("Resetting timer");
+                timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
+            }
         }
 
-        Task CountMessageAndStopIfReachedTarget()
+        void CountMessageAndStopIfReachedTarget()
         {
             var currentMessageCount = Interlocked.Increment(ref actualMessageCount);
             Log.DebugFormat("Handling message {0} of {1}", currentMessageCount, targetMessageCount);
             if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
             {
                 Log.DebugFormat("Target count reached. Shutting down forwarder");
-                return StopInternal();
+                // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
+                Task.Run(StopInternal);
             }
-
-            return TaskEx.CompletedTask;
         }
 
         public Task CreateQueue()
@@ -106,7 +105,7 @@ namespace ServiceControl.Recoverability
                 var config = createEndpointConfiguration();
                 syncEvent = new TaskCompletionSource<bool>();
                 stopCompletionSource = new TaskCompletionSource<bool>();
-                registration = cancellationToken.Register(() => { Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None).Ignore(); });
+                registration = cancellationToken.Register(() => { Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None); });
 
                 processor = await RawEndpoint.Start(config).ConfigureAwait(false);
 
@@ -145,9 +144,8 @@ namespace ServiceControl.Recoverability
             return StopInternal();
         }
 
-        async Task StopInternal()
+        private async Task StopInternal()
         {
-            // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
             await Task.Run(() => syncEvent?.TrySetResult(true)).ConfigureAwait(false);
             await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0)).ConfigureAwait(false);
             Log.InfoFormat("{0} stopped", GetType().Name);
@@ -167,7 +165,7 @@ namespace ServiceControl.Recoverability
 
         class CaptureIfMessageSendingFails : IErrorHandlingPolicy
         {
-            public CaptureIfMessageSendingFails(IDocumentStore store, IDomainEvents domainEvents, Func<Task> executeOnFailure)
+            public CaptureIfMessageSendingFails(IDocumentStore store, IDomainEvents domainEvents, Action executeOnFailure)
             {
                 this.store = store;
                 this.executeOnFailure = executeOnFailure;
@@ -227,13 +225,13 @@ namespace ServiceControl.Recoverability
                 }
                 finally
                 {
-                    await executeOnFailure();
+                    executeOnFailure();
                 }
 
                 return ErrorHandleResult.Handled;
             }
 
-            readonly Func<Task> executeOnFailure;
+            readonly Action executeOnFailure;
             IDocumentStore store;
             IDomainEvents domainEvents;
             static ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
