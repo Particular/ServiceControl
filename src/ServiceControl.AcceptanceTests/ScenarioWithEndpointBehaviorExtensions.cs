@@ -49,10 +49,10 @@
             return this;
         }
 
-        public IScenarioWithEndpointBehavior<TContext> Done(Func<TContext, bool> doneCriteria)
+        public IScenarioWithEndpointBehavior<TContext> Done(Func<TContext, bool> doneCriteria = null)
         {
             var behavior = new ServiceControlClient<TContext>(context => sequence.Continue(context));
-            return endpointBehavior.WithComponent(behavior).Done(ctx => sequence.IsFinished(ctx) && doneCriteria(ctx));
+            return endpointBehavior.WithComponent(behavior).Done(ctx => sequence.IsFinished(ctx) && (doneCriteria == null || doneCriteria(ctx)));
         }
 
         IScenarioWithEndpointBehavior<TContext> endpointBehavior;
