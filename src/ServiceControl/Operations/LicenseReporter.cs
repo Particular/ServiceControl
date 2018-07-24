@@ -3,7 +3,6 @@ namespace ServiceControl.Operations
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Contracts.Operations;
-    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
 
@@ -39,7 +38,7 @@ namespace ServiceControl.Operations
                     licenseStatusKeeper.Set(endpoint.Name + endpoint.Host, status);
                 }
 
-                return TaskEx.CompletedTask;
+                return Task.CompletedTask;
             }
 
             public string GetLicenseStatus(IReadOnlyDictionary<string, string> headers)

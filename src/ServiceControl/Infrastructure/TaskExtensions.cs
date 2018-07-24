@@ -11,6 +11,5 @@
         {
         }
 
-        public static Task CompletedTask = Task.FromResult(0);
     }
 }

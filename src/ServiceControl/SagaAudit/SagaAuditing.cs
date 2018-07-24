@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
@@ -119,7 +118,7 @@
                     });
                 }
 
-                return TaskEx.CompletedTask;
+                return Task.CompletedTask;
             }
 
             static IEnumerable<string> SplitInvokedSagas(string sagasInvokedRaw)

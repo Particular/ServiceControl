@@ -18,7 +18,7 @@
         {
             if (requestId == null) //legacy support for batches created before operations were introduced
             {
-                return TaskEx.CompletedTask;
+                return Task.CompletedTask;
             }
 
             var summary = GetOrCreate(retryType, requestId);

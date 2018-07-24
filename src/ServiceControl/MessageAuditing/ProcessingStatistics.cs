@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
@@ -71,7 +70,7 @@
 
                 metadata.Add("DeliveryTime", deliveryTime);
 
-                return TaskEx.CompletedTask;
+                return Task.CompletedTask;
             }
         }
     }
