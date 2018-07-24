@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="NServiceBus.AmazonSQS" Version="4.1.0" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.1.0" />
+    <PackageReference Include="Particular.CodeRules" Version="0.2.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
