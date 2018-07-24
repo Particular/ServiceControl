@@ -11,13 +11,16 @@ namespace ServiceControl.Recoverability
     public class RetriesHandler : IHandleMessages<RequestRetryAll>,
         IHandleMessages<RetryMessagesById>,
         IHandleMessages<RetryMessage>,
-        IHandleMessages<MessageFailedRepeatedly>,
         IHandleMessages<MessageFailed>,
+        IHandleMessages<MessageFailedRepeatedly>,
         IHandleMessages<RetryMessagesByQueueAddress>
     {
         public RetriesGateway Retries { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }
 
+        /// <summary>
+        /// For handling leftover messages. MessageFailed are no longer published on the bus and the code is moved to <see cref="FailedMessageRetryCleaner"/>.
+        /// </summary>
         public Task Handle(MessageFailed message, IMessageHandlerContext context)
         {
             if (message.RepeatedFailure)

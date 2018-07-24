@@ -14,12 +14,6 @@ namespace ServiceControl.Infrastructure.DomainEvents
             {
                 return messageSession.Publish(busEvent);
             }
-
-            if (domainEvent is IMessage busCommand)
-            {
-                return messageSession.SendLocal(busCommand);
-            }
-
             return Task.FromResult(0);
         }
 
