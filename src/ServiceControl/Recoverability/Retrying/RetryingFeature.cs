@@ -16,6 +16,7 @@
             context.Container.ConfigureComponent<RetryingManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<GroupFetcher>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<StoreHistoryHandler>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<FailedMessageRetryCleaner>(DependencyLifecycle.SingleInstance);
         }
     }
 }

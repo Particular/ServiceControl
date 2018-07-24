@@ -32,7 +32,7 @@
                     failure = result;
                     return result;
                 })
-                .Run(TimeSpan.FromMinutes(4));
+                .Run(TimeSpan.FromMinutes(1));
 
             Assert.IsNotNull(failure, "Failure should not be null");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failure.Status);
@@ -64,7 +64,7 @@
                     failure = result;
                     return result;
                 })
-                .Run(TimeSpan.FromMinutes(4));
+                .Run(TimeSpan.FromMinutes(1));
 
             Assert.IsNotNull(failure, "Failure should not be null");
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
@@ -89,7 +89,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => { c.NoDelayedRetries(); });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
