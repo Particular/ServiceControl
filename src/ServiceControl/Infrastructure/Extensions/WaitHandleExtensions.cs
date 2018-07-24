@@ -6,7 +6,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
     internal static class WaitHandleExtensions
     {
-        public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken)
+        public static Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken)
         {
             RegisteredWaitHandle registeredHandle = null;
             var tokenRegistration = default(CancellationTokenRegistration);
@@ -22,7 +22,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
                 tokenRegistration = cancellationToken.Register(
                     state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
                     tcs);
-                return await tcs.Task;
+                return tcs.Task;
             }
             finally
             {

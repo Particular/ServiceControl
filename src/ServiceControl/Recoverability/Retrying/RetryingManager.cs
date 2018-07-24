@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure;
     using Infrastructure.DomainEvents;
 
     public class RetryingManager
@@ -13,16 +14,16 @@
             this.domainEvents = domainEvents;
         }
 
-        public async Task Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
+        public Task Wait(string requestId, RetryType retryType, DateTime started, string originator = null, string classifier = null, DateTime? last = null)
         {
             if (requestId == null) //legacy support for batches created before operations were introduced
             {
-                return;
+                return TaskEx.CompletedTask;
             }
 
             var summary = GetOrCreate(retryType, requestId);
 
-            await summary.Wait(started, originator, classifier, last);
+            return summary.Wait(started, originator, classifier, last);
         }
 
         public bool IsOperationInProgressFor(string requestId, RetryType retryType)
