@@ -64,7 +64,7 @@
                     return true;
                 })
                 .Do("DetectThirdFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 2))
-                .Do("RetryFourthTime", async ctx =>
+                .Do("RetryThirdTime", async ctx =>
                 {
                     ctx.Succeed = true;
                     await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
