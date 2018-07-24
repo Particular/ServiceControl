@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,7 +35,7 @@
     <Copy SourceFiles="@(ResourceFiles)" DestinationFolder="$(IntermediateOutputPath)Res\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(Prerequisites)" DestinationFolder="$(IntermediateOutputPath)Prerequisites\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name PROJECT_PATH -value $(SolutionDir)Setup -valuetype Folder" />
-    <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name WPF_PATH -value $(SolutionDir)ServiceControl.Config\bin\$(Configuration)\net452 -valuetype Folder" />
+    <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name WPF_PATH -value $(SolutionDir)ServiceControl.Config\bin\$(Configuration)\$(TargetFramework) -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name POSH_PATH -value $(SolutionDir)ServiceControlInstaller.PowerShell\bin\$(Configuration)\net40 -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name CUSTOMACTIONS_PATH -value $(SolutionDir)ServiceControlInstaller.CustomActions\bin\$(Configuration)\net40 -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /SetVersion $(GitVersion_MajorMinorPatch)" />
