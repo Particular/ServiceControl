@@ -3,6 +3,7 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
     using Infrastructure.DomainEvents;
     using MessageFailures;
     using NServiceBus.Logging;
@@ -74,7 +75,7 @@ namespace ServiceControl.Recoverability
             {
                 Log.DebugFormat("Target count reached. Shutting down forwarder");
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
-                Task.Run(StopInternal);
+                Task.Run(StopInternal).Ignore();
             }
         }
 
@@ -105,7 +106,7 @@ namespace ServiceControl.Recoverability
                 var config = createEndpointConfiguration();
                 syncEvent = new TaskCompletionSource<bool>();
                 stopCompletionSource = new TaskCompletionSource<bool>();
-                registration = cancellationToken.Register(() => { Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None); });
+                registration = cancellationToken.Register(() => { Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None).Ignore(); });
 
                 processor = await RawEndpoint.Start(config).ConfigureAwait(false);
 
