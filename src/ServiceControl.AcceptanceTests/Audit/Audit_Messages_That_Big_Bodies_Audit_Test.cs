@@ -14,7 +14,7 @@
         public async Task Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
         {
             //Arrange
-            SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
+            SetSetSettings(settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE);
 
             byte[] body = null;
 
@@ -55,7 +55,7 @@
         public async Task Should_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_less_then_message_size()
         {
             //Arrange
-            SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
+            SetSetSettings(settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE);
 
             byte[] body = null;
 

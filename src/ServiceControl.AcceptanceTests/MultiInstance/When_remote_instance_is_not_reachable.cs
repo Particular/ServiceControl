@@ -15,7 +15,7 @@
         [Test]
         public async Task Should_not_fail()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            SetSetInstanceSettings(ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues);
 
             //search for the message type
             var searchString = typeof(MyMessage).Name;

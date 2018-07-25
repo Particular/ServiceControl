@@ -6,37 +6,26 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
-    using NServiceBus.Settings;
 
     class TraceIncomingBehavior : IBehavior<IIncomingLogicalMessageContext, IIncomingLogicalMessageContext>
     {
-        public TraceIncomingBehavior(ScenarioContext scenarioContext, ReadOnlySettings settings)
-        {
-            this.scenarioContext = scenarioContext;
-            this.settings = settings;
-        }
+        string endpointName;
 
+        public TraceIncomingBehavior(string endpointName)
+        {
+            this.endpointName = endpointName;
+        }
+        
         public Task Invoke(IIncomingLogicalMessageContext context, Func<IIncomingLogicalMessageContext, Task> next)
         {
-            scenarioContext.Logs.Enqueue(new ScenarioContext.LogItem
+            StaticLoggerFactory.CurrentContext.Logs.Enqueue(new ScenarioContext.LogItem
             {
-                Endpoint = settings.EndpointName(),
+                Endpoint = endpointName,
                 Level = LogLevel.Info,
                 LoggerName = "Trace",
                 Message = $"<- {context.Message.MessageType.Name} ({context.Headers[Headers.MessageId].Substring(context.Headers[Headers.MessageId].Length - 4)})"
             });
             return next(context);
-        }
-
-        ScenarioContext scenarioContext;
-        ReadOnlySettings settings;
-
-        public class Registration : RegisterStep
-        {
-            public Registration()
-                : base("TraceIncomingBehavior", typeof(TraceIncomingBehavior), "Adds incoming messages to the acceptance test trace")
-            {
-            }
         }
     }
 }

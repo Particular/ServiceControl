@@ -22,13 +22,13 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             var externalProcessorSubscribed = false;
 
-            CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
+            SetCustomConfiguration(config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     externalProcessorSubscribed = true;
                 }
-            });
+            }));
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointHeartbeatRestored
             {

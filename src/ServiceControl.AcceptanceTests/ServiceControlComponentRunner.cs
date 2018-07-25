@@ -22,7 +22,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
 
@@ -47,40 +46,12 @@ namespace ServiceBus.Management.AcceptanceTests
         public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
         public Dictionary<string, BusInstance> Busses { get; } = new Dictionary<string, BusInstance>();
 
-        public Task Initialize(RunDescriptor run)
+        public async Task Initialize()
         {
-            return InitializeServiceControl(run.ScenarioContext);
-        }
-
-        static int FindAvailablePort(int startPort)
-        {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
-
-            for (var port = startPort; port < startPort + 1024; port++)
-            {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
-                {
-                    return port;
-                }
-            }
-
-            return startPort;
-        }
-
-        async Task InitializeServiceControl(ScenarioContext context)
-        {
-            if (instanceNames.Length == 0)
-            {
-                instanceNames = new[] {Settings.DEFAULT_SERVICE_NAME};
-            }
-
             var startPort = 33333;
             foreach (var instanceName in instanceNames)
             {
-                typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
+                typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(StaticLoggerFactory.CurrentContext, instanceName);
 
                 var instancePort = FindAvailablePort(startPort++);
                 var maintenancePort = FindAvailablePort(startPort++);
@@ -120,7 +91,7 @@ namespace ServiceBus.Management.AcceptanceTests
                             return @continue();
                         }
 
-                        var currentSession = context.TestRunId.ToString();
+                        var currentSession = StaticLoggerFactory.CurrentContext.TestRunId.ToString();
                         if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                         {
                             log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
@@ -142,23 +113,16 @@ namespace ServiceBus.Management.AcceptanceTests
                 var configuration = new EndpointConfiguration(instanceName);
                 configuration.EnableInstallers();
 
-                configuration.GetSettings().Set("SC.ScenarioContext", context);
-                configuration.GetSettings().Set<ScenarioContext>(context);
-
-                // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
-                // This is needed because we no longer use the AppDomain separation.
-                configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
-
                 configuration.RegisterComponents(r =>
                 {
-                    r.RegisterSingleton(context.GetType(), context);
-                    r.RegisterSingleton(typeof(ScenarioContext), context);
+                    r.ConfigureComponent(() => StaticLoggerFactory.CurrentContext, DependencyLifecycle.InstancePerCall);
                 });
 
-                configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
-                configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-                configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
-                configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
+                configuration.DisableFeature<FailTestOnErrorMessageFeature>();
+                configuration.Pipeline.Register(new TraceIncomingBehavior(instanceName), "Adds incoming messages to the acceptance test trace");
+                configuration.Pipeline.Register(new TraceOutgoingBehavior(instanceName), "Adds outgoing messages to the acceptance test trace");
+                configuration.Pipeline.Register(new StampDispatchBehavior(), "Stamps outgoing messages with session ID");
+                configuration.Pipeline.Register(new DiscardMessagesBehavior(), "Discards messages based on session ID");
 
                 configuration.AssemblyScanner().ExcludeAssemblies("ServiceBus.Management.AcceptanceTests");
 
@@ -185,7 +149,7 @@ namespace ServiceBus.Management.AcceptanceTests
                             LoggerName = $"{settings.ServiceName}.CriticalError",
                             Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
                         };
-                        context.Logs.Enqueue(logitem);
+                        StaticLoggerFactory.CurrentContext.Logs.Enqueue(logitem);
                         ctx.Stop().GetAwaiter().GetResult();
                     }, settings, configuration, loggingSettings);
                     bootstrappers[instanceName] = bootstrapper;
@@ -217,7 +181,25 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        public override async Task Stop()
+        static int FindAvailablePort(int startPort)
+        {
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
+            {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
+            }
+
+            return startPort;
+        }
+
+        public async Task StopInternal()
         {
             foreach (var instanceAndSettings in SettingsPerInstance)
             {

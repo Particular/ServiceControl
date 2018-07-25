@@ -40,7 +40,7 @@
         [Test]
         public async Task Saga_history_can_be_fetched_on_master()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            SetSetInstanceSettings(ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues);
 
             SagaHistory sagaHistory = null;
 
