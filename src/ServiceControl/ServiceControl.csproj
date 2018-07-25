@@ -5,6 +5,8 @@
     <OutputType>Exe</OutputType>
     <DefineConstants>$(DefineConstants);REGISTRYLICENSESOURCE</DefineConstants>
     <ApplicationIcon>Operations.ico</ApplicationIcon>
+    <!-- Particular.CodeRules analyzer currently fails when awaiting dynamics. Disable the compiler error due to the failed analyzer till this is fixed -->
+    <NoWarn>AD0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
