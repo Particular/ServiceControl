@@ -104,7 +104,7 @@
                             return;
                         }
 
-                        delayInterval = Math.Min(++delayInterval, 1000);
+                        delayInterval = ++delayInterval % 1000;
                         await Task.Delay(delayInterval, tokenSource.Token).ConfigureAwait(false);
                     }
                 }, tokenSource.Token);
