@@ -29,7 +29,8 @@
                         .Statistics(out var stats)
                         .WaitForNonStaleResultsAsOf(cutOffTime)
                         .SelectFields<FailedMessageView>()
-                        .ToListAsync(cts.Token);
+                        .ToListAsync(cts.Token)
+                        .ConfigureAwait(false);
 
                     return !stats.IsStale;
                 }

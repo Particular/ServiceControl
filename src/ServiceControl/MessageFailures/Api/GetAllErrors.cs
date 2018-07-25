@@ -44,7 +44,8 @@
                         .Paging(Request)
                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                         .SelectFields<FailedMessageView>()
-                        .ToListAsync();
+                        .ToListAsync()
+                        .ConfigureAwait(false);
 
                     return Negotiate
                         .WithModel(results)

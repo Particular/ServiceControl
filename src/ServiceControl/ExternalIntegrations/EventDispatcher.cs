@@ -112,7 +112,12 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var awaitingDispatching = await session.Query<ExternalIntegrationDispatchRequest>().Statistics(out var stats).Take(settings.ExternalIntegrationsDispatchingBatchSize).ToListAsync();
+                var awaitingDispatching = await session
+                    .Query<ExternalIntegrationDispatchRequest>()
+                    .Statistics(out var stats)
+                    .Take(settings.ExternalIntegrationsDispatchingBatchSize)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
 
                 if (awaitingDispatching.Count == 0)
                 {

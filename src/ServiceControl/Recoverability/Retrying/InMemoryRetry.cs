@@ -132,7 +132,7 @@
                 StartTime = Started
             }).ConfigureAwait(false);
 
-            await CheckForCompletion();
+            await CheckForCompletion().ConfigureAwait(false);
         }
 
         public Task Skip(int numberOfMessagesSkipped)

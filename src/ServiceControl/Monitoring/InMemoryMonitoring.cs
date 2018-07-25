@@ -43,7 +43,7 @@
 
             protected override async Task OnStart(IMessageSession session)
             {
-                await persistence.WarmupMonitoringFromPersistence();
+                await persistence.WarmupMonitoringFromPersistence().ConfigureAwait(false);
                 timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             }
 

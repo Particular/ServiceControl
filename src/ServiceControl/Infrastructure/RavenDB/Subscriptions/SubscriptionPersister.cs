@@ -152,7 +152,7 @@
                 await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId)
                     .ConfigureAwait(false);
                 UpdateLookup();
-                await session.SaveChangesAsync();
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 

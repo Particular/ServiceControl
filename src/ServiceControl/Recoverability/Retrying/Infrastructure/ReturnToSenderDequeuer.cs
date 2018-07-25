@@ -45,7 +45,7 @@ namespace ServiceControl.Recoverability
 
             if (shouldProcess(message))
             {
-                await returnToSender.HandleMessage(message, sender);
+                await returnToSender.HandleMessage(message, sender).ConfigureAwait(false);
                 IncrementCounterOrProlongTimer();
             }
             else
@@ -53,6 +53,7 @@ namespace ServiceControl.Recoverability
                 Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.MessageId);
             }
         }
+
 
         void IncrementCounterOrProlongTimer()
         {
@@ -128,7 +129,7 @@ namespace ServiceControl.Recoverability
                     await processor.Stop().ConfigureAwait(false);
                 }
 
-                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None);
+                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None).ConfigureAwait(false);
                 Log.DebugFormat("{0} finished", GetType().Name);
             }
 

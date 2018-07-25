@@ -29,7 +29,7 @@ namespace ServiceControl.Recoverability
 
         public async Task<bool> ProcessBatches(IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
-            return await ForwardCurrentBatch(session, cancellationToken) || await MoveStagedBatchesToForwardingBatch(session);
+            return await ForwardCurrentBatch(session, cancellationToken).ConfigureAwait(false) || await MoveStagedBatchesToForwardingBatch(session).ConfigureAwait(false);
         }
 
         private async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session)
@@ -172,7 +172,7 @@ namespace ServiceControl.Recoverability
 
             Log.DebugFormat("Staging {0} messages for Retry Batch {1} with staging attempt Id {2}", messages.Length, stagingBatch.Id, stagingId);
 
-            await Task.WhenAll(messages.Select(m => StageMessage(m, stagingId)).ToArray());
+            await Task.WhenAll(messages.Select(m => StageMessage(m, stagingId)).ToArray()).ConfigureAwait(false);
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {

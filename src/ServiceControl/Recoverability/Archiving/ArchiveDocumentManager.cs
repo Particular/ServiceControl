@@ -42,7 +42,7 @@
                 .ProjectFromIndexFieldsInto<FailureGroupMessageView>()
                 .Select(document => document.Id);
 
-            var docs = await StreamResults(session, docQuery);
+            var docs = await StreamResults(session, docQuery).ConfigureAwait(false);
 
             var batches = docs
                 .GroupBy(d => documentCount++ / batchSize);
@@ -55,7 +55,7 @@
                     DocumentIds = batch.ToList()
                 };
 
-                await session.StoreAsync(archiveBatch);
+                await session.StoreAsync(archiveBatch).ConfigureAwait(false);
             }
 
             return operation;
@@ -66,7 +66,7 @@
             var results = new List<string>();
             using (var enumerator = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
             {
-                while (await enumerator.MoveNextAsync())
+                while (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
                     results.Add(enumerator.Current.Document);
                 }
@@ -83,7 +83,8 @@
         public async Task<GroupDetails> GetGroupDetails(IAsyncDocumentSession session, string groupId)
         {
             var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                .FirstOrDefaultAsync(x => x.Id == groupId);
+                .FirstOrDefaultAsync(x => x.Id == groupId)
+                .ConfigureAwait(false);
 
             return new GroupDetails
             {

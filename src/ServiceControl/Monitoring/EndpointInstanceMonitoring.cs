@@ -66,7 +66,7 @@ namespace ServiceControl.Monitoring
             {
                 EndpointDetails = newEndpointDetails,
                 StartedAt = startedAt
-            });
+            }).ConfigureAwait(false);
         }
 
         public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)

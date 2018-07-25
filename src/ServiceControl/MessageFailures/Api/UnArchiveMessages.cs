@@ -25,7 +25,7 @@
 
                 var request = new InternalMessages.UnArchiveMessages {FailedMessageIds = ids};
 
-                await MessageSession.SendLocal(request);
+                await MessageSession.SendLocal(request).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
@@ -49,7 +49,7 @@
                     From = from,
                     To = to,
                     CutOff = DateTime.UtcNow
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
