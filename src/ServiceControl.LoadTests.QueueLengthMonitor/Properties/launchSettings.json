@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "ServiceControl.LoadTests.QueueLengthMonitor": {
-      "commandName": "Project",
-      "commandLineArgs": "test test"
-    }
-  }
-}
