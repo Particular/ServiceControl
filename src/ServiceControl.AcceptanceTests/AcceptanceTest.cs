@@ -318,7 +318,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
             if (response == null || !response.Any(m => condition(m)))
             {
-                await Task.Delay(1000).ConfigureAwait(false);
                 return ManyResult<T>.Empty;
             }
 
@@ -358,7 +357,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
             if (response == null || !condition(response))
             {
-                await Task.Delay(1000).ConfigureAwait(false);
                 return SingleResult<T>.Empty;
             }
 
@@ -371,7 +369,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
             if (response == null || !await condition(response).ConfigureAwait(false))
             {
-                await Task.Delay(1000).ConfigureAwait(false);
                 return SingleResult<T>.Empty;
             }
 
@@ -401,7 +398,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
             if (item != null)
             {
-                await Task.Delay(1000).ConfigureAwait(false);
                 return SingleResult<T>.New(item);
             }
 
@@ -498,7 +494,6 @@ namespace ServiceBus.Management.AcceptanceTests
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
                 LogRequest();
-                await Task.Delay(1000).ConfigureAwait(false);
                 return null;
             }
 
