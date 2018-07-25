@@ -34,7 +34,7 @@ namespace ServiceControl.Recoverability
             using (var session = store.OpenAsyncSession())
             using (var stream = await request.GetDocuments(session).ConfigureAwait(false))
             {
-                while (await stream.MoveNextAsync())
+                while (await stream.MoveNextAsync().ConfigureAwait(false))
                 {
                     var current = stream.Current.Document;
                     currentBatch.Add(current.UniqueMessageId);

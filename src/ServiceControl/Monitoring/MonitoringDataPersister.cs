@@ -82,7 +82,7 @@
                         EndpointDetails = domainEvent.Endpoint,
                         HostDisplayName = domainEvent.Endpoint.Host
                     };
-                    await session.StoreAsync(knownEndpoint);
+                    await session.StoreAsync(knownEndpoint).ConfigureAwait(false);
                 }
 
                 knownEndpoint.Monitored = true;

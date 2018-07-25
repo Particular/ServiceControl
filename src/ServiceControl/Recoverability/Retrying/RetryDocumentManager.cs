@@ -116,8 +116,8 @@ namespace ServiceControl.Recoverability
             await Task.WhenAll(orphanedBatches.Select(b => Task.Run(async () =>
             {
                 log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", b.Id, b.FailureRetries.Count);
-                await MoveBatchToStaging(b.Id);
-            })));
+                await MoveBatchToStaging(b.Id).ConfigureAwait(false);
+            }))).ConfigureAwait(false);
 
             foreach (var batch in orphanedBatches)
             {
