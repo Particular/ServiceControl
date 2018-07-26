@@ -16,8 +16,8 @@
         [Test]
         public async Task Should_mark_as_resolved_on_master()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
+            SetSetInstanceSettings(ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues);
+            SetCustomInstanceConfiguration(ConfigureWaitingForMasterToSubscribe);
 
             FailedMessage failure;
 

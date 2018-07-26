@@ -17,7 +17,7 @@
         [Test]
         public async Task Should_be_found()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            SetSetInstanceSettings(ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues);
 
             await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new TriggeringMessage())))
@@ -31,7 +31,7 @@
                 .Run(TimeSpan.FromSeconds(40));
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -55,14 +55,14 @@
             }
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private const string ReceiverHostDisplayName = "Rico";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit";
-        private static string ErrorRemote = $"{Remote1}.error";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Remote1 = "remote1";
+        const string ReceiverHostDisplayName = "Rico";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditRemote = $"{Remote1}.audit";
+        static string ErrorRemote = $"{Remote1}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {

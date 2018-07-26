@@ -22,8 +22,8 @@
         {
             var criticalErrorExecuted = false;
 
-            SetSettings = settings => { settings.MaximumConcurrencyLevel = 10; };
-            CustomConfiguration = config =>
+            SetSetSettings(settings => { settings.MaximumConcurrencyLevel = 10; });
+            SetCustomConfiguration(config =>
             {
                 config.DefineCriticalErrorAction(ctx =>
                 {
@@ -31,7 +31,7 @@
                     return Task.FromResult(0);
                 });
                 config.RegisterComponents(c => c.ConfigureComponent<CounterEnricher>(DependencyLifecycle.SingleInstance));
-            };
+            });
 
             FailedMessage failure = null;
             await Define<MyContext>()

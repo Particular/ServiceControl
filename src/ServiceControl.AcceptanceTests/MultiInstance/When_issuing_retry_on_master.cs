@@ -17,7 +17,7 @@
         [Test]
         public async Task Should_be_forwarded_and_resolved_on_remote()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            SetSetInstanceSettings(ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues);
 
             FailedMessage failure;
 
@@ -43,7 +43,7 @@
                 .Run(TimeSpan.FromMinutes(2));
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {

@@ -30,9 +30,11 @@
                 typeof(TraceOutgoingBehavior)
             }));
 
-            builder.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
-            builder.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
-
+            builder.Pipeline.Register(new StampDispatchBehavior(), "Stamps outgoing messages with session ID");
+            builder.Pipeline.Register(new DiscardMessagesBehavior(), "Discards messages based on session ID");
+            builder.Pipeline.Register(new TraceIncomingBehavior(endpointConfiguration.EndpointName), "Adds incoming messages to the acceptance test trace");
+            builder.Pipeline.Register(new TraceOutgoingBehavior(endpointConfiguration.EndpointName), "Adds outgoing messages to the acceptance test trace");
+            
             builder.SendFailedMessagesTo("error");
 
             // will work on all the cloud transports
@@ -48,13 +50,8 @@
 
             builder.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
+            builder.GetSettings().Set<ScenarioContext>(runDescriptor.ScenarioContext);
             await builder.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
-
-            builder.RegisterComponents(r => { builder.GetSettings().Set("SC.ConfigureComponent", r); });
-            builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
-            builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-
-            builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
 
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
 

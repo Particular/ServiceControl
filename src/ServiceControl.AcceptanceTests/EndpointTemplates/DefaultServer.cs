@@ -7,6 +7,7 @@
     using AcceptanceTesting;
     using AcceptanceTesting.Customization;
     using AcceptanceTesting.Support;
+    using Configuration.AdvancedExtensibility;
     using Features;
     using ServiceBus.Management.AcceptanceTests;
 
@@ -35,8 +36,10 @@
 
             configuration.DisableFeature<TimeoutManager>();
 
-            configuration.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
-            configuration.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
+            configuration.Pipeline.Register(new StampDispatchBehavior(), "Stamps outgoing messages with session ID");
+            configuration.Pipeline.Register(new DiscardMessagesBehavior(), "Discards messages based on session ID");
+            configuration.Pipeline.Register(new TraceIncomingBehavior(endpointConfiguration.EndpointName), "Adds incoming messages to the acceptance test trace");
+            configuration.Pipeline.Register(new TraceOutgoingBehavior(endpointConfiguration.EndpointName), "Adds outgoing messages to the acceptance test trace");
 
             var recoverability = configuration.Recoverability();
             recoverability.Delayed(delayed => delayed.NumberOfRetries(0));
@@ -45,6 +48,7 @@
 
             await configuration.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
+            configuration.GetSettings().Set<ScenarioContext>(runDescriptor.ScenarioContext);
             configuration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
             await configuration.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);

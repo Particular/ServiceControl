@@ -12,8 +12,9 @@ namespace ServiceBus.Management.AcceptanceTests
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<string, Settings> setInstanceSettings, Action<EndpointConfiguration> customConfiguration, Action<string, EndpointConfiguration> customInstanceConfiguration)
+        public ServiceControlComponentBehavior(string[] instanceNames, ITransportIntegration transportToUse, Action<Settings> setSettings, Action<string, Settings> setInstanceSettings, Action<EndpointConfiguration> customConfiguration, Action<string, EndpointConfiguration> customInstanceConfiguration)
         {
+            this.instanceNames = instanceNames;
             this.customInstanceConfiguration = customInstanceConfiguration;
             this.customConfiguration = customConfiguration;
             this.setSettings = setSettings;
@@ -29,22 +30,31 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
+            if (runner != null)
+            {
+                return runner;
+            }
+
             runner = new ServiceControlComponentRunner(instanceNames, transportIntegration, setSettings, setInstanceSettings, customConfiguration, customInstanceConfiguration);
-            await runner.Initialize(run).ConfigureAwait(false);
+            await runner.Initialize().ConfigureAwait(false);
             return runner;
         }
 
-        public void Initialize(string[] instanceNames)
+        public async Task Stop()
         {
-            this.instanceNames = instanceNames;
+            if (runner != null)
+            {
+                await runner.StopInternal().ConfigureAwait(false);
+                runner = null;
+            }
         }
 
-        ITransportIntegration transportIntegration;
-        Action<string, Settings> setInstanceSettings;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
-        Action<string, EndpointConfiguration> customInstanceConfiguration;
-        string[] instanceNames;
+        readonly ITransportIntegration transportIntegration;
+        readonly Action<string, Settings> setInstanceSettings;
+        readonly Action<Settings> setSettings;
+        readonly Action<EndpointConfiguration> customConfiguration;
+        readonly Action<string, EndpointConfiguration> customInstanceConfiguration;
+        readonly string[] instanceNames;
         ServiceControlComponentRunner runner;
     }
 }

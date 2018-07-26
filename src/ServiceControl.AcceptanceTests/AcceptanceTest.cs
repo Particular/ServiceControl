@@ -8,7 +8,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
@@ -18,7 +17,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.AcceptanceTests;
-    using NServiceBus.Logging;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.DomainEvents;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -35,11 +33,11 @@ namespace ServiceBus.Management.AcceptanceTests
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
         }
 
-        public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
-        public Dictionary<string, Settings> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
-        public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
-        public Dictionary<string, BusInstance> Busses => serviceControlRunnerBehavior.Busses;
+        public Dictionary<string, HttpClient> HttpClients => instanceBehavior.HttpClients;
+        public JsonSerializerSettings SerializerSettings => instanceBehavior.SerializerSettings;
+        public Dictionary<string, Settings> SettingsPerInstance => instanceBehavior.SettingsPerInstance;
+        public Dictionary<string, OwinHttpMessageHandler> Handlers => instanceBehavior.Handlers;
+        public Dictionary<string, BusInstance> Busses => instanceBehavior.Busses;
 
         [OneTimeSetUp]
         public void OneTimeSetup()
@@ -70,13 +68,6 @@ namespace ServiceBus.Management.AcceptanceTests
             textWriterTraceListener = new TextWriterTraceListener(logFile);
             Trace.Listeners.Add(textWriterTraceListener);
 
-            var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
-            TestContext.WriteLine($"Using transport {transportToUse.Name}");
-
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
-
-            RemoveOtherTransportAssemblies(transportToUse.TypeName);
-
             Conventions.EndpointNamingConvention = t =>
             {
                 var baseNs = typeof(AcceptanceTest).Namespace;
@@ -91,7 +82,7 @@ namespace ServiceBus.Management.AcceptanceTests
             Trace.Listeners.Remove(textWriterTraceListener);
         }
 
-        void RemoveOtherTransportAssemblies(string name)
+        static void RemoveOtherTransportAssemblies(string name)
         {
             var assembly = Type.GetType(name, true).Assembly;
 
@@ -125,398 +116,85 @@ namespace ServiceBus.Management.AcceptanceTests
 
         protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer, params string[] instanceNames) where T : ScenarioContext, new()
         {
-            serviceControlRunnerBehavior.Initialize(instanceNames);
-            return Scenario.Define(contextInitializer)
-                .WithComponent(serviceControlRunnerBehavior);
+            if (instanceNames.Length == 0)
+            {
+                instanceNames = defaultInstanceNames;
+            }
+
+            // once custom settings have been applied in the previous run we have to force a new instance
+            if (forceRefresh || previousForceRefresh || currentInstanceNames != null && !currentInstanceNames.SequenceEqual(instanceNames))
+            {
+                Stop().GetAwaiter().GetResult();
+                
+                var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
+                TestContext.WriteLine("Refreshing Service Control Instances with:");
+                TestContext.WriteLine($"- Transport: {transportToUse.Name}");
+                TestContext.WriteLine($"- Instances: Previous '{string.Join(";", currentInstanceNames ?? Array.Empty<string>())}' / New '{string.Join(";", instanceNames)}'");
+                TestContext.WriteLine($"- Refresh Flags: Previous '{previousForceRefresh}'/ ForceRefresh '{forceRefresh}'");
+
+                RemoveOtherTransportAssemblies(transportToUse.TypeName);
+
+                instanceBehavior = new ServiceControlComponentBehavior(instanceNames, transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
+                currentInstanceNames = instanceNames;
+            }
+
+            previousForceRefresh = forceRefresh;
+            forceRefresh = false;
+
+            return Scenario.Define(contextInitializer).WithComponent(instanceBehavior);
         }
 
-        protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
-        protected Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
-        protected Action<Settings> SetSettings = _ => { };
-        protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
-        ServiceControlComponentBehavior serviceControlRunnerBehavior;
+        protected void SetCustomConfiguration(Action<EndpointConfiguration> action)
+        {
+            forceRefresh = true;
+            CustomConfiguration = action;
+        }
+
+        protected void SetCustomInstanceConfiguration(Action<string, EndpointConfiguration> action)
+        {
+            forceRefresh = true;
+            CustomInstanceConfiguration = action;
+        }
+
+        protected void SetSetSettings(Action<Settings> action)
+        {
+            forceRefresh = true;
+            SetSettings = action;
+        }
+
+        protected void SetSetInstanceSettings(Action<string, Settings> action)
+        {
+            forceRefresh = true;
+            SetInstanceSettings = action;
+        }
+
+        public static async Task Stop()
+        {
+            if (instanceBehavior != null)
+            {
+                await instanceBehavior.Stop();
+                instanceBehavior = null;
+            }
+        }
+
+        Action<EndpointConfiguration> CustomConfiguration = _ => { };
+
+        Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
+
+        Action<Settings> SetSettings = _ => { };
+
+        Action<string, Settings> SetInstanceSettings = (i, s) => { };
+
         TextWriterTraceListener textWriterTraceListener;
-    }
 
-    class StaticLoggerFactory : ILoggerFactory
-    {
-        public StaticLoggerFactory(ScenarioContext currentContext)
-        {
-            CurrentContext = currentContext;
-        }
+        static ServiceControlComponentBehavior instanceBehavior;
 
-        public ILog GetLogger(Type type)
-        {
-            return GetLogger(type.FullName);
-        }
+        static readonly string[] defaultInstanceNames = {Settings.DEFAULT_SERVICE_NAME};
 
-        public ILog GetLogger(string name)
-        {
-            return new StaticContextAppender();
-        }
+        static bool forceRefresh = true;
 
-        public static ScenarioContext CurrentContext;
-    }
+        static bool previousForceRefresh;
 
-    class StaticContextAppender : ILog
-    {
-        public bool IsDebugEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Debug;
-        public bool IsInfoEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Info;
-        public bool IsWarnEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Warn;
-        public bool IsErrorEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Error;
-        public bool IsFatalEnabled => StaticLoggerFactory.CurrentContext.LogLevel <= LogLevel.Fatal;
-
-
-        public void Debug(string message)
-        {
-            Log(message, LogLevel.Debug);
-        }
-
-        public void Debug(string message, Exception exception)
-        {
-            var fullMessage = $"{message} {exception}";
-            Log(fullMessage, LogLevel.Debug);
-        }
-
-        public void DebugFormat(string format, params object[] args)
-        {
-            var fullMessage = string.Format(format, args);
-            Log(fullMessage, LogLevel.Debug);
-        }
-
-        public void Info(string message)
-        {
-            Log(message, LogLevel.Info);
-        }
-
-
-        public void Info(string message, Exception exception)
-        {
-            var fullMessage = $"{message} {exception}";
-            Log(fullMessage, LogLevel.Info);
-        }
-
-        public void InfoFormat(string format, params object[] args)
-        {
-            var fullMessage = string.Format(format, args);
-            Log(fullMessage, LogLevel.Info);
-        }
-
-        public void Warn(string message)
-        {
-            Log(message, LogLevel.Warn);
-        }
-
-        public void Warn(string message, Exception exception)
-        {
-            var fullMessage = $"{message} {exception}";
-            Log(fullMessage, LogLevel.Warn);
-        }
-
-        public void WarnFormat(string format, params object[] args)
-        {
-            var fullMessage = string.Format(format, args);
-            Log(fullMessage, LogLevel.Warn);
-        }
-
-        public void Error(string message)
-        {
-            Log(message, LogLevel.Error);
-        }
-
-        public void Error(string message, Exception exception)
-        {
-            var fullMessage = $"{message} {exception}";
-            Log(fullMessage, LogLevel.Error);
-        }
-
-        public void ErrorFormat(string format, params object[] args)
-        {
-            var fullMessage = string.Format(format, args);
-            Log(fullMessage, LogLevel.Error);
-        }
-
-        public void Fatal(string message)
-        {
-            Log(message, LogLevel.Fatal);
-        }
-
-        public void Fatal(string message, Exception exception)
-        {
-            var fullMessage = $"{message} {exception}";
-            Log(fullMessage, LogLevel.Fatal);
-        }
-
-        public void FatalFormat(string format, params object[] args)
-        {
-            var fullMessage = string.Format(format, args);
-            Log(fullMessage, LogLevel.Fatal);
-        }
-
-        void Log(string message, LogLevel messageSeverity)
-        {
-            if (StaticLoggerFactory.CurrentContext.LogLevel > messageSeverity)
-            {
-                return;
-            }
-
-            Trace.WriteLine(message);
-            StaticLoggerFactory.CurrentContext.Logs.Enqueue(new ScenarioContext.LogItem
-            {
-                Endpoint = (string)typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.GetValue(StaticLoggerFactory.CurrentContext),
-                Level = messageSeverity,
-                Message = message
-            });
-        }
-    }
-
-    public static class HttpExtensions
-    {
-        public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
-            }
-
-            if (requestHasFailed == null)
-            {
-                requestHasFailed = statusCode => statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.Accepted;
-            }
-
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
-            var httpClient = provider.HttpClients[instanceName];
-            var response = await httpClient.PutAsync(url, new StringContent(json, null, "application/json"));
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
-
-            if (requestHasFailed(response.StatusCode))
-            {
-                throw new Exception($"Expected status code not received, instead got {response.StatusCode}.");
-            }
-        }
-
-        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
-        {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
-            }
-
-            var httpClient = provider.HttpClients[instanceName];
-            return httpClient.GetAsync(url);
-        }
-
-        public static async Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
-
-            var response = await provider.GetInternal<List<T>>(url, instanceName).ConfigureAwait(false);
-
-            if (response == null || !response.Any(m => condition(m)))
-            {
-                await Task.Delay(1000).ConfigureAwait(false);
-                return ManyResult<T>.Empty;
-            }
-
-            return ManyResult<T>.New(true, response);
-        }
-
-        public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
-            }
-
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
-            var httpClient = provider.HttpClients[instanceName];
-            var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
-
-            Console.WriteLine($"PATCH - {url} - {(int)response.StatusCode}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
-            }
-
-            return response.StatusCode;
-        }
-
-        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
-
-            var response = await provider.GetInternal<T>(url, instanceName).ConfigureAwait(false);
-
-            if (response == null || !condition(response))
-            {
-                await Task.Delay(1000).ConfigureAwait(false);
-                return SingleResult<T>.Empty;
-            }
-
-            return SingleResult<T>.New(response);
-        }
-
-        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Func<T, Task<bool>> condition, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            var response = await provider.GetInternal<T>(url, instanceName).ConfigureAwait(false);
-
-            if (response == null || !await condition(response).ConfigureAwait(false))
-            {
-                await Task.Delay(1000).ConfigureAwait(false);
-                return SingleResult<T>.Empty;
-            }
-
-            return SingleResult<T>.New(response);
-        }
-
-        public static async Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
-
-            var response = await provider.GetInternal<List<T>>(url, instanceName);
-            T item = null;
-            if (response != null)
-            {
-                var items = response.Where(i => condition(i)).ToList();
-
-                if (items.Count > 1)
-                {
-                    throw new InvalidOperationException("More than one matching element found");
-                }
-
-                item = items.SingleOrDefault();
-            }
-
-            if (item != null)
-            {
-                await Task.Delay(1000).ConfigureAwait(false);
-                return SingleResult<T>.New(item);
-            }
-
-            return SingleResult<T>.Empty;
-        }
-
-        public static async Task<HttpStatusCode> Get(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
-        {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
-            }
-
-            var httpClient = provider.HttpClients[instanceName];
-            var response = await httpClient.GetAsync(url).ConfigureAwait(false);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
-
-            return response.StatusCode;
-        }
-
-        public static async Task Post<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
-            }
-
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
-            var httpClient = provider.HttpClients[instanceName];
-            var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
-
-            if (requestHasFailed != null)
-            {
-                if (requestHasFailed(response.StatusCode))
-                {
-                    throw new Exception($"Expected status code not received, instead got {response.StatusCode}.");
-                }
-
-                return;
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
-            }
-        }
-
-        public static async Task Delete(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
-        {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
-            }
-
-            var httpClient = provider.HttpClients[instanceName];
-            var response = await httpClient.DeleteAsync(url);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync();
-                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
-            }
-        }
-
-        public static async Task<byte[]> DownloadData(this IAcceptanceTestInfrastructureProvider provider, string url, HttpStatusCode successCode = HttpStatusCode.OK, string instanceName = Settings.DEFAULT_SERVICE_NAME)
-        {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}/api{url}";
-            }
-
-            var httpClient = provider.HttpClients[instanceName];
-            var response = await httpClient.GetAsync(url);
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
-            if (response.StatusCode != successCode)
-            {
-                throw new Exception($"Expected status code of {successCode}, but instead got {response.StatusCode}.");
-            }
-
-            return await response.Content.ReadAsByteArrayAsync();
-        }
-
-        static async Task<T> GetInternal<T>(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
-        {
-            var response = await provider.GetRaw(url, instanceName).ConfigureAwait(false);
-
-            //for now
-            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
-            {
-                LogRequest();
-                await Task.Delay(1000).ConfigureAwait(false);
-                return null;
-            }
-
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                LogRequest(response.ReasonPhrase);
-                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase}");
-            }
-
-            var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            LogRequest();
-            return JsonConvert.DeserializeObject<T>(body, provider.SerializerSettings);
-
-            void LogRequest(string additionalInfo = null)
-            {
-                var additionalInfoString = additionalInfo != null ? ": " + additionalInfo : string.Empty;
-                Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}{additionalInfoString}");
-            }
-        }
+        static string[] currentInstanceNames;
     }
 }

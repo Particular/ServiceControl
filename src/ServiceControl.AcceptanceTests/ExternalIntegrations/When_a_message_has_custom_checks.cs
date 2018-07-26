@@ -17,13 +17,13 @@
         public async Task Notification_should_be_published_on_the_bus()
         {
             var externalProcessorSubscribed = false;
-            CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
+            SetCustomConfiguration(config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     externalProcessorSubscribed = true;
                 }
-            });
+            }));
 
             ExecuteWhen(() => externalProcessorSubscribed, async domainEvents =>
             {

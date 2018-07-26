@@ -20,7 +20,7 @@
         [Test]
         public async Task Should_be_forwarded_to_remote()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            SetSetInstanceSettings(ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues);
 
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;

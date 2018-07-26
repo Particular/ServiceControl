@@ -27,7 +27,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             var externalProcessorSubscribed = false;
 
-            CustomConfiguration = config =>
+            SetCustomConfiguration(config =>
             {
                 config.OnEndpointSubscribed<MyContext>((s, ctx) =>
                 {
@@ -38,7 +38,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 });
 
                 config.RegisterComponents(cc => cc.ConfigureComponent<FaultyPublisher>(DependencyLifecycle.SingleInstance));
-            };
+            });
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
             {

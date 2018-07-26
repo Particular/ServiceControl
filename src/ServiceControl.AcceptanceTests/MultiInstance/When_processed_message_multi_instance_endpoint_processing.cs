@@ -20,7 +20,7 @@
         [Test]
         public async Task Should_be_listed_in_known_endpoints()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            SetSetInstanceSettings(ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues);
 
             List<KnownEndpointsView> knownEndpoints = null;
             HttpResponseMessage httpResponseMessage = null;
@@ -50,7 +50,7 @@
             Assert.False(httpResponseMessage.Headers.Contains("ETag"), "Expected not to contain ETag header, but it was found.");
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -74,14 +74,14 @@
             }
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private const string ReceiverHostDisplayName = "Rico";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit";
-        private static string ErrorRemote = $"{Remote1}.error";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Remote1 = "remote1";
+        const string ReceiverHostDisplayName = "Rico";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditRemote = $"{Remote1}.audit";
+        static string ErrorRemote = $"{Remote1}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {

@@ -19,7 +19,7 @@
         public async Task It_can_be_reimported()
         {
             //Make sure the audit import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
+            SetCustomConfiguration(config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); });
 
             FailedAuditsCountReponse failedAuditsCountReponse;
 

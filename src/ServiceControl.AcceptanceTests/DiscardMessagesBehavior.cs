@@ -4,17 +4,11 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
 
     class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
     {
-        public DiscardMessagesBehavior(ScenarioContext scenarioContext)
-        {
-            this.scenarioContext = scenarioContext;
-        }
-
         public Task Invoke(ITransportReceiveContext context, Func<ITransportReceiveContext, Task> next)
         {
             //Do not filter out CC and HB messages as they can't be stamped
@@ -31,7 +25,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 return next(context);
             }
 
-            var currentSession = scenarioContext.TestRunId.ToString();
+            var currentSession = StaticLoggerFactory.CurrentContext.TestRunId.ToString();
             if (!context.Message.Headers.TryGetValue("SC.SessionID", out var session)
                 || session != currentSession)
             {
@@ -43,7 +37,6 @@ namespace ServiceBus.Management.AcceptanceTests
             return next(context);
         }
 
-        ScenarioContext scenarioContext;
         static ILog log = LogManager.GetLogger<DiscardMessagesBehavior>();
 
         static string[] pluginMessages =

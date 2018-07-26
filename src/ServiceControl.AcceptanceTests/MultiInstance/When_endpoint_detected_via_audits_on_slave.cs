@@ -18,8 +18,8 @@
         [Test]
         public async Task Should_be_configurable_on_master()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
+            SetSetInstanceSettings(ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues);
+            SetCustomInstanceConfiguration(ConfigureWaitingForMasterToSubscribe);
 
             List<EndpointsView> response = null;
 
