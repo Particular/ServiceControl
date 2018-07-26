@@ -95,7 +95,6 @@
                 tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
                 checkTask = Task.Run(async () =>
                 {
-                    var delayInterval = 100;
                     while (!tokenSource.IsCancellationRequested)
                     {
                         if (await isDone(scenarioContext).ConfigureAwait(false))
@@ -104,8 +103,7 @@
                             return;
                         }
 
-                        delayInterval = ++delayInterval % 1000;
-                        await Task.Delay(delayInterval, tokenSource.Token).ConfigureAwait(false);
+                        await Task.Delay(100, tokenSource.Token).ConfigureAwait(false);
                     }
                 }, tokenSource.Token);
                 return Task.FromResult(0);
