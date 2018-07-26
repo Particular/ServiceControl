@@ -62,7 +62,7 @@
 
         static async Task GenerateMessages(string destination, QueueInfo queueInfo, CancellationToken token)
         {
-            var throttle = new SemaphoreSlim(32);
+            var throttle = new SemaphoreSlim(SettingsReader<int>.Read(ConfigRoot, "ConcurrentSends", 32));
 
             var sendMeter = Metric.Meter(destination, Unit.Custom("audits"));
 
