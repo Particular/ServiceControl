@@ -2,17 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
-    <OutputType>Exe</OutputType>
-    <AssemblyName>AuditGenerator</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
-
-    <PackageReference Include="Metrics.NET" Version="0.5.5" />
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.1.0" />
   </ItemGroup>
 
 </Project>
