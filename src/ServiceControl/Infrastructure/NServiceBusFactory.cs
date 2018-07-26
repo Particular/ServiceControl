@@ -92,6 +92,7 @@ namespace ServiceBus.Management.Infrastructure
         {
             transportSettings.EndpointName = settings.ServiceName;
             transportSettings.ConnectionString = settings.TransportConnectionString;
+            transportSettings.ProcessingConcurreny = settings.MaximumConcurrencyLevel;
         }
 
         public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
