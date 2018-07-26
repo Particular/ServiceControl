@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using ServiceControl.Operations;
@@ -43,7 +42,7 @@
                 metadata.Add("IsSystemMessage", isSystemMessage);
                 metadata.Add("MessageType", messageType);
 
-                return TaskEx.CompletedTask;
+                return Task.CompletedTask;
             }
 
             bool DetectSystemMessage(string messageTypeString)
@@ -76,7 +75,7 @@
                     metadata.Add("RelatedToId", relatedToId);
                 }
 
-                return TaskEx.CompletedTask;
+                return Task.CompletedTask;
             }
         }
     }
