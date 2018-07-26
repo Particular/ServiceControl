@@ -10,17 +10,7 @@
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             transport.ConnectionString(transportSettings.ConnectionString);
-
-            if (transportSettings.Get<bool>("TransportSettings.EnableDtc"))
-            {
-                transport.Transactions(TransportTransactionMode.TransactionScope);
-                Logger.Info("DTC has been ENABLED");
-            }
-            else
-            {
-                transport.Transactions(TransportTransactionMode.ReceiveOnly);
-                Logger.Info("DTC is DISABLED");
-            }
+            transport.Transactions(TransportTransactionMode.ReceiveOnly);
         }
 
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
