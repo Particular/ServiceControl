@@ -12,6 +12,12 @@
 
         public IDisposable CreateMarker(string name)
         {
+            // normally this root path is always created by the installer
+            if (!Directory.Exists(rootPath))
+            {
+                Directory.CreateDirectory(rootPath);
+            }
+            
             var path = Path.Combine(rootPath, name);
             using (File.Open(path, FileMode.OpenOrCreate))
             {
