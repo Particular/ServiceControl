@@ -22,7 +22,7 @@
     <PackageReference Include="Nancy" Version="1.4.3" />
     <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="1.4.1" />
     <PackageReference Include="Nancy.Owin" Version="1.4.1" />
-    <PackageReference Include="RavenDB.Embedded" Version="3.5.7-patch-35263" />
+    <PackageReference Include="RavenDB.Database" Version="3.5.7-patch-35266" />
     <PackageReference Include="NServiceBus" Version="7.0.1" />
     <PackageReference Include="NServiceBus.Autofac" Version="7.0.0" />
     <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.0" />
@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(NuGetPackageRoot)ravendb.database\3.5.7-patch-35263\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(NuGetPackageRoot)ravendb.database\3.5.7-patch-35266\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
