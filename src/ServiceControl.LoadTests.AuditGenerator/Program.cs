@@ -3,11 +3,10 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Messages;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Support;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.LoadTests.Messages;
     using Transports;
 
     class Program
