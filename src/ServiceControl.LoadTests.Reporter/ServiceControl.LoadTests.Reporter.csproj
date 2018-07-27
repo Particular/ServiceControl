@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <PackageReference Include="Metrics.NET" Version="0.5.5" />
   </ItemGroup>
 
 </Project>
