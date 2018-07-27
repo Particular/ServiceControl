@@ -8,7 +8,7 @@
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<MsmqTransport>();
-            transport.Transactions(TransportTransactionMode.ReceiveOnly);
+            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
