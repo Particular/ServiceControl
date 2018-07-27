@@ -22,11 +22,11 @@ namespace ServiceControl.Config.Commands
         {
             var editVM = editViewModel((ServiceControlInstance)viewModel.ServiceInstance);
 
-            windowManager.ShowInnerDialog(editVM);
-
-            editVM.UpdateInstanceFromViewModel((ServiceControlInstance)viewModel.ServiceInstance);
-
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
+            if (windowManager.ShowInnerDialog(editVM) ?? false)
+            {
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                editVM.UpdateInstanceFromViewModel((ServiceControlInstance)viewModel.ServiceInstance);
+            }
         }
 
         readonly Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel;
