@@ -41,7 +41,7 @@
 
         static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
-            transport.Transactions(TransportTransactionMode.ReceiveOnly);
+            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
             transport.ConnectionString(transportSettings.ConnectionString);
         }
     }
