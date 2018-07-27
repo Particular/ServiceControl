@@ -10,6 +10,12 @@
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             transport.ConnectionString(transportSettings.ConnectionString);
+
+            if (transportSettings.Get<bool>("TransportSettings.EnableDtc"))
+            {
+                Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
+            }
+
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
