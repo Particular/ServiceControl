@@ -31,6 +31,7 @@
             var minLength = SettingsReader<int>.Read(ConfigRoot, "MinLength", 10000);
             var maxLength = SettingsReader<int>.Read(ConfigRoot, "MaxLength", 20000);
             var endpointName = SettingsReader<string>.Read(ConfigRoot, "EndpointName", "AuditGen");
+            var connectionString = SettingsReader<string>.Read(ConfigRoot, "TransportConnectionString", "");
 
             HostId = Guid.NewGuid().ToString("N");
 
@@ -39,7 +40,14 @@
             config.UseSerialization<NewtonsoftSerializer>();
 
             var customization = (TransportCustomization)Activator.CreateInstance(Type.GetType(customizationTypeName, true));
-            customization.CustomizeEndpoint(config, new TransportSettings());
+            var transportSettings = new TransportSettings
+            {
+                ConnectionString = connectionString
+            };
+            transportSettings.Set("TransportSettings.RemoteInstances", Array.Empty<string>());
+            transportSettings.Set("TransportSettings.RemoteTypesToSubscribeTo", Array.Empty<Type>());
+            
+            customization.CustomizeEndpoint(config, transportSettings);
 
             config.UsePersistence<InMemoryPersistence>();
             config.SendFailedMessagesTo("error");
@@ -54,7 +62,7 @@
 
         static async Task GenerateMessages(string destination, QueueInfo queueInfo, CancellationToken token)
         {
-            var throttle = new SemaphoreSlim(32);
+            var throttle = new SemaphoreSlim(SettingsReader<int>.Read(ConfigRoot, "ConcurrentSends", 32));
 
             var sendMeter = Metric.Meter(destination, Unit.Custom("audits"));
 
