@@ -10,7 +10,7 @@
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             transport.ConnectionString(transportSettings.ConnectionString);
-            transport.Transactions(TransportTransactionMode.ReceiveOnly);
+            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
