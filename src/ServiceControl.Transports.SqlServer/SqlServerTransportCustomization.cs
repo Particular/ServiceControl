@@ -13,14 +13,10 @@
 
             if (transportSettings.Get<bool>("TransportSettings.EnableDtc"))
             {
-                transport.Transactions(TransportTransactionMode.TransactionScope);
-                Logger.Info("DTC has been ENABLED");
+                Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
             }
-            else
-            {
-                transport.Transactions(TransportTransactionMode.ReceiveOnly);
-                Logger.Info("DTC is DISABLED");
-            }
+
+            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)

@@ -21,7 +21,7 @@
         static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
             transport.UseForwardingTopology();
-            transport.Transactions(TransportTransactionMode.ReceiveOnly);
+            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
             transport.ConnectionString(transportSettings.ConnectionString);
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
         }

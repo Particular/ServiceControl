@@ -40,7 +40,6 @@ namespace ServiceBus.Management.Infrastructure
             MapSettings(transportSettings, settings);
             transportSettings.Set("TransportSettings.RemoteInstances", remoteInstanceAddresses);
             transportSettings.Set("TransportSettings.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
-            transportSettings.Set("TransportSettings.EnableDtc", SettingsReader<bool>.Read("EnableDtc"));
 
             transportCustomization.CustomizeEndpoint(configuration, transportSettings);
 
