@@ -24,8 +24,8 @@ namespace ServiceControl.Config.Commands
 
             if (windowManager.ShowInnerDialog(editVM) ?? false)
             {
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
                 editVM.UpdateInstanceFromViewModel((ServiceControlInstance)viewModel.ServiceInstance);
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
         }
 
