@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
-    using System.Configuration;
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using NServiceBus;
