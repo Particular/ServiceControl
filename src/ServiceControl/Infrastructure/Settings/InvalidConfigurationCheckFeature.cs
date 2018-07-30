@@ -20,14 +20,32 @@
         {
             protected override Task OnStart(IMessageSession session)
             {
-                LogIfAsqConfigSectionExists();
+                var config = XDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
+                var sections = config?.Element("configuration");
+
+                if (sections == null)
+                {
+                    return Task.CompletedTask;
+                }
+
+                LogIfAsbConfigSectionExists(sections);
+                LogIfAsqConfigSectionExists(sections);
 
                 return Task.CompletedTask;
             }
 
-            private void LogIfAsqConfigSectionExists()
+            void LogIfAsbConfigSectionExists(XElement configSections)
             {
-                var element = XDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile).Element("configuration").Element("AzureQueueConfig");
+                var element = configSections.Element("AzureServiceBusQueueConfig");
+                if (element != null)
+                {
+                    logging.Warn("The use of AzureServiceBusQueueConfig within ServiceControl has been deprecated. A Transport Adapater (https://docs.particular.net/servicecontrol/transport-adapter/) can be used if there are transport defaults that are not suitable for this environment.");
+                }
+            }
+
+            void LogIfAsqConfigSectionExists(XElement configSections)
+            {
+                var element = configSections.Element("AzureQueueConfig");
                 if (element != null)
                 {
                     logging.Warn("The use of AzureQueueConfig within ServiceControl has been deprecated. A Transport Adapater (https://docs.particular.net/servicecontrol/transport-adapter/) can be used if there are transport defaults that are not suitable for this environment.");
