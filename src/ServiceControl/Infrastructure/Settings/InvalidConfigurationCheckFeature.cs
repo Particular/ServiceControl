@@ -23,13 +23,11 @@
                 var config = XDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
                 var sections = config?.Element("configuration");
 
-                if (sections == null)
+                if (sections != null)
                 {
-                    return Task.CompletedTask;
+                    LogIfAsbConfigSectionExists(sections);
+                    LogIfAsqConfigSectionExists(sections);
                 }
-
-                LogIfAsbConfigSectionExists(sections);
-                LogIfAsqConfigSectionExists(sections);
 
                 return Task.CompletedTask;
             }
