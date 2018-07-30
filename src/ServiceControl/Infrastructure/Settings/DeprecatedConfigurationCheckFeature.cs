@@ -7,16 +7,16 @@
     using NServiceBus.Features;
     using NServiceBus.Logging;
 
-    class InvalidConfigurationCheckFeature : Feature
+    class DeprecatedConfigurationCheckFeature : Feature
     {
-        public InvalidConfigurationCheckFeature()
+        public DeprecatedConfigurationCheckFeature()
         {
             EnableByDefault();
         }
 
-        protected override void Setup(FeatureConfigurationContext context) => context.RegisterStartupTask(b => b.Build<InvalidConfigurationCheck>());
+        protected override void Setup(FeatureConfigurationContext context) => context.RegisterStartupTask(b => b.Build<DeprecatedConfigurationCheck>());
 
-        class InvalidConfigurationCheck : FeatureStartupTask
+        class DeprecatedConfigurationCheck : FeatureStartupTask
         {
             protected override Task OnStart(IMessageSession session)
             {
@@ -55,7 +55,7 @@
                 return Task.CompletedTask;
             }
 
-            ILog logging = LogManager.GetLogger(typeof(InvalidConfigurationCheck));
+            ILog logging = LogManager.GetLogger(typeof(DeprecatedConfigurationCheck));
         }
     }
 }
