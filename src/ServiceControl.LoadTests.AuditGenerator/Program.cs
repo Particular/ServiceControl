@@ -3,11 +3,10 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Messages;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Support;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Messages;
     using Transports;
 
     class Program
@@ -63,6 +62,9 @@
         static async Task GenerateMessages(string destination, QueueInfo queueInfo, CancellationToken token)
         {
             var throttle = new SemaphoreSlim(SettingsReader<int>.Read(ConfigRoot, "ConcurrentSends", 32));
+            var bodySize = SettingsReader<int>.Read(ConfigRoot, "BodySize", 0);
+
+            var random = new Random();
 
             var sendMeter = Metric.Meter(destination, Unit.Custom("audits"));
 
@@ -89,7 +91,11 @@
 
                         ops.SetDestination(destination);
 
-                        await endpointInstance.Send(new AuditMessage(), ops).ConfigureAwait(false);
+                        var auditMessage = new AuditMessage();
+                        auditMessage.Data = new byte[bodySize];
+                        random.NextBytes(auditMessage.Data);
+
+                        await endpointInstance.Send(auditMessage, ops).ConfigureAwait(false);
                         queueInfo.Sent();
                         sendMeter.Mark();
                     }

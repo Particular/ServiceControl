@@ -4,5 +4,6 @@
 
     public class AuditMessage : IMessage
     {
+        public byte[] Data { get; set; }
     }
 }

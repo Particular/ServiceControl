@@ -49,10 +49,20 @@
             return Task.CompletedTask;
         }
 
-        protected override Task OnStop(IMessageSession session)
+        protected override async Task OnStop(IMessageSession session)
         {
             tokenSource?.Cancel();
-            return reportTask ?? Task.CompletedTask;
+            if (reportTask != null)
+            {
+                try
+                {
+                    await reportTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    //Ignore
+                }
+            }
         }
     }
 }
