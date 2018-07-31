@@ -7,5 +7,7 @@
         public string ConnectionString { get; set; }
 
         public string EndpointName { get; set; }
+        
+        public int ProcessingConcurreny { get; set; }
     }
 }
