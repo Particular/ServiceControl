@@ -29,8 +29,6 @@
             }
 
             ConfigureTransport(transport, transportSettings);
-
-            endpointConfig.LimitMessageProcessingConcurrencyTo(Math.Min(Environment.ProcessorCount, transportSettings.MaxConcurrency));
         }
 
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
@@ -39,8 +37,6 @@
             transport.UseEndpointOrientedTopology();
             transport.ApplyHacksForNsbRaw();
             ConfigureTransport(transport, transportSettings);
-
-            endpointConfig.LimitMessageProcessingConcurrencyTo(Math.Min(Environment.ProcessorCount, transportSettings.MaxConcurrency));
         }
 
         static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
@@ -49,8 +45,10 @@
             transport.ConnectionString(transportSettings.ConnectionString);
 
             transport.MessageReceivers().PrefetchCount(0);
-            transport.MessageReceivers().AutoRenewTimeout(TimeSpan.FromMinutes(5));
+            transport.Queues().LockDuration(TimeSpan.FromMinutes(5));
+            transport.Subscriptions().LockDuration(TimeSpan.FromMinutes(5));
             transport.MessagingFactories().NumberOfMessagingFactoriesPerNamespace(2);
+            transport.NumberOfClientsPerEntity(Math.Min(Environment.ProcessorCount, transportSettings.MaxConcurrency));
         }
     }
 }
