@@ -28,7 +28,7 @@
                 topology.RegisterPublisher(remoteType, endpointName);
             }
 
-            ConfigureTransport(transport, transportSettings);
+            transport.ConfigureTransport(transportSettings);
         }
 
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
@@ -36,13 +36,8 @@
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
             transport.UseEndpointOrientedTopology();
             transport.ApplyHacksForNsbRaw();
-            ConfigureTransport(transport, transportSettings);
-        }
 
-        static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
-        {
-            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
-            transport.ConnectionString(transportSettings.ConnectionString);
+            transport.ConfigureTransport(transportSettings);
         }
     }
 }

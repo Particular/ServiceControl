@@ -8,22 +8,20 @@
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
-            ConfigureTransport(transport, transportSettings);
+
+            transport.UseForwardingTopology();
+            transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
+            transport.ConfigureTransport(transportSettings);
         }
 
         public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
             transport.ApplyHacksForNsbRaw();
-            ConfigureTransport(transport, transportSettings);
-        }
 
-        static void ConfigureTransport(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
-        {
             transport.UseForwardingTopology();
-            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
-            transport.ConnectionString(transportSettings.ConnectionString);
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
+            transport.ConfigureTransport(transportSettings);
         }
     }
 }
