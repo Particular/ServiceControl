@@ -31,7 +31,7 @@
                     FieldsToFetch = new[]
                     {
                         "__document_id",
-                        "MessageMetadata"
+                        "BodyUrl"
                     },
                     SortedFields = new[]
                     {
@@ -109,20 +109,10 @@
         static bool TryGetBodyId(RavenJObject doc, out string bodyId)
         {
             bodyId = null;
-            var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", false);
-            if (bodyNotStored != null && bodyNotStored.Value<bool>())
-            {
-                return false;
-            }
 
-            var messageId = doc.SelectToken("MessageMetadata.MessageId", false);
-            if (messageId == null)
-            {
-                return false;
-            }
+            bodyId = doc.Value<string>("BodyUrl");
 
-            bodyId = "messagebodies/" + messageId.Value<string>();
-            return true;
+            return bodyId != null;
         }
 
         static ILog logger = LogManager.GetLogger(typeof(AuditMessageCleaner));
