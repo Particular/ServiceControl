@@ -2,6 +2,7 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
+    using System;
 
     public class ASQTransportCustomization : TransportCustomization
     {
@@ -23,6 +24,8 @@
             transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(transportSettings.ConnectionString);
+
+            transport.MessageInvisibleTime(TimeSpan.FromMinutes(1));
         }
     }
 }
