@@ -35,7 +35,7 @@
 
                     if (failure.Status == FailedMessageStatus.Unresolved)
                     {
-                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
+                        await IssueRetry(c, () => this.Post<object>($"/errors/{failure.UniqueMessageId}/retry", null, null, Master));
                         return false;
                     }
 
@@ -89,7 +89,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, msg => true, Master);
+            return this.TryGet<FailedMessage>("/errors/" + c.UniqueMessageId, msg => true, Master);
         }
 
         async Task IssueRetry(MyContext c, Func<Task> retryAction)

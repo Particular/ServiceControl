@@ -23,18 +23,18 @@
                 .Do("DetectFirstFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 1))
                 .Do("RetryFirstTime", async ctx =>
                 {
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry");
                     return true;
                 })
                 .Do("DetectSecondFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 2))
                 .Do("RetrySecondTime", async ctx =>
                 {
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry");
                     return true;
                 })
                 .Do("DetectThirdFailure", async ctx =>
                 {
-                    ctx.Result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    ctx.Result = await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}");
                     return ctx.Result.ProcessingAttempts.Count == 3;
                 })
                 .Done()
@@ -54,20 +54,20 @@
                 .Do("DetectFirstFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 1))
                 .Do("RetryFirstTime", async ctx =>
                 {
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry");
                     return true;
                 })
                 .Do("DetectSecondFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 2))
                 .Do("RetrySecondTime", async ctx =>
                 {
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry");
                     return true;
                 })
                 .Do("DetectThirdFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 2))
                 .Do("RetryThirdTime", async ctx =>
                 {
                     ctx.Succeed = true;
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry");
                     return true;
                 })
                 .Do("DetectSuccess", async ctx =>
@@ -93,7 +93,7 @@
                 return SingleResult<FailedMessage>.Empty;
             }
 
-            return await this.TryGet($"/api/errors/{c.UniqueMessageId}", condition);
+            return await this.TryGet($"/errors/{c.UniqueMessageId}", condition);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder

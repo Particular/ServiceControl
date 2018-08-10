@@ -24,7 +24,7 @@
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/errors/", m => m.Id == c.UniqueMessageId);
                     failure = result;
                     return result;
                 })
@@ -45,7 +45,7 @@
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessageView>($"/errors/last/{c.UniqueMessageId}");
                     failure = result;
                     return c.UniqueMessageId != null & result;
                 })
@@ -64,7 +64,7 @@
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessageView>($"/errors/last/{c.UniqueMessageId}");
                     failure = result;
                     return c.UniqueMessageId != null & result;
                 })

@@ -28,7 +28,7 @@
                 {
                     if (c.Saga1Complete && c.Saga2Complete)
                     {
-                        var result = await this.TryGetMany<MessagesView>("/api/messages");
+                        var result = await this.TryGetMany<MessagesView>("/messages");
                         messages = result;
                         if (result)
                         {

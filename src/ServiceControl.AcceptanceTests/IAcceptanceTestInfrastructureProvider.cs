@@ -1,19 +1,31 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
+    using System;
     using System.Collections.Generic;
     using System.Net.Http;
-    using Infrastructure;
-    using Infrastructure.Settings;
-    using Newtonsoft.Json;
+    using Microsoft.AspNet.SignalR.Client.Http;
 
     public interface IAcceptanceTestInfrastructureProvider
     {
-        Dictionary<string, HttpClient> HttpClients { get; }
+        Dictionary<string, ServiceControlInstanceReference> Instances { get; }
+    }
 
-        JsonSerializerSettings SerializerSettings { get; }
+    public class ServiceControlInstanceReference : IDisposable
+    {
 
-        Dictionary<string, Settings> SettingsPerInstance { get; }
-        Dictionary<string, OwinHttpMessageHandler> Handlers { get; }
-        Dictionary<string, BusInstance> Busses { get; }
+        public ServiceControlInstanceReference(HttpClient httpClient, IHttpClient signalRClient, string id)
+        {
+            HttpClient = httpClient;
+            SignalRClient = signalRClient;
+            Id = id;
+        }
+        public string Id { get; }
+        public HttpClient HttpClient { get; }
+        public IHttpClient SignalRClient { get; }
+
+        public void Dispose()
+        {
+            HttpClient?.Dispose();
+        }
     }
 }

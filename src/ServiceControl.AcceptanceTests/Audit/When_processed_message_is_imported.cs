@@ -37,7 +37,7 @@
                         return false;
                     }
 
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
                     auditedMessage = result;
                     if (!result)
                     {

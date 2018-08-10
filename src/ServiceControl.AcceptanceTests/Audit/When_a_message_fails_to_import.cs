@@ -35,14 +35,14 @@
 
                     if (!c.WasReimported)
                     {
-                        var result = await this.TryGet<FailedAuditsCountReponse>("/api/failedaudits/count");
+                        var result = await this.TryGet<FailedAuditsCountReponse>("/failedaudits/count");
                         failedAuditsCountReponse = result;
                         if (result)
                         {
                             if (failedAuditsCountReponse.Count > 0)
                             {
                                 c.FailedImport = true;
-                                await this.Post<object>("/api/failedaudits/import", null, code =>
+                                await this.Post<object>("/failedaudits/import", null, code =>
                                 {
                                     if (code == HttpStatusCode.OK)
                                     {
@@ -58,7 +58,7 @@
                         return false;
                     }
 
-                    return await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}");
+                    return await this.TryGetMany<MessagesView>($"/messages/search/{c.MessageId}");
                 })
                 .Run(TimeSpan.FromSeconds(40));
         }

@@ -13,7 +13,6 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Infrastructure.Settings;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_proessed_message_multi_instance_endpoint_by_messages : AcceptanceTest
@@ -32,18 +31,16 @@
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/", instanceName: Master);
+                    var result = await this.TryGetMany<MessagesView>($"/endpoints/{endpointName}/messages/", instanceName: Master);
                     response = result;
                     return result && response.Count == 1;
                 })
                 .Run(TimeSpan.FromSeconds(40));
 
-            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
-
             var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
 
             Assert.NotNull(remote1Message, "Remote1 message not found");
-            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
+            Assert.AreEqual(Instances[Remote1].Id, remote1Message.InstanceId, "Remote1 instance id mismatch");
         }
 
         void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)

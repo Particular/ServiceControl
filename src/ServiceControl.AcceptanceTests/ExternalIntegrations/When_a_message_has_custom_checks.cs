@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using ServiceControl.Contracts;
-    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Plugin.CustomChecks.Messages;
 
     [TestFixture]
     public class When_a_message_has_custom_checks : AcceptanceTest
@@ -16,42 +16,19 @@
         [Test]
         public async Task Notification_should_be_published_on_the_bus()
         {
-            var externalProcessorSubscribed = false;
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
                 if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    externalProcessorSubscribed = true;
+                    if (s.MessageType.Contains("CustomCheckSucceeded"))
+                    {
+                        ctx.SubscribedToCustomCheckSucceeded = true;
+                    }
+                    if (s.MessageType.Contains("CustomCheckFailed"))
+                    {
+                        ctx.SubscribedToCustomCheckFailed = true;
+                    }
                 }
-            });
-
-            ExecuteWhen(() => externalProcessorSubscribed, async domainEvents =>
-            {
-                await domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckSucceeded
-                {
-                    Category = "Testing",
-                    CustomCheckId = "Success custom check",
-                    OriginatingEndpoint = new EndpointDetails
-                    {
-                        Host = "MyHost",
-                        HostId = Guid.Empty,
-                        Name = "Testing"
-                    },
-                    SucceededAt = DateTime.Now
-                });
-                await domainEvents.Raise(new ServiceControl.Contracts.CustomChecks.CustomCheckFailed
-                {
-                    Category = "Testing",
-                    CustomCheckId = "Fail custom check",
-                    OriginatingEndpoint = new EndpointDetails
-                    {
-                        Host = "MyHost",
-                        HostId = Guid.Empty,
-                        Name = "Testing"
-                    },
-                    FailedAt = DateTime.Now,
-                    FailureReason = "Because I can"
-                });
             });
 
             var context = await Define<MyContext>()
@@ -59,11 +36,40 @@
                 {
                     await bus.Subscribe<CustomCheckSucceeded>();
                     await bus.Subscribe<CustomCheckFailed>();
-
                     if (c.HasNativePubSubSupport)
                     {
-                        externalProcessorSubscribed = true;
+                        c.SubscribedToCustomCheckFailed = true;
+                        c.SubscribedToCustomCheckSucceeded = true;
                     }
+                }).When(c => c.SubscribedToCustomCheckFailed && c.SubscribedToCustomCheckSucceeded, async session =>
+                {
+                    var options = new SendOptions();
+                    options.SetDestination(Settings.DEFAULT_SERVICE_NAME);
+                    await session.Send(new ReportCustomCheckResult
+                    {
+                        EndpointName = "Testing",
+                        HostId = Guid.NewGuid(),
+                        Category = "Testing",
+                        CustomCheckId = "Success custom check",
+                        Host = "MyHost",
+                        ReportedAt = DateTime.Now
+
+                    }, options).ConfigureAwait(false);
+
+                    options = new SendOptions();
+                    options.SetDestination(Settings.DEFAULT_SERVICE_NAME);
+                    await session.Send(new ReportCustomCheckResult
+                    {
+                        EndpointName = "Testing",
+                        HostId = Guid.NewGuid(),
+                        Category = "Testing",
+                        CustomCheckId = "Fail custom check",
+                        Host = "MyHost",
+                        FailureReason = "Because I can",
+                        HasFailed = true,
+                        ReportedAt = DateTime.Now
+
+                    }, options).ConfigureAwait(false);
                 }))
                 .Done(c => c.CustomCheckFailedReceived && c.CustomCheckSucceededReceived)
                 .Run();
@@ -114,6 +120,8 @@
         {
             public bool CustomCheckSucceededReceived { get; set; }
             public bool CustomCheckFailedReceived { get; set; }
+            public bool SubscribedToCustomCheckSucceeded { get; set; }
+            public bool SubscribedToCustomCheckFailed { get; set; }
         }
     }
 }

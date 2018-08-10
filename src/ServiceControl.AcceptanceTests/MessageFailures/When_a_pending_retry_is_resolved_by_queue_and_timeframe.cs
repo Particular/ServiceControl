@@ -25,22 +25,22 @@
                         return false;
                     }
 
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}");
                 })
-                .Do("Retry", async ctx => { await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"); })
+                .Do("Retry", async ctx => { await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry"); })
                 .Do("WaitForRetryRequested", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}",
                         msg => msg.Status == FailedMessageStatus.RetryIssued);
                 })
                 .Do("WaitForStaleIndex", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage[]>("/api/errors",
+                    return await this.TryGet<FailedMessage[]>("/errors",
                         allErrors => allErrors.Any(fm => fm.Id == ctx.UniqueMessageId));
                 })
                 .Do("ResolvePending", async ctx =>
                 {
-                    await this.Patch("/api/pendingretries/resolve", new
+                    await this.Patch("/pendingretries/resolve", new
                     {
                         queueaddress = ctx.FromAddress,
                         from = DateTime.UtcNow.AddHours(-1).ToString("o"),
@@ -49,7 +49,7 @@
                 })
                 .Do("WaitForResolved", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}",
                         message => message.Status == FailedMessageStatus.Resolved);
                 })
                 .Done(ctx => true) //We're done once the sequence is finished

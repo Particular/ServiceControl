@@ -25,13 +25,13 @@
                         return false;
                     }
 
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}");
                 })
-                .Do("Retry", async ctx => { await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"); })
-                .Do("WaitForRetryIssued", async ctx => { return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}", msg => msg.Status == FailedMessageStatus.RetryIssued); })
+                .Do("Retry", async ctx => { await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry"); })
+                .Do("WaitForRetryIssued", async ctx => { return await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}", msg => msg.Status == FailedMessageStatus.RetryIssued); })
                 .Do("ResolvePending", async ctx =>
                 {
-                    await this.Patch("/api/pendingretries/resolve", new
+                    await this.Patch("/pendingretries/resolve", new
                     {
                         uniquemessageids = new List<string>
                         {
@@ -41,7 +41,7 @@
                 })
                 .Do("WaitForResolved", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}",
                         message => message.Status == FailedMessageStatus.Resolved);
                 })
                 .Done(ctx => true) //We're done once the sequence is finished

@@ -43,7 +43,7 @@
                         return false;
                     }
 
-                    var result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueId}", m =>
+                    var result = await this.TryGet<FailedMessage>($"/errors/{c.UniqueId}", m =>
                     {
                         Console.WriteLine("Processing attempts: " + m.ProcessingAttempts.Count);
                         return m.ProcessingAttempts.Count == 10;

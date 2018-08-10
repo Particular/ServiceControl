@@ -19,7 +19,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => Task.WhenAll(Enumerable.Repeat(0, 100).Select(i => bus.SendLocal(new MyMessage())))).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<MessagesView>("/api/messages?per_page=150");
+                    var result = await this.TryGetMany<MessagesView>("/messages?per_page=150");
                     if (!result)
                     {
                         return false;

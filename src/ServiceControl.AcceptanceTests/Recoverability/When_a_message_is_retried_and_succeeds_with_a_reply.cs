@@ -28,13 +28,13 @@
 
                     if (!c.RetryIssued)
                     {
-                        if (!await this.TryGet<object>($"/api/errors/{c.UniqueMessageId}"))
+                        if (!await this.TryGet<object>($"/errors/{c.UniqueMessageId}"))
                         {
                             return false;
                         }
 
                         c.RetryIssued = true;
-                        await this.Post<object>($"/api/errors/{c.UniqueMessageId}/retry");
+                        await this.Post<object>($"/errors/{c.UniqueMessageId}/retry");
                         return false;
                     }
 

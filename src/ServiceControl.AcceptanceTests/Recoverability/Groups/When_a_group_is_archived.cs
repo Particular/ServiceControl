@@ -31,7 +31,7 @@
                     }
 
                     // Don't retry until the message has been added to a group
-                    var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
+                    var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/recoverability/groups/");
                     if (!groups)
                     {
                         return false;
@@ -42,18 +42,18 @@
                 })
                 .Do("WaitUntilGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
+                    var failedMessages = await this.TryGetMany<FailedMessage>($"/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
                     return failedMessages && failedMessages.Items.Count == 2;
                 })
-                .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
+                .Do("Archive", async ctx => { await this.Post<object>($"/recoverability/groups/{ctx.GroupId}/errors/archive"); })
                 .Do("EnsureFirstArchived", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FirstMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.FirstMessageId}",
                         e => e.Status == FailedMessageStatus.Archived);
                 })
                 .Do("EnsureSecondArchived", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.SecondMessageId}",
                         e => e.Status == FailedMessageStatus.Archived);
                 })
                 .Done(ctx => true) //Done when sequence is finished
@@ -79,7 +79,7 @@
                     }
 
                     // Don't retry until the message has been added to a group
-                    var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
+                    var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/recoverability/groups/");
                     if (!groups)
                     {
                         return false;
@@ -90,33 +90,33 @@
                 })
                 .Do("DetectFirstFailure", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FirstMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.FirstMessageId}",
                         e => e.Status == FailedMessageStatus.Unresolved);
                 })
                 .Do("DetectSecondFailure", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.SecondMessageId}",
                         e => e.Status == FailedMessageStatus.Unresolved);
                 })
                 .Do("RetrySecond", async ctx =>
                 {
                     ctx.FailProcessing = false;
-                    await this.Post<object>($"/api/errors/{ctx.SecondMessageId}/retry");
+                    await this.Post<object>($"/errors/{ctx.SecondMessageId}/retry");
                 })
                 .Do("DetectSecondResolved", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.SecondMessageId}",
                         e => e.Status == FailedMessageStatus.Resolved);
                 })
-                .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
+                .Do("Archive", async ctx => { await this.Post<object>($"/recoverability/groups/{ctx.GroupId}/errors/archive"); })
                 .Do("EnsureFirstArchived", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FirstMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.FirstMessageId}",
                         e => e.Status == FailedMessageStatus.Archived);
                 })
                 .Do("EnsureSecondResolved", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
+                    return await this.TryGet<FailedMessage>($"/errors/{ctx.SecondMessageId}",
                         e => e.Status == FailedMessageStatus.Resolved);
                 })
                 .Done(ctx => true) //Done when sequence is finished

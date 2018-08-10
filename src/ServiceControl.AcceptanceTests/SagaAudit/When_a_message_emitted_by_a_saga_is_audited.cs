@@ -19,7 +19,7 @@
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/messages", m => m.MessageId == c.MessageId);
                     auditedMessage = result;
                     return result;
                 })

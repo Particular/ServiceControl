@@ -3,11 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Infrastructure.Settings;
     using Microsoft.AspNet.SignalR.Client;
+    using Microsoft.AspNet.SignalR.Client.Http;
     using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -38,7 +38,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
+                    var result = await this.TryGet<FailedMessage>("/errors/" + c.UniqueMessageId);
                     failedMessage = result;
                     return c.MessageId != null && result;
                 })
@@ -64,7 +64,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -85,7 +85,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/messages", m => m.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -107,7 +107,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
                     entry = result;
                     return result;
                 })
@@ -122,7 +122,7 @@
         [Test]
         public async Task Should_raise_a_signalr_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+            var context = await Define<MyContext>(ctx => { ctx.SignalRClient = () => Instances[Settings.DEFAULT_SERVICE_NAME].SignalRClient; })
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -145,7 +145,7 @@
                     {
                         if (c.FailedMessageCount >= 1)
                         {
-                            var result = await this.TryGetMany<QueueAddress>("/api/errors/queues/addresses?search=failing");
+                            var result = await this.TryGetMany<QueueAddress>("/errors/queues/addresses?search=failing");
                             searchResults = result;
                             return result;
                         }
@@ -190,7 +190,7 @@
                         return false;
                     }
 
-                    var result = await this.TryGetMany<QueueAddress>($"/api/errors/queues/addresses/search/{searchTerm}");
+                    var result = await this.TryGetMany<QueueAddress>($"/errors/queues/addresses/search/{searchTerm}");
                     searchResults = result;
                     return result;
                 })
@@ -240,7 +240,7 @@
                     protected override Task OnStart(IMessageSession session)
                     {
                         connection.Received += ConnectionOnReceived;
-                        connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
+                        connection.Start(new ServerSentEventsTransport(context.SignalRClient())).GetAwaiter().GetResult();
 
                         return session.Send(new MyMessage());
                     }
@@ -331,10 +331,10 @@
 
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
 
-            public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
             public string LocalAddress { get; set; }
+            public Func<IHttpClient> SignalRClient { get; set; }
         }
 
         public class QueueSearchContext : ScenarioContext

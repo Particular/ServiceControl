@@ -23,11 +23,11 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
             await Define<Context>()
                 .Done(async ctx =>
                 {
-                    await this.Post("/api/redirects", redirect);
+                    await this.Post("/redirects", redirect);
 
-                    await this.Delete($"/api/redirects/{messageRedirectId}/");
+                    await this.Delete($"/redirects/{messageRedirectId}/");
 
-                    var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
+                    var result = await this.TryGetMany<MessageRedirectFromJson>("/redirects");
                     response = result;
                     return true;
                 })

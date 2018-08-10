@@ -28,12 +28,12 @@
                 {
                     if (state == State.WaitingForEndpointDetection)
                     {
-                        var intermediateResult = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && !e.Monitored);
+                        var intermediateResult = await this.TryGetMany<EndpointsView>("/endpoints/", e => e.Name == EndpointName && !e.Monitored);
                         endpoints = intermediateResult;
                         if (intermediateResult)
                         {
                             var endpointId = endpoints.First(e => e.Name == EndpointName).Id;
-                            await this.Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
+                            await this.Patch($"/endpoints/{endpointId}", new EndpointUpdateModel
                             {
                                 MonitorHeartbeat = true
                             });
@@ -44,7 +44,7 @@
                         return false;
                     }
 
-                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.MonitorHeartbeat && e.Monitored && !e.IsSendingHeartbeats);
+                    var result = await this.TryGetMany<EndpointsView>("/endpoints/", e => e.Name == EndpointName && e.MonitorHeartbeat && e.Monitored && !e.IsSendingHeartbeats);
                     endpoints = result;
                     return state == State.WaitingForHeartbeatFailure && result;
                 })

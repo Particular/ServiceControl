@@ -22,7 +22,7 @@
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
-                .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString))
+                .Done(async c => await this.TryGetMany<MessagesView>("/messages/search/" + searchString))
                 .Run(TimeSpan.FromSeconds(40));
         }
 

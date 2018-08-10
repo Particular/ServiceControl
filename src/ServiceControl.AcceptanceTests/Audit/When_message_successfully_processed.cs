@@ -25,7 +25,7 @@
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints", m => m.Name == c.EndpointNameOfReceivingEndpoint);
+                    var result = await this.TryGetMany<EndpointsView>("/endpoints", m => m.Name == c.EndpointNameOfReceivingEndpoint);
                     knownEndpoints = result;
                     return result;
                 })

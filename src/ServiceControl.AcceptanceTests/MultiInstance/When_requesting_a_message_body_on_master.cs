@@ -40,7 +40,7 @@
 
                     if (!c.Remote1MessageAudited)
                     {
-                        var result = await this.TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.Remote1MessageId, Master);
+                        var result = await this.TryGetMany<MessagesView>("/messages", msg => msg.MessageId == c.Remote1MessageId, Master);
                         List<MessagesView> messages = result;
                         if (!result)
                         {
@@ -51,7 +51,7 @@
                         capturedMessage = messages.Single(msg => msg.MessageId == c.Remote1MessageId);
                     }
 
-                    response = await this.GetRaw($"/api/{capturedMessage.BodyUrl}", Master);
+                    response = await this.GetRaw($"/{capturedMessage.BodyUrl}", Master);
                     Console.WriteLine($"GetRaw for {c.Remote1MessageId} resulted in {response.StatusCode}");
                     return response.StatusCode == HttpStatusCode.OK;
                 })

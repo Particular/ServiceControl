@@ -28,7 +28,7 @@
                     (bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                    var result = await this.TryGetMany<EndpointsView>("/endpoints/", instanceName: Master);
                     response = result;
                     if (result && response.Count > 0)
                     {
@@ -39,12 +39,12 @@
                     {
                         var endpointId = response.First().Id;
 
-                        await this.Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
+                        await this.Patch($"/endpoints/{endpointId}", new EndpointUpdateModel
                         {
                             MonitorHeartbeat = true
                         }, Master);
 
-                        var resultAfterPath = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                        var resultAfterPath = await this.TryGetMany<EndpointsView>("/endpoints/", instanceName: Master);
                         response = resultAfterPath;
                         return resultAfterPath;
                     }

@@ -14,19 +14,17 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
-    using Infrastructure.Nancy;
     using Infrastructure.Settings;
     using Microsoft.Owin.Builder;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
+    using ServiceControl.Infrastructure.Settings;
 
-    class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
+    class ServiceControlComponentRunner : ComponentRunner
     {
         public ServiceControlComponentRunner(string[] instanceNames, ITransportIntegration transportToUse, Action<Settings> setSettings, Action<string, Settings> setInstanceSettings, Action<EndpointConfiguration> customConfiguration, Action<string, EndpointConfiguration> customInstanceConfiguration)
         {
@@ -41,11 +39,7 @@ namespace ServiceBus.Management.AcceptanceTests
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
 
 
-        public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializer.CreateDefault();
-        public Dictionary<string, Settings> SettingsPerInstance { get; } = new Dictionary<string, Settings>();
-        public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
-        public Dictionary<string, BusInstance> Busses { get; } = new Dictionary<string, BusInstance>();
+        public Dictionary<string, ServiceControlInstanceReference> ServiceControlInstances { get; } = new Dictionary<string, ServiceControlInstanceReference>();
 
         public Task Initialize(RunDescriptor run)
         {
@@ -74,7 +68,7 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (instanceNames.Length == 0)
             {
-                instanceNames = new[] {Settings.DEFAULT_SERVICE_NAME};
+                instanceNames = new[] { Settings.DEFAULT_SERVICE_NAME };
             }
 
             var startPort = 33333;
@@ -87,11 +81,14 @@ namespace ServiceBus.Management.AcceptanceTests
 
                 ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
 
+                var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                databasePaths[instanceName] = dbPath;
+
                 var settings = new Settings(instanceName)
                 {
                     Port = instancePort,
                     DatabaseMaintenancePort = maintenancePort,
-                    DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                    DbPath = dbPath,
                     ForwardErrorMessages = false,
                     ForwardAuditMessages = false,
                     TransportCustomizationType = transportToUse.TypeName,
@@ -137,7 +134,6 @@ namespace ServiceBus.Management.AcceptanceTests
                 }
 
                 setInstanceSettings(instanceName, settings);
-                SettingsPerInstance[instanceName] = settings;
 
                 var configuration = new EndpointConfiguration(instanceName);
                 configuration.EnableInstallers();
@@ -203,38 +199,41 @@ namespace ServiceBus.Management.AcceptanceTests
                         UseCookies = false,
                         AllowAutoRedirect = false
                     };
-                    Handlers[instanceName] = handler;
                     portToHandler[settings.Port] = handler; // port should be unique enough
+                    handlers[instanceName] = handler;
                     var httpClient = new HttpClient(handler);
+                    httpClient.BaseAddress = new Uri(settings.ApiUrl.TrimEnd('/') + "/");
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    HttpClients[instanceName] = httpClient;
+
+                    var instanceId = InstanceIdGenerator.FromApiUrl(settings.ApiUrl);
+                    ServiceControlInstances[instanceName] = new ServiceControlInstanceReference(httpClient, new SignalRHttpClient(handler), instanceId);
                 }
 
                 using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
                 {
-                    Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
+                    await bootstrapper.Start(true).ConfigureAwait(false);
                 }
             }
         }
 
         public override async Task Stop()
         {
-            foreach (var instanceAndSettings in SettingsPerInstance)
+            foreach (var instanceAndSettings in ServiceControlInstances)
             {
                 var instanceName = instanceAndSettings.Key;
-                var settings = instanceAndSettings.Value;
+                var reference = instanceAndSettings.Value;
                 using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
                 {
                     await bootstrappers[instanceName].Stop().ConfigureAwait(false);
-                    HttpClients[instanceName].Dispose();
-                    Handlers[instanceName].Dispose();
-                    DeleteFolder(settings.DbPath);
+                    reference.Dispose();
+                    handlers[instanceName].Dispose();
+                    DeleteFolder(databasePaths[instanceName]);
                 }
             }
 
             bootstrappers.Clear();
-            HttpClients.Clear();
-            Handlers.Clear();
+            databasePaths.Clear();
+            handlers.Clear();
         }
 
         static void DeleteFolder(string path)
@@ -288,6 +287,8 @@ namespace ServiceBus.Management.AcceptanceTests
 
         Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
         Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
+        Dictionary<string, HttpMessageHandler> handlers = new Dictionary<string, HttpMessageHandler>();
+        Dictionary<string, string> databasePaths = new Dictionary<string, string>();
         ITransportIntegration transportToUse;
         Action<string, Settings> setInstanceSettings;
         Action<Settings> setSettings;
