@@ -37,14 +37,14 @@
 
                     if (failure.Status == FailedMessageStatus.Resolved)
                     {
-                        var eventLogItemsResult = await this.TryGetMany<EventLogItem>("/api/eventlogitems");
+                        var eventLogItemsResult = await this.TryGetMany<EventLogItem>("/eventlogitems");
                         eventLogItems = eventLogItemsResult;
-                        var messagesResult = await this.TryGetSingle<MessagesView>("/api/messages", m => m.Status == MessageStatus.ResolvedSuccessfully);
+                        var messagesResult = await this.TryGetSingle<MessagesView>("/messages", m => m.Status == MessageStatus.ResolvedSuccessfully);
                         message = messagesResult;
                         return messagesResult && eventLogItemsResult;
                     }
 
-                    await IssueRetry(c, () => this.Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
+                    await IssueRetry(c, () => this.Post<object>($"/errors/{c.UniqueMessageId}/retry"));
 
                     return false;
                 })
@@ -77,7 +77,7 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => this.Post("/api/errors/retry", new List<string> {c.UniqueMessageId}));
+                    await IssueRetry(c, () => this.Post("/errors/retry", new List<string> {c.UniqueMessageId}));
 
                     return false;
                 })
@@ -107,7 +107,7 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => this.Post<object>("/api/errors/retry/all"));
+                    await IssueRetry(c, () => this.Post<object>("/errors/retry/all"));
 
                     return false;
                 })
@@ -137,14 +137,14 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => this.Post<object>($"/api/recoverability/groups/{failure.FailureGroups.First().Id}/errors/retry"));
+                    await IssueRetry(c, () => this.Post<object>($"/recoverability/groups/{failure.FailureGroups.First().Id}/errors/retry"));
 
                     return false;
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
             // TODO: How did this ever work. The API should be stopped at this point
-            //await this.Delete($"/api/recoverability/unacknowledgedgroups/{failure.FailureGroups.First().Id}"); // Exception will throw if 404
+            //await this.Delete($"/recoverability/unacknowledgedgroups/{failure.FailureGroups.First().Id}"); // Exception will throw if 404
         }
 
         [Test]
@@ -168,7 +168,7 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => this.Post<object>($"/api/errors/{c.EndpointNameOfReceivingEndpoint}/retry/all"));
+                    await IssueRetry(c, () => this.Post<object>($"/errors/{c.EndpointNameOfReceivingEndpoint}/retry/all"));
 
                     return false;
                 })
@@ -184,7 +184,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
+            return this.TryGet<FailedMessage>("/errors/" + c.UniqueMessageId);
         }
 
         async Task IssueRetry(MyContext c, Func<Task> retryAction)

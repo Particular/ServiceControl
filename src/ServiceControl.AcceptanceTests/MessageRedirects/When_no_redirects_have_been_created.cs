@@ -15,7 +15,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
             await Define<Context>()
                 .Done(async ctx =>
                 {
-                    var result = await this.TryGetMany<MessageRedirectFromJson>("/api/redirects");
+                    var result = await this.TryGetMany<MessageRedirectFromJson>("/redirects");
                     response = result;
                     return true;
                 })

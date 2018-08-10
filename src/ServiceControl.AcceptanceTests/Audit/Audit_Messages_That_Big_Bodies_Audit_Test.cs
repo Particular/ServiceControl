@@ -34,7 +34,7 @@
                             return false;
                         }
 
-                        var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                        var result = await this.TryGetSingle<MessagesView>("/messages", r => r.MessageId == c.MessageId);
                         MessagesView auditMessage = result;
                         if (!result)
                         {
@@ -75,7 +75,7 @@
                             return false;
                         }
 
-                        var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                        var result = await this.TryGetSingle<MessagesView>("/messages", r => r.MessageId == c.MessageId);
                         MessagesView auditMessage = result;
                         if (!result)
                         {

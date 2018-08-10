@@ -22,7 +22,7 @@
                         {
                             try
                             {
-                                await this.Post<object>("/api/errors/1785201b-5ccd-4705-b14e-f9dd7ef1386e/retry");
+                                await this.Post<object>("/errors/1785201b-5ccd-4705-b14e-f9dd7ef1386e/retry");
                                 break;
                             }
                             catch (InvalidOperationException)
@@ -33,7 +33,7 @@
 
                         await bus.SendLocal(new MessageThatWillFail());
                     }).DoNotFailOnErrorMessages()
-                    .When(async ctx => ctx.IssueRetry && await this.TryGet<object>("/api/errors/" + ctx.UniqueMessageId), (bus, ctx) => this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry")).DoNotFailOnErrorMessages())
+                    .When(async ctx => ctx.IssueRetry && await this.TryGet<object>("/errors/" + ctx.UniqueMessageId), (bus, ctx) => this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry")).DoNotFailOnErrorMessages())
                 .Done(ctx => ctx.Done)
                 .Run(TimeSpan.FromMinutes(3));
 

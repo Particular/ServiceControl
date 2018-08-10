@@ -1,12 +1,12 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.CustomChecks
 {
     using System;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Infrastructure.Settings;
     using Microsoft.AspNet.SignalR.Client;
+    using Microsoft.AspNet.SignalR.Client.Http;
     using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -22,7 +22,7 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+            var context = await Define<MyContext>(ctx => { ctx.SignalRClient = () => Instances[Settings.DEFAULT_SERVICE_NAME].SignalRClient; })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -34,8 +34,9 @@
         public class MyContext : ScenarioContext
         {
             public bool SignalrEventReceived { get; set; }
-            public Func<HttpMessageHandler> Handler { get; set; }
             public string SignalrData { get; set; }
+
+            public Func<IHttpClient> SignalRClient { get; set; }
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
@@ -81,7 +82,7 @@
                 {
                     connection.Received += ConnectionOnReceived;
 
-                    return connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler())));
+                    return connection.Start(new ServerSentEventsTransport(context.SignalRClient()));
                 }
 
                 protected override Task OnStop(IMessageSession session)

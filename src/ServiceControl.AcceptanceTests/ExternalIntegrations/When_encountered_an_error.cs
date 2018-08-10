@@ -11,10 +11,9 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     using NUnit.Framework;
     using Raven.Client;
     using ServiceControl.Contracts;
-    using ServiceControl.Contracts.HeartbeatMonitoring;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Plugin.CustomChecks.Messages;
 
     /// <summary>
     /// The test simulates the heartbeat subsystem by publishing EndpointFailedToHeartbeat event.
@@ -25,43 +24,43 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         [Test]
         public async Task Dispatched_thread_is_restarted()
         {
-            var externalProcessorSubscribed = false;
-
             CustomConfiguration = config =>
             {
                 config.OnEndpointSubscribed<MyContext>((s, ctx) =>
                 {
                     if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        externalProcessorSubscribed = true;
+                        ctx.Subscribed = true;
                     }
                 });
 
                 config.RegisterComponents(cc => cc.ConfigureComponent<FaultyPublisher>(DependencyLifecycle.SingleInstance));
             };
-
-            ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
-            {
-                DetectedAt = new DateTime(2013, 09, 13, 13, 14, 13),
-                LastReceivedAt = new DateTime(2013, 09, 13, 13, 13, 13),
-                Endpoint = new EndpointDetails
-                {
-                    Host = "UnluckyHost",
-                    HostId = Guid.NewGuid(),
-                    Name = "UnluckyEndpoint"
-                }
-            }));
-
+            
             var context = await Define<MyContext>()
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (messageSession, c) =>
                 {
-                    await messageSession.Subscribe<HeartbeatStopped>();
+                    await messageSession.Subscribe<CustomCheckSucceeded>();
 
                     if (c.HasNativePubSubSupport)
                     {
-                        externalProcessorSubscribed = true;
+                        c.Subscribed = true;
                     }
-                }))
+                }).When(c => c.Subscribed, async session =>
+                    {
+                        var options = new SendOptions();
+                        options.SetDestination(Settings.DEFAULT_SERVICE_NAME);
+                        await session.Send(new ReportCustomCheckResult
+                        {
+                            EndpointName = "Testing",
+                            HostId = Guid.NewGuid(),
+                            Category = "Testing",
+                            CustomCheckId = "Success custom check",
+                            Host = "UnluckyHost",
+                            ReportedAt = DateTime.Now
+
+                        }, options).ConfigureAwait(false);
+                    }))
                 .Done(c => c.NotificationDelivered)
                 .Run();
 
@@ -106,14 +105,14 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
-                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME); });
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<CustomCheckSucceeded>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
-            public class FailureHandler : IHandleMessages<HeartbeatStopped>
+            public class EventHandler : IHandleMessages<CustomCheckSucceeded>
             {
                 public MyContext Context { get; set; }
 
-                public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
+                public Task Handle(CustomCheckSucceeded message, IMessageHandlerContext context)
                 {
                     Context.NotificationDelivered = true;
                     return Task.FromResult(0);
@@ -125,6 +124,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
         {
             public bool NotificationDelivered { get; set; }
             public bool Failed { get; set; }
+            public bool Subscribed { get; set; }
         }
     }
 }

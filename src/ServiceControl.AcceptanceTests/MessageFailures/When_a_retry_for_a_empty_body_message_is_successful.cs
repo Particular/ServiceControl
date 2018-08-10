@@ -29,7 +29,7 @@
                     failure = result;
                     if (!c.RetryIssued && result)
                     {
-                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
+                        await IssueRetry(c, () => this.Post<object>($"/errors/{c.UniqueMessageId}/retry"));
 
                         return false;
                     }
@@ -45,7 +45,7 @@
 
         async Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, Predicate<FailedMessage> condition = null)
         {
-            var result = await this.TryGet("/api/errors/" + c.UniqueMessageId, condition);
+            var result = await this.TryGet("/errors/" + c.UniqueMessageId, condition);
             if (string.IsNullOrEmpty(c.UniqueMessageId) || !result)
             {
                 return SingleResult<FailedMessage>.Empty;

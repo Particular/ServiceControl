@@ -26,19 +26,19 @@
                         return false;
                     }
 
-                    var result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    var result = await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}");
                     failedMessage = result;
                     return result;
                 }, async (bus, ctx) =>
                 {
                     ctx.AboutToSendRetry = true;
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry");
                 }).DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
                     if (ctx.Retried)
                     {
-                        failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        failedMessage = await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}");
                         return true;
                     }
 

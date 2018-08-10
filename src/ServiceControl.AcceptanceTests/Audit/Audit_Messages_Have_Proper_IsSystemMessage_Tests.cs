@@ -27,7 +27,7 @@
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/messages", r => r.MessageId == c.MessageId);
                     auditMessage = result;
                     return result;
                 })
@@ -50,7 +50,7 @@
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=true&sort=id", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/messages?include_system_messages=true&sort=id", r => r.MessageId == c.MessageId);
                     auditMessage = result;
                     return result;
                 })
@@ -79,7 +79,7 @@
                         return false;
                     }
 
-                    var result = await this.TryGet<List<MessagesView>>("/api/messages");
+                    var result = await this.TryGet<List<MessagesView>>("/messages");
                     List<MessagesView> messages = result;
                     if (!result)
                     {
@@ -110,7 +110,7 @@
                 .WithEndpoint<ServerEndpoint>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/messages", r => r.MessageId == c.MessageId);
                     auditMessage = result;
                     return result;
                 })

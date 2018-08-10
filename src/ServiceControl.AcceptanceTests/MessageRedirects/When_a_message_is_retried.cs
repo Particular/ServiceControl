@@ -26,16 +26,16 @@
                             return false;
                         }
 
-                        return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                        return await this.TryGet<FailedMessage>($"/errors/{ctx.UniqueMessageId}");
                     }, async (bus, ctx) =>
                     {
-                        await this.Post("/api/redirects", new RedirectRequest
+                        await this.Post("/redirects", new RedirectRequest
                         {
                             fromphysicaladdress = ctx.FromAddress,
                             tophysicaladdress = ctx.ToAddress
                         }, status => status != HttpStatusCode.Created);
 
-                        await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                        await this.Post<object>($"/errors/{ctx.UniqueMessageId}/retry");
                     }).DoNotFailOnErrorMessages())
                 .WithEndpoint<ToNewEndpoint>(c =>
                     c.When((session, ctx) =>

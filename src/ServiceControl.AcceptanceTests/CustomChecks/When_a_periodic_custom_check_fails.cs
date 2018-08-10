@@ -2,11 +2,11 @@
 {
     using System;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Infrastructure.Settings;
     using Microsoft.AspNet.SignalR.Client;
+    using Microsoft.AspNet.SignalR.Client.Http;
     using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -30,7 +30,7 @@
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
                     entry = result;
                     return result;
                 })
@@ -45,7 +45,7 @@
         public async Task Should_raise_a_signalr_event()
         {
             var context = await Define<MyContext>(
-                    ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+                    ctx => { ctx.SignalRClient = () => Instances[Settings.DEFAULT_SERVICE_NAME].SignalRClient; })
                 .WithEndpoint<EndpointWithFailingCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -58,7 +58,7 @@
         {
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
-            public Func<HttpMessageHandler> Handler { get; set; }
+            public Func<IHttpClient> SignalRClient { get; set; }
             public bool SignalrStarted { get; set; }
         }
 
@@ -102,7 +102,7 @@
                         connection.Received += ConnectionOnReceived;
                         connection.StateChanged += change => { context.SignalrStarted = change.NewState == ConnectionState.Connected; };
 
-                        return connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler())));
+                        return connection.Start(new ServerSentEventsTransport(context.SignalRClient()));
                     }
 
                     protected override Task OnStop(IMessageSession session)

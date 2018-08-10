@@ -43,7 +43,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups");
+                    var result = await this.TryGetMany<FailedMessage.FailureGroup>("/recoverability/groups");
                     List<FailedMessage.FailureGroup> groups = result;
                     if (!result)
                     {
@@ -55,7 +55,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                         return false;
                     }
 
-                    var errorResult = await this.TryGetMany<FailedMessageView>($"/api/recoverability/groups/{groups[0].Id}/errors?page=1&direction=asc&sort={sortProperty}");
+                    var errorResult = await this.TryGetMany<FailedMessageView>($"/recoverability/groups/{groups[0].Id}/errors?page=1&direction=asc&sort={sortProperty}");
                     localErrors = errorResult;
                     if (!errorResult)
                     {

@@ -41,7 +41,7 @@
                         return false;
                     }
 
-                    var defaultGroupsResult = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    var defaultGroupsResult = await this.TryGetMany<FailureGroupView>("/recoverability/groups/");
                     defaultGroups = defaultGroupsResult;
                     if (!defaultGroupsResult)
                     {
@@ -53,12 +53,12 @@
                         return false;
                     }
 
-                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
-                    exceptionTypeAndStackTraceGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
+                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/recoverability/groups/Message%20Type");
+                    exceptionTypeAndStackTraceGroups = await this.TryGetMany<FailureGroupView>("/recoverability/groups/Exception%20Type%20and%20Stack%20Trace");
 
-                    var failedMessageAResult = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdA}", msg => msg.FailureGroups.Any());
+                    var failedMessageAResult = await this.TryGet<FailedMessage>($"/errors/{c.UniqueMessageIdA}", msg => msg.FailureGroups.Any());
                     failedMessageA = failedMessageAResult;
-                    var failedMessageBResult = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageIdB}", msg => msg.FailureGroups.Any());
+                    var failedMessageBResult = await this.TryGet<FailedMessage>($"/errors/{c.UniqueMessageIdB}", msg => msg.FailureGroups.Any());
                     failedMessageB = failedMessageBResult;
                     if (!failedMessageAResult || !failedMessageBResult)
                     {
@@ -74,7 +74,7 @@
 
             defaultGroups.ForEach(g => Console.WriteLine(JsonConvert.SerializeObject(g)));
 
-            Assert.IsEmpty(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
+            Assert.IsEmpty(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), "/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
 
             Assert.Contains(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageA).FullName).ToString(), messageTypeGroups.Select(g => g.Id).ToArray());
             Assert.Contains(DeterministicGuid.MakeId(MessageTypeFailureClassifier.Id, typeof(MyMessageB).FullName).ToString(), messageTypeGroups.Select(g => g.Id).ToArray());

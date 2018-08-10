@@ -22,7 +22,7 @@
             await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(async c => c.Remote1MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: Master))
+                .Done(async c => c.Remote1MessageId != null && await this.TryGetMany<MessagesView>("/messages/search/" + c.Remote1MessageId, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
         }
 

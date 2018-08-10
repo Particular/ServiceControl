@@ -2,15 +2,12 @@ namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Infrastructure.Settings;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
 
-    class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
+    class ServiceControlComponentBehavior : IComponentBehavior
     {
         public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<string, Settings> setInstanceSettings, Action<EndpointConfiguration> customConfiguration, Action<string, EndpointConfiguration> customInstanceConfiguration)
         {
@@ -21,11 +18,7 @@ namespace ServiceBus.Management.AcceptanceTests
             transportIntegration = transportToUse;
         }
 
-        public Dictionary<string, HttpClient> HttpClients => runner.HttpClients;
-        public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
-        public Dictionary<string, Settings> SettingsPerInstance => runner.SettingsPerInstance;
-        public Dictionary<string, OwinHttpMessageHandler> Handlers => runner.Handlers;
-        public Dictionary<string, BusInstance> Busses => runner.Busses;
+        public Dictionary<string, ServiceControlInstanceReference> ServiceControlInstances => runner.ServiceControlInstances;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {

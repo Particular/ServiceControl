@@ -24,7 +24,7 @@
                     return bus.Send(new MyMessage(), sendOptions);
                 }))
                 .WithEndpoint<Receiver>()
-                .Done(async c => c.MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/DANCO-WIN8@Application1@2014-01-26T11:33:51"))
+                .Done(async c => c.MessageId != null && await this.TryGetMany<MessagesView>("/messages/search/DANCO-WIN8@Application1@2014-01-26T11:33:51"))
                 .Run(TimeSpan.FromSeconds(40));
         }
 

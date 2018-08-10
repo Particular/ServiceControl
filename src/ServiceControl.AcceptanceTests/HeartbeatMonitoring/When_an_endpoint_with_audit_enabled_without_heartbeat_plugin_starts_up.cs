@@ -23,7 +23,7 @@
                 .WithEndpoint<StartingEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
+                    var result = await this.TryGetMany<EndpointsView>("/endpoints/", e => e.Name == EndpointName);
                     endpoints = result;
                     return result;
                 })
