@@ -2,7 +2,7 @@
 
 ## Environment
 
-16 vCPU, 64 GB RAM, 2x7500 IOPS striped disk
+Azuer VM, 16 vCPU, 64 GB RAM, 2x7500 IOPS striped disk
 
 ## Results
 
@@ -16,11 +16,11 @@ Tests were conducted using empty messages with one minute retention policy
  - ASQ -> **160 msg/s**
  - RabbitMQ -> **152 msg/s**
  
-The results show that the throughput is limited by the database write speed, not the throughput of the transport. The identical tests for V2 and ASB showed **70 msg/s** throughput provide that V2 ASB was limited by the transport speed, not by the disk.
+The results show that the throughput is limited by the database write speed, not the throughput of the transport. The identical tests for V2 and ASB showed **70 msg/s** throughput prove that V2 ASB was limited by the transport speed, not by the disk.
  
-### Invistigate impact of message size on ingestion and eviction throughput
+### Investigate impact of message size on ingestion and eviction throughput
  
-Tests were conducted using messages of different sizes withj 5 minute retention. RabbitMQ was used as a transport as it is known for high throughput.
+Tests were conducted using messages of different sizes with a 5 minute retention. RabbitMQ was used as a transport as it is known for high throughput.
  
  - 0 KB -> **152 msg/s**
  - 13 KB -> **140 msg/s**
@@ -30,7 +30,7 @@ Tests were conducted using messages of different sizes withj 5 minute retention.
  - 93 KB (fits in body storage only) ->**107 msg/s, 12 GB RAM after processing 550K messages, cleanup cost ~2 ms/message**
  - 133 KB (too big to store) -> **150 msg/s, cleanup cost ~1 ms/message**
  
-The tests show that storing the body inside a document impacts significantly the memory usage. The purpose of storing the body there is to allow full text search. The performance characteristics of processing tiny and very large (over 133 KB) messages are the same becase for the latter not body is stored (neither as attachment nor inside the document).
+The tests show that storing the body inside a document impacts the memory usage significantly. The purpose of storing the body there is to allow full text search. The performance characteristics of processing tiny and very large (over 133 KB) messages are the same becase for the latter not body is stored (neither as attachment nor inside the document).
 
 Observation of memory consumption suggests that the memory is actually allocated not when storing the messages but when evicting them. Changing the cleanup mechanism to not use the message metadata seems to have no effect on the memory allocations.
 
@@ -47,4 +47,4 @@ Tests were conducted using messages of decreasing sizes (as the database would b
 
 The cost of cleanup grows with the database size (in addition to growing in a function of message size, as noted in the previous section). The baseline cost is ~1ms for a small message and small database. It grows to 8-10 ms for the same message size but a 1 TB database.
 
-The last 3 day retention period run showed that the ingestion and cleanup throughputs does not automatically ballance. For three days the database size was at 1.09 TB but then started growing up to 1.2 TB after another 2 days. This proves that, in order to keep DB size in check, a feedback mechanism is needed to slow down the ingestion if the cleanup can't cope up.
+The last 3 day retention period run showed that the ingestion and cleanup throughputs does not automatically balance. For three days the database size was at 1.09 TB but then started growing up to 1.2 TB after another 2 days. This proves that, in order to keep DB size in check, a feedback mechanism is needed to slow down the ingestion if the cleanup can't cope.
