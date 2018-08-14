@@ -26,7 +26,7 @@ Tests were conducted using messages of different sizes with 5-minute retention. 
  - 13 KB -> **140 msg/s**
  - 20 KB -> **130 msg/s**
  - 40 KB -> **102 msg/s**
- - 66 KB (fits both in the document and in the body stoage) -> **80 msg/s , 4 GB database, 22 GB RAM after processing 450K messages, cleanup cost ~4 ms/message**
+ - 66 KB (fits both in the document and in the body storage) -> **80 msg/s , 4 GB database, 22 GB RAM after processing 450K messages, cleanup cost ~4 ms/message**
  - 93 KB (fits in body storage only) ->**107 msg/s, 12 GB RAM after processing 550K messages, cleanup cost ~2 ms/message**
  - 133 KB (too big to store) -> **150 msg/s, cleanup cost ~1 ms/message**
  
