@@ -16,7 +16,7 @@ Tests were conducted using empty messages with a one-minute retention policy
  - ASQ -> **160 msg/s**
  - RabbitMQ -> **152 msg/s**
  
-The results show that the throughput is limited by the database write speed, not the throughput of the transport. The same tests for V2 and ASB showed **70 msg/s** throughput provide that V2 ASB was limited by the transport speed, not by the disk.
+The results show that the throughput is limited by the database write speed, not the throughput of the transport. The same tests for V2 and ASB showed **70 msg/s** throughput prove that V2 ASB was limited by the transport speed, not by the disk.
  
 ### Investigate the impact of message size on ingestion and eviction throughput
  
