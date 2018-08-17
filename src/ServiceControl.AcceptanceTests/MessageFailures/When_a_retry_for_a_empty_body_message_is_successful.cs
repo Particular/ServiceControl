@@ -95,11 +95,11 @@
                         ["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty,
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)), // TODO: Correct?
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                         ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z",
                         [Headers.ControlMessageHeader] = Boolean.TrueString,
-                        [Headers.ReplyToAddress] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)) // TODO: Correct?
+                        [Headers.ReplyToAddress] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint))
                     };
 
                     var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
