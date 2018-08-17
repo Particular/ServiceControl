@@ -97,7 +97,7 @@
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)), // TODO: Correct?
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z"
                     };
                     if (context.TimeSent.HasValue)

@@ -112,7 +112,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
                         {"NServiceBus.ExceptionInfo.ExceptionType", "System.Exception"},
                         {"NServiceBus.ExceptionInfo.Message", "An error occurred"},
                         {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},
-                        {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(Receiver))}, // TODO: Correct?
+                        {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(Receiver))},
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
                         {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
                         {Headers.EnclosedMessageTypes, $"MessageThatWillFail{i}"}
