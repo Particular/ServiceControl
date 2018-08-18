@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Routing;
@@ -25,10 +24,8 @@
                 messageContext.Headers,
                 messageContext.Body);
 
-            if (outgoingMessage.Headers.ContainsKey(Headers.TimeToBeReceived))
-            {
-                outgoingMessage.Headers[Headers.TimeToBeReceived] = TimeSpan.MaxValue.ToString();
-            }
+            // Forwarded messages should last as long as possible
+            outgoingMessage.Headers.Remove(Headers.TimeToBeReceived);
 
             var transportOperations = new TransportOperations(
                 new TransportOperation(outgoingMessage, new UnicastAddressTag(forwardingAddress))
