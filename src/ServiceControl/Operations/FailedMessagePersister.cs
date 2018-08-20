@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -46,19 +47,22 @@
                 messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
             }
 
-            var metadata = new Dictionary<string, object>
+            var metadata = new ConcurrentDictionary<string, object>
             {
                 ["MessageId"] = messageId,
                 ["MessageIntent"] = message.Headers.MessageIntent(),
                 ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
 
-            // TODO: fanout ? 
+            var enricherTasks = new List<Task>(enrichers.Length);
+            // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var enricher in enrichers)
             {
-                await enricher.Enrich(message.Headers, metadata)
-                    .ConfigureAwait(false);
+                enricherTasks.Add(enricher.Enrich(message.Headers, metadata));
             }
+
+            await Task.WhenAll(enricherTasks)
+                .ConfigureAwait(false);
 
             await bodyStorageEnricher.StoreErrorMessageBody(message.Body, message.Headers, metadata)
                 .ConfigureAwait(false);
@@ -67,7 +71,7 @@
 
             var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                 message.Headers,
-                metadata,
+                new Dictionary<string, object>(metadata), 
                 failureDetails,
                 // TODO: Do we need to persist all of these things separately still?
                 message.Headers.MessageIntent(),

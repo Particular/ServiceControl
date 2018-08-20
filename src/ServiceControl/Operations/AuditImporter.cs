@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -104,24 +105,27 @@
                 messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
             }
 
-            var metadata = new Dictionary<string, object>
+            var metadata = new ConcurrentDictionary<string, object>
             {
                 ["MessageId"] = messageId,
                 ["MessageIntent"] = message.Headers.MessageIntent(),
                 ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
 
-            // TODO: Fan out?
+            var enricherTasks = new List<Task>(enrichers.Length);
+            // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var enricher in enrichers)
             {
-                await enricher.Enrich(message.Headers, metadata)
-                    .ConfigureAwait(false);
+                enricherTasks.Add(enricher.Enrich(message.Headers, metadata));
             }
+
+            await Task.WhenAll(enricherTasks)
+                .ConfigureAwait(false);
 
             await bodyStorageEnricher.StoreAuditMessageBody(message.Body, message.Headers, metadata)
                 .ConfigureAwait(false);
 
-            var auditMessage = new ProcessedMessage(message.Headers, metadata)
+            var auditMessage = new ProcessedMessage(message.Headers, new Dictionary<string, object>(metadata))
             {
                 // We do this so Raven does not spend time assigning a hilo key
                 Id = $"ProcessedMessages/{Guid.NewGuid()}"
