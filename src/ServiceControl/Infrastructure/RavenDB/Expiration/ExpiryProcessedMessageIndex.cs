@@ -9,10 +9,14 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
         public ExpiryProcessedMessageIndex()
         {
             Map = messages => from message in messages
-                select new
-                {
-                    ProcessedAt = message.ProcessedAt.Ticks
-                };
+                              let bodyStored = !(bool)message.MessageMetadata["BodyNotStored"]
+                              let messageId = (string)message.MessageMetadata["MessageId"]
+                              let bodyUrl = bodyStored ? $"messagebodies/{messageId}" : null
+                              select new
+                              {
+                                  ProcessedAt = message.ProcessedAt.Ticks,
+                                  _ = CreateField("BodyUrl", bodyUrl, true, false)
+                              };
 
             DisableInMemoryIndexing = true;
         }
