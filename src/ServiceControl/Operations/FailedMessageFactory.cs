@@ -54,7 +54,7 @@
             return exceptionDetails;
         }
 
-        public FailedMessage.ProcessingAttempt CreateProcessingAttempt(Dictionary<string, string> headers, Dictionary<string, object> metadata, FailureDetails failureDetails, MessageIntentEnum intent, bool recoverable, string correlationId, string replyToAddress)
+        public FailedMessage.ProcessingAttempt CreateProcessingAttempt(Dictionary<string, string> headers, Dictionary<string, object> metadata, FailureDetails failureDetails, MessageIntentEnum intent, bool recoverable, string correlationId)
         {
             return new FailedMessage.ProcessingAttempt
             {
@@ -63,7 +63,6 @@
                 MessageMetadata = metadata,
                 MessageId = headers[Headers.MessageId],
                 Headers = headers,
-                ReplyToAddress = replyToAddress,
                 Recoverable = recoverable,
                 CorrelationId = correlationId,
                 MessageIntent = intent

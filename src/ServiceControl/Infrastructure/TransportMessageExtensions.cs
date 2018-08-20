@@ -51,10 +51,6 @@
         }
 
         // NOTE: Duplicated from TransportMessage
-        public static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue(Headers.ReplyToAddress, out var destination) ? destination : null;
-        }
 
         public static string CorrelationId(this IReadOnlyDictionary<string, string> headers)
         {
@@ -62,6 +58,7 @@
         }
 
         // NOTE: Duplicated from TransportMessage
+
         public static MessageIntentEnum MessageIntent(this IReadOnlyDictionary<string, string> headers)
         {
             var messageIntent = default(MessageIntentEnum);
@@ -74,6 +71,10 @@
             return messageIntent;
         }
 
+        static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
+        {
+            return headers.TryGetValue(Headers.ReplyToAddress, out var destination) ? destination : null;
+        }
 
         static string ExtractQueue(string address)
         {

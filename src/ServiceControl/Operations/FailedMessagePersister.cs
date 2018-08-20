@@ -72,8 +72,7 @@
                 // TODO: Do we need to persist all of these things separately still?
                 message.Headers.MessageIntent(),
                 true,
-                message.Headers.CorrelationId(),
-                message.Headers.ReplyToAddress());
+                message.Headers.CorrelationId());
 
             var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
