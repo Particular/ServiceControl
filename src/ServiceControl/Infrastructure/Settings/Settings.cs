@@ -237,12 +237,14 @@
             if (value == null)
             {
                 logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
+                this.IngestAuditMessages = false;
                 return null;
             }
 
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Audit ingestion disabled.");
+                this.IngestAuditMessages = false;
                 return null; // needs to be null to not create the queues
             }
 
@@ -256,12 +258,14 @@
             if (value == null)
             {
                 logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
+                this.IngestErrorMessages = false;
                 return null;
             }
 
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Error ingestion disabled.");
+                this.IngestErrorMessages = false;
                 return null; // needs to be null to not create the queues
             }
 
