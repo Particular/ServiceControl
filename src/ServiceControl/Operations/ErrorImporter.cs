@@ -45,7 +45,6 @@
                 {
                     context.RegisterStartupTask(b => new EnsureCanWriteToForwardingAddress(b.Build<IForwardMessages>(), settings.ErrorLogQueue));
                 }
-
             }
         }
 
