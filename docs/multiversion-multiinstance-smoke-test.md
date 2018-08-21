@@ -14,7 +14,7 @@ I am not sure a PR is necessary:
 1. Edit the configuration of the sample project
    - Reconfigure the endpoint to use the MSMQ transport
    
-## Scenario 1   
+## V2 remote notifies V3 master about successful retry   
 1. Configure ServiceControl v3 as Remote.
 1. Restart v3 SC
 1. Configure ServiceControl v2 as Master. 
@@ -37,7 +37,7 @@ I am not sure a PR is necessary:
 1. Remove the database directory of the v3 instance of SC
 1. Start the v3 instance of SC
 
-## Scenario 2
+## V3 remote notifies V2 master about successful retry
 1. Configure ServiceControl v2 as Remote.
 1. Restart v2 SC
 1. Configure ServiceControl v3 as Master. 
