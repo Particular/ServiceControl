@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
 {
+    using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Persistence;
 

@@ -11,8 +11,6 @@ namespace ServiceControl.UnitTests.Migrations
     [TestFixture]
     public class DatabaseMigrationsTest
     {
-        StringBuilder traceLog;
-
         [SetUp]
         public void Setup()
         {
@@ -35,7 +33,7 @@ namespace ServiceControl.UnitTests.Migrations
         {
             var progressLog = RunDataMigration("UpdateProgress");
 
-            CollectionAssert.AreEquivalent(new []
+            CollectionAssert.AreEquivalent(new[]
             {
                 "Updating schema from version 1",
                 "Updating schema from version 2",
@@ -58,10 +56,7 @@ namespace ServiceControl.UnitTests.Migrations
         [Test]
         public void It_captures_error_stream_when_returning_non_zero()
         {
-            var ex = Assert.Throws<DatabaseMigrationsException>(() =>
-            {
-                RunDataMigration("WriteToErrorAndExitNonZero");
-            });
+            var ex = Assert.Throws<DatabaseMigrationsException>(() => { RunDataMigration("WriteToErrorAndExitNonZero"); });
 
             StringAssert.Contains("Some error message", ex.Message);
         }
@@ -80,12 +75,12 @@ namespace ServiceControl.UnitTests.Migrations
             {
                 File.Delete(file);
             }
-            
+
             var now = DateTime.UtcNow;
             RunDataMigration("Return0");
 
             files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.upgrade");
-            
+
             Assert.That(files, Has.Length.EqualTo(1));
             var fileTime = DateTime.FromFileTimeUtc(Convert.ToInt64(Path.GetFileNameWithoutExtension(files[0])));
             Assert.That(fileTime, Is.GreaterThanOrEqualTo(now).And.LessThanOrEqualTo(now.AddSeconds(10)));
@@ -105,5 +100,7 @@ namespace ServiceControl.UnitTests.Migrations
 
             return progressLog;
         }
+
+        StringBuilder traceLog;
     }
 }

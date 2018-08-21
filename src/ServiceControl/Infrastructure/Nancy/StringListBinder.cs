@@ -10,14 +10,6 @@
 
     public class StringListBinder : IModelBinder
     {
-        private static readonly MethodInfo toListMethodInfo = typeof (Enumerable).GetMethod("ToList",
-            BindingFlags.Public | BindingFlags.Static);
-
-        private readonly IEnumerable<IBodyDeserializer> bodyDeserializers;
-        private readonly BindingDefaults defaults;
-        private readonly IFieldNameConverter fieldNameConverter;
-        private readonly IEnumerable<ITypeConverter> typeConverters;
-
         public StringListBinder(IEnumerable<IBodyDeserializer> bodyDeserializers, IFieldNameConverter fieldNameConverter,
             BindingDefaults defaults, IEnumerable<ITypeConverter> typeConverters)
         {
@@ -28,17 +20,17 @@
         }
 
         /// <summary>
-        ///     Whether the binder can bind to the given model type
+        /// Whether the binder can bind to the given model type
         /// </summary>
         /// <param name="modelType">Required model type</param>
         /// <returns>True if binding is possible, false otherwise</returns>
         public bool CanBind(Type modelType)
         {
-            return typeof (IEnumerable<string>).IsAssignableFrom(modelType);
+            return typeof(IEnumerable<string>).IsAssignableFrom(modelType);
         }
 
         /// <summary>
-        ///     Bind to the given model type
+        /// Bind to the given model type
         /// </summary>
         /// <param name="context">Current context</param>
         /// <param name="modelType">Model type to bind to</param>
@@ -61,7 +53,7 @@
                 {
                     var implementingIEnumerableType =
                         modelType.GetInterfaces().Where(i => i.IsGenericType()).FirstOrDefault(
-                            i => i.GetGenericTypeDefinition() == typeof (IEnumerable<>));
+                            i => i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
                     genericType = implementingIEnumerableType == null ? null : implementingIEnumerableType.GetGenericArguments().FirstOrDefault();
                 }
 
@@ -91,7 +83,7 @@
                 ValidModelBindingMembers = GetBindingMembers(modelType, genericType, blackList).ToList(),
                 RequestData = GetDataFields(context),
                 GenericType = genericType,
-                TypeConverters = typeConverters.Concat(defaults.DefaultTypeConverters),
+                TypeConverters = typeConverters.Concat(defaults.DefaultTypeConverters)
             };
         }
 
@@ -119,7 +111,7 @@
         {
             return dictionary?.GetDynamicMemberNames().ToDictionary(
                 memberName => fieldNameConverter.Convert(memberName),
-                memberName => (string) dictionary[memberName]);
+                memberName => (string)dictionary[memberName]);
         }
 
         private static object CreateModel(Type modelType, Type genericType, object instance)
@@ -134,12 +126,13 @@
                     {
                         return instance;
                     }
+
                     var genericMethod = toListMethodInfo.MakeGenericMethod(genericType);
                     return genericMethod.Invoke(null, new[] {instance});
                 }
 
                 //else just make a list
-                var listType = typeof (List<>).MakeGenericType(genericType);
+                var listType = typeof(List<>).MakeGenericType(genericType);
                 return Activator.CreateInstance(listType);
             }
 
@@ -190,5 +183,13 @@
                 ? string.Empty
                 : contentType;
         }
+
+        private readonly IEnumerable<IBodyDeserializer> bodyDeserializers;
+        private readonly BindingDefaults defaults;
+        private readonly IFieldNameConverter fieldNameConverter;
+        private readonly IEnumerable<ITypeConverter> typeConverters;
+
+        private static readonly MethodInfo toListMethodInfo = typeof(Enumerable).GetMethod("ToList",
+            BindingFlags.Public | BindingFlags.Static);
     }
 }

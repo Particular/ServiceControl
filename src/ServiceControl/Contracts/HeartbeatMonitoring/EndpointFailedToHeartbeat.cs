@@ -1,8 +1,8 @@
 namespace ServiceControl.Contracts.HeartbeatMonitoring
 {
     using System;
+    using Infrastructure.DomainEvents;
     using Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class EndpointFailedToHeartbeat : IDomainEvent
     {

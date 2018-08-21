@@ -5,7 +5,7 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
-    using ServiceControlInstaller.Engine.Services;
+    using Services;
 
     public class InstanceFinder
     {

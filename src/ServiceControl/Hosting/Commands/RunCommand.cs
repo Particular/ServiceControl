@@ -4,7 +4,7 @@
     using System.Threading;
     using Hosting;
 
-    internal class RunCommand : AbstractCommand
+    class RunCommand : AbstractCommand
     {
         public override void Execute(HostArguments args)
         {
@@ -19,7 +19,7 @@
 
         void RunNonBlocking(HostArguments args)
         {
-            using (var service = new Host { ServiceName = args.ServiceName })
+            using (var service = new Host {ServiceName = args.ServiceName})
             {
                 service.Run(false);
             }
@@ -27,7 +27,7 @@
 
         void RunAndWait(HostArguments args)
         {
-            using (var service = new Host { ServiceName = args.ServiceName })
+            using (var service = new Host {ServiceName = args.ServiceName})
             {
                 using (var waitHandle = new ManualResetEvent(false))
                 {
@@ -50,9 +50,6 @@
 
         class CancelWrapper
         {
-            private readonly ManualResetEvent manualReset;
-            private readonly Host host;
-
             public CancelWrapper(ManualResetEvent manualReset, Host host)
             {
                 this.manualReset = manualReset;
@@ -66,6 +63,9 @@
                 manualReset.Set();
                 Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
             }
+
+            readonly ManualResetEvent manualReset;
+            readonly Host host;
         }
     }
 }

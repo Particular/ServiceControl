@@ -1,9 +1,13 @@
 ﻿namespace ServiceControlInstaller.PowerShell
 {
-    using ServiceControlInstaller.Engine.Instances;
+    using Engine.Instances;
 
     public class PsTransportInfo
     {
+        public string Name { get; set; }
+        public string TypeName { get; set; }
+        public string SampleConnectionString { get; set; }
+
         public static PsTransportInfo FromTransport(TransportInfo transport)
         {
             return new PsTransportInfo
@@ -13,8 +17,5 @@
                 SampleConnectionString = transport.SampleConnectionString
             };
         }
-        public string Name { get; set; }
-        public string TypeName { get; set; }
-        public string SampleConnectionString { get; set; }
     }
 }

@@ -1,7 +1,7 @@
 namespace ServiceControl.Contracts.HeartbeatMonitoring
 {
     using System;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class HeartbeatMonitoringEnabled : IDomainEvent
     {

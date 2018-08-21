@@ -1,13 +1,10 @@
-﻿using ServiceControl.Config.Framework;
-using ServiceControl.Config.Framework.Commands;
-
-namespace ServiceControl.Config.Commands
+﻿namespace ServiceControl.Config.Commands
 {
+    using Framework;
+    using Framework.Commands;
+
     class OpenViewModelCommand<T> : AbstractCommand<object>
     {
-        private readonly T screen;
-        private readonly IWindowManagerEx windowManager;
-
         public OpenViewModelCommand(IWindowManagerEx windowManager, T screen)
         {
             this.screen = screen;
@@ -18,5 +15,8 @@ namespace ServiceControl.Config.Commands
         {
             windowManager.ShowDialog(screen);
         }
+
+        readonly T screen;
+        readonly IWindowManagerEx windowManager;
     }
 }

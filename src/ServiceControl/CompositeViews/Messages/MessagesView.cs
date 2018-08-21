@@ -29,5 +29,4 @@ namespace ServiceControl.CompositeViews.Messages
         public SagaInfo OriginatesFromSaga { get; set; }
         public string InstanceId { get; set; }
     }
-
 }

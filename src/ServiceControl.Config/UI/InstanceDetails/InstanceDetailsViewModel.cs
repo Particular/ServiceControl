@@ -6,11 +6,11 @@
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
+    using Commands;
     using Events;
-    using ServiceControl.Config.Commands;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Modules;
-    using ServiceControl.Config.Framework.Rx;
+    using Framework;
+    using Framework.Modules;
+    using Framework.Rx;
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -24,7 +24,6 @@
             UpgradeMonitoringInstanceCommand upgradeMonitoringCommand,
             AdvancedMonitoringOptionsCommand advancedOptionsMonitoringCommand,
             AdvancedServiceControlOptionsCommand advancedOptionsServiceControlCommand,
-
             ServiceControlInstanceInstaller serviceControlinstaller,
             MonitoringInstanceInstaller monitoringinstaller)
         {
@@ -32,7 +31,7 @@
             CopyToClipboard = new CopyToClipboardCommand();
             StartCommand = Command.Create(() => StartService());
             StopCommand = Command.Create(() => StopService());
-            
+
             ServiceInstance = instance;
 
             if (instance.GetType() == typeof(ServiceControlInstance))
@@ -45,9 +44,10 @@
                 InstanceType = InstanceType.ServiceControl;
                 return;
             }
+
             if (instance.GetType() == typeof(MonitoringInstance))
             {
-                MonitoringInstance = (MonitoringInstance) instance;
+                MonitoringInstance = (MonitoringInstance)instance;
                 NewVersion = monitoringinstaller.ZipInfo.Version;
                 EditCommand = showEditMonitoringScreenCommand;
                 UpgradeToNewVersionCommand = upgradeMonitoringCommand;
@@ -55,13 +55,11 @@
                 InstanceType = InstanceType.Monitoring;
                 return;
             }
+
             throw new Exception("Unknown instance type");
         }
 
         public BaseService ServiceInstance { get; }
-
-        public ServiceControlInstance ServiceControlInstance;
-        public MonitoringInstance MonitoringInstance;
 
         public bool InMaintenanceMode => ServiceControlInstance?.InMaintenanceMode ?? false;
 
@@ -73,7 +71,7 @@
         public string Host => ((IURLInfo)ServiceInstance).Url;
 
         public string BrowsableUrl => ((IURLInfo)ServiceInstance).BrowsableUrl;
-        
+
         public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
 
         public string DBPath => ServiceControlInstance?.DBPath;
@@ -88,7 +86,7 @@
 
         public bool HasNewVersion => Version < NewVersion;
 
-        public string Transport => ((ITransportConfig) ServiceInstance).TransportPackage;
+        public TransportInfo Transport => ((ITransportConfig)ServiceInstance).TransportPackage;
 
         public bool IsUpdatingDataStore => ServiceControlInstance?.IsUpdatingDataStore ?? false;
 
@@ -147,7 +145,7 @@
                     {
                         ServiceControllerStatus.Running,
                         ServiceControllerStatus.StartPending,
-                        ServiceControllerStatus.StopPending,
+                        ServiceControllerStatus.StopPending
                     };
                     return !dontAllowStartOn.Any(p => p.Equals(ServiceInstance.Service.Status));
                 }
@@ -168,7 +166,7 @@
                     {
                         ServiceControllerStatus.Stopped,
                         ServiceControllerStatus.StartPending,
-                        ServiceControllerStatus.StopPending,
+                        ServiceControllerStatus.StopPending
                     };
                     return !dontAllowStopOn.Any(p => p.Equals(ServiceInstance.Service.Status));
                 }
@@ -217,12 +215,13 @@
             try
             {
                 progress = progress ?? this.GetProgressObject(String.Empty);
-                
+
                 // We need this one here in case the user stopped the service by other means
                 if (InstanceType == InstanceType.ServiceControl && InMaintenanceMode)
                 {
                     ServiceControlInstance.DisableMaintenanceMode();
                 }
+
                 progress.Report(new ProgressDetails("Starting Service"));
                 await Task.Run(() => result = ServiceInstance.TryStartService());
 
@@ -283,5 +282,8 @@
             NotifyOfPropertyChange("InMaintenanceMode");
             NotifyOfPropertyChange("IsUpdatingDataStore");
         }
+
+        public ServiceControlInstance ServiceControlInstance;
+        public MonitoringInstance MonitoringInstance;
     }
 }

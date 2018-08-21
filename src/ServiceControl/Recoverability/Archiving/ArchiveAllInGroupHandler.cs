@@ -1,22 +1,14 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
-        static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
-        const int batchSize = 1000;
-
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-        ArchiveDocumentManager documentManager;
-        ArchivingManager archiveOperationManager;
-        RetryingManager retryingManager;
-
         public ArchiveAllInGroupHandler(IDocumentStore store, IDomainEvents domainEvents, ArchiveDocumentManager documentManager, ArchivingManager archiveOperationManager, RetryingManager retryingManager)
         {
             this.store = store;
@@ -26,7 +18,7 @@ namespace ServiceControl.Recoverability
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(ArchiveAllInGroup message)
+        public async Task Handle(ArchiveAllInGroup message, IMessageHandlerContext context)
         {
             if (retryingManager.IsRetryInProgressFor(message.GroupId))
             {
@@ -37,15 +29,16 @@ namespace ServiceControl.Recoverability
             logger.Info($"Archiving of {message.GroupId} started");
             ArchiveOperation archiveOperation;
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
-                archiveOperation = documentManager.LoadArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup);
+                archiveOperation = await documentManager.LoadArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup)
+                    .ConfigureAwait(false);
 
                 if (archiveOperation == null)
                 {
-                    var groupDetails = documentManager.GetGroupDetails(session, message.GroupId);
+                    var groupDetails = await documentManager.GetGroupDetails(session, message.GroupId).ConfigureAwait(false);
                     if (groupDetails.NumberOfMessagesInGroup == 0)
                     {
                         logger.Warn($"No messages to archive in group {message.GroupId}");
@@ -54,20 +47,24 @@ namespace ServiceControl.Recoverability
                     }
 
                     logger.Info($"Splitting group {message.GroupId} into batches");
-                    archiveOperation = documentManager.CreateArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize);
-                    session.SaveChanges();
+                    archiveOperation = await documentManager.CreateArchiveOperation(session, message.GroupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize)
+                        .ConfigureAwait(false);
+                    await session.SaveChangesAsync()
+                        .ConfigureAwait(false);
 
                     logger.Info($"Group {message.GroupId} has been split into {archiveOperation.NumberOfBatches} batches");
                 }
             }
 
-            archiveOperationManager.StartArchiving(archiveOperation);
+            await archiveOperationManager.StartArchiving(archiveOperation)
+                .ConfigureAwait(false);
 
             while (archiveOperation.CurrentBatch < archiveOperation.NumberOfBatches)
             {
-                using (var batchSession = store.OpenSession())
+                using (var batchSession = store.OpenAsyncSession())
                 {
-                    var nextBatch = documentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch);
+                    var nextBatch = await documentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch)
+                        .ConfigureAwait(false);
                     if (nextBatch == null)
                     {
                         // We're only here in the case where Raven indexes are stale
@@ -78,15 +75,19 @@ namespace ServiceControl.Recoverability
                         logger.Info($"Archiving {nextBatch.DocumentIds.Count} messages from group {message.GroupId} starting");
                     }
 
-                    documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
+                    await documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch)
+                        .ConfigureAwait(false);
 
-                    archiveOperationManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
+                    await archiveOperationManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0)
+                        .ConfigureAwait(false);
 
                     archiveOperation = archiveOperationManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation();
 
-                    documentManager.UpdateArchiveOperation(batchSession, archiveOperation);
+                    await documentManager.UpdateArchiveOperation(batchSession, archiveOperation)
+                        .ConfigureAwait(false);
 
-                    batchSession.SaveChanges();
+                    await batchSession.SaveChangesAsync()
+                        .ConfigureAwait(false);
 
                     if (nextBatch != null)
                     {
@@ -96,22 +97,34 @@ namespace ServiceControl.Recoverability
             }
 
             logger.Info($"Archiving of group {message.GroupId} is complete. Waiting for index updates.");
-            archiveOperationManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType);
-            if (!documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, archiveOperation.ArchiveType, TimeSpan.FromMinutes(5)))
+            await archiveOperationManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType)
+                .ConfigureAwait(false);
+            if (!await documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, archiveOperation.ArchiveType, TimeSpan.FromMinutes(5))
+                .ConfigureAwait(false))
             {
                 logger.Warn($"Archiving group {message.GroupId} completed but index not updated.");
             }
 
             logger.Info($"Archiving of group {message.GroupId} completed");
-            archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType);
-            documentManager.RemoveArchiveOperation(store, archiveOperation);
+            await archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType)
+                .ConfigureAwait(false);
+            await documentManager.RemoveArchiveOperation(store, archiveOperation).ConfigureAwait(false);
 
-            domainEvents.Raise(new FailedMessageGroupArchived
+            await domainEvents.Raise(new FailedMessageGroupArchived
             {
                 GroupId = message.GroupId,
                 GroupName = archiveOperation.GroupName,
                 MessagesCount = archiveOperation.TotalNumberOfMessages
-            });
+            }).ConfigureAwait(false);
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
+        ArchiveDocumentManager documentManager;
+        ArchivingManager archiveOperationManager;
+        RetryingManager retryingManager;
+        const int batchSize = 1000;
+
+        static ILog logger = LogManager.GetLogger<ArchiveAllInGroupHandler>();
     }
 }

@@ -1,18 +1,18 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Contexts;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
-    using NServiceBus.MessageMutator;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Pipeline;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_retry_for_a_empty_body_message_is_successful : AcceptanceTest
     {
@@ -21,9 +21,7 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>()
                 .Done(async c =>
                 {
@@ -31,7 +29,7 @@
                     failure = result;
                     if (!c.RetryIssued && result)
                     {
-                        await IssueRetry(c, () => Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
+                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
 
                         return false;
                     }
@@ -47,7 +45,7 @@
 
         async Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, Predicate<FailedMessage> condition = null)
         {
-            var result = await TryGet("/api/errors/" + c.UniqueMessageId, condition);
+            var result = await this.TryGet("/api/errors/" + c.UniqueMessageId, condition);
             if (string.IsNullOrEmpty(c.UniqueMessageId) || !result)
             {
                 return SingleResult<FailedMessage>.Empty;
@@ -71,75 +69,62 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
-                    c.RegisterComponents(cc => cc.ConfigureComponent<LookForControlMessage>(DependencyLifecycle.SingleInstance));
+                    c.NoDelayedRetries();
+                    c.Pipeline.Register(cc => new LookForControlMessage(cc.Build<MyContext>()), "Look for control messages");
                 });
             }
 
-            public class SendControlMessage : IWantToRunWhenBusStartsAndStops
+            public class SendControlMessage : DispatchRawMessages<MyContext>
             {
-                readonly ISendMessages sendMessages;
-                readonly MyContext context;
-                readonly ReadOnlySettings settings;
-
-                public SendControlMessage(ISendMessages sendMessages, MyContext context, ReadOnlySettings settings)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    this.sendMessages = sendMessages;
-                    this.context = context;
-                    this.settings = settings;
-                }
-
-                public void Start()
-                {
-                    context.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    context.EndpointNameOfReceivingEndpoint = Conventions.EndpointNamingConvention(typeof(FailureEndpoint));
                     context.MessageId = Guid.NewGuid().ToString();
                     context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
 
-                    var transportMessage = new TransportMessage();
-                    transportMessage.Headers[Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint;
-                    transportMessage.Headers[Headers.MessageId] = context.MessageId;
-                    transportMessage.Headers[Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707";
-                    transportMessage.Headers["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804";
-                    transportMessage.Headers["$.diagnostics.hostdisplayname"] = "SELENE";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core";
-                    transportMessage.Headers["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty;
-                    transportMessage.Headers["NServiceBus.FailedQ"] = settings.LocalAddress().ToString();
-                    transportMessage.Headers["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z";
-                    transportMessage.Headers["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z";
-                    transportMessage.Headers[Headers.ControlMessageHeader] = Boolean.TrueString;
-                    transportMessage.Headers[Headers.ReplyToAddress] = settings.LocalAddress().ToString();
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.ProcessingEndpoint] = context.EndpointNameOfReceivingEndpoint,
+                        [Headers.MessageId] = context.MessageId,
+                        [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
+                        ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
+                        ["$.diagnostics.hostdisplayname"] = "SELENE",
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
+                        ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)),
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z",
+                        [Headers.ControlMessageHeader] = Boolean.TrueString,
+                        [Headers.ReplyToAddress] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint))
+                    };
 
-                    sendMessages.Send(transportMessage, new SendOptions(Address.Parse("error")));
-                }
+                    var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);
 
-                public void Stop()
-                {
-
+                    return new TransportOperations(
+                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error"))
+                    );
                 }
             }
 
-            public class LookForControlMessage : IMutateIncomingTransportMessages
+            public class LookForControlMessage : Behavior<IIncomingPhysicalMessageContext>
             {
-                readonly IBus bus;
-                readonly MyContext context;
-
-                public LookForControlMessage(IBus bus, MyContext context)
+                public LookForControlMessage(MyContext context)
                 {
-                    this.bus = bus;
-                    this.context = context;
+                    myContext = context;
                 }
 
-                public void MutateIncoming(TransportMessage transportMessage)
+                readonly MyContext myContext;
+                public override Task Invoke(IIncomingPhysicalMessageContext context, Func<Task> next)
                 {
-                    if (transportMessage.Id == context.MessageId)
+                    if (context.Message.Headers[Headers.MessageId] == myContext.MessageId)
                     {
-                        bus.DoNotContinueDispatchingCurrentMessageToHandlers();
-                        context.Done = true;
+                        myContext.Done = true;
                     }
+                    return next();
                 }
             }
         }

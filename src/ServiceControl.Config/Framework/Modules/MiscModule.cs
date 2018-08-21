@@ -1,8 +1,6 @@
-﻿using Autofac;
-
-namespace ServiceControl.Config.Framework.Modules
+﻿namespace ServiceControl.Config.Framework.Modules
 {
-    using Module = Module;
+    using Autofac;
 
     public class MiscModule : Module
     {

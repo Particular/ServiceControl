@@ -1,6 +1,6 @@
 namespace ServiceControl.Recoverability
 {
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class MessagesSubmittedForRetryFailed : IDomainEvent
     {

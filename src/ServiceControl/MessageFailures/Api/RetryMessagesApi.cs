@@ -1,20 +1,21 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Threading.Tasks;
+    using CompositeViews.Messages;
+    using InternalMessages;
     using Nancy;
     using NServiceBus;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class RetryMessagesApi : RoutedApi<string>
     {
-        public IBus Bus { get; set; }
+        public IMessageSession Bus { get; set; }
 
-        protected override Task<Response> LocalQuery(Request request, string input, string instanceId)
+        protected override async Task<Response> LocalQuery(Request request, string input, string instanceId)
         {
-            Bus.SendLocal<RetryMessage>(m => { m.FailedMessageId = input; });
+            await Bus.SendLocal<RetryMessage>(m => { m.FailedMessageId = input; })
+                .ConfigureAwait(false);
 
-            return Task.FromResult(new Response {StatusCode = HttpStatusCode.Accepted});
+            return new Response {StatusCode = HttpStatusCode.Accepted};
         }
     }
 }

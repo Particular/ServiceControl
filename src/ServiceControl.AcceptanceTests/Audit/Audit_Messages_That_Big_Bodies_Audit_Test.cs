@@ -1,8 +1,8 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
+﻿namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System.Net;
     using System.Threading.Tasks;
-    using Contexts;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -10,20 +10,17 @@
 
     class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest
     {
-        const int MAX_BODY_SIZE = 20536;
-
         [Test]
         public async Task Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
         {
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
 
-            var context = new Context();
             byte[] body = null;
 
             //Act
-            await Define(context)
-                .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
+            await Define<Context>()
+                .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
                         BigFatBody = new byte[MAX_BODY_SIZE - 10000]
@@ -31,23 +28,23 @@
                 )
                 .Done(
                     async c =>
+                    {
+                        if (c.MessageId == null)
                         {
-                            if (c.MessageId == null)
-                            {
-                                return false;
-                            }
+                            return false;
+                        }
 
-                            var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
-                            MessagesView auditMessage = result;
-                            if (!result)
-                            {
-                                return false;
-                            }
+                        var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+                        MessagesView auditMessage = result;
+                        if (!result)
+                        {
+                            return false;
+                        }
 
-                            body = await DownloadData(auditMessage.BodyUrl);
+                        body = await this.DownloadData(auditMessage.BodyUrl);
 
-                            return true;
-                        })
+                        return true;
+                    })
                 .Run();
 
             //Assert
@@ -60,12 +57,11 @@
             //Arrange
             SetSettings = settings => settings.MaxBodySizeToStore = MAX_BODY_SIZE;
 
-            var context = new Context();
             byte[] body = null;
 
             //Act
-            await Define(context)
-                .WithEndpoint<ServerEndpoint>(c => c.Given(b => b.SendLocal(
+            await Define<Context>()
+                .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
                         BigFatBody = new byte[MAX_BODY_SIZE + 1000]
@@ -78,14 +74,15 @@
                         {
                             return false;
                         }
-                        var result = await TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
+
+                        var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
                         MessagesView auditMessage = result;
                         if (!result)
                         {
                             return false;
                         }
 
-                        body = await DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
+                        body = await this.DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
 
                         return true;
                     })
@@ -94,6 +91,8 @@
             //Assert
             Assert.AreEqual(0, body.Length);
         }
+
+        const int MAX_BODY_SIZE = 20536;
 
         class ServerEndpoint : EndpointConfigurationBuilder
         {
@@ -104,33 +103,29 @@
 
             public class BigFatMessageHandler : IHandleMessages<BigFatMessage>
             {
-                readonly Context _context;
-                readonly IBus bus;
-
-                public BigFatMessageHandler(Context context, IBus bus)
+                public BigFatMessageHandler(Context testContext)
                 {
-                    _context = context;
-                    this.bus = bus;
+                    this.testContext = testContext;
                 }
 
-                public void Handle(BigFatMessage message)
+                public Task Handle(BigFatMessage message, IMessageHandlerContext context)
                 {
-                    _context.MessageId = bus.GetMessageHeader(message, "NServiceBus.MessageId");
+                    testContext.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
+                    return Task.FromResult(0);
                 }
+
+                readonly Context testContext;
             }
         }
 
         class BigFatMessage : IMessage
         {
-            public string MessageId { get; set; }
             public byte[] BigFatBody { get; set; }
         }
 
         class Context : ScenarioContext
         {
             public string MessageId { get; set; }
-            public bool HasBodyBeenTamperedWith { get; set; }
         }
-
     }
 }

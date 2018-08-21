@@ -2,18 +2,23 @@
 {
     using System;
     using System.Xml.Serialization;
-    
+
     public class XmlTimeSpan
     {
-        private TimeSpan timeSpan;
-
-        public XmlTimeSpan(): this(TimeSpan.Zero)
+        public XmlTimeSpan() : this(TimeSpan.Zero)
         {
         }
 
         public XmlTimeSpan(TimeSpan input)
         {
             timeSpan = input;
+        }
+
+        [XmlText]
+        public string Value
+        {
+            get { return timeSpan.ToString(); }
+            set { timeSpan = TimeSpan.Parse(value); }
         }
 
         public static implicit operator TimeSpan(XmlTimeSpan input)
@@ -37,16 +42,6 @@
             timeSpan = input;
         }
 
-        [XmlText]
-        public string Value
-        {
-            get
-            {
-                return timeSpan.ToString();
-            }
-            set{
-                timeSpan = TimeSpan.Parse(value);
-            }
-        }
+        private TimeSpan timeSpan;
     }
 }

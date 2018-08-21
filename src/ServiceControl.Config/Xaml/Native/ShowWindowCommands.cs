@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Config.Xaml.Native
 {
-    internal enum ShowWindowCommands : int
+    enum ShowWindowCommands
     {
         /// <summary>
         /// Hides the window and activates another window.
@@ -32,7 +32,7 @@
 
         /// <summary>
         /// Displays a window in its most recent size and position. This value
-        /// is similar to <see cref="ShowWindowCommands.Normal"/>, except
+        /// is similar to <see cref="ShowWindowCommands.Normal" />, except
         /// the window is not activated.
         /// </summary>
         ShowNoActivate = 4,
@@ -50,14 +50,14 @@
 
         /// <summary>
         /// Displays the window as a minimized window. This value is similar to
-        /// <see cref="ShowWindowCommands.ShowMinimized"/>, except the
+        /// <see cref="ShowWindowCommands.ShowMinimized" />, except the
         /// window is not activated.
         /// </summary>
         ShowMinNoActive = 7,
 
         /// <summary>
         /// Displays the window in its current size and position. This value is
-        /// similar to <see cref="ShowWindowCommands.Show"/>, except the
+        /// similar to <see cref="ShowWindowCommands.Show" />, except the
         /// window is not activated.
         /// </summary>
         ShowNA = 8,
@@ -77,7 +77,7 @@
         ShowDefault = 10,
 
         /// <summary>
-        ///  <b>Windows 2000/XP:</b> Minimizes a window, even if the thread
+        /// <b>Windows 2000/XP:</b> Minimizes a window, even if the thread
         /// that owns the window is not responding. This flag should only be
         /// used when minimizing windows from a different thread.
         /// </summary>

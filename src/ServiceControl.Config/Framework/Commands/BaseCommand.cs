@@ -1,17 +1,19 @@
-﻿using System;
-using System.Reactive.Disposables;
-using System.Windows.Input;
-
-namespace ServiceControl.Config.Framework.Commands
+﻿namespace ServiceControl.Config.Framework.Commands
 {
-    internal abstract class BaseCommand<T> : IRaiseCanExecuteChanged
-    {
-        private readonly Func<T, bool> canExecuteMethod;
-        private bool isExecuting;
+    using System;
+    using System.Reactive.Disposables;
+    using System.Windows.Input;
 
+    abstract class BaseCommand<T> : IRaiseCanExecuteChanged
+    {
         public BaseCommand(Func<T, bool> canExecuteMethod = null)
         {
             this.canExecuteMethod = canExecuteMethod;
+        }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
         }
 
         public event EventHandler CanExecuteChanged
@@ -20,17 +22,17 @@ namespace ServiceControl.Config.Framework.Commands
             remove { CommandManager.RequerySuggested -= value; }
         }
 
-        public void RaiseCanExecuteChanged()
-        {
-            CommandManager.InvalidateRequerySuggested();
-        }
-
         public bool CanExecute(T parameter)
         {
             if (isExecuting)
+            {
                 return false;
+            }
+
             if (canExecuteMethod == null)
+            {
                 return true;
+            }
 
             return canExecuteMethod(parameter);
         }
@@ -46,5 +48,8 @@ namespace ServiceControl.Config.Framework.Commands
                 RaiseCanExecuteChanged();
             });
         }
+
+        readonly Func<T, bool> canExecuteMethod;
+        bool isExecuting;
     }
 }

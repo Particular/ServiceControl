@@ -2,30 +2,15 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using Contracts.Operations;
     using Nancy;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.Infrastructure;
 
     abstract class GetKnownEndpoints_ScatterGatherTest
     {
-        protected const string LocalInstanceID = nameof(LocalInstanceID);
-        protected const string LocalETag = nameof(LocalETag);
-        protected const string RemoteInstanceId = nameof(RemoteInstanceId);
-        protected const string RemoteETag = nameof(RemoteETag);
-        protected const string Web1 = "WEB-01";
-        protected const string Web2 = "WEB-02";
-        protected const string App1 = "APP-01";
-        protected const string App2 = "APP-02";
-        protected const string FrontEnd = nameof(FrontEnd);
-        protected const string Sales = nameof(Sales);
-        protected const string Shipping = nameof(Shipping);
-        protected const int PageSize = 50;
-
-        protected QueryResult<List<KnownEndpointsView>> Results;
-
         [SetUp]
         public void SetUp()
         {
@@ -34,7 +19,6 @@
             var request = new Request("GET", new Url("http://localhost/api/endpoints/known"));
 
             Results = api.AggregateResults(request, GetData().ToArray());
-
         }
 
         protected abstract IEnumerable<QueryResult<List<KnownEndpointsView>>> GetData();
@@ -93,5 +77,19 @@
                 }
             };
         }
+
+        protected QueryResult<List<KnownEndpointsView>> Results;
+        protected const string LocalInstanceID = nameof(LocalInstanceID);
+        protected const string LocalETag = nameof(LocalETag);
+        protected const string RemoteInstanceId = nameof(RemoteInstanceId);
+        protected const string RemoteETag = nameof(RemoteETag);
+        protected const string Web1 = "WEB-01";
+        protected const string Web2 = "WEB-02";
+        protected const string App1 = "APP-01";
+        protected const string App2 = "APP-02";
+        protected const string FrontEnd = nameof(FrontEnd);
+        protected const string Sales = nameof(Sales);
+        protected const string Shipping = nameof(Shipping);
+        protected const int PageSize = 50;
     }
 }

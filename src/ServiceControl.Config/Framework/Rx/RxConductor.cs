@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Caliburn.Micro;
-
-namespace ServiceControl.Config.Framework.Rx
+﻿namespace ServiceControl.Config.Framework.Rx
 {
+    using System;
+    using System.Collections.Generic;
+    using Caliburn.Micro;
+
     public partial class RxConductor<T> : RxConductorBaseWithActiveItem<T> where T : class
     {
         public override void ActivateItem(T item)
@@ -15,14 +15,20 @@ namespace ServiceControl.Config.Framework.Rx
                     ScreenExtensions.TryActivate(item);
                     OnActivationProcessed(item, true);
                 }
+
                 return;
             }
 
-            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) =>
+            CloseStrategy.Execute(new[] {ActiveItem}, (canClose, items) =>
             {
                 if (canClose)
+                {
                     ChangeActiveItem(item, true);
-                else OnActivationProcessed(item, false);
+                }
+                else
+                {
+                    OnActivationProcessed(item, false);
+                }
             });
         }
 
@@ -33,16 +39,18 @@ namespace ServiceControl.Config.Framework.Rx
                 return;
             }
 
-            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) =>
+            CloseStrategy.Execute(new[] {ActiveItem}, (canClose, items) =>
             {
                 if (canClose)
-                    ChangeActiveItem(default(T), close);
+                {
+                    ChangeActiveItem(default, close);
+                }
             });
         }
 
         public override void CanClose(Action<bool> callback)
         {
-            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) => callback(canClose));
+            CloseStrategy.Execute(new[] {ActiveItem}, (canClose, items) => callback(canClose));
         }
 
         protected override void OnActivate()
@@ -57,7 +65,7 @@ namespace ServiceControl.Config.Framework.Rx
 
         public override IEnumerable<T> GetChildren()
         {
-            return new[] { ActiveItem };
+            return new[] {ActiveItem};
         }
     }
 }

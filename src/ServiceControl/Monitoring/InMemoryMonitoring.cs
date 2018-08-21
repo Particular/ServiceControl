@@ -2,36 +2,36 @@
 {
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure;
 
     class InMemoryMonitoring : Feature
     {
         public InMemoryMonitoring()
         {
             EnableByDefault();
-            RegisterStartupTask<MonitorEndpointInstances>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
-            context.Container.ConfigureComponent<MonitorEndpointInstances>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(p => p.GracePeriod, settings.HeartbeatGracePeriod);
-            context.Container.ConfigureComponent<EndpointInstanceMonitoring>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<MonitoringDataPersister>(DependencyLifecycle.SingleInstance);
+
+            context.RegisterStartupTask(b =>
+            {
+                var instances = b.Build<MonitorEndpointInstances>();
+                instances.GracePeriod = settings.HeartbeatGracePeriod;
+                return instances;
+            });
         }
+
+        private static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
 
         class MonitorEndpointInstances : FeatureStartupTask
         {
-            private readonly EndpointInstanceMonitoring monitor;
-            private readonly TimeKeeper timeKeeper;
-            private readonly MonitoringDataPersister persistence;
-            private Timer timer;
-
             public MonitorEndpointInstances(EndpointInstanceMonitoring monitor, TimeKeeper timeKeeper, MonitoringDataPersister persistence)
             {
                 this.monitor = monitor;
@@ -41,19 +41,20 @@
 
             public TimeSpan GracePeriod { get; set; }
 
-            protected override void OnStart()
+            protected override async Task OnStart(IMessageSession session)
             {
-                persistence.WarmupMonitoringFromPersistence();
+                await persistence.WarmupMonitoringFromPersistence().ConfigureAwait(false);
                 timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             }
 
-            private void CheckEndpoints()
+            private async Task CheckEndpoints()
             {
                 try
                 {
                     var inactivityThreshold = DateTime.UtcNow - GracePeriod;
                     log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
-                    monitor.CheckEndpoints(inactivityThreshold);
+                    await monitor.CheckEndpoints(inactivityThreshold)
+                        .ConfigureAwait(false);
                 }
                 catch (Exception exception)
                 {
@@ -61,12 +62,16 @@
                 }
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 timeKeeper.Release(timer);
+                return Task.FromResult(0);
             }
-        }
 
-        private static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
+            private readonly EndpointInstanceMonitoring monitor;
+            private readonly TimeKeeper timeKeeper;
+            private readonly MonitoringDataPersister persistence;
+            private Timer timer;
+        }
     }
 }

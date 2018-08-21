@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AuditLoadGenerator
+﻿namespace ServiceControl.LoadTests.AuditGenerator
 {
     using System;
     using System.Collections.Concurrent;
@@ -7,23 +7,22 @@
 
     class LoadGenerators
     {
-        Func<string, CancellationToken, Task> generateMessages;
-        ConcurrentDictionary<string, LoadGenerator> generators = new ConcurrentDictionary<string, LoadGenerator>();
-        int minLength;
-        int maxLength;
-
-        public LoadGenerators(Func<string, CancellationToken, Task> generateMessages, int minLength, int maxLength)
+        public LoadGenerators(Func<string, QueueInfo, CancellationToken, Task> generateMessages, int minLength, int maxLength)
         {
             this.generateMessages = generateMessages;
             this.minLength = minLength;
             this.maxLength = maxLength;
         }
 
-        public Task QueueLenghtReported(string queue, string machine, int length)
+        public Task ProcessedCountReported(string destination, long processed)
         {
-            var destination = $"{queue}@{machine}";
             var gen = generators.GetOrAdd(destination, k => new LoadGenerator(k, generateMessages, minLength, maxLength));
-            return gen.QueueLenghtReported(length);
+            return gen.ProcessedCountReported(processed);
         }
+
+        Func<string, QueueInfo, CancellationToken, Task> generateMessages;
+        ConcurrentDictionary<string, LoadGenerator> generators = new ConcurrentDictionary<string, LoadGenerator>();
+        int minLength;
+        int maxLength;
     }
 }

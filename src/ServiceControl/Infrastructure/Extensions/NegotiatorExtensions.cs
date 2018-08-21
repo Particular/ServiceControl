@@ -5,11 +5,11 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
     using global::Nancy;
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
+    using Raven.Abstractions.Data;
+    using Raven.Client;
     using ServiceControl.Infrastructure;
     using QueryResult = ServiceControl.CompositeViews.Messages.QueryResult;
 
@@ -88,7 +88,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             }
 
             var links = new List<string>();
-            var lastPage = (int) Math.Ceiling(highestTotalCountOfAllInstances / maxResultsPerPage);
+            var lastPage = (int)Math.Ceiling(highestTotalCountOfAllInstances / maxResultsPerPage);
 
             // No need to add a Link header if page does not exist!
             if (page > lastPage)

@@ -8,19 +8,74 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Configuration;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
-    using ServiceControlInstaller.Engine.Database;
-    using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Queues;
-    using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Services;
-    using ServiceControlInstaller.Engine.UrlAcl;
-    using ServiceControlInstaller.Engine.Validation;
+    using Accounts;
+    using Configuration;
+    using Configuration.ServiceControl;
+    using Database;
+    using FileSystem;
+    using Queues;
+    using ReportCard;
+    using Services;
+    using UrlAcl;
+    using Validation;
 
     public class ServiceControlInstance : BaseService, IServiceControlInstance
     {
+        public ServiceControlInstance(WindowsServiceController service)
+        {
+            Service = service;
+            AppConfig = new AppConfig(this);
+            Reload();
+        }
+
+        public bool InMaintenanceMode { get; set; }
+        public ReportCard ReportCard { get; set; }
+
+        /// <summary>
+        /// Raven management URL
+        /// </summary>
+        public string StorageUrl
+        {
+            get
+            {
+                string host;
+                switch (HostName)
+                {
+                    case "*":
+                    case "+":
+                        host = "localhost";
+                        break;
+                    default:
+                        host = HostName;
+                        break;
+                }
+
+                return $"http://{host}:{DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
+            }
+        }
+
+        public string AclUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{Port}/";
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return baseUrl;
+                }
+
+                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
+            }
+        }
+
+        public string AclMaintenanceUrl
+        {
+            get
+            {
+                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+                return baseUrl;
+            }
+        }
 
         public string LogPath { get; set; }
         public string DBPath { get; set; }
@@ -34,21 +89,52 @@ namespace ServiceControlInstaller.Engine.Instances
         public string AuditLogQueue { get; set; }
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
-        public string TransportPackage { get; set; }
+        public TransportInfo TransportPackage { get; set; }
         public string ConnectionString { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
         public bool IsUpdatingDataStore { get; set; }
-        public bool InMaintenanceMode { get; set; }
         public bool SkipQueueCreation { get; set; }
-        public AppConfig AppConfig;
-        public ReportCard ReportCard { get; set; }
 
-        public ServiceControlInstance(WindowsServiceController service)
+        public string Url
         {
-            Service = service;
-            AppConfig = new AppConfig(this);
-            Reload();
+            get
+            {
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return $"http://{HostName}:{Port}/api/";
+                }
+
+                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
+            }
+        }
+
+        public string BrowsableUrl
+        {
+            get
+            {
+                string host;
+
+                switch (HostName)
+                {
+                    case "*":
+                        host = "localhost";
+                        break;
+                    case "+":
+                        host = Environment.MachineName.ToLower();
+                        break;
+                    default:
+                        host = HostName;
+                        break;
+                }
+
+                if (string.IsNullOrWhiteSpace(VirtualDirectory))
+                {
+                    return $"http://{host}:{Port}/api/";
+                }
+
+                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
+            }
         }
 
         public void Reload()
@@ -72,14 +158,12 @@ namespace ServiceControlInstaller.Engine.Instances
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
-            TimeSpan errorRetentionPeriod;
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string)null), out errorRetentionPeriod))
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
             {
                 ErrorRetentionPeriod = errorRetentionPeriod;
-
             }
-            TimeSpan auditRetentionPeriod;
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out auditRetentionPeriod))
+
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
@@ -98,89 +182,6 @@ namespace ServiceControlInstaller.Engine.Instances
             UpdateDataMigrationMarker();
         }
 
-        public string Url
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return $"http://{HostName}:{Port}/api/";
-                }
-                return $"http://{HostName}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
-            }
-        }
-
-        /// <summary>
-        /// Raven management URL
-        /// </summary>
-        public string StorageUrl
-        {
-            get
-            {
-                string host;
-                switch (HostName)
-                {
-                    case "*":
-                    case "+":
-                        host = "localhost";
-                        break;
-                    default:
-                        host = HostName;
-                        break;
-                }
-                return $"http://{host}:{DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
-            }
-        }
-
-        public string BrowsableUrl
-        {
-            get
-            {
-                string host;
-
-                switch (HostName)
-                {
-                    case "*" :
-                        host = "localhost";
-                        break;
-                    case "+" :
-                          host = Environment.MachineName.ToLower();
-                        break;
-                    default :
-                        host = HostName;
-                        break;
-                }
-
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return $"http://{host}:{Port}/api/";
-                }
-                return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
-            }
-        }
-
-        public string AclUrl
-        {
-            get
-            {
-                var baseUrl = $"http://{HostName}:{Port}/";
-                if (string.IsNullOrWhiteSpace(VirtualDirectory))
-                {
-                    return baseUrl;
-                }
-                return $"{baseUrl}{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}";
-            }
-        }
-
-        public string AclMaintenanceUrl
-        {
-            get
-            {
-                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
-                return baseUrl;
-            }
-        }
-
         string ReadConnectionString()
         {
             if (File.Exists(Service.ExePath))
@@ -192,18 +193,20 @@ namespace ServiceControlInstaller.Engine.Instances
                     return namedConnectionString.ConnectionString;
                 }
             }
+
             return null;
         }
 
-        string DetermineTransportPackage()
+        TransportInfo DetermineTransportPackage()
         {
-            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, "NServiceBus.MsmqTransport").Split(",".ToCharArray())[0].Trim();
-            var transport = V5Transports.All.FirstOrDefault(p => transportAppSetting.StartsWith(p.MatchOn , StringComparison.OrdinalIgnoreCase));
+            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
+            var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
             if (transport != null)
             {
-                return transport.Name;
+                return transport;
             }
-            return V5Transports.All.First(p => p.Default).Name;
+
+            return ServiceControlCoreTransports.All.First(p => p.Default);
         }
 
         public void ApplyConfigChange()
@@ -219,7 +222,7 @@ namespace ServiceControlInstaller.Engine.Instances
                                       && string.Equals(oldSettings.ErrorLogQueue, ErrorLogQueue, StringComparison.OrdinalIgnoreCase)
                                       && oldSettings.ForwardErrorMessages == ForwardErrorMessages
                                       && oldSettings.ForwardAuditMessages == ForwardAuditMessages
-                                      );
+                );
 
 
             RecreateUrlAcl(oldSettings);
@@ -238,12 +241,7 @@ namespace ServiceControlInstaller.Engine.Instances
             var version = Version;
             settings.Set(SettingsList.HostName, HostName);
             settings.Set(SettingsList.Port, Port.ToString());
-            
-            if (oldSettings.Version.Major >= 2) //Maintenance port was introduced in Version 2
-            {
-                settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString());
-            }
-            
+            settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString(), version);
             settings.Set(SettingsList.LogPath, LogPath);
             settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
@@ -257,9 +255,17 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
             {
-                if (!ForwardErrorMessages) ErrorLogQueue = null;
-                if (!ForwardAuditMessages) AuditLogQueue = null;
+                if (!ForwardErrorMessages)
+                {
+                    ErrorLogQueue = null;
+                }
+
+                if (!ForwardAuditMessages)
+                {
+                    AuditLogQueue = null;
+                }
             }
+
             settings.Set(SettingsList.ErrorLogQueue, ErrorLogQueue);
             settings.Set(SettingsList.AuditLogQueue, AuditLogQueue);
 
@@ -272,7 +278,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             //have to save config prior to creating queues (if needed)
 
-            if (queueNamesChanged || accountChanged || connectionStringChanged )
+            if (queueNamesChanged || accountChanged || connectionStringChanged)
             {
                 try
                 {
@@ -304,7 +310,7 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 return;
             }
-            
+
             var maintanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
             maintanceReservation.Create();
         }
@@ -317,6 +323,7 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 dbFolder += $"-{FileUtils.SanitizeFolderName(VirtualDirectory)}";
             }
+
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
         }
 
@@ -352,7 +359,7 @@ namespace ServiceControlInstaller.Engine.Instances
         }
 
         /// <summary>
-        ///     Returns false if a reboot is required to complete deletion
+        /// Returns false if a reboot is required to complete deletion
         /// </summary>
         /// <returns></returns>
         public void RemoveBinFolder()
@@ -410,13 +417,13 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 return;
             }
+
             var configFile = $"{Service.ExePath}.config";
             File.Copy(sourcePath, configFile, true);
 
             // Populate the config with common settings even if they are defaults
             // Will not clobber other settings in the config
             AppConfig = new AppConfig(this);
-            AppConfig.Validate();
             AppConfig.Save();
         }
 
@@ -424,7 +431,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage}");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
         public void SetupInstance()
@@ -526,6 +533,7 @@ namespace ServiceControlInstaller.Engine.Instances
                     return;
                 }
             }
+
             try
             {
                 ConnectionStringValidator.Validate(this);
@@ -535,5 +543,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 ReportCard.Errors.Add(ex.Message);
             }
         }
+
+        public AppConfig AppConfig;
     }
 }

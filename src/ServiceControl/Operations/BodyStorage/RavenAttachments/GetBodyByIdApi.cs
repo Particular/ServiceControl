@@ -4,10 +4,10 @@
     using System.IO;
     using System.Text;
     using System.Threading.Tasks;
+    using CompositeViews.Messages;
     using Nancy;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using ServiceControl.CompositeViews.Messages;
 
     public class GetBodyByIdApi : RoutedApi<string>
     {
@@ -15,7 +15,7 @@
 
         protected override async Task<Response> LocalQuery(Request request, string input, string instanceId)
         {
-            string messageId = input;
+            var messageId = input;
             messageId = messageId?.Replace("/", @"\");
             Action<Stream> contents;
             string contentType;
@@ -31,9 +31,8 @@
             {
                 using (var session = Store.OpenAsyncSession())
                 {
-                    RavenQueryStatistics stats;
                     var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .Statistics(out stats)
+                        .Statistics(out var stats)
                         .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
                         .FirstOrDefaultAsync(f => f.MessageId == messageId)
                         .ConfigureAwait(false);

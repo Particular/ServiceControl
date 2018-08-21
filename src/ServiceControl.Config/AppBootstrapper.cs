@@ -1,34 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Reactive;
-using System.Reactive.Concurrency;
-using System.Windows;
-using System.Windows.Markup;
-using Autofac;
-using Caliburn.Micro;
-using ReactiveUI;
-using ServiceControl.Config.UI.Shell;
-
-namespace ServiceControl.Config
+﻿namespace ServiceControl.Config
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Reactive;
+    using System.Reactive.Concurrency;
+    using System.Windows;
+    using System.Windows.Markup;
+    using Autofac;
+    using Caliburn.Micro;
+    using ReactiveUI;
+    using UI.Shell;
+
     public class AppBootstrapper : BootstrapperBase
     {
-        private IContainer container;
-
         public AppBootstrapper()
         {
             Initialize();
         }
 
-        private void CreateContainer()
+        void CreateContainer()
         {
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterAssemblyModules(typeof(AppBootstrapper).Assembly);
             container = containerBuilder.Build();
         }
 
-        private void ApplyBindingCulture()
+        void ApplyBindingCulture()
         {
             FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
         }
@@ -40,11 +38,11 @@ namespace ServiceControl.Config
             DisableRxUIDebuggerBreak();
         }
 
-        private void DisableRxUIDebuggerBreak()
+        void DisableRxUIDebuggerBreak()
         {
-            RxApp.DefaultExceptionHandler = Observer.Create(delegate (Exception ex)
+            RxApp.DefaultExceptionHandler = Observer.Create(delegate(Exception ex)
             {
-                Scheduler.Schedule(RxApp.MainThreadScheduler, () =>
+                RxApp.MainThreadScheduler.Schedule(() =>
                 {
                     throw new Exception(
                         "An OnError occurred on an object (usually ObservableAsPropertyHelper) that would break a binding or command. To prevent this, Subscribe to the ThrownExceptions property of your objects",
@@ -57,26 +55,25 @@ namespace ServiceControl.Config
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                object result;
-                if (container.TryResolve(service, out result))
+                if (container.TryResolve(service, out var result))
                 {
                     return result;
                 }
             }
             else
             {
-                object result;
-                if (container.TryResolveNamed(key, service, out result))
+                if (container.TryResolveNamed(key, service, out var result))
                 {
                     return result;
                 }
             }
+
             throw new Exception($"Could not locate any instances of contract {key ?? service.Name}.");
         }
 
         protected override IEnumerable<object> GetAllInstances(Type service)
         {
-            return container.Resolve(typeof(IEnumerable<>).MakeGenericType(new[] { service })) as IEnumerable<object>;
+            return container.Resolve(typeof(IEnumerable<>).MakeGenericType(service)) as IEnumerable<object>;
         }
 
         protected override void BuildUp(object instance)
@@ -88,5 +85,7 @@ namespace ServiceControl.Config
         {
             DisplayRootViewFor<ShellViewModel>();
         }
+
+        IContainer container;
     }
 }

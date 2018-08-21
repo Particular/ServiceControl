@@ -1,13 +1,10 @@
-using System.Threading.Tasks;
-
 namespace ServiceControl.Config.Framework.Commands
 {
     using System;
+    using System.Threading.Tasks;
 
-    internal abstract class AwaitableAbstractCommand<T> : BaseCommand<T>, ICommand<T>
+    abstract class AwaitableAbstractCommand<T> : BaseCommand<T>, ICommand<T>
     {
-        public abstract Task ExecuteAsync(T obj);
-
         protected AwaitableAbstractCommand(Func<T, bool> canExecuteMethod = null) : base(canExecuteMethod)
         {
         }
@@ -29,5 +26,7 @@ namespace ServiceControl.Config.Framework.Commands
         {
             ((ICommand<T>)this).Execute((T)parameter);
         }
+
+        public abstract Task ExecuteAsync(T obj);
     }
 }

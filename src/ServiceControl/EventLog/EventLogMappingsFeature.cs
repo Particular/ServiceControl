@@ -27,7 +27,7 @@
                 }
 
                 var args = type.BaseType.GetGenericArguments();
-                if (args.Count() == 1)
+                if (args.Length == 1)
                 {
                     mappings.Add(args.Single(), type);
                 }

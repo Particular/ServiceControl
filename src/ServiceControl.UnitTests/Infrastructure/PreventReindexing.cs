@@ -2,9 +2,9 @@
 {
     using System;
     using System.Linq;
+    using MessageFailures.Api;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.MessageFailures.Api;
 
     [TestFixture]
     public class PreventReindexing

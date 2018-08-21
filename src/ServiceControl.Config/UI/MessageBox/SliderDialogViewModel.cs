@@ -3,22 +3,22 @@
     using System;
     using System.Windows.Input;
     using Caliburn.Micro;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Rx;
-    using ServiceControl.Config.Xaml.Controls;
+    using Framework;
+    using Framework.Rx;
+    using Xaml.Controls;
 
     public class SliderDialogViewModel : RxScreen
     {
         public SliderDialogViewModel(string title,
-                                    string message,
-                                    string periodHeader,
-                                    string periodExplanation,
-                                    TimeSpanUnits periodUnits,
-                                    int periodMinimumUnits,
-                                    int periodMaximumUnits,
-                                    int periodSmallStep,
-                                    int periodLargeStep,
-                                    int currentValue)
+            string message,
+            string periodHeader,
+            string periodExplanation,
+            TimeSpanUnits periodUnits,
+            int periodMinimumUnits,
+            int periodMaximumUnits,
+            int periodSmallStep,
+            int periodLargeStep,
+            int currentValue)
         {
             Title = title;
             Message = message;
@@ -30,8 +30,16 @@
             PeriodExplanation = periodExplanation;
             PeriodSmallStep = periodSmallStep;
             PeriodLargeStep = periodLargeStep;
-            Cancel = Command.Create(() =>{Result = null;((IDeactivate)this).Deactivate(true);});
-            Save = Command.Create(() =>{Result = true; ((IDeactivate)this).Deactivate(true);});
+            Cancel = Command.Create(() =>
+            {
+                Result = null;
+                ((IDeactivate)this).Deactivate(true);
+            });
+            Save = Command.Create(() =>
+            {
+                Result = true;
+                ((IDeactivate)this).Deactivate(true);
+            });
         }
 
         public string PeriodHeader { get; set; }

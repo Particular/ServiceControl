@@ -37,7 +37,7 @@ namespace ServiceControl.SagaAudit
                     doc.SagaType,
                     doc.Changes
                 }
-                );
+            );
 
             Reduce = results => from result in results
                 group result by result.SagaId
@@ -52,7 +52,6 @@ namespace ServiceControl.SagaAudit
                         .OrderByDescending(x => x.FinishTime)
                         .ToList()
                 };
-
         }
     }
 }

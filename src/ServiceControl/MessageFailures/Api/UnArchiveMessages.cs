@@ -12,11 +12,9 @@
 
     public class UnArchiveMessages : BaseModule
     {
-        public IBus Bus { get; set; }
-
         public UnArchiveMessages()
         {
-            Patch["/errors/unarchive"] = _ =>
+            Patch["/errors/unarchive", true] = async (_, token) =>
             {
                 var ids = this.Bind<List<string>>();
 
@@ -25,14 +23,14 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                var request = new InternalMessages.UnArchiveMessages { FailedMessageIds = ids };
+                var request = new InternalMessages.UnArchiveMessages {FailedMessageIds = ids};
 
-                Bus.SendLocal(request);
+                await MessageSession.SendLocal(request).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Patch["/errors/{from}...{to}/unarchive"] = parameters =>
+            Patch["/errors/{from}...{to}/unarchive", true] = async (parameters, token) =>
             {
                 DateTime from, to;
 
@@ -46,15 +44,17 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal(new UnArchiveMessagesByRange
+                await MessageSession.SendLocal(new UnArchiveMessagesByRange
                 {
                     From = from,
                     To = to,
                     CutOff = DateTime.UtcNow
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
         }
+
+        public IMessageSession MessageSession { get; set; }
     }
 }

@@ -1,17 +1,11 @@
 ﻿namespace ServiceControl.Config.UI.Shell
 {
     using System;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.UI.FeedBack;
+    using FeedBack;
+    using Framework;
 
     class FeedBackAttachment : Attachment<ShellViewModel>
     {
-        private readonly Func<FeedBackViewModel> feedBackFactory;
-        private readonly Func<FeedBackNoticeViewModel> feedBackNoticeFactory;
-        private readonly Func<FeedBackResultViewModel> feedBackResultFactory;
-        private readonly RaygunFeedback raygunFeedBack;
-        private readonly IWindowManagerEx windowManager;
-
         public FeedBackAttachment(
             RaygunFeedback raygunFeedBack,
             IWindowManagerEx windowManager,
@@ -48,5 +42,11 @@
                 windowManager.ShowDialog(feedBackNoticeFactory());
             }
         }
+
+        readonly Func<FeedBackViewModel> feedBackFactory;
+        readonly Func<FeedBackNoticeViewModel> feedBackNoticeFactory;
+        readonly Func<FeedBackResultViewModel> feedBackResultFactory;
+        readonly RaygunFeedback raygunFeedBack;
+        readonly IWindowManagerEx windowManager;
     }
 }

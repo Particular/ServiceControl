@@ -29,10 +29,18 @@
         {
             var settings = new Settings();
             var remoteInstances = settings.RemoteInstances;
-            CollectionAssert.AreEqual(remoteInstances, new []
+            CollectionAssert.AreEqual(remoteInstances, new[]
             {
-                new RemoteInstanceSetting { ApiUri = "http://instance1", QueueAddress = "instance1@pc1" },
-                new RemoteInstanceSetting { ApiUri = "http://instance2", QueueAddress = "instance2@pc2" }
+                new RemoteInstanceSetting
+                {
+                    ApiUri = "http://instance1",
+                    QueueAddress = "instance1@pc1"
+                },
+                new RemoteInstanceSetting
+                {
+                    ApiUri = "http://instance2",
+                    QueueAddress = "instance2@pc2"
+                }
             }, new RemoteInstanceSettingComparer());
         }
 

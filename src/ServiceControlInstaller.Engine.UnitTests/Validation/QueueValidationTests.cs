@@ -1,34 +1,33 @@
 ﻿namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
     using System.Collections.Generic;
+    using System.Linq;
+    using Engine.Validation;
+    using Instances;
     using Moq;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.Validation;
 
     [TestFixture]
     public class QueueValidationTests
     {
-        List<IServiceControlTransportConfig> instances;
-
         [SetUp]
         public void Init()
         {
             var instanceA = new Mock<IServiceControlTransportConfig>();
-            instanceA.SetupGet(p => p.TransportPackage).Returns(@"MSMQ");
+            instanceA.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"));
             instanceA.SetupGet(p => p.AuditQueue).Returns(@"audit");
             instanceA.SetupGet(p => p.AuditLogQueue).Returns(@"auditlog");
             instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
-            
+
             var instanceB = new Mock<IServiceControlTransportConfig>();
-            instanceB.SetupGet(p => p.TransportPackage).Returns(@"RabbitMQ");
+            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ"));
             instanceB.SetupGet(p => p.AuditQueue).Returns(@"RMQaudit");
             instanceB.SetupGet(p => p.AuditLogQueue).Returns(@"RMQauditlog");
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
             instanceB.SetupGet(p => p.ConnectionString).Returns(@"afakeconnectionstring");
-            
+
             instances = new List<IServiceControlTransportConfig>
             {
                 instanceA.Object,
@@ -41,11 +40,11 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-               TransportPackage = "MSMQ",
-               AuditLogQueue = "auditlog",
-               ErrorLogQueue = "errorlog",
-               AuditQueue =    "audit",
-               ErrorQueue = "error"
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
+                AuditLogQueue = "auditlog",
+                ErrorLogQueue = "errorlog",
+                AuditQueue = "audit",
+                ErrorQueue = "error"
             };
 
             var p = new ServiceControlQueueNameValidator(newInstance)
@@ -60,7 +59,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "MSMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
                 AuditLogQueue = "audit",
                 ErrorLogQueue = "error",
                 AuditQueue = "audit",
@@ -73,7 +72,7 @@
             };
 
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreUniqueWithinInstance());
-            Assert.That(ex.Message, Is.StringContaining("Each of the queue names specified for a instance should be unique"));
+            Assert.That(ex.Message, Does.Contain("Each of the queue names specified for a instance should be unique"));
         }
 
         [Test]
@@ -81,7 +80,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "MSMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
                 AuditLogQueue = "auditlog2",
                 ErrorLogQueue = "errorlog2",
                 AuditQueue = "audit2",
@@ -100,7 +99,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "MSMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "MSMQ"),
                 AuditLogQueue = "auditlog",
                 ErrorLogQueue = "errorlog",
                 AuditQueue = "audit",
@@ -112,7 +111,7 @@
                 Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
-            Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
 
             // null queues will default to default names
             p = new ServiceControlQueueNameValidator(new ServiceControlNewInstance())
@@ -121,7 +120,7 @@
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
-            Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
         }
 
         [Test]
@@ -129,7 +128,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "RabbitMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ"),
                 AuditLogQueue = "auditlog",
                 ErrorLogQueue = "errorlog",
                 AuditQueue = "audit",
@@ -141,7 +140,7 @@
                 Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
-            Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
 
             // null queues will default to default names
             p = new ServiceControlQueueNameValidator(new ServiceControlNewInstance())
@@ -150,7 +149,7 @@
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
-            Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
         }
 
         [Test]
@@ -158,7 +157,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = "RabbitMQ",
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ"),
                 AuditQueue = "RMQaudit",
                 AuditLogQueue = "RMQauditlog",
                 ErrorQueue = "RMQerror",
@@ -171,7 +170,7 @@
                 Instances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
-            Assert.That(ex.Message, Is.StringContaining("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
 
             newInstance.ConnectionString = "differentconnectionstring";
             p = new ServiceControlQueueNameValidator(newInstance)
@@ -179,7 +178,8 @@
                 Instances = instances
             };
             Assert.DoesNotThrow(() => p.CheckQueueNamesAreNotTakenByAnotherInstance());
-
         }
+
+        List<IServiceControlTransportConfig> instances;
     }
 }

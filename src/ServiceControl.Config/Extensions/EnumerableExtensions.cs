@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ServiceControl.Config
+﻿namespace ServiceControl.Config
 {
-    internal static class EnumerableExtensions
+    using System;
+    using System.Collections.Generic;
+
+    static class EnumerableExtensions
     {
         public static void Apply<T>(this IEnumerable<T> source, Action<T> action)
         {
@@ -21,9 +21,13 @@ namespace ServiceControl.Config
             foreach (var x in list)
             {
                 if (comp.Equals(x, item))
+                {
                     return i;
+                }
+
                 i++;
             }
+
             return -1;
         }
     }

@@ -2,9 +2,9 @@
 {
     using System;
     using System.Linq;
-    using ServiceControlInstaller.Engine.Accounts;
-    using ServiceControlInstaller.Engine.Api;
-    
+    using Accounts;
+    using Api;
+
     class ServiceAccountValidation
     {
         public static void Validate(IServiceAccount instance)
@@ -15,6 +15,7 @@
             {
                 throw new EngineValidationException("Password Invalid");
             }
+
             try
             {
                 SetLogonAsAServicePrivilege(userAccount);

@@ -1,6 +1,7 @@
 namespace ServiceControl.Operations
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Features;
@@ -20,14 +21,12 @@ namespace ServiceControl.Operations
 
         public class UpdateLicenseEnricher : ImportEnricher
         {
-            LicenseStatusKeeper licenseStatusKeeper;
-
             public UpdateLicenseEnricher(LicenseStatusKeeper licenseStatusKeeper)
             {
                 this.licenseStatusKeeper = licenseStatusKeeper;
             }
 
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var status = GetLicenseStatus(headers);
                 var endpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
@@ -38,12 +37,13 @@ namespace ServiceControl.Operations
                 {
                     licenseStatusKeeper.Set(endpoint.Name + endpoint.Host, status);
                 }
+
+                return Task.CompletedTask;
             }
 
             public string GetLicenseStatus(IReadOnlyDictionary<string, string> headers)
             {
-                string expired;
-                if (!headers.TryGetValue("$.diagnostics.license.expired", out expired))
+                if (!headers.TryGetValue("$.diagnostics.license.expired", out var expired))
                 {
                     return "unknown";
                 }
@@ -53,11 +53,12 @@ namespace ServiceControl.Operations
                     return "unknown";
                 }
 
-                bool hasLicenseExpired;
-                bool.TryParse(expired, out hasLicenseExpired);
+                bool.TryParse(expired, out var hasLicenseExpired);
 
                 return hasLicenseExpired ? "expired" : "valid";
             }
+
+            LicenseStatusKeeper licenseStatusKeeper;
         }
     }
 }

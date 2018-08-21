@@ -2,8 +2,8 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     using System;
     using System.Linq;
+    using MessageFailures;
     using Raven.Client.Indexes;
-    using ServiceControl.MessageFailures;
 
     public class ExpiryErrorMessageIndex : AbstractIndexCreationTask<FailedMessage>
     {
@@ -13,7 +13,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                 where message.Status != FailedMessageStatus.Unresolved
                 select new
                 {
-                    Status = message.Status,
+                    message.Status,
                     LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                 };
 

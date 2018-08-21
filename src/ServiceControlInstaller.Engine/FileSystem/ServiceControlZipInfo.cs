@@ -5,8 +5,8 @@
     using System.IO;
     using System.Linq;
     using System.Text.RegularExpressions;
+    using Instances;
     using Ionic.Zip;
-    using ServiceControlInstaller.Engine.Instances;
 
     public class ServiceControlZipInfo
     {
@@ -27,6 +27,7 @@
                 {
                     continue;
                 }
+
                 var v = new Version(matchResult.Groups["version"].Value);
                 list.Add(file.FullName, v);
             }
@@ -48,10 +49,14 @@
         public void ValidateZip()
         {
             if (!Present)
+            {
                 throw new FileNotFoundException("No ServiceControl zip file found", FilePath);
+            }
 
             if (!ZipFile.CheckZip(FilePath))
+            {
                 throw new Exception($"Corrupt Zip File - {FilePath}");
+            }
         }
 
         public bool TryReadServiceControlReleaseDate(out DateTime releaseDate)
@@ -67,6 +72,7 @@
                     {
                         return false;
                     }
+
                     entry.Extract(Path.GetTempPath(), ExtractExistingFileAction.OverwriteSilently);
                     return ReleaseDateReader.TryReadReleaseDateAttribute(tempFile, out releaseDate);
                 }

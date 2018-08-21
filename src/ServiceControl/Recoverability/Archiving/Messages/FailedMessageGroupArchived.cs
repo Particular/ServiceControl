@@ -1,7 +1,7 @@
 namespace ServiceControl.Recoverability
 {
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Infrastructure.SignalR;
+    using Infrastructure.DomainEvents;
+    using Infrastructure.SignalR;
 
     public class FailedMessageGroupArchived : IDomainEvent, IUserInterfaceEvent
     {

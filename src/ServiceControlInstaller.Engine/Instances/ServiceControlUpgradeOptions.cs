@@ -1,7 +1,7 @@
 namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
+    using Configuration.ServiceControl;
 
     public class ServiceControlUpgradeOptions
     {
@@ -37,7 +37,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             instance.SkipQueueCreation = SkipQueueCreation;
-            
+
             instance.ApplyConfigChange();
         }
     }

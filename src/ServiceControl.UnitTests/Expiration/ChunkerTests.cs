@@ -1,5 +1,4 @@
-﻿
-namespace ServiceControl.UnitTests.Expiration
+﻿namespace ServiceControl.UnitTests.Expiration
 {
     using System.Collections.Generic;
     using NUnit.Framework;
@@ -11,8 +10,8 @@ namespace ServiceControl.UnitTests.Expiration
         [Test]
         public void Chunking()
         {
-            List<int> starts = new List<int>();
-            List<int> ends = new List<int>();
+            var starts = new List<int>();
+            var ends = new List<int>();
 
             Chunker.ExecuteInChunks(1500, (s, e) =>
             {
@@ -36,8 +35,8 @@ namespace ServiceControl.UnitTests.Expiration
         [Test]
         public void LessThenChunkSize()
         {
-            List<int> starts = new List<int>();
-            List<int> ends = new List<int>();
+            var starts = new List<int>();
+            var ends = new List<int>();
 
             Chunker.ExecuteInChunks(1, (s, e) =>
             {
@@ -55,8 +54,8 @@ namespace ServiceControl.UnitTests.Expiration
         [Test]
         public void OneExtra()
         {
-            List<int> starts = new List<int>();
-            List<int> ends = new List<int>();
+            var starts = new List<int>();
+            var ends = new List<int>();
 
             Chunker.ExecuteInChunks(1001, (s, e) =>
             {

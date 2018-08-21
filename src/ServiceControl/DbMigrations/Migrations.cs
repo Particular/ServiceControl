@@ -5,8 +5,6 @@
 
     public class Migrations
     {
-        public const string DocumentId = "Settings/Migrations";
-
         public List<Migration> AppliedMigrations { get; set; } = new List<Migration>();
 
         public void Add(string migrationId, string report)
@@ -19,6 +17,8 @@
             });
         }
 
+        public const string DocumentId = "Settings/Migrations";
+
         public class Migration
         {
             public string MigrationId { get; set; }
@@ -26,5 +26,4 @@
             public string Report { get; set; }
         }
     }
-
 }

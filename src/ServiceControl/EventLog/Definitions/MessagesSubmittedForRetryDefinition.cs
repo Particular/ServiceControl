@@ -1,6 +1,6 @@
 namespace ServiceControl.EventLog.Definitions
 {
-    using ServiceControl.Recoverability;
+    using Recoverability;
 
     public class MessagesSubmittedForRetryDefinition : EventLogMappingDefinition<MessagesSubmittedForRetry>
     {
@@ -9,7 +9,7 @@ namespace ServiceControl.EventLog.Definitions
             Description(m => string.IsNullOrWhiteSpace(m.Context)
                 ? $"{m.NumberOfFailedMessages} failed message(s) submitted for retry."
                 : $"{m.Context} containing {m.NumberOfFailedMessages} message(s) submitted for retry."
-                );
+            );
             RelatesToMessages(m => m.FailedMessageIds);
         }
     }

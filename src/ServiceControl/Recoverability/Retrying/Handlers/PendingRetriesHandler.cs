@@ -1,47 +1,31 @@
 namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using MessageFailures;
+    using MessageFailures.Api;
+    using MessageFailures.InternalMessages;
     using NServiceBus;
     using Raven.Client;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
         IHandleMessages<RetryPendingMessages>
     {
-        static string[] fields = { "Id" };
-
-        private readonly IBus bus;
-        private readonly IDocumentStore store;
-        private readonly RetryDocumentManager manager;
-
-        public PendingRetriesHandler(IBus bus, IDocumentStore store, RetryDocumentManager manager)
+        public PendingRetriesHandler(IDocumentStore store, RetryDocumentManager manager)
         {
-            this.bus = bus;
             this.store = store;
             this.manager = manager;
         }
 
-        public void Handle(RetryPendingMessagesById message)
-        {
-            foreach (var messageUniqueId in message.MessageUniqueIds)
-            {
-                manager.RemoveFailedMessageRetryDocument(messageUniqueId);
-            }
-
-            bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
-        }
-
-        public void Handle(RetryPendingMessages message)
+        public async Task Handle(RetryPendingMessages message, IMessageHandlerContext context)
         {
             var messageIds = new List<string>();
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 var query = session.Advanced
-                    .DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .WhereEquals("Status", (int) FailedMessageStatus.RetryIssued)
+                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
                     .AndAlso()
                     .WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
                     .AndAlso()
@@ -49,17 +33,35 @@ namespace ServiceControl.Recoverability
                     .SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>(fields);
 
-                using (var ie = session.Advanced.Stream(query))
+                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
                 {
-                    while (ie.MoveNext())
+                    while (await ie.MoveNextAsync().ConfigureAwait(false))
                     {
-                        manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id);
+                        await manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id)
+                            .ConfigureAwait(false);
                         messageIds.Add(ie.Current.Document.Id);
                     }
                 }
             }
 
-            bus.SendLocal(new RetryMessagesById {MessageUniqueIds = messageIds.ToArray()});
+            await context.SendLocal(new RetryMessagesById {MessageUniqueIds = messageIds.ToArray()})
+                .ConfigureAwait(false);
         }
+
+        public async Task Handle(RetryPendingMessagesById message, IMessageHandlerContext context)
+        {
+            foreach (var messageUniqueId in message.MessageUniqueIds)
+            {
+                await manager.RemoveFailedMessageRetryDocument(messageUniqueId)
+                    .ConfigureAwait(false);
+            }
+
+            await context.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds)
+                .ConfigureAwait(false);
+        }
+
+        private readonly IDocumentStore store;
+        private readonly RetryDocumentManager manager;
+        static string[] fields = {"Id"};
     }
 }

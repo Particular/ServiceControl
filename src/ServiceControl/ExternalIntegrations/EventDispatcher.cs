@@ -6,43 +6,27 @@
     using System.Reactive.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
-    using NServiceBus.CircuitBreakers;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class EventDispatcher : FeatureStartupTask
     {
-        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
-        IBus bus;
-        CriticalError criticalError;
-        IEnumerable<IEventPublisher> eventPublishers;
-        Settings settings;
-        ManualResetEventSlim signal = new ManualResetEventSlim();
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-        RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
-        IDisposable subscription;
-        Task task;
-        CancellationTokenSource tokenSource;
-        Etag latestEtag = Etag.Empty;
-
-        public EventDispatcher(IDocumentStore store, IBus bus, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
+        public EventDispatcher(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
-            this.bus = bus;
             this.criticalError = criticalError;
             this.settings = settings;
             this.eventPublishers = eventPublishers;
             this.domainEvents = domainEvents;
         }
 
-        protected override void OnStart()
+        protected override Task OnStart(IMessageSession session)
         {
             subscription = store.Changes().ForDocumentsStartingWith("ExternalIntegrationDispatchRequests").Where(c => c.Type == DocumentChangeTypes.Put).Subscribe(OnNext);
 
@@ -52,26 +36,19 @@
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
                 TimeSpan.FromSeconds(20));
 
+            bus = session;
+
             StartDispatcher();
+            return Task.FromResult(0);
         }
 
-        protected override void OnStop()
-        {
-            subscription.Dispose();
-            tokenSource.Cancel();
-            tokenSource.Dispose();
-            task?.Wait();
-            task?.Dispose();
-            circuitBreaker.Dispose();
-        }
-
-        private void OnNext(DocumentChangeNotification documentChangeNotification)
+        void OnNext(DocumentChangeNotification documentChangeNotification)
         {
             latestEtag = Etag.Max(documentChangeNotification.Etag, latestEtag);
             signal.Set();
         }
 
-        private void StartDispatcher()
+        void StartDispatcher()
         {
             task = StartDispatcherTask();
         }
@@ -80,6 +57,7 @@
         {
             try
             {
+                await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
                 do
                 {
                     try
@@ -95,10 +73,14 @@
                     await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
                 } while (!tokenSource.IsCancellationRequested);
             }
+            catch (OperationCanceledException)
+            {
+                // ignore
+            }
             catch (Exception ex)
             {
                 Logger.Error("An exception occurred when dispatching external integration events", ex);
-                circuitBreaker.Failure(ex);
+                await circuitBreaker.Failure(ex).ConfigureAwait(false);
 
                 if (!tokenSource.IsCancellationRequested)
                 {
@@ -107,13 +89,14 @@
             }
         }
 
-        private async Task DispatchEvents(CancellationToken token)
+        async Task DispatchEvents(CancellationToken token)
         {
             bool more;
 
             do
             {
-                more = TryDispatchEventBatch();
+                more = await TryDispatchEventBatch()
+                    .ConfigureAwait(false);
 
                 circuitBreaker.Success();
 
@@ -125,14 +108,18 @@
             } while (!token.IsCancellationRequested && more);
         }
 
-        private bool TryDispatchEventBatch()
+        async Task<bool> TryDispatchEventBatch()
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                RavenQueryStatistics stats;
-                var awaitingDispatching = session.Query<ExternalIntegrationDispatchRequest>().Statistics(out stats).Take(settings.ExternalIntegrationsDispatchingBatchSize).ToArray();
+                var awaitingDispatching = await session
+                    .Query<ExternalIntegrationDispatchRequest>()
+                    .Statistics(out var stats)
+                    .Take(settings.ExternalIntegrationsDispatchingBatchSize)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
 
-                if (awaitingDispatching.Length == 0)
+                if (awaitingDispatching.Count == 0)
                 {
                     // If the index hasn't caught up, try again
                     return stats.IndexEtag.CompareTo(latestEtag) < 0;
@@ -143,7 +130,14 @@
                 {
                     Logger.Debug($"Dispatching {allContexts.Length} events.");
                 }
-                var eventsToBePublished = eventPublishers.SelectMany(p => p.PublishEventsForOwnContexts(allContexts, session));
+
+                var eventsToBePublished = new List<object>();
+                foreach (var publisher in eventPublishers)
+                {
+                    var events = await publisher.PublishEventsForOwnContexts(allContexts, session)
+                        .ConfigureAwait(false);
+                    eventsToBePublished.AddRange(events);
+                }
 
                 foreach (var eventToBePublished in eventsToBePublished)
                 {
@@ -154,7 +148,8 @@
 
                     try
                     {
-                        bus.Publish(eventToBePublished);
+                        await bus.Publish(eventToBePublished)
+                            .ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {
@@ -172,18 +167,50 @@
                         {
                             m.Reason = "Failed to retrieve reason!";
                         }
-                        domainEvents.Raise(m);
+
+                        await domainEvents.Raise(m)
+                            .ConfigureAwait(false);
                     }
                 }
+
                 foreach (var dispatchedEvent in awaitingDispatching)
                 {
                     session.Delete(dispatchedEvent);
                 }
 
-                session.SaveChanges();
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
             return true;
         }
+
+        protected override async Task OnStop(IMessageSession session)
+        {
+            subscription.Dispose();
+            tokenSource.Cancel();
+
+            if (task != null)
+            {
+                await task.ConfigureAwait(false);
+            }
+
+            tokenSource.Dispose();
+            circuitBreaker.Dispose();
+        }
+
+        IMessageSession bus;
+        CriticalError criticalError;
+        IEnumerable<IEventPublisher> eventPublishers;
+        Settings settings;
+        ManualResetEventSlim signal = new ManualResetEventSlim();
+        IDocumentStore store;
+        IDomainEvents domainEvents;
+        RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
+        IDisposable subscription;
+        Task task;
+        CancellationTokenSource tokenSource;
+        Etag latestEtag = Etag.Empty;
+        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
     }
 }

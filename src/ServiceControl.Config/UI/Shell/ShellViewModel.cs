@@ -6,28 +6,26 @@
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
-    using ServiceControl.Config.Commands;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Extensions;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Rx;
-    using ServiceControl.Config.UI.ListInstances;
-    using ServiceControl.Config.UI.NoInstances;
+    using Commands;
+    using Events;
+    using Extensions;
+    using Framework;
+    using Framework.Rx;
+    using License;
+    using ListInstances;
+    using NoInstances;
     using ServiceControlInstaller.Engine.Instances;
 
-    internal class ShellViewModel : RxConductor<RxScreen>.Collection.OneActive, IHandle<RefreshInstances>
+    class ShellViewModel : RxConductor<RxScreen>.Collection.OneActive, IHandle<RefreshInstances>
     {
-        private readonly ListInstancesViewModel listInstances;
-        private readonly NoInstancesViewModel noInstances;
-
         public ShellViewModel(
             NoInstancesViewModel noInstances,
             ListInstancesViewModel listInstances,
             AddServiceControlInstanceCommand addInstance,
             AddMonitoringInstanceCommand addMonitoringInstance,
-            OpenViewModelCommand<License.LicenseViewModel> openLicense,
+            OpenViewModelCommand<LicenseViewModel> openLicense,
             IEventAggregator eventAggregator
-            )
+        )
         {
             this.listInstances = listInstances;
             this.noInstances = noInstances;
@@ -69,8 +67,8 @@
 
         public bool HasInstances { get; private set; }
 
-	    [FeatureToggle(Feature.MonitoringInstances)]
-	    public bool ShowMonitoringInstances { get; set; }
+        [FeatureToggle(Feature.MonitoringInstances)]
+        public bool ShowMonitoringInstances { get; set; }
 
         public ICommand AddInstance { get; private set; }
 
@@ -84,20 +82,22 @@
 
         public ICommand RefreshInstancesCmd { get; }
 
-        protected override void OnInitialize()
-        {
-            RefreshInstances();
-        }
-
         public void Handle(RefreshInstances message)
         {
             RefreshInstances();
         }
 
-        private void RefreshInstances()
+        protected override void OnInitialize()
+        {
+            RefreshInstances();
+        }
+
+        void RefreshInstances()
         {
             if (ActiveItem != null && !(ActiveItem == listInstances || ActiveItem == noInstances))
+            {
                 return;
+            }
 
             HasInstances = InstanceFinder.AllInstances().Any();
 
@@ -131,5 +131,8 @@
                 VersionInfo += " / " + shortCommitHash;
             }
         }
+
+        readonly ListInstancesViewModel listInstances;
+        readonly NoInstancesViewModel noInstances;
     }
 }

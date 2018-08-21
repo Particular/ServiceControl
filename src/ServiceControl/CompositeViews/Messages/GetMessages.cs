@@ -4,15 +4,9 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class GetMessages : BaseModule
     {
-        public GetAllMessagesApi GetAllMessagesApi { get; set; }
-        public GetAllMessagesForEndpointApi GetAllMessagesForEndpointApi { get; set; }
-
-        public GetMessages() 
+        public GetMessages()
         {
-            Get["/messages", true] = (parameters, token) =>
-            {
-                return GetAllMessagesApi.Execute(this);
-            };
+            Get["/messages", true] = (parameters, token) => { return GetAllMessagesApi.Execute(this); };
 
 
             Get["/endpoints/{name}/messages", true] = (parameters, token) =>
@@ -22,5 +16,8 @@ namespace ServiceControl.CompositeViews.Messages
                 return GetAllMessagesForEndpointApi.Execute(this, endpoint);
             };
         }
+
+        public GetAllMessagesApi GetAllMessagesApi { get; set; }
+        public GetAllMessagesForEndpointApi GetAllMessagesForEndpointApi { get; set; }
     }
 }

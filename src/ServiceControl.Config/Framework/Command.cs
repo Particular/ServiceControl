@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using ServiceControl.Config.Framework.Commands;
-
-namespace ServiceControl.Config.Framework
+﻿namespace ServiceControl.Config.Framework
 {
+    using System;
+    using System.Threading.Tasks;
+    using Commands;
+
     static class Command
     {
         public static ICommand Create(Action executeMethod)

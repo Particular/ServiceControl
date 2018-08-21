@@ -23,16 +23,19 @@ namespace ServiceControl.CompositeViews.Messages
                         result.BodyUrl += $"?instance_id={queryResult.InstanceId}";
                     }
                 }
+
                 combined.AddRange(messagesViews);
             }
+
             var comparer = FinalOrder(request);
             if (comparer != null)
             {
                 combined.Sort(comparer);
             }
+
             return combined;
         }
-        
+
         private IComparer<MessagesView> FinalOrder(Request request) => MessageViewComparer.FromRequest(request);
     }
 }

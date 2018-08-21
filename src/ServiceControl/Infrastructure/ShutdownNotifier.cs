@@ -5,17 +5,6 @@
 
     public class ShutdownNotifier : IDisposable
     {
-        CancellationTokenSource source = new CancellationTokenSource();
-        private bool disposed;
-        private int disposeSignaled;
-
-        public void Register(Action callback)
-        {
-            ThrowIfDisposed();
-
-            source.Token.Register(callback);
-        }
-
         public void Dispose()
         {
             if (Interlocked.Exchange(ref disposeSignaled, 1) != 0)
@@ -29,6 +18,13 @@
             disposed = true;
         }
 
+        public void Register(Action callback)
+        {
+            ThrowIfDisposed();
+
+            source.Token.Register(callback);
+        }
+
         private void ThrowIfDisposed()
         {
             if (disposed)
@@ -36,5 +32,9 @@
                 throw new ObjectDisposedException("TimeKeeper");
             }
         }
+
+        CancellationTokenSource source = new CancellationTokenSource();
+        private bool disposed;
+        private int disposeSignaled;
     }
 }

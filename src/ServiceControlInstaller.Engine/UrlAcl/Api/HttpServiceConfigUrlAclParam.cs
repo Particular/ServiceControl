@@ -5,8 +5,7 @@
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     internal struct HttpServiceConfigUrlAclParam
     {
-        [MarshalAs(UnmanagedType.LPWStr)]
-        public string StringSecurityDescriptor;
+        [MarshalAs(UnmanagedType.LPWStr)] public string StringSecurityDescriptor;
 
         public HttpServiceConfigUrlAclParam(string securityDescriptor)
         {

@@ -1,18 +1,19 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
     using System.Management.Automation;
+    using Engine.LicenseMgmt;
     using Microsoft.PowerShell.Commands;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
 
     [Cmdlet(VerbsData.Import, "ServiceControlLicense")]
     public class ImportServiceControlLicense : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
         [Alias("FullName")]
-        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position=0, HelpMessage = "Specify the path ot the license file" )]
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the path ot the license file")]
         public string File { get; set; }
 
         protected override void BeginProcessing()
@@ -22,9 +23,7 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void ProcessRecord()
         {
-            ProviderInfo provider;
-            PSDriveInfo drive;
-            var psPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(File, out provider, out drive);
+            var psPath = SessionState.Path.GetUnresolvedProviderPathFromPSPath(File, out var provider, out _);
 
             if (provider.ImplementingType != typeof(FileSystemProvider))
             {
@@ -34,8 +33,7 @@ namespace ServiceControlInstaller.PowerShell
                 return;
             }
 
-            string errorMsg;
-            if (!LicenseManager.TryImportLicense(psPath, out errorMsg))
+            if (!LicenseManager.TryImportLicense(psPath, out var errorMsg))
             {
                 WriteError(new ErrorRecord(new Exception(errorMsg), "ServiceControlLicense", ErrorCategory.InvalidData, null));
             }

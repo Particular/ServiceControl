@@ -2,65 +2,81 @@ namespace ServiceBus.Management.Infrastructure
 {
     using System;
     using System.Diagnostics;
+    using System.Linq;
+    using System.Threading.Tasks;
     using Autofac;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using NServiceBus.Logging;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Raven.Client.Embedded;
+    using ServiceControl.Contracts.EndpointControl;
+    using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Operations;
+    using ServiceControl.Transports;
+    using Settings;
 
     public static class NServiceBusFactory
     {
-        public static IStartableBus Create(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
+            var endpointName = settings.ServiceName;
             if (configuration == null)
             {
-                configuration = new BusConfiguration();
-                configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+                configuration = new EndpointConfiguration(endpointName);
+                var assemblyScanner = configuration.AssemblyScanner();
+                assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            configuration.GetSettings().Set("ServiceControl.EmbeddableDocumentStore", documentStore);
+            configuration.GetSettings().Set<EmbeddableDocumentStore>(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
-            configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(new LoggingSettings(settings.ServiceName).LogPath));
+            var remoteInstanceAddresses = settings.RemoteInstances.Select(x => x.QueueAddress).ToArray();
+            configuration.GetSettings().Set("ServiceControl.RemoteInstances", remoteInstanceAddresses);
+            configuration.GetSettings().Set("ServiceControl.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
+
+            MapSettings(transportSettings, settings);
+            transportSettings.Set("TransportSettings.RemoteInstances", remoteInstanceAddresses);
+            transportSettings.Set("TransportSettings.RemoteTypesToSubscribeTo", remoteTypesToSubscribeTo);
+
+            transportCustomization.CustomizeEndpoint(configuration, transportSettings);
+
+            configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
+            configuration.GetSettings().Set<LoggingSettings>(loggingSettings);
+            configuration.GetSettings().Set<IDocumentStore>(documentStore);
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
             configuration.DisableFeature<AutoSubscribe>();
-            configuration.DisableFeature<SecondLevelRetries>();
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
 
-            configuration.UseSerialization<JsonSerializer>();
+            configuration.EnableFeature<SubscriptionFeature>();
 
-            configuration.Transactions()
-                .DisableDistributedTransactions()
-                .DoNotWrapHandlersExecutionInATransactionScope();
+            var recoverability = configuration.Recoverability();
+            recoverability.Immediate(c => c.NumberOfRetries(3));
+            recoverability.Delayed(c => c.NumberOfRetries(0));
+            configuration.SendFailedMessagesTo($"{endpointName}.Errors");
 
-            configuration.ScaleOut().UseSingleBrokerQueue();
+            configuration.UseSerialization<NewtonsoftSerializer>();
 
-            var transportType = DetermineTransportType(settings);
+            configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-            configuration.EndpointName(settings.ServiceName);
 
             if (!isRunningAcceptanceTests)
             {
-                configuration.ReportCustomChecksTo(settings.ServiceName);
+                configuration.ReportCustomChecksTo(endpointName);
             }
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-            var transport = configuration.UseTransport(transportType);
-            if (settings.TransportConnectionString != null)
+
+            configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {
-                transport.ConnectionString(settings.TransportConnectionString);
-            }
-            configuration.DefineCriticalErrorAction((s, exception) =>
-            {
-                onCriticalError();
+                onCriticalError(criticalErrorContext);
+                return Task.FromResult(0);
             });
 
             if (Environment.UserInteractive && Debugger.IsAttached)
@@ -68,36 +84,46 @@ namespace ServiceBus.Management.Infrastructure
                 configuration.EnableInstallers();
             }
 
-            return Bus.Create(configuration);
+            return Endpoint.Create(configuration);
         }
 
-        public static BusInstance CreateAndStart(Settings.Settings settings, IContainer container, Action onCriticalError, IDocumentStore documentStore, BusConfiguration configuration, bool isRunningAcceptanceTests)
+        private static void MapSettings(TransportSettings transportSettings, Settings.Settings settings)
         {
-            var bus = Create(settings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
+            transportSettings.EndpointName = settings.ServiceName;
+            transportSettings.ConnectionString = settings.TransportConnectionString;
+            transportSettings.MaxConcurrency = settings.MaximumConcurrencyLevel;
+        }
 
-            container.Resolve<SubscribeToOwnEvents>().Run();
+        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        {
+            var startableEndpoint = await Create(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+                .ConfigureAwait(false);
+
             var domainEvents = container.Resolve<IDomainEvents>();
+            var importFailedAudits = container.Resolve<ImportFailedAudits>();
 
-            var startedBus = bus.Start();
-            return new BusInstance(startedBus, domainEvents);
-        }
+            var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
 
-        static Type DetermineTransportType(Settings.Settings settings)
-        {
-            var logger = LogManager.GetLogger(typeof(NServiceBusFactory));
-            var transportType = Type.GetType(settings.TransportType);
-            if (transportType != null)
-            {
-                return transportType;
-            }
-            var errorMsg = $"Configuration of transport Failed. Could not resolve type '{settings.TransportType}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings";
-            logger.Error(errorMsg);
-            throw new Exception(errorMsg);
+            var builder = new ContainerBuilder();
+
+            builder.RegisterInstance(endpointInstance).As<IMessageSession>();
+
+            builder.Update(container.ComponentRegistry);
+
+            return new BusInstance(endpointInstance, domainEvents, importFailedAudits);
         }
 
         static bool IsExternalContract(Type t)
         {
-            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
+            return t.Namespace != null
+                   && t.Namespace.StartsWith("ServiceControl.Contracts")
+                   && t.Assembly.GetName().Name == "ServiceControl.Contracts";
         }
+
+        static Type[] remoteTypesToSubscribeTo =
+        {
+            typeof(MessageFailureResolvedByRetry),
+            typeof(NewEndpointDetected)
+        };
     }
 }

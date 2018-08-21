@@ -4,10 +4,29 @@
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
-    using ServiceControlInstaller.Engine.Api;
+    using Api;
 
     internal class ServiceRecoveryHelper : IDisposable
     {
+        ServiceRecoveryHelper()
+        {
+            SCManager = OpenSCManager(
+                null,
+                null,
+                SERVICE_CONTROL_ACCESS_RIGHTS.SC_MANAGER_CONNECT);
+
+            if (SCManager == IntPtr.Zero)
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Unable to open Service Control Manager.");
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         [DllImport("advapi32.dll", EntryPoint = "OpenSCManager")]
         static extern IntPtr OpenSCManager(
             string machineName,
@@ -28,9 +47,6 @@
             IntPtr hService,
             ServiceConfig2InfoLevel dwInfoLevel,
             IntPtr lpInfo);
-
-        IntPtr SCManager;
-        bool disposed;
 
         IntPtr OpenService(string serviceName, SERVICE_ACCESS_RIGHTS desiredAccess)
         {
@@ -62,19 +78,6 @@
             }
         }
 
-        ServiceRecoveryHelper()
-        {
-            SCManager = OpenSCManager(
-                null,
-                null,
-                SERVICE_CONTROL_ACCESS_RIGHTS.SC_MANAGER_CONNECT);
-
-            if (SCManager == IntPtr.Zero)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error(), "Unable to open Service Control Manager.");
-            }
-        }
-
         void SetRestartOnFailure(string serviceName)
         {
             const int actionCount = 2;
@@ -102,7 +105,7 @@
                     Type = SC_ACTION_TYPE.SC_ACTION_NONE,
                     Delay = delay
                 };
-                Marshal.StructureToPtr(action2, (IntPtr) ((long) actionPtr + Marshal.SizeOf(typeof(SC_ACTION))), false);
+                Marshal.StructureToPtr(action2, (IntPtr)((long)actionPtr + Marshal.SizeOf(typeof(SC_ACTION))), false);
 
                 var failureActions = new SERVICE_FAILURE_ACTIONS
                 {
@@ -143,12 +146,6 @@
             }
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         void Dispose(bool disposing)
         {
             if (!disposed)
@@ -159,6 +156,7 @@
                     SCManager = IntPtr.Zero;
                 }
             }
+
             disposed = true;
         }
 
@@ -166,5 +164,8 @@
         {
             Dispose(false);
         }
+
+        IntPtr SCManager;
+        bool disposed;
     }
 }

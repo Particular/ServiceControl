@@ -3,15 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -21,26 +18,29 @@
         [Test]
         public async Task They_should_be_grouped_together()
         {
-            var context = new MyContext();
-
             List<FailureGroupView> exceptionTypeAndStackTraceGroups = null;
             List<FailureGroupView> messageTypeGroups = null;
             FailedMessage firstFailure = null;
             FailedMessage secondFailure = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    bus.SendLocal<MyMessage>(m => m.IsFirst = true);
-                    Thread.Sleep(TimeSpan.FromSeconds(1));
-                    bus.SendLocal<MyMessage>(m => m.IsFirst = false);
-                }))
+                    await bus.SendLocal<MyMessage>(m => m.IsFirst = true)
+                        .ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromSeconds(1))
+                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.IsFirst = false)
+                        .ConfigureAwait(false);
+                }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (!c.FirstDone || !c.SecondDone)
+                    {
                         return false;
+                    }
 
-                    var result = await TryGetMany<FailureGroupView>("/api/recoverability/groups/");
+                    var result = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/");
                     exceptionTypeAndStackTraceGroups = result;
                     if (!result)
                     {
@@ -52,23 +52,19 @@
                         return false;
                     }
 
-                    messageTypeGroups = await TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
+                    messageTypeGroups = await this.TryGetMany<FailureGroupView>("/api/recoverability/groups/Message%20Type");
 
-                    var firstFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.FirstMessageId);
+                    var firstFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.FirstMessageId}");
                     firstFailure = firstFailureResult;
                     if (!firstFailureResult)
                     {
                         return false;
                     }
 
-                    var secondFailureResult = await TryGet<FailedMessage>("/api/errors/" + c.SecondMessageId);
+                    var secondFailureResult = await this.TryGet<FailedMessage>($"/api/errors/{c.SecondMessageId}");
                     secondFailure = secondFailureResult;
-                    if (!secondFailureResult)
-                    {
-                        return false;
-                    }
 
-                    return true;
+                    return secondFailureResult;
                 })
                 .Run();
 
@@ -86,10 +82,10 @@
             Assert.AreEqual(2, messageTypeGroups.First().Count, "Message Type Group should have both messages in it");
 
             var failureTimes = firstFailure.ProcessingAttempts
-                        .Union(secondFailure.ProcessingAttempts)
-                        .Where(x => x.FailureDetails != null)
-                        .Select(x => x.FailureDetails.TimeOfFailure)
-                        .ToList();
+                .Union(secondFailure.ProcessingAttempts)
+                .Where(x => x.FailureDetails != null)
+                .Select(x => x.FailureDetails.TimeOfFailure)
+                .ToList();
 
             Assert.AreEqual(failureTimes.Min(), failureGroup.First, "Failure Group should start when the earliest failure occurred");
             Assert.AreEqual(failureTimes.Max(), failureGroup.Last, "Failure Group should end when the latest failure occurred");
@@ -99,27 +95,19 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 0;
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-
-                    var messageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
-
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.LocalAddress().Queue).ToString();
+                    var messageId = context.MessageId.Replace(@"\", "-");
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (message.IsFirst)
                     {
@@ -137,7 +125,6 @@
             }
         }
 
-        [Serializable]
         public class MyMessage : ICommand
         {
             public bool IsFirst { get; set; }
@@ -147,7 +134,6 @@
         {
             public bool FirstDone { get; set; }
             public string FirstMessageId { get; set; }
-
             public bool SecondDone { get; set; }
             public string SecondMessageId { get; set; }
         }

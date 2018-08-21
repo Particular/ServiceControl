@@ -3,35 +3,29 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.MessageFailures.Api;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     public class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
-        // TODO: Add these transports back if/when then are updated to match this behavior
-        [Test, IgnoreTransports("AzureServiceBus", "AzureStorageQueues", "RabbitMq")]
+        [Test]
         public async Task The_header_should_not_be_changed()
         {
-            var context = new ReplyToContext
-            {
-                ReplyToAddress = "ReplyToAddress@SOMEMACHINE"
-            };
-
-            await Define(context)
+            var context = await Define<ReplyToContext>(ctx => { ctx.ReplyToAddress = "ReplyToAddress@SOMEMACHINE"; })
                 .WithEndpoint<VerifyHeaderEndpoint>()
                 .Done(async x =>
                 {
-                    if (!x.RetryIssued && await TryGetMany<FailedMessageView>("/api/errors"))
+                    if (!x.RetryIssued && await this.TryGetMany<FailedMessageView>("/api/errors"))
                     {
                         x.RetryIssued = true;
-                        await Post<object>("/api/errors/retry/all");
+                        await this.Post<object>("/api/errors/retry/all");
                     }
 
                     return x.Done;
@@ -41,7 +35,9 @@
             Assert.AreEqual(context.ReplyToAddress, context.ReceivedReplyToAddress);
         }
 
-        class OriginalMessage : IMessage { }
+        class OriginalMessage : IMessage
+        {
+        }
 
         class ReplyToContext : ScenarioContext
         {
@@ -56,65 +52,56 @@
             public VerifyHeaderEndpoint()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(
-                    c => c.RegisterComponents(cc => cc.ConfigureComponent<VerifyHeaderIsUnchanged>(DependencyLifecycle.SingleInstance))
+                    (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((ReplyToContext)r.ScenarioContext))
                 );
             }
 
-            public class FakeSender : IWantToRunWhenBusStartsAndStops
+            class FakeSender : DispatchRawMessages<ReplyToContext>
             {
-                public void Start()
+                protected override TransportOperations CreateMessage(ReplyToContext context)
                 {
-                    var transportMessage = new TransportMessage(Guid.NewGuid().ToString(),
-                        new Dictionary<string, string>
-                        {
-                            [Headers.ReplyToAddress] = context.ReplyToAddress,
-                            [Headers.ProcessingEndpoint] = settings.EndpointName(),
-                            ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
-                            ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
-                            ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
-                            ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                            ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                            ["NServiceBus.FailedQ"] = settings.LocalAddress().ToString(),
-                            ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
-                            [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
-                            [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
-                        });
+                    var messageId = Guid.NewGuid().ToString();
+                    var headers = new Dictionary<string, string>
+                    {
+                        [Headers.MessageId] = messageId,
+                        [Headers.ReplyToAddress] = context.ReplyToAddress,
+                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)),
+                        ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
+                        ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
+                        ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                        ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)),
+                        ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
+                        [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
+                        [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
+                    };
 
-                    messageSender.Send(transportMessage, new SendOptions("error"));
-                }
+                    var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
 
-                public void Stop() { }
-
-                private ISendMessages messageSender;
-                private ReplyToContext context;
-                private ReadOnlySettings settings;
-
-                public FakeSender(ISendMessages messageSender, ReplyToContext context, ReadOnlySettings settings)
-                {
-                    this.messageSender = messageSender;
-                    this.context = context;
-                    this.settings = settings;
+                    return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
             }
 
             class VerifyHeaderIsUnchanged : IMutateIncomingTransportMessages
             {
-                public void MutateIncoming(TransportMessage transportMessage)
-                {
-                    string replyToAddress;
-                    if (transportMessage.Headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
-                    {
-                        context.ReceivedReplyToAddress = replyToAddress;
-                    }
-                    context.Done = true;
-                }
-
-                private ReplyToContext context;
-
                 public VerifyHeaderIsUnchanged(ReplyToContext context)
                 {
-                    this.context = context;
+                    replyToContext = context;
                 }
+
+                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
+                {
+                    if (context.Headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
+                    {
+                        replyToContext.ReceivedReplyToAddress = replyToAddress;
+                    }
+
+                    replyToContext.Done = true;
+                    return Task.FromResult(0);
+                }
+
+                ReplyToContext replyToContext;
             }
         }
     }

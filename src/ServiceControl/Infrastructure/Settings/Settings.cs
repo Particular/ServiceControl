@@ -1,30 +1,20 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
+    using System.Collections.Generic;
+    using System.Configuration;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
+    using System.Threading.Tasks;
+    using Nancy;
     using Newtonsoft.Json;
     using NLog.Common;
-    using NServiceBus;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Nancy;
+    using ServiceControl.Transports;
 
     public class Settings
     {
-        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
-        public const string Disabled = "!disable";
-
-        private const int ExpirationProcessTimerInSecondsDefault = 600;
-        private const int ExpirationProcessBatchSizeDefault = 65512;
-        private const int ExpirationProcessBatchSizeMinimum = 10240;
-        private const int MaxBodySizeToStoreDefault = 102400; //100 kb
-
-
-        private ILog logger = LogManager.GetLogger(typeof(Settings));
-        private int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
-        private int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
-        private int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
-
         public Settings(string serviceName = null)
         {
             ServiceName = serviceName;
@@ -43,8 +33,11 @@
                 AuditLogQueue = GetAuditLogQueue();
             }
 
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
+            TransportConnectionString = connectionStringSettings?.ConnectionString;
+
             DbPath = GetDbPath();
-            TransportType = SettingsReader<string>.Read("TransportType", typeof(MsmqTransport).AssemblyQualifiedName);
+            TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
@@ -59,6 +52,10 @@
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             RemoteInstances = GetRemoteInstances();
         }
+
+        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
+
+        public bool RunInMemory { get; set; }
 
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
@@ -85,10 +82,7 @@
 
         public string DatabaseMaintenanceUrl
         {
-            get
-            {
-                return $"http://{Hostname}:{DatabaseMaintenancePort}";
-            }
+            get { return $"http://{Hostname}:{DatabaseMaintenancePort}"; }
         }
 
         public string ApiUrl => $"{RootUrl}api";
@@ -118,12 +112,12 @@
             }
         }
 
-        public string TransportType { get; set; }
+        public string TransportCustomizationType { get; set; }
 
         public string DbPath { get; set; }
-        public Address ErrorLogQueue { get; set; }
-        public Address ErrorQueue { get; set; }
-        public Address AuditQueue { get; set; }
+        public string ErrorLogQueue { get; set; }
+        public string ErrorQueue { get; set; }
+        public string AuditQueue { get; set; }
 
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
@@ -131,7 +125,7 @@
         public bool IngestAuditMessages { get; set; } = true;
         public bool IngestErrorMessages { get; set; } = true;
 
-        public Address AuditLogQueue { get; set; }
+        public string AuditLogQueue { get; set; }
 
         public int ExpirationProcessTimerInSeconds
         {
@@ -142,11 +136,13 @@
                     logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
                     return ExpirationProcessTimerInSecondsDefault;
                 }
+
                 if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
                 {
                     logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
                     return ExpirationProcessTimerInSecondsDefault;
                 }
+
                 return expirationProcessTimerInSeconds;
             }
         }
@@ -166,11 +162,13 @@
                     logger.Error($"ExpirationProcessBatchSize cannot be less than 1. Defaulting to {ExpirationProcessBatchSizeDefault}");
                     return ExpirationProcessBatchSizeDefault;
                 }
+
                 if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
                 {
                     logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
                     return ExpirationProcessBatchSizeDefault;
                 }
+
                 return expirationProcessBatchSize;
             }
         }
@@ -184,6 +182,7 @@
                     logger.Error($"MaxBodySizeToStore settings is invalid, {1} is the minimum value. Defaulting to {MaxBodySizeToStoreDefault}");
                     return MaxBodySizeToStoreDefault;
                 }
+
                 return maxBodySizeToStore;
             }
             set { maxBodySizeToStore = value; }
@@ -200,76 +199,95 @@
 
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
-        private Address GetAuditLogQueue()
+        public TransportCustomization LoadTransportCustomization()
+        {
+            try
+            {
+                var customizationType = Type.GetType(TransportCustomizationType, true);
+                return (TransportCustomization)Activator.CreateInstance(customizationType);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
+            }
+        }
+
+        private string GetAuditLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
 
             if (AuditQueue == null)
             {
-                return Address.Undefined;
+                return null;
             }
 
             if (value == null)
             {
                 logger.Info("No settings found for audit log queue to import, default name will be used");
-                return AuditQueue.SubScope("log");
+                return Subscope(AuditQueue);
             }
-            return Address.Parse(value);
+
+            return value;
         }
 
-        private Address GetAuditQueue()
+        private string GetAuditQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
             if (value == null)
             {
                 logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-                return Address.Undefined;
+                this.IngestAuditMessages = false;
+                return null;
             }
 
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Audit ingestion disabled.");
+                this.IngestAuditMessages = false;
                 return null; // needs to be null to not create the queues
             }
-            return Address.Parse(value);
+
+            return value;
         }
 
-        private Address GetErrorQueue()
+        private string GetErrorQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
 
             if (value == null)
             {
                 logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
-                return Address.Undefined;
+                this.IngestErrorMessages = false;
+                return null;
             }
 
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Error ingestion disabled.");
+                this.IngestErrorMessages = false;
                 return null; // needs to be null to not create the queues
             }
 
-            return Address.Parse(value);
+            return value;
         }
 
-        private Address GetErrorLogQueue()
+        private string GetErrorLogQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
 
             if (ErrorQueue == null)
             {
-                return Address.Undefined;
+                return null;
             }
 
             if (value == null)
             {
                 logger.Info("No settings found for error log queue to import, default name will be used");
-                return ErrorQueue.SubScope("log");
+                return Subscope(ErrorQueue);
             }
 
-            return Address.Parse(value);
+            return value;
         }
 
         private string GetDbPath()
@@ -279,6 +297,7 @@
             {
                 host = "%";
             }
+
             var dbFolder = $"{host}-{Port}";
 
             if (!string.IsNullOrEmpty(VirtualDirectory))
@@ -298,6 +317,7 @@
             {
                 return forwardErrorMessages.Value;
             }
+
             throw new Exception("ForwardErrorMessages settings is missing, please make sure it is included.");
         }
 
@@ -308,7 +328,37 @@
             {
                 return forwardAuditMessages.Value;
             }
+
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
+        }
+
+        static string GetTransportType()
+        {
+            var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
+            var typeNameAndAssembly = typeName.Split(',');
+            if (typeNameAndAssembly.Length < 2)
+            {
+                throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is a fully qualified assembly name");
+            }
+
+            string transportAssemblyPath = null;
+            try
+            {
+                transportAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{typeNameAndAssembly[1].Trim()}.dll");
+                Assembly.LoadFile(transportAssemblyPath); // load into AppDomain
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Configuration of transport Failed. Ensure the assembly '{transportAssemblyPath}' is present and that type is correctly defined in settings", e);
+            }
+
+            var transportType = Type.GetType(typeName, false, true);
+            if (transportType != null)
+            {
+                return typeName;
+            }
+
+            throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
         }
 
         private static string SanitiseFolderName(string folderName)
@@ -321,8 +371,7 @@
             var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
             if (valueRead != null)
             {
-                TimeSpan result;
-                if (TimeSpan.TryParse(valueRead, out result))
+                if (TimeSpan.TryParse(valueRead, out var result))
                 {
                     string message;
                     if (ValidateConfiguration && result < TimeSpan.FromHours(1))
@@ -346,9 +395,8 @@
             return TimeSpan.FromDays(14);
         }
 
-        private TimeSpan GetErrorRetentionPeriod()
+        TimeSpan GetErrorRetentionPeriod()
         {
-            TimeSpan result;
             string message;
             var valueRead = SettingsReader<string>.Read("ErrorRetentionPeriod");
             if (valueRead == null)
@@ -358,7 +406,7 @@
                 throw new Exception(message);
             }
 
-            if (TimeSpan.TryParse(valueRead, out result))
+            if (TimeSpan.TryParse(valueRead, out var result))
             {
                 if (ValidateConfiguration && result < TimeSpan.FromDays(10))
                 {
@@ -380,12 +428,12 @@
                 logger.Fatal(message);
                 throw new Exception(message);
             }
+
             return result;
         }
 
-        private TimeSpan GetAuditRetentionPeriod()
+        TimeSpan GetAuditRetentionPeriod()
         {
-            TimeSpan result;
             string message;
             var valueRead = SettingsReader<string>.Read("AuditRetentionPeriod");
             if (valueRead == null)
@@ -395,7 +443,7 @@
                 throw new Exception(message);
             }
 
-            if (TimeSpan.TryParse(valueRead, out result))
+            if (TimeSpan.TryParse(valueRead, out var result))
             {
                 if (ValidateConfiguration && result < TimeSpan.FromHours(1))
                 {
@@ -417,21 +465,50 @@
                 InternalLogger.Fatal(message);
                 throw new Exception(message);
             }
+
             return result;
         }
 
-        private static RemoteInstanceSetting[] GetRemoteInstances()
+        static RemoteInstanceSetting[] GetRemoteInstances()
         {
             var valueRead = SettingsReader<string>.Read("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
             {
-                var jsonSerializer = Newtonsoft.Json.JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+                var jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
                 using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
                 {
                     return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];
                 }
             }
+
             return new RemoteInstanceSetting[0];
         }
+
+        static string Subscope(string address)
+        {
+            var atIndex = address.IndexOf("@", StringComparison.InvariantCulture);
+
+            if (atIndex <= -1)
+            {
+                return $"{address}.log";
+            }
+
+            var queue = address.Substring(0, atIndex);
+            var machine = address.Substring(atIndex + 1);
+            return $"{queue}.log@{machine}";
+        }
+
+
+        ILog logger = LogManager.GetLogger(typeof(Settings));
+        int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
+        int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
+        int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
+        public const string Disabled = "!disable";
+
+        const int ExpirationProcessTimerInSecondsDefault = 600;
+        const int ExpirationProcessBatchSizeDefault = 65512;
+        const int ExpirationProcessBatchSizeMinimum = 10240;
+        const int MaxBodySizeToStoreDefault = 102400; //100 kb
     }
 }

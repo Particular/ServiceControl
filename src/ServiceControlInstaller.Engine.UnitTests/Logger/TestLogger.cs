@@ -16,7 +16,7 @@
 
         public void Error(string message)
         {
-            Console.WriteLine("ERROR : " +  message);
+            Console.WriteLine("ERROR : " + message);
         }
     }
 }

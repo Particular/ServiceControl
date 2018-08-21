@@ -3,27 +3,35 @@
     using System.Windows.Input;
     using Caliburn.Micro;
     using FluentValidation;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Rx;
-    using ServiceControl.Config.Validation;
+    using Framework;
+    using Framework.Rx;
     using Validar;
+    using Validation;
 
     [InjectValidation]
     public class TextBoxDialogViewModel : RxScreen, IProvideValidator
     {
         public TextBoxDialogViewModel(string title,
-                                    string message,
-                                    string header,
-                                    string currentValue,
-                                    IValidator validator)
+            string message,
+            string header,
+            string currentValue,
+            IValidator validator)
         {
             Title = title;
             Message = message;
             Value = currentValue;
             Validator = validator;
             Header = header;
-            Cancel = Command.Create(() =>{Result = null;((IDeactivate)this).Deactivate(true);});
-            Save = Command.Create(() =>{Result = true; ((IDeactivate)this).Deactivate(true);}, () => Validator.Validate(this).IsValid);
+            Cancel = Command.Create(() =>
+            {
+                Result = null;
+                ((IDeactivate)this).Deactivate(true);
+            });
+            Save = Command.Create(() =>
+            {
+                Result = true;
+                ((IDeactivate)this).Deactivate(true);
+            }, () => Validator.Validate(this).IsValid);
         }
 
         public string Header { get; set; }

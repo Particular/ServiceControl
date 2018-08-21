@@ -3,7 +3,6 @@
     using System;
     using Microsoft.Win32;
     using Particular.Licensing;
-    using ServiceControlInstaller.Engine.FileSystem;
 
     public class LicenseManager
     {
@@ -17,17 +16,15 @@
 
         public static bool TryImportLicense(string licenseFile, out string errorMessage)
         {
-            Exception validationFailure;
-            License license;
-            var licenseText = NonLockingFileReader.ReadAllTextWithoutLocking(licenseFile);
+            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
 
-            if (!LicenseVerifier.TryVerify(licenseText, out validationFailure))
+            if (!LicenseVerifier.TryVerify(licenseText, out _))
             {
                 errorMessage = "Invalid license file";
                 return false;
             }
 
-            if (!TryDeserializeLicense(licenseText, out license))
+            if (!TryDeserializeLicense(licenseText, out var license))
             {
                 errorMessage = "Invalid license file";
                 return false;

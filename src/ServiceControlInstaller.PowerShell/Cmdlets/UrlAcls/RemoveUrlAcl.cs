@@ -1,9 +1,10 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System.Management.Automation;
-    using ServiceControlInstaller.Engine.UrlAcl;
+    using Engine.UrlAcl;
 
     [Cmdlet(VerbsCommon.Remove, "UrlAcl")]
     public class RemoveUrlAcl : PSCmdlet

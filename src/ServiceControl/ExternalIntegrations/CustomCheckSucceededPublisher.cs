@@ -3,12 +3,13 @@ namespace ServiceControl.ExternalIntegrations
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
+    using Contracts.CustomChecks;
     using Raven.Client;
-    using ServiceControl.Contracts;
 
-    public class CustomCheckSucceededPublisher : EventPublisher<Contracts.CustomChecks.CustomCheckSucceeded, CustomCheckSucceededPublisher.DispatchContext>
+    public class CustomCheckSucceededPublisher : EventPublisher<CustomCheckSucceeded, CustomCheckSucceededPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(Contracts.CustomChecks.CustomCheckSucceeded @event)
+        protected override DispatchContext CreateDispatchRequest(CustomCheckSucceeded @event)
         {
             return new DispatchContext
             {
@@ -17,13 +18,13 @@ namespace ServiceControl.ExternalIntegrations
                 EndpointName = @event.OriginatingEndpoint.Name,
                 SucceededAt = @event.SucceededAt,
                 Category = @event.Category,
-                CustomCheckId = @event.CustomCheckId,
+                CustomCheckId = @event.CustomCheckId
             };
         }
 
-        protected override IEnumerable<object> PublishEvents(IEnumerable<DispatchContext> contexts, IDocumentSession session)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return contexts.Select(r => new CustomCheckSucceeded
+            return Task.FromResult(contexts.Select(r => (object)new Contracts.CustomCheckSucceeded
             {
                 SucceededAt = r.SucceededAt,
                 Category = r.Category,
@@ -31,7 +32,7 @@ namespace ServiceControl.ExternalIntegrations
                 Host = r.EndpointHost,
                 HostId = r.EndpointHostId,
                 EndpointName = r.EndpointName
-            });
+            }));
         }
 
         public class DispatchContext

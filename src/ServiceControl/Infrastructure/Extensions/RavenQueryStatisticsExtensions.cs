@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.Extensions
 {
+    using CompositeViews.Messages;
     using Raven.Client;
-    using ServiceControl.CompositeViews.Messages;
 
     internal static class RavenQueryStatisticsExtensions
     {

@@ -8,7 +8,7 @@
         {
             TreatAsError();
 
-            Description(m=>m.FailureDetails.Exception.Message);
+            Description(m => m.FailureDetails.Exception.Message);
 
             RelatesToMessage(m => m.FailedMessageId);
             RelatesToEndpoint(m => m.EndpointId);

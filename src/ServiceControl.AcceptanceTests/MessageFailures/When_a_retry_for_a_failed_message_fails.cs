@@ -1,13 +1,12 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -16,61 +15,70 @@
         [Test]
         public async Task It_should_be_marked_as_unresolved()
         {
-            var context = new MyContext { Succeed = false };
-
-            FailedMessage failure = null;
-
-            await Define(context)
+            var result = await Define<MyContext>(ctx => { ctx.Succeed = false; })
                 .WithEndpoint<FailureEndpoint>(b =>
-                    b.Given(bus => bus.SendLocal(new MyMessage()))
-                        .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
-                            (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
-                        .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
-                            (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
+                    b.When(bus => bus.SendLocal(new MyMessage()))
+                        .DoNotFailOnErrorMessages()
                 )
-                .Done(async ctx =>
+                .Do("DetectFirstFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 1))
+                .Do("RetryFirstTime", async ctx =>
                 {
-                    var result = await GetFailedMessage(ctx, f => f.ProcessingAttempts.Count == 3);
-                    failure = result;
-                    return result;
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    return true;
                 })
-                .Run(TimeSpan.FromMinutes(4));
+                .Do("DetectSecondFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 2))
+                .Do("RetrySecondTime", async ctx =>
+                {
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    return true;
+                })
+                .Do("DetectThirdFailure", async ctx =>
+                {
+                    ctx.Result = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    return ctx.Result.ProcessingAttempts.Count == 3;
+                })
+                .Done()
+                .Run(TimeSpan.FromMinutes(2));
 
-            Assert.IsNotNull(failure, "Failure should not be null");
-            Assert.AreEqual(FailedMessageStatus.Unresolved, failure.Status);
+            Assert.AreEqual(FailedMessageStatus.Unresolved, result.Result.Status);
         }
 
         [Test]
         public async Task It_should_be_able_to_be_retried_successfully()
         {
-            var context = new MyContext { Succeed = false };
-
-            FailedMessage failure = null;
-
-            await Define(context)
+            var result = await Define<MyContext>(ctx => { ctx.Succeed = false; })
                 .WithEndpoint<FailureEndpoint>(b =>
-                    b.Given(bus => bus.SendLocal(new MyMessage()))
-                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 1),
-                          (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
-                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 2),
-                          (bus, ctx) => Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"))
-                     .When(async ctx => await CheckProcessingAttemptsIs(ctx, 3),
-                         async (bus, ctx) =>
-                         {
-                             ctx.Succeed = true;
-                             await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                         })
-                    )
-                .Done(async ctx =>
+                    b.When(bus => bus.SendLocal(new MyMessage()))
+                        .DoNotFailOnErrorMessages()
+                )
+                .Do("DetectFirstFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 1))
+                .Do("RetryFirstTime", async ctx =>
                 {
-                    var result = await GetFailedMessage(ctx, f => f.Status == FailedMessageStatus.Resolved);
-                    failure = result;
-                    return result;
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    return true;
                 })
-                .Run(TimeSpan.FromMinutes(4));
+                .Do("DetectSecondFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 2))
+                .Do("RetrySecondTime", async ctx =>
+                {
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    return true;
+                })
+                .Do("DetectThirdFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 2))
+                .Do("RetryThirdTime", async ctx =>
+                {
+                    ctx.Succeed = true;
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    return true;
+                })
+                .Do("DetectSuccess", async ctx =>
+                {
+                    ctx.Result = await GetFailedMessage(ctx, f => f.Status == FailedMessageStatus.Resolved);
+                    return ctx.Result != null;
+                })
+                .Done()
+                .Run(TimeSpan.FromMinutes(2));
 
-            Assert.IsNotNull(failure, "Failure should not be null");
-            Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
+            Assert.AreEqual(FailedMessageStatus.Resolved, result.Result.Status);
         }
 
         Task<SingleResult<FailedMessage>> CheckProcessingAttemptsIs(MyContext ctx, int count)
@@ -85,46 +93,46 @@
                 return SingleResult<FailedMessage>.Empty;
             }
 
-            return await TryGet($"/api/errors/{c.UniqueMessageId}", condition);
+            return await this.TryGet($"/api/errors/{c.UniqueMessageId}", condition);
         }
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Attempting to process message");
 
-                    Context.EndpointNameOfReceivingEndpoint = Settings.LocalAddress().Queue;
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!Context.Succeed) //simulate that the exception will be resolved with the retry
                     {
                         Console.WriteLine("Message processing failure");
                         throw new Exception("Simulated exception");
                     }
+
                     Console.WriteLine("Message processing success");
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        [Serializable]
+
         public class MyMessage : ICommand
         {
         }
 
-        public class MyContext : ScenarioContext
+        public class MyContext : ScenarioContext, ISequenceContext
         {
             public string MessageId { get; set; }
 
@@ -133,6 +141,9 @@
             public bool Succeed { get; set; }
 
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
+            public int Step { get; set; }
+
+            public FailedMessage Result { get; set; }
         }
     }
 }

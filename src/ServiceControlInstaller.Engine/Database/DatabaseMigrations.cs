@@ -5,7 +5,7 @@
     using System.IO;
     using System.Text;
     using System.Text.RegularExpressions;
-    using ServiceControlInstaller.Engine.Instances;
+    using Instances;
 
     public class DatabaseMigrations
     {
@@ -77,6 +77,6 @@
         }
 
         // line length = 80
-        static readonly Regex SpliceTextPattern = new Regex($"(.{{80}})", RegexOptions.Compiled);
+        static readonly Regex SpliceTextPattern = new Regex("(.{80})", RegexOptions.Compiled);
     }
 }

@@ -3,21 +3,20 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class IntegrationEventWriter : IDomainHandler<IDomainEvent>
     {
-        private readonly IDocumentStore store;
-        private readonly IEnumerable<IEventPublisher> eventPublishers;
-
         public IntegrationEventWriter(IDocumentStore store, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
             this.eventPublishers = eventPublishers;
         }
-        public void Handle(IDomainEvent message)
+
+        public async Task Handle(IDomainEvent message)
         {
             var dispatchContexts = eventPublishers
                 .Where(p => p.Handles(message))
@@ -29,7 +28,7 @@
                 return;
             }
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 foreach (var dispatchContext in dispatchContexts)
                 {
@@ -37,18 +36,24 @@
                     {
                         Logger.Debug("Storing dispatch request.");
                     }
+
                     var dispatchRequest = new ExternalIntegrationDispatchRequest
                     {
                         Id = $"ExternalIntegrationDispatchRequests/{Guid.NewGuid()}",
                         DispatchContext = dispatchContext
                     };
 
-                    session.Store(dispatchRequest);
+                    await session.StoreAsync(dispatchRequest)
+                        .ConfigureAwait(false);
                 }
 
-                session.SaveChanges();
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
         }
+
+        readonly IDocumentStore store;
+        readonly IEnumerable<IEventPublisher> eventPublishers;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(IntegrationEventWriter));
     }

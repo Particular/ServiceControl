@@ -5,8 +5,6 @@ namespace ServiceControl.Monitoring
 
     class HeartbeatMonitor
     {
-        volatile RecordedHeartbeat heartbeat = new RecordedHeartbeat(HeartbeatStatus.Unknown, null);
-
         public void MarkAlive(DateTime timestamp)
         {
             var newReading = new RecordedHeartbeat(HeartbeatStatus.Alive, timestamp);
@@ -49,5 +47,6 @@ namespace ServiceControl.Monitoring
         }
 
         public bool IsSendingHeartbeats() => heartbeat?.Status == HeartbeatStatus.Alive;
+        volatile RecordedHeartbeat heartbeat = new RecordedHeartbeat(HeartbeatStatus.Unknown, null);
     }
 }

@@ -1,55 +1,40 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Error
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
 
     class When_a_multiple_error_message_with_same_uniqueid_are_imported_concurrently : AcceptanceTest
     {
-        class CounterEnricher : ImportEnricher
-        {
-            public MyContext Context { get; set; }
-
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
-                string counter;
-                if (headers.TryGetValue("Counter", out counter))
-                {
-                    Context.OnMessage(counter);
-                }
-                else
-                {
-                    Console.WriteLine("No Counter header found");
-                }
-            }
-        }
-
         [Test]
         public async Task The_import_should_support_it()
         {
-            var context = new MyContext();
-            SetSettings = settings =>
-            {
-                settings.MaximumConcurrencyLevel = 10;
-            };
+            var criticalErrorExecuted = false;
+
+            SetSettings = settings => { settings.MaximumConcurrencyLevel = 10; };
             CustomConfiguration = config =>
             {
-                config.DefineCriticalErrorAction((s, exception) => context.CriticalErrorExecuted = true);
+                config.DefineCriticalErrorAction(ctx =>
+                {
+                    criticalErrorExecuted = true;
+                    return Task.FromResult(0);
+                });
                 config.RegisterComponents(c => c.ConfigureComponent<CounterEnricher>(DependencyLifecycle.SingleInstance));
             };
 
             FailedMessage failure = null;
-            await Define(context)
+            await Define<MyContext>()
                 .WithEndpoint<SourceEndpoint>()
                 .Done(async c =>
                 {
@@ -58,19 +43,38 @@
                         return false;
                     }
 
-                    var result = await TryGet<FailedMessage>($"/api/errors/{c.UniqueId}", m =>
+                    var result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueId}", m =>
                     {
                         Console.WriteLine("Processing attempts: " + m.ProcessingAttempts.Count);
                         return m.ProcessingAttempts.Count == 10;
                     });
                     failure = result;
-                    return c.CriticalErrorExecuted || result;
+                    return criticalErrorExecuted || result;
                 })
                 .Run();
 
-            Assert.IsFalse(context.CriticalErrorExecuted);
+            Assert.IsFalse(criticalErrorExecuted);
             Assert.NotNull(failure);
             Assert.AreEqual(10, failure.ProcessingAttempts.Count);
+        }
+
+        class CounterEnricher : ImportEnricher
+        {
+            public MyContext Context { get; set; }
+
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
+                if (headers.TryGetValue("Counter", out var counter))
+                {
+                    Context.OnMessage(counter);
+                }
+                else
+                {
+                    Console.WriteLine("No Counter header found");
+                }
+
+                return Task.FromResult(0);
+            }
         }
 
         public class SourceEndpoint : EndpointConfigurationBuilder
@@ -80,26 +84,25 @@
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
 
-            public class SendMultipleFailedMessagesWithSameUniqueId : IWantToRunWhenBusStartsAndStops
+            class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages<MyContext>
             {
-                ISendMessages sendMessages;
-                MyContext context;
-
-                public SendMultipleFailedMessagesWithSameUniqueId(ISendMessages sendMessages, MyContext context)
-                {
-                    this.sendMessages = sendMessages;
-                    this.context = context;
-                }
-
-                public void Start()
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
                     var messageId = Guid.NewGuid().ToString();
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();
 
-                    Parallel.For(0, 10, i =>
+                    return new TransportOperations(GetMessages(context.UniqueId).ToArray());
+                }
+
+                IEnumerable<TransportOperation> GetMessages(string uniqueId)
+                {
+                    for (var i = 0; i < 10; i++)
                     {
+                        var messageId = Guid.NewGuid().ToString();
                         var headers = new Dictionary<string, string>
                         {
+                            [Headers.MessageId] = messageId,
+                            ["ServiceControl.Retry.UniqueMessageId"] = uniqueId,
                             [Headers.ProcessingEndpoint] = "Error.SourceEndpoint",
                             ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
                             ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
@@ -110,30 +113,25 @@
                             ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                             ["Counter"] = i.ToString()
                         };
-                        var message = new TransportMessage(messageId, headers);
-                        sendMessages.Send(message, new SendOptions("error"));
-                    });
-                }
 
-                public void Stop()
-                {
+                        var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
+
+                        yield return new TransportOperation(outgoingMessage, new UnicastAddressTag("error"));
+                    }
                 }
             }
         }
 
-        public class MyContext : ScenarioContext
+        class MyContext : ScenarioContext
         {
-            ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
+            public string UniqueId { get; set; }
 
             public void OnMessage(string counter)
             {
                 receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
             }
 
-            public string ReceivedMessages => string.Join(",", receivedMessages.Keys);
-
-            public string UniqueId { get; set; }
-            public bool CriticalErrorExecuted { get; set; }
+            ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
         }
     }
 }

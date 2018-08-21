@@ -2,11 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
@@ -15,19 +15,11 @@
         [Test]
         public async Task Should_import_all_messages()
         {
-            var context = new MyContext();
-
-
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus =>
-                {
-                    Parallel.For(0, 100, i =>
-                        bus.SendLocal(new MyMessage())
-                    );
-                }))
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(bus => Task.WhenAll(Enumerable.Repeat(0, 100).Select(i => bus.SendLocal(new MyMessage())))).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<MessagesView>("/api/messages?per_page=150");
+                    var result = await this.TryGetMany<MessagesView>("/api/messages?per_page=150");
                     if (!result)
                     {
                         return false;
@@ -48,27 +40,25 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.Recoverability().Delayed(s => s.NumberOfRetries(0)));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     throw new Exception("Simulated exception");
                 }
             }
         }
 
-        [Serializable]
+
         public class MyMessage : ICommand
         {
         }
 
         public class MyContext : ScenarioContext
         {
-
         }
     }
 }

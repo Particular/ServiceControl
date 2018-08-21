@@ -1,117 +1,21 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace ServiceControl.Config.Framework.Rx
+﻿namespace ServiceControl.Config.Framework.Rx
 {
-    internal class WeakValueDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Linq;
+
+    class WeakValueDictionary<TKey, TValue> : IDictionary<TKey, TValue>
         where TValue : class
     {
-        private readonly Dictionary<TKey, WeakReference> inner;
-        private readonly WeakReference gcSentinel = new WeakReference(new object());
-
-        #region Cleanup handling
-
-        private bool IsCleanupNeeded()
-        {
-            if (gcSentinel.Target == null)
-            {
-                gcSentinel.Target = new object();
-                return true;
-            }
-
-            return false;
-        }
-
-        private void CleanAbandonedItems()
-        {
-            var keysToRemove = inner.Where(pair => !pair.Value.IsAlive)
-                .Select(pair => pair.Key)
-                .ToList();
-
-            keysToRemove.Apply(key => inner.Remove(key));
-        }
-
-        private void CleanIfNeeded()
-        {
-            if (IsCleanupNeeded())
-            {
-                CleanAbandonedItems();
-            }
-        }
-
-        #endregion Cleanup handling
-
-        #region Constructors
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> class that is empty, has the default initial capacity, and uses the default equality comparer for the key type.
-        /// </summary>
-        public WeakValueDictionary()
-        {
-            inner = new Dictionary<TKey, WeakReference>();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> class that contains elements copied from the specified <see cref="IDictionary&lt;TKey, TValue&gt;"/> and uses the default equality comparer for the key type.
-        /// </summary>
-        /// <param name="dictionary">The <see cref="IDictionary&lt;TKey, TValue&gt;"/> whose elements are copied to the new <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.</param>
-        public WeakValueDictionary(IDictionary<TKey, TValue> dictionary)
-        {
-            inner = new Dictionary<TKey, WeakReference>();
-            dictionary.Apply(item => inner.Add(item.Key, new WeakReference(item.Value)));
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> class that contains elements copied from the specified <see cref="IDictionary&lt;TKey, TValue&gt;"/> and uses the specified <see cref="IEqualityComparer&lt;T&gt;"/>.
-        /// </summary>
-        /// <param name="dictionary">The <see cref="IDictionary&lt;TKey, TValue&gt;"/> whose elements are copied to the new <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.</param>
-        /// <param name="comparer">The <see cref="IEqualityComparer&lt;T&gt;"/> implementation to use when comparing keys, or null to use the default <see cref="EqualityComparer&lt;T&gt;"/> for the type of the key.</param>
-        public WeakValueDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey> comparer)
-        {
-            inner = new Dictionary<TKey, WeakReference>(comparer);
-            dictionary.Apply(item => inner.Add(item.Key, new WeakReference(item.Value)));
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> class that is empty, has the default initial capacity, and uses the specified <see cref="IEqualityComparer&lt;T&gt;"/>.
-        /// </summary>
-        /// <param name="comparer">The <see cref="IEqualityComparer&lt;T&gt;"/> implementation to use when comparing keys, or null to use the default <see cref="EqualityComparer&lt;T&gt;"/> for the type of the key.</param>
-        public WeakValueDictionary(IEqualityComparer<TKey> comparer)
-        {
-            inner = new Dictionary<TKey, WeakReference>(comparer);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> class that is empty, has the specified initial capacity, and uses the default equality comparer for the key type.
-        /// </summary>
-        /// <param name="capacity">The initial number of elements that the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> can contain.</param>
-        public WeakValueDictionary(int capacity)
-        {
-            inner = new Dictionary<TKey, WeakReference>(capacity);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> class that is empty, has the specified initial capacity, and uses the specified <see cref="IEqualityComparer&lt;T&gt;"/>.
-        /// </summary>
-        /// <param name="capacity">The initial number of elements that the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> can contain.</param>
-        /// <param name="comparer">The <see cref="IEqualityComparer&lt;T&gt;"/> implementation to use when comparing keys, or null to use the default <see cref="EqualityComparer&lt;T&gt;"/> for the type of the key.</param>
-        public WeakValueDictionary(int capacity, IEqualityComparer<TKey> comparer)
-        {
-            inner = new Dictionary<TKey, WeakReference>(capacity, comparer);
-        }
-
-        #endregion Constructors
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.
+        /// Returns an enumerator that iterates through the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
         /// </summary>
         /// <returns>The enumerator.</returns>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             CleanIfNeeded();
-            var enumerable = inner.Select(pair => new KeyValuePair<TKey, TValue>(pair.Key, (TValue) pair.Value.Target))
+            var enumerable = inner.Select(pair => new KeyValuePair<TKey, TValue>(pair.Key, (TValue)pair.Value.Target))
                 .Where(pair => pair.Value != null);
             return enumerable.GetEnumerator();
         }
@@ -127,7 +31,7 @@ namespace ServiceControl.Config.Framework.Rx
         }
 
         /// <summary>
-        /// Removes all keys and values from the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.
+        /// Removes all keys and values from the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
         /// </summary>
         public void Clear()
         {
@@ -136,9 +40,10 @@ namespace ServiceControl.Config.Framework.Rx
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
         {
-            TValue value;
-            if (!TryGetValue(item.Key, out value))
+            if (!TryGetValue(item.Key, out var value))
+            {
                 return false;
+            }
 
             return value == item.Value;
         }
@@ -146,28 +51,41 @@ namespace ServiceControl.Config.Framework.Rx
         void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
             if (array == null)
+            {
                 throw new ArgumentNullException(nameof(array));
+            }
+
             if (arrayIndex < 0 || arrayIndex >= array.Length)
+            {
                 throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+            }
+
             if (arrayIndex + Count > array.Length)
+            {
                 throw new ArgumentException(
                     "The number of elements in the source collection is greater than the available space from arrayIndex to the end of the destination array.");
+            }
 
             this.ToArray().CopyTo(array, arrayIndex);
         }
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
-            TValue value;
-            if (!TryGetValue(item.Key, out value))
+            if (!TryGetValue(item.Key, out var value))
+            {
                 return false;
+            }
+
             if (value != item.Value)
+            {
                 return false;
+            }
+
             return inner.Remove(item.Key);
         }
 
         /// <summary>
-        /// Gets the number of key/value pairs contained in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.
+        /// Gets the number of key/value pairs contained in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
         /// </summary>
         /// <remarks>
         /// Since the items in the dictionary are held by weak reference, the count value
@@ -197,9 +115,9 @@ namespace ServiceControl.Config.Framework.Rx
         }
 
         /// <summary>
-        /// Determines whether the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> contains the specified key.
+        /// Determines whether the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" /> contains the specified key.
         /// </summary>
-        /// <param name="key">The key to locate in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.</param>
+        /// <param name="key">The key to locate in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.</param>
         /// <returns></returns>
         public bool ContainsKey(TKey key)
         {
@@ -208,10 +126,13 @@ namespace ServiceControl.Config.Framework.Rx
         }
 
         /// <summary>
-        /// Removes the value with the specified key from the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.
+        /// Removes the value with the specified key from the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
         /// </summary>
         /// <param name="key">The key of the element to remove.</param>
-        /// <returns>true if the element is successfully found and removed; otherwise, false. This method returns false if key is not found in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.</returns>
+        /// <returns>
+        /// true if the element is successfully found and removed; otherwise, false. This method returns false if key is
+        /// not found in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
+        /// </returns>
         public bool Remove(TKey key)
         {
             CleanIfNeeded();
@@ -225,20 +146,23 @@ namespace ServiceControl.Config.Framework.Rx
         /// <param name="value">
         /// When this method returns, contains the value associated with the specified key,
         /// if the key is found; otherwise, the default value for the type of the value parameter.
-        /// This parameter is passed uninitialized.</param>
-        /// <returns>true if the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/> contains an element with the specified key; otherwise, false.</returns>
+        /// This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        /// true if the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" /> contains an element with the specified key;
+        /// otherwise, false.
+        /// </returns>
         public bool TryGetValue(TKey key, out TValue value)
         {
             CleanIfNeeded();
 
-            WeakReference wr;
-            if (!inner.TryGetValue(key, out wr))
+            if (!inner.TryGetValue(key, out var wr))
             {
                 value = null;
                 return false;
             }
 
-            var result = (TValue) wr.Target;
+            var result = (TValue)wr.Target;
             if (result == null)
             {
                 inner.Remove(key);
@@ -255,16 +179,19 @@ namespace ServiceControl.Config.Framework.Rx
         /// </summary>
         /// <param name="key">The key of the value to get or set.</param>
         /// <returns>
-        /// The value associated with the specified key. If the specified key is not found, a get operation throws a <see cref="KeyNotFoundException"/>,
+        /// The value associated with the specified key. If the specified key is not found, a get operation throws a
+        /// <see cref="KeyNotFoundException" />,
         /// and a set operation creates a new element with the specified key.
         /// </returns>
         public TValue this[TKey key]
         {
             get
             {
-                TValue result;
-                if (!TryGetValue(key, out result))
+                if (!TryGetValue(key, out var result))
+                {
                     throw new KeyNotFoundException();
+                }
+
                 return result;
             }
             set
@@ -275,21 +202,22 @@ namespace ServiceControl.Config.Framework.Rx
         }
 
         /// <summary>
-        /// Gets a collection containing the keys in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.
+        /// Gets a collection containing the keys in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
         /// </summary>
         public ICollection<TKey> Keys => inner.Keys;
 
         /// <summary>
-        /// Gets a collection containing the values in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;"/>.
+        /// Gets a collection containing the values in the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
         /// </summary>
         public ICollection<TValue> Values => new ValueCollection(this);
 
+        readonly Dictionary<TKey, WeakReference> inner;
+        readonly WeakReference gcSentinel = new WeakReference(new object());
+
         #region Inner Types
 
-        private sealed class ValueCollection : ICollection<TValue>
+        sealed class ValueCollection : ICollection<TValue>
         {
-            private readonly WeakValueDictionary<TKey, TValue> inner;
-
             public ValueCollection(WeakValueDictionary<TKey, TValue> dictionary)
             {
                 inner = dictionary;
@@ -323,12 +251,20 @@ namespace ServiceControl.Config.Framework.Rx
             public void CopyTo(TValue[] array, int arrayIndex)
             {
                 if (array == null)
+                {
                     throw new ArgumentNullException(nameof(array));
+                }
+
                 if (arrayIndex < 0 || arrayIndex >= array.Length)
+                {
                     throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+                }
+
                 if (arrayIndex + Count > array.Length)
+                {
                     throw new ArgumentException(
                         "The number of elements in the source collection is greater than the available space from arrayIndex to the end of the destination array.");
+                }
 
                 this.ToArray().CopyTo(array, arrayIndex);
             }
@@ -341,8 +277,131 @@ namespace ServiceControl.Config.Framework.Rx
             public int Count => inner.Count;
 
             bool ICollection<TValue>.IsReadOnly => true;
+            readonly WeakValueDictionary<TKey, TValue> inner;
         }
 
         #endregion Inner Types
+
+        #region Cleanup handling
+
+        bool IsCleanupNeeded()
+        {
+            if (gcSentinel.Target == null)
+            {
+                gcSentinel.Target = new object();
+                return true;
+            }
+
+            return false;
+        }
+
+        void CleanAbandonedItems()
+        {
+            var keysToRemove = inner.Where(pair => !pair.Value.IsAlive)
+                .Select(pair => pair.Key)
+                .ToList();
+
+            keysToRemove.Apply(key => inner.Remove(key));
+        }
+
+        void CleanIfNeeded()
+        {
+            if (IsCleanupNeeded())
+            {
+                CleanAbandonedItems();
+            }
+        }
+
+        #endregion Cleanup handling
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" /> class that is empty, has the
+        /// default initial capacity, and uses the default equality comparer for the key type.
+        /// </summary>
+        public WeakValueDictionary()
+        {
+            inner = new Dictionary<TKey, WeakReference>();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" /> class that contains elements
+        /// copied from the specified <see cref="IDictionary&lt;TKey, TValue&gt;" /> and uses the default equality comparer for the
+        /// key type.
+        /// </summary>
+        /// <param name="dictionary">
+        /// The <see cref="IDictionary&lt;TKey, TValue&gt;" /> whose elements are copied to the new
+        /// <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
+        /// </param>
+        public WeakValueDictionary(IDictionary<TKey, TValue> dictionary)
+        {
+            inner = new Dictionary<TKey, WeakReference>();
+            dictionary.Apply(item => inner.Add(item.Key, new WeakReference(item.Value)));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" /> class that contains elements
+        /// copied from the specified <see cref="IDictionary&lt;TKey, TValue&gt;" /> and uses the specified
+        /// <see cref="IEqualityComparer&lt;T&gt;" />.
+        /// </summary>
+        /// <param name="dictionary">
+        /// The <see cref="IDictionary&lt;TKey, TValue&gt;" /> whose elements are copied to the new
+        /// <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />.
+        /// </param>
+        /// <param name="comparer">
+        /// The <see cref="IEqualityComparer&lt;T&gt;" /> implementation to use when comparing keys, or null
+        /// to use the default <see cref="EqualityComparer&lt;T&gt;" /> for the type of the key.
+        /// </param>
+        public WeakValueDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey> comparer)
+        {
+            inner = new Dictionary<TKey, WeakReference>(comparer);
+            dictionary.Apply(item => inner.Add(item.Key, new WeakReference(item.Value)));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" /> class that is empty, has the
+        /// default initial capacity, and uses the specified <see cref="IEqualityComparer&lt;T&gt;" />.
+        /// </summary>
+        /// <param name="comparer">
+        /// The <see cref="IEqualityComparer&lt;T&gt;" /> implementation to use when comparing keys, or null
+        /// to use the default <see cref="EqualityComparer&lt;T&gt;" /> for the type of the key.
+        /// </param>
+        public WeakValueDictionary(IEqualityComparer<TKey> comparer)
+        {
+            inner = new Dictionary<TKey, WeakReference>(comparer);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" /> class that is empty, has the
+        /// specified initial capacity, and uses the default equality comparer for the key type.
+        /// </summary>
+        /// <param name="capacity">
+        /// The initial number of elements that the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />
+        /// can contain.
+        /// </param>
+        public WeakValueDictionary(int capacity)
+        {
+            inner = new Dictionary<TKey, WeakReference>(capacity);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" /> class that is empty, has the
+        /// specified initial capacity, and uses the specified <see cref="IEqualityComparer&lt;T&gt;" />.
+        /// </summary>
+        /// <param name="capacity">
+        /// The initial number of elements that the <see cref="WeakValueDictionary&lt;TKey, TValue&gt;" />
+        /// can contain.
+        /// </param>
+        /// <param name="comparer">
+        /// The <see cref="IEqualityComparer&lt;T&gt;" /> implementation to use when comparing keys, or null
+        /// to use the default <see cref="EqualityComparer&lt;T&gt;" /> for the type of the key.
+        /// </param>
+        public WeakValueDictionary(int capacity, IEqualityComparer<TKey> comparer)
+        {
+            inner = new Dictionary<TKey, WeakReference>(capacity, comparer);
+        }
+
+        #endregion Constructors
     }
 }

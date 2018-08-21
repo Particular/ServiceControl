@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
@@ -21,15 +22,12 @@
 
         internal class SagaRelationshipsEnricher : ImportEnricher
         {
-            public override void Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                string sagasInvokedRaw;
-
-                if (headers.TryGetValue("NServiceBus.InvokedSagas", out sagasInvokedRaw))
+                if (headers.TryGetValue("NServiceBus.InvokedSagas", out var sagasInvokedRaw))
                 {
-                    string sagasChangeRaw;
                     var sagasChanges = new Dictionary<string, string>();
-                    if (headers.TryGetValue("ServiceControl.SagaStateChange", out sagasChangeRaw))
+                    if (headers.TryGetValue("ServiceControl.SagaStateChange", out var sagasChangeRaw))
                     {
                         var multiSagaChanges = sagasChangeRaw.Split(';');
 
@@ -37,14 +35,13 @@
                         {
                             var id = part[0];
                             var thisChange = part[1];
-                            string previousChange;
-                            if (!sagasChanges.TryGetValue(id, out previousChange))
+                            if (!sagasChanges.TryGetValue(id, out var previousChange))
                             {
                                 sagasChanges[id] = thisChange;
                             }
                             else
                             {
-                                if (thisChange == "Completed"   //Completed overrides everything
+                                if (thisChange == "Completed" //Completed overrides everything
                                     || thisChange == "New" && previousChange == "Updated") //New overrides Updated
                                 {
                                     sagasChanges[id] = thisChange;
@@ -60,15 +57,14 @@
                         .Select(saga =>
                         {
                             var sagaInvoked = saga.Split(':');
-                            string changeText;
 
-                            sagasChanges.TryGetValue(sagaInvoked[1], out changeText);
+                            sagasChanges.TryGetValue(sagaInvoked[1], out var changeText);
 
                             return new SagaInfo
                             {
                                 SagaId = Guid.Parse(sagaInvoked[1]),
                                 SagaType = sagaInvoked[0],
-                                ChangeStatus = changeText,
+                                ChangeStatus = changeText
                             };
                         })
                         .ToList();
@@ -77,16 +73,13 @@
                 }
                 else
                 {
-                    string sagaId;
-
                     //for backwards compatibility
-                    if (headers.TryGetValue(Headers.SagaId, out sagaId))
+                    if (headers.TryGetValue(Headers.SagaId, out var sagaId))
                     {
                         // A failure when a MarkAsComplete control message is received causes a saga message to be received in
                         // the error queue without a Headers.SagaType header.
                         // Hence the reason for the check!
-                        string sagaType;
-                        if (headers.TryGetValue(Headers.SagaType, out sagaType))
+                        if (headers.TryGetValue(Headers.SagaType, out var sagaType))
                         {
                             sagaType = sagaType.Split(',').First();
                         }
@@ -106,13 +99,10 @@
                     }
                 }
 
-                string originatingSagaId;
-
-                if (headers.TryGetValue(Headers.OriginatingSagaId, out originatingSagaId))
+                if (headers.TryGetValue(Headers.OriginatingSagaId, out var originatingSagaId))
                 {
                     // I am not sure if we need this logic here as well, but just in case see comment above.
-                    string sagaType;
-                    if (headers.TryGetValue(Headers.OriginatingSagaType, out sagaType))
+                    if (headers.TryGetValue(Headers.OriginatingSagaType, out var sagaType))
                     {
                         sagaType = sagaType.Split(',').First();
                     }
@@ -128,6 +118,7 @@
                     });
                 }
 
+                return Task.CompletedTask;
             }
 
             static IEnumerable<string> SplitInvokedSagas(string sagasInvokedRaw)
@@ -146,6 +137,7 @@
                     {
                         yield return part;
                     }
+
                     yield return tail;
                 }
                 else

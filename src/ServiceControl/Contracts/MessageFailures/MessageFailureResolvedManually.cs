@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class MessageFailureResolvedManually : IDomainEvent
     {

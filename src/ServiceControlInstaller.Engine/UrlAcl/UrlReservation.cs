@@ -9,18 +9,10 @@
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Text.RegularExpressions;
-    using ServiceControlInstaller.Engine.UrlAcl.Api;
+    using Api;
 
     public class UrlReservation
     {
-        static Regex urlPattern = new Regex(@"^(?<protocol>https?)://(?<hostname>([^/]*?))(:(?<port>\d{0,5}))?(/(?<virtual>[^:]*))?/$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-        const int GENERIC_EXECUTE = 536870912;
-
-        public string Url {get; }
-
-        List<SecurityIdentifier> securityIdentifiers = new List<SecurityIdentifier>();
-
         public UrlReservation(string url, params SecurityIdentifier[] securityIdentifiers)
         {
             if (!url.EndsWith("/"))
@@ -41,6 +33,7 @@
                 {
                     Port = int.Parse(matchResults.Groups["port"].Value);
                 }
+
                 VirtualDirectory = matchResults.Groups["virtual"].Value;
                 Url = url;
             }
@@ -55,14 +48,21 @@
             }
         }
 
+        public string Url { get; }
+
         public ReadOnlyCollection<string> Users
         {
             get
             {
-                var users = securityIdentifiers.Select(sec => ((NTAccount) sec.Translate(typeof(NTAccount))).Value).ToList();
+                var users = securityIdentifiers.Select(sec => ((NTAccount)sec.Translate(typeof(NTAccount))).Value).ToList();
                 return new ReadOnlyCollection<string>(users);
             }
         }
+
+        public int Port { get; }
+        public string HostName { get; }
+        public string VirtualDirectory { get; }
+        public bool HTTPS { get; }
 
         public void AddUser(string user)
         {
@@ -91,20 +91,15 @@
             Delete(this);
         }
 
-        public int Port { get; }
-        public string HostName { get; }
-        public string VirtualDirectory { get; }
-        public bool HTTPS { get; }
-
         public static ReadOnlyCollection<UrlReservation> GetAll()
         {
             var reservations = new List<UrlReservation>();
 
-            var retVal =  HttpApi.HttpInitialize(HttpApiConstants.Version1, HttpApiConstants.InitializeConfig, IntPtr.Zero);
+            var retVal = HttpApi.HttpInitialize(HttpApiConstants.Version1, HttpApiConstants.InitializeConfig, IntPtr.Zero);
 
             if (retVal == ErrorCode.Success)
             {
-                var inputConfigInfoSet = new  HttpServiceConfigUrlAclQuery
+                var inputConfigInfoSet = new HttpServiceConfigUrlAclQuery
                 {
                     QueryDesc = HttpServiceConfigQueryType.HttpServiceConfigQueryNext
                 };
@@ -133,34 +128,35 @@
                         pOutputConfigInfo = Marshal.AllocHGlobal(Convert.ToInt32(returnLength));
 
                         retVal = HttpApi.HttpQueryServiceConfiguration(IntPtr.Zero,
-                        HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
-                        pInputConfigInfo,
-                        Marshal.SizeOf(inputConfigInfoSet),
-                        pOutputConfigInfo,
-                        returnLength,
-                        out returnLength,
-                        IntPtr.Zero);
+                            HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
+                            pInputConfigInfo,
+                            Marshal.SizeOf(inputConfigInfoSet),
+                            pOutputConfigInfo,
+                            returnLength,
+                            out returnLength,
+                            IntPtr.Zero);
                     }
 
-                    if ( retVal == ErrorCode.Success)
+                    if (retVal == ErrorCode.Success)
                     {
-                        var outputConfigInfo = (HttpServiceConfigUrlAclSet) Marshal.PtrToStructure(pOutputConfigInfo, typeof(HttpServiceConfigUrlAclSet));
+                        var outputConfigInfo = (HttpServiceConfigUrlAclSet)Marshal.PtrToStructure(pOutputConfigInfo, typeof(HttpServiceConfigUrlAclSet));
                         var rev = new UrlReservation(outputConfigInfo.KeyDesc.UrlPrefix, SecurityIdentifiersFromSecurityDescriptor(outputConfigInfo.ParamDesc.StringSecurityDescriptor).ToArray());
                         reservations.Add(rev);
                     }
+
                     Marshal.FreeHGlobal(pOutputConfigInfo);
                     Marshal.FreeHGlobal(pInputConfigInfo);
                     i++;
                 }
 
                 retVal = HttpApi.HttpTerminate(HttpApiConstants.InitializeConfig, IntPtr.Zero);
-
             }
 
             if (retVal != ErrorCode.Success)
             {
                 throw new Win32Exception(Convert.ToInt32(retVal));
             }
+
             return new ReadOnlyCollection<UrlReservation>(reservations);
         }
 
@@ -177,7 +173,6 @@
 
         private static void reserveURL(string networkURL, string securityDescriptor)
         {
-
             var retVal = HttpApi.HttpInitialize(HttpApiConstants.Version1, HttpApiConstants.InitializeConfig, IntPtr.Zero);
             if (retVal == ErrorCode.Success)
             {
@@ -202,10 +197,10 @@
                 if (ErrorCode.AlreadyExists == retVal)
                 {
                     retVal = HttpApi.HttpDeleteServiceConfiguration(IntPtr.Zero,
-                   HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
-                    pInputConfigInfo,
-                    Marshal.SizeOf(inputConfigInfoSet),
-                    IntPtr.Zero);
+                        HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
+                        pInputConfigInfo,
+                        Marshal.SizeOf(inputConfigInfoSet),
+                        IntPtr.Zero);
 
                     if (ErrorCode.Success == retVal)
                     {
@@ -288,10 +283,10 @@
         {
             var discretionaryAcl = GetDiscretionaryAcl(securityIdentifiers);
             var securityDescriptor = new CommonSecurityDescriptor(false, false,
-                        ControlFlags.GroupDefaulted |
-                        ControlFlags.OwnerDefaulted |
-                        ControlFlags.DiscretionaryAclPresent,
-                        null, null, null, discretionaryAcl);
+                ControlFlags.GroupDefaulted |
+                ControlFlags.OwnerDefaulted |
+                ControlFlags.DiscretionaryAclPresent,
+                null, null, null, discretionaryAcl);
             return securityDescriptor;
         }
 
@@ -315,5 +310,10 @@
             systemAcl.GetBinaryForm(bytes, 0);
             return bytes;
         }
+
+        List<SecurityIdentifier> securityIdentifiers = new List<SecurityIdentifier>();
+
+        const int GENERIC_EXECUTE = 536870912;
+        static Regex urlPattern = new Regex(@"^(?<protocol>https?)://(?<hostname>([^/]*?))(:(?<port>\d{0,5}))?(/(?<virtual>[^:]*))?/$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     }
 }

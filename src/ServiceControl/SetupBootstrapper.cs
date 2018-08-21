@@ -2,6 +2,7 @@ namespace Particular.ServiceControl
 {
     using Autofac;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -11,8 +12,6 @@ namespace Particular.ServiceControl
 
     public class SetupBootstrapper
     {
-        private readonly Settings settings;
-
         public SetupBootstrapper(Settings settings)
         {
             this.settings = settings;
@@ -20,8 +19,10 @@ namespace Particular.ServiceControl
 
         public void Run(string username)
         {
-            var configuration = new BusConfiguration();
-            configuration.AssembliesToScan(AllAssemblies.Except("ServiceControl.Plugin"));
+            var configuration = new EndpointConfiguration(settings.ServiceName);
+            var assemblyScanner = configuration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+
             configuration.EnableInstallers(username);
 
             if (settings.SkipQueueCreation)
@@ -34,18 +35,24 @@ namespace Particular.ServiceControl
 
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
+
+            var transportSettings = new TransportSettings();
+            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+
             var loggingSettings = new LoggingSettings(settings.ServiceName);
-            containerBuilder.RegisterInstance(loggingSettings);
+            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
             var documentStore = new EmbeddableDocumentStore();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings);
+            containerBuilder.RegisterInstance(settings).SingleInstance();
 
             using (documentStore)
             using (var container = containerBuilder.Build())
-            using (NServiceBusFactory.Create(settings, container, null, documentStore, configuration, false))
             {
+                NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();
             }
         }
+
+        private readonly Settings settings;
 
         private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }

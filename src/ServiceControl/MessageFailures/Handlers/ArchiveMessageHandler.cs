@@ -1,46 +1,48 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
+    using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-
         public ArchiveMessageHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(ArchiveMessage message)
+        public async Task Handle(ArchiveMessage message, IMessageHandlerContext context)
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                var failedMessage = session.Load<FailedMessage>(new Guid(message.FailedMessageId));
+                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(message.FailedMessageId))
+                    .ConfigureAwait(false);
 
                 if (failedMessage == null)
                 {
-                    return; //No point throwing
+                    return;
                 }
 
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
                     failedMessage.Status = FailedMessageStatus.Archived;
 
-                    domainEvents.Raise(new FailedMessageArchived
+                    await domainEvents.Raise(new FailedMessageArchived
                     {
                         FailedMessageId = message.FailedMessageId
-                    });
+                    }).ConfigureAwait(false);
                 }
 
-                session.SaveChanges();
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
     }
 }

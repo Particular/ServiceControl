@@ -6,8 +6,6 @@ namespace ServiceControl.Recoverability
 
     internal class CorruptedReplyToHeaderStrategy
     {
-        private string localMachineName;
-
         public CorruptedReplyToHeaderStrategy(string localMachineName)
         {
             this.localMachineName = localMachineName;
@@ -15,14 +13,12 @@ namespace ServiceControl.Recoverability
 
         public void FixCorruptedReplyToHeader(IDictionary<string, string> headers)
         {
-            string replyToAddress;
-            if (!headers.TryGetValue(Headers.ReplyToAddress, out replyToAddress))
+            if (!headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
             {
                 return;
             }
 
-            string originatingMachine;
-            if (!headers.TryGetValue(Headers.OriginatingMachine, out originatingMachine))
+            if (!headers.TryGetValue(Headers.OriginatingMachine, out var originatingMachine))
             {
                 return;
             }
@@ -44,6 +40,8 @@ namespace ServiceControl.Recoverability
                 headers[Headers.ReplyToAddress] = fixedReplyToAddress;
             }
         }
+
+        private string localMachineName;
 
         private static ILog log = LogManager.GetLogger(typeof(RetryProcessor));
     }

@@ -10,6 +10,7 @@ public static class EtagHelper
         {
             data.Append($"{g.Id}.{g.Count}.{g.OperationStatus}.{g.OperationProgress}.{g.OperationStartTime}.{g.OperationCompletionTime}.{g.NeedUserAcknowledgement}");
         }
+
         return data.ToString();
     }
 }

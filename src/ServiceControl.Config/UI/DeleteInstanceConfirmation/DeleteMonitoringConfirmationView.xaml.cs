@@ -1,5 +1,4 @@
-﻿          
-namespace ServiceControl.Config.UI.DeleteInstanceConfirmation
+﻿namespace ServiceControl.Config.UI.DeleteInstanceConfirmation
 {
     partial class DeleteMonitoringConfirmationView
     {

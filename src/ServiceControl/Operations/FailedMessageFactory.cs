@@ -1,17 +1,15 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Collections.Generic;
+    using Contracts.Operations;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Faults;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Recoverability;
-    using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
+    using Recoverability;
+    using FailedMessage = MessageFailures.FailedMessage;
 
     class FailedMessageFactory
     {
-        private IFailedMessageEnricher[] failedEnrichers;
-
         public FailedMessageFactory(IFailedMessageEnricher[] failedEnrichers)
         {
             this.failedEnrichers = failedEnrichers;
@@ -25,6 +23,7 @@
             {
                 groups.AddRange(enricher.Enrich(messageType, failureDetails, processingAttempt));
             }
+
             return groups;
         }
 
@@ -41,7 +40,7 @@
             return result;
         }
 
-        private static ExceptionDetails GetException(IReadOnlyDictionary<string, string> headers)
+        static ExceptionDetails GetException(IReadOnlyDictionary<string, string> headers)
         {
             var exceptionDetails = new ExceptionDetails();
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.ExceptionInfo.ExceptionType", headers,
@@ -55,7 +54,7 @@
             return exceptionDetails;
         }
 
-        public FailedMessage.ProcessingAttempt CreateProcessingAttempt(Dictionary<string, string> headers, Dictionary<string, object> metadata, FailureDetails failureDetails, MessageIntentEnum intent, bool recoverable, string correlationId, string replyToAddress)
+        public FailedMessage.ProcessingAttempt CreateProcessingAttempt(Dictionary<string, string> headers, Dictionary<string, object> metadata, FailureDetails failureDetails, MessageIntentEnum intent, bool recoverable, string correlationId)
         {
             return new FailedMessage.ProcessingAttempt
             {
@@ -64,12 +63,12 @@
                 MessageMetadata = metadata,
                 MessageId = headers[Headers.MessageId],
                 Headers = headers,
-                ReplyToAddress = replyToAddress,
                 Recoverable = recoverable,
                 CorrelationId = correlationId,
                 MessageIntent = intent
             };
         }
 
+        IFailedMessageEnricher[] failedEnrichers;
     }
 }

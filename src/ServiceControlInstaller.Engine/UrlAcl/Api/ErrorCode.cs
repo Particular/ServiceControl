@@ -8,6 +8,6 @@
 
         InsufficientBuffer = 122,
 
-        NoMoreItems = 259,
+        NoMoreItems = 259
     }
 }

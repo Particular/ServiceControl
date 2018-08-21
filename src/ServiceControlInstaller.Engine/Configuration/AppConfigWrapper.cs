@@ -6,11 +6,9 @@
 
     public class AppConfigWrapper
     {
-        public Configuration Config;
-
         public AppConfigWrapper(string configFilePath)
         {
-            var mapping = new ExeConfigurationFileMap { ExeConfigFilename = configFilePath };
+            var mapping = new ExeConfigurationFileMap {ExeConfigFilename = configFilePath};
             Config = ConfigurationManager.OpenMappedExeConfiguration(mapping, ConfigurationUserLevel.None);
         }
 
@@ -44,6 +42,7 @@
         {
             return Config.AppSettings.Settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase);
         }
+
+        public Configuration Config;
     }
 }
-

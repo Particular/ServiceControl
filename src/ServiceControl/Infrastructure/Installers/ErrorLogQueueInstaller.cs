@@ -1,18 +1,25 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Installers
 {
-    using NServiceBus;
-    using NServiceBus.Unicast.Queuing;
+    using NServiceBus.Features;
+    using NServiceBus.Transport;
     using Settings;
 
-    public class ErrorLogQueueInstaller : IWantQueueCreated
+    public class ErrorLoqQueue : Feature
     {
-        public Settings Settings { get; set; }
-
-        public bool ShouldCreateQueue()
+        public ErrorLoqQueue()
         {
-            return Settings.ForwardErrorMessages && Settings.ErrorLogQueue != Address.Undefined;
+            Prerequisite(c =>
+            {
+                var settings = c.Settings.Get<Settings>("ServiceControl.Settings");
+                return settings.ForwardErrorMessages && settings.ErrorLogQueue != null;
+            }, "Error Log queue not enabled.");
         }
 
-        public Address Address => Settings.ErrorLogQueue;
+        protected override void Setup(FeatureConfigurationContext context)
+        {
+            var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
+            var queueBindings = context.Settings.Get<QueueBindings>();
+            queueBindings.BindSending(settings.ErrorLogQueue);
+        }
     }
 }

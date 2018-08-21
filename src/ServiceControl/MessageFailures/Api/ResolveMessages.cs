@@ -4,27 +4,17 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using InternalMessages;
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class ResolveMessages : BaseModule
     {
-        public IBus Bus { get; set; }
-
-        private class ResolveRequest
-        {
-            public string queueaddress { get; set; }
-            public List<string> uniquemessageids { get; set; }
-            public string from { get; set; }
-            public string to { get; set; }
-        }
-
         public ResolveMessages()
         {
-            Patch["/pendingretries/resolve"] = _ =>
+            Patch["/pendingretries/resolve", true] = async (_, ctx) =>
             {
                 var request = this.Bind<ResolveRequest>();
 
@@ -37,7 +27,8 @@
 
                     foreach (var id in request.uniquemessageids)
                     {
-                        Bus.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id });
+                        await Bus.SendLocal(new MarkPendingRetryAsResolved {FailedMessageId = id})
+                            .ConfigureAwait(false);
                     }
 
                     return HttpStatusCode.Accepted;
@@ -55,16 +46,16 @@
                     return Negotiate.WithReasonPhrase("From/To").WithStatusCode(HttpStatusCode.BadRequest);
                 }
 
-                Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
+                await Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
                 {
                     m.PeriodFrom = from;
                     m.PeriodTo = to;
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Patch["/pendingretries/queues/resolve"] = parameters =>
+            Patch["/pendingretries/queues/resolve", true] = async (parameters, ctx) =>
             {
                 var request = this.Bind<ResolveRequest>();
 
@@ -85,15 +76,25 @@
                     return Negotiate.WithReasonPhrase("From/To").WithStatusCode(HttpStatusCode.BadRequest);
                 }
 
-                Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
+                await Bus.SendLocal<MarkPendingRetriesAsResolved>(m =>
                 {
                     m.QueueAddress = request.queueaddress;
                     m.PeriodFrom = from;
                     m.PeriodTo = to;
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
+        }
+
+        public IMessageSession Bus { get; set; }
+
+        private class ResolveRequest
+        {
+            public string queueaddress { get; set; }
+            public List<string> uniquemessageids { get; set; }
+            public string from { get; set; }
+            public string to { get; set; }
         }
     }
 }

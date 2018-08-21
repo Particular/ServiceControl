@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.EventLog.Definitions
 {
-    using ServiceControl.Recoverability;
+    using Recoverability;
 
     public class FailedMessageGroupArchivedDefinition : EventLogMappingDefinition<FailedMessageGroupArchived>
     {

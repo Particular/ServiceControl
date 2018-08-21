@@ -1,22 +1,20 @@
-﻿using System;
-using Caliburn.Micro;
-
-namespace ServiceControl.Config.Framework.Rx
+﻿namespace ServiceControl.Config.Framework.Rx
 {
+    using System;
+    using Caliburn.Micro;
+
     public class RxScreen : RxViewAware, IScreen, IChild, IModalResult
     {
-        private static readonly ILog Log = LogManager.GetLog(typeof(Screen));
-
-       
         /// <summary>
-        /// Gets or Sets the Parent <see cref = "IConductor" />
+        /// Indicates whether or not this instance is currently initialized.
+        /// </summary>
+        public bool IsInitialized { get; private set; }
+
+
+        /// <summary>
+        /// Gets or Sets the Parent <see cref="IConductor" />
         /// </summary>
         public virtual object Parent { get; set; }
-
-        /// <summary>
-        /// Gets or Sets the Display Name
-        /// </summary>
-        public string DisplayName { get; set; }
 
         /// <summary>
         /// Gets or Sets the Modal Result
@@ -24,14 +22,14 @@ namespace ServiceControl.Config.Framework.Rx
         public virtual bool? Result { get; set; }
 
         /// <summary>
+        /// Gets or Sets the Display Name
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
         /// Indicates whether or not this instance is currently active.
         /// </summary>
         public bool IsActive { get; private set; }
-
-        /// <summary>
-        /// Indicates whether or not this instance is currently initialized.
-        /// </summary>
-        public bool IsInitialized { get; private set; }
 
         /// <summary>
         /// Raised after activation occurs.
@@ -73,20 +71,6 @@ namespace ServiceControl.Config.Framework.Rx
             });
         }
 
-        /// <summary>
-        /// Called when initializing.
-        /// </summary>
-        protected virtual void OnInitialize()
-        {
-        }
-
-        /// <summary>
-        /// Called when activating.
-        /// </summary>
-        protected virtual void OnActivate()
-        {
-        }
-
         void IDeactivate.Deactivate(bool close)
         {
             if (IsActive || IsInitialized && close)
@@ -114,17 +98,9 @@ namespace ServiceControl.Config.Framework.Rx
         }
 
         /// <summary>
-        /// Called when deactivating.
-        /// </summary>
-        /// <param name = "close">Inidicates whether this instance will be closed.</param>
-        protected virtual void OnDeactivate(bool close)
-        {
-        }
-
-        /// <summary>
         /// Called to check whether or not this instance can close.
         /// </summary>
-        /// <param name = "callback">The implementor calls this action with the result of the close check.</param>
+        /// <param name="callback">The implementor calls this action with the result of the close check.</param>
         public virtual void CanClose(Action<bool> callback)
         {
             callback(true);
@@ -140,5 +116,29 @@ namespace ServiceControl.Config.Framework.Rx
             Result = dialogResult;
             PlatformProvider.Current.GetViewCloseAction(this, Views.Values, dialogResult).OnUIThread();
         }
+
+        /// <summary>
+        /// Called when initializing.
+        /// </summary>
+        protected virtual void OnInitialize()
+        {
+        }
+
+        /// <summary>
+        /// Called when activating.
+        /// </summary>
+        protected virtual void OnActivate()
+        {
+        }
+
+        /// <summary>
+        /// Called when deactivating.
+        /// </summary>
+        /// <param name="close">Inidicates whether this instance will be closed.</param>
+        protected virtual void OnDeactivate(bool close)
+        {
+        }
+
+        static readonly ILog Log = LogManager.GetLog(typeof(Screen));
     }
 }

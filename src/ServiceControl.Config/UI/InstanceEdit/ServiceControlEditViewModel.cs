@@ -13,7 +13,7 @@
     [InjectValidation]
     public class ServiceControlEditViewModel : SharedServiceControlEditorViewModel
     {
-        public ServiceControlEditViewModel(ServiceControlInstance instance) 
+        public ServiceControlEditViewModel(ServiceControlInstance instance)
         {
             DisplayName = "EDIT SERVICECONTROL INSTANCE";
             SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
@@ -35,8 +35,6 @@
             HostName = instance.HostName;
             PortNumber = instance.Port.ToString();
             DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
-            DatabaseMaintenancePortNumberRequired = instance.Version.Major >= 2;
-
             LogPath = instance.LogPath;
 
             AuditForwardingQueueName = instance.AuditLogQueue;
@@ -49,7 +47,7 @@
 
             ErrorQueueName = instance.ErrorQueue;
             ErrorForwardingQueueName = instance.ErrorLogQueue;
-            SelectedTransport = Transports.First(t => StringComparer.InvariantCultureIgnoreCase.Equals(t.Name, instance.TransportPackage));
+            SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
             ServiceControlInstance = instance;
 
@@ -59,29 +57,12 @@
             RetentionPeriodsVisible = instance.Version >= SettingsList.ErrorRetentionPeriod.SupportedFrom;
         }
 
-        public void UpdateInstanceFromViewModel(ServiceControlInstance instance)
-        {
-            instance.HostName = HostName;
-            instance.Port = Convert.ToInt32(PortNumber);
-            instance.LogPath = LogPath;
-            instance.AuditLogQueue = AuditForwardingQueueName;
-            instance.AuditQueue = AuditQueueName;
-            instance.ErrorQueue = ErrorQueueName;
-            instance.ErrorLogQueue = ErrorForwardingQueueName;
-            instance.ConnectionString = ConnectionString;
-
-            if (ServiceControlInstance.Version.Major >= 2)
-            {
-                instance.DatabaseMaintenancePort = Convert.ToInt32(DatabaseMaintenancePortNumber);
-            }
-        }
-
         public bool ErrorForwardingVisible { get; set; }
         public bool RetentionPeriodsVisible { get; set; }
 
         public ServiceControlInstance ServiceControlInstance { get; set; }
 
-        public bool DatabaseMaintenancePortNumberRequired { get; set; }
+        public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= SettingsList.DatabaseMaintenancePort.SupportedFrom;
 
         public string ErrorQueueName { get; set; }
         public string ErrorForwardingQueueName { get; set; }
@@ -108,6 +89,7 @@
                 {
                     return AuditForwarding?.Value ?? false;
                 }
+
                 return true;
             }
         }
@@ -120,11 +102,10 @@
                 {
                     return ErrorForwarding?.Value ?? false;
                 }
+
                 return true;
             }
         }
-
-        TransportInfo selectedTransport;
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
         public TransportInfo SelectedTransport
@@ -146,5 +127,24 @@
 
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+
+        public void UpdateInstanceFromViewModel(ServiceControlInstance instance)
+        {
+            instance.HostName = HostName;
+            instance.Port = Convert.ToInt32(PortNumber);
+            instance.LogPath = LogPath;
+            instance.AuditLogQueue = AuditForwardingQueueName;
+            instance.AuditQueue = AuditQueueName;
+            instance.ErrorQueue = ErrorQueueName;
+            instance.ErrorLogQueue = ErrorForwardingQueueName;
+            instance.ConnectionString = ConnectionString;
+
+            if (ServiceControlInstance.Version.Major >= 2)
+            {
+                instance.DatabaseMaintenancePort = Convert.ToInt32(DatabaseMaintenancePortNumber);
+            }
+        }
+
+        TransportInfo selectedTransport;
     }
 }

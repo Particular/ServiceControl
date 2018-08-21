@@ -6,8 +6,6 @@
 
     public class MaintenanceHost : ServiceBase
     {
-        private readonly EmbeddableDocumentStore documentStore;
-
         public MaintenanceHost(Settings settings, EmbeddableDocumentStore documentStore)
         {
             this.documentStore = documentStore;
@@ -33,5 +31,6 @@
             OnStop();
         }
 
+        readonly EmbeddableDocumentStore documentStore;
     }
 }

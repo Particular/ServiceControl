@@ -4,7 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Windows;
-    using ServiceControl.Config.Framework.Commands;
+    using Framework.Commands;
 
     class OpenURLCommand : AbstractCommand<string>
     {
@@ -15,10 +15,14 @@
         static bool IsValidUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
+            {
                 return false;
+            }
 
-            Uri uri;
-            if (!Uri.TryCreate(url, UriKind.Absolute, out uri))  return true;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                return true;
+            }
 
             url = FixUrlOn64bitSystem(url);
 

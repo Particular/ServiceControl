@@ -8,6 +8,51 @@
 
     public static class Validations
     {
+        public static IRuleBuilderOptions<T, string> ValidPort<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder.Must((t, port) =>
+                {
+                    if (int.TryParse(port, out var result))
+                    {
+                        return result >= 1 && result <= 49151;
+                    }
+
+                    return false;
+                })
+                .WithMessage(MSG_USE_PORTS_IN_RANGE);
+        }
+
+        public static IRuleBuilderOptions<T, string> PortAvailable<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder.Must((t, port) =>
+                {
+                    if (int.TryParse(port, out var result))
+                    {
+                        return PortUtils.CheckAvailable(result);
+                    }
+
+                    return false;
+                })
+                .WithMessage(MSG_PORT_IN_USE);
+        }
+
+
+        public static IRuleBuilderOptions<T, string> ValidPath<T>(this IRuleBuilder<T, string> rulebuilder)
+        {
+            return rulebuilder.Must((t, path) => { return !path.Intersect(ILLEGAL_PATH_CHARS).Any(); })
+                .WithMessage(MSG_ILLEGAL_PATH_CHAR, string.Join(" ", ILLEGAL_PATH_CHARS));
+        }
+
+        public static IRuleBuilderOptions<T, TProperty> MustNotBeIn<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder, Func<T, IEnumerable<TProperty>> list) where TProperty : class
+        {
+            return ruleBuilder.Must((t, p) => p != null && !list(t).Contains(p));
+        }
+
+        public static IRuleBuilderOptions<T, string> MustNotContainWhitespace<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder.Must(s => !string.IsNullOrEmpty(s) && !s.Any(c => char.IsWhiteSpace(c))).WithMessage(MSG_CANTCONTAINWHITESPACE);
+        }
+
         public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
 
         public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "This transport requires a connection string.";
@@ -31,56 +76,14 @@
 
         public const string MSG_ILLEGAL_PATH_CHAR = "Paths cannot contain characters {0}";
 
-        private static char[] ILLEGAL_PATH_CHARS = new[] { '*', '?', '"', '<', '>', '|' };
-
-        public static IRuleBuilderOptions<T, string> ValidPort<T>(this IRuleBuilder<T, string> ruleBuilder)
+        static char[] ILLEGAL_PATH_CHARS =
         {
-            return ruleBuilder.Must((t, port) =>
-            {
-                int result;
-                if (int.TryParse(port, out result))
-                {
-                    return result >= 1 && result <= 49151;
-                }
-
-                return false;
-            })
-            .WithMessage(MSG_USE_PORTS_IN_RANGE);
-        }
-
-        public static IRuleBuilderOptions<T, string> PortAvailable<T>(this IRuleBuilder<T, string> ruleBuilder)
-        {
-            return ruleBuilder.Must((t, port) =>
-            {
-                int result;
-                if (int.TryParse(port, out result))
-                {
-                    return PortUtils.CheckAvailable(result);
-                }
-
-                return false;
-            })
-            .WithMessage(MSG_PORT_IN_USE);
-        }
-
-
-        public static IRuleBuilderOptions<T, string> ValidPath<T>(this IRuleBuilder<T, string> rulebuilder)
-        {
-            return rulebuilder.Must((t, path) =>
-            {
-                return !path.Intersect(ILLEGAL_PATH_CHARS).Any();
-            })
-            .WithMessage(MSG_ILLEGAL_PATH_CHAR, string.Join(" ", ILLEGAL_PATH_CHARS));
-        }
-
-        public static IRuleBuilderOptions<T, TProperty> MustNotBeIn<T, TProperty>(this IRuleBuilder<T, TProperty> ruleBuilder, Func<T, IEnumerable<TProperty>> list) where TProperty : class
-        {
-            return ruleBuilder.Must((t, p) => p != null && !list(t).Contains(p));
-        }
-
-        public static IRuleBuilderOptions<T, string> MustNotContainWhitespace<T>(this IRuleBuilder<T, string> ruleBuilder)
-        {
-            return ruleBuilder.Must(s => !string.IsNullOrEmpty(s) && !s.Any(c => char.IsWhiteSpace(c))).WithMessage(MSG_CANTCONTAINWHITESPACE);
-        }
+            '*',
+            '?',
+            '"',
+            '<',
+            '>',
+            '|'
+        };
     }
 }

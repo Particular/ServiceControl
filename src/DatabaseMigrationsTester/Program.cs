@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace DatabaseMigrationsTester
+﻿namespace DatabaseMigrationsTester
 {
+    using System;
     using System.Threading;
 
     class Program
@@ -45,7 +44,6 @@ namespace DatabaseMigrationsTester
         Return0,
         WriteToErrorAndExitNonZero,
         WriteToErrorAndExitZero,
-        UpdateProgress,
+        UpdateProgress
     }
 }
-

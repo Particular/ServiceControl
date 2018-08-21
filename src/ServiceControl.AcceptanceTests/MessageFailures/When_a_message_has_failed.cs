@@ -1,13 +1,19 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Contexts;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
+    using Microsoft.AspNet.SignalR.Client;
+    using Microsoft.AspNet.SignalR.Client.Transports;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
@@ -19,25 +25,20 @@
     using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using Microsoft.AspNet.SignalR.Client;
-    using Microsoft.AspNet.SignalR.Client.Transports;
-    using NServiceBus.Config;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     public class When_a_message_has_failed : AcceptanceTest
     {
         [Test]
         public async Task Should_be_imported_and_accessible_via_the_rest_api()
         {
-            var context = new MyContext();
-
             FailedMessage failedMessage = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            var context = await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
+                    var result = await this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
                     failedMessage = result;
                     return c.MessageId != null && result;
                 })
@@ -45,7 +46,7 @@
 
             Assert.AreEqual(context.UniqueMessageId, failedMessage.UniqueMessageId);
 
-           // The message Ids may contain a \ if they are from older versions.
+            // The message Ids may contain a \ if they are from older versions.
             Assert.AreEqual(context.MessageId, failedMessage.ProcessingAttempts.Last().MessageId,
                 "The returned message should match the processed one");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
@@ -57,15 +58,13 @@
         [Test]
         public async Task Should_be_listed_in_the_error_list()
         {
-            var context = new MyContext();
-
             FailedMessageView failure = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            var context = await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<FailedMessageView>("/api/errors", r => r.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -80,15 +79,13 @@
         [Test]
         public async Task Should_be_listed_in_the_messages_list()
         {
-            var context = new MyContext();
-
             var failure = new MessagesView();
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            var context = await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<MessagesView>("/api/messages", m=>m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
                     failure = result;
                     return result;
                 })
@@ -104,15 +101,13 @@
         [Test]
         public async Task Should_add_an_event_log_item()
         {
-            var context = new MyContext();
-
             EventLogItem entry = null;
 
-            await Define(context)
-                .WithEndpoint<Receiver>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            var context = await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
                     entry = result;
                     return result;
                 })
@@ -127,13 +122,8 @@
         [Test]
         public async Task Should_raise_a_signalr_event()
         {
-            var context = new MyContext
-            {
-                Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]
-            };
-
-            await Define(context)
-                .WithEndpoint<Receiver>()
+            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+                .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
                 .Run();
@@ -149,17 +139,19 @@
             await Define<QueueSearchContext>()
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.Given(bus => bus.SendLocal(new MyMessage())).When(async c =>
+                    b.DoNotFailOnErrorMessages();
+                    b.When(bus => bus.SendLocal(new MyMessage()));
+                    b.When(async c =>
                     {
                         if (c.FailedMessageCount >= 1)
                         {
-                            var result = await TryGetMany<QueueAddress>("/api/errors/queues/addresses?search=failing");
+                            var result = await this.TryGetMany<QueueAddress>("/api/errors/queues/addresses?search=failing");
                             searchResults = result;
                             return result;
                         }
 
                         return false;
-                    }, _ => { });
+                    }, (session, ctx) => Task.FromResult(0));
                 })
                 .Done(c => searchResults.Count == 1)
                 .Run();
@@ -177,24 +169,28 @@
             await Define<QueueSearchContext>()
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                    b.DoNotFailOnErrorMessages();
+                    b.When(bus => bus.SendLocal(new MyMessage()));
                 })
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.CustomConfig(configuration => configuration.EndpointName(searchEndpointName));
-                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                    b.DoNotFailOnErrorMessages();
+                    b.CustomConfig(configuration => configuration.GetSettings().Set("NServiceBus.Routing.EndpointName", searchEndpointName));
+                    b.When(bus => bus.SendLocal(new MyMessage()));
                 })
                 .WithEndpoint<FailingEndpoint>(b =>
                 {
-                    b.CustomConfig(configuration => configuration.EndpointName("YetAnotherEndpoint"));
-                    b.Given(bus => bus.SendLocal(new MyMessage()));
+                    b.DoNotFailOnErrorMessages();
+                    b.CustomConfig(configuration => configuration.GetSettings().Set("NServiceBus.Routing.EndpointName", "YetAnotherEndpoint"));
+                    b.When(bus => bus.SendLocal(new MyMessage()));
                 }).Done(async c =>
                 {
                     if (c.FailedMessageCount < 3)
                     {
                         return false;
                     }
-                    var result = await TryGetMany<QueueAddress>($"/api/errors/queues/addresses/search/{searchTerm}");
+
+                    var result = await this.TryGetMany<QueueAddress>($"/api/errors/queues/addresses/search/{searchTerm}");
                     searchResults = result;
                     return result;
                 })
@@ -202,53 +198,70 @@
 
 
             Assert.AreEqual(1, searchResults.Count, "Result count did not match");
-            Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName));
+            Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
             public EndpointThatUsesSignalR()
             {
-                EndpointSetup<DefaultServerWithoutAudit>()
-                    .AddMapping<MyMessage>(typeof(Receiver));
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
+                });
             }
 
-            class SignalRStarter : IWantToRunWhenBusStartsAndStops
+            class SignalRStarterFeature : Feature
             {
-                private readonly MyContext context;
-                private readonly IBus bus;
-                private Connection connection;
-
-                public SignalRStarter(MyContext context, IBus bus)
+                public SignalRStarterFeature()
                 {
-                    this.context = context;
-                    this.bus = bus;
-                    connection = new Connection("http://localhost/api/messagestream")
-                    {
-                        JsonSerializer = Newtonsoft.Json.JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
-                    };
+                    EnableByDefault();
                 }
 
-                public void Start()
+                protected override void Setup(FeatureConfigurationContext context)
                 {
-                    connection.Received += ConnectionOnReceived;
-                    connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
-
-                    bus.Send(new MyMessage());
+                    context.Container.ConfigureComponent<SignalRStarter>(DependencyLifecycle.SingleInstance);
+                    context.RegisterStartupTask(b => b.Build<SignalRStarter>());
                 }
 
-                private void ConnectionOnReceived(string s)
+
+                class SignalRStarter : FeatureStartupTask
                 {
-                    if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
+                    public SignalRStarter(MyContext context)
                     {
-                        context.SignalrData = s;
-                        context.SignalrEventReceived = true;
+                        this.context = context;
+                        connection = new Connection("http://localhost/api/messagestream")
+                        {
+                            JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
+                        };
                     }
-                }
 
-                public void Stop()
-                {
-                    connection.Stop();
+                    protected override Task OnStart(IMessageSession session)
+                    {
+                        connection.Received += ConnectionOnReceived;
+                        connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
+
+                        return session.Send(new MyMessage());
+                    }
+
+                    protected override Task OnStop(IMessageSession session)
+                    {
+                        connection.Stop();
+                        return Task.FromResult(0);
+                    }
+
+                    private void ConnectionOnReceived(string s)
+                    {
+                        if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
+                        {
+                            context.SignalrData = s;
+                            context.SignalrEventReceived = true;
+                        }
+                    }
+
+                    private MyContext context;
+                    private Connection connection;
                 }
             }
         }
@@ -257,22 +270,20 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress().Queue;
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.LocalAddress = Settings.LocalAddress();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }
@@ -282,30 +293,33 @@
         {
             public FailingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 0;
-                    });
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(x => x.NumberOfRetries(0));
+                    recoverability.Delayed(x => x.NumberOfRetries(0));
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public QueueSearchContext Context { get; set; }
-                static object lockObj = new object();
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     lock (lockObj)
                     {
                         Context.FailedMessageCount++;
                     }
+
                     throw new Exception("Simulated exception");
                 }
+
+                static object lockObj = new object();
             }
         }
 
-        [Serializable]
+
         public class MyMessage : ICommand
         {
         }
@@ -315,7 +329,7 @@
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, LocalAddress).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
 
             public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrEventReceived { get; set; }

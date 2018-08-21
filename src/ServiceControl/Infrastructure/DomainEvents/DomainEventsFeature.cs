@@ -1,6 +1,5 @@
 namespace ServiceControl.Infrastructure.DomainEvents
 {
-    using NServiceBus;
     using NServiceBus.Features;
 
     public class DomainEventsFeature : Feature
@@ -12,7 +11,7 @@ namespace ServiceControl.Infrastructure.DomainEvents
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<DomainEventBusPublisher>(DependencyLifecycle.SingleInstance);
+            context.RegisterStartupTask(b => b.Build<DomainEventBusPublisher>());
         }
     }
 }

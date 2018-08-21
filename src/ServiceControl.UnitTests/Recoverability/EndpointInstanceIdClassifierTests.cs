@@ -1,10 +1,11 @@
 ﻿namespace ServiceControl.UnitTests.Operations
 {
+    using System;
+    using System.Collections.Generic;
     using NServiceBus;
     using NUnit.Framework;
     using ServiceControl.Recoverability;
-    using System;
-    using static ServiceControl.MessageFailures.FailedMessage;
+    using static MessageFailures.FailedMessage;
 
     [TestFixture]
     public class EndpointInstanceIdClassifierTests
@@ -26,11 +27,11 @@
             var id = Guid.NewGuid().ToString("N");
             var failure = new ProcessingAttempt
             {
-                Headers = new System.Collections.Generic.Dictionary<string, string>
+                Headers = new Dictionary<string, string>
                 {
-                    { Headers.HostDisplayName, "Test Host Id" },
-                    { "NServiceBus.FailedQ", "Test@machine" },
-                    { Headers.HostId, id }
+                    {Headers.HostDisplayName, "Test Host Id"},
+                    {"NServiceBus.FailedQ", "Test@machine"},
+                    {Headers.HostId, id}
                 }
             };
 

@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
     using System;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Infrastructure.SignalR;
+    using Infrastructure.DomainEvents;
+    using Infrastructure.SignalR;
 
     public class MessageFailuresUpdated : IDomainEvent, IUserInterfaceEvent
     {

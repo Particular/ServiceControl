@@ -3,20 +3,15 @@
     using System;
     using System.Threading.Tasks;
     using Caliburn.Micro;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.Framework.Modules;
-    using ServiceControl.Config.UI.AdvancedOptions;
-    using ServiceControl.Config.UI.DeleteInstanceConfirmation;
+    using Events;
+    using Framework;
+    using Framework.Commands;
+    using Framework.Modules;
+    using UI.AdvancedOptions;
+    using UI.DeleteInstanceConfirmation;
 
     class DeleteServiceControlInstanceCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
     {
-        private readonly Func<DeleteServiceControlConfirmationViewModel> deleteInstanceConfirmation;
-        private readonly IEventAggregator eventAggregator;
-        private readonly ServiceControlInstanceInstaller installer;
-        private readonly IWindowManagerEx windowManager;
-
         public DeleteServiceControlInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer, Func<DeleteServiceControlConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
         {
             this.windowManager = windowManager;
@@ -44,8 +39,14 @@
                         model.TryClose(true);
                     }
                 }
+
                 eventAggregator.PublishOnUIThread(new ResetInstances());
             }
         }
+
+        readonly Func<DeleteServiceControlConfirmationViewModel> deleteInstanceConfirmation;
+        readonly IEventAggregator eventAggregator;
+        readonly ServiceControlInstanceInstaller installer;
+        readonly IWindowManagerEx windowManager;
     }
 }

@@ -19,11 +19,6 @@
     [TestFixture]
     public class RetryMessage_RoutesApiTest
     {
-        private TestApi testApi;
-
-        private string localInstanceId;
-        private string remote1InstanceId;
-
         [SetUp]
         public void SetUp()
         {
@@ -32,7 +27,7 @@
             ConfigurationManager.AppSettings["ServiceControl/AuditRetentionPeriod"] = TimeSpan.FromHours(10).ToString();
             ConfigurationManager.AppSettings["ServiceControl/ErrorRetentionPeriod"] = TimeSpan.FromDays(10).ToString();
 
-            testApi = new TestApi()
+            testApi = new TestApi
             {
                 Settings = new Settings("TestService")
                 {
@@ -60,14 +55,11 @@
             {
                 Query = new DynamicDictionary
                 {
-                    { "instance_id", localInstanceId }
+                    {"instance_id", localInstanceId}
                 }
             };
 
-            var response = await testApi.Execute(request, _ => localResponse, _ =>
-            {
-                throw new InvalidOperationException("should not be called");
-            });
+            var response = await testApi.Execute(request, _ => localResponse, _ => { throw new InvalidOperationException("should not be called"); });
 
             Assert.AreSame(localResponse, response);
         }
@@ -84,7 +76,7 @@
                 Query = new DynamicDictionary
                 {
                     {"instance_id", remote1InstanceId}
-                },
+                }
             };
 
             var response = await testApi.Execute(request, _ => { throw new InvalidOperationException("should not be called"); }, r =>
@@ -125,13 +117,10 @@
                 Query = new DynamicDictionary
                 {
                     {"instance_id", remote1InstanceId}
-                },
+                }
             };
 
-            var response = await testApi.Execute(request, _ => new Response(), r =>
-            {
-                throw new InvalidOperationException("");
-            });
+            var response = await testApi.Execute(request, _ => new Response(), r => { throw new InvalidOperationException(""); });
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         }
@@ -148,7 +137,7 @@
                 Query = new DynamicDictionary
                 {
                     {"instance_id", remote1InstanceId}
-                },
+                }
             };
 
             var response = await testApi.Execute(request, _ => { throw new InvalidOperationException("should not be called"); }, r =>
@@ -169,10 +158,13 @@
             Assert.AreEqual("ResponseContent", await streamReader.ReadToEndAsync());
         }
 
+        private TestApi testApi;
+
+        private string localInstanceId;
+        private string remote1InstanceId;
+
         class InterceptingHandler : HttpClientHandler
         {
-            private Func<HttpRequestMessage, HttpResponseMessage> interceptor;
-
             public InterceptingHandler(Func<HttpRequestMessage, HttpResponseMessage> interceptor)
             {
                 this.interceptor = interceptor;
@@ -182,23 +174,25 @@
             {
                 return Task.FromResult(interceptor(request));
             }
+
+            private Func<HttpRequestMessage, HttpResponseMessage> interceptor;
         }
 
         class TestApi : RoutedApi<NoInput>
         {
-            private Func<Request, Response> localResponse;
-
             public Task<Response> Execute(Request request, Func<Request, Response> localResponse, Func<HttpRequestMessage, HttpResponseMessage> remoteResponse)
             {
                 this.localResponse = localResponse;
                 HttpClientFactory = () => new HttpClient(new InterceptingHandler(remoteResponse));
-                return Execute(new FakeModule { Request = request }, NoInput.Instance);
+                return Execute(new FakeModule {Request = request}, NoInput.Instance);
             }
 
             protected override Task<Response> LocalQuery(Request request, NoInput input, string instanceId)
             {
                 return Task.FromResult(localResponse(request));
             }
+
+            private Func<Request, Response> localResponse;
         }
 
         class FakeModule : BaseModule

@@ -4,8 +4,6 @@ namespace ServiceControl.Recoverability
 
     public class ExceptionTypeAndStackTraceFailureClassifier : IFailureClassifier
     {
-        public const string Id = "Exception Type and Stack Trace";
-
         public string Name => Id;
 
         public string ClassifyFailure(ClassifiableMessageDetails failure)
@@ -13,10 +11,14 @@ namespace ServiceControl.Recoverability
             var exception = failure.Details?.Exception;
 
             if (exception == null)
+            {
                 return null;
+            }
 
-            if(string.IsNullOrWhiteSpace(exception.StackTrace))
+            if (string.IsNullOrWhiteSpace(exception.StackTrace))
+            {
                 return GetNonStandardClassification(exception.ExceptionType);
+            }
 
             var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
             {
@@ -28,7 +30,9 @@ namespace ServiceControl.Recoverability
             }).FirstOrDefault();
 
             if (firstStackTraceFrame != null)
+            {
                 return exception.ExceptionType + ": " + firstStackTraceFrame.ToMethodIdentifier();
+            }
 
             return GetNonStandardClassification(exception.ExceptionType);
         }
@@ -37,6 +41,8 @@ namespace ServiceControl.Recoverability
         {
             return exceptionType + ": 0";
         }
+
+        public const string Id = "Exception Type and Stack Trace";
 
         public class StackFrame
         {

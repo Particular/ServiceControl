@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
     using FluentValidation;
-    using ServiceControl.Config.Validation;
+    using Validation;
 
     public class FeedBackViewModelValidator : AbstractValidator<FeedBackViewModel>
     {

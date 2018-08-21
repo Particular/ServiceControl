@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using NUnit.Framework;
-using ServiceControl.SagaAudit;
-
-namespace ServiceControl.UnitTests.SagaAudit
+﻿namespace ServiceControl.UnitTests.SagaAudit
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using NUnit.Framework;
+    using Particular.Approvals;
+    using ServiceControl.SagaAudit;
+
     [TestFixture]
     class SagaDetailsIndexTests
     {
@@ -21,6 +22,7 @@ namespace ServiceControl.UnitTests.SagaAudit
                     {
                         session.Store(sagaHistory);
                     }
+
                     session.SaveChanges();
                 }
 
@@ -30,7 +32,7 @@ namespace ServiceControl.UnitTests.SagaAudit
                 {
                     var mapReduceResults = session.Query<SagaHistory, SagaDetailsIndex>()
                         .ToList();
-                    ObjectApprover.VerifyWithJson(mapReduceResults);
+                    Approver.Verify(mapReduceResults);
                 }
             }
         }

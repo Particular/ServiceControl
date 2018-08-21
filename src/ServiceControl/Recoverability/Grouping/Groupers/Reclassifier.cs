@@ -1,45 +1,41 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
-    using Raven.Client;
-    using Raven.Json.Linq;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Api;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using MessageFailures;
+    using MessageFailures.Api;
+    using NServiceBus.Logging;
+    using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
+    using Raven.Client;
+    using Raven.Json.Linq;
 
     public class Reclassifier
     {
-        const int BatchSize = 1000;
-        private bool abort;
-
-        ILog logger = LogManager.GetLogger<Reclassifier>();
-
         internal Reclassifier(ShutdownNotifier notifier)
         {
             notifier?.Register(() => { abort = true; });
         }
 
-        internal int ReclassifyFailedMessages(IDocumentStore store, bool force, IEnumerable<IFailureClassifier> classifiers)
+        internal async Task<int> ReclassifyFailedMessages(IDocumentStore store, bool force, IEnumerable<IFailureClassifier> classifiers)
         {
             logger.Info("Reclassification of failures started.");
 
-            int failedMessagesReclassified = 0;
+            var failedMessagesReclassified = 0;
             var currentBatch = new List<Tuple<string, ClassifiableMessageDetails>>();
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 ReclassifyErrorSettings settings = null;
 
                 if (!force)
                 {
-                    settings = session.Load<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase);
+                    settings = await session.LoadAsync<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase)
+                        .ConfigureAwait(false);
 
                     if (settings != null && settings.ReclassificationDone)
                     {
@@ -49,13 +45,14 @@
                 }
 
                 var query = session.Query<FailedMessage, FailedMessageViewIndex>()
-                            .Where(f => f.Status == FailedMessageStatus.Unresolved);
+                    .Where(f => f.Status == FailedMessageStatus.Unresolved);
 
                 var totalMessagesReclassified = 0;
 
-                using (var stream = session.Advanced.Stream(query.As<FailedMessage>()))
+                using (var stream = await session.Advanced.StreamAsync(query.As<FailedMessage>())
+                    .ConfigureAwait(false))
                 {
-                    while (!abort && stream.MoveNext())
+                    while (!abort && await stream.MoveNextAsync().ConfigureAwait(false))
                     {
                         currentBatch.Add(Tuple.Create(stream.Current.Document.Id, new ClassifiableMessageDetails(stream.Current.Document)));
 
@@ -83,8 +80,8 @@
                 }
 
                 settings.ReclassificationDone = true;
-                session.Store(settings);
-                session.SaveChanges();
+                await session.StoreAsync(settings).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
 
                 return failedMessagesReclassified;
             }
@@ -92,7 +89,7 @@
 
         int ReclassifyBatch(IDocumentStore store, IEnumerable<Tuple<string, ClassifiableMessageDetails>> docs, IEnumerable<IFailureClassifier> classifiers)
         {
-            int failedMessagesReclassified = 0;
+            var failedMessagesReclassified = 0;
 
             Parallel.ForEach(docs, doc =>
             {
@@ -107,7 +104,7 @@
                             {
                                 Type = PatchCommandType.Set,
                                 Name = "FailureGroups",
-                                Value = new RavenJArray(failureGroups),
+                                Value = new RavenJArray(failureGroups)
                             }
                         });
 
@@ -142,5 +139,10 @@
                 };
             }
         }
+
+        private bool abort;
+
+        ILog logger = LogManager.GetLogger<Reclassifier>();
+        const int BatchSize = 1000;
     }
 }

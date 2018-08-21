@@ -39,6 +39,7 @@
             {
                 return null;
             }
+
             return Assembly.LoadFrom(combine);
         }
     }

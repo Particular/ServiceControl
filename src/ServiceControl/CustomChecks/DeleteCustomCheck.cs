@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     class DeleteCustomCheck : ICommand
     {

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Globalization;
-using System.Windows;
-using System.Windows.Data;
-
-namespace ServiceControl.Config.Xaml.Converters
+﻿namespace ServiceControl.Config.Xaml.Converters
 {
+    using System;
+    using System.Globalization;
+    using System.Windows;
+    using System.Windows.Data;
+
     public class BoolToVisibilityConverter : IValueConverter
     {
         public bool Invert { get; set; }
@@ -14,10 +14,11 @@ namespace ServiceControl.Config.Xaml.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var flag = false;
-            if (value is bool)
+            if (value is bool b)
             {
-                flag = (bool)value;
+                flag = b;
             }
+
             return flag ^ Invert ? Visibility.Visible : (IsHidden ? Visibility.Hidden : Visibility.Collapsed);
         }
 
@@ -25,9 +26,9 @@ namespace ServiceControl.Config.Xaml.Converters
         {
             var result = false;
 
-            if (value is Visibility)
+            if (value is Visibility visibility)
             {
-                result = (Visibility)value == Visibility.Visible;
+                result = visibility == Visibility.Visible;
             }
 
             return result ^ Invert;

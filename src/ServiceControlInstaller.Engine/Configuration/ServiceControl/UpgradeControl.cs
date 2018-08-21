@@ -16,6 +16,12 @@
 
     public class UpgradeInfo
     {
+        public UpgradeInfo(Version targetMinimum, Version currentMinimum)
+        {
+            TargetMinimumVersion = ConvertToCleanVersion(targetMinimum);
+            CurrentMinimumVersion = ConvertToCleanVersion(currentMinimum);
+        }
+
         /// <summary>
         /// Minimum version targeted for install that will trigger this
         /// </summary>
@@ -26,19 +32,13 @@
         /// </summary>
         public Version CurrentMinimumVersion { get; }
 
-        public UpgradeInfo(Version targetMinimum, Version currentMinimum)
-        {
-            TargetMinimumVersion = ConvertToCleanVersion(targetMinimum);
-            CurrentMinimumVersion = ConvertToCleanVersion(currentMinimum);
-        }
-
         /// <summary>
         /// Version recommended for upgrade if instance version does not meet the CurrentMinimumVersion
         /// </summary>
         public Version RecommendedUpgradeVersion
         {
-            get { return  recommendedUpgradeVersion ?? TargetMinimumVersion; }
-            set { recommendedUpgradeVersion = ConvertToCleanVersion(value); }
+            get => recommendedUpgradeVersion ?? TargetMinimumVersion;
+            set => recommendedUpgradeVersion = ConvertToCleanVersion(value);
         }
 
         /// <summary>
@@ -47,11 +47,9 @@
         public bool DataBaseUpdate { get; set; }
 
         /// <summary>
-        /// Inidicates indexes should be removed, prompting recreation, for this upgrade
+        /// Indicates indexes should be removed, prompting recreation, for this upgrade
         /// </summary>
         public bool DeleteIndexes { get; set; }
-
-        Version recommendedUpgradeVersion;
 
         static Version ConvertToCleanVersion(Version version)
         {
@@ -65,5 +63,7 @@
         {
             return $"[{CurrentMinimumVersion} -> {TargetMinimumVersion}]";
         }
+
+        Version recommendedUpgradeVersion;
     }
 }

@@ -3,10 +3,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Messages;
+    using Monitoring;
     using Nancy;
     using Nancy.Extensions;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Monitoring;
 
     public class GetKnownEndpointsApi : ScatterGatherApi<NoInput, List<KnownEndpointsView>>
     {

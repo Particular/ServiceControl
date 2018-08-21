@@ -1,12 +1,13 @@
 ﻿namespace ServiceControlInstaller.Engine.Validation
 {
-    using ServiceControlInstaller.Engine.Ports;
+    using Configuration.ServiceControl;
+    using Ports;
 
     public class DatabaseMaintenancePortValidator
     {
         public static void Validate(IServiceControlInstance instance)
         {
-            if (instance.Version.Major < 2) //Maintenance port was introduced in Version 2
+            if (instance.Version < SettingsList.DatabaseMaintenancePort.SupportedFrom)
             {
                 return;
             }
@@ -22,7 +23,9 @@
             }
 
             if (!PortUtils.CheckAvailable(instance.DatabaseMaintenancePort.Value))
+            {
                 throw new EngineValidationException($"Port {instance.DatabaseMaintenancePort} is not available");
+            }
         }
     }
 }

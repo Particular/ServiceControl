@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace ServiceControl.Infrastructure.RavenDB
+﻿namespace ServiceControl.Infrastructure.RavenDB
 {
+    using System;
     using System.Threading;
     using Raven.Abstractions.Data;
     using Raven.Database;

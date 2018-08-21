@@ -1,24 +1,22 @@
-﻿using System;
-using ServiceControl.Config.Framework;
-using ServiceControl.Config.Framework.Commands;
-using ServiceControl.Config.UI.InstanceAdd;
-
-namespace ServiceControl.Config.Commands
+﻿namespace ServiceControl.Config.Commands
 {
-    using ServiceControl.Config.Framework.Modules;
+    using System;
+    using Framework;
+    using Framework.Commands;
+    using Framework.Modules;
+    using UI.InstanceAdd;
 
     class AddMonitoringInstanceCommand : AbstractCommand<object>
     {
-        private readonly Func<MonitoringAddViewModel> addInstance;
-        private readonly IWindowManagerEx windowManager;
-        private readonly MonitoringInstanceInstaller installer;
-
         public AddMonitoringInstanceCommand(IWindowManagerEx windowManager, Func<MonitoringAddViewModel> addInstance, MonitoringInstanceInstaller installer) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;
             this.installer = installer;
         }
+
+        [FeatureToggle(Feature.LicenseChecks)]
+        public bool LicenseChecks { get; set; }
 
         public override void Execute(object obj)
         {
@@ -36,7 +34,8 @@ namespace ServiceControl.Config.Commands
             windowManager.ShowInnerDialog(instanceViewModel);
         }
 
-        [FeatureToggle(Feature.LicenseChecks)]
-        public bool LicenseChecks { get; set; }
+        readonly Func<MonitoringAddViewModel> addInstance;
+        readonly IWindowManagerEx windowManager;
+        readonly MonitoringInstanceInstaller installer;
     }
 }

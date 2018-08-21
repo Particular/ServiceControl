@@ -22,7 +22,7 @@
 
             enricher.Enrich(headers, metadata);
 
-            var sagaData = (List<SagaInfo>) metadata["InvokedSagas"];
+            var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
             Assert.AreEqual(1, sagaData.Count);
             Assert.AreEqual("New", sagaData[0].ChangeStatus);

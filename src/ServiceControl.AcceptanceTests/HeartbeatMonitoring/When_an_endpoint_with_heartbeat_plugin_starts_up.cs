@@ -2,9 +2,9 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using Contexts;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -18,14 +18,13 @@
         [Test]
         public async Task Should_be_monitored_and_active()
         {
-            var context = new MyContext();
             List<EndpointsView> endpoints = null;
 
-            await Define(context)
-                .WithEndpoint<StartingEndpoint>()
+            await Define<MyContext>()
+                .WithEndpoint<StartingEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
                     endpoints = result;
                     return result;
                 })
@@ -45,33 +44,14 @@
         {
             public StartingEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.Heartbeat.dll"));
-            }
-
-            class SendMessage : IWantToRunWhenBusStartsAndStops
-            {
-                readonly IBus bus;
-
-                public SendMessage(IBus bus)
-                {
-                    this.bus = bus;
-                }
-
-                public void Start()
-                {
-                    bus.SendLocal(new MyMessage());
-                }
-
-                public void Stop()
-                {
-                }
+                EndpointSetup<DefaultServerWithAudit>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
+                    return Task.FromResult(0);
                 }
             }
         }

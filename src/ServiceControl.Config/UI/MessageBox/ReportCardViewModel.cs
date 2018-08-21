@@ -3,8 +3,8 @@ namespace ServiceControl.Config.UI.MessageBox
     using System.Collections.Generic;
     using System.Windows.Input;
     using Caliburn.Micro;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Rx;
+    using Framework;
+    using Framework.Rx;
     using ServiceControlInstaller.Engine.ReportCard;
 
     class ReportCardViewModel : RxScreen
@@ -14,7 +14,11 @@ namespace ServiceControl.Config.UI.MessageBox
             Warnings = reportCard.Warnings;
             Errors = reportCard.Errors;
 
-            Cancel = Command.Create(() => { Result = false; ((IDeactivate)this).Deactivate(true); });
+            Cancel = Command.Create(() =>
+            {
+                Result = false;
+                ((IDeactivate)this).Deactivate(true);
+            });
         }
 
         public string Title { get; set; }

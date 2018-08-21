@@ -4,8 +4,8 @@
     using System.IO;
     using System.Linq;
     using System.Windows.Input;
+    using Commands;
     using PropertyChanged;
-    using ServiceControl.Config.Commands;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
@@ -48,6 +48,7 @@
             HostName = "localhost";
             AuditQueueName = "audit";
             AuditForwardingQueueName = "audit.log";
+            AuditForwarding = AuditForwardingOptions.First(p => !p.Value); //Default to Off.
             ErrorQueueName = "error";
             ErrorForwardingQueueName = "error.log";
             ErrorForwarding = ErrorForwardingOptions.First(p => !p.Value); //Default to Off.
@@ -59,13 +60,6 @@
 
         public string DatabasePath { get; set; }
         public ICommand SelectDatabasePath { get; }
-
-        protected override void OnInstanceNameChanged()
-        {
-            DestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", InstanceName);
-            DatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "DB");
-            LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "Logs");
-        }
 
         public string ErrorQueueName { get; set; }
         public string ErrorForwardingQueueName { get; set; }
@@ -82,8 +76,6 @@
 
         public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
         public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
-
-        TransportInfo selectedTransport;
 
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
         public TransportInfo SelectedTransport
@@ -105,5 +97,14 @@
 
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+
+        protected override void OnInstanceNameChanged()
+        {
+            DestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", InstanceName);
+            DatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "DB");
+            LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "Logs");
+        }
+
+        TransportInfo selectedTransport;
     }
 }

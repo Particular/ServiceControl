@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-
-namespace ServiceControl.Config.Extensions
+﻿namespace ServiceControl.Config.Extensions
 {
+    using System.Reflection;
+
     public static class ReflectionHelper
     {
         public static T GetAttribute<T>(this ICustomAttributeProvider provider, bool inherit = false)
@@ -9,10 +9,11 @@ namespace ServiceControl.Config.Extensions
         {
             var customAttributes = provider.GetCustomAttributes(typeof(T), inherit);
             if (customAttributes.Length > 0)
+            {
                 return (T)customAttributes[0];
+            }
 
             return null;
         }
-
     }
 }

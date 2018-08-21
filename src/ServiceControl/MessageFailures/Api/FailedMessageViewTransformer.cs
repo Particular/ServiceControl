@@ -6,21 +6,6 @@
 
     public class FailedMessageViewTransformer : AbstractTransformerCreationTask<FailedMessage>
     {
-        private static string transformerName;
-        
-        public static string Name
-        {
-            get
-            {
-                if (transformerName == null)
-                {
-                    transformerName = new FailedMessageViewTransformer().TransformerName;
-                }
-
-                return transformerName;
-            }
-        }
-        
         public FailedMessageViewTransformer()
         {
             TransformResults = failures => from failure in failures
@@ -38,9 +23,24 @@
                     QueueAddress = rec.FailureDetails.AddressOfFailingEndpoint,
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count,
                     failure.Status,
-                    TimeOfFailure = rec.FailureDetails.TimeOfFailure,
+                    rec.FailureDetails.TimeOfFailure,
                     LastModified = MetadataFor(failure)["Last-Modified"].Value<DateTime>()
                 };
         }
+
+        public static string Name
+        {
+            get
+            {
+                if (transformerName == null)
+                {
+                    transformerName = new FailedMessageViewTransformer().TransformerName;
+                }
+
+                return transformerName;
+            }
+        }
+
+        private static string transformerName;
     }
 }

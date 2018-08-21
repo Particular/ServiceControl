@@ -6,6 +6,6 @@
     {
         public string Name { get; set; }
         public Version SupportedFrom { get; set; }
-        public Version RemovedFrom { get;  set; }
+        public Version RemovedFrom { get; set; }
     }
 }

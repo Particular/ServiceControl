@@ -1,10 +1,9 @@
-﻿using System.Windows;
-
-namespace ServiceControl.Config.UI.SharedInstanceEditor
+﻿namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
+    using System.Windows;
+
     public partial class SharedServiceControlEditorView
     {
-
         public SharedServiceControlEditorView()
         {
             InitializeComponent();
@@ -12,18 +11,18 @@ namespace ServiceControl.Config.UI.SharedInstanceEditor
 
         public string SaveText
         {
-            get { return (string) GetValue(SaveTextProperty); }
+            get { return (string)GetValue(SaveTextProperty); }
             set { SetValue(SaveTextProperty, value); }
         }
-
-        public static readonly DependencyProperty SaveTextProperty =
-            DependencyProperty.Register("SaveText", typeof(string), typeof(SharedServiceControlEditorView), new PropertyMetadata("Save"));
 
         public object SharedContent
         {
             get { return GetValue(SharedContentProperty); }
             set { SetValue(SharedContentProperty, value); }
         }
+
+        public static readonly DependencyProperty SaveTextProperty =
+            DependencyProperty.Register("SaveText", typeof(string), typeof(SharedServiceControlEditorView), new PropertyMetadata("Save"));
 
         public static readonly DependencyProperty SharedContentProperty =
             DependencyProperty.Register("SharedContent", typeof(object), typeof(SharedServiceControlEditorView), new PropertyMetadata());

@@ -3,7 +3,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     using System;
     using System.Linq;
     using Raven.Client.Indexes;
-    using ServiceControl.SagaAudit;
+    using SagaAudit;
 
     public class ExpirySagaAuditIndex : AbstractMultiMapIndexCreationTask
     {

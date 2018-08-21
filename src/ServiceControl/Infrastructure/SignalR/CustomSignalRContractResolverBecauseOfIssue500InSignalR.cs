@@ -7,10 +7,6 @@
 
     public class CustomSignalRContractResolverBecauseOfIssue500InSignalR : IContractResolver
     {
-        private readonly Assembly assembly;
-        private readonly IContractResolver underscoreContractResolver;
-        private readonly IContractResolver defaultContractSerializer;
-
         public CustomSignalRContractResolverBecauseOfIssue500InSignalR()
         {
             defaultContractSerializer = new DefaultContractResolver();
@@ -27,5 +23,9 @@
 
             return underscoreContractResolver.ResolveContract(type);
         }
+
+        private readonly Assembly assembly;
+        private readonly IContractResolver underscoreContractResolver;
+        private readonly IContractResolver defaultContractSerializer;
     }
 }

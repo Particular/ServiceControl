@@ -3,22 +3,18 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure;
 
     public class FailedMessageRetries : Feature
     {
         public FailedMessageRetries()
         {
             EnableByDefault();
-            RegisterStartupTask<RebuildRetryGroupStatuses>();
-            RegisterStartupTask<BulkRetryBatchCreation>();
-            RegisterStartupTask<AdoptOrphanBatchesFromPreviousSession>();
-            RegisterStartupTask<ProcessRetryBatches>();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
@@ -26,47 +22,57 @@
             context.Container.ConfigureComponent<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetriesGateway>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetryProcessor>(DependencyLifecycle.SingleInstance);
+
+            context.RegisterStartupTask(b => b.Build<RebuildRetryGroupStatuses>());
+            context.RegisterStartupTask(b => b.Build<BulkRetryBatchCreation>());
+            context.RegisterStartupTask(b => b.Build<AdoptOrphanBatchesFromPreviousSession>());
+            context.RegisterStartupTask(b => b.Build<ProcessRetryBatches>());
         }
 
         class BulkRetryBatchCreation : FeatureStartupTask
         {
-            readonly RetriesGateway retries;
-            private readonly TimeKeeper timeKeeper;
-            private Timer timer;
-            private bool abortProcessing;
-
             public BulkRetryBatchCreation(RetriesGateway retries, TimeKeeper timeKeeper)
             {
                 this.retries = retries;
                 this.timeKeeper = timeKeeper;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 if (retries != null)
                 {
                     var due = TimeSpan.FromSeconds(5);
                     timer = timeKeeper.New(ProcessRequestedBulkRetryOperations, due, due);
                 }
+
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 if (retries != null)
                 {
                     abortProcessing = true;
                     timeKeeper.Release(timer);
                 }
+
+                return Task.FromResult(0);
             }
 
-            void ProcessRequestedBulkRetryOperations()
+            async Task ProcessRequestedBulkRetryOperations()
             {
                 bool processedRequests;
                 do
                 {
-                    processedRequests = retries.ProcessNextBulkRetry();
+                    processedRequests = await retries.ProcessNextBulkRetry()
+                        .ConfigureAwait(false);
                 } while (processedRequests && !abortProcessing);
             }
+
+            readonly RetriesGateway retries;
+            private readonly TimeKeeper timeKeeper;
+            private Timer timer;
+            private bool abortProcessing;
         }
 
         class RebuildRetryGroupStatuses : FeatureStartupTask
@@ -77,17 +83,17 @@
                 this.retryDocumentManager = retryDocumentManager;
             }
 
-            protected override void OnStart()
+            protected override async Task OnStart(IMessageSession session)
             {
-                StartAsync().GetAwaiter().GetResult();
+                using (var storageSession = store.OpenAsyncSession())
+                {
+                    await retryDocumentManager.RebuildRetryOperationState(storageSession).ConfigureAwait(false);
+                }
             }
 
-            private async Task StartAsync()
+            protected override Task OnStop(IMessageSession session)
             {
-                using (var session = store.OpenAsyncSession())
-                {
-                    await retryDocumentManager.RebuildRetryOperationState(session).ConfigureAwait(false);
-                }
+                return Task.FromResult(0);
             }
 
             RetryDocumentManager retryDocumentManager;
@@ -96,9 +102,6 @@
 
         internal class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
-            private Timer timer;
-            private DateTime startTime;
-
             public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper, IDocumentStore store)
             {
                 this.retryDocumentManager = retryDocumentManager;
@@ -131,27 +134,28 @@
                 return hasMoreWorkToDo;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 timer = timeKeeper.NewTimer(() => AdoptOrphanedBatches(), TimeSpan.Zero, TimeSpan.FromMinutes(2));
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 timeKeeper.Release(timer);
+                return Task.FromResult(0);
             }
+
+            private readonly TimeKeeper timeKeeper;
+            private Timer timer;
+            private DateTime startTime;
 
             IDocumentStore store;
             RetryDocumentManager retryDocumentManager;
-            private readonly TimeKeeper timeKeeper;
         }
 
         class ProcessRetryBatches : FeatureStartupTask
         {
-            static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
-            private Timer timer;
-            private readonly Settings settings;
-
             public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, TimeKeeper timeKeeper, Settings settings)
             {
                 this.processor = processor;
@@ -160,22 +164,36 @@
                 this.settings = settings;
             }
 
-            protected override void OnStart()
+            protected override Task OnStart(IMessageSession session)
             {
                 timer = timeKeeper.New(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency);
+                return Task.FromResult(0);
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IMessageSession session)
             {
                 shuttingDown.Cancel();
                 timeKeeper.Release(timer);
+                return Task.FromResult(0);
             }
 
-            void Process()
+            async Task Process()
             {
                 try
                 {
-                    ProcessAsync().GetAwaiter().GetResult();
+                    bool batchesProcessed;
+                    do
+                    {
+                        using (var session = store.OpenAsyncSession())
+                        {
+                            batchesProcessed = await processor.ProcessBatches(session, shuttingDown.Token).ConfigureAwait(false);
+                            await session.SaveChangesAsync().ConfigureAwait(false);
+                        }
+                    } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
+                }
+                catch (OperationCanceledException)
+                {
+                    // ignore
                 }
                 catch (Exception ex)
                 {
@@ -183,23 +201,14 @@
                 }
             }
 
-            private async Task ProcessAsync()
-            {
-                bool batchesProcessed;
-                do
-                {
-                    using (var session = store.OpenAsyncSession())
-                    {
-                        batchesProcessed = await processor.ProcessBatches(session, shuttingDown.Token).ConfigureAwait(false);
-                        await session.SaveChangesAsync().ConfigureAwait(false);
-                    }
-                } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
-            }
+            private readonly Settings settings;
+            private readonly TimeKeeper timeKeeper;
+            private Timer timer;
 
             IDocumentStore store;
             RetryProcessor processor;
-            private readonly TimeKeeper timeKeeper;
             private CancellationTokenSource shuttingDown = new CancellationTokenSource();
+            static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
         }
     }
 }

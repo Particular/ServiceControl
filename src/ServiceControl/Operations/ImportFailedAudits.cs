@@ -4,8 +4,9 @@ namespace ServiceControl.Operations
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Transport;
     using Raven.Client;
     using Raven.Client.Indexes;
 
@@ -20,35 +21,35 @@ namespace ServiceControl.Operations
         public Task Run(CancellationTokenSource tokenSource)
         {
             source = tokenSource;
-            return Task.Factory.StartNew(() => Run<FailedAuditImport, FailedAuditImportIndex>(source.Token));
+            return Task.Run(() => Run<FailedAuditImport, FailedAuditImportIndex>(source.Token));
         }
 
-        void Run<T, I>(CancellationToken token) where I : AbstractIndexCreationTask, new()
+        async Task Run<T, I>(CancellationToken token) where I : AbstractIndexCreationTask, new()
         {
             var succeeded = 0;
             var failed = 0;
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<T, I>();
-                using (var ie = session.Advanced.Stream(query))
+                using (var ie = await session.Advanced.StreamAsync(query, token)
+                    .ConfigureAwait(false))
                 {
-                    while (!token.IsCancellationRequested && ie.MoveNext())
+                    while (!token.IsCancellationRequested && await ie.MoveNextAsync().ConfigureAwait(false))
                     {
                         FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
                         try
                         {
-                            var transportMessage = new TransportMessage(dto.Id, dto.Headers)
+                            var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                            var entity = await auditImporter.ConvertToSaveMessage(messageContext)
+                                .ConfigureAwait(false);
+                            using (var storeSession = store.OpenAsyncSession())
                             {
-                                Body = dto.Body
-                            };
-
-                            var entity = auditImporter.ConvertToSaveMessage(transportMessage);
-                            using (var storeSession = store.OpenSession())
-                            {
-                                storeSession.Store(entity);
-                                storeSession.SaveChanges();
+                                await storeSession.StoreAsync(entity, token).ConfigureAwait(false);
+                                await storeSession.SaveChangesAsync(token).ConfigureAwait(false);
                             }
-                            store.DatabaseCommands.Delete(ie.Current.Key, null);
+
+                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
+                                .ConfigureAwait(false);
                             succeeded++;
                             Logger.Info($"Successfully re-imported failed audit message {dto.Id}.");
                         }
@@ -60,6 +61,7 @@ namespace ServiceControl.Operations
                     }
                 }
             }
+
             Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messaged. Failed re-importing {failed} messages.");
 
             if (failed > 0)
@@ -71,6 +73,10 @@ namespace ServiceControl.Operations
         IDocumentStore store;
         AuditImporter auditImporter;
         CancellationTokenSource source;
+
+        static TransportTransaction EmptyTransaction = new TransportTransaction();
+        static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
+        static ContextBag EmptyContextBag = new ContextBag();
         static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedAudits));
     }
 

@@ -1,13 +1,12 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contexts;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
@@ -25,10 +24,8 @@
             MessagesView message = null;
             List<EventLogItem> eventLogItems = null;
 
-            var context = new MyContext();
-
-            await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            await Define<MyContext>()
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -37,16 +34,17 @@
                     {
                         return false;
                     }
+
                     if (failure.Status == FailedMessageStatus.Resolved)
                     {
-                        var eventLogItemsResult = await TryGetMany<EventLogItem>("/api/eventlogitems");
+                        var eventLogItemsResult = await this.TryGetMany<EventLogItem>("/api/eventlogitems");
                         eventLogItems = eventLogItemsResult;
-                        var messagesResult = await TryGetSingle<MessagesView>("/api/messages", m => m.Status == MessageStatus.ResolvedSuccessfully);
+                        var messagesResult = await this.TryGetSingle<MessagesView>("/api/messages", m => m.Status == MessageStatus.ResolvedSuccessfully);
                         message = messagesResult;
                         return messagesResult && eventLogItemsResult;
                     }
 
-                    await IssueRetry(c, () => Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
+                    await IssueRetry(c, () => this.Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
 
                     return false;
                 })
@@ -63,10 +61,8 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            await Define<MyContext>()
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -81,7 +77,7 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => Post("/api/errors/retry", new List<string> { c.UniqueMessageId }));
+                    await IssueRetry(c, () => this.Post("/api/errors/retry", new List<string> {c.UniqueMessageId}));
 
                     return false;
                 })
@@ -95,10 +91,8 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            await Define<MyContext>()
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -113,7 +107,7 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => Post<object>("/api/errors/retry/all"));
+                    await IssueRetry(c, () => this.Post<object>("/api/errors/retry/all"));
 
                     return false;
                 })
@@ -125,12 +119,10 @@
         [Test]
         public async Task Acknowledging_the_retry_should_be_successful()
         {
-            FailedMessage failure = null;
+            FailedMessage failure;
 
-            var context = new MyContext();
-
-            await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            await Define<MyContext>()
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -145,13 +137,14 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => Post<object>($"/api//recoverability/groups/{failure.FailureGroups.First().Id}/errors/retry"));
+                    await IssueRetry(c, () => this.Post<object>($"/api/recoverability/groups/{failure.FailureGroups.First().Id}/errors/retry"));
 
                     return false;
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            await Delete($"/api/recoverability/unacknowledgedgroups/{failure.FailureGroups.First().Id}"); // Exception will throw if 404
+            // TODO: How did this ever work. The API should be stopped at this point
+            //await this.Delete($"/api/recoverability/unacknowledgedgroups/{failure.FailureGroups.First().Id}"); // Exception will throw if 404
         }
 
         [Test]
@@ -159,10 +152,8 @@
         {
             FailedMessage failure = null;
 
-            var context = new MyContext();
-
-            await Define(context)
-                .WithEndpoint<FailureEndpoint>(b => b.Given(bus => bus.SendLocal(new MyMessage())))
+            await Define<MyContext>()
+                .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var failedMessageResult = await GetFailedMessage(c);
@@ -177,7 +168,7 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => Post<object>($"/api/errors/{c.EndpointNameOfReceivingEndpoint}/retry/all"));
+                    await IssueRetry(c, () => this.Post<object>($"/api/errors/{c.EndpointNameOfReceivingEndpoint}/retry/all"));
 
                     return false;
                 })
@@ -193,7 +184,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
+            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
         }
 
         async Task IssueRetry(MyContext c, Func<Task> retryAction)
@@ -211,33 +202,33 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.DisableFeature<SecondLevelRetries>());
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.Out.WriteLine("Handling message");
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress().ToString();
-                    Context.MessageId = Bus.CurrentMessageContext.Id.Replace(@"\", "-");
+                    Context.LocalAddress = Settings.LocalAddress();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
                     {
                         throw new Exception("Simulated exception");
                     }
+
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        [Serializable]
+
         public class MyMessage : ICommand
         {
         }
@@ -250,7 +241,7 @@
 
             public bool RetryIssued { get; set; }
 
-            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, Address.Parse(LocalAddress).Queue).ToString();
+            public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
             public string LocalAddress { get; set; }
         }
     }

@@ -6,6 +6,7 @@
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
@@ -34,6 +35,7 @@
                     session.Store(processedMessage);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 using (var session = documentStore.OpenSession())
@@ -58,6 +60,7 @@
                     {
                         session.Store(message);
                     }
+
                     session.SaveChanges();
                 }
 
@@ -71,6 +74,7 @@
                     session.Store(recentMessage);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
                 foreach (dynamic message in expiredMessages)
                 {
@@ -86,8 +90,6 @@
                 }
             }
         }
-
-        private static int doctestrange = 999;
 
         IEnumerable<object> BuildExpiredMessaged(DateTime dateTime)
         {
@@ -139,6 +141,7 @@
                     session.Store(recentMessage);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 using (var session = documentStore.OpenSession())
@@ -150,7 +153,7 @@
         }
 
         [Test]
-        public void Stored_bodies_are_being_removed_when_message_expires()
+        public async Task Stored_bodies_are_being_removed_when_message_expires()
         {
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -192,8 +195,9 @@
                 };
                 using (var stream = new MemoryStream(body))
                 {
-                    bodyStorage.Store(messageId, "binary", 5, stream);
+                    await bodyStorage.Store(messageId, "binary", 5, stream);
                 }
+
                 RunExpiry(documentStore, thresholdDate);
 
                 // Verify message expired
@@ -203,8 +207,7 @@
                 }
 
                 // Verify body expired
-                Stream dummy;
-                Assert.False(bodyStorage.TryFetch(messageId, out dummy), "Audit document body should be deleted");
+                Assert.False((await bodyStorage.TryFetch(messageId)).HasResult, "Audit document body should be deleted");
             }
         }
 
@@ -225,6 +228,7 @@
                     session.Store(message);
                     session.SaveChanges();
                 }
+
                 RunExpiry(documentStore, thresholdDate);
                 using (var session = documentStore.OpenSession())
                 {
@@ -240,7 +244,7 @@
             {
                 var failedMsg = new FailedMessage
                 {
-                    Id = "1",
+                    Id = "1"
                 };
 
                 using (var session = documentStore.OpenSession())
@@ -250,6 +254,7 @@
 
                     Debug.WriteLine(session.Advanced.GetMetadataFor(failedMsg)["Last-Modified"]);
                 }
+
                 Thread.Sleep(100);
                 RunExpiry(documentStore, DateTime.UtcNow);
 
@@ -260,5 +265,6 @@
             }
         }
 
+        private static int doctestrange = 999;
     }
 }

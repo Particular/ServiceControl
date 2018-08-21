@@ -18,6 +18,5 @@
         public string QueueAddress { get; set; }
         public DateTime TimeOfFailure { get; set; }
         public DateTime LastModified { get; set; }
-
     }
 }

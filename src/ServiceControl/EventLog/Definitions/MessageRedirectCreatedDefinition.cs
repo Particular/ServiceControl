@@ -1,6 +1,6 @@
 namespace ServiceControl.EventLog.Definitions
 {
-    using ServiceControl.Contracts.MessageRedirects;
+    using Contracts.MessageRedirects;
 
     public class MessageRedirectCreatedDefinition : EventLogMappingDefinition<MessageRedirectCreated>
     {

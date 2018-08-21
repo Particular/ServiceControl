@@ -11,7 +11,7 @@
         {
             Map = failures => from failure in failures
                 where failure.Status == FailedMessageStatus.Unresolved
-                              let t = (EndpointDetails)failure.ProcessingAttempts.Last().MessageMetadata["ReceivingEndpoint"]
+                let t = (EndpointDetails)failure.ProcessingAttempts.Last().MessageMetadata["ReceivingEndpoint"]
                 select new
                 {
                     t.Name,

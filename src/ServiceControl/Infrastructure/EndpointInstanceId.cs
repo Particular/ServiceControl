@@ -1,15 +1,10 @@
 ﻿namespace ServiceControl
 {
     using System.Collections.Generic;
-    using ServiceControl.Contracts.Operations;
+    using Contracts.Operations;
 
     public class EndpointInstanceId
     {
-        public string EndpointName { get; }
-        public string InstanceId { get; }
-        public string InstanceName { get; }
-
-
         public EndpointInstanceId(string endpointName, string instanceId)
             : this(endpointName, instanceId, instanceId)
         {
@@ -22,12 +17,20 @@
             InstanceName = instanceName;
         }
 
+        public string EndpointName { get; }
+        public string InstanceId { get; }
+        public string InstanceName { get; }
+
         public static EndpointInstanceId From(IReadOnlyDictionary<string, string> headers)
         {
             var details = EndpointDetailsParser.ReceivingEndpoint(headers);
 
-            string instanceId;
-            headers.TryGetValue("NServiceBus.Metric.InstanceId", out instanceId);
+            if (details == null)
+            {
+                return null;
+            }
+
+            headers.TryGetValue("NServiceBus.Metric.InstanceId", out var instanceId);
 
             return new EndpointInstanceId(details.Name, instanceId ?? details.HostId.ToString("N"), details.Host);
         }
@@ -41,9 +44,20 @@
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
 
             return Equals((EndpointInstanceId)obj);
         }

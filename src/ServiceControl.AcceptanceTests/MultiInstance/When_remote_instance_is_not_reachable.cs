@@ -1,44 +1,35 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
 {
     using System;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     public class When_remote_instance_is_not_reachable : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-
-        private string addressOfRemote;
-
-
         [Test]
         public async Task Should_not_fail()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var context = new MyContext();
-
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            await Define(context, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) => { bus.SendLocal(new MyMessage()); }))
-                .Done(async c => await TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: Master))
+            await Define<MyContext>(Master)
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
+                .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: Master))
                 .Run(TimeSpan.FromSeconds(40));
         }
 
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             addressOfRemote = "http://localhost:12121";
-            settings.RemoteInstances = new []
+            settings.RemoteInstances = new[]
             {
                 new RemoteInstanceSetting
                 {
@@ -46,36 +37,42 @@
                     QueueAddress = "remote1"
                 }
             };
-            settings.AuditQueue = Address.Parse(AuditMaster);
-            settings.ErrorQueue = Address.Parse(ErrorMaster);
+            settings.AuditQueue = AuditMaster;
+            settings.ErrorQueue = ErrorMaster;
         }
+
+        private string addressOfRemote;
+        private const string Master = "master";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .AuditTo(Address.Parse(AuditMaster))
-                    .ErrorTo(Address.Parse(ErrorMaster));
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.AuditProcessedMessagesTo(AuditMaster);
+                    c.SendFailedMessagesTo(ErrorMaster);
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
-                public IBus Bus { get; set; }
-
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        [Serializable]
+
         public class MyMessage : ICommand
         {
         }

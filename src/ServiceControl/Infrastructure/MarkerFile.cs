@@ -5,7 +5,6 @@
 
     public class MarkerFileService
     {
-        private string rootPath;
         public MarkerFileService(string rootPath)
         {
             this.rootPath = rootPath;
@@ -13,6 +12,12 @@
 
         public IDisposable CreateMarker(string name)
         {
+            // normally this root path is always created by the installer
+            if (!Directory.Exists(rootPath))
+            {
+                Directory.CreateDirectory(rootPath);
+            }
+            
             var path = Path.Combine(rootPath, name);
             using (File.Open(path, FileMode.OpenOrCreate))
             {
@@ -20,10 +25,10 @@
             }
         }
 
+        private string rootPath;
+
         class MarkerFile : IDisposable
         {
-            private string fileName;
-
             public MarkerFile(string fileName)
             {
                 this.fileName = fileName;
@@ -37,9 +42,10 @@
                 }
                 catch (IOException)
                 {
-
                 }
             }
+
+            private string fileName;
         }
     }
 }

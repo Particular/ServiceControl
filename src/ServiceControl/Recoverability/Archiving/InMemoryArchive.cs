@@ -1,12 +1,11 @@
 ﻿namespace ServiceControl.Recoverability
 {
-    using ServiceControl.Infrastructure.DomainEvents;
     using System;
+    using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
 
     public class InMemoryArchive // in memory
     {
-        IDomainEvents domainEvents;
-
         public InMemoryArchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
         {
             RequestId = requestId;
@@ -41,12 +40,12 @@
             return new ArchiveProgress(roundedPercentage, TotalNumberOfMessages, NumberOfMessagesArchived, remaining);
         }
 
-        internal void Start()
+        internal Task Start()
         {
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
 
-            domainEvents.Raise(new ArchiveOperationStarting
+            return domainEvents.Raise(new ArchiveOperationStarting
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -55,14 +54,14 @@
             });
         }
 
-        internal void BatchArchived(int numberOfMessagesArchivedInBatch)
+        internal Task BatchArchived(int numberOfMessagesArchivedInBatch)
         {
             ArchiveState = ArchiveState.ArchiveProgressing;
             NumberOfMessagesArchived += numberOfMessagesArchivedInBatch;
             CurrentBatch++;
             Last = DateTime.Now;
 
-            domainEvents.Raise(new ArchiveOperationBatchCompleted
+            return domainEvents.Raise(new ArchiveOperationBatchCompleted
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -72,13 +71,13 @@
             });
         }
 
-        internal void FinalizeArchive()
+        internal Task FinalizeArchive()
         {
             ArchiveState = ArchiveState.ArchiveFinalizing;
             NumberOfMessagesArchived = TotalNumberOfMessages;
             Last = DateTime.Now;
 
-            domainEvents.Raise(new ArchiveOperationFinalizing
+            return domainEvents.Raise(new ArchiveOperationFinalizing
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -88,14 +87,14 @@
             });
         }
 
-        internal void Complete()
+        internal Task Complete()
         {
             ArchiveState = ArchiveState.ArchiveCompleted;
             NumberOfMessagesArchived = TotalNumberOfMessages;
             CompletionTime = DateTime.Now;
             Last = DateTime.Now;
 
-            domainEvents.Raise(new ArchiveOperationCompleted
+            return domainEvents.Raise(new ArchiveOperationCompleted
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -127,5 +126,7 @@
         {
             return ArchiveState == ArchiveState.ArchiveCompleted;
         }
+
+        IDomainEvents domainEvents;
     }
 }

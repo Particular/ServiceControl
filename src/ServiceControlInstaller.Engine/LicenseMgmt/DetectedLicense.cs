@@ -2,9 +2,6 @@
 {
     public class DetectedLicense
     {
-        public LicenseDetails Details;
-        public string Location { get; set; }
-
         public DetectedLicense()
         {
             Details = new LicenseDetails();
@@ -15,5 +12,8 @@
             Location = licensePath;
             Details = details;
         }
+
+        public string Location { get; set; }
+        public LicenseDetails Details;
     }
 }

@@ -1,7 +1,7 @@
 namespace ServiceControl.ExternalIntegrations
 {
     using System;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Infrastructure.DomainEvents;
 
     public class ExternalIntegrationEventFailedToBePublished : IDomainEvent
     {

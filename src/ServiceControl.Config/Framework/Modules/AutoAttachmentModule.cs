@@ -1,19 +1,19 @@
-﻿using System;
-using System.Linq;
-using Autofac;
-using Autofac.Core;
-using Caliburn.Micro;
-
-namespace ServiceControl.Config.Framework.Modules
+﻿namespace ServiceControl.Config.Framework.Modules
 {
+    using System;
+    using System.Linq;
+    using Autofac;
+    using Autofac.Core;
+    using Caliburn.Micro;
+
     public class AutoAttachmentModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterAssemblyTypes(AssemblySource.Instance.ToArray())
-              .Where(type => type.Name.EndsWith("Attachment") && type.IsAssignableTo<IAttachment>())
-              .AsSelf()
-              .InstancePerDependency();
+                .Where(type => type.Name.EndsWith("Attachment") && type.IsAssignableTo<IAttachment>())
+                .AsSelf()
+                .InstancePerDependency();
         }
 
         protected override void AttachToComponentRegistration(IComponentRegistry componentRegistry, IComponentRegistration registration)
@@ -21,12 +21,14 @@ namespace ServiceControl.Config.Framework.Modules
             registration.Activated += OnComponentActivated;
         }
 
-        private void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
+        void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
         {
             var vmType = e.Instance.GetType();
 
             if (!vmType.FullName.EndsWith("ViewModel"))
+            {
                 return;
+            }
 
             var attachmentBaseType = typeof(Attachment<>).MakeGenericType(vmType);
 
@@ -40,7 +42,7 @@ namespace ServiceControl.Config.Framework.Modules
             }
         }
 
-        private bool InheritsFrom(Type type, Type baseType)
+        bool InheritsFrom(Type type, Type baseType)
         {
             return type.BaseType != null && (type.BaseType == baseType || InheritsFrom(type.BaseType, baseType));
         }

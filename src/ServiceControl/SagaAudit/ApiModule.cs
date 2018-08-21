@@ -5,11 +5,11 @@ namespace ServiceControl.SagaAudit
 
     public class ApiModule : BaseModule
     {
-        public GetSagaByIdApi GetSagaByIdApi { get; set; }
-
         public ApiModule()
         {
-            Get["/sagas/{id}", true] = (parameters, token) => GetSagaByIdApi.Execute(this, (Guid) parameters.id);
+            Get["/sagas/{id}", true] = (parameters, token) => GetSagaByIdApi.Execute(this, (Guid)parameters.id);
         }
+
+        public GetSagaByIdApi GetSagaByIdApi { get; set; }
     }
 }

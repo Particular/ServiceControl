@@ -3,13 +3,11 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -18,79 +16,44 @@
         [Test]
         public async Task Should_succeed()
         {
-            FailedMessage failedMessage;
-
-            var context = await Define<Context>()
-                .WithEndpoint<DecoyFailingEndpoint>(b => b.Given(bus =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }))
-                .WithEndpoint<FailingEndpoint>(b => b.Given(bus =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }).When(async ctx =>
+            await Define<Context>()
+                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
+                .Do("DetectFailure", async ctx =>
                 {
                     if (ctx.UniqueMessageId == null)
                     {
                         return false;
                     }
 
-                    if (!ctx.DecoyProcessed)
-                    {
-                        return false;
-                    }
-
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                    failedMessage = result;
-                    if (!result)
-                    {
-                        return false;
-                    }
-
-                    if (!ctx.RetryAboutToBeSent)
-                    {
-                        ctx.RetryAboutToBeSent = true;
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                        return false;
-                    }
-
-                    //We can't just return true here because the index might not have been updated yet.
-                    //Following code ensures that the failed message index contains the message
-                    if (failedMessage.Status == FailedMessageStatus.RetryIssued)
-                    {
-                        var failedMessagesResult = await TryGet<FailedMessage[]>("/api/errors");
-                        FailedMessage[] failedMessages = failedMessagesResult;
-                        if (failedMessagesResult)
-                        {
-                            return failedMessages.Any(fm => fm.Id == ctx.UniqueMessageId);
-                        }
-                    }
-
-                    return false;
-                }, async (bus, ctx) =>
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                })
+                .Do("Retry", async ctx => { await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"); })
+                .Do("WaitForRetryRequested", async ctx =>
                 {
-                    await Patch("/api/pendingretries/queues/resolve", new
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
+                        msg => msg.Status == FailedMessageStatus.RetryIssued);
+                })
+                .Do("WaitForStaleIndex", async ctx =>
+                {
+                    return await this.TryGet<FailedMessage[]>("/api/errors",
+                        allErrors => allErrors.Any(fm => fm.Id == ctx.UniqueMessageId));
+                })
+                .Do("ResolvePending", async ctx =>
+                {
+                    await this.Patch("/api/pendingretries/resolve", new
                     {
                         queueaddress = ctx.FromAddress,
                         from = DateTime.UtcNow.AddHours(-1).ToString("o"),
                         to = DateTime.UtcNow.ToString("o")
                     });
-                }))
-                .Done(async ctx =>
-                {
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                    failedMessage = result;
-
-                    if (failedMessage.Status == FailedMessageStatus.Resolved)
-                    {
-                        return true;
-                    }
-
-                    return false;
                 })
+                .Do("WaitForResolved", async ctx =>
+                {
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
+                        message => message.Status == FailedMessageStatus.Resolved);
+                })
+                .Done(ctx => true) //We're done once the sequence is finished
                 .Run();
-
-            Assert.False(context.DecoyRetried, "Decoy was retried");
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder
@@ -99,91 +62,45 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
-                })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
-            }
-
-            class CustomConfig : INeedInitialization
-            {
-                public void Customize(BusConfiguration configuration)
-                {
-                    configuration.DisableFeature<Outbox>();
-                }
+                    c.NoRetries();
+                    c.NoOutbox();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.RetryAboutToBeSent)
+                    if (Context.Step == 0)
                     {
-                        Context.RetryCount++;
-                        Context.Retried = true;
-                    }
-                    else
-                    {
-                        Context.FromAddress = Settings.LocalAddress().ToString();
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
+                        Context.FromAddress = Settings.LocalAddress();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
+
+                    Context.RetryCount++;
+                    Context.Retried = true;
+
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        public class DecoyFailingEndpoint : EndpointConfigurationBuilder
-        {
-            public DecoyFailingEndpoint()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.DisableFeature<SecondLevelRetries>())
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public Context Context { get; set; }
-                public IBus Bus { get; set; }
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Handle(MyMessage message)
-                {
-                    Console.WriteLine("Message Handled");
-                    if (Context.RetryAboutToBeSent)
-                    {
-                        Context.DecoyRetried = true;
-                    }
-                    else
-                    {
-                        Context.DecoyProcessed = true;
-                        throw new Exception("Simulated Exception");
-                    }
-                }
-            }
-        }
-
-        public class Context : ScenarioContext
+        public class Context : ScenarioContext, ISequenceContext
         {
             public string UniqueMessageId { get; set; }
             public bool Retried { get; set; }
-            public bool RetryAboutToBeSent { get; set; }
             public int RetryCount { get; set; }
             public string FromAddress { get; set; }
-            public bool DecoyProcessed { get; set; }
-            public bool DecoyRetried { get; set; }
+            public int Step { get; set; }
         }
 
         public class MyMessage : ICommand
-        { }
+        {
+        }
     }
 }

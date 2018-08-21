@@ -4,8 +4,6 @@
 
     public class GetBodyById : BaseModule
     {
-        public GetBodyByIdApi GetBodyByIdApi { get; set; }
-
         public GetBodyById()
         {
             Get["/messages/{id*}/body", true] = async (parameters, token) =>
@@ -15,6 +13,7 @@
                 return await GetBodyByIdApi.Execute(this, messageId);
             };
         }
-    }
 
+        public GetBodyByIdApi GetBodyByIdApi { get; set; }
+    }
 }

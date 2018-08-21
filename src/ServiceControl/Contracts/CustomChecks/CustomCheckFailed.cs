@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
+    using Infrastructure.DomainEvents;
+    using Infrastructure.SignalR;
     using Operations;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Infrastructure.SignalR;
 
     public class CustomCheckFailed : IDomainEvent, IUserInterfaceEvent
     {

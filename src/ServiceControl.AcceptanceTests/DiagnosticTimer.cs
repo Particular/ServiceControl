@@ -5,9 +5,6 @@
 
     public class DiagnosticTimer : IDisposable
     {
-        private readonly string heading;
-        private Stopwatch watch = new Stopwatch();
-
         public DiagnosticTimer(string heading)
         {
             this.heading = heading;
@@ -20,5 +17,8 @@
             Console.Out.WriteLine($"{watch.Elapsed} - {heading}");
             GC.SuppressFinalize(this);
         }
+
+        readonly string heading;
+        Stopwatch watch = new Stopwatch();
     }
 }

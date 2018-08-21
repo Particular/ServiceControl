@@ -4,10 +4,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     public class GetMessagesByQuery : BaseModule
     {
-        public SearchApi SearchApi { get; set; }
-        public SearchEndpointApi SearchEndpointApi { get; set; }
-
-        public GetMessagesByQuery() 
+        public GetMessagesByQuery()
         {
             Get["/messages/search", true] = (_, token) =>
             {
@@ -46,5 +43,8 @@ namespace ServiceControl.CompositeViews.Messages
                 return SearchEndpointApi.Execute(this, input);
             };
         }
+
+        public SearchApi SearchApi { get; set; }
+        public SearchEndpointApi SearchEndpointApi { get; set; }
     }
 }

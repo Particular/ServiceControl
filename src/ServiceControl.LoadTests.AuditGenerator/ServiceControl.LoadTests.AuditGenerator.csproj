@@ -1,19 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net462</TargetFramework>
     <AssemblyName>AuditGenerator</AssemblyName>
-    <LangVersion>7</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Metrics.NET" Version="0.5.5" />
-    <PackageReference Include="NServiceBus" Version="6.4.3" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+
+    <PackageReference Include="Metrics.NET" Version="0.5.5" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.1.0" />
   </ItemGroup>
 
 </Project>

@@ -2,12 +2,11 @@
 {
     using System;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using Contexts;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Saga;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
@@ -16,11 +15,10 @@
         [Test]
         public async Task Saga_info_should_be_available_through_the_http_api()
         {
-            var context = new MyContext();
             MessagesView auditedMessage = null;
 
-            await Define(context)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.Given((bus, c) => bus.SendLocal(new MessageInitiatingSaga())))
+            var context = await Define<MyContext>()
+                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
                     if (c.SagaId == Guid.Empty)
@@ -28,12 +26,11 @@
                         return false;
                     }
 
-                    var result = await TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
                     auditedMessage = result;
                     return result;
                 })
                 .Run(TimeSpan.FromSeconds(40));
-
 
             Assert.NotNull(auditedMessage);
 
@@ -51,26 +48,28 @@
         {
             public EndpointThatIsHostingTheSaga()
             {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .IncludeAssembly(Assembly.LoadFrom("ServiceControl.Plugin.Nsb5.SagaAudit.dll"));
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }
 
-            public class MySaga:Saga<MySaga.MySagaData>,IAmStartedByMessages<MessageInitiatingSaga>
+            public class MySaga : Saga<MySaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MessageInitiatingSaga message)
+                public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     Context.SagaId = Data.Id;
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
-                }
-
-                public class MySagaData : ContainSagaData
-                {
+                    Context.MessageId = context.MessageId;
+                    return Task.FromResult(0);
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
+                    mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
+                }
+
+                public class MySagaData : ContainSagaData
+                {
+                    public string MessageId { get; set; }
                 }
             }
 
@@ -78,28 +77,31 @@
             {
                 public MyContext Context { get; set; }
 
-                public void Handle(MessageInitiatingSaga message)
+                public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     Context.OtherSagaId = Data.Id;
-                    Context.MessageId = Bus.CurrentMessageContext.Id;
+                    Context.MessageId = context.MessageId;
 
                     MarkAsComplete();
-                }
 
-                public class MySagaData : ContainSagaData
-                {
+                    return Task.FromResult(0);
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
                 {
+                    mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
+                }
+
+                public class MySagaData : ContainSagaData
+                {
+                    public string MessageId { get; set; }
                 }
             }
-
         }
 
-        [Serializable]
         public class MessageInitiatingSaga : ICommand
         {
+            public string Id { get; set; }
         }
 
         public class MyContext : ScenarioContext

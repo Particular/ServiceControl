@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Threading.Tasks;
     using Nancy;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -9,11 +10,14 @@ namespace ServiceControl.Recoverability
     {
         public FailureGroupsRetryApi()
         {
-            Post["/recoverability/groups/{groupId}/errors/retry"] =
-                parameters => RetryAllGroupErrors(parameters.GroupId);
+            Post["/recoverability/groups/{groupId}/errors/retry", true] =
+                (parameters, ctx) => RetryAllGroupErrors(parameters.GroupId);
         }
 
-        dynamic RetryAllGroupErrors(string groupId)
+        public Lazy<IEndpointInstance> Bus { get; set; }
+        public RetryingManager RetryOperationManager { get; set; }
+
+        async Task<dynamic> RetryAllGroupErrors(string groupId)
         {
             if (String.IsNullOrWhiteSpace(groupId))
             {
@@ -24,15 +28,17 @@ namespace ServiceControl.Recoverability
 
             if (!RetryOperationManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
             {
-                RetryOperationManager.Wait(groupId, RetryType.FailureGroup, started);
+                await RetryOperationManager.Wait(groupId, RetryType.FailureGroup, started)
+                    .ConfigureAwait(false);
 
-                Bus.SendLocal(new RetryAllInGroup { GroupId = groupId, Started = started });
+                await Bus.Value.SendLocal(new RetryAllInGroup
+                {
+                    GroupId = groupId,
+                    Started = started
+                }).ConfigureAwait(false);
             }
 
             return HttpStatusCode.Accepted;
         }
-
-        public IBus Bus { get; set; }
-        public RetryingManager RetryOperationManager { get; set; }
     }
 }

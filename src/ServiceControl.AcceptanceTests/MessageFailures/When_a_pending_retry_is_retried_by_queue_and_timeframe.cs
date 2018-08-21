@@ -3,13 +3,11 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -18,53 +16,33 @@
         [Test]
         public async Task Should_succeed()
         {
-            FailedMessage failedMessage;
-
             await Define<Context>()
-                .WithEndpoint<FailingEndpoint>(b => b.Given(bus =>
+                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
+                .Do("DetectFailure", async ctx =>
                 {
-                    bus.SendLocal(new MyMessage());
-                }).When(async ctx =>
+                    return ctx.UniqueMessageId != null
+                           && await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                })
+                .Do("Retry", async ctx => { await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry"); })
+                .Do("WaitForRetryIssued", async ctx =>
                 {
-                    if (ctx.UniqueMessageId == null)
-                    {
-                        return false;
-                    }
-
-                    var result = await TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
-                    failedMessage = result;
-                    if (!result)
-                    {
-                        return false;
-                    }
-
-                    if (!ctx.RetryAboutToBeSent)
-                    {
-                        ctx.RetryAboutToBeSent = true;
-                        await Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
-                        return false;
-                    }
-
-                    if (failedMessage.Status == FailedMessageStatus.RetryIssued)
-                    {
-                        var failedMessagesResult = await TryGet<FailedMessage[]>("/api/errors");
-                        FailedMessage[] failedMessages = failedMessagesResult;
-                        if (failedMessagesResult)
-                        {
-                            return failedMessages.Any(fm => fm.Id == ctx.UniqueMessageId);
-                        }
-                    }
-
-                    return false;
-                }, async (bus, ctx) =>
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}",
+                        msg => msg.Status == FailedMessageStatus.RetryIssued);
+                })
+                .Do("WaitForIndex", async ctx =>
                 {
-                    await Post<object>("/api/pendingretries/queues/retry", new
+                    return await this.TryGet<FailedMessage[]>("/api/errors",
+                        allErrors => allErrors.Any(fm => fm.Id == ctx.UniqueMessageId));
+                })
+                .Do("RetryPending", async ctx =>
+                {
+                    await this.Post<object>("/api/pendingretries/queues/retry", new
                     {
                         queueaddress = ctx.FromAddress,
                         from = DateTime.UtcNow.AddHours(-1).ToString("o"),
                         to = DateTime.UtcNow.AddSeconds(10).ToString("o")
                     });
-                }))
+                })
                 .Done(ctx => ctx.RetryCount == 2)
                 .Run();
         }
@@ -75,56 +53,44 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    c.DisableFeature<SecondLevelRetries>();
-                })
-                    .WithConfig<TransportConfig>(c =>
-                    {
-                        c.MaxRetries = 1;
-                    });
-            }
-
-            class CustomConfig : INeedInitialization
-            {
-                public void Customize(BusConfiguration configuration)
-                {
-                    configuration.DisableFeature<Outbox>();
-                }
+                    c.NoRetries();
+                    c.NoOutbox();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
                 public ReadOnlySettings Settings { get; set; }
 
-                public void Handle(MyMessage message)
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.RetryAboutToBeSent)
+                    if (Context.Step == 0)
                     {
-                        Context.RetryCount++;
-                        Context.Retried = true;
-                    }
-                    else
-                    {
-                        Context.FromAddress = Settings.LocalAddress().ToString();
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(Bus.CurrentMessageContext.Id.Replace(@"\", "-"), Settings.LocalAddress().Queue).ToString();
+                        Context.FromAddress = Settings.LocalAddress();
+                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
+
+                    Context.RetryCount++;
+                    Context.Retried = true;
+                    return Task.FromResult(0);
                 }
             }
         }
 
-        public class Context : ScenarioContext
+        public class Context : ScenarioContext, ISequenceContext
         {
             public string UniqueMessageId { get; set; }
             public bool Retried { get; set; }
-            public bool RetryAboutToBeSent { get; set; }
             public int RetryCount { get; set; }
             public string FromAddress { get; set; }
+            public int Step { get; set; }
         }
 
         public class MyMessage : ICommand
-        { }
+        {
+        }
     }
 }

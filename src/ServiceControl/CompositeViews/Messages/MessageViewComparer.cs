@@ -19,9 +19,7 @@ namespace ServiceControl.CompositeViews.Messages
                 ? queryString["direction"]
                 : "desc";
 
-            Comparer comparer;
-
-            if (!SortByMap.TryGetValue(sortBy, out comparer))
+            if (!SortByMap.TryGetValue(sortBy, out var comparer))
             {
                 throw new ArgumentOutOfRangeException(nameof(sortBy));
             }
@@ -31,17 +29,17 @@ namespace ServiceControl.CompositeViews.Messages
                 : comparer;
         }
 
-        private static Comparer ByMessageIdAscending = new Comparer((x, y) => string.Compare(x.MessageId, y.MessageId, StringComparison.Ordinal));
-        private static Comparer ByMessageTypeAscending = new Comparer((x, y) => string.Compare(x.MessageType, y.MessageType, StringComparison.Ordinal));
-        private static Comparer ByTimeSentAscending = new Comparer((x, y) => Nullable.Compare(x.TimeSent, y.TimeSent));
-        private static Comparer ByCriticalTimeAscending = new Comparer((x, y) => x.CriticalTime.CompareTo(y.CriticalTime));
-        private static Comparer ByDeliveryTimeAscending = new Comparer((x, y) => x.DeliveryTime.CompareTo(y.DeliveryTime));
-        private static Comparer ByProcessingTimeAscending = new Comparer((x, y) => x.ProcessingTime.CompareTo(y.ProcessingTime));
-        private static Comparer ByProcessedAtAscending = new Comparer((x, y) => x.ProcessedAt.CompareTo(y.ProcessedAt));
-        private static Comparer ByStatusAscending = new Comparer((x, y) => x.Status.CompareTo(y.Status));
+        static Comparer ByMessageIdAscending = new Comparer((x, y) => string.Compare(x.MessageId, y.MessageId, StringComparison.Ordinal));
+        static Comparer ByMessageTypeAscending = new Comparer((x, y) => string.Compare(x.MessageType, y.MessageType, StringComparison.Ordinal));
+        static Comparer ByTimeSentAscending = new Comparer((x, y) => Nullable.Compare(x.TimeSent, y.TimeSent));
+        static Comparer ByCriticalTimeAscending = new Comparer((x, y) => x.CriticalTime.CompareTo(y.CriticalTime));
+        static Comparer ByDeliveryTimeAscending = new Comparer((x, y) => x.DeliveryTime.CompareTo(y.DeliveryTime));
+        static Comparer ByProcessingTimeAscending = new Comparer((x, y) => x.ProcessingTime.CompareTo(y.ProcessingTime));
+        static Comparer ByProcessedAtAscending = new Comparer((x, y) => x.ProcessedAt.CompareTo(y.ProcessedAt));
+        static Comparer ByStatusAscending = new Comparer((x, y) => x.Status.CompareTo(y.Status));
 
 
-        private static IDictionary<string, Comparer> SortByMap = new Dictionary<string, Comparer>(StringComparer.InvariantCultureIgnoreCase)
+        static IDictionary<string, Comparer> SortByMap = new Dictionary<string, Comparer>(StringComparer.InvariantCultureIgnoreCase)
         {
             ["id"] = ByMessageIdAscending,
             ["message_id"] = ByMessageIdAscending,
@@ -57,8 +55,6 @@ namespace ServiceControl.CompositeViews.Messages
 
         class Comparer : IComparer<MessagesView>
         {
-            private Func<MessagesView, MessagesView, int> comparerFunc;
-
             public Comparer(Func<MessagesView, MessagesView, int> comparerFunc)
             {
                 this.comparerFunc = comparerFunc;
@@ -73,18 +69,19 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 return new Reverse(this);
             }
+
+            Func<MessagesView, MessagesView, int> comparerFunc;
         }
 
         class Reverse : IComparer<MessagesView>
         {
-            private readonly IComparer<MessagesView> inner;
-
             public Reverse(IComparer<MessagesView> inner)
             {
                 this.inner = inner;
             }
 
             public int Compare(MessagesView x, MessagesView y) => inner.Compare(y, x);
+            readonly IComparer<MessagesView> inner;
         }
     }
 }

@@ -1,10 +1,10 @@
 ﻿namespace ServiceControlInstaller.Engine.Queues
 {
     using System;
+    using System.Runtime.Serialization;
 
-    public  class ServiceControlQueueCreationTimeoutException : Exception
+    public class ServiceControlQueueCreationTimeoutException : Exception
     {
-
         public ServiceControlQueueCreationTimeoutException(string message) : base(message)
         {
         }
@@ -14,9 +14,9 @@
         }
 
         protected ServiceControlQueueCreationTimeoutException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context) : base(info, context)
-        { }
-
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
+        {
+        }
     }
 }

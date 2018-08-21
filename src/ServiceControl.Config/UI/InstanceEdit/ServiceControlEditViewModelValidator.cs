@@ -53,8 +53,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .When(x => x.SubmitAttempted && x.AuditForwarding.Value);
 
             RuleFor(x => x.ConnectionString)
-               .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
-               .When(x => !string.IsNullOrWhiteSpace(x.SelectedTransport?.SampleConnectionString) && x.SubmitAttempted);
+                .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
+                .When(x => !string.IsNullOrWhiteSpace(x.SelectedTransport?.SampleConnectionString) && x.SubmitAttempted);
 
             RuleFor(x => x.DatabaseMaintenancePortNumber)
                 .NotEmpty()

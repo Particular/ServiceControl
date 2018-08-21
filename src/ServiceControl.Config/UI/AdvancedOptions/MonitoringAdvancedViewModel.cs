@@ -2,17 +2,17 @@
 {
     using System.Windows.Input;
     using Caliburn.Micro;
-    using ServiceControl.Config.Commands;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Rx;
+    using Commands;
+    using Events;
+    using Framework;
+    using Framework.Rx;
     using ServiceControlInstaller.Engine.Instances;
 
     class MonitoringAdvancedViewModel : RxProgressScreen
     {
         public MonitoringAdvancedViewModel(BaseService instance, IEventAggregator eventAggregator, DeleteMonitoringlnstanceCommand deleteInstanceCommand)
         {
-            MonitoringInstance = (MonitoringInstance) instance;
+            MonitoringInstance = (MonitoringInstance)instance;
             DisplayName = "ADVANCED OPTIONS";
 
             DeleteCommand = deleteInstanceCommand;

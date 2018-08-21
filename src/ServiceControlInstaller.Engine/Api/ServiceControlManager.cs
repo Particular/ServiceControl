@@ -1,24 +1,16 @@
-
 namespace ServiceControlInstaller.Engine.Api
 {
-    #pragma warning disable 169
-    #pragma warning disable 414
-
+#pragma warning disable 169
     using System;
     using System.Runtime.InteropServices;
 
     struct SERVICE_FAILURE_ACTIONS
     {
-        [MarshalAs(UnmanagedType.U4)]
+        [MarshalAs(UnmanagedType.U4)] public UInt32 dwResetPeriod;
 
-        public UInt32 dwResetPeriod;
-
-        [MarshalAs(UnmanagedType.LPStr)]
-        public String lpRebootMsg;
-        [MarshalAs(UnmanagedType.LPStr)]
-        public String lpCommand;
-        [MarshalAs(UnmanagedType.U4)]
-        public UInt32 cActions;
+        [MarshalAs(UnmanagedType.LPStr)] public String lpRebootMsg;
+        [MarshalAs(UnmanagedType.LPStr)] public String lpCommand;
+        [MarshalAs(UnmanagedType.U4)] public UInt32 cActions;
         public IntPtr lpsaActions;
     }
 
@@ -65,13 +57,9 @@ namespace ServiceControlInstaller.Engine.Api
 
     struct SC_ACTION
     {
-        [MarshalAs(UnmanagedType.U4)]
-        public SC_ACTION_TYPE Type;
-        [MarshalAs(UnmanagedType.U4)]
-        public UInt32 Delay;
+        [MarshalAs(UnmanagedType.U4)] public SC_ACTION_TYPE Type;
+        [MarshalAs(UnmanagedType.U4)] public UInt32 Delay;
     }
 
-    #pragma warning restore 169
-    #pragma warning restore 414
-
+#pragma warning restore 169
 }

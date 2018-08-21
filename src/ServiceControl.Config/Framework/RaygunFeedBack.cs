@@ -6,12 +6,8 @@
     using Mindscape.Raygun4Net;
     using Mindscape.Raygun4Net.Messages;
 
-    public class RaygunFeedback: RaygunReporter
+    public class RaygunFeedback : RaygunReporter
     {
-
-        RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
-        Guid trackingId = Guid.NewGuid();
-
         public RaygunFeedback()
         {
             InitializeTrackingId();
@@ -24,6 +20,7 @@
             {
                 Directory.CreateDirectory(trackerlocation);
             }
+
             var trackingFile = new FileInfo(Path.Combine(trackerlocation, ".feedbackid"));
             if (!trackingFile.Exists || !Guid.TryParse(File.ReadAllText(trackingFile.FullName), out trackingId))
             {
@@ -54,7 +51,7 @@
             raygunClient.Send(m);
         }
 
-        public void SendException(Exception ex,  bool includeSystemInfo)
+        public void SendException(Exception ex, bool includeSystemInfo)
         {
             raygunClient.UserInfo = new RaygunIdentifierMessage(trackingId.BareString())
             {
@@ -71,9 +68,13 @@
                 raygunMessage.SetMachineName(Environment.MachineName);
                 raygunMessage.SetEnvironmentDetails();
             }
+
             var m = raygunMessage.Build();
             raygunClient.Send(m);
         }
+
+        RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
+        Guid trackingId = Guid.NewGuid();
     }
 
     class Feedback : Exception

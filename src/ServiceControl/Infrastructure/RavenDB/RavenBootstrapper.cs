@@ -4,34 +4,26 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
+    using CompositeViews.Endpoints;
+    using EndpointControl;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using NServiceBus.Persistence;
-    using Particular.ServiceControl.Licensing;
+    using Particular.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Endpoints;
-    using ServiceControl.EndpointControl;
-    using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+    using Subscriptions;
 
     public class RavenBootstrapper : INeedInitialization
     {
-        public static string ReadLicense()
-        {
-            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
-            using (var reader = new StreamReader(resourceStream))
-            {
-                return reader.ReadToEnd();
-            }
-        }
+        public static Settings Settings { get; set; }
 
-        public void Customize(BusConfiguration configuration)
+        public void Customize(EndpointConfiguration configuration)
         {
-            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>("ServiceControl.EmbeddableDocumentStore");
+            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>();
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
             var markerFileService = configuration.GetSettings().Get<MarkerFileService>("ServiceControl.MarkerFileService");
 
@@ -42,13 +34,31 @@
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
-        public static Settings Settings { get; set; }
+        public static string ReadLicense()
+        {
+            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.xml"))
+            using (var reader = new StreamReader(resourceStream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
 
         public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, MarkerFileService markerFileService, bool maintenanceMode)
         {
             Directory.CreateDirectory(settings.DbPath);
 
-            documentStore.DataDirectory = settings.DbPath;
+            documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
+
+            if (settings.RunInMemory)
+            {
+                documentStore.RunInMemory = true;
+            }
+            else
+            {
+                documentStore.DataDirectory = settings.DbPath;
+                documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
+            }
+
             documentStore.UseEmbeddedHttpServer = maintenanceMode || settings.ExposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
 
@@ -56,7 +66,7 @@
             if (File.Exists(localRavenLicense))
             {
                 Logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
-                documentStore.Configuration.Settings["Raven/License"] = NonLockingFileReader.ReadAllTextWithoutLocking(localRavenLicense);
+                documentStore.Configuration.Settings["Raven/License"] = NonBlockingReader.ReadAllTextWithoutLocking(localRavenLicense);
             }
             else
             {
@@ -79,7 +89,6 @@
             documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
                 ? "localhost"
                 : settings.Hostname;
-            documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));

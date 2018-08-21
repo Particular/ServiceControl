@@ -6,28 +6,14 @@
 
     class TruncatedStringList : IList<String>
     {
-        List<string> itemList = new List<string>();
-
-        int maxLength;
-
         public TruncatedStringList(int maxLengthsOfItems)
         {
             if (maxLengthsOfItems < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxLengthsOfItems), "Must greater than 0");
             }
+
             maxLength = maxLengthsOfItems;
-
-        }
-
-        string Truncate(string s)
-        {
-            if (string.IsNullOrEmpty(s))
-            {
-                return s;
-            }
-            var suffix = s.Length > maxLength ? "... " : String.Empty;
-            return s.Substring(0, Math.Min(s.Length, maxLength)) + suffix;
         }
 
         public void Add(string item)
@@ -60,14 +46,6 @@
 
         public bool IsReadOnly => true;
 
-        public void AddRange(IEnumerable<string> items)
-        {
-            foreach (var item in items)
-            {
-                Add(item);
-            }
-        }
-
         public IEnumerator<string> GetEnumerator()
         {
             return itemList.GetEnumerator();
@@ -80,7 +58,7 @@
 
         public int IndexOf(string item)
         {
-            return itemList.IndexOf( item);
+            return itemList.IndexOf(item);
         }
 
         public void Insert(int index, string item)
@@ -98,5 +76,28 @@
             get { return itemList[index]; }
             set { itemList[index] = value; }
         }
+
+        string Truncate(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return s;
+            }
+
+            var suffix = s.Length > maxLength ? "... " : String.Empty;
+            return s.Substring(0, Math.Min(s.Length, maxLength)) + suffix;
+        }
+
+        public void AddRange(IEnumerable<string> items)
+        {
+            foreach (var item in items)
+            {
+                Add(item);
+            }
+        }
+
+        List<string> itemList = new List<string>();
+
+        int maxLength;
     }
 }

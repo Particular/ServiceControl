@@ -2,28 +2,18 @@
 {
     using System;
     using System.Linq;
+    using Contracts.MessageRedirects;
+    using Infrastructure;
+    using Infrastructure.DomainEvents;
+    using MessageFailures.InternalMessages;
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.Contracts.MessageRedirects;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class MessageRedirectsModule : BaseModule
     {
-        public IBus Bus { get; set; }
-        public IDomainEvents DomainEvents { get; set; }
-
-        private class MessageRedirectRequest
-        {
-            public string fromphysicaladdress { get; set; }
-            public string tophysicaladdress { get; set; }
-            public bool retryexisting { get; set; }
-        }
-
         public MessageRedirectsModule()
         {
             Post["/redirects", true] = async (parameters, token) =>
@@ -67,21 +57,21 @@
                     await collection.Save(session).ConfigureAwait(false);
                 }
 
-                DomainEvents.Raise(new MessageRedirectCreated
+                await DomainEvents.Raise(new MessageRedirectCreated
                 {
                     MessageRedirectId = messageRedirect.MessageRedirectId,
                     FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
                     ToPhysicalAddress = messageRedirect.ToPhysicalAddress
-                });
+                }).ConfigureAwait(false);
 
                 if (request.retryexisting)
                 {
-                    Bus.SendLocal(new RetryPendingMessages
+                    await Bus.SendLocal(new RetryPendingMessages
                     {
                         QueueAddress = messageRedirect.FromPhysicalAddress,
                         PeriodFrom = DateTime.MinValue,
                         PeriodTo = DateTime.UtcNow
-                    });
+                    }).ConfigureAwait(false);
                 }
 
                 return HttpStatusCode.Created;
@@ -121,14 +111,15 @@
                         MessageRedirectId = messageRedirectId,
                         PreviousToPhysicalAddress = messageRedirect.ToPhysicalAddress,
                         FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
-                        ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.tophysicaladdress,
+                        ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.tophysicaladdress
                     };
 
                     messageRedirect.LastModifiedTicks = DateTime.UtcNow.Ticks;
 
                     await redirects.Save(session).ConfigureAwait(false);
 
-                    DomainEvents.Raise(messageRedirectChanged);
+                    await DomainEvents.Raise(messageRedirectChanged)
+                        .ConfigureAwait(false);
 
                     return HttpStatusCode.NoContent;
                 }
@@ -153,12 +144,12 @@
 
                     await redirects.Save(session).ConfigureAwait(false);
 
-                    DomainEvents.Raise(new MessageRedirectRemoved
+                    await DomainEvents.Raise(new MessageRedirectRemoved
                     {
                         MessageRedirectId = messageRedirectId,
                         FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
                         ToPhysicalAddress = messageRedirect.ToPhysicalAddress
-                    });
+                    }).ConfigureAwait(false);
                 }
 
                 return HttpStatusCode.NoContent;
@@ -199,6 +190,16 @@
                         .WithPagingLinksAndTotalCount(redirects.Redirects.Count, Request);
                 }
             };
+        }
+
+        public IMessageSession Bus { get; set; }
+        public IDomainEvents DomainEvents { get; set; }
+
+        private class MessageRedirectRequest
+        {
+            public string fromphysicaladdress { get; set; }
+            public string tophysicaladdress { get; set; }
+            public bool retryexisting { get; set; }
         }
     }
 }

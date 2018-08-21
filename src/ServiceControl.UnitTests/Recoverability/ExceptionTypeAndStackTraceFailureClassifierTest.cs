@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.Operations
 {
+    using Contracts.Operations;
     using NUnit.Framework;
-    using ServiceControl.Contracts.Operations;
     using ServiceControl.Recoverability;
 
     [TestFixture]

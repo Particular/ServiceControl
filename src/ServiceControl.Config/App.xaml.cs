@@ -4,7 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Reflection;
-    using ServiceControl.Config.UI.MessageBox;
+    using UI.MessageBox;
 
     public partial class App
     {
@@ -13,7 +13,9 @@
             InitializeComponent();
 
             if (!Debugger.IsAttached)
+            {
                 ExceptionMessageBox.Attach();
+            }
         }
 
         [STAThread]
@@ -41,6 +43,7 @@
             {
                 return null;
             }
+
             return Assembly.LoadFrom(combine);
         }
     }

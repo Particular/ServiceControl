@@ -53,7 +53,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
             if (request.Query.direction.HasValue)
             {
-                direction = (string) request.Query.direction;
+                direction = (string)request.Query.direction;
             }
 
             if (direction == "asc")
@@ -63,8 +63,13 @@ namespace ServiceControl.Infrastructure.Extensions
 
             var sortOptions = new[]
             {
-                "id", "message_id", "message_type",
-                "time_sent", "status", "modified", "time_of_failure"
+                "id",
+                "message_id",
+                "message_type",
+                "time_sent",
+                "status",
+                "modified",
+                "time_of_failure"
             };
 
             var sort = "time_sent";
@@ -72,7 +77,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
             if (request.Query.sort.HasValue)
             {
-                sort = (string) request.Query.sort;
+                sort = (string)request.Query.sort;
             }
 
             if (!sortOptions.Contains(sort))
@@ -139,6 +144,7 @@ namespace ServiceControl.Infrastructure.Extensions
                     {
                         excludes.Add((int)failedMessageStatus);
                     }
+
                     continue;
                 }
 
@@ -159,6 +165,7 @@ namespace ServiceControl.Infrastructure.Extensions
             {
                 sb.Append(String.Join(" OR ", includes.ToArray()));
             }
+
             sb.Append(")");
 
             if (excludes.Count > 0)
@@ -167,6 +174,7 @@ namespace ServiceControl.Infrastructure.Extensions
                 sb.Append(String.Join(" OR ", excludes.ToArray()));
                 sb.Append(")");
             }
+
             sb.Append(")");
 
             source.AndAlso();
@@ -180,9 +188,9 @@ namespace ServiceControl.Infrastructure.Extensions
         {
             string modified = null;
 
-            if ((bool) request.Query.modified.HasValue)
+            if ((bool)request.Query.modified.HasValue)
             {
-                modified = (string) request.Query.modified;
+                modified = (string)request.Query.modified;
             }
 
             if (modified == null)
@@ -199,6 +207,7 @@ namespace ServiceControl.Infrastructure.Extensions
             {
                 throw new Exception("Invalid modified date range, dates need to be in ISO8601 format and it needs to be a range eg. 2016-03-11T00:27:15.474Z...2016-03-16T03:27:15.474Z");
             }
+
             try
             {
                 var from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
@@ -219,9 +228,9 @@ namespace ServiceControl.Infrastructure.Extensions
         {
             string queueAddress = null;
 
-            if ((bool) request.Query.queueaddress.HasValue)
+            if ((bool)request.Query.queueaddress.HasValue)
             {
-                queueAddress = (string) request.Query.queueaddress;
+                queueAddress = (string)request.Query.queueaddress;
             }
 
             if (string.IsNullOrWhiteSpace(queueAddress))
@@ -311,7 +320,7 @@ namespace ServiceControl.Infrastructure.Extensions
                 page = 1;
             }
 
-            var skipResults = (page - 1)*maxResultsPerPage;
+            var skipResults = (page - 1) * maxResultsPerPage;
 
             return source.Skip(skipResults)
                 .Take(maxResultsPerPage);
@@ -325,7 +334,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
             if (request.Query.direction.HasValue)
             {
-                direction = (string) request.Query.direction;
+                direction = (string)request.Query.direction;
             }
 
             if (direction != "asc" && direction != "desc")
@@ -335,9 +344,15 @@ namespace ServiceControl.Infrastructure.Extensions
 
             var sortOptions = new[]
             {
-                "processed_at", "id", "message_type",
-                "time_sent", "critical_time", "delivery_time", "processing_time",
-                "status", "message_id"
+                "processed_at",
+                "id",
+                "message_type",
+                "time_sent",
+                "critical_time",
+                "delivery_time",
+                "processing_time",
+                "status",
+                "message_id"
             };
 
             var sort = "time_sent";
@@ -345,7 +360,7 @@ namespace ServiceControl.Infrastructure.Extensions
 
             if (request.Query.sort.HasValue)
             {
-                sort = (string) request.Query.sort;
+                sort = (string)request.Query.sort;
             }
 
             if (!sortOptions.Contains(sort))
@@ -393,6 +408,7 @@ namespace ServiceControl.Infrastructure.Extensions
                     {
                         keySelector = defaultKeySelector;
                     }
+
                     break;
             }
 

@@ -1,7 +1,8 @@
-﻿using System;
-
-namespace ServiceControlInstaller.Engine.Validation
+﻿namespace ServiceControlInstaller.Engine.Validation
 {
+    using System;
+    using System.Runtime.Serialization;
+
     [Serializable]
     public class EngineValidationException : Exception
     {
@@ -18,8 +19,9 @@ namespace ServiceControlInstaller.Engine.Validation
         }
 
         protected EngineValidationException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context)
-        { }
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
+        {
+        }
     }
 }

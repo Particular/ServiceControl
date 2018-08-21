@@ -8,9 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NServiceBus;
+using NServiceBus.CustomChecks;
 using NServiceBus.Features;
 using NServiceBus.Logging;
-using ServiceControl.Plugin.CustomChecks;
 
 namespace FailureFirehose
 {
@@ -72,7 +72,6 @@ namespace FailureFirehose
             Console.WriteLine("Press Ctrl+C to exit");
 
             Task.Run(action, CancellationToken.None).GetAwaiter().GetResult();
-               
         }
 
         private static void ExecuteRestAPI(CancellationToken token)
@@ -178,7 +177,7 @@ namespace FailureFirehose
         }
     }
 
-    public class MyCheck : PeriodicCheck
+    public class MyCheck : CustomCheck
     {
         Random rnd = new Random();
 
@@ -197,7 +196,7 @@ namespace FailureFirehose
         }
     }
 
-    public class MyCheck2 : PeriodicCheck
+    public class MyCheck2 : CustomCheck
     {
         Random rnd = new Random();
 

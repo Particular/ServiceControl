@@ -4,11 +4,9 @@ namespace ServiceControlInstaller.Engine.Validation
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    
+
     internal class PathsValidator
     {
-        List<PathInfo> paths;
-
         public PathsValidator(IServicePaths instance)
         {
             var pathList = new List<PathInfo>
@@ -65,13 +63,14 @@ namespace ServiceControlInstaller.Engine.Validation
                 CheckPathsAreValid();
                 CheckNoNestedPaths();
                 CheckPathsAreUnique();
-                
+
                 var cancelRequested = false;
                 //Do Checks that only make sense on add instance
                 if (includeNewInstanceChecks)
                 {
                     cancelRequested = CheckPathsAreEmpty(promptToProceed);
                 }
+
                 return cancelRequested;
             }
             catch (EngineValidationException)
@@ -99,8 +98,9 @@ namespace ServiceControlInstaller.Engine.Validation
                     var flagFile = Path.Combine(directory.FullName, ".notconfigured");
                     if (File.Exists(flagFile))
                     {
-                        continue;  // flagfile will be present if we've unpacked and had a config failure.  In this case it's OK for the directory to have content
+                        continue; // flagfile will be present if we've unpacked and had a config failure.  In this case it's OK for the directory to have content
                     }
+
                     if (directory.EnumerateFileSystemInfos().Any())
                     {
                         if (!promptToProceed(pathInfo))
@@ -114,7 +114,7 @@ namespace ServiceControlInstaller.Engine.Validation
             return false;
         }
 
-        
+
         internal void CheckNoNestedPaths()
         {
             foreach (var path in paths)
@@ -122,7 +122,9 @@ namespace ServiceControlInstaller.Engine.Validation
                 foreach (var possibleChild in paths)
                 {
                     if (path.Name == possibleChild.Name)
+                    {
                         continue;
+                    }
 
                     if (Path.GetDirectoryName(possibleChild.Path).IndexOf(path.Path, StringComparison.OrdinalIgnoreCase) > -1)
                     {
@@ -148,9 +150,7 @@ namespace ServiceControlInstaller.Engine.Validation
 
             foreach (var path in paths)
             {
-                Uri uri;
-
-                if (!Uri.TryCreate(path.Path, UriKind.Absolute, out uri))
+                if (!Uri.TryCreate(path.Path, UriKind.Absolute, out var uri))
                 {
                     throw new EngineValidationException($"The {path.Name} is set to an invalid path");
                 }
@@ -177,5 +177,7 @@ namespace ServiceControlInstaller.Engine.Validation
                 }
             }
         }
+
+        List<PathInfo> paths;
     }
 }

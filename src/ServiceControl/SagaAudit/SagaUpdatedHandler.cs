@@ -2,20 +2,19 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using EndpointPlugin.Messages.SagaState;
     using NServiceBus;
     using Raven.Client;
 
     class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
-        private readonly IDocumentStore store;
-
         public SagaUpdatedHandler(IDocumentStore store)
         {
             this.store = store;
         }
 
-        public void Handle(SagaUpdatedMessage message)
+        public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
             var sagaHistory = new SagaSnapshot
             {
@@ -46,10 +45,10 @@
 
             AddResultingMessages(message.ResultingMessages, sagaHistory);
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                session.Store(sagaHistory);
-                session.SaveChanges();
+                await session.StoreAsync(sagaHistory).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -63,7 +62,7 @@
                 OriginatingMachine = initiator.OriginatingMachine,
                 TimeSent = initiator.TimeSent,
                 MessageType = initiator.MessageType,
-                Intent = initiator.Intent,
+                Intent = initiator.Intent
             };
         }
 
@@ -77,6 +76,7 @@
                     resultingMessage = new ResultingMessage();
                     sagaStateChange.OutgoingMessages.Add(resultingMessage);
                 }
+
                 resultingMessage.MessageType = toAdd.MessageType;
                 resultingMessage.MessageId = toAdd.ResultingMessageId;
                 resultingMessage.TimeSent = toAdd.TimeSent;
@@ -86,5 +86,7 @@
                 resultingMessage.Intent = toAdd.Intent;
             }
         }
+
+        readonly IDocumentStore store;
     }
 }

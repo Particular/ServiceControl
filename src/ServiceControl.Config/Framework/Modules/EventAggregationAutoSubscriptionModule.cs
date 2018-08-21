@@ -1,9 +1,9 @@
-﻿using Autofac;
-using Autofac.Core;
-using Caliburn.Micro;
-
-namespace ServiceControl.Config.Framework.Modules
+﻿namespace ServiceControl.Config.Framework.Modules
 {
+    using Autofac;
+    using Autofac.Core;
+    using Caliburn.Micro;
+
     public class EventAggregationAutoSubscriptionModule : Module
     {
         protected override void AttachToComponentRegistration(IComponentRegistry registry, IComponentRegistration registration)
@@ -13,9 +13,10 @@ namespace ServiceControl.Config.Framework.Modules
 
         static void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
         {
-            var handler = e.Instance as IHandle;
-            if (handler != null)
+            if (e.Instance is IHandle handler)
+            {
                 e.Context.Resolve<IEventAggregator>().Subscribe(handler);
+            }
         }
     }
 }

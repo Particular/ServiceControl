@@ -34,11 +34,9 @@
             {
                 using (var session = Store.OpenAsyncSession())
                 {
-                    RavenQueryStatistics stats;
-
                     var results = await session.Advanced
                         .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .Statistics(out stats)
+                        .Statistics(out var stats)
                         .FilterByStatusWhere(Request)
                         .FilterByLastModifiedRange(Request)
                         .FilterByQueueAddress(Request)
@@ -46,7 +44,8 @@
                         .Paging(Request)
                         .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                         .SelectFields<FailedMessageView>()
-                        .ToListAsync();
+                        .ToListAsync()
+                        .ConfigureAwait(false);
 
                     return Negotiate
                         .WithModel(results)
@@ -61,10 +60,9 @@
                 {
                     string endpoint = parameters.name;
 
-                    RavenQueryStatistics stats;
                     var results = await session.Advanced
                         .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .Statistics(out stats)
+                        .Statistics(out var stats)
                         .FilterByStatusWhere(Request)
                         .AndAlso()
                         .WhereEquals("ReceivingEndpointName", endpoint)
@@ -89,11 +87,23 @@
                 {
                     var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
                         .ToFacetsAsync(new List<Facet>
-                                    {
-                                        new Facet {Name = "Name", DisplayName="Endpoints"},
-                                        new Facet {Name = "Host", DisplayName = "Hosts"},
-                                        new Facet {Name = "MessageType", DisplayName = "Message types"},
-                                    })
+                        {
+                            new Facet
+                            {
+                                Name = "Name",
+                                DisplayName = "Endpoints"
+                            },
+                            new Facet
+                            {
+                                Name = "Host",
+                                DisplayName = "Hosts"
+                            },
+                            new Facet
+                            {
+                                Name = "MessageType",
+                                DisplayName = "Message types"
+                            }
+                        })
                         .ConfigureAwait(false);
 
                     return Negotiate.WithModel(facetResults.Results);

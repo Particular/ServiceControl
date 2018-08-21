@@ -1,26 +1,24 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
+    using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-
         public ReportCustomCheckResultHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(ReportCustomCheckResult message)
+        public async Task Handle(ReportCustomCheckResult message, IMessageHandlerContext context)
         {
             if (string.IsNullOrEmpty(message.EndpointName))
             {
@@ -41,9 +39,10 @@
             var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString(), message.CustomCheckId);
             CustomCheck customCheck;
 
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
-                customCheck = session.Load<CustomCheck>(id);
+                customCheck = await session.LoadAsync<CustomCheck>(id)
+                    .ConfigureAwait(false);
 
                 if (customCheck == null ||
                     customCheck.Status == Status.Fail && !message.HasFailed ||
@@ -71,15 +70,17 @@
                     HostId = message.HostId,
                     Name = message.EndpointName
                 };
-                session.Store(customCheck);
-                session.SaveChanges();
+                await session.StoreAsync(customCheck)
+                    .ConfigureAwait(false);
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
 
             if (publish)
             {
                 if (message.HasFailed)
                 {
-                    domainEvents.Raise(new CustomCheckFailed
+                    await domainEvents.Raise(new CustomCheckFailed
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,
@@ -87,20 +88,23 @@
                         FailedAt = message.ReportedAt,
                         FailureReason = message.FailureReason,
                         OriginatingEndpoint = customCheck.OriginatingEndpoint
-                    });
+                    }).ConfigureAwait(false);
                 }
                 else
                 {
-                    domainEvents.Raise(new CustomCheckSucceeded
+                    await domainEvents.Raise(new CustomCheckSucceeded
                     {
                         Id = id,
                         CustomCheckId = message.CustomCheckId,
                         Category = message.Category,
                         SucceededAt = message.ReportedAt,
                         OriginatingEndpoint = customCheck.OriginatingEndpoint
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
     }
 }

@@ -1,7 +1,9 @@
 namespace ServiceControl.Infrastructure.DomainEvents
 {
+    using System.Threading.Tasks;
+
     public interface IDomainHandler<in T> where T : IDomainEvent
     {
-        void Handle(T domainEvent);
+        Task Handle(T domainEvent);
     }
 }

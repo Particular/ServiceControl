@@ -1,12 +1,10 @@
 ﻿namespace ServiceControlInstaller.PowerShell
 {
     using System.Management.Automation.Host;
-    using ServiceControlInstaller.Engine;
+    using Engine;
 
     public class PSLogger : ILogging
     {
-        PSHost host;
-
         public PSLogger(PSHost Host)
         {
             host = Host;
@@ -26,5 +24,7 @@
         {
             host.UI.WriteErrorLine(message);
         }
+
+        PSHost host;
     }
 }

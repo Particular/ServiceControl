@@ -1,20 +1,23 @@
 ﻿namespace ServiceControlInstaller.Engine.Validation
 {
     using System;
-    using System.Linq;
     using System.Data.Common;
     using System.Data.SqlClient;
-    using ServiceControlInstaller.Engine.Accounts;
-    
+    using System.Linq;
+    using Accounts;
+
     class ConnectionStringValidator
     {
-        private string connectionString;
-        private string serviceAccount;
+        ConnectionStringValidator(string connectionString, string serviceAccount)
+        {
+            this.connectionString = connectionString;
+            this.serviceAccount = serviceAccount;
+        }
 
         public static void Validate(IServiceControlInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage == "SQLServer")
+            if (instance.TransportPackage.ZipName.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
             {
                 validator.CheckMsSqlConnectionString();
             }
@@ -23,26 +26,20 @@
         public static void Validate(IMonitoringInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage == "SQLServer")
+            if (instance.TransportPackage.ZipName.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
             {
                 validator.CheckMsSqlConnectionString();
             }
         }
 
-        ConnectionStringValidator(string connectionString, string serviceAccount)
-        {
-            this.connectionString = connectionString;
-            this.serviceAccount = serviceAccount;
-        }
-
         void CheckMsSqlConnectionString()
         {
-            string[] customKeys = { "Queue Schema" };
+            string[] customKeys = {"Queue Schema"};
 
             try
             {
                 //Check  validity of connection string. This will throw if invalid
-                var builder = new DbConnectionStringBuilder{ConnectionString = connectionString};
+                var builder = new DbConnectionStringBuilder {ConnectionString = connectionString};
 
                 //The NSB SQL Transport can have custom key/value pairs in the connection string
                 // that won't make sense to SQL. Remove these from the string we want to validate.
@@ -57,8 +54,13 @@
                 //Check that localsystem is not used when integrated security is enabled
                 if (builder.ContainsKey("Integrated Security"))
                 {
-                    var integratedSecurity = (string) builder["Integrated Security"];
-                    var enabledValues= new []{"true","yes","sspi"};
+                    var integratedSecurity = (string)builder["Integrated Security"];
+                    var enabledValues = new[]
+                    {
+                        "true",
+                        "yes",
+                        "sspi"
+                    };
                     if (enabledValues.Any(p => p.Equals(integratedSecurity, StringComparison.OrdinalIgnoreCase)))
                     {
                         var account = UserAccount.ParseAccountName(serviceAccount);
@@ -84,5 +86,8 @@
                 throw new EngineValidationException($"SQL connection failed - {sqlEx.Message}");
             }
         }
+
+        private string connectionString;
+        private string serviceAccount;
     }
 }

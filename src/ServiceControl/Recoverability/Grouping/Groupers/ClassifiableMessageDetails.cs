@@ -1,9 +1,9 @@
 namespace ServiceControl.Recoverability
 {
     using System.Linq;
-    using ServiceControl.Contracts.Operations;
-    using ServiceControl.MessageFailures;
-    using static ServiceControl.MessageFailures.FailedMessage;
+    using Contracts.Operations;
+    using MessageFailures;
+    using static MessageFailures.FailedMessage;
 
     public struct ClassifiableMessageDetails
     {

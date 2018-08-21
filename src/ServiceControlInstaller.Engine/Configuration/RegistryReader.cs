@@ -5,7 +5,7 @@
 
     class RegistryReader<T>
     {
-        public static T Read(string subKey, string name, T defaultValue = default(T))
+        public static T Read(string subKey, string name, T defaultValue = default)
         {
             var regPath = @"SOFTWARE\ParticularSoftware\" + subKey.Replace("/", "\\");
             try
@@ -54,6 +54,5 @@
 
             return defaultValue;
         }
-
     }
 }

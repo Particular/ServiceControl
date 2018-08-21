@@ -1,33 +1,31 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System.Globalization;
+    using System.Threading.Tasks;
+    using Api;
+    using Contracts.MessageFailures;
+    using Infrastructure.DomainEvents;
+    using InternalMessages;
     using NServiceBus;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
     {
-        IDocumentStore store;
-        IDomainEvents domainEvents;
-
         public UnArchiveMessagesByRangeHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
             this.domainEvents = domainEvents;
         }
 
-        public void Handle(UnArchiveMessagesByRange message)
+        public async Task Handle(UnArchiveMessagesByRange message, IMessageHandlerContext context)
         {
             var options = new BulkOperationOptions
             {
                 AllowStale = true
             };
-            var result = store.DatabaseCommands.UpdateByIndex(
+            var result = await store.AsyncDatabaseCommands.UpdateByIndexAsync(
                 new FailedMessageViewIndex().IndexName,
                 new IndexQuery
                 {
@@ -42,18 +40,22 @@ if(this.Status === archivedStatus) {
 ",
                     Values =
                     {
-                        {"archivedStatus", (int) FailedMessageStatus.Archived},
-                        {"unresolvedStatus", (int) FailedMessageStatus.Unresolved}
+                        {"archivedStatus", (int)FailedMessageStatus.Archived},
+                        {"unresolvedStatus", (int)FailedMessageStatus.Unresolved}
                     }
-                }, options).WaitForCompletion();
+                }, options).ConfigureAwait(false);
 
-            var patchedDocumentIds = result.JsonDeserialization<DocumentPatchResult[]>();
+            var patchedDocumentIds = (await result.WaitForCompletionAsync().ConfigureAwait(false))
+                .JsonDeserialization<DocumentPatchResult[]>();
 
-            domainEvents.Raise(new FailedMessagesUnArchived
+            await domainEvents.Raise(new FailedMessagesUnArchived
             {
                 MessagesCount = patchedDocumentIds.Length
-            });
+            }).ConfigureAwait(false);
         }
+
+        IDocumentStore store;
+        IDomainEvents domainEvents;
 
         class DocumentPatchResult
         {

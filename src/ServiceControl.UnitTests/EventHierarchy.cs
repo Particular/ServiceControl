@@ -12,7 +12,7 @@
         public void EnsureEventHierarchyIsFlat()
         {
             var serviceControlAssembly = typeof(Bootstrapper).Assembly;
-            var eventTypes = serviceControlAssembly.GetTypes().Where(typeof(IEvent).IsAssignableFrom).ToArray();
+            var eventTypes = serviceControlAssembly.GetTypes().Where(typeof(IEvent).IsAssignableFrom).Where(x => !x.IsAbstract).ToArray();
 
             var flatEvents = eventTypes.Where(t => t.BaseType == typeof(object)).ToArray();
 

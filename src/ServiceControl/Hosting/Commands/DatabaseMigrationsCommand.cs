@@ -1,6 +1,6 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
-    using Particular.ServiceControl.Hosting;
+    using Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class DatabaseMigrationsCommand : AbstractCommand

@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
-
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -13,8 +13,6 @@
 
     public static class ErrorMessageCleaner
     {
-        static NServiceBus.Logging.ILog logger = NServiceBus.Logging.LogManager.GetLogger(typeof(ErrorMessageCleaner));
-
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -89,6 +87,7 @@
                         accessor.Attachments.DeleteAttachment("messagebodies/" + attachments[idx], null);
 #pragma warning restore 618
                     }
+
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents completed.", s, e);
                 });
             });
@@ -102,5 +101,7 @@
                 logger.InfoFormat("Deleted {0} expired error documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
             }
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(ErrorMessageCleaner));
     }
 }

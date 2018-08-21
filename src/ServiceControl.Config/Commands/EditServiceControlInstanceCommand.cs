@@ -2,19 +2,15 @@ namespace ServiceControl.Config.Commands
 {
     using System;
     using Caliburn.Micro;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.UI.InstanceDetails;
-    using ServiceControl.Config.UI.InstanceEdit;
+    using Events;
+    using Framework;
+    using Framework.Commands;
     using ServiceControlInstaller.Engine.Instances;
+    using UI.InstanceDetails;
+    using UI.InstanceEdit;
 
     class EditServiceControlInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        private readonly Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel;
-        private readonly IEventAggregator eventAggregator;
-        private readonly IWindowManagerEx windowManager;
-
         public EditServiceControlInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(null)
         {
             this.windowManager = windowManager;
@@ -26,11 +22,15 @@ namespace ServiceControl.Config.Commands
         {
             var editVM = editViewModel((ServiceControlInstance)viewModel.ServiceInstance);
 
-            windowManager.ShowInnerDialog(editVM);
-
-            editVM.UpdateInstanceFromViewModel((ServiceControlInstance)viewModel.ServiceInstance);
-
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
+            if (windowManager.ShowInnerDialog(editVM) ?? false)
+            {
+                editVM.UpdateInstanceFromViewModel((ServiceControlInstance)viewModel.ServiceInstance);
+                eventAggregator.PublishOnUIThread(new RefreshInstances());
+            }
         }
+
+        readonly Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel;
+        readonly IEventAggregator eventAggregator;
+        readonly IWindowManagerEx windowManager;
     }
 }

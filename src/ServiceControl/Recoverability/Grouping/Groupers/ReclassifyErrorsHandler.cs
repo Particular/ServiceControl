@@ -2,23 +2,15 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using System.Threading;
+    using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.DomainEvents;
+    using MessageFailures.InternalMessages;
     using NServiceBus;
-    using NServiceBus.Logging;
     using Raven.Client;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
-        IDomainEvents domainEvents;
-        IDocumentStore store;
-        IEnumerable<IFailureClassifier> classifiers;
-        Reclassifier reclassifier;
-        static int executing;
-
-        ILog logger = LogManager.GetLogger<ReclassifyErrorsHandler>();
-
         public ReclassifyErrorsHandler(IDocumentStore store, IDomainEvents domainEvents, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
         {
             this.store = store;
@@ -28,7 +20,7 @@ namespace ServiceControl.Recoverability
             reclassifier = new Reclassifier(notifier);
         }
 
-        public void Handle(ReclassifyErrors message)
+        public async Task Handle(ReclassifyErrors message, IMessageHandlerContext context)
         {
             if (Interlocked.Exchange(ref executing, 1) != 0)
             {
@@ -38,14 +30,15 @@ namespace ServiceControl.Recoverability
 
             try
             {
-                var failedMessagesReclassified = reclassifier.ReclassifyFailedMessages(store, message.Force, classifiers);
+                var failedMessagesReclassified = await reclassifier.ReclassifyFailedMessages(store, message.Force, classifiers)
+                    .ConfigureAwait(false);
 
                 if (failedMessagesReclassified > 0)
                 {
-                    domainEvents.Raise(new ReclassificationOfErrorMessageComplete
+                    await domainEvents.Raise(new ReclassificationOfErrorMessageComplete
                     {
                         NumberofMessageReclassified = failedMessagesReclassified
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
             finally
@@ -53,5 +46,11 @@ namespace ServiceControl.Recoverability
                 Interlocked.Exchange(ref executing, 0);
             }
         }
+
+        IDomainEvents domainEvents;
+        IDocumentStore store;
+        IEnumerable<IFailureClassifier> classifiers;
+        Reclassifier reclassifier;
+        static int executing;
     }
 }

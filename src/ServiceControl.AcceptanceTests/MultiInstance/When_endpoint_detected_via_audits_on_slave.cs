@@ -4,64 +4,31 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.Contexts;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Monitoring;
 
     public class When_endpoint_detected_via_audits_on_slave : AcceptanceTest
     {
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private const string Slave = "slave";
-        private static string AuditSlave = $"{Slave}.audit";
-        private static string ErrorSlave = $"{Slave}.error";
-
-        private string addressOfRemote;
-
-        [Test]
-        public async Task Should_be_returned_via_master_api()
-        {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
-            var context = new MyContext();
-            List<EndpointsView> response;
-
-            await Define(context, Slave, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                   bus.SendLocal(new MyMessage());
-                }))
-                .Done(async c =>
-                {
-                    var result =  await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
-                    response = result;
-                    return result && response.Count == 1;
-                })
-                .Run(TimeSpan.FromSeconds(40));
-        }
-
         [Test]
         public async Task Should_be_configurable_on_master()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
 
-            var context = new MyContext();
             List<EndpointsView> response = null;
 
-            await Define(context, Slave, Master)
-                .WithEndpoint<Sender>(b => b.Given((bus, c) =>
-                {
-                    bus.SendLocal(new MyMessage());
-                }))
+            await Define<MyContext>(Slave, Master)
+                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
+                    (bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
                     response = result;
                     if (result && response.Count > 0)
                     {
@@ -72,12 +39,12 @@
                     {
                         var endpointId = response.First().Id;
 
-                        await Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
+                        await this.Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
                         {
                             MonitorHeartbeat = true
                         }, Master);
 
-                        var resultAfterPath = await TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                        var resultAfterPath = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
                         response = resultAfterPath;
                         return resultAfterPath;
                     }
@@ -90,37 +57,14 @@
             Assert.IsTrue(response.First().MonitorHeartbeat);
         }
 
-        public class Sender : EndpointConfigurationBuilder
-        {
-            public Sender()
-            {
-                EndpointSetup<DefaultServerWithAudit>()
-                    .AuditTo(Address.Parse(AuditSlave))
-                    .ErrorTo(Address.Parse(ErrorMaster));
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public MyContext Context { get; set; }
-
-                public IBus Bus { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
-
-                public void Handle(MyMessage message)
-                {
-                }
-            }
-        }
-
         void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
                 case Slave:
                     addressOfRemote = settings.ApiUrl;
-                    settings.AuditQueue = Address.Parse(AuditSlave);
-                    settings.ErrorQueue = Address.Parse(ErrorSlave);
+                    settings.AuditQueue = AuditSlave;
+                    settings.ErrorQueue = ErrorSlave;
                     break;
                 case Master:
                     settings.RemoteInstances = new[]
@@ -131,13 +75,58 @@
                             QueueAddress = Slave
                         }
                     };
-                    settings.AuditQueue = Address.Parse(AuditMaster);
-                    settings.ErrorQueue = Address.Parse(ErrorMaster);
+                    settings.AuditQueue = AuditMaster;
+                    settings.ErrorQueue = ErrorMaster;
                     break;
             }
         }
 
-        [Serializable]
+        void ConfigureWaitingForMasterToSubscribe(string instance, EndpointConfiguration config)
+        {
+            if (instance == Slave)
+            {
+                config.OnEndpointSubscribed<MyContext>((s, ctx) =>
+                {
+                    if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        ctx.MasterSubscribed = true;
+                    }
+                });
+            }
+        }
+
+        private string addressOfRemote;
+        private const string Master = "master";
+        private const string Slave = "slave";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
+        private static string AuditSlave = $"{Slave}.audit";
+        private static string ErrorSlave = $"{Slave}.error";
+
+        public class Sender : EndpointConfigurationBuilder
+        {
+            public Sender()
+            {
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    c.AuditProcessedMessagesTo(AuditSlave);
+                    c.SendFailedMessagesTo(ErrorMaster);
+                });
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public ReadOnlySettings Settings { get; set; }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    return Task.FromResult(0);
+                }
+            }
+        }
+
         public class MyMessage : ICommand
         {
         }
@@ -145,6 +134,7 @@
         public class MyContext : ScenarioContext
         {
             public bool EndpointKnownOnMaster { get; set; }
+            public bool MasterSubscribed { get; set; }
         }
     }
 }

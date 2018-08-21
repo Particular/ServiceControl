@@ -4,17 +4,11 @@
 
     public class RxProgressScreen : RxScreen, IProgressViewModel
     {
-        private string _progressTitle;
-        private int _progressPercent;
-        private string _progressMessage;
-        private bool _inProgress;
+        public bool ProgressIndeterminate => ProgressPercent < 0;
 
         public string ProgressTitle
         {
-            get
-            {
-                return _progressTitle;
-            }
+            get { return _progressTitle; }
             set
             {
                 _progressTitle = value;
@@ -24,10 +18,7 @@
 
         public bool InProgress
         {
-            get
-            {
-                return _inProgress;
-            }
+            get { return _inProgress; }
             set
             {
                 _inProgress = value;
@@ -37,10 +28,7 @@
 
         public string ProgressMessage
         {
-            get
-            {
-                return _progressMessage;
-            }
+            get { return _progressMessage; }
             set
             {
                 _progressMessage = value;
@@ -50,18 +38,13 @@
 
         public int ProgressPercent
         {
-            get
-            {
-                return _progressPercent;
-            }
+            get { return _progressPercent; }
             set
             {
                 _progressPercent = value;
                 NotifyUpdates();
             }
         }
-
-        public bool ProgressIndeterminate => ProgressPercent < 0;
 
         public override void CanClose(Action<bool> callback)
         {
@@ -75,5 +58,10 @@
             NotifyOfPropertyChange("ProgressMessage");
             NotifyOfPropertyChange("ProgressPercent");
         }
+
+        string _progressTitle;
+        int _progressPercent;
+        string _progressMessage;
+        bool _inProgress;
     }
 }

@@ -1,12 +1,10 @@
 ﻿namespace ServiceControlInstaller.CustomActions
 {
+    using Engine;
     using Microsoft.Deployment.WindowsInstaller;
-    using ServiceControlInstaller.Engine;
 
     public class MSILogger : ILogging
     {
-        Session _session;
-
         public MSILogger(Session session)
         {
             _session = session;
@@ -26,5 +24,7 @@
         {
             _session.Log("ERROR: {0}", message);
         }
+
+        Session _session;
     }
 }

@@ -1,22 +1,19 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedMethodReturnValue.Global
+
 namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
     using System.IO;
     using System.ServiceProcess;
-    using ServiceControlInstaller.Engine.FileSystem;
-    using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
-    using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Validation;
+    using FileSystem;
+    using Instances;
+    using LicenseMgmt;
+    using ReportCard;
+    using Validation;
 
     public class UnattendServiceControlInstaller
     {
-        Logging logger;
-
-        public ServiceControlZipInfo ZipInfo { get; }
-
         public UnattendServiceControlInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
@@ -31,6 +28,8 @@ namespace ServiceControlInstaller.Engine.Unattended
             ZipInfo = ServiceControlZipInfo.Find(sourceroot);
         }
 
+        public ServiceControlZipInfo ZipInfo { get; }
+
         public bool Add(ServiceControlNewInstance details, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
@@ -44,6 +43,7 @@ namespace ServiceControlInstaller.Engine.Unattended
 
             var instanceInstaller = details;
             instanceInstaller.ReportCard = new ReportCard();
+            instanceInstaller.Version = ZipInfo.Version;
 
             //Validation
             instanceInstaller.Validate(promptToProceed);
@@ -53,6 +53,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 {
                     logger.Error(error);
                 }
+
                 return false;
             }
 
@@ -74,6 +75,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                     {
                         logger.Error(error);
                     }
+
                     return false;
                 }
             }
@@ -89,6 +91,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             {
                 logger.Warn("The service failed to start");
             }
+
             return true;
         }
 
@@ -116,6 +119,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             {
                 logger.Error("Service failed to stop or service stop timed out");
             }
+
             try
             {
                 var backupFile = instance.BackupAppConfig();
@@ -148,6 +152,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                     {
                         logger.Error(error);
                     }
+
                     return false;
                 }
 
@@ -162,6 +167,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 logger.Error("Upgrade Failed: {0}", ex.Message);
                 return false;
             }
+
             return true;
         }
 
@@ -175,8 +181,10 @@ namespace ServiceControlInstaller.Engine.Unattended
                 {
                     logger.Error(error);
                 }
+
                 return false;
             }
+
             try
             {
                 if (!instance.TryStopService())
@@ -192,6 +200,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                     {
                         logger.Error(error);
                     }
+
                     return false;
                 }
 
@@ -201,11 +210,12 @@ namespace ServiceControlInstaller.Engine.Unattended
                     return false;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                logger.Error("Update failed: {0}",  ex.Message);
+                logger.Error("Update failed: {0}", ex.Message);
                 return false;
             }
+
             return true;
         }
 
@@ -231,6 +241,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 {
                     instance.RemoveLogsFolder();
                 }
+
                 if (removeDB)
                 {
                     instance.RemoveDataBaseFolder();
@@ -247,20 +258,21 @@ namespace ServiceControlInstaller.Engine.Unattended
                     {
                         logger.Error(error);
                     }
+
                     return false;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.Error(ex.Message);
                 return false;
             }
+
             return true;
         }
 
         internal CheckLicenseResult CheckLicenseIsValid()
         {
-            DateTime releaseDate;
             var license = LicenseManager.FindLicense();
             if (license.Details.HasLicenseExpired())
             {
@@ -272,7 +284,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadServiceControlReleaseDate(out releaseDate))
+            if (ZipInfo.TryReadServiceControlReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {
@@ -283,8 +295,11 @@ namespace ServiceControlInstaller.Engine.Unattended
             {
                 throw new Exception("Failed to retrieve release date for new version");
             }
+
             return new CheckLicenseResult(true);
         }
+
+        Logging logger;
 
         internal class CheckLicenseResult
         {

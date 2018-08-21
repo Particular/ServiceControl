@@ -7,9 +7,6 @@
 
     public class MigrationsManager
     {
-        private IDocumentStore store;
-        private IMigration[] migrations;
-
         public MigrationsManager(IDocumentStore store, IMigration[] migrations)
         {
             this.store = store;
@@ -41,7 +38,7 @@
             }
         }
 
-        private string Apply(IMigration migration)
+        string Apply(IMigration migration)
         {
             var report = migration.Apply(store);
             using (var session = store.OpenSession())
@@ -49,10 +46,11 @@
                 session.Load<Migrations>(Migrations.DocumentId).Add(migration.MigrationId, report);
                 session.SaveChanges();
             }
+
             return report;
         }
 
-        private Migrations LoadMigrationsRecord()
+        Migrations LoadMigrationsRecord()
         {
             using (var session = store.OpenSession())
             {
@@ -63,10 +61,14 @@
                     session.Store(document, Migrations.DocumentId);
                     session.SaveChanges();
                 }
+
                 return document;
             }
         }
 
-        private static ILog log = LogManager.GetLogger<MigrationsManager>();
+        IDocumentStore store;
+        IMigration[] migrations;
+
+        static ILog log = LogManager.GetLogger<MigrationsManager>();
     }
 }

@@ -8,12 +8,6 @@
 
     class MsmqConfigValidator
     {
-        class MsmqComponent
-        {
-            public string Name { get; set; }
-            public string DisplayName { get; set; }
-        }
-
         public static void Validate()
         {
             CheckServiceIsInstalledAndRunning();
@@ -27,6 +21,7 @@
             {
                 throw new EngineValidationException("MSMQ Service is not installed");
             }
+
             if (msmqService.Status != ServiceControllerStatus.Running)
             {
                 throw new EngineValidationException("MSMQ Service is not running");
@@ -37,10 +32,26 @@
         {
             var undesirableMsmqComponents = new List<MsmqComponent>
             {
-                new MsmqComponent{Name = "msmq_MQDSServiceInstalled", DisplayName = "MSMQ Directory Services integration"},
-                new MsmqComponent{Name = "msmq_MulticastInstalled", DisplayName = "MSMQ Multicasting Support"},
-                new MsmqComponent{Name = "msmq_RoutingInstalled", DisplayName = "MSMQ Routing"},
-                new MsmqComponent{Name = "msmq_TriggersInstalled", DisplayName = "MSMQ Triggers"},
+                new MsmqComponent
+                {
+                    Name = "msmq_MQDSServiceInstalled",
+                    DisplayName = "MSMQ Directory Services integration"
+                },
+                new MsmqComponent
+                {
+                    Name = "msmq_MulticastInstalled",
+                    DisplayName = "MSMQ Multicasting Support"
+                },
+                new MsmqComponent
+                {
+                    Name = "msmq_RoutingInstalled",
+                    DisplayName = "MSMQ Routing"
+                },
+                new MsmqComponent
+                {
+                    Name = "msmq_TriggersInstalled",
+                    DisplayName = "MSMQ Triggers"
+                }
             };
 
             string[] valueNames;
@@ -53,7 +64,8 @@
                 {
                     throw new Exception("Error reading the MSMQ configuration from the registry");
                 }
-               valueNames = msmqkey.GetValueNames();
+
+                valueNames = msmqkey.GetValueNames();
             }
 
             var componentsToRemove = undesirableMsmqComponents.Where(undesirableComponent => valueNames.Contains(undesirableComponent.Name, StringComparer.OrdinalIgnoreCase)).Select(p => p.DisplayName).ToArray();
@@ -61,6 +73,12 @@
             {
                 throw new EngineValidationException($"The MSMQ service has unsupported optional features installed. Please remove the following via control panel or the DISM command line tool,  The unsupported feature(s) are: {string.Join(", ", componentsToRemove)}");
             }
+        }
+
+        class MsmqComponent
+        {
+            public string Name { get; set; }
+            public string DisplayName { get; set; }
         }
     }
 }

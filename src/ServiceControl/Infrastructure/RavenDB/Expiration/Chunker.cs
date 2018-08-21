@@ -4,8 +4,6 @@
 
     public static class Chunker
     {
-        const int CHUNK_SIZE = 500;
-
         public static void ExecuteInChunks(int total, Action<int, int> action)
         {
             if (total == 0)
@@ -33,5 +31,7 @@
                 }
             } while (start < total);
         }
+
+        const int CHUNK_SIZE = 500;
     }
 }

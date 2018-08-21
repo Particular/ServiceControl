@@ -2,17 +2,14 @@
 {
     using System.Threading.Tasks;
     using Caliburn.Micro;
-    using ServiceControl.Config.Events;
-    using ServiceControl.Config.Framework;
-    using ServiceControl.Config.Framework.Commands;
-    using ServiceControl.Config.UI.AdvancedOptions;
+    using Events;
+    using Framework;
+    using Framework.Commands;
     using ServiceControlInstaller.Engine.ReportCard;
+    using UI.AdvancedOptions;
 
     class StartServiceControlInMaintenanceModeCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
     {
-        private readonly IWindowManagerEx windowManager;
-        private readonly IEventAggregator eventAggregator;
-
         public StartServiceControlInMaintenanceModeCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator) : base(model => !(model.IsRunning && model.InMaintenanceMode))
         {
             this.windowManager = windowManager;
@@ -52,8 +49,12 @@
                         windowManager.ShowActionReport(reportCard, "ISSUES STARTING INSTANCE IN MAINTENANCE MODE", "There were some warnings when attempting to start instance in Maintenance Mode:");
                     }
                 }
+
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
         }
+
+        readonly IWindowManagerEx windowManager;
+        readonly IEventAggregator eventAggregator;
     }
 }

@@ -10,8 +10,8 @@
         [Test]
         public void Id_changed_should_change_etag()
         {
-            var group = new GroupOperation() {Id = "old"};
-            var data = new[] { group };
+            var group = new GroupOperation {Id = "old"};
+            var data = new[] {group};
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
@@ -24,8 +24,8 @@
         [Test]
         public void Count_changed_should_change_etag()
         {
-            var group = new GroupOperation() {Count = 1 };
-            var data = new[] { group };
+            var group = new GroupOperation {Count = 1};
+            var data = new[] {group};
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
@@ -38,8 +38,8 @@
         [Test]
         public void RetryStatus_changed_should_change_etag()
         {
-            var group = new GroupOperation() { OperationStatus = RetryState.Waiting.ToString()};
-            var data = new[] { group };
+            var group = new GroupOperation {OperationStatus = RetryState.Waiting.ToString()};
+            var data = new[] {group};
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
@@ -53,7 +53,7 @@
         public void RetryProgress_changed_should_change_etag()
         {
             var group = new GroupOperation();
-            var data = new[] { group };
+            var data = new[] {group};
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
@@ -67,7 +67,7 @@
         public void RetryStartTime_changed_should_change_etag()
         {
             var group = new GroupOperation();
-            var data = new[] { group };
+            var data = new[] {group};
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
@@ -81,7 +81,7 @@
         public void RetryCompletionTime_changed_should_change_etag()
         {
             var group = new GroupOperation();
-            var data = new[] { group };
+            var data = new[] {group};
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
@@ -95,7 +95,7 @@
         public void NeedUserAcknowledgement_changed_should_change_etag()
         {
             var group = new GroupOperation();
-            var data = new[] { group };
+            var data = new[] {group};
 
             var knownEtag = EtagHelper.CalculateEtag(data);
 
@@ -112,7 +112,7 @@
             var knownEtag = EtagHelper.CalculateEtag(data);
 
             var group = new GroupOperation();
-            data = new[] { group };
+            data = new[] {group};
 
             var newEtag = EtagHelper.CalculateEtag(data);
 

@@ -1,15 +1,10 @@
 namespace ServiceControl.Monitoring
 {
     using System;
-    using ServiceControl.Infrastructure;
+    using Infrastructure;
 
     public class EndpointInstanceId : IEquatable<EndpointInstanceId>
     {
-        public readonly string LogicalName;
-        public readonly string HostName;
-        public readonly Guid HostGuid;
-        public Guid UniqueId { get; }
-
         public EndpointInstanceId(string logicalName, string hostName, Guid hostGuid)
         {
             LogicalName = logicalName;
@@ -18,16 +13,26 @@ namespace ServiceControl.Monitoring
             UniqueId = DeterministicGuid.MakeId(LogicalName, HostGuid.ToString());
         }
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as EndpointInstanceId);
-        }
+        public Guid UniqueId { get; }
 
         public bool Equals(EndpointInstanceId other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return string.Equals(LogicalName, other.LogicalName) && string.Equals(HostName, other.HostName) && HostGuid.Equals(other.HostGuid);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as EndpointInstanceId);
         }
 
         public override int GetHashCode()
@@ -41,5 +46,8 @@ namespace ServiceControl.Monitoring
             }
         }
 
+        public readonly string LogicalName;
+        public readonly string HostName;
+        public readonly Guid HostGuid;
     }
 }

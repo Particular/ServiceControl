@@ -5,32 +5,20 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
+    using MessageFailures;
+    using MessageRedirects;
     using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Routing;
     using NServiceBus.Support;
-    using NServiceBus.Transports;
-    using NServiceBus.Unicast;
+    using NServiceBus.Transport;
     using Raven.Client;
-    using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.MessageRedirects;
 
     class RetryProcessor
     {
-        static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
-        {
-            Headers.Retries,
-            "NServiceBus.FailedQ",
-            "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace"
-        };
-
-        static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
-
-        public RetryProcessor(ISendMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
+        public RetryProcessor(IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
             this.sender = sender;
             this.returnToSender = returnToSender;
@@ -41,7 +29,7 @@ namespace ServiceControl.Recoverability
 
         public async Task<bool> ProcessBatches(IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
-            return await ForwardCurrentBatch(session, cancellationToken) || await MoveStagedBatchesToForwardingBatch(session);
+            return await ForwardCurrentBatch(session, cancellationToken).ConfigureAwait(false) || await MoveStagedBatchesToForwardingBatch(session).ConfigureAwait(false);
         }
 
         private async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session)
@@ -58,15 +46,16 @@ namespace ServiceControl.Recoverability
                 redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
                 var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
                 var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
-                retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
+                await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
+                    .ConfigureAwait(false);
 
-                if ( stagedMessages > 0)
+                if (stagedMessages > 0)
                 {
                     await session.StoreAsync(new RetryBatchNowForwarding
-                    {
-                        RetryBatchId = stagingBatch.Id
-                    }, RetryBatchNowForwarding.Id)
-                    .ConfigureAwait(false);
+                        {
+                            RetryBatchId = stagingBatch.Id
+                        }, RetryBatchNowForwarding.Id)
+                        .ConfigureAwait(false);
                 }
 
                 return true;
@@ -87,12 +76,13 @@ namespace ServiceControl.Recoverability
             {
                 Log.DebugFormat("Loading batch {0} for forwarding", nowForwarding.RetryBatchId);
 
-                var forwardingBatch = await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId).ConfigureAwait(false);
+                var forwardingBatch = await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId, cancellationToken).ConfigureAwait(false);
 
                 if (forwardingBatch != null)
                 {
                     Log.InfoFormat("Found batch {0}. Forwarding...", forwardingBatch.Id);
-                    Forward(forwardingBatch, session, cancellationToken);
+                    await Forward(forwardingBatch, session, cancellationToken)
+                        .ConfigureAwait(false);
                     Log.DebugFormat("Retry batch {0} forwarded.", forwardingBatch.Id);
                 }
                 else
@@ -111,24 +101,29 @@ namespace ServiceControl.Recoverability
             return false;
         }
 
-        void Forward(RetryBatch forwardingBatch, IAsyncDocumentSession session, CancellationToken cancellationToken)
+        async Task Forward(RetryBatch forwardingBatch, IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
             Log.InfoFormat("Forwarding batch {0} with {1} messages", forwardingBatch.Id, messageCount);
-            retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
+            await retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType)
+                .ConfigureAwait(false);
 
             if (isRecoveringFromPrematureShutdown)
             {
                 Log.Warn("Recovering from premature shutdown. Starting forwarder in timeout mode");
-                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken);
-                retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
+                await returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken)
+                    .ConfigureAwait(false);
+                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize)
+                    .ConfigureAwait(false);
             }
             else
             {
                 Log.DebugFormat("Starting forwarder in counting mode with {0} messages", messageCount);
-                returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount);
-                retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
+                await returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount)
+                    .ConfigureAwait(false);
+                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount)
+                    .ConfigureAwait(false);
             }
 
             session.Delete(forwardingBatch);
@@ -136,7 +131,7 @@ namespace ServiceControl.Recoverability
             Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
         }
 
-        static Predicate<TransportMessage> IsPartOfStagedBatch(string stagingId)
+        static Predicate<MessageContext> IsPartOfStagedBatch(string stagingId)
         {
             return m =>
             {
@@ -177,17 +172,17 @@ namespace ServiceControl.Recoverability
 
             Log.DebugFormat("Staging {0} messages for Retry Batch {1} with staging attempt Id {2}", messages.Length, stagingBatch.Id, stagingId);
 
-            Parallel.ForEach(messages, message => StageMessage(message, stagingId));
+            await Task.WhenAll(messages.Select(m => StageMessage(m, stagingId)).ToArray()).ConfigureAwait(false);
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
                 var failedIds = messages.Select(x => x.UniqueMessageId).ToArray();
-                domainEvents.Raise(new MessagesSubmittedForRetry
+                await domainEvents.Raise(new MessagesSubmittedForRetry
                 {
                     FailedMessageIds = failedIds,
                     NumberOfFailedMessages = failedIds.Length,
                     Context = stagingBatch.Context
-                });
+                }).ConfigureAwait(false);
             }
 
             var msgLookup = messages.ToLookup(x => x.Id);
@@ -200,7 +195,7 @@ namespace ServiceControl.Recoverability
             return messages.Length;
         }
 
-        void StageMessage(FailedMessage message, string stagingId)
+        Task StageMessage(FailedMessage message, string stagingId)
         {
             message.Status = FailedMessageStatus.RetryIssued;
 
@@ -225,25 +220,43 @@ namespace ServiceControl.Recoverability
 
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 
-            var transportMessage = new TransportMessage(message.Id, headersToRetryWith)
+            var transportMessage = new OutgoingMessage(message.Id, headersToRetryWith, emptyBody);
+            transportMessage.Headers[Headers.MessageIntent] = attempt.MessageIntent.ToString();
+            if (attempt.Recoverable)
             {
-                Recoverable = attempt.Recoverable,
-                MessageIntent = attempt.MessageIntent
-            };
-            if (attempt.CorrelationId != null)
-            {
-                transportMessage.CorrelationId = attempt.CorrelationId;
+                transportMessage.Headers[Headers.NonDurableMessage] = true.ToString();
             }
 
-            sender.Send(transportMessage, new SendOptions(returnToSender.InputAddress));
+            if (attempt.CorrelationId != null)
+            {
+                transportMessage.Headers[Headers.CorrelationId] = attempt.CorrelationId;
+            }
+
+            return sender.Dispatch(new TransportOperations(new TransportOperation(transportMessage, new UnicastAddressTag(returnToSender.InputAddress))), transaction, contextBag);
         }
 
-        ISendMessages sender;
+        byte[] emptyBody = new byte[0];
+        TransportTransaction transaction = new TransportTransaction();
+        ContextBag contextBag = new ContextBag();
+        IDispatchMessages sender;
         IDomainEvents domainEvents;
         ReturnToSenderDequeuer returnToSender;
         RetryingManager retryingManager;
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
+
+        static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
+        {
+            "NServiceBus.Retries",
+            "NServiceBus.FailedQ",
+            "NServiceBus.TimeOfFailure",
+            "NServiceBus.ExceptionInfo.ExceptionType",
+            "NServiceBus.ExceptionInfo.AuditMessage",
+            "NServiceBus.ExceptionInfo.Source",
+            "NServiceBus.ExceptionInfo.StackTrace"
+        };
+
+        static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
     }
 }

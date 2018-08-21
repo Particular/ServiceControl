@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using Caliburn.Micro;
-
-namespace ServiceControl.Config.Framework.Rx
+﻿namespace ServiceControl.Config.Framework.Rx
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
+    using System.Linq;
+    using Caliburn.Micro;
+    using EnumerableExtensions = EnumerableExtensions;
+
     public partial class RxConductor<T>
     {
         public class Collection
         {
             public class OneActive : RxConductorBaseWithActiveItem<T>
             {
-                readonly BindableCollection<T> items = new BindableCollection<T>();
-
                 public OneActive()
                 {
                     items.CollectionChanged += (s, e) =>
@@ -21,20 +20,20 @@ namespace ServiceControl.Config.Framework.Rx
                         switch (e.Action)
                         {
                             case NotifyCollectionChangedAction.Add:
-                                e.NewItems.OfType<IChild>().Apply(x => x.Parent = this);
+                                EnumerableExtensions.Apply(e.NewItems.OfType<IChild>(), x => x.Parent = this);
                                 break;
 
                             case NotifyCollectionChangedAction.Remove:
-                                e.OldItems.OfType<IChild>().Apply(x => x.Parent = null);
+                                EnumerableExtensions.Apply(e.OldItems.OfType<IChild>(), x => x.Parent = null);
                                 break;
 
                             case NotifyCollectionChangedAction.Replace:
-                                e.NewItems.OfType<IChild>().Apply(x => x.Parent = this);
-                                e.OldItems.OfType<IChild>().Apply(x => x.Parent = null);
+                                EnumerableExtensions.Apply(e.NewItems.OfType<IChild>(), x => x.Parent = this);
+                                EnumerableExtensions.Apply(e.OldItems.OfType<IChild>(), x => x.Parent = null);
                                 break;
 
                             case NotifyCollectionChangedAction.Reset:
-                                items.OfType<IChild>().Apply(x => x.Parent = this);
+                                EnumerableExtensions.Apply(items.OfType<IChild>(), x => x.Parent = this);
                                 break;
                         }
                     };
@@ -76,7 +75,7 @@ namespace ServiceControl.Config.Framework.Rx
                     }
                     else
                     {
-                        CloseStrategy.Execute(new[] { item }, (canClose, closable) =>
+                        CloseStrategy.Execute(new[] {item}, (canClose, closable) =>
                         {
                             if (canClose)
                             {
@@ -117,7 +116,7 @@ namespace ServiceControl.Config.Framework.Rx
                         return list[toRemoveAt];
                     }
 
-                    return default(T);
+                    return default;
                 }
 
                 public override void CanClose(Action<bool> callback)
@@ -146,7 +145,7 @@ namespace ServiceControl.Config.Framework.Rx
                                 closable = stillToClose;
                             }
 
-                            closable.OfType<IDeactivate>().Apply(x => x.Deactivate(true));
+                            EnumerableExtensions.Apply(closable.OfType<IDeactivate>(), x => x.Deactivate(true));
                             items.RemoveRange(closable);
                         }
 
@@ -163,7 +162,7 @@ namespace ServiceControl.Config.Framework.Rx
                 {
                     if (close)
                     {
-                        items.OfType<IDeactivate>().Apply(x => x.Deactivate(true));
+                        EnumerableExtensions.Apply(items.OfType<IDeactivate>(), x => x.Deactivate(true));
                         items.Clear();
                     }
                     else
@@ -183,12 +182,19 @@ namespace ServiceControl.Config.Framework.Rx
                         var index = items.IndexOf(newItem);
 
                         if (index == -1)
+                        {
                             items.Add(newItem);
-                        else newItem = items[index];
+                        }
+                        else
+                        {
+                            newItem = items[index];
+                        }
                     }
 
                     return base.EnsureItem(newItem);
                 }
+
+                readonly BindableCollection<T> items = new BindableCollection<T>();
             }
         }
     }

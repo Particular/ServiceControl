@@ -1,18 +1,17 @@
-﻿using System;
-
-namespace ServiceControl.AuditLoadGenerator
+﻿namespace ServiceControl.LoadTests.AuditGenerator
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Support;
-    using ServiceControl.LoadTests.Messages;
+    using Messages;
+    using Transports;
 
     class Program
     {
-        static IEndpointInstance endpointInstance;
-        static Guid hostId;
+        const string ConfigRoot = "AuditGenerator";
 
         static void Main(string[] args)
         {
@@ -21,26 +20,34 @@ namespace ServiceControl.AuditLoadGenerator
 
         static async Task Start(string[] args)
         {
-            if (args.Length < 3)
-            {
-                Console.WriteLine("Usage: AuditLoadGenerator <endpoint-name> <min-lenght> <max-length>");
-                return;
-            }
-
             Metric.Config.WithReporting(r =>
             {
                 r.WithCSVReports(".", TimeSpan.FromSeconds(5));
-                //r.WithConsoleReport(TimeSpan.FromSeconds(5));
             });
 
-            var endpointName = args[0];
-            var minLength = int.Parse(args[1]);
-            var maxLength = int.Parse(args[2]);
+            var customizationTypeName = SettingsReader<string>.Read(ConfigRoot, "TransportCustomization", null);
 
-            hostId = Guid.NewGuid();
+            var minLength = SettingsReader<int>.Read(ConfigRoot, "MinLength", 10000);
+            var maxLength = SettingsReader<int>.Read(ConfigRoot, "MaxLength", 20000);
+            var endpointName = SettingsReader<string>.Read(ConfigRoot, "EndpointName", "AuditGen");
+            var connectionString = SettingsReader<string>.Read(ConfigRoot, "TransportConnectionString", "");
+
+            HostId = Guid.NewGuid().ToString("N");
 
             var config = new EndpointConfiguration(endpointName);
-            config.UseTransport<MsmqTransport>();
+            config.AssemblyScanner().ExcludeAssemblies("ServiceControl");
+            config.UseSerialization<NewtonsoftSerializer>();
+
+            var customization = (TransportCustomization)Activator.CreateInstance(Type.GetType(customizationTypeName, true));
+            var transportSettings = new TransportSettings
+            {
+                ConnectionString = connectionString
+            };
+            transportSettings.Set("TransportSettings.RemoteInstances", Array.Empty<string>());
+            transportSettings.Set("TransportSettings.RemoteTypesToSubscribeTo", Array.Empty<Type>());
+            
+            customization.CustomizeEndpoint(config, transportSettings);
+
             config.UsePersistence<InMemoryPersistence>();
             config.SendFailedMessagesTo("error");
             config.EnableInstallers();
@@ -52,9 +59,12 @@ namespace ServiceControl.AuditLoadGenerator
         }
 
 
-        static async Task GenerateMessages(string destination, CancellationToken token)
+        static async Task GenerateMessages(string destination, QueueInfo queueInfo, CancellationToken token)
         {
-            var throttle = new SemaphoreSlim(32);
+            var throttle = new SemaphoreSlim(SettingsReader<int>.Read(ConfigRoot, "ConcurrentSends", 32));
+            var bodySize = SettingsReader<int>.Read(ConfigRoot, "BodySize", 0);
+
+            var random = new Random();
 
             var sendMeter = Metric.Meter(destination, Unit.Custom("audits"));
 
@@ -69,7 +79,7 @@ namespace ServiceControl.AuditLoadGenerator
                     {
                         var ops = new SendOptions();
 
-                        ops.SetHeader(Headers.HostId, hostId.ToString("N"));
+                        ops.SetHeader(Headers.HostId, HostId);
                         ops.SetHeader(Headers.HostDisplayName, "Load Generator");
 
                         ops.SetHeader(Headers.ProcessingMachine, RuntimeEnvironment.MachineName);
@@ -81,7 +91,12 @@ namespace ServiceControl.AuditLoadGenerator
 
                         ops.SetDestination(destination);
 
-                        await endpointInstance.Send(new AuditMessage(), ops).ConfigureAwait(false);
+                        var auditMessage = new AuditMessage();
+                        auditMessage.Data = new byte[bodySize];
+                        random.NextBytes(auditMessage.Data);
+
+                        await endpointInstance.Send(auditMessage, ops).ConfigureAwait(false);
+                        queueInfo.Sent();
                         sendMeter.Mark();
                     }
                     catch (Exception e)
@@ -95,5 +110,8 @@ namespace ServiceControl.AuditLoadGenerator
                 }, token);
             }
         }
+
+        static IEndpointInstance endpointInstance;
+        public static string HostId;
     }
 }

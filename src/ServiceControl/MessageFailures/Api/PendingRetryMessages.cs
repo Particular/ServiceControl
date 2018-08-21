@@ -4,24 +4,17 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using InternalMessages;
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.MessageFailures.InternalMessages;
 
     public class PendingRetryMessages : BaseModule
     {
-        private class PendingRetryRequest
-        {
-            public string queueaddress { get; set; }
-            public string from { get; set; }
-            public string to { get; set; }
-        }
-
         public PendingRetryMessages()
         {
-            Post["/pendingretries/retry"] = _ =>
+            Post["/pendingretries/retry", true] = async (_, ctx) =>
             {
                 var ids = this.Bind<List<string>>();
 
@@ -30,12 +23,13 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                Bus.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
+                await Bus.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids.ToArray())
+                    .ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
 
-            Post["/pendingretries/queues/retry"] = parameters =>
+            Post["/pendingretries/queues/retry", true] = async (parameters, ctx) =>
             {
                 var request = this.Bind<PendingRetryRequest>();
 
@@ -56,19 +50,24 @@
                     return Negotiate.WithReasonPhrase("From/To").WithStatusCode(HttpStatusCode.BadRequest);
                 }
 
-                Bus.SendLocal<RetryPendingMessages>(m =>
+                await Bus.SendLocal<RetryPendingMessages>(m =>
                 {
                     m.QueueAddress = request.queueaddress;
                     m.PeriodFrom = from;
                     m.PeriodTo = to;
-                });
+                }).ConfigureAwait(false);
 
                 return HttpStatusCode.Accepted;
             };
         }
 
-        public IBus Bus { get; set; }
+        public IMessageSession Bus { get; set; }
+
+        private class PendingRetryRequest
+        {
+            public string queueaddress { get; set; }
+            public string from { get; set; }
+            public string to { get; set; }
+        }
     }
-
-
 }
