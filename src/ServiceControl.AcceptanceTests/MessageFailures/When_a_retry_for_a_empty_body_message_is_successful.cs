@@ -6,7 +6,7 @@
     using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.MessageMutator;
+    using NServiceBus.Pipeline;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -70,7 +70,7 @@
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.NoDelayedRetries();
-                    c.RegisterComponents(cc => cc.ConfigureComponent<LookForControlMessage>(DependencyLifecycle.SingleInstance));
+                    c.Pipeline.Register(cc => new LookForControlMessage(cc.Build<MyContext>()), "Look for control messages");
                 });
             }
 
@@ -110,26 +110,22 @@
                 }
             }
 
-            public class LookForControlMessage : IMutateIncomingTransportMessages
+            public class LookForControlMessage : Behavior<IIncomingPhysicalMessageContext>
             {
                 public LookForControlMessage(MyContext context)
                 {
                     myContext = context;
                 }
 
-                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
+                readonly MyContext myContext;
+                public override Task Invoke(IIncomingPhysicalMessageContext context, Func<Task> next)
                 {
-                    if (context.Headers[Headers.MessageId] == myContext.MessageId)
+                    if (context.Message.Headers[Headers.MessageId] == myContext.MessageId)
                     {
-                        // TODO: Figure out how to enable this
-                        //bus.DoNotContinueDispatchingCurrentMessageToHandlers();
                         myContext.Done = true;
                     }
-
-                    return Task.FromResult(0);
+                    return next();
                 }
-
-                readonly MyContext myContext;
             }
         }
 

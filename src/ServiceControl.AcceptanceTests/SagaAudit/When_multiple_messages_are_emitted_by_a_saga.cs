@@ -43,7 +43,6 @@
                 outgoingIntents[message.MessageType] = message.Intent;
             }
 
-            // TODO: These first two were originally send before the V5-7 update. Needs to be checked
             Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyBySaga).FullName]);
             Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName]);
             Assert.AreEqual("Send", outgoingIntents[typeof(MessageSentBySaga).FullName]);

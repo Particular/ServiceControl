@@ -58,7 +58,6 @@
         private string addressOfRemote;
         private const string Master = "master";
         private const string Remote1 = "remote1";
-        private const string ReceiverHostDisplayName = "Rico";
         private static string AuditMaster = $"{Master}.audit";
         private static string ErrorMaster = $"{Master}.error";
         private static string AuditRemote = $"{Remote1}.audit";
@@ -99,9 +98,6 @@
                 {
                     c.AuditProcessedMessagesTo(AuditRemote);
                     c.SendFailedMessagesTo(ErrorRemote);
-
-                    // TODO: Do this
-                    // c.UniquelyIdentifyRunningInstance().UsingNames()
                 });
             }
 

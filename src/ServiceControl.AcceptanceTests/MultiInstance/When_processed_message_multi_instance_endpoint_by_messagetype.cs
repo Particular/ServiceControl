@@ -76,7 +76,6 @@
         string addressOfRemote;
         const string Master = "master";
         const string Remote1 = "remote1";
-        const string ReceiverHostDisplayName = "Rico";
         static string AuditMaster = $"{Master}.audit";
         static string ErrorMaster = $"{Master}.error";
         static string AuditRemote = $"{Remote1}.audit";
@@ -105,9 +104,6 @@
                 {
                     c.AuditProcessedMessagesTo(AuditRemote);
                     c.SendFailedMessagesTo(ErrorRemote);
-
-                    // TODO: Figure out how to do this properly
-                    // c.UniquelyIdentifyRunningInstance().UsingNames()
                 });
             }
 
