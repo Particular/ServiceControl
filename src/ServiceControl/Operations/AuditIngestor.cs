@@ -33,7 +33,6 @@
 
             if (settings.ForwardAuditMessages)
             {
-                // TODO: Clean the time to be received header? The old implementation went through TransportMessageCleaner
                 await messageForwarder.Forward(context, settings.AuditLogQueue)
                     .ConfigureAwait(false);
             }

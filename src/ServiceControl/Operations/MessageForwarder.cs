@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 
@@ -22,6 +23,9 @@
                 messageContext.MessageId,
                 messageContext.Headers,
                 messageContext.Body);
+
+            // Forwarded messages should last as long as possible
+            outgoingMessage.Headers.Remove(Headers.TimeToBeReceived);
 
             var transportOperations = new TransportOperations(
                 new TransportOperation(outgoingMessage, new UnicastAddressTag(forwardingAddress))
