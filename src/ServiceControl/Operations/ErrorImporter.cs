@@ -40,9 +40,13 @@
                 );
                 
                 context.RegisterStartupTask(b => new StartupTask(b.Build<SatelliteImportFailuresHandler>(), this));
-            }
 
-            // TODO: Fail startup if can't write to audit forwarding queue but forwarding is enabled
+                if (settings.ForwardErrorMessages)
+                {
+                    context.RegisterStartupTask(b => new EnsureCanWriteToForwardingAddress(b.Build<IForwardMessages>(), settings.ErrorLogQueue));
+                }
+
+            }
         }
 
         Task OnMessage(IBuilder builder, MessageContext messageContext)
@@ -79,6 +83,28 @@
             protected override Task OnStop(IMessageSession session)
             {
                 return Task.FromResult(0);
+            }
+        }
+
+        class EnsureCanWriteToForwardingAddress : FeatureStartupTask
+        {
+            readonly IForwardMessages messageForwarder;
+            readonly string forwardingAddress;
+
+            public EnsureCanWriteToForwardingAddress(IForwardMessages messageForwarder, string forwardingAddress)
+            {
+                this.messageForwarder = messageForwarder;
+                this.forwardingAddress = forwardingAddress;
+            }
+
+            protected override Task OnStart(IMessageSession session)
+            {
+                return messageForwarder.VerifyCanReachForwardingAddress(forwardingAddress);
+            }
+
+            protected override Task OnStop(IMessageSession session)
+            {
+                return Task.CompletedTask;
             }
         }
     }
