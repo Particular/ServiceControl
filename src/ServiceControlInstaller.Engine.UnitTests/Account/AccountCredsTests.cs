@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Security.Principal;
     using Accounts;
+    using Engine.Validation;
     using NUnit.Framework;
 
     [TestFixture]
@@ -27,6 +28,15 @@
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName(@"NT Authority\NotAValidAccount").CheckPassword(null), "Test for Invalid System Account should throw IdentityNotMappedException");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName("missingaccount").CheckPassword("foo"), "Test for Missing Account should should throw IdentityNotMappedException");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName(@"UnknownDomain\AUser").CheckPassword("foo"), "Test for unknown domain should throw IdentityNotMappedException");
+        }
+
+        [Test]
+        public void TestServiceAccounts()
+        {
+            var account = UserAccount.ParseAccountName(@"NT SERVICE\MSDTC");
+
+            Assert.IsTrue(account.CheckPassword(""));
+            Assert.Throws<EngineValidationException>(() => account.CheckPassword("MySecret!"));
         }
     }
 }
