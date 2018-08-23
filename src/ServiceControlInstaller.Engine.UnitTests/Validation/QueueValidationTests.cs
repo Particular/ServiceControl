@@ -21,7 +21,7 @@
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
 
             var instanceB = new Mock<IServiceControlTransportConfig>();
-            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ :: Conventional Routing Topology"));
+            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ - Conventional Routing Topology"));
             instanceB.SetupGet(p => p.AuditQueue).Returns(@"RMQaudit");
             instanceB.SetupGet(p => p.AuditLogQueue).Returns(@"RMQauditlog");
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
