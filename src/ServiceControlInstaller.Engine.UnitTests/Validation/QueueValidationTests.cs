@@ -128,7 +128,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ :: Conventional Routing Topology"),
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ - Conventional Routing Topology"),
                 AuditLogQueue = "auditlog",
                 ErrorLogQueue = "errorlog",
                 AuditQueue = "audit",
@@ -157,7 +157,7 @@
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ :: Conventional Routing Topology"),
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == "RabbitMQ - Conventional Routing Topology"),
                 AuditQueue = "RMQaudit",
                 AuditLogQueue = "RMQauditlog",
                 ErrorQueue = "RMQerror",
