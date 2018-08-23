@@ -52,7 +52,7 @@
             },
             new TransportInfo
             {
-                Name = "RabbitMQ",
+                Name = "RabbitMQ :: Conventional Routing Topology",
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>",
