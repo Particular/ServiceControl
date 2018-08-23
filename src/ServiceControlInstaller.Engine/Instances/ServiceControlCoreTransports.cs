@@ -10,13 +10,21 @@
         {
             new TransportInfo
             {
-                Name = "AzureServiceBus",
+                Name = "AzureServiceBus - Endpoint-Oriented Topology",
                 TypeName = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = "AzureServiceBus - Forwarding Topology",
+                TypeName = "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
+                ZipName = "AzureServiceBus",
+                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
+                Matches = name => name.Equals("ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
