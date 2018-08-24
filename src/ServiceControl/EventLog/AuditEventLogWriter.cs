@@ -4,7 +4,7 @@
     using Contracts.EventLog;
     using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     /// <summary>
     /// Only for events that have been defined (under EventLog\Definitions), a logentry item will

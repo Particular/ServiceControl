@@ -1,6 +1,6 @@
 ﻿namespace Particular.ServiceControl.DbMigrations
 {
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public interface IMigration
     {

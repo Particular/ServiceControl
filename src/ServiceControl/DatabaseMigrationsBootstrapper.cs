@@ -4,8 +4,7 @@ namespace Particular.ServiceControl
     using DbMigrations;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.RavenDB;
-    using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class DatabaseMigrationsBootstrapper

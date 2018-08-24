@@ -6,6 +6,7 @@ namespace ServiceControl.ExternalIntegrations
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     public class CustomCheckFailedPublisher : EventPublisher<CustomCheckFailed, CustomCheckFailedPublisher.DispatchContext>
     {

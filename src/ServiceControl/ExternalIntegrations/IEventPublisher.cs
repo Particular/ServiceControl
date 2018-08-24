@@ -3,7 +3,7 @@ namespace ServiceControl.ExternalIntegrations
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     public interface IEventPublisher
     {

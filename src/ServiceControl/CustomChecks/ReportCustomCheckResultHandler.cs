@@ -8,7 +8,7 @@
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
@@ -41,7 +41,7 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                customCheck = await session.LoadAsync<CustomCheck>(id)
+                customCheck = await session.LoadAsync<CustomCheck>(id.ToString())
                     .ConfigureAwait(false);
 
                 if (customCheck == null ||

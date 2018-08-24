@@ -15,6 +15,8 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Support;
     using NServiceBus.Transport;
     using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Session;
 
     class RetryProcessor
     {

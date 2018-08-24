@@ -4,7 +4,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.RavenDB;
     using Hosting;
-    using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class MaintenanceBootstrapper

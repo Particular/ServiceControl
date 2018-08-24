@@ -8,8 +8,6 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using global::Nancy;
     using global::Nancy.Helpers;
     using global::Nancy.Responses.Negotiation;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
     using ServiceControl.Infrastructure;
     using QueryResult = ServiceControl.CompositeViews.Messages.QueryResult;
 

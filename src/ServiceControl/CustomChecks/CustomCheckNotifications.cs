@@ -4,8 +4,7 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class CustomCheckNotifications : IObserver<IndexChangeNotification>
     {

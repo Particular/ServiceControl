@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using Infrastructure.Extensions;
     using Nancy;
     using NServiceBus;
-    using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 

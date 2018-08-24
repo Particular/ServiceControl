@@ -9,8 +9,8 @@ namespace ServiceControl.Infrastructure.Extensions
     using CompositeViews.Messages;
     using MessageFailures;
     using Nancy;
-    using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents.Linq;
+    using Raven.Client.Documents.Session;
 
     public static class QueryableExtensions
     {

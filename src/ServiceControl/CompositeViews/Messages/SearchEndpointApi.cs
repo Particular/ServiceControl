@@ -1,12 +1,8 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
-    using Infrastructure.Extensions;
     using Nancy;
-    using Raven.Client;
-    using Raven.Client.Linq;
 
     public class SearchEndpointApi : ScatterGatherApiMessageView<SearchEndpointApi.Input>
     {

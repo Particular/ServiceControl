@@ -6,6 +6,7 @@
     using global::ServiceControl.MessageFailures.Api;
     using NServiceBus.Logging;
     using Raven.Client;
+    using Raven.Client.Documents;
 
     public class StaleIndexChecker
     {
