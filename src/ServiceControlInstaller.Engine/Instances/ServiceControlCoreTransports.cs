@@ -10,6 +10,14 @@
         {
             new TransportInfo
             {
+                Name = "AmazonSQS",
+                ZipName = "AmazonSQS",
+                TypeName = "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS",
+                SampleConnectionString = "AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;Region=<REGION>",
+                Matches = name => name.Equals("ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
                 Name = "AzureServiceBus - Endpoint-Oriented Topology",
                 TypeName = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
                 ZipName = "AzureServiceBus",
