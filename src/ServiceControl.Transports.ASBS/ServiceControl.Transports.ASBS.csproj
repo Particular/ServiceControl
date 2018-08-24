@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="1.0.0-alpha0142" />
+    <PackageReference Include="Particular.CodeRules" Version="0.2.1" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
