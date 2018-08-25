@@ -45,6 +45,11 @@
 
         public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, MarkerFileService markerFileService, bool maintenanceMode)
         {
+            if (Directory.Exists(settings.DbPath) && !File.Exists(Path.Combine(settings.DbPath, "Raven.voron")))
+            {
+                settings.DbPath = settings.DbPath + "-voron";
+            }
+
             Directory.CreateDirectory(settings.DbPath);
 
             documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
