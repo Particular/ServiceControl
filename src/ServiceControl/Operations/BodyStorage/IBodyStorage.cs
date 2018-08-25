@@ -13,5 +13,8 @@
     {
         public bool HasResult;
         public Stream Stream;
+        public string ContentType;
+        public long BodySize;
+        public string ChangeVector;
     }
 }

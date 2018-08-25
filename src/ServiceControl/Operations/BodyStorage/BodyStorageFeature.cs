@@ -78,24 +78,23 @@
             {
                 var bodyId = headers.MessageId();
                 var storedInBodyStorage = false;
-                var bodyUrl = $"/messages/{bodyId}/body";
                 var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
                 if (isFailedMessage || isBelowMaxSize)
                 {
-                    bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
+                    var bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
                         .ConfigureAwait(false);
                     storedInBodyStorage = true;
+
+                    metadata.Add("BodyUrl", bodyUrl);
                 }
 
                 if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
                 {
                     metadata.Add("Body", Encoding.UTF8.GetString(body));
                 }
-
-                metadata.Add("BodyUrl", bodyUrl);
 
                 return storedInBodyStorage;
             }

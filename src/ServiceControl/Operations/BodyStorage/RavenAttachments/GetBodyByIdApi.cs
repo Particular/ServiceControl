@@ -2,52 +2,57 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Nancy;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class GetBodyByIdApi : RoutedApi<string>
     {
         public IDocumentStore Store { get; set; }
+        IBodyStorage bodyStorage;
+
+        public GetBodyByIdApi(IBodyStorage bodyStorage)
+        {
+            this.bodyStorage = bodyStorage;
+        }
 
         protected override async Task<Response> LocalQuery(Request request, string input, string instanceId)
         {
             var messageId = input;
             messageId = messageId?.Replace("/", @"\");
+
             Action<Stream> contents;
             string contentType;
-            int bodySize;
+            long bodySize;
 
             //We want to continue using attachments for now
-#pragma warning disable 618
-            var attachment = await Store.AsyncDatabaseCommands.GetAttachmentAsync("messagebodies/" + messageId).ConfigureAwait(false);
-#pragma warning restore 618
-            Etag currentEtag;
+            var body = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);
 
-            if (attachment == null)
+            if (!body.HasResult)
             {
                 using (var session = Store.OpenAsyncSession())
                 {
                     var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .Statistics(out var stats)
-                        .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
+                        .Select(m => new Result
+                        {
+                            MessageId = m.MessageId,
+                            Body = (string)m.MessageMetadata["Body"],
+                            BodySize = (int)m.MessageMetadata["ContentLength"],
+                            ContentType = (string)m.MessageMetadata["ContentType"],
+                            BodyNotStored = (bool)m.MessageMetadata["BodyNotStored"]
+                        })
                         .FirstOrDefaultAsync(f => f.MessageId == messageId)
                         .ConfigureAwait(false);
 
-                    if (message == null)
-                    {
-                        return HttpStatusCode.NotFound;
-                    }
-
-                    if (message.BodyNotStored)
+                    if (message != null && message.BodyNotStored)
                     {
                         return HttpStatusCode.NoContent;
                     }
 
-                    if (message.Body == null)
+                    if (message == null && message.Body == null)
                     {
                         return HttpStatusCode.NotFound;
                     }
@@ -56,15 +61,13 @@
                     contents = stream => stream.Write(data, 0, data.Length);
                     contentType = message.ContentType;
                     bodySize = message.BodySize;
-                    currentEtag = stats.IndexEtag;
                 }
             }
             else
             {
-                contents = stream => attachment.Data().CopyTo(stream);
-                contentType = attachment.Metadata["ContentType"].Value<string>();
-                bodySize = attachment.Metadata["ContentLength"].Value<int>();
-                currentEtag = attachment.Etag;
+                contents = stream => body.Stream.CopyTo(stream);
+                contentType = body.ContentType;
+                bodySize = body.BodySize;
             }
 
             return new Response
@@ -74,8 +77,16 @@
                 .WithContentType(contentType)
                 .WithHeader("Expires", DateTime.UtcNow.AddYears(1).ToUniversalTime().ToString("R"))
                 .WithHeader("Content-Length", bodySize.ToString())
-                .WithHeader("ETag", currentEtag)
                 .WithStatusCode(HttpStatusCode.OK);
+        }
+
+        class Result
+        {
+            public string MessageId { get; set; }
+            public string Body { get; set; }
+            public string ContentType { get; set; }
+            public int BodySize { get; set; }
+            public bool BodyNotStored { get; set; }
         }
     }
 }
