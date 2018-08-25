@@ -1,6 +1,7 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
     using Lucene.Net.Analysis.Standard;
@@ -26,7 +27,12 @@ namespace ServiceControl.CompositeViews.Messages
                     ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
                     Query = message.MessageMetadata.Select(_ => _.Value.ToString()).ToArray(),
-                    ConversationId = (string)message.MessageMetadata["ConversationId"]
+                    ConversationId = (string)message.MessageMetadata["ConversationId"],
+
+                    UniqueMessageId = message.UniqueMessageId,
+                    Headers = message.Headers,
+
+                    MessageMetadata = message.MessageMetadata
                 });
 
             AddMap<FailedMessage>(messages => from message in messages
@@ -49,7 +55,12 @@ namespace ServiceControl.CompositeViews.Messages
                     ProcessingTime = (TimeSpan?)null,
                     DeliveryTime = (TimeSpan?)null,
                     Query = last.MessageMetadata.Select(_ => _.Value.ToString()),
-                    ConversationId = last.MessageMetadata["ConversationId"]
+                    ConversationId = last.MessageMetadata["ConversationId"],
+
+                    message.UniqueMessageId,
+                    last.Headers,
+
+                    last.MessageMetadata
                 });
 
             Index(x => x.Query, FieldIndexing.Search);
@@ -71,6 +82,10 @@ namespace ServiceControl.CompositeViews.Messages
             public string ConversationId { get; set; }
             public string[] Query { get; set; }
             public DateTime TimeSent { get; set; }
+
+            public Dictionary<string, object> MessageMetadata { get; set; }
+            public string UniqueMessageId { get; set; }
+            public Dictionary<string, string> Headers { get; set; }
         }
     }
 }
