@@ -205,7 +205,14 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         public IDisposable WebApp;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+
+        EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore
+        {
+            Configuration =
+            {
+                DefaultStorageTypeName = "Voron"
+            }
+        };
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
