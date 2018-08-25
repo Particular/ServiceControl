@@ -22,6 +22,7 @@ namespace Particular.ServiceControl
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
+    using Raven.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -40,6 +41,10 @@ namespace Particular.ServiceControl
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
             this.settings = settings;
+
+            EmbeddedServer.Instance.StartServer();
+            documentStore = EmbeddedServer.Instance.GetDocumentStore("ServiceControl"); //TODO: Is this the right name?
+
             Initialize();
         }
 
@@ -204,7 +209,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         public IDisposable WebApp;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        private IDocumentStore documentStore;
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
