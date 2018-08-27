@@ -36,6 +36,14 @@
             },
             new TransportInfo
             {
+                Name = "AzureServiceBus - .Net Standard",
+                TypeName = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
+                ZipName = "AzureServiceBusNetStandard",
+                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
+                Matches = name => name.Equals("ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
                 Name = "AzureStorageQueue",
                 TypeName = "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ",
                 ZipName = "AzureStorageQueue",
