@@ -67,6 +67,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LoadTests.Re
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.ASBS", "ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj", "{D3BA37DC-FB3C-4ACC-9A4D-4CBBB7BF6A99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTests.ASBS", "ServiceControl.AcceptanceTests.ASBS\ServiceControl.AcceptanceTests.ASBS.csproj", "{F58475A6-792A-49D1-B628-CB07FD34916E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +167,10 @@ Global
 		{D3BA37DC-FB3C-4ACC-9A4D-4CBBB7BF6A99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3BA37DC-FB3C-4ACC-9A4D-4CBBB7BF6A99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3BA37DC-FB3C-4ACC-9A4D-4CBBB7BF6A99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F58475A6-792A-49D1-B628-CB07FD34916E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F58475A6-792A-49D1-B628-CB07FD34916E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F58475A6-792A-49D1-B628-CB07FD34916E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F58475A6-792A-49D1-B628-CB07FD34916E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <RootNamespace>ServiceBus.Management.AcceptanceTests.ASBS</RootNamespace>
+    <AssemblyName>ServiceBus.Management.AcceptanceTests.ASBS</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" />
+  </ItemGroup>
+
+</Project>
