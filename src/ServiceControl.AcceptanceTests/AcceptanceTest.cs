@@ -95,7 +95,23 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             var assembly = Type.GetType(name, true).Assembly;
 
-            var otherAssemblies = Directory.EnumerateFiles(Path.GetDirectoryName(assembly.Location), "ServiceControl.Transports.*.dll")
+            // TransactionScope suppress behavior can interact with transport and should only be included when the current transport matches the one that needs it
+            var currentDirectoryOfSelectedTransport = Path.GetDirectoryName(assembly.Location);
+            if (name.StartsWith("ServiceControl.Transports.ASB.ASB"))
+            {
+                File.Delete(Path.Combine(currentDirectoryOfSelectedTransport, "NServiceBus.Transport.AzureServiceBus.dll"));
+            }
+            else if (name.StartsWith("ServiceControl.Transports.ASBS.ASBS"))
+            {
+                File.Delete(Path.Combine(currentDirectoryOfSelectedTransport, "NServiceBus.Azure.Transports.WindowsAzureServiceBus.dll"));
+            }
+            else
+            {
+                File.Delete(Path.Combine(currentDirectoryOfSelectedTransport, "NServiceBus.Transport.AzureServiceBus.dll"));
+                File.Delete(Path.Combine(currentDirectoryOfSelectedTransport, "NServiceBus.Azure.Transports.WindowsAzureServiceBus.dll"));
+            }
+
+            var otherAssemblies = Directory.EnumerateFiles(currentDirectoryOfSelectedTransport, "ServiceControl.Transports.*.dll")
                 .Where(transportAssembly => transportAssembly != assembly.Location);
 
             foreach (var transportAssembly in otherAssemblies)
