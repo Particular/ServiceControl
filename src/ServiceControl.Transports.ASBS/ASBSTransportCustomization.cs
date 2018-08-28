@@ -1,8 +1,5 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
-    using System;
-    using System.Security.Cryptography;
-    using System.Text;
     using NServiceBus;
     using NServiceBus.Raw;
 
