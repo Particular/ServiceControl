@@ -5,7 +5,7 @@ using NServiceBus.AcceptanceTesting.Support;
 using ServiceBus.Management.AcceptanceTests;
 using ServiceControl.Transports.ASBS;
 
-public class ConfigureEndpointAzureServiceBusStandardTransport : ITransportIntegration
+public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIntegration
 {
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
