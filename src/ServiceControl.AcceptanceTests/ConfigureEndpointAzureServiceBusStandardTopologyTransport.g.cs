@@ -18,7 +18,7 @@ public class ConfigureEndpointAzureServiceBusStandardTransport : ITransportInteg
         // in the using statements at the top. Also, in that case, ReSharper will probably throw a fit with
         // the extension method calls but it still compiles.
         var transportConfig = configuration.UseTransport<TransportASBS::NServiceBus.AzureServiceBusTransport>();
-        transportConfig.ConfigureSanitization();
+        transportConfig.ConfigureNameShorteners();
 
         transportConfig.ConnectionString(ConnectionString);
 

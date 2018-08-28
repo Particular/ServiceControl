@@ -9,13 +9,13 @@
     {
         public static void ConfigureTransport(this TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
-            transport.ConfigureSanitization();
+            transport.ConfigureNameShorteners();
 
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
             transport.ConnectionString(transportSettings.ConnectionString);
         }
 
-        public static void ConfigureSanitization(this TransportExtensions<AzureServiceBusTransport> transport)
+        public static void ConfigureNameShorteners(this TransportExtensions<AzureServiceBusTransport> transport)
         {
             transport.SubscriptionNameShortener(n => n.Length > MaxEntityName ? MD5DeterministicNameBuilder.Build(n) : n);
             transport.RuleNameShortener(n => n.Length > MaxEntityName ? MD5DeterministicNameBuilder.Build(n) : n);
