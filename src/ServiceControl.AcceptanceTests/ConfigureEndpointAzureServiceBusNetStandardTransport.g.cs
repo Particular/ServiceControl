@@ -15,8 +15,7 @@ public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIn
         // from NServiceBus.Azure.Transports.WindowsAzureServiceBus. If we need to add extension method calls,
         // include:
         //      using TransportASBS::NServiceBus;
-        // in the using statements at the top. Also, in that case, ReSharper will probably throw a fit with
-        // the extension method calls but it still compiles.
+        // in the using statements at the top.
         var transportConfig = configuration.UseTransport<TransportASBS::NServiceBus.AzureServiceBusTransport>();
         transportConfig.ConfigureNameShorteners();
 
