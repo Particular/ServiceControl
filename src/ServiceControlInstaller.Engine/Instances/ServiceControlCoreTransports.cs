@@ -36,7 +36,7 @@
             },
             new TransportInfo
             {
-                Name = "AzureServiceBus - .Net Standard",
+                Name = "AzureServiceBus .NET Standard",
                 TypeName = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
                 ZipName = "AzureServiceBusNetStandard",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
