@@ -188,7 +188,7 @@ Function Remove-ServiceControlInstance {
     This switch enables the forwarding of consumed audit messages to the queue specified by AuditLogQueue
 
     .Parameter Transport
-    Specifies the Transport files to install. Valid options are AzureServiceBus,AzureStorageQueue, MSMQ, SQLServer and RabbitMQ
+    Specifies the Transport files to install. Valid options are AzureServiceBus - Forwarding Topology, AzureServiceBus - Endpoint-Oriented Topology, AzureStorageQueue, MSMQ, AmazonSQS, SQLServer, RabbitMQ - Direct Routing Topology, and RabbitMQ - Conventional Routing Topology
 
     .Parameter DisplayName
     Set the display name on the Windows Service, if not set the Name will be used
@@ -221,7 +221,7 @@ Function Add-ServiceControlInstance {
 		[ValidateNotNullOrEmpty()][string] $AuditQueue = "audit", 
 		[ValidateNotNullOrEmpty()][string] $ErrorLogQueue = "errorlog",
 		[ValidateNotNullOrEmpty()][string] $AuditLogQueue = "auditlog",
-		[Parameter(Mandatory)] [ValidateSet("AzureServiceBus","AzureStorageQueue","MSMQ","SQLServer","RabbitMQ")] $Transport,
+		[Parameter(Mandatory)] [ValidateSet("AzureServiceBus - Endpoint-Oriented Topology","AzureServiceBus - ForwardingTopology", "AzureStorageQueue","MSMQ","SQLServer","AmazonSQS","RabbitMQ - Direct Routing Topology","RabbitMQ - Conventional Routing Topology")] $Transport,
 		[string] $DisplayName,
 		[string] $ConnectionString,
 		[string] $VirtualDirectory,
@@ -650,7 +650,7 @@ Function Import-ServiceControlLicense {
     This switch enables the forwarding of consumed audit messages to the queue specified by AuditLogQueue
 
     .Parameter Transport
-    Specifies the Transport files to install. Valid options are AzureServiceBus,AzureStorageQueue, MSMQ, SQLServer and RabbitMQ
+    Specifies the Transport files to install. Valid options are AzureServiceBus - Forwarding Topology, AzureServiceBus - Endpoint-Oriented Topology, AzureStorageQueue, MSMQ, AmazonSQS, SQLServer, RabbitMQ - Direct Routing Topology, and RabbitMQ - Conventional Routing Topology
 
     .Parameter DisplayName
     Set the display name on the Windows Service, if not set the Name will be used
@@ -686,7 +686,7 @@ Function New-ServiceControlUnattendedFile {
 		[ValidateNotNullOrEmpty()][string] $AuditQueue = "audit", 
 		[ValidateNotNullOrEmpty()][string] $ErrorLogQueue = "errorlog",
 		[ValidateNotNullOrEmpty()][string] $AuditLogQueue = "auditlog",
-		[Parameter(Mandatory)] [ValidateSet("AzureServiceBus","AzureStorageQueue","MSMQ","SQLServer","RabbitMQ")] $Transport,
+		[Parameter(Mandatory)] [ValidateSet("AzureServiceBus - Endpoint-Oriented Topology","AzureServiceBus - ForwardingTopology", "AzureStorageQueue","MSMQ","SQLServer","AmazonSQS","RabbitMQ - Direct Routing Topology","RabbitMQ - Conventional Routing Topology")] $Transport,
 		[string] $DisplayName,
 		[string] $ConnectionString,
 		[string] $VirtualDirectory,

@@ -15,6 +15,7 @@
                 TypeName = "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS",
                 SampleConnectionString = "AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;Region=<REGION>",
                 Matches = name => name.Equals("ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS", StringComparison.OrdinalIgnoreCase)
+                                || name.Equals("AmazonSQS", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -25,6 +26,7 @@
                 Matches = name => name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("AzureServiceBus - Endpoint-Oriented Topology", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -33,6 +35,7 @@
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals("ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("AzureServiceBus - Forwarding Topology", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -75,6 +78,7 @@
                 Matches = name => name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("RabbitMQ - Conventional Routing Topology", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -83,6 +87,7 @@
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>",
                 Matches = name => name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("RabbitMQ - Direct Routing Topology", StringComparison.OrdinalIgnoreCase)
             }
         };
 
