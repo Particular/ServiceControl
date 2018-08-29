@@ -11,7 +11,7 @@
         {
             transport.ConfigureNameShorteners();
 
-            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
+            transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(transportSettings.ConnectionString);
         }
 
