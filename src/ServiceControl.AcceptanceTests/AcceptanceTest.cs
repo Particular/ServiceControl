@@ -91,11 +91,12 @@ namespace ServiceBus.Management.AcceptanceTests
             Trace.Listeners.Remove(textWriterTraceListener);
         }
 
-        void RemoveOtherTransportAssemblies(string name)
+        static void RemoveOtherTransportAssemblies(string name)
         {
             var assembly = Type.GetType(name, true).Assembly;
 
-            var otherAssemblies = Directory.EnumerateFiles(Path.GetDirectoryName(assembly.Location), "ServiceControl.Transports.*.dll")
+            var currentDirectoryOfSelectedTransport = Path.GetDirectoryName(assembly.Location);
+            var otherAssemblies = Directory.EnumerateFiles(currentDirectoryOfSelectedTransport, "ServiceControl.Transports.*.dll")
                 .Where(transportAssembly => transportAssembly != assembly.Location);
 
             foreach (var transportAssembly in otherAssemblies)
