@@ -42,7 +42,7 @@
             {
                 Name = "AzureServiceBus .NET Standard",
                 TypeName = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
-                ZipName = "AzureServiceBusNetStandard",
+                ZipName = "NetStandardAzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals("ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS", StringComparison.OrdinalIgnoreCase)
             },*/
