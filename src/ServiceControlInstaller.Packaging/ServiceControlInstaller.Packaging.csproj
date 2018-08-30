@@ -49,10 +49,10 @@
     <AddToZip IncludeMask="ServiceControl.Transports.ASB.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="Microsoft.ServiceBus.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!--AzureServiceBus .NET Standard-->
-    <AddToZip IncludeMask="NServiceBus.Transport.AzureServiceBus.*" ZipFolder="Transports\AzureServiceBusNetStandard" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="Microsoft.*" ZipFolder="Transports\AzureServiceBusNetStandard" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="ServiceControl.Transports.ASBS.*" ZipFolder="Transports\AzureServiceBusNetStandard" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="System.Diagnostics.*" ZipFolder="Transports\AzureServiceBusNetStandard" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="NServiceBus.Transport.AzureServiceBus.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="Microsoft.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="ServiceControl.Transports.ASBS.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="System.Diagnostics.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- RabbitMQ -->
     <AddToZip IncludeMask="NServiceBus.Transport.RabbitMQ.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="RabbitMQ.Client.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
