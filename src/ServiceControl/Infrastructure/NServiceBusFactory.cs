@@ -8,8 +8,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;

@@ -2,7 +2,7 @@ namespace ServiceControl.CompositeViews.Endpoints
 {
     using System.Linq;
     using EndpointControl;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
     {
@@ -17,8 +17,6 @@ namespace ServiceControl.CompositeViews.Endpoints
                     message.Monitored,
                     message.HasTemporaryId
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

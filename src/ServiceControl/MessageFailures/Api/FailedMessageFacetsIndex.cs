@@ -3,6 +3,7 @@
     using System.Linq;
     using Contracts.Operations;
     using Raven.Abstractions.Indexing;
+    using Raven.Client.Documents.Indexes;
     using Raven.Client.Indexes;
 
     public class FailedMessageFacetsIndex : AbstractIndexCreationTask<FailedMessage>

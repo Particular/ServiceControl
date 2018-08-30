@@ -6,7 +6,7 @@ namespace ServiceControl.ExternalIntegrations
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using MessageFailures;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     public class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
@@ -20,12 +20,12 @@ namespace ServiceControl.ExternalIntegrations
 
         protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
+            var documentIds = contexts.Select(x => x.FailedMessageId.ToString()).ToArray();
             var failedMessageData = await session.LoadAsync<FailedMessage>(documentIds)
                 .ConfigureAwait(false);
 
-            var failedMessages = new List<object>(failedMessageData.Length);
-            foreach (var entity in failedMessageData)
+            var failedMessages = new List<object>(failedMessageData.Count);
+            foreach (var entity in failedMessageData.Values)
             {
                 session.Advanced.Evict(entity);
 

@@ -5,8 +5,9 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Raven.Client;
-    using Raven.Json.Linq;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Attachments;
+    using Raven.Client.Documents.Operations.Attachments;
 
     public class RavenAttachmentsBodyStorage : IBodyStorage
     {
@@ -31,13 +32,7 @@
                 await semaphore.WaitAsync().ConfigureAwait(false);
 
                 //We want to continue using attachments for now
-#pragma warning disable 618
-                await DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream, new RavenJObject
-#pragma warning restore 618
-                {
-                    {"ContentType", contentType},
-                    {"ContentLength", bodySize}
-                }).ConfigureAwait(false);
+                await DocumentStore.Operations.SendAsync(new PutAttachmentOperation($"messagebodies/{bodyId}", "body", bodyStream, contentType)).ConfigureAwait(false);
 
                 return $"/messages/{bodyId}/body";
             }
@@ -49,22 +44,29 @@
 
         public async Task<StreamResult> TryFetch(string bodyId)
         {
-            //We want to continue using attachments for now
-#pragma warning disable 618
-            var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
-#pragma warning restore 618
-
-            return attachment == null
-                ? new StreamResult
+            using (var session = DocumentStore.OpenAsyncSession())
+            {
+                if (!await session.Advanced.Attachments.ExistsAsync("$messagebodies/{bodyId}", "body").ConfigureAwait(false))
                 {
-                    HasResult = false,
-                    Stream = null
+                    return new StreamResult
+                    {
+                        HasResult = false,
+                        Stream = null
+                    };
                 }
-                : new StreamResult
+
+                var result = await DocumentStore.Operations.SendAsync(new GetAttachmentOperation($"messagebodies/{bodyId}", "body", AttachmentType.Document, null)).ConfigureAwait(false);
+
+                return new StreamResult
                 {
                     HasResult = true,
-                    Stream = attachment.Data()
+                    Stream = result.Stream,
+                    ContentType = result.Details.ContentType,
+                    BodySize = result.Details.Size,
+                    ChangeVector = result.Details.ChangeVector
+
                 };
+            }
         }
 
         SemaphoreSlim[] locks;

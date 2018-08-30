@@ -3,7 +3,7 @@
     using System;
     using System.Linq;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class MigrationsManager
     {

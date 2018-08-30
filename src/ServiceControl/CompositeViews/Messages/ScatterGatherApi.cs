@@ -12,6 +12,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Newtonsoft.Json;
     using NServiceBus.Logging;
     using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;

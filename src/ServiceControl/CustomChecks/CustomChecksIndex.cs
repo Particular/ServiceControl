@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class CustomChecksIndex : AbstractIndexCreationTask<CustomCheck>
     {
@@ -16,7 +16,6 @@
                     CustomCheckId = cc.CustomCheckId
                 };
 
-            DisableInMemoryIndexing = true;
         }
     }
 }

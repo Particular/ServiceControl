@@ -6,7 +6,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 

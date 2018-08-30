@@ -3,6 +3,7 @@
     using global::Nancy;
     using global::Nancy.Responses.Negotiation;
     using Raven.Client;
+    using Raven.Client.Documents;
     using Settings;
 
     public abstract class BaseModule : NancyModule

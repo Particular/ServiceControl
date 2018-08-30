@@ -12,8 +12,14 @@ namespace ServiceControl.Recoverability
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Util;
     using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Session;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
+    using Raven.Client.Util;
 
     public class RetriesGateway
     {
