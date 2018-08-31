@@ -53,6 +53,8 @@ namespace ServiceControlInstaller.PowerShell
                     break;
                 }
 
+                options.UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
+
                 options.OverrideEnableErrorForwarding = ForwardErrorMessages;
 
                 // Migrate Value
