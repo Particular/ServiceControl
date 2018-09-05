@@ -1,0 +1,62 @@
+namespace ServiceControl.Contracts.MessageFailures
+{
+    public class MessageFailedRepeatedly : NServiceBus.IEvent, NServiceBus.IMessage
+    {
+        public MessageFailedRepeatedly() { }
+        public string EndpointId { get; set; }
+        public string FailedMessageId { get; set; }
+        public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
+        public bool RepeatedFailure { get; set; }
+    }
+}
+namespace ServiceControl.Contracts.Operations
+{
+    public class DefaultEnrichers : NServiceBus.Features.Feature
+    {
+        public DefaultEnrichers() { }
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+    public class EndpointDetails
+    {
+        public EndpointDetails() { }
+        public string Host { get; set; }
+        public System.Guid HostId { get; set; }
+        public string Name { get; set; }
+    }
+    public class EndpointDetailsParser
+    {
+        public EndpointDetailsParser() { }
+        public static ServiceControl.Contracts.Operations.EndpointDetails ReceivingEndpoint(System.Collections.Generic.IReadOnlyDictionary<string, string> headers) { }
+        public static ServiceControl.Contracts.Operations.EndpointDetails SendingEndpoint(System.Collections.Generic.IReadOnlyDictionary<string, string> headers) { }
+    }
+    public class EndpointHeartbeatReceived
+    {
+        public EndpointHeartbeatReceived() { }
+        public string Endpoint { get; set; }
+        public string Machine { get; set; }
+        public System.DateTime SentAt { get; set; }
+    }
+    public class ExceptionDetails
+    {
+        public ExceptionDetails() { }
+        public string ExceptionType { get; set; }
+        public string Message { get; set; }
+        public string Source { get; set; }
+        public string StackTrace { get; set; }
+    }
+    public class FailureDetails
+    {
+        public FailureDetails() { }
+        public string AddressOfFailingEndpoint { get; set; }
+        public ServiceControl.Contracts.Operations.ExceptionDetails Exception { get; set; }
+        public System.DateTime TimeOfFailure { get; set; }
+    }
+    public enum MessageStatus
+    {
+        Failed = 1,
+        RepeatedFailure = 2,
+        Successful = 3,
+        ResolvedSuccessfully = 4,
+        ArchivedFailure = 5,
+    }
+}

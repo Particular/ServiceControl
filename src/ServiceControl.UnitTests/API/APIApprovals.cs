@@ -32,5 +32,21 @@
             var publicApi = ApiGenerator.GeneratePublicApi(serviceControlAssembly, domainEventTypes, shouldIncludeAssemblyAttributes: false);
             Approver.Verify(publicApi);
         }
+
+        [Test]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ApproveMessageTypes()
+        {
+            var serviceControlAssembly = typeof(Particular.ServiceControl.Bootstrapper).Assembly;
+            var notDomainEventNorUserInterfaceEventTypes = serviceControlAssembly.DefinedTypes.Where(t =>
+                t.Namespace != null
+                && t.Namespace.StartsWith("ServiceControl.Contracts")
+                && !typeof(IDomainEvent).IsAssignableFrom(t)
+                && !typeof(IUserInterfaceEvent).IsAssignableFrom(t)
+                ).ToArray();
+
+            var publicApi = ApiGenerator.GeneratePublicApi(serviceControlAssembly, notDomainEventNorUserInterfaceEventTypes, shouldIncludeAssemblyAttributes: false);
+            Approver.Verify(publicApi);
+        }
     }
 }
