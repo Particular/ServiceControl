@@ -1,0 +1,159 @@
+namespace ServiceControl.Contracts.CustomChecks
+{
+    public class CustomCheckFailed : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public CustomCheckFailed() { }
+        public string Category { get; set; }
+        public string CustomCheckId { get; set; }
+        public System.DateTime FailedAt { get; set; }
+        public string FailureReason { get; set; }
+        public System.Guid Id { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
+    }
+}
+namespace ServiceControl.Contracts.EventLog
+{
+    public class EventLogItemAdded : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public EventLogItemAdded() { }
+        public string Category { get; set; }
+        public string Description { get; set; }
+        public string Id { get; set; }
+        public System.DateTime RaisedAt { get; set; }
+        public System.Collections.Generic.ICollection<string> RelatedTo { get; set; }
+        public ServiceControl.EventLog.Severity Severity { get; set; }
+    }
+}
+namespace ServiceControl.Contracts.MessageFailures
+{
+    public class MessageFailed : NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public MessageFailed() { }
+        public string EndpointId { get; set; }
+        public string FailedMessageId { get; set; }
+        public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
+        public bool RepeatedFailure { get; set; }
+    }
+    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IBusEvent, ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public MessageFailureResolvedByRetry() { }
+        public string[] AlternativeFailedMessageIds { get; set; }
+        public string FailedMessageId { get; set; }
+    }
+    public class MessageFailuresUpdated : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public MessageFailuresUpdated() { }
+        public int ArchivedTotal { get; set; }
+        public System.DateTime RaisedAt { get; set; }
+        public int Total { get; set; }
+        public int UnresolvedTotal { get; set; }
+    }
+    public class MessageSubmittedForRetry : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public MessageSubmittedForRetry() { }
+        public string FailedMessageId { get; set; }
+    }
+}
+namespace ServiceControl.Infrastructure.SignalR
+{
+    public interface IUserInterfaceEvent { }
+}
+namespace ServiceControl.Recoverability
+{
+    public class ArchiveOperationBatchCompleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public ArchiveOperationBatchCompleted() { }
+        public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
+        public System.DateTime Last { get; set; }
+        public ServiceControl.Recoverability.ArchiveProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public class ArchiveOperationCompleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public ArchiveOperationCompleted() { }
+        public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
+        public System.DateTime CompletionTime { get; set; }
+        public string GroupName { get; set; }
+        public System.DateTime Last { get; set; }
+        public ServiceControl.Recoverability.ArchiveProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public class ArchiveOperationFinalizing : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public ArchiveOperationFinalizing() { }
+        public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
+        public System.DateTime Last { get; set; }
+        public ServiceControl.Recoverability.ArchiveProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public class ArchiveOperationStarting : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public ArchiveOperationStarting() { }
+        public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
+        public ServiceControl.Recoverability.ArchiveProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public class FailedMessageGroupArchived : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public FailedMessageGroupArchived() { }
+        public string GroupId { get; set; }
+        public string GroupName { get; set; }
+        public int MessagesCount { get; set; }
+    }
+    public class RetryMessagesForwarded : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public RetryMessagesForwarded() { }
+        public bool IsFailed { get; set; }
+        public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public System.DateTime StartTime { get; set; }
+        public int TotalNumberOfMessages { get; set; }
+    }
+    public class RetryOperationCompleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public RetryOperationCompleted() { }
+        public string Classifier { get; set; }
+        public System.DateTime CompletionTime { get; set; }
+        public bool Failed { get; set; }
+        public System.DateTime Last { get; set; }
+        public int NumberOfMessagesProcessed { get; set; }
+        public string Originator { get; set; }
+        public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public class RetryOperationForwarding : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public RetryOperationForwarding() { }
+        public bool IsFailed { get; set; }
+        public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public System.DateTime StartTime { get; set; }
+        public int TotalNumberOfMessages { get; set; }
+    }
+    public class RetryOperationPreparing : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public RetryOperationPreparing() { }
+        public bool IsFailed { get; set; }
+        public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public System.DateTime StartTime { get; set; }
+        public int TotalNumberOfMessages { get; set; }
+    }
+    public class RetryOperationWaiting : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public RetryOperationWaiting() { }
+        public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+}
