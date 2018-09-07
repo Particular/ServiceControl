@@ -113,19 +113,18 @@
         static bool TryGetBodyId(RavenJObject doc, out string bodyId)
         {
             bodyId = null;
-            var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", false);
-            if (bodyNotStored != null && bodyNotStored.Value<bool>())
+            if (doc.Value<bool>("MessageMetadata.BodyNotStored"))
             {
                 return false;
             }
 
-            var messageId = doc.SelectToken("MessageMetadata.MessageId", false);
+            var messageId = doc.Value<string>("MessageMetadata.MessageId");
             if (messageId == null)
             {
                 return false;
             }
 
-            bodyId = "messagebodies/" + messageId.Value<string>();
+            bodyId = $"messagebodies/{messageId}";
             return true;
         }
 
