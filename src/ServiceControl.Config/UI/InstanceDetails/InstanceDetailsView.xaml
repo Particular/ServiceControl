@@ -221,9 +221,16 @@
         </GroupBox>
 
         <GroupBox Grid.Row="7"
+                  Grid.Column="1"
                   Header="QUEUENAME"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
-                <TextBlock FontSize="14px" Text="{Binding Name}" />
+            <TextBlock FontSize="14px" Text="{Binding Name}" />
+        </GroupBox>
+
+        <GroupBox Grid.Row="7"
+                  Header="TRANSPORT"
+                  HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
+            <TextBlock FontSize="14px" Text="{Binding Transport.Name}" />
         </GroupBox>
 
         <Border Grid.Row="1"
