@@ -8,7 +8,7 @@ namespace ServiceControl.Recoverability
     using MessageFailures.InternalMessages;
     using NServiceBus;
 
-    public class RetriesHandler : IHandleMessages<RequestRetryAll>,
+    class RetriesHandler : IHandleMessages<RequestRetryAll>,
         IHandleMessages<RetryMessagesById>,
         IHandleMessages<RetryMessage>,
         IHandleMessages<MessageFailed>,

@@ -4,7 +4,7 @@
     using Contracts.EndpointControl;
     using NServiceBus;
 
-    public class NewEndpointDetectedHandler : IHandleMessages<NewEndpointDetected>
+    class NewEndpointDetectedHandler : IHandleMessages<NewEndpointDetected>
     {
         public NewEndpointDetectedHandler(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {

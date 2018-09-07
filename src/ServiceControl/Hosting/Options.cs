@@ -148,7 +148,7 @@ namespace Particular.ServiceControl.Hosting
     using System.Text;
     using System.Text.RegularExpressions;
 
-    public class OptionValueCollection : IList, IList<string>
+    class OptionValueCollection : IList, IList<string>
     {
         internal OptionValueCollection(OptionContext c)
         {
@@ -330,7 +330,7 @@ namespace Particular.ServiceControl.Hosting
         #endregion
     }
 
-    public class OptionContext
+    class OptionContext
     {
         public OptionContext(OptionSet set)
         {
@@ -349,14 +349,14 @@ namespace Particular.ServiceControl.Hosting
         public OptionValueCollection OptionValues { get; }
     }
 
-    public enum OptionValueType
+    enum OptionValueType
     {
         None,
         Optional,
         Required
     }
 
-    public abstract class Option
+    abstract class Option
     {
         protected Option(string prototype, string description)
             : this(prototype, description, 1)
@@ -588,7 +588,7 @@ namespace Particular.ServiceControl.Hosting
     }
 
     [Serializable]
-    public class OptionException : Exception
+    class OptionException : Exception
     {
         public OptionException()
         {
@@ -622,9 +622,9 @@ namespace Particular.ServiceControl.Hosting
         }
     }
 
-    public delegate void OptionAction<TKey, TValue>(TKey key, TValue value);
+    delegate void OptionAction<TKey, TValue>(TKey key, TValue value);
 
-    public class OptionSet : KeyedCollection<string, Option>
+    class OptionSet : KeyedCollection<string, Option>
     {
         public OptionSet()
             : this(delegate(string f) { return f; })

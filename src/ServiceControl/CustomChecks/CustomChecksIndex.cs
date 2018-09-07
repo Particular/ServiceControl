@@ -3,7 +3,7 @@
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class CustomChecksIndex : AbstractIndexCreationTask<CustomCheck>
+    class CustomChecksIndex : AbstractIndexCreationTask<CustomCheck>
     {
         public CustomChecksIndex()
         {

@@ -3,7 +3,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using Nancy;
 
-    public abstract class ScatterGatherApiMessageView<TInput> : ScatterGatherApi<TInput, List<MessagesView>>
+    abstract class ScatterGatherApiMessageView<TInput> : ScatterGatherApi<TInput, List<MessagesView>>
     {
         protected override List<MessagesView> ProcessResults(Request request, QueryResult<List<MessagesView>>[] results)
         {

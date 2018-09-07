@@ -14,7 +14,7 @@
     using ServiceControl.Infrastructure.OWIN;
     using ServiceControl.Infrastructure.SignalR;
 
-    public class Startup
+    class Startup
     {
         public Startup(IContainer container)
         {

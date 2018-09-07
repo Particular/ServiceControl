@@ -2,7 +2,7 @@
 {
     using System;
 
-    public static class Chunker
+    static class Chunker
     {
         public static void ExecuteInChunks(int total, Action<int, int> action)
         {

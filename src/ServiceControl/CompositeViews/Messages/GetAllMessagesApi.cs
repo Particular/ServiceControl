@@ -7,7 +7,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Nancy;
     using Raven.Client;
 
-    public class GetAllMessagesApi : ScatterGatherApiMessageView<NoInput>
+    class GetAllMessagesApi : ScatterGatherApiMessageView<NoInput>
     {
         public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, NoInput input)
         {

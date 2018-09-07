@@ -4,7 +4,7 @@
     using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
 
-    internal class CustomChecksUpdated : IDomainEvent, IUserInterfaceEvent
+    public class CustomChecksUpdated : IDomainEvent, IUserInterfaceEvent
     {
         public CustomChecksUpdated()
         {

@@ -3,7 +3,7 @@
     using System;
     using NServiceBus;
 
-    public class MarkPendingRetriesAsResolved : ICommand
+    class MarkPendingRetriesAsResolved : ICommand
     {
         public string QueueAddress { get; set; }
         public DateTime PeriodFrom { get; set; }

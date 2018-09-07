@@ -2,7 +2,7 @@
 {
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class GetMessagesByConversation : BaseModule
+    class GetMessagesByConversation : BaseModule
     {
         public GetMessagesByConversation()
         {

@@ -6,7 +6,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class FailureGroupsRetryApi : BaseModule
+    class FailureGroupsRetryApi : BaseModule
     {
         public FailureGroupsRetryApi()
         {

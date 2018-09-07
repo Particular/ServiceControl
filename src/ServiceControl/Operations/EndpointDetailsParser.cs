@@ -5,7 +5,7 @@ namespace ServiceControl.Contracts.Operations
     using Infrastructure;
     using NServiceBus;
 
-    public class EndpointDetailsParser
+    class EndpointDetailsParser
     {
         public static EndpointDetails SendingEndpoint(IReadOnlyDictionary<string, string> headers)
         {

@@ -9,7 +9,7 @@
     using RavenAttachments;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class BodyStorageFeature : Feature
+    class BodyStorageFeature : Feature
     {
         public BodyStorageFeature()
         {

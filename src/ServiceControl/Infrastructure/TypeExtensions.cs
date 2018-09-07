@@ -4,7 +4,7 @@ namespace ServiceControl
     using System.Collections.Generic;
     using System.Linq;
 
-    public static class TypeExtensions
+    static class TypeExtensions
     {
         public static IEnumerable<Type> Implementing<T>(this IEnumerable<Type> types)
         {

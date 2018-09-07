@@ -17,7 +17,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using Subscriptions;
 
-    public class RavenBootstrapper : INeedInitialization
+    class RavenBootstrapper : INeedInitialization
     {
         public static Settings Settings { get; set; }
 

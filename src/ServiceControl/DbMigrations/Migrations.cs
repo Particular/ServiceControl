@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
 
-    public class Migrations
+    class Migrations
     {
         public List<Migration> AppliedMigrations { get; set; } = new List<Migration>();
 

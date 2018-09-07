@@ -4,7 +4,7 @@ namespace ServiceControl.Recoverability
     using Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class UnacknowledgedGroupsApi : BaseModule
+    class UnacknowledgedGroupsApi : BaseModule
     {
         public UnacknowledgedGroupsApi()
         {

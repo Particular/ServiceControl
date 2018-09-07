@@ -4,7 +4,7 @@
     using System.Threading;
     using NServiceBus;
 
-    public class ImportFailureCircuitBreaker : IDisposable
+    class ImportFailureCircuitBreaker : IDisposable
     {
         public ImportFailureCircuitBreaker(CriticalError criticalError)
         {

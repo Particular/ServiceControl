@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using Microsoft.AspNet.SignalR;
 
-    public class GlobalEventHandler
+    class GlobalEventHandler
     {
         public Task Broadcast(IUserInterfaceEvent @event)
         {

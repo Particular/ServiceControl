@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class ArchiveOperation // raven
+    class ArchiveOperation // raven
     {
         public string Id { get; set; }
         public string RequestId { get; set; }

@@ -2,7 +2,7 @@
 {
     using NServiceBus;
 
-    public class RetryMessage : ICommand
+    class RetryMessage : ICommand
     {
         public string FailedMessageId { get; set; }
     }

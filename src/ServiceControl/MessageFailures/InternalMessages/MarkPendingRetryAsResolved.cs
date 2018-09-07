@@ -2,7 +2,7 @@
 {
     using NServiceBus;
 
-    public class MarkPendingRetryAsResolved : ICommand
+    class MarkPendingRetryAsResolved : ICommand
     {
         public string FailedMessageId { get; set; }
     }

@@ -4,7 +4,7 @@
     using System.Security.Cryptography;
     using System.Text;
 
-    public static class DeterministicGuid
+    static class DeterministicGuid
     {
         public static Guid MakeId(string data)
         {

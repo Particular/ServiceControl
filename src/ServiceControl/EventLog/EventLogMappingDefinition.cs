@@ -5,7 +5,7 @@
     using System.Linq;
     using Infrastructure.DomainEvents;
 
-    public abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T : IDomainEvent
+    abstract class EventLogMappingDefinition<T> : IEventLogMappingDefinition where T : IDomainEvent
     {
         public virtual string Category => typeof(T).Namespace.Split('.').Last();
 

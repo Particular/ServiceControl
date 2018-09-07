@@ -6,7 +6,7 @@ namespace ServiceControl.Infrastructure.SignalR
     /// <summary>
     /// Forwards all domain events via SignalR
     /// </summary>
-    public class ServicePulseNotifier : IDomainHandler<IDomainEvent>
+    class ServicePulseNotifier : IDomainHandler<IDomainEvent>
     {
         public ServicePulseNotifier(GlobalEventHandler broadcaster)
         {

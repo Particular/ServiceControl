@@ -10,7 +10,7 @@
     /// Only for events that have been defined (under EventLog\Definitions), a logentry item will
     /// be saved in Raven and an event will be raised.
     /// </summary>
-    public class AuditEventLogWriter : IDomainHandler<IDomainEvent>
+    class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {
         public AuditEventLogWriter(GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings)
         {

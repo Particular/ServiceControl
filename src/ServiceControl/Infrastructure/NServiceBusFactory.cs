@@ -18,7 +18,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Transports;
     using Settings;
 
-    public static class NServiceBusFactory
+    static class NServiceBusFactory
     {
         public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {

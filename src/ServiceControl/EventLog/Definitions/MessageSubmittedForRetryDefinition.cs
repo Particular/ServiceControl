@@ -2,7 +2,7 @@ namespace ServiceControl.EventLog.Definitions
 {
     using Contracts.MessageFailures;
 
-    public class MessageSubmittedForRetryDefinition : EventLogMappingDefinition<MessageSubmittedForRetry>
+    class MessageSubmittedForRetryDefinition : EventLogMappingDefinition<MessageSubmittedForRetry>
     {
         public MessageSubmittedForRetryDefinition()
         {

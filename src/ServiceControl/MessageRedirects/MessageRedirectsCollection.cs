@@ -7,7 +7,7 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
 
-    public class MessageRedirectsCollection
+    class MessageRedirectsCollection
     {
         public string Id { get; set; } = DefaultId;
 

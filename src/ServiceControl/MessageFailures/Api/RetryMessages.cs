@@ -9,7 +9,7 @@
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class RetryMessages : BaseModule
+    class RetryMessages : BaseModule
     {
         public RetryMessages()
         {

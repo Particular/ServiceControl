@@ -2,7 +2,7 @@ namespace ServiceControl.Infrastructure.DomainEvents
 {
     using NServiceBus.Features;
 
-    public class DomainEventsFeature : Feature
+    class DomainEventsFeature : Feature
     {
         public DomainEventsFeature()
         {

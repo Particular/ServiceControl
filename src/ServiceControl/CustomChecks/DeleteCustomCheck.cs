@@ -9,7 +9,7 @@
         public Guid Id { get; set; }
     }
 
-    class CustomCheckDeleted : IDomainEvent
+    public class CustomCheckDeleted : IDomainEvent
     {
         public Guid Id { get; set; }
     }
