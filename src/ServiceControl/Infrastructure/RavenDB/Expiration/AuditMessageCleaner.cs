@@ -31,7 +31,8 @@
                     FieldsToFetch = new[]
                     {
                         "__document_id",
-                        "MessageMetadata"
+                        "MessageMetadata.MessageId",
+                        "MessageMetadata.BodyNotStored",
                     },
                     SortedFields = new[]
                     {
