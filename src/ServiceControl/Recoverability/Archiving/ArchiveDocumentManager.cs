@@ -94,21 +94,7 @@
 
         public async Task ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
-            var patchCommands = batch?.DocumentIds
-                .Select(documentId =>
-                    new PatchCommandData
-                    {
-                        Key = documentId,
-                        Patches = new[]
-                        {
-                            new PatchRequest
-                            {
-                                Type = PatchCommandType.Set,
-                                Name = "Status",
-                                Value = (int)FailedMessageStatus.Archived
-                            }
-                        }
-                    });
+            var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData { Key = documentId, Patches = patchRequest });
 
             if (patchCommands != null)
             {
@@ -159,6 +145,16 @@
                     .ConfigureAwait(false);
             }
         }
+
+        static PatchRequest[] patchRequest =
+        {
+            new PatchRequest
+            {
+                Type = PatchCommandType.Set,
+                Name = "Status",
+                Value = (int)FailedMessageStatus.Archived
+            }
+        };
 
         public class GroupDetails
         {
