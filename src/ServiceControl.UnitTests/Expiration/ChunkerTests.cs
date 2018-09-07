@@ -13,11 +13,12 @@
             var starts = new List<int>();
             var ends = new List<int>();
 
-            Chunker.ExecuteInChunks(1500, (s, e) =>
+            var count = Chunker.ExecuteInChunks(1500, (startList, endList, s, e) =>
             {
-                starts.Add(s);
-                ends.Add(e);
-            });
+                startList.Add(s);
+                endList.Add(e);
+                return 1;
+            }, starts, ends);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(499, ends[0]);
@@ -30,6 +31,7 @@
 
             Assert.AreEqual(3, starts.Count);
             Assert.AreEqual(3, ends.Count);
+            Assert.AreEqual(3, count);
         }
 
         [Test]
@@ -38,17 +40,19 @@
             var starts = new List<int>();
             var ends = new List<int>();
 
-            Chunker.ExecuteInChunks(1, (s, e) =>
+            var count = Chunker.ExecuteInChunks(1, (startList, endList, s, e) =>
             {
-                starts.Add(s);
-                ends.Add(e);
-            });
+                startList.Add(s);
+                endList.Add(e);
+                return 1;
+            }, starts, ends);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(0, ends[0]);
 
             Assert.AreEqual(1, starts.Count);
             Assert.AreEqual(1, ends.Count);
+            Assert.AreEqual(1, count);
         }
 
         [Test]
@@ -57,11 +61,12 @@
             var starts = new List<int>();
             var ends = new List<int>();
 
-            Chunker.ExecuteInChunks(1001, (s, e) =>
+            var count = Chunker.ExecuteInChunks(1001, (startList, endList, s, e) =>
             {
-                starts.Add(s);
-                ends.Add(e);
-            });
+                startList.Add(s);
+                endList.Add(e);
+                return 1;
+            }, starts, ends);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(499, ends[0]);
@@ -74,6 +79,7 @@
 
             Assert.AreEqual(3, starts.Count);
             Assert.AreEqual(3, ends.Count);
+            Assert.AreEqual(3, count);
         }
     }
 }

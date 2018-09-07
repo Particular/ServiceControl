@@ -60,16 +60,14 @@
                 //Ignore
             }
 
-            var deletionCount = 0;
-
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
+            var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
+                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents completed.", s, e);
 
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
+                return results.Count(x => x.Deleted == true);
+            }, items, database);
 
             if (deletionCount == 0)
             {

@@ -73,31 +73,32 @@
 
             var deletionCount = 0;
 
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
+            deletionCount += Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
+                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
 
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
+                return results.Count(x => x.Deleted == true);
+            }, items, database);
 
-            Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
+            deletionCount += Chunker.ExecuteInChunks(attachments.Count, (att, db, s, e) =>
             {
-                database.TransactionalStorage.Batch(accessor =>
+                db.TransactionalStorage.Batch(accessor =>
                 {
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents.", s, e);
                     for (var idx = s; idx <= e; idx++)
                     {
                         //We want to continue using attachments for now
 #pragma warning disable 618
-                        accessor.Attachments.DeleteAttachment(attachments[idx], null);
+                        accessor.Attachments.DeleteAttachment(att[idx], null);
 #pragma warning restore 618
                     }
 
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
                 });
-            });
+                return 0;
+            }, attachments, database);
 
             if (deletionCount == 0)
             {

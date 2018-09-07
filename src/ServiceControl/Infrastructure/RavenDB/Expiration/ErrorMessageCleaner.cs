@@ -66,20 +66,18 @@
                 //Ignore
             }
 
-            var deletionCount = 0;
-
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
+            var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} error documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
+                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} error documents completed.", s, e);
 
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
+                return results.Count(x => x.Deleted == true);
+            }, items, database);
 
-            Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
+            deletionCount += Chunker.ExecuteInChunks(attachments.Count, (atts, db, s, e) =>
             {
-                database.TransactionalStorage.Batch(accessor =>
+                db.TransactionalStorage.Batch(accessor =>
                 {
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents.", s, e);
                     for (var idx = s; idx <= e; idx++)
@@ -92,7 +90,8 @@
 
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents completed.", s, e);
                 });
-            });
+                return 0;
+            }, attachments, database);
 
             if (deletionCount == 0)
             {
