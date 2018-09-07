@@ -41,7 +41,7 @@
                 };
                 var indexName = new ExpirySagaAuditIndex().IndexName;
                 database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    doc =>
+                    (doc, commands) =>
                     {
                         var id = doc.Value<string>("__document_id");
                         if (string.IsNullOrEmpty(id))
@@ -49,11 +49,11 @@
                             return;
                         }
 
-                        items.Add(new DeleteCommandData
+                        commands.Add(new DeleteCommandData
                         {
                             Key = id
                         });
-                    });
+                    }, items);
             }
             catch (OperationCanceledException)
             {

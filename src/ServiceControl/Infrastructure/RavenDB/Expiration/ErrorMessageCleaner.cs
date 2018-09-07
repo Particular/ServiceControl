@@ -18,6 +18,8 @@
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
+            var itemsAndAttachements = Tuple.Create(items, attachments);
+            
             try
             {
                 var query = new IndexQuery
@@ -43,7 +45,7 @@
                 };
                 var indexName = new ExpiryErrorMessageIndex().IndexName;
                 database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    doc =>
+                    (doc, state) =>
                     {
                         var id = doc.Value<string>("__document_id");
                         if (string.IsNullOrEmpty(id))
@@ -51,13 +53,13 @@
                             return;
                         }
 
-                        items.Add(new DeleteCommandData
+                        state.Item1.Add(new DeleteCommandData
                         {
                             Key = id
                         });
                         var bodyid = doc.Value<string>("ProcessingAttempts[0].MessageId");
-                        attachments.Add(bodyid);
-                    });
+                        state.Item2.Add(bodyid);
+                    }, itemsAndAttachements);
             }
             catch (OperationCanceledException)
             {
