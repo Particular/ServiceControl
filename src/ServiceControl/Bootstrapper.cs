@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Features.ResolveAnything;
@@ -18,6 +19,9 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
+    using Nancy;
+    using Nancy.Bootstrapper;
+    using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -94,6 +98,10 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<DomainEventBusPublisher>().AsImplementedInterfaces().AsSelf().SingleInstance();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
             containerBuilder.RegisterType<MonitoringDataPersister>().SingleInstance();
+
+            containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetSerializer>().As<ISerializer>();
+            containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetBodyDeserializer>().As<IBodyDeserializer>();
+            containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsAssignableTo<INancyModule>()).As<INancyModule>();
 
             container = containerBuilder.Build();
             Startup = new Startup(container);

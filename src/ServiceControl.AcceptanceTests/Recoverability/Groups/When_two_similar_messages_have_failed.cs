@@ -13,7 +13,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
-    public class When_two_similar_messages_have_failed : AcceptanceTest
+    class When_two_similar_messages_have_failed : AcceptanceTest
     {
         [Test]
         public async Task They_should_be_grouped_together()

@@ -10,7 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    public class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
+    class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
     {
         [Test]
         public async Task Saga_info_should_be_available_through_the_http_api()

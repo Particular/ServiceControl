@@ -11,7 +11,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    public class When_processed_message_searched_by_msgid_for_endpoint : AcceptanceTest
+    class When_processed_message_searched_by_msgid_for_endpoint : AcceptanceTest
     {
         [Test]
         public async Task Should_be_found()

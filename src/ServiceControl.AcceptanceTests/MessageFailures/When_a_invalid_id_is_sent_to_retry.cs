@@ -9,7 +9,7 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
 
-    public class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
+    class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
     {
         [Test]
         public async Task SubsequentBatchesShouldBeProcessed()

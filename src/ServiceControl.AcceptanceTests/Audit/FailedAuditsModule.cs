@@ -13,7 +13,7 @@
         public int Count { get; set; }
     }
 
-    public class FailedAuditsModule : BaseModule
+    class FailedAuditsModule : BaseModule
     {
         public FailedAuditsModule()
         {

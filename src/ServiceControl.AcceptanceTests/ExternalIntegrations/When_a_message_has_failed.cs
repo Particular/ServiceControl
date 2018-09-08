@@ -12,7 +12,7 @@
     using ServiceControl.Contracts;
 
     [TestFixture]
-    public class When_a_message_has_failed : AcceptanceTest
+    class When_a_message_has_failed : AcceptanceTest
     {
         [Test]
         public async Task Notification_should_be_published_on_the_bus()

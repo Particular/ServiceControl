@@ -15,7 +15,7 @@
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
 
-    public class When_processed_message_multi_instance_searched_by_messagetype : AcceptanceTest
+    class When_processed_message_multi_instance_searched_by_messagetype : AcceptanceTest
     {
         [Test]
         public async Task Should_be_found()

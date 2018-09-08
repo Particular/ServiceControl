@@ -13,7 +13,7 @@
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
 
-    public class When_a_message_fails_to_import : AcceptanceTest
+    class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
         public async Task It_can_be_reimported()

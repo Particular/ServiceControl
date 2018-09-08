@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using Autofac;
+    using global::Nancy.Bootstrapper;
     using global::Nancy.Owin;
     using Metrics;
     using Microsoft.AspNet.SignalR;

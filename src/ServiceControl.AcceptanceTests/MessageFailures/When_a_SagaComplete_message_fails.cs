@@ -13,7 +13,7 @@
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_a_SagaComplete_message_fails : AcceptanceTest
+    class When_a_SagaComplete_message_fails : AcceptanceTest
     {
         [Test]
         public async Task No_SagaType_Header_Is_Ok()

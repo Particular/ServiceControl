@@ -10,7 +10,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_a_retry_for_a_failed_message_fails : AcceptanceTest
+    class When_a_retry_for_a_failed_message_fails : AcceptanceTest
     {
         [Test]
         public async Task It_should_be_marked_as_unresolved()
