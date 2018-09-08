@@ -8,7 +8,7 @@ namespace ServiceBus.Management.AcceptanceTests.MessageRedirects
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
 
-    public class When_a_redirect_is_changed : AcceptanceTest
+    class When_a_redirect_is_changed : AcceptanceTest
     {
         [Test]
         public async Task Should_be_successfully_updated()

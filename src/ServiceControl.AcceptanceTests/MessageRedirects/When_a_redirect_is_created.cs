@@ -8,7 +8,7 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
 
-    public class When_a_redirect_is_created : AcceptanceTest
+    class When_a_redirect_is_created : AcceptanceTest
     {
         [Test]
         public async Task Should_be_added_and_accessible_via_the_api()

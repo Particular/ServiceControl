@@ -19,7 +19,7 @@
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
-    public class When_a_periodic_custom_check_fails : AcceptanceTest
+    class When_a_periodic_custom_check_fails : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()

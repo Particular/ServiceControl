@@ -13,7 +13,7 @@
     using ServiceControl.EventLog;
 
     [TestFixture]
-    public class When_a_custom_check_fails : AcceptanceTest
+    class When_a_custom_check_fails : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()

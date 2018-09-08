@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using ServiceControl.Infrastructure.DomainEvents;
 
-    public class FakeDomainEvents : IDomainEvents
+    class FakeDomainEvents : IDomainEvents
     {
         public List<object> RaisedEvents { get; } = new List<object>();
 

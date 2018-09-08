@@ -10,7 +10,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_a_group_is_archived : AcceptanceTest
+    class When_a_group_is_archived : AcceptanceTest
     {
         [Test]
         public async Task All_messages_in_group_should_get_archived()

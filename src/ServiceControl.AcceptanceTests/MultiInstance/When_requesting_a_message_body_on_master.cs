@@ -15,7 +15,7 @@
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
 
-    public class When_requesting_a_message_body_on_master : AcceptanceTest
+    class When_requesting_a_message_body_on_master : AcceptanceTest
     {
         [Test]
         public async Task Should_be_forwarded_to_remote()

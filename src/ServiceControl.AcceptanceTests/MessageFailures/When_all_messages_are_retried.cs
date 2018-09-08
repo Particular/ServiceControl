@@ -10,7 +10,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_all_messages_are_retried : AcceptanceTest
+    class When_all_messages_are_retried : AcceptanceTest
     {
         [Test]
         public async Task Only_unresolved_issues_should_be_retried()

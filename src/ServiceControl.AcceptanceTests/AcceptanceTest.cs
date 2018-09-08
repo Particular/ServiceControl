@@ -24,7 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
-    public abstract class AcceptanceTest : IAcceptanceTestInfrastructureProvider
+    abstract class AcceptanceTest : IAcceptanceTestInfrastructureProvider
     {
         protected AcceptanceTest()
         {
@@ -271,7 +271,7 @@ namespace ServiceBus.Management.AcceptanceTests
         }
     }
 
-    public static class HttpExtensions
+    static class HttpExtensions
     {
         public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {

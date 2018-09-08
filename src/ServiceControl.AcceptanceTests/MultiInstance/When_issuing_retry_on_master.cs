@@ -12,7 +12,7 @@
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
 
-    public class When_issuing_retry_on_master : AcceptanceTest
+    class When_issuing_retry_on_master : AcceptanceTest
     {
         [Test]
         public async Task Should_be_forwarded_and_resolved_on_remote()

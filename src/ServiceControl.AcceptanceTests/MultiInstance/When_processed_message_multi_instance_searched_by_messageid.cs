@@ -12,7 +12,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    public class When_processed_message_multi_instance_searched_by_messageid : AcceptanceTest
+    class When_processed_message_multi_instance_searched_by_messageid : AcceptanceTest
     {
         [Test]
         public async Task Should_be_found()

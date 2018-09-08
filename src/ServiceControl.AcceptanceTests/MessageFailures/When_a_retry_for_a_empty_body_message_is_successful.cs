@@ -14,7 +14,7 @@
     using ServiceControl.MessageFailures;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_a_retry_for_a_empty_body_message_is_successful : AcceptanceTest
+    class When_a_retry_for_a_empty_body_message_is_successful : AcceptanceTest
     {
         [Test]
         public async Task Should_show_up_as_resolved_when_doing_a_single_retry()

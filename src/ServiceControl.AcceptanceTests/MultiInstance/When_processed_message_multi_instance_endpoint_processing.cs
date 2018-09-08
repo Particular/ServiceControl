@@ -15,7 +15,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
 
-    public class When_processed_message_multi_instance_endpoint_processing : AcceptanceTest
+    class When_processed_message_multi_instance_endpoint_processing : AcceptanceTest
     {
         [Test]
         public async Task Should_be_listed_in_known_endpoints()

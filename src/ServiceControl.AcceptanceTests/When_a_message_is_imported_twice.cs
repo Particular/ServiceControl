@@ -11,7 +11,7 @@
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_a_message_is_imported_twice : AcceptanceTest
+    class When_a_message_is_imported_twice : AcceptanceTest
     {
         [Test]
         public async Task Should_register_a_new_endpoint()

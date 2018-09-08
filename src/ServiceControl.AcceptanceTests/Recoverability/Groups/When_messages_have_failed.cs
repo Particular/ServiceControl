@@ -14,7 +14,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
-    public class When_messages_have_failed : AcceptanceTest
+    class When_messages_have_failed : AcceptanceTest
     {
         [Test]
         public async Task Should_be_grouped()

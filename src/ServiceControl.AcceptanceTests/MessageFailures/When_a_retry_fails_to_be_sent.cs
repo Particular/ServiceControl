@@ -16,7 +16,7 @@
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
 
-    public class When_a_retry_fails_to_be_sent : AcceptanceTest
+    class When_a_retry_fails_to_be_sent : AcceptanceTest
     {
         [Test]
         public async Task SubsequentBatchesShouldBeProcessed()

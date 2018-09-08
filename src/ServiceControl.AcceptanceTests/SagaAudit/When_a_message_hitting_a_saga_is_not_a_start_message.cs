@@ -8,7 +8,7 @@
     using NServiceBus.Sagas;
     using NUnit.Framework;
 
-    public class When_a_message_hitting_a_saga_is_not_a_start_message : AcceptanceTest
+    class When_a_message_hitting_a_saga_is_not_a_start_message : AcceptanceTest
     {
         [Test]
         public async Task Saga_info_should_not_be_available_through_the_http_api()

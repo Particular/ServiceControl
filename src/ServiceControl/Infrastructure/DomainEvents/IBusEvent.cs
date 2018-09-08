@@ -2,7 +2,7 @@ namespace ServiceControl.Infrastructure.DomainEvents
 {
     using NServiceBus;
 
-    interface IBusEvent : IEvent
+    public interface IBusEvent : IEvent
     {
     }
 }

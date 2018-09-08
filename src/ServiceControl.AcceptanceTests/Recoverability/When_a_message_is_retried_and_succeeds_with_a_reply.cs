@@ -11,7 +11,7 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
 
-    public class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
+    class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
     {
         [Test]
         public async Task The_reply_should_go_to_the_correct_endpoint()
