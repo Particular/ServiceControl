@@ -96,11 +96,11 @@
         {
             ThrowIfDisposed();
 
-            timers.TryRemove(timer, out object _);
+            timers.TryRemove(timer, out var _);
             WaitAndDispose(timer);
         }
 
-        private static void WaitAndDispose(Timer timer)
+        static void WaitAndDispose(Timer timer)
         {
             using (var manualResetEvent = new ManualResetEvent(false))
             {
@@ -109,7 +109,7 @@
             }
         }
 
-        private void ThrowIfDisposed()
+        void ThrowIfDisposed()
         {
             if (disposed)
             {
@@ -118,10 +118,10 @@
         }
 
         ConcurrentDictionary<Timer, object> timers = new ConcurrentDictionary<Timer, object>();
-        private ILog log = LogManager.GetLogger<TimeKeeper>();
-        private bool disposed;
-        private int disposeSignaled;
-        private static Task<bool> TrueTask = Task.FromResult(true);
-        private static Task<bool> FalseTask = Task.FromResult(true);
+        ILog log = LogManager.GetLogger<TimeKeeper>();
+        bool disposed;
+        int disposeSignaled;
+        static Task<bool> TrueTask = Task.FromResult(true);
+        static Task<bool> FalseTask = Task.FromResult(true);
     }
 }
