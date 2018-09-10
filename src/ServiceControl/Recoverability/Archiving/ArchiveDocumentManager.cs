@@ -39,7 +39,6 @@
             var docQuery = indexQuery
                 .Where(failure => failure.FailureGroupId == groupId)
                 .Where(failure => failure.Status == FailedMessageStatus.Unresolved)
-                .ProjectFromIndexFieldsInto<FailureGroupMessageView>()
                 .Select(document => document.Id);
 
             var docs = await StreamResults(session, docQuery).ConfigureAwait(false);
@@ -95,21 +94,7 @@
 
         public async Task ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
-            var patchCommands = batch?.DocumentIds
-                .Select(documentId =>
-                    new PatchCommandData
-                    {
-                        Key = documentId,
-                        Patches = new[]
-                        {
-                            new PatchRequest
-                            {
-                                Type = PatchCommandType.Set,
-                                Name = "Status",
-                                Value = (int)FailedMessageStatus.Archived
-                            }
-                        }
-                    });
+            var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData { Key = documentId, Patches = patchRequest });
 
             if (patchCommands != null)
             {
@@ -129,7 +114,7 @@
 
                 var docQuery = indexQuery
                     .Where(failure => failure.FailureGroupId == requestId)
-                    .ProjectFromIndexFieldsInto<FailureGroupMessageView>();
+                    .Select(document => document.Id);
 
                 try
                 {
@@ -160,6 +145,16 @@
                     .ConfigureAwait(false);
             }
         }
+
+        static PatchRequest[] patchRequest =
+        {
+            new PatchRequest
+            {
+                Type = PatchCommandType.Set,
+                Name = "Status",
+                Value = (int)FailedMessageStatus.Archived
+            }
+        };
 
         public class GroupDetails
         {
