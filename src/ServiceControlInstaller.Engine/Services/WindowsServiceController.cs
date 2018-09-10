@@ -274,8 +274,7 @@ namespace ServiceControlInstaller.Engine.Services
                                 continue;
                             }
 
-                            var imagePath = serviceKey.GetValue("ImagePath", null) as string;
-                            if (imagePath == null)
+                            if (!(serviceKey.GetValue("ImagePath", null) is string imagePath))
                             {
                                 continue;
                             }

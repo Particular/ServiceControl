@@ -1,3 +1,7 @@
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceBus.Management.AcceptanceTests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Loadtests.Reporter")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.UnitTests")]
+[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
 public class GroupOperation
 {
     public GroupOperation() { }
@@ -213,7 +217,7 @@ namespace ServiceControl.Contracts.EndpointControl
         public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
         public System.DateTime StartedAt { get; set; }
     }
-    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage
+    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IBusEvent
     {
         public NewEndpointDetected() { }
         public System.DateTime DetectedAt { get; set; }
@@ -293,7 +297,7 @@ namespace ServiceControl.Contracts.MessageFailures
         public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
         public bool RepeatedFailure { get; set; }
     }
-    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IBusEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }
@@ -488,6 +492,10 @@ namespace ServiceControl.HeartbeatMonitoring
         Beating = 0,
         Dead = 1,
     }
+}
+namespace ServiceControl.Infrastructure.DomainEvents
+{
+    public interface IBusEvent : NServiceBus.IEvent, NServiceBus.IMessage { }
 }
 namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {

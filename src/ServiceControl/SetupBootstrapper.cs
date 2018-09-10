@@ -3,7 +3,6 @@ namespace Particular.ServiceControl
     using Autofac;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Transports;
-    using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;

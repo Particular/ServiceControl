@@ -251,7 +251,7 @@
                         return Task.FromResult(0);
                     }
 
-                    private void ConnectionOnReceived(string s)
+                    void ConnectionOnReceived(string s)
                     {
                         if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
                         {
@@ -260,8 +260,8 @@
                         }
                     }
 
-                    private MyContext context;
-                    private Connection connection;
+                    MyContext context;
+                    Connection connection;
                 }
             }
         }

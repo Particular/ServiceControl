@@ -5,7 +5,7 @@
     using PublicApiGenerator;
     //using ServiceControl.Infrastructure.DomainEvents;
     //using ServiceControl.Infrastructure.SignalR;
-    using System.Linq;
+    //using System.Linq;
     using System.Runtime.CompilerServices;
 
     [TestFixture]
@@ -15,10 +15,10 @@
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Approve()
         {
-            var serviceControlAssembly = typeof(Particular.ServiceControl.Bootstrapper).Assembly;
-            var publicTypes = serviceControlAssembly.DefinedTypes.ToArray();//.Where(t => typeof(IUserInterfaceEvent).IsAssignableFrom(t)).ToArray();
+            //var serviceControlAssembly = typeof(Particular.ServiceControl.Bootstrapper).Assembly;
+            //var publicTypes = serviceControlAssembly.DefinedTypes.ToArray();//.Where(t => typeof(IUserInterfaceEvent).IsAssignableFrom(t)).ToArray();
 
-            var publicApi = ApiGenerator.GeneratePublicApi(serviceControlAssembly, publicTypes, shouldIncludeAssemblyAttributes: false);
+            var publicApi = ApiGenerator.GeneratePublicApi(typeof(Particular.ServiceControl.Bootstrapper).Assembly);//, publicTypes, shouldIncludeAssemblyAttributes: false);
             Approver.Verify(publicApi);
         }
 

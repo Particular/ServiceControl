@@ -20,7 +20,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
     using Nancy;
-    using Nancy.Bootstrapper;
     using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;

@@ -69,7 +69,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
             Assert.IsTrue(context.Failed);
         }
 
-        private class FaultyPublisher : IEventPublisher
+        class FaultyPublisher : IEventPublisher
         {
             public MyContext Context { get; set; }
 

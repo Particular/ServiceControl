@@ -63,7 +63,7 @@
                     return Task.FromResult(CheckResult.Pass);
                 }
 
-                private static int counter;
+                static int counter;
             }
         }
     }

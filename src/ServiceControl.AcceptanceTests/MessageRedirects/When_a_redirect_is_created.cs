@@ -150,7 +150,7 @@
                 }).Run();
         }
 
-        private class Context : ScenarioContext
+        class Context : ScenarioContext
         {
         }
     }

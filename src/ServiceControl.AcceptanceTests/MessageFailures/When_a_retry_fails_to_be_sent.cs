@@ -151,7 +151,7 @@
                 return base.HandleMessage(message, sender);
             }
 
-            private MyContext myContext;
+            MyContext myContext;
         }
     }
 }
