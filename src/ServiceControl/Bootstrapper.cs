@@ -33,7 +33,7 @@ namespace Particular.ServiceControl
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
             if (configuration == null)
             {
@@ -43,6 +43,7 @@ namespace Particular.ServiceControl
             this.onCriticalError = onCriticalError;
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
+            this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
             Initialize();
         }
@@ -101,6 +102,8 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetSerializer>().As<ISerializer>();
             containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetBodyDeserializer>().As<IBodyDeserializer>();
             containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsAssignableTo<INancyModule>()).As<INancyModule>();
+
+            additionalRegistrationActions?.Invoke(containerBuilder);
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
@@ -212,6 +215,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         public IDisposable WebApp;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
+        readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
