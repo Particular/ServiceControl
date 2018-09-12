@@ -586,7 +586,6 @@ namespace ServiceControl.MessageFailures
             public NServiceBus.MessageIntentEnum MessageIntent { get; set; }
             public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
             public bool Recoverable { get; set; }
-            public string ReplyToAddress { get; set; }
         }
     }
     public enum FailedMessageStatus
