@@ -7,7 +7,7 @@
     {
         public static UpgradeInfo GetUpgradeInfoForTargetVersion(Version target, Version current)
         {
-            return details.Where(r => r.TargetMinimumVersion <= target && current < r.TargetMinimumVersion)
+            return details.Where(r => r.TargetMinimumVersion <= target && current < r.CurrentMinimumVersion)
                 .DefaultIfEmpty(new UpgradeInfo(target, new Version(0, 0)))
                 .OrderBy(r => r.CurrentMinimumVersion)
                 .First();
