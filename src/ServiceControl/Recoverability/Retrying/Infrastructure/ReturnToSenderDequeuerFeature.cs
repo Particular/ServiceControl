@@ -16,6 +16,11 @@ namespace ServiceControl.Recoverability
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            var inputAddress = $"{context.Settings.EndpointName()}.staging";
+
+            var queueBindings = context.Settings.Get<QueueBindings>();
+            queueBindings.BindReceiving(inputAddress);
+
             context.Container.ConfigureComponent(
                 b => new ReturnToSenderDequeuer(
                     context.Settings.Get<TransportDefinition>(),
@@ -38,7 +43,7 @@ namespace ServiceControl.Recoverability
 
             protected override Task OnStart(IMessageSession session)
             {
-                return returnToSenderDequeuer.CreateQueue();
+                return Task.CompletedTask;
             }
 
             protected override Task OnStop(IMessageSession session)

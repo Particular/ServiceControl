@@ -19,7 +19,6 @@ namespace ServiceControl.Recoverability
         public RawEndpointConfiguration CreateRawEndpointConfiguration(string name, Func<MessageContext, IDispatchMessages, Task> onMessage, TransportDefinition transportDefinition)
         {
             var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.errors");
-            config.AutoCreateQueue();
             config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             transportCustomization.CustomizeRawEndpoint(config, transportSettings);
