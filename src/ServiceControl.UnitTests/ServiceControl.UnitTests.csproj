@@ -16,7 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="LightInject.Nancy" Version="1.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
+    <PackageReference Include="Nancy.Testing" Version="1.4.1" />
     <PackageReference Include="NServiceBus.Testing" Version="7.0.0" />
     <PackageReference Include="NUnit" Version="3.10.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />

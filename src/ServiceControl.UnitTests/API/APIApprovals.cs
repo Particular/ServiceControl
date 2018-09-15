@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
+    using System;
+    using System.Linq;
     using NUnit.Framework;
     using Particular.Approvals;
     using PublicApiGenerator;
@@ -7,46 +9,94 @@
     //using ServiceControl.Infrastructure.SignalR;
     //using System.Linq;
     using System.Runtime.CompilerServices;
+    using LightInject;
+    using LightInject.Nancy;
+    using Nancy;
+    using Nancy.Bootstrappers.Autofac;
+    using Nancy.Routing;
+    using Nancy.Testing;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using Particular.ServiceControl.Licensing;
+    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using ServiceControl.CompositeViews.Messages;
 
     [TestFixture]
     class APIApprovals
     {
         [Test]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void Approve()
+        public void PublicClr()
         {
-            //var serviceControlAssembly = typeof(Particular.ServiceControl.Bootstrapper).Assembly;
-            //var publicTypes = serviceControlAssembly.DefinedTypes.ToArray();//.Where(t => typeof(IUserInterfaceEvent).IsAssignableFrom(t)).ToArray();
-
-            var publicApi = ApiGenerator.GeneratePublicApi(typeof(Particular.ServiceControl.Bootstrapper).Assembly);//, publicTypes, shouldIncludeAssemblyAttributes: false);
+            var publicApi = ApiGenerator.GeneratePublicApi(typeof(Particular.ServiceControl.Bootstrapper).Assembly);
             Approver.Verify(publicApi);
         }
 
-        //[Test]
-        //[MethodImpl(MethodImplOptions.NoInlining)]
-        //public void ApproveDomainEventTypes()
-        //{
-        //    var serviceControlAssembly = typeof(Particular.ServiceControl.Bootstrapper).Assembly;
-        //    var domainEventTypes = serviceControlAssembly.DefinedTypes.Where(t => typeof(IDomainEvent).IsAssignableFrom(t)).ToArray();
+        [Test]
+        public void NancyModulePaths()
+        {
+            var scTypes = typeof(BaseModule).Assembly.GetTypes();
 
-        //    var publicApi = ApiGenerator.GeneratePublicApi(serviceControlAssembly, domainEventTypes, shouldIncludeAssemblyAttributes: false);
-        //    Approver.Verify(publicApi);
-        //}
+            var excludedModules = new[]
+            {
+                typeof(RoutedApi<>)
+            };
 
-        //[Test]
-        //[MethodImpl(MethodImplOptions.NoInlining)]
-        //public void ApproveMessageTypes()
-        //{
-        //    var serviceControlAssembly = typeof(Particular.ServiceControl.Bootstrapper).Assembly;
-        //    var notDomainEventNorUserInterfaceEventTypes = serviceControlAssembly.DefinedTypes.Where(t =>
-        //        t.Namespace != null
-        //        && t.Namespace.StartsWith("ServiceControl.Contracts")
-        //        && !typeof(IDomainEvent).IsAssignableFrom(t)
-        //        && !typeof(IUserInterfaceEvent).IsAssignableFrom(t)
-        //        ).ToArray();
+            var nancyModuleTypes = scTypes.Where(t => t.IsSubclassOf(typeof(BaseModule)) && !excludedModules.Contains(t)).ToList();
 
-        //    var publicApi = ApiGenerator.GeneratePublicApi(serviceControlAssembly, notDomainEventNorUserInterfaceEventTypes, shouldIncludeAssemblyAttributes: false);
-        //    Approver.Verify(publicApi);
-        //}
+            StaticConfiguration.EnableHeadRouting = true;
+
+            var modules = nancyModuleTypes.Select(m =>
+            {
+                try
+                {
+                    return Activator.CreateInstance(m);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            }).OrderBy(m => m.GetType().Name).Cast<INancyModule>().ToList();
+
+            var routes = JsonConvert.SerializeObject(modules.ToDictionary(m => m.GetType().FullName, m => m.Routes.Select(r => $"{r.Description.Method}: {r.Description.Path}").OrderBy(r => r)), Formatting.Indented);
+
+            Approver.Verify(routes);
+        }
+
+        [Test]
+        public void RootPathValue()
+        {
+            var container = new ServiceContainer();
+            container.Register<INancyModule, RootModule>(typeof(RootModule).FullName);
+            container.Initialize(r => r.ImplementingType == typeof(RootModule), (factory, instance) => ((RootModule)instance).License = new ActiveLicense());
+
+            var bootstrapper = new TestBootstrapper(container);
+
+            bootstrapper.Initialise();
+
+            var browser = new Browser(bootstrapper);
+
+            // When
+            var result = browser.Get("/", with => { with.HostName("localhost"); with.HttpRequest(); });
+
+            // Then
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Approver.Verify(JValue.Parse(result.Body.AsString()).ToString(Formatting.Indented));
+        }
+
+        class TestBootstrapper : LightInjectNancyBootstrapper
+        {
+            readonly IServiceContainer container;
+
+            public TestBootstrapper(IServiceContainer container)
+            {
+                this.container = container;
+            }
+            protected override IServiceContainer GetServiceContainer()
+            {
+                return container;
+            }
+        }
     }
 }
