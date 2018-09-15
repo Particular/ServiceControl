@@ -12,8 +12,6 @@
     using LightInject;
     using LightInject.Nancy;
     using Nancy;
-    using Nancy.Bootstrappers.Autofac;
-    using Nancy.Routing;
     using Nancy.Testing;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -69,7 +67,10 @@
         {
             var container = new ServiceContainer();
             container.Register<INancyModule, RootModule>(typeof(RootModule).FullName);
-            container.Initialize(r => r.ImplementingType == typeof(RootModule), (factory, instance) => ((RootModule)instance).License = new ActiveLicense());
+            container.Initialize(r => r.ImplementingType == typeof(RootModule), (factory, instance) => ((RootModule)instance).License = new ActiveLicense
+            {
+                IsValid = true
+            });
 
             var bootstrapper = new TestBootstrapper(container);
 
@@ -82,7 +83,7 @@
 
             // Then
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-            Approver.Verify(JValue.Parse(result.Body.AsString()).ToString(Formatting.Indented));
+            Approver.Verify(JToken.Parse(result.Body.AsString()).ToString(Formatting.Indented));
         }
 
         class TestBootstrapper : LightInjectNancyBootstrapper
