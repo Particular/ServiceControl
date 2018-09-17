@@ -96,7 +96,7 @@
         {
             ThrowIfDisposed();
 
-            timers.TryRemove(timer, out object _);
+            timers.TryRemove(timer, out var _);
             WaitAndDispose(timer);
         }
 
