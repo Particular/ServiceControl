@@ -12,7 +12,7 @@
         public bool MonitorHeartbeat { get; set; }
     }
 
-    public class ApiModule : BaseModule
+    class ApiModule : BaseModule
     {
         public ApiModule()
         {

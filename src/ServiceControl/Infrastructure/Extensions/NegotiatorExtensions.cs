@@ -13,7 +13,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using ServiceControl.Infrastructure;
     using QueryResult = ServiceControl.CompositeViews.Messages.QueryResult;
 
-    public static class NegotiatorExtensions
+    static class NegotiatorExtensions
     {
         public static Negotiator WithPagingLinksAndTotalCount(this Negotiator negotiator, RavenQueryStatistics stats,
             Request request)

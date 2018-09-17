@@ -7,7 +7,7 @@
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class QueueAddressModule : BaseModule
+    class QueueAddressModule : BaseModule
     {
         public QueueAddressModule()
         {

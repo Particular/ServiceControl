@@ -8,13 +8,13 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 
-    public interface IForwardMessages
+    interface IForwardMessages
     {
         Task Forward(MessageContext messageContext, string forwardingAddress);
         Task VerifyCanReachForwardingAddress(string forwardingAddress);
     }
 
-    public class MessageForwarder : IForwardMessages
+    class MessageForwarder : IForwardMessages
     {
         public MessageForwarder(IDispatchMessages messageDispatcher)
         {

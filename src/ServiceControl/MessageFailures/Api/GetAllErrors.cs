@@ -8,7 +8,7 @@
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class GetAllErrors : BaseModule
+    class GetAllErrors : BaseModule
     {
         public GetAllErrors()
         {

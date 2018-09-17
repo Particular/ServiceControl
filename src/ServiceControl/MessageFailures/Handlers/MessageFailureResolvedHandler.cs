@@ -10,7 +10,7 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>
+    class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>
     {
         public MessageFailureResolvedHandler(IDocumentStore store, IDomainEvents domainEvents)
         {

@@ -5,7 +5,7 @@
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
 
-    public class InMemoryRetry
+    class InMemoryRetry
     {
         public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents)
         {

@@ -12,7 +12,7 @@
     using Newtonsoft.Json.Converters;
     using ServiceControl.Infrastructure.SignalR;
 
-    public class JsonNetBodyDeserializer : IBodyDeserializer
+    class JsonNetBodyDeserializer : IBodyDeserializer
     {
         /// <summary>
         /// Empty constructor if no converters are needed

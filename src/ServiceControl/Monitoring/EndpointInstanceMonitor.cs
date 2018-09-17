@@ -9,7 +9,7 @@ namespace ServiceControl.Monitoring
     using HeartbeatMonitoring;
     using Infrastructure.DomainEvents;
 
-    public class EndpointInstanceMonitor
+    class EndpointInstanceMonitor
     {
         public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, IDomainEvents domainEvents)
         {

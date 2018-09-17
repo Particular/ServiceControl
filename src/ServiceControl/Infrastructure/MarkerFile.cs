@@ -3,7 +3,7 @@
     using System;
     using System.IO;
 
-    public class MarkerFileService
+    class MarkerFileService
     {
         public MarkerFileService(string rootPath)
         {

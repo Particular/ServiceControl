@@ -4,7 +4,7 @@
     using System.Text.RegularExpressions;
     using Newtonsoft.Json.Serialization;
 
-    public class UnderscoreMappingResolver : DefaultContractResolver
+    class UnderscoreMappingResolver : DefaultContractResolver
     {
         protected override string ResolvePropertyName(string propertyName)
         {

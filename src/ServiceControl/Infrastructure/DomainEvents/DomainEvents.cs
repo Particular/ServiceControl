@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using Autofac;
 
-    public class DomainEvents : IDomainEvents
+    class DomainEvents : IDomainEvents
     {
         public async Task Raise<T>(T domainEvent) where T : IDomainEvent
         {

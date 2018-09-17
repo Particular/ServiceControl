@@ -1,6 +1,6 @@
 namespace ServiceControl.ExternalIntegrations
 {
-    public class ExternalIntegrationDispatchRequest
+    class ExternalIntegrationDispatchRequest
     {
         public string Id { get; set; }
         public object DispatchContext;

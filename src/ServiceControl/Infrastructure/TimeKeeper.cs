@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
 
-    public class TimeKeeper : IDisposable
+    class TimeKeeper : IDisposable
     {
         public void Dispose()
         {

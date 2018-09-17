@@ -10,7 +10,7 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class SetupBootstrapper
+    class SetupBootstrapper
     {
         public SetupBootstrapper(Settings settings)
         {

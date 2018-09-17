@@ -27,7 +27,7 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class Bootstrapper
+    class Bootstrapper
     {
         // Windows Service
         public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)

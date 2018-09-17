@@ -2,7 +2,7 @@
 {
     using System.Threading.Tasks;
 
-    public static class TaskEx
+    static class TaskEx
     {
         // ReSharper disable once UnusedParameter.Global
         // Used to explicitly suppress the compiler warning about

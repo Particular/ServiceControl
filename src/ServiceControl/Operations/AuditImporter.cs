@@ -16,7 +16,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class AuditImporterFeature : Feature
+    class AuditImporterFeature : Feature
     {
         public AuditImporterFeature()
         {
@@ -115,7 +115,7 @@
     }
 
 
-    public class AuditImporter
+    class AuditImporter
     {
         public AuditImporter(IBuilder builder, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
         {

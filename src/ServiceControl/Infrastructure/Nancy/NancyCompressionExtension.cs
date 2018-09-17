@@ -4,7 +4,7 @@
     using System.Linq;
     using global::Nancy;
 
-    public static class NancyCompressionExtension
+    static class NancyCompressionExtension
     {
         public static void CheckForCompression(NancyContext context)
         {

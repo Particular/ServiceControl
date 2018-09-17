@@ -7,7 +7,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class GetErrorById : BaseModule
+    class GetErrorById : BaseModule
     {
         public GetErrorById()
         {

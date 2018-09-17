@@ -10,7 +10,7 @@
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class PendingRetryMessages : BaseModule
+    class PendingRetryMessages : BaseModule
     {
         public PendingRetryMessages()
         {

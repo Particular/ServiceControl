@@ -8,7 +8,7 @@
     using Raven.Client;
     using Raven.Json.Linq;
 
-    public class RavenAttachmentsBodyStorage : IBodyStorage
+    class RavenAttachmentsBodyStorage : IBodyStorage
     {
         public RavenAttachmentsBodyStorage()
         {

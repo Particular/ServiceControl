@@ -2,7 +2,7 @@
 {
     using global::Nancy;
 
-    public static class ExtraHeaders
+    static class ExtraHeaders
     {
         public static void Add(NancyContext context)
         {

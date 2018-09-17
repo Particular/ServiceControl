@@ -18,11 +18,11 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceBus.Management.Infrastructure.Settings;
     using HttpStatusCode = System.Net.HttpStatusCode;
 
-    public interface IApi
+    interface IApi
     {
     }
 
-    public class ApisModule : Module
+    class ApisModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
@@ -35,12 +35,12 @@ namespace ServiceControl.CompositeViews.Messages
     }
 
     // used to hoist the static jsonSerializer field across the generic instances
-    public abstract class ScatterGatherApiBase
+    abstract class ScatterGatherApiBase
     {
         protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
     }
 
-    public abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
+    abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
         public IDocumentStore Store { get; set; }

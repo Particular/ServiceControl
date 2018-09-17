@@ -2,7 +2,7 @@
 {
     using Raven.Client;
 
-    public interface IMigration
+    interface IMigration
     {
         string MigrationId { get; }
         string Apply(IDocumentStore store);

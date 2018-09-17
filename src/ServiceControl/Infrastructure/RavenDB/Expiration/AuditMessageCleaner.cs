@@ -12,7 +12,7 @@
     using Raven.Database;
     using Raven.Json.Linq;
 
-    public static class AuditMessageCleaner
+    static class AuditMessageCleaner
     {
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {

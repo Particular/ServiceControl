@@ -4,7 +4,7 @@
     using NServiceBus.Settings;
     using NServiceBus.Transport;
 
-    public static class NServiceBusSettingsExtensions
+    static class NServiceBusSettingsExtensions
     {
         public static string ToTransportAddress(this ReadOnlySettings settings, string queueName)
         {

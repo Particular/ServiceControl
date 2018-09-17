@@ -8,7 +8,7 @@
     using NServiceBus.Routing.MessageDrivenSubscriptions;
     using NServiceBus.Transport;
 
-    public class SubscriptionFeature : Feature
+    class SubscriptionFeature : Feature
     {
         protected override void Setup(FeatureConfigurationContext context)
         {

@@ -10,7 +10,7 @@
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class UnArchiveMessages : BaseModule
+    class UnArchiveMessages : BaseModule
     {
         public UnArchiveMessages()
         {

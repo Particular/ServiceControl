@@ -10,7 +10,7 @@
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class ResolveMessages : BaseModule
+    class ResolveMessages : BaseModule
     {
         public ResolveMessages()
         {

@@ -11,7 +11,7 @@
     using Raven.Abstractions.Data;
     using Raven.Database;
 
-    public static class EventLogItemsCleaner
+    static class EventLogItemsCleaner
     {
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {

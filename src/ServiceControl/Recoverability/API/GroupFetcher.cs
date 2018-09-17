@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using Raven.Client;
 
-    public class GroupFetcher
+    class GroupFetcher
     {
         public GroupFetcher(RetryingManager retryingManager, ArchivingManager archivingManager)
         {

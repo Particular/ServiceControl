@@ -8,7 +8,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Client;
     using Raven.Client.Linq;
 
-    public class MessagesByConversationApi : ScatterGatherApiMessageView<string>
+    class MessagesByConversationApi : ScatterGatherApiMessageView<string>
     {
         public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input)
         {

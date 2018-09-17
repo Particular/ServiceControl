@@ -8,7 +8,7 @@
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class ArchiveMessages : BaseModule
+    class ArchiveMessages : BaseModule
     {
         public ArchiveMessages()
         {

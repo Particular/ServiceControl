@@ -5,7 +5,7 @@
     using Microsoft.AspNet.SignalR.Infrastructure;
     using Newtonsoft.Json.Serialization;
 
-    public class CustomSignalRContractResolverBecauseOfIssue500InSignalR : IContractResolver
+    class CustomSignalRContractResolverBecauseOfIssue500InSignalR : IContractResolver
     {
         public CustomSignalRContractResolverBecauseOfIssue500InSignalR()
         {

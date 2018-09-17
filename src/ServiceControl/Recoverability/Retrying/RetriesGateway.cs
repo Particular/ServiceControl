@@ -15,7 +15,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
 
-    public class RetriesGateway
+    class RetriesGateway
     {
         public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
         {

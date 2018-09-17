@@ -4,7 +4,7 @@ namespace ServiceControl.Recoverability
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
 
-    public class FailedMessageRetryCleaner : IDomainHandler<MessageFailed>
+    class FailedMessageRetryCleaner : IDomainHandler<MessageFailed>
     {
         public RetryDocumentManager RetryDocumentManager { get; set; }
 

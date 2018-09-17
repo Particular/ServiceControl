@@ -9,7 +9,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
-    public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
+    class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
     {
         public MessagesViewIndex()
         {

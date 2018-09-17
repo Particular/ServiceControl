@@ -3,7 +3,7 @@ namespace ServiceBus.Management.Infrastructure.Nancy
     using global::Nancy;
     using global::Nancy.ErrorHandling;
 
-    public class NotFoundOverride : IStatusCodeHandler
+    class NotFoundOverride : IStatusCodeHandler
     {
         public bool HandlesStatusCode(HttpStatusCode statusCode, NancyContext context)
         {

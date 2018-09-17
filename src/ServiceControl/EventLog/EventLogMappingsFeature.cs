@@ -6,7 +6,7 @@
     using NServiceBus;
     using NServiceBus.Features;
 
-    public class EventLogMappingsFeature : Feature
+    class EventLogMappingsFeature : Feature
     {
         public EventLogMappingsFeature()
         {

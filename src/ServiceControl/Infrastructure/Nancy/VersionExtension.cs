@@ -3,7 +3,7 @@
     using System.Reflection;
     using global::Nancy;
 
-    public static class VersionExtension
+    static class VersionExtension
     {
         static VersionExtension()
         {

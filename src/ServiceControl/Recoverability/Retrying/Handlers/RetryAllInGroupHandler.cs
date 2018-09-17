@@ -6,7 +6,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Logging;
     using Raven.Client;
 
-    public class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
+    class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
     {
         public RetriesGateway Retries { get; set; }
         public IDocumentStore Store { get; set; }

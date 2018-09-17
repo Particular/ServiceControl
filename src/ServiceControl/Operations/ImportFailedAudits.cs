@@ -10,7 +10,7 @@ namespace ServiceControl.Operations
     using Raven.Client;
     using Raven.Client.Indexes;
 
-    public class ImportFailedAudits
+    class ImportFailedAudits
     {
         public ImportFailedAudits(IDocumentStore store, AuditImporter auditImporter)
         {

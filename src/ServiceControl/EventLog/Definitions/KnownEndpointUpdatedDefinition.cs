@@ -2,7 +2,7 @@
 {
     using EndpointControl.Contracts;
 
-    public class KnownEndpointUpdatedDefinition : EventLogMappingDefinition<MonitoringEnabledForEndpoint>
+    class KnownEndpointUpdatedDefinition : EventLogMappingDefinition<MonitoringEnabledForEndpoint>
     {
         public KnownEndpointUpdatedDefinition()
         {

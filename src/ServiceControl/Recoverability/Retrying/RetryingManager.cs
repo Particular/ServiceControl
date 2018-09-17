@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
-    public class RetryingManager
+    class RetryingManager
     {
         public RetryingManager(IDomainEvents domainEvents)
         {

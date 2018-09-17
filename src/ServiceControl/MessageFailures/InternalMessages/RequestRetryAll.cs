@@ -2,7 +2,7 @@
 {
     using NServiceBus;
 
-    public class RequestRetryAll : ICommand
+    class RequestRetryAll : ICommand
     {
         public string Endpoint { get; set; }
     }

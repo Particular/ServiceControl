@@ -2,7 +2,7 @@
 {
     using Recoverability;
 
-    public class FailedMessageGroupArchivedDefinition : EventLogMappingDefinition<FailedMessageGroupArchived>
+    class FailedMessageGroupArchivedDefinition : EventLogMappingDefinition<FailedMessageGroupArchived>
     {
         public FailedMessageGroupArchivedDefinition()
         {
