@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public class ArchiveBatch //raven
+    class ArchiveBatch //raven
     {
         public string Id { get; set; }
         public List<string> DocumentIds { get; set; } = new List<string>();

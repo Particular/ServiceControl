@@ -19,7 +19,7 @@
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
-    public class When_a_periodic_custom_check_fails : AcceptanceTest
+    class When_a_periodic_custom_check_fails : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
@@ -88,7 +88,7 @@
                         };
                     }
 
-                    private void ConnectionOnReceived(string s)
+                    void ConnectionOnReceived(string s)
                     {
                         if (s.IndexOf("\"CustomCheckFailed\"") > 0)
                         {
@@ -111,7 +111,7 @@
                         return Task.FromResult(0);
                     }
 
-                    private readonly MyContext context;
+                    readonly MyContext context;
                     Connection connection;
                 }
             }
@@ -143,7 +143,7 @@
                     return Task.FromResult(CheckResult.Pass);
                 }
 
-                private readonly MyContext context;
+                readonly MyContext context;
                 bool executed;
             }
         }

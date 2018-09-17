@@ -7,7 +7,7 @@
     using NServiceBus.Features;
     using Operations;
 
-    public class ProcessingStatistics : Feature
+    class ProcessingStatistics : Feature
     {
         public ProcessingStatistics()
         {

@@ -3,7 +3,7 @@
     using NServiceBus;
     using NServiceBus.Features;
 
-    public class RegisterPluginMessagesFeature : Feature
+    class RegisterPluginMessagesFeature : Feature
     {
         public RegisterPluginMessagesFeature()
         {

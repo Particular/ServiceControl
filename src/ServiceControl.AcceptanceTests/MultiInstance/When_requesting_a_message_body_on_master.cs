@@ -15,7 +15,7 @@
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
 
-    public class When_requesting_a_message_body_on_master : AcceptanceTest
+    class When_requesting_a_message_body_on_master : AcceptanceTest
     {
         [Test]
         public async Task Should_be_forwarded_to_remote()
@@ -73,7 +73,7 @@
             Assert.NotNull(response.Headers.GetValues("ETag").SingleOrDefault(), "Etag not set");
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -97,13 +97,13 @@
             }
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Remote1 = "remote1";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditRemote = $"{Remote1}.audit1";
+        static string ErrorRemote = $"{Remote1}.error1";
 
         class MyContext : ScenarioContext
         {

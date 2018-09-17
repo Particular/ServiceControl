@@ -5,7 +5,7 @@
     using Particular.ServiceControl.Licensing;
     using Settings;
 
-    public class RootModule : BaseModule
+    class RootModule : BaseModule
     {
         public RootModule()
         {

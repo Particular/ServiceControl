@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
-    public class InMemoryArchive // in memory
+    class InMemoryArchive // in memory
     {
         public InMemoryArchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
         {

@@ -6,7 +6,7 @@
     using NUnit.Framework;
     using ServiceControl.Recoverability;
 
-    public class When_ServiceControl_has_started : AcceptanceTest
+    class When_ServiceControl_has_started : AcceptanceTest
     {
         [Test]
         public async Task All_classifiers_should_be_retrievable()

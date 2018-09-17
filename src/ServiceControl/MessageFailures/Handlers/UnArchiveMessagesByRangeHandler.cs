@@ -11,7 +11,7 @@
     using Raven.Abstractions.Extensions;
     using Raven.Client;
 
-    public class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
+    class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
     {
         public UnArchiveMessagesByRangeHandler(IDocumentStore store, IDomainEvents domainEvents)
         {

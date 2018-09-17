@@ -15,7 +15,7 @@
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Raven.Client;
 
-    internal class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
+    class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
     {
         public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings) :
             this(store, settings, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())

@@ -13,7 +13,7 @@
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
+    class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
         [Test]
         public async Task The_header_should_not_be_changed()

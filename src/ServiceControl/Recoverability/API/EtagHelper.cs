@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-public static class EtagHelper
+static class EtagHelper
 {
     public static string CalculateEtag(IEnumerable<GroupOperation> groups)
     {

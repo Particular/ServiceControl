@@ -7,7 +7,7 @@ namespace Particular.ServiceControl
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class MaintenanceBootstrapper
+    class MaintenanceBootstrapper
     {
         public void Run(HostArguments args)
         {

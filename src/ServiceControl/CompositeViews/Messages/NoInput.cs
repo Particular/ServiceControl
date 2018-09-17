@@ -1,6 +1,6 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    public class NoInput
+    class NoInput
     {
         private NoInput()
         {

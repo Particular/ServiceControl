@@ -3,7 +3,7 @@
     using CompositeViews.Messages;
     using Raven.Client;
 
-    internal static class RavenQueryStatisticsExtensions
+    static class RavenQueryStatisticsExtensions
     {
         public static QueryStatsInfo ToQueryStatsInfo(this RavenQueryStatistics stats)
         {

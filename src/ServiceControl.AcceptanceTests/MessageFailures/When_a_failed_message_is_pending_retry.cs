@@ -11,7 +11,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_a_failed_message_is_pending_retry : AcceptanceTest
+    class When_a_failed_message_is_pending_retry : AcceptanceTest
     {
         [Test]
         public async Task Should_status_retryissued_after_retry_is_sent()

@@ -12,7 +12,7 @@
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
 
-    public class When_issuing_retry_on_master : AcceptanceTest
+    class When_issuing_retry_on_master : AcceptanceTest
     {
         [Test]
         public async Task Should_be_forwarded_and_resolved_on_remote()
@@ -43,7 +43,7 @@
                 .Run(TimeSpan.FromMinutes(2));
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -77,13 +77,13 @@
             return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Remote1 = "remote1";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditRemote = $"{Remote1}.audit1";
+        static string ErrorRemote = $"{Remote1}.error1";
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {

@@ -12,7 +12,7 @@
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class MessageRedirectsModule : BaseModule
+    class MessageRedirectsModule : BaseModule
     {
         public MessageRedirectsModule()
         {

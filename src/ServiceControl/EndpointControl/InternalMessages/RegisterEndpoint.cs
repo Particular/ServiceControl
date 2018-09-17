@@ -4,7 +4,7 @@
     using NServiceBus;
     using ServiceControl.Contracts.Operations;
 
-    public class RegisterEndpoint : ICommand
+    class RegisterEndpoint : ICommand
     {
         public Guid EndpointInstanceId { get; set; }
         public EndpointDetails Endpoint { get; set; }

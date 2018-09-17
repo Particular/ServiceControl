@@ -10,7 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    public class When_remote_instance_is_not_reachable : AcceptanceTest
+    class When_remote_instance_is_not_reachable : AcceptanceTest
     {
         [Test]
         public async Task Should_not_fail()
@@ -26,7 +26,7 @@
                 .Run(TimeSpan.FromSeconds(40));
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             addressOfRemote = "http://localhost:12121";
             settings.RemoteInstances = new[]
@@ -41,10 +41,10 @@
             settings.ErrorQueue = ErrorMaster;
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
+        string addressOfRemote;
+        const string Master = "master";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {

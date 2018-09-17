@@ -8,7 +8,7 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
+    class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
     {
         public UnArchiveMessagesHandler(IDocumentStore store, IDomainEvents domainEvents)
         {

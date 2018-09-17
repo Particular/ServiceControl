@@ -6,7 +6,7 @@ namespace ServiceControl.ExternalIntegrations
     using Contracts.Operations;
     using MessageFailures;
 
-    public static class MessageFailedConverter
+    static class MessageFailedConverter
     {
         public static MessageFailed ToEvent(this FailedMessage message)
         {

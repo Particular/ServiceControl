@@ -11,7 +11,7 @@
     using Raven.Abstractions.Data;
     using Raven.Database;
 
-    public static class ErrorMessageCleaner
+    static class ErrorMessageCleaner
     {
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {

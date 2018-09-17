@@ -13,7 +13,7 @@
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Monitoring;
 
-    public class When_endpoint_detected_via_audits_on_slave : AcceptanceTest
+    class When_endpoint_detected_via_audits_on_slave : AcceptanceTest
     {
         [Test]
         public async Task Should_be_configurable_on_master()
@@ -95,13 +95,13 @@
             }
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Slave = "slave";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditSlave = $"{Slave}.audit";
-        private static string ErrorSlave = $"{Slave}.error";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Slave = "slave";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditSlave = $"{Slave}.audit";
+        static string ErrorSlave = $"{Slave}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {

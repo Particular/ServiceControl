@@ -12,7 +12,7 @@
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
 
-    public class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
+    class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
         [Test]
         public async Task All_outgoing_message_intents_should_be_captured()

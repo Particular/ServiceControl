@@ -6,7 +6,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class AuditIngestor
+    class AuditIngestor
     {
         public AuditIngestor(AuditImporter auditImporter, IDocumentStore store, IForwardMessages messageForwarder, Settings settings)
         {

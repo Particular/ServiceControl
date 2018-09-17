@@ -12,7 +12,7 @@
     using ServiceControl.Monitoring;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_an_unmonitored_endpoint_is_marked_as_monitored : AcceptanceTest
+    class When_an_unmonitored_endpoint_is_marked_as_monitored : AcceptanceTest
     {
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(MyEndpoint));
 

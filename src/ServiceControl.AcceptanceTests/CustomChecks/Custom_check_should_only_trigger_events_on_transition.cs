@@ -14,7 +14,7 @@
     using ServiceControl.EventLog;
 
     [TestFixture]
-    public class Custom_check_should_only_trigger_events_on_transition : AcceptanceTest
+    class Custom_check_should_only_trigger_events_on_transition : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
@@ -63,7 +63,7 @@
                     return Task.FromResult(CheckResult.Pass);
                 }
 
-                private static int counter;
+                static int counter;
             }
         }
     }

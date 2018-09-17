@@ -4,7 +4,7 @@
     using NServiceBus.Features;
     using NServiceBus.Persistence;
 
-    public class CachedRavenDBPersistence : PersistenceDefinition
+    class CachedRavenDBPersistence : PersistenceDefinition
     {
         public CachedRavenDBPersistence()
         {

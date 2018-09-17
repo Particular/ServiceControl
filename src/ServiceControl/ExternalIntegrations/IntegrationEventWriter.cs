@@ -8,7 +8,7 @@
     using NServiceBus.Logging;
     using Raven.Client;
 
-    public class IntegrationEventWriter : IDomainHandler<IDomainEvent>
+    class IntegrationEventWriter : IDomainHandler<IDomainEvent>
     {
         public IntegrationEventWriter(IDocumentStore store, IEnumerable<IEventPublisher> eventPublishers)
         {

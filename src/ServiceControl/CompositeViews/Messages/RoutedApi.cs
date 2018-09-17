@@ -11,7 +11,7 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public abstract class RoutedApi<TIn> : IApi
+    abstract class RoutedApi<TIn> : IApi
     {
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }

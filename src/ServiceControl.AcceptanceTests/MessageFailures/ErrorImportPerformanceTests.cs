@@ -10,7 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    public class ErrorImportPerformanceTests : AcceptanceTest
+    class ErrorImportPerformanceTests : AcceptanceTest
     {
         [Test]
         public async Task Should_import_all_messages()

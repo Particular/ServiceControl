@@ -13,7 +13,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Linq;
     using Raven.Json.Linq;
 
-    public class RetryDocumentManager
+    class RetryDocumentManager
     {
         public RetryDocumentManager(ShutdownNotifier notifier, IDocumentStore store)
         {

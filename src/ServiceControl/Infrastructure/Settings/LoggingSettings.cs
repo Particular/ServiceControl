@@ -5,7 +5,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using NLog;
     using NLog.Common;
 
-    public class LoggingSettings
+    class LoggingSettings
     {
         public LoggingSettings(string serviceName, LogLevel defaultLevel = null, LogLevel defaultRavenDBLevel = null, string logPath = null)
         {

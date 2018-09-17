@@ -31,7 +31,7 @@
 
         void AddHwndHook()
         {
-            hwndSource = HwndSource.FromVisual(AssociatedObject) as HwndSource;
+            hwndSource = PresentationSource.FromVisual(AssociatedObject) as HwndSource;
             hwndSource.AddHook(HwndHook);
             hwnd = new WindowInteropHelper(AssociatedObject).Handle;
         }

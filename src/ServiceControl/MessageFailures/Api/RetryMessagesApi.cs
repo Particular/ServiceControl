@@ -6,7 +6,7 @@
     using Nancy;
     using NServiceBus;
 
-    public class RetryMessagesApi : RoutedApi<string>
+    class RetryMessagesApi : RoutedApi<string>
     {
         public IMessageSession Bus { get; set; }
 

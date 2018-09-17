@@ -1,6 +1,6 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    public class QueryResult
+    class QueryResult
     {
         protected QueryResult(object results, QueryStatsInfo queryStatsInfo)
         {
@@ -15,7 +15,7 @@ namespace ServiceControl.CompositeViews.Messages
         public QueryStatsInfo QueryStats { get; }
     }
 
-    public class QueryResult<TOut> : QueryResult
+    class QueryResult<TOut> : QueryResult
         where TOut : class
     {
         public QueryResult(TOut results, QueryStatsInfo queryStatsInfo) : base(results, queryStatsInfo)

@@ -15,6 +15,6 @@ namespace ServiceBus.Management.AcceptanceTests
             return handler;
         }
 
-        private readonly HttpMessageHandler handler;
+        readonly HttpMessageHandler handler;
     }
 }

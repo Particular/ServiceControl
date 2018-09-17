@@ -17,7 +17,7 @@
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
-    public class Custom_check_transition_should_trigger_signalr_event : AcceptanceTest
+    class Custom_check_transition_should_trigger_signalr_event : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
@@ -65,7 +65,7 @@
                     };
                 }
 
-                private void ConnectionOnReceived(string s)
+                void ConnectionOnReceived(string s)
                 {
                     if (s.IndexOf("\"EventLogItemAdded\"") > 0)
                     {
@@ -90,7 +90,7 @@
                     return Task.FromResult(0);
                 }
 
-                private readonly MyContext context;
+                readonly MyContext context;
                 Connection connection;
             }
         }
@@ -119,7 +119,7 @@
                     return Task.FromResult(CheckResult.Pass);
                 }
 
-                private static int counter;
+                static int counter;
             }
         }
     }

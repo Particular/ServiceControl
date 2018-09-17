@@ -13,7 +13,7 @@
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
 
-    public class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
+    class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
         [SetUp]
         public void SetUp()
@@ -74,7 +74,7 @@
             Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName]);
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -98,13 +98,13 @@
             }
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Remote1 = "remote1";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditRemote = $"{Remote1}.audit1";
+        static string ErrorRemote = $"{Remote1}.error1";
 
         public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
         {

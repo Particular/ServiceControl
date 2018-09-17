@@ -14,7 +14,7 @@
     using NServiceBus.Settings;
     using NServiceBus.Transport;
 
-    public class MessageStreamerConnection : PersistentConnection
+    class MessageStreamerConnection : PersistentConnection
     {
         public MessageStreamerConnection(IDispatchMessages sender, ReadOnlySettings settings)
         {

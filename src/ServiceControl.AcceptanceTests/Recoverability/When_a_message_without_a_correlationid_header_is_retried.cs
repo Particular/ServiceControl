@@ -10,7 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
 
-    public class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
+    class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
     {
         [Test]
         public async Task The_successful_retry_should_succeed()

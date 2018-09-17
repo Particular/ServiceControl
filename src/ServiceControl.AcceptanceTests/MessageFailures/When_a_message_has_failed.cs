@@ -27,7 +27,7 @@
     using ServiceControl.MessageFailures.Api;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
-    public class When_a_message_has_failed : AcceptanceTest
+    class When_a_message_has_failed : AcceptanceTest
     {
         [Test]
         public async Task Should_be_imported_and_accessible_via_the_rest_api()
@@ -251,7 +251,7 @@
                         return Task.FromResult(0);
                     }
 
-                    private void ConnectionOnReceived(string s)
+                    void ConnectionOnReceived(string s)
                     {
                         if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
                         {
@@ -260,8 +260,8 @@
                         }
                     }
 
-                    private MyContext context;
-                    private Connection connection;
+                    MyContext context;
+                    Connection connection;
                 }
             }
         }

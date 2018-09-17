@@ -11,7 +11,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
+    class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
     {
         [Test]
         public async Task Should_mark_as_resolved_on_master()
@@ -44,7 +44,7 @@
                 .Run(TimeSpan.FromMinutes(2));
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -101,13 +101,13 @@
             }
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Remote1 = "remote1";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditRemote = $"{Remote1}.audit1";
+        static string ErrorRemote = $"{Remote1}.error1";
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {

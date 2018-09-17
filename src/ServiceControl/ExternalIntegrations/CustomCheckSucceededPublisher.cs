@@ -7,7 +7,7 @@ namespace ServiceControl.ExternalIntegrations
     using Contracts.CustomChecks;
     using Raven.Client;
 
-    public class CustomCheckSucceededPublisher : EventPublisher<CustomCheckSucceeded, CustomCheckSucceededPublisher.DispatchContext>
+    class CustomCheckSucceededPublisher : EventPublisher<CustomCheckSucceeded, CustomCheckSucceededPublisher.DispatchContext>
     {
         protected override DispatchContext CreateDispatchRequest(CustomCheckSucceeded @event)
         {

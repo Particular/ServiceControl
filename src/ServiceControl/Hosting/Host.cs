@@ -5,7 +5,7 @@
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class Host : ServiceBase
+    class Host : ServiceBase
     {
         public void Run(bool interactive)
         {

@@ -8,7 +8,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    public abstract class MessageView_ScatterGatherTest
+    abstract class MessageView_ScatterGatherTest
     {
         protected virtual string QueryString => string.Empty;
 

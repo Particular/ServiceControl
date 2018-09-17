@@ -2,7 +2,7 @@
 {
     using Autofac;
 
-    public class MigrationsModule : Module
+    class MigrationsModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
