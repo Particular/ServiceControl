@@ -7,7 +7,7 @@
     {
         public static UpgradeInfo GetUpgradeInfoForTargetVersion(Version target, Version current)
         {
-            return details.Where(r => r.TargetMinimumVersion <= target && current < r.TargetMinimumVersion)
+            return details.Where(r => r.TargetMinimumVersion <= target && current < r.CurrentMinimumVersion)
                 .DefaultIfEmpty(new UpgradeInfo(target, new Version(0, 0)))
                 .OrderBy(r => r.CurrentMinimumVersion)
                 .First();
@@ -62,6 +62,30 @@
         public override string ToString()
         {
             return $"[{CurrentMinimumVersion} -> {TargetMinimumVersion}]";
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is UpgradeInfo info && Equals(info);
+        }
+
+        bool Equals(UpgradeInfo val)
+        {
+            return ConvertToCleanVersion(val.TargetMinimumVersion) == TargetMinimumVersion &&
+                   ConvertToCleanVersion(val.CurrentMinimumVersion) == CurrentMinimumVersion &&
+                   ConvertToCleanVersion(val.RecommendedUpgradeVersion) == RecommendedUpgradeVersion &&
+                   val.DataBaseUpdate == DataBaseUpdate &&
+                   val.DeleteIndexes == DeleteIndexes;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return 17 *
+                       (23 + TargetMinimumVersion.GetHashCode()) *
+                       (23 + CurrentMinimumVersion.GetHashCode()) *
+                       (23 + RecommendedUpgradeVersion.GetHashCode());
+            }
         }
 
         Version recommendedUpgradeVersion;
