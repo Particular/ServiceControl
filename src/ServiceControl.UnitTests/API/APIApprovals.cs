@@ -1,23 +1,23 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
-    using System;
-    using System.Linq;
-    using NUnit.Framework;
-    using Particular.Approvals;
-    using PublicApiGenerator;
-    //using ServiceControl.Infrastructure.DomainEvents;
-    //using ServiceControl.Infrastructure.SignalR;
-    //using System.Linq;
-    using System.Runtime.CompilerServices;
     using LightInject;
     using LightInject.Nancy;
     using Nancy;
     using Nancy.Testing;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using NUnit.Framework;
+    using Particular.Approvals;
     using Particular.ServiceControl.Licensing;
+    using PublicApiGenerator;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceControl.CompositeViews.Messages;
+    using System;
+    using System.Linq;
+    //using ServiceControl.Infrastructure.DomainEvents;
+    //using ServiceControl.Infrastructure.SignalR;
+    //using System.Linq;
+    using System.Runtime.CompilerServices;
 
     [TestFixture]
     class APIApprovals
@@ -28,6 +28,14 @@
         {
             var publicApi = ApiGenerator.GeneratePublicApi(typeof(Particular.ServiceControl.Bootstrapper).Assembly);
             Approver.Verify(publicApi);
+        }
+
+        [Test]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ServiceControlTrasport()
+        {
+            var serviceControlTrasportApi = ApiGenerator.GeneratePublicApi(typeof(Transports.TransportSettings).Assembly);
+            Approver.Verify(serviceControlTrasportApi);
         }
 
         [Test]
