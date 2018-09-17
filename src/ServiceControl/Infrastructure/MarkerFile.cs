@@ -17,7 +17,7 @@
             {
                 Directory.CreateDirectory(rootPath);
             }
-            
+
             var path = Path.Combine(rootPath, name);
             using (File.Open(path, FileMode.OpenOrCreate))
             {

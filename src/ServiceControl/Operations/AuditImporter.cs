@@ -44,7 +44,7 @@
                     OnAuditError,
                     (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(builder, messageContext))
                 );
-                
+
                 context.RegisterStartupTask(b => new StartupTask(b.Build<SatelliteImportFailuresHandler>(), this));
 
                 if (settings.ForwardAuditMessages)
@@ -72,7 +72,7 @@
         }
 
         SatelliteImportFailuresHandler importFailuresHandler;
-        
+
         class StartupTask : FeatureStartupTask
         {
             public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditImporterFeature importer)
