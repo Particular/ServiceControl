@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Contracts.EventLog
 {
     using ServiceControl.EventLog;
-    using ServiceControl.Infrastructure.SignalR;
+    using Infrastructure.SignalR;
     using System;
     using System.Collections.Generic;
 
