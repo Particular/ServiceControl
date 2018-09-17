@@ -222,7 +222,7 @@
 
         <GroupBox Grid.Row="7"
                   Grid.Column="1"
-                  Header="QUEUENAME"
+                  Header="ENDPOINT NAME"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
             <TextBlock FontSize="14px" Text="{Binding Name}" />
         </GroupBox>
