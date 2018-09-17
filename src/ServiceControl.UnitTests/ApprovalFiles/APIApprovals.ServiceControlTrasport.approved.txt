@@ -1,0 +1,17 @@
+[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
+namespace ServiceControl.Transports
+{
+    public abstract class TransportCustomization
+    {
+        protected TransportCustomization() { }
+        public abstract void CustomizeEndpoint(NServiceBus.EndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
+        public abstract void CustomizeRawEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
+    }
+    public class TransportSettings : NServiceBus.Settings.SettingsHolder
+    {
+        public TransportSettings() { }
+        public string ConnectionString { get; set; }
+        public string EndpointName { get; set; }
+        public int MaxConcurrency { get; set; }
+    }
+}
