@@ -13,13 +13,11 @@
     using ServiceControl.CompositeViews.Messages;
     using System;
     using System.Linq;
-    using System.Runtime.CompilerServices;
 
     [TestFixture]
     class APIApprovals
     {
         [Test]
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public void PublicClr()
         {
             var publicApi = ApiGenerator.GeneratePublicApi(typeof(Particular.ServiceControl.Bootstrapper).Assembly);
@@ -27,7 +25,6 @@
         }
 
         [Test]
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public void ServiceControlTransport()
         {
             var serviceControlTrasportApi = ApiGenerator.GeneratePublicApi(typeof(Transports.TransportSettings).Assembly);
