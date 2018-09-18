@@ -31,7 +31,7 @@
 
         [Test]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void ServiceControlTrasport()
+        public void ServiceControlTransport()
         {
             var serviceControlTrasportApi = ApiGenerator.GeneratePublicApi(typeof(Transports.TransportSettings).Assembly);
             Approver.Verify(serviceControlTrasportApi);
