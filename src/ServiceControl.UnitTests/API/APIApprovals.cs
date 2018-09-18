@@ -13,9 +13,6 @@
     using ServiceControl.CompositeViews.Messages;
     using System;
     using System.Linq;
-    //using ServiceControl.Infrastructure.DomainEvents;
-    //using ServiceControl.Infrastructure.SignalR;
-    //using System.Linq;
     using System.Runtime.CompilerServices;
 
     [TestFixture]
