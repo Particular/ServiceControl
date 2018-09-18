@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
     using LightInject;
-    using LightInject.Nancy;
     using Nancy;
     using Nancy.Testing;
     using Newtonsoft.Json;
@@ -92,20 +91,6 @@
             // Then
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Approver.Verify(JToken.Parse(result.Body.AsString()).ToString(Formatting.Indented));
-        }
-
-        class TestBootstrapper : LightInjectNancyBootstrapper
-        {
-            readonly IServiceContainer container;
-
-            public TestBootstrapper(IServiceContainer container)
-            {
-                this.container = container;
-            }
-            protected override IServiceContainer GetServiceContainer()
-            {
-                return container;
-            }
         }
     }
 }
