@@ -27,7 +27,7 @@ namespace ServiceControl.Recoverability
                     b.Build<ReturnToSender>(),
                     b.Build<IDocumentStore>(),
                     b.Build<IDomainEvents>(),
-                    context.Settings.EndpointName(),
+                    inputAddress,
                     b.Build<RawEndpointFactory>()),
                 DependencyLifecycle.SingleInstance);
 
