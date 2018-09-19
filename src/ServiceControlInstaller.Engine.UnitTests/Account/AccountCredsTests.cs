@@ -31,12 +31,15 @@
         }
 
         [Test]
-        public void TestServiceAccounts()
+        public void TestIfServiceAccountAreSupportedByParser()
         {
-            var account = UserAccount.ParseAccountName(@"NT SERVICE\MSDTC");
+            // Using MSDTC as that is a service available on all windows environments
+            var accountName = @"NT SERVICE\MSDTC";
 
-            Assert.IsTrue(account.CheckPassword(""));
-            Assert.Throws<EngineValidationException>(() => account.CheckPassword("MySecret!"));
+            var account = UserAccount.ParseAccountName(accountName); 
+
+            Assert.IsTrue(account.CheckPassword(""), "Service account passwords must be blank.");
+            Assert.Throws<EngineValidationException>(() => account.CheckPassword("MySecret!"), "Service account password cannot have a value and must be blank");
         }
     }
 }
