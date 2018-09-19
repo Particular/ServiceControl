@@ -34,14 +34,16 @@
         [Test]
         public void TestIfServiceAccountAreSupportedByParser()
         {
-            var ctl = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == "MSDTC");
+            var serviceName = "EventLog";
+
+            var ctl = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == serviceName);
             if (ctl == null)
             {
-                Assert.Inconclusive("MSDTC service not present for testing");
+                Assert.Inconclusive($"{serviceName} service not present for testing");
             }
 
-            // Using MSDTC as that is a service available on all windows environments
-            var accountName = @"NT SERVICE\MSDTC";
+            // Using EventLog as that is a service available on all windows environments
+            var accountName = @"NT SERVICE\" + serviceName;
 
             var account = UserAccount.ParseAccountName(accountName);
 
