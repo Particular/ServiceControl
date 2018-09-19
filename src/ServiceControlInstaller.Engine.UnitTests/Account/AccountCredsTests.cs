@@ -4,6 +4,7 @@
     using System.DirectoryServices.AccountManagement;
     using System.Linq;
     using System.Security.Principal;
+    using System.ServiceProcess;
     using Accounts;
     using Engine.Validation;
     using NUnit.Framework;
@@ -33,10 +34,16 @@
         [Test]
         public void TestIfServiceAccountAreSupportedByParser()
         {
+            var ctl = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == "MSDTC");
+            if (ctl == null)
+            {
+                Assert.Inconclusive("MSDTC service not present for testing");
+            }
+
             // Using MSDTC as that is a service available on all windows environments
             var accountName = @"NT SERVICE\MSDTC";
 
-            var account = UserAccount.ParseAccountName(accountName); 
+            var account = UserAccount.ParseAccountName(accountName);
 
             Assert.IsTrue(account.CheckPassword(""), "Service account passwords must be blank.");
             Assert.Throws<EngineValidationException>(() => account.CheckPassword("MySecret!"), "Service account password cannot have a value and must be blank");
