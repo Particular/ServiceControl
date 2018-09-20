@@ -24,6 +24,9 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
+        [Parameter(HelpMessage = "Specify the database maintenance port number to listen on. If this is the only ServiceControl instance then 33334 is recommended")]
+        [ValidateRange(1, 49151)]
+        public int DatabaseMaintenancePort { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -44,7 +47,8 @@ namespace ServiceControlInstaller.PowerShell
                     AuditRetentionPeriod = AuditRetentionPeriod,
                     ErrorRetentionPeriod = ErrorRetentionPeriod,
                     OverrideEnableErrorForwarding = ForwardErrorMessages,
-                    SkipQueueCreation = SkipQueueCreation
+                    SkipQueueCreation = SkipQueueCreation,
+                    MaintenancePort = DatabaseMaintenancePort == 0 ? (int?)null : DatabaseMaintenancePort
                 };
                 var instance = InstanceFinder.FindServiceControlInstance(name);
                 if (instance == null)
@@ -73,6 +77,11 @@ namespace ServiceControlInstaller.PowerShell
                 if (!options.OverrideEnableErrorForwarding.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ForwardErrorMessages parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages. This setting is mandatory as of version 1.12"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+                }
+
+                if (!options.MaintenancePort.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.DatabaseMaintenancePort.Name))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. DatabaseMaintenancePort parameter must be set to a value between 1 and 49151 because the configuration file has no setting for DatabaseMaintenancePort. This setting is mandatory as of version 2.0.0. If this is the only instance of ServiceControl, 33334 is the recommended value."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
                 }
 
                 if (!options.ErrorRetentionPeriod.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
