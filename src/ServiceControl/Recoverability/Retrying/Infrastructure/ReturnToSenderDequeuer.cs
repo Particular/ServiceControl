@@ -13,9 +13,9 @@ namespace ServiceControl.Recoverability
 
     public class ReturnToSenderDequeuer
     {
-        public ReturnToSenderDequeuer(TransportDefinition transportDefinition, ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName, RawEndpointFactory rawEndpointFactory)
+        public ReturnToSenderDequeuer(TransportDefinition transportDefinition, ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string inputAddress, RawEndpointFactory rawEndpointFactory)
         {
-            InputAddress = $"{endpointName}.staging";
+            InputAddress = inputAddress;
             this.returnToSender = returnToSender;
 
             createEndpointConfiguration = () =>

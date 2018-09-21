@@ -8,6 +8,7 @@
     {
         public AuditLoqQueue()
         {
+            EnableByDefault();
             Prerequisite(c =>
             {
                 var settings = c.Settings.Get<Settings>("ServiceControl.Settings");
