@@ -71,10 +71,8 @@
 
             var browser = new Browser(bootstrapper);
 
-            // When
             var result = browser.Get("/", with => { with.HostName("localhost"); with.HttpRequest(); });
 
-            // Then
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Approver.Verify(JToken.Parse(result.Body.AsString()).ToString(Formatting.Indented));
         }
