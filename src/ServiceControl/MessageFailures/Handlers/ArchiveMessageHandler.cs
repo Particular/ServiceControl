@@ -8,7 +8,7 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
+    class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
         public ArchiveMessageHandler(IDocumentStore store, IDomainEvents domainEvents)
         {

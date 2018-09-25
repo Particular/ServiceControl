@@ -13,7 +13,7 @@
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Monitoring;
 
-    public class When_endpoint_detected_via_audits_on_slave : AcceptanceTest
+    class When_endpoint_detected_via_audits_on_slave : AcceptanceTest
     {
         [Test]
         public async Task Should_be_configurable_on_master()

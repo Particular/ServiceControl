@@ -15,7 +15,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     /// The test simulates the heartbeat subsystem by publishing EndpointHeartbeatRestored event.
     /// </summary>
     [TestFixture]
-    public class When_heartbeat_is_restored : AcceptanceTest
+    class When_heartbeat_is_restored : AcceptanceTest
     {
         [Test]
         public async Task Notification_is_published_on_a_bus()

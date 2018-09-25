@@ -245,7 +245,7 @@
         }
     }
 
-    public class CustomRetryDocumentManager : RetryDocumentManager
+    class CustomRetryDocumentManager : RetryDocumentManager
     {
         public CustomRetryDocumentManager(bool progressToStaged, IDocumentStore documentStore)
             : base(new ShutdownNotifier(), documentStore)
@@ -267,7 +267,7 @@
         private bool progressToStaged;
     }
 
-    public class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
+    class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
         public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName)
             : base(null /*TransportDefinition */, returnToSender, store, domainEvents, endpointName, null /* rawEndpointFactory */)

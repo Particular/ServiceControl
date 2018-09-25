@@ -5,7 +5,7 @@
     using NServiceBus.Logging;
     using Raven.Client;
 
-    public class MigrationsManager
+    class MigrationsManager
     {
         public MigrationsManager(IDocumentStore store, IMigration[] migrations)
         {

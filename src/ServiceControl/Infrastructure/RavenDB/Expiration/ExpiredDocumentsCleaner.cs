@@ -7,7 +7,7 @@
     using Raven.Database;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class ExpiredDocumentsCleaner
+    class ExpiredDocumentsCleaner
     {
         public static void RunCleanup(int deletionBatchSize, DocumentDatabase database, Settings settings)
         {

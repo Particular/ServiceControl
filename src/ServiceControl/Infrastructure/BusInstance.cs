@@ -5,7 +5,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations;
 
-    public class BusInstance
+    class BusInstance
     {
         public BusInstance(IEndpointInstance bus, IDomainEvents domainEvents, ImportFailedAudits importFailedAudits)
         {

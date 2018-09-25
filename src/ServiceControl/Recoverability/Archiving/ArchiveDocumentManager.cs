@@ -9,7 +9,7 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
 
-    public class ArchiveDocumentManager
+    class ArchiveDocumentManager
     {
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
         {

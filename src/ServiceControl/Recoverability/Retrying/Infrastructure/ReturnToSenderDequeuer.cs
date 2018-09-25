@@ -11,7 +11,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Transport;
     using Raven.Client;
 
-    public class ReturnToSenderDequeuer
+    class ReturnToSenderDequeuer
     {
         public ReturnToSenderDequeuer(TransportDefinition transportDefinition, ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string inputAddress, RawEndpointFactory rawEndpointFactory)
         {

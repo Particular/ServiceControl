@@ -2,7 +2,7 @@
 {
     using System;
 
-    internal static class Helpers
+    static class Helpers
     {
         /// <summary>
         /// Attempts to detect if the content type is JSON.

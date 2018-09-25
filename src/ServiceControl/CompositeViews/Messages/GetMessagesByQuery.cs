@@ -2,7 +2,7 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class GetMessagesByQuery : BaseModule
+    class GetMessagesByQuery : BaseModule
     {
         public GetMessagesByQuery()
         {

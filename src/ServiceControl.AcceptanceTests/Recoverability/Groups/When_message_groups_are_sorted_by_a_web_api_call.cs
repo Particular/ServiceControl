@@ -13,7 +13,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_message_groups_are_sorted_by_a_web_api_call : AcceptanceTest
+    class When_message_groups_are_sorted_by_a_web_api_call : AcceptanceTest
     {
         [Test]
         public async Task All_messages_in_group_should_be_sorted_by_time_sent()

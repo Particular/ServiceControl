@@ -6,7 +6,7 @@ namespace ServiceControl.Operations
     using NServiceBus;
     using NServiceBus.Features;
 
-    public class LicenseReporter : Feature
+    class LicenseReporter : Feature
     {
         public LicenseReporter()
         {

@@ -2,7 +2,7 @@
 {
     using Contracts.CustomChecks;
 
-    public class CustomCheckSucceededDefinition : EventLogMappingDefinition<CustomCheckSucceeded>
+    class CustomCheckSucceededDefinition : EventLogMappingDefinition<CustomCheckSucceeded>
     {
         public CustomCheckSucceededDefinition()
         {

@@ -8,7 +8,7 @@ namespace ServiceControl.ExternalIntegrations
     using MessageFailures;
     using Raven.Client;
 
-    public class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
+    class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
         protected override DispatchContext CreateDispatchRequest(MessageFailed @event)
         {

@@ -9,7 +9,7 @@
     using Operations;
     using ServiceControl.Contracts.Operations;
 
-    public class EndpointDetectionFeature : Feature
+    class EndpointDetectionFeature : Feature
     {
         public EndpointDetectionFeature()
         {

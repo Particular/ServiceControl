@@ -8,7 +8,7 @@
     using Nancy;
     using Nancy.Extensions;
 
-    public class GetKnownEndpointsApi : ScatterGatherApi<NoInput, List<KnownEndpointsView>>
+    class GetKnownEndpointsApi : ScatterGatherApi<NoInput, List<KnownEndpointsView>>
     {
         public EndpointInstanceMonitoring EndpointInstanceMonitoring { get; set; }
 

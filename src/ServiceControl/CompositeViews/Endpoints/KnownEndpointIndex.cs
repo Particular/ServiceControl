@@ -4,7 +4,7 @@ namespace ServiceControl.CompositeViews.Endpoints
     using EndpointControl;
     using Raven.Client.Indexes;
 
-    public class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
+    class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
     {
         public KnownEndpointIndex()
         {

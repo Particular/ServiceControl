@@ -8,7 +8,7 @@ namespace ServiceControl.ExternalIntegrations
     using Contracts.HeartbeatMonitoring;
     using Raven.Client;
 
-    public class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
+    class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
     {
         protected override DispatchContext CreateDispatchRequest(EndpointFailedToHeartbeat @event)
         {

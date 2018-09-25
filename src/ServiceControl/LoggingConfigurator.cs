@@ -11,7 +11,7 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure.Settings;
     using LogLevel = NLog.LogLevel;
 
-    public static class LoggingConfigurator
+    static class LoggingConfigurator
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {

@@ -12,7 +12,7 @@ namespace ServiceControl.Recoverability
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class FailureGroupsApi : BaseModule
+    class FailureGroupsApi : BaseModule
     {
         public FailureGroupsApi()
         {

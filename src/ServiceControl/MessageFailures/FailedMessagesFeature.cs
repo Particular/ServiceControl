@@ -13,7 +13,7 @@
     using Operations;
     using Raven.Client;
 
-    public class FailedMessagesFeature : Feature
+    class FailedMessagesFeature : Feature
     {
         public FailedMessagesFeature()
         {

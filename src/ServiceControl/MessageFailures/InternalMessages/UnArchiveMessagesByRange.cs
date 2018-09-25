@@ -3,7 +3,7 @@ namespace ServiceControl.MessageFailures.InternalMessages
     using System;
     using NServiceBus;
 
-    public class UnArchiveMessagesByRange : ICommand
+    class UnArchiveMessagesByRange : ICommand
     {
         public DateTime To { get; set; }
         public DateTime From { get; set; }

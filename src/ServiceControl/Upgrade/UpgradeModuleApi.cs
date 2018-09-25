@@ -3,7 +3,7 @@
     using Nancy;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class UpgradeModuleApi : BaseModule
+    class UpgradeModuleApi : BaseModule
     {
         public UpgradeModuleApi()
         {

@@ -10,7 +10,7 @@
     using Newtonsoft.Json.Converters;
     using ServiceControl.Infrastructure.SignalR;
 
-    public class JsonNetSerializer : ISerializer
+    class JsonNetSerializer : ISerializer
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonNetSerializer" /> class.

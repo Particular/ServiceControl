@@ -3,7 +3,7 @@
     using System;
     using System.IO;
 
-    public class MarkerFileService
+    class MarkerFileService
     {
         public MarkerFileService(string rootPath)
         {
@@ -17,7 +17,7 @@
             {
                 Directory.CreateDirectory(rootPath);
             }
-            
+
             var path = Path.Combine(rootPath, name);
             using (File.Open(path, FileMode.OpenOrCreate))
             {

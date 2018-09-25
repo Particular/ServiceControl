@@ -8,7 +8,7 @@
     using global::Nancy.Extensions;
     using global::Nancy.ModelBinding;
 
-    public class StringListBinder : IModelBinder
+    class StringListBinder : IModelBinder
     {
         public StringListBinder(IEnumerable<IBodyDeserializer> bodyDeserializers, IFieldNameConverter fieldNameConverter,
             BindingDefaults defaults, IEnumerable<ITypeConverter> typeConverters)

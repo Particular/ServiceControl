@@ -12,7 +12,7 @@ namespace ServiceControl.Infrastructure.Extensions
     using Raven.Client;
     using Raven.Client.Linq;
 
-    public static class QueryableExtensions
+    static class QueryableExtensions
     {
         public static IAsyncDocumentQuery<TSource> Paging<TSource>(this IAsyncDocumentQuery<TSource> source, Request request)
         {

@@ -11,7 +11,7 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
 
-    public class When_a_message_has_failed_from_send_only_endpoint : AcceptanceTest
+    class When_a_message_has_failed_from_send_only_endpoint : AcceptanceTest
     {
         [Test]
         public async Task Should_be_listed_in_the_error_list_when_processing_endpoint_header_is_not_present()

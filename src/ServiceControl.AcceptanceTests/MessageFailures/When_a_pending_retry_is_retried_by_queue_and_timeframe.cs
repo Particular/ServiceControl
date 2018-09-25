@@ -11,7 +11,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_a_pending_retry_is_retried_by_queue_and_timeframe : AcceptanceTest
+    class When_a_pending_retry_is_retried_by_queue_and_timeframe : AcceptanceTest
     {
         [Test]
         public async Task Should_succeed()

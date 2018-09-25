@@ -20,7 +20,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     /// The test simulates the heartbeat subsystem by publishing EndpointFailedToHeartbeat event.
     /// </summary>
     [TestFixture]
-    public class When_encountered_an_error : AcceptanceTest
+    class When_encountered_an_error : AcceptanceTest
     {
         [Test]
         public async Task Dispatched_thread_is_restarted()

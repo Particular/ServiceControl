@@ -5,7 +5,7 @@
     using System.Linq;
     using global::Nancy;
 
-    public static class NotModifiedStatusExtension
+    static class NotModifiedStatusExtension
     {
         public static void Check(NancyContext context)
         {

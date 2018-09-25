@@ -2,7 +2,7 @@ namespace ServiceControl.Operations
 {
     using System.Collections.Concurrent;
 
-    public class LicenseStatusKeeper
+    class LicenseStatusKeeper
     {
         public void Set(string key, string value)
         {

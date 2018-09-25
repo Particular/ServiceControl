@@ -4,7 +4,7 @@ namespace ServiceControl.Infrastructure.DomainEvents
     using NServiceBus;
     using NServiceBus.Features;
 
-    public class DomainEventBusPublisher : FeatureStartupTask, IDomainHandler<IDomainEvent>
+    class DomainEventBusPublisher : FeatureStartupTask, IDomainHandler<IDomainEvent>
     {
 #pragma warning disable 1998
         public Task Handle(IDomainEvent domainEvent)

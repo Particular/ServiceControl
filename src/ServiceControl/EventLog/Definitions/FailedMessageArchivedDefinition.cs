@@ -2,7 +2,7 @@
 {
     using Contracts.MessageFailures;
 
-    public class FailedMessageArchivedDefinition : EventLogMappingDefinition<FailedMessageArchived>
+    class FailedMessageArchivedDefinition : EventLogMappingDefinition<FailedMessageArchived>
     {
         public FailedMessageArchivedDefinition()
         {

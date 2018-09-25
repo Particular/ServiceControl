@@ -4,7 +4,7 @@
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class MaintenanceHost : ServiceBase
+    class MaintenanceHost : ServiceBase
     {
         public MaintenanceHost(Settings settings, EmbeddableDocumentStore documentStore)
         {

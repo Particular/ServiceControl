@@ -2,7 +2,7 @@ namespace ServiceControl.EventLog.Definitions
 {
     using Contracts.MessageRedirects;
 
-    public class MessageRedirectRemovedDefinition : EventLogMappingDefinition<MessageRedirectRemoved>
+    class MessageRedirectRemovedDefinition : EventLogMappingDefinition<MessageRedirectRemoved>
     {
         public MessageRedirectRemovedDefinition()
         {

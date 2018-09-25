@@ -15,7 +15,7 @@
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class EventDispatcher : FeatureStartupTask
+    class EventDispatcher : FeatureStartupTask
     {
         public EventDispatcher(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
         {

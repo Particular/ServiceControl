@@ -5,7 +5,7 @@
     using NServiceBus.Logging;
     using Particular.Licensing;
 
-    public class ActiveLicense
+    class ActiveLicense
     {
         public ActiveLicense()
         {

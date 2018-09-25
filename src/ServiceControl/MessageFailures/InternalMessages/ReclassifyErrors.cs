@@ -2,7 +2,7 @@
 {
     using NServiceBus;
 
-    public class ReclassifyErrors : ICommand
+    class ReclassifyErrors : ICommand
     {
         public bool Force { get; set; }
     }

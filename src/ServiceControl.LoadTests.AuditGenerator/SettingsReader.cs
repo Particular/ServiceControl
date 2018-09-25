@@ -18,7 +18,7 @@ public static class SettingsReader<T>
         return defaultValue;
     }
 
-    public static bool TryRead(string root, string name, out T value)
+    static bool TryRead(string root, string name, out T value)
     {
         var fullKey = $"{root}/{name}";
 

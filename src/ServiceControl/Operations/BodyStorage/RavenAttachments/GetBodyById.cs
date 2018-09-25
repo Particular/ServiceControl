@@ -2,7 +2,7 @@
 {
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class GetBodyById : BaseModule
+    class GetBodyById : BaseModule
     {
         public GetBodyById()
         {

@@ -5,7 +5,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     using MessageFailures;
     using Raven.Client.Indexes;
 
-    public class ExpiryErrorMessageIndex : AbstractIndexCreationTask<FailedMessage>
+    class ExpiryErrorMessageIndex : AbstractIndexCreationTask<FailedMessage>
     {
         public ExpiryErrorMessageIndex()
         {

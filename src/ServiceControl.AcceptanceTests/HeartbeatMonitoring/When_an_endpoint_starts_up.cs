@@ -12,7 +12,7 @@
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.EventLog;
 
-    public class When_an_endpoint_starts_up : AcceptanceTest
+    class When_an_endpoint_starts_up : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_startup_event()

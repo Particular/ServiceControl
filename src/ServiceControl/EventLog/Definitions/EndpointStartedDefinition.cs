@@ -2,7 +2,7 @@
 {
     using Contracts.EndpointControl;
 
-    public class EndpointStartedDefinition : EventLogMappingDefinition<EndpointStarted>
+    class EndpointStartedDefinition : EventLogMappingDefinition<EndpointStarted>
     {
         public EndpointStartedDefinition()
         {

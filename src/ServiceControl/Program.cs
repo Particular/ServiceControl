@@ -7,7 +7,7 @@
     using Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class Program
+    class Program
     {
         static void Main(string[] args)
         {

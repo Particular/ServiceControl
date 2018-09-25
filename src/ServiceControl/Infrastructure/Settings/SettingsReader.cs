@@ -1,6 +1,6 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
-    public class SettingsReader<T>
+    class SettingsReader<T>
     {
         public static T Read(string name, T defaultValue = default)
         {

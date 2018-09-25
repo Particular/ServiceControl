@@ -11,7 +11,7 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    public class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
+    class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
     {
         [Test]
         public async Task Should_mark_as_resolved_on_master()
