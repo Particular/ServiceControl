@@ -10,7 +10,6 @@
     using Particular.ServiceControl.Licensing;
     using PublicApiGenerator;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceControl.CompositeViews.Messages;
     using System;
     using System.Linq;
 
@@ -34,14 +33,7 @@
         [Test]
         public void NancyModulePaths()
         {
-            var scTypes = typeof(BaseModule).Assembly.GetTypes();
-
-            var excludedModules = new[]
-            {
-                typeof(RoutedApi<>)
-            };
-
-            var nancyModuleTypes = scTypes.Where(t => t.IsSubclassOf(typeof(BaseModule)) && !excludedModules.Contains(t)).ToList();
+            var nancyModuleTypes = typeof(BaseModule).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BaseModule)));
 
             StaticConfiguration.EnableHeadRouting = true;
 
