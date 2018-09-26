@@ -5,7 +5,7 @@
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       Title="License"
-                      Width="350"
+                      Width="400"
                       Height="320"
                       Background="{StaticResource Gray10Brush}"
                       Foreground="{StaticResource WhiteBrush}"
@@ -48,36 +48,47 @@
         <ItemsControl Grid.Row="1"
                       Margin="0,20,0,0"
                       VerticalAlignment="Top"
-                      ItemsSource="{Binding Path=LicenseInfo}">
+                      ItemsSource="{Binding Path=Components}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0"
-                                   Margin="5,5"
-                                   FontSize="12"
-                                   FontWeight="SemiBold"
-                                   Text="{Binding Path=Key}" />
-                        <TextBlock Grid.Column="1"
-                                   Margin="5,5"
-                                   FontSize="12"
-                                   Foreground="{StaticResource Gray90Brush}"
-                                   Text="{Binding Path=Value}" />
-                    </Grid>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="5,5"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding Path=Label}" />
+                            <TextBlock Name="Value"
+                                       Margin="5,5"
+                                       FontSize="12"
+                                       Foreground="{StaticResource Gray90Brush}"
+                                       Text="{Binding Path=Value}">
+                            </TextBlock>
+                            <Image Source="/Resources/Images/Status-Error.png"
+                                   Stretch="Uniform"
+                                   Visibility="{Binding Path=IsSerious, Converter={StaticResource boolToVis}}" />
+                            <Image Source="/Resources/Images/Status-Warning.png"
+                                   Stretch="Uniform"
+                                   Visibility="{Binding Path=IsWarning, Converter={StaticResource boolToVis}}" />
+                        </StackPanel>
+                        <TextBlock Foreground="{StaticResource Gray60Brush}"
+                                   TextWrapping="Wrap"
+                                   Margin="24,5"
+                                   Visibility="{Binding Path=WarningText, Converter={StaticResource nullOrEmptyToVis}}">
+                            <TextBlock.Inlines>
+                                <Run FontWeight="Bold">Warning:</Run>
+                                <Run Text="{Binding Path=WarningText}" />
+                            </TextBlock.Inlines>
+                        </TextBlock>
+
+                    </StackPanel>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Importance}" Value="Serious">
+                            <Setter TargetName="Value" Property="Foreground" Value="{StaticResource ErrorBrush}"></Setter>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-
-        <TextBlock Grid.Row="2"
-                   Margin="0,5"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Top"
-                   FontSize="12"
-                   Foreground="Red"
-                   Text="{Binding LicenseWarning}" />
 
         <Button Grid.Row="3"
                 Margin="5"

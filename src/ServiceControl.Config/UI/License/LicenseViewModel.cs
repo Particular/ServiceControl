@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Windows.Input;
     using Caliburn.Micro;
     using Commands;
@@ -18,13 +19,11 @@
             EventAggregator = eventAggregator;
         }
 
-        public string LicenseWarning { get; set; }
-
         public string ApplyLicenseError { get; set; }
 
         public string ApplyLicenseSuccess { get; set; }
 
-        public Dictionary<string, string> LicenseInfo { get; set; }
+        public List<LicenseComponent> Components { get; set; }
 
         public ICommand OpenUrl => new OpenURLCommand();
 
@@ -38,32 +37,9 @@
 
         void RefreshLicenseInfo()
         {
-            var details = new Dictionary<string, string>();
-            LicenseWarning = null;
             license = LicenseManager.FindLicense();
 
-            details.Add("License Type:", license.Details.IsTrialLicense ? "Trial License" : license.Details.LicenseType);
-            if (!license.Details.IsTrialLicense)
-            {
-                details.Add("License Edition:", license.Details.Edition);
-            }
-
-            details.Add("Licensed To:", license.Details.RegisteredTo);
-            if (license.Details.ExpirationDate.HasValue)
-            {
-                var expirationDate = license.Details.ExpirationDate.Value;
-                details.Add("License Expiration:", expirationDate.ToString("dd MMMM yyyy"));
-                if (HasExpired(expirationDate))
-                {
-                    LicenseWarning = "This license has expired";
-                }
-                else if (!license.Details.IsTrialLicense && WithinLicenseWarningRange(expirationDate))
-                {
-                    LicenseWarning = "This license will expire soon";
-                }
-            }
-
-            LicenseInfo = details;
+            Components = new LicenseComponentFactory().CreateComponents(license.Details).ToList();
         }
 
         void OpenLicenseFile(string path)
@@ -80,16 +56,6 @@
                 ApplyLicenseSuccess = null;
                 ApplyLicenseError = $"{importError}{Environment.NewLine}'{Path.GetFileName(path)}' was not imported";
             }
-        }
-
-        bool WithinLicenseWarningRange(DateTime licenseDate)
-        {
-            return (licenseDate > DateTime.Now) & (licenseDate < DateTime.Now.AddDays(30));
-        }
-
-        bool HasExpired(DateTime licenseDate)
-        {
-            return licenseDate < DateTime.Now;
         }
 
         IEventAggregator EventAggregator;
