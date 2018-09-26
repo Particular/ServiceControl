@@ -47,11 +47,13 @@
             {
                 value.AppendFormat($" - {Inflect(-daysUntilExpiry, "day", "days")} ago");
                 component.Importance = Importance.Serious;
+                component.WarningText = "You are no longer able to continue using the application. Please import a new license or contact us.";
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
                 value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} left");
                 component.Importance = Importance.Serious;
+                component.WarningText = "Once the license expires you'll no longer be able to continue using the application.";
             }
 
             component.Value = value.ToString();
@@ -71,6 +73,7 @@
             {
                 value.AppendFormat($" - {Inflect(-daysUntilExpiry, "day", "days")} ago");
                 component.Importance = Importance.Warning;
+                component.WarningText = "You'll no longer have access to new product versions. Please import a new license or contact us.";
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
