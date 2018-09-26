@@ -20,7 +20,7 @@
             yield return new LicenseComponent
             {
                 Label = "Platform license type:",
-                Value = details.IsTrialLicense ? "Trial" : details.LicenseType
+                Value = details.LicenseType
             };
 
             if (details.ExpirationDate.HasValue)
