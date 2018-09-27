@@ -26,18 +26,18 @@ namespace ServiceControl.CompositeViews.Messages
                     CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
-                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).ToArray(),
+                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
                     ConversationId = (string)message.MessageMetadata["ConversationId"]
                 });
 
             AddMap<FailedMessage>(messages => from message in messages
                 where message.Status != FailedMessageStatus.Resolved
                 let last = message.ProcessingAttempts.Last()
-                select new
+                select new SortAndFilterOptions
                 {
-                    last.MessageId,
-                    MessageType = last.MessageMetadata["MessageType"],
-                    IsSystemMessage = last.MessageMetadata["IsSystemMessage"],
+                    MessageId = last.MessageId,
+                    MessageType = (string)last.MessageMetadata["MessageType"],
+                    IsSystemMessage = (bool)last.MessageMetadata["IsSystemMessage"],
                     Status = message.Status == FailedMessageStatus.Archived
                         ? MessageStatus.ArchivedFailure
                         : message.ProcessingAttempts.Count == 1
@@ -49,8 +49,8 @@ namespace ServiceControl.CompositeViews.Messages
                     CriticalTime = (TimeSpan?)null,
                     ProcessingTime = (TimeSpan?)null,
                     DeliveryTime = (TimeSpan?)null,
-                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()),
-                    ConversationId = last.MessageMetadata["ConversationId"]
+                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
+                    ConversationId = (string)last.MessageMetadata["ConversationId"]
                 });
 
             Index(x => x.Query, FieldIndexing.Analyzed);

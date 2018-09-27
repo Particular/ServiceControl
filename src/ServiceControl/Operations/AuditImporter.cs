@@ -134,7 +134,6 @@
             {
                 ["MessageId"] = messageId,
                 ["MessageIntent"] = message.Headers.MessageIntent(),
-                ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
 
             var enricherTasks = new List<Task>(enrichers.Length);
