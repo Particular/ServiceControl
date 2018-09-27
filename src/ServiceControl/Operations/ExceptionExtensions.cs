@@ -3,7 +3,7 @@ namespace ServiceControl.Operations
     using System;
     using System.Text;
 
-    public static class ExceptionExtensions
+    static class ExceptionExtensions
     {
         public static string ToFriendlyString(this Exception exception)
         {

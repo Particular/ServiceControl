@@ -3,7 +3,7 @@
     using NServiceBus;
     using NServiceBus.Features;
 
-    public class ArchivingFeature : Feature
+    class ArchivingFeature : Feature
     {
         public ArchivingFeature()
         {

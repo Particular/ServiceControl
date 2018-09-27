@@ -11,7 +11,7 @@
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
 
-    public class When_publishing_from_a_saga : AcceptanceTest
+    class When_publishing_from_a_saga : AcceptanceTest
     {
         [Test]
         public async Task Saga_audit_trail_should_contain_the_state_change()

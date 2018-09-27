@@ -6,6 +6,7 @@ namespace Particular.ServiceControl
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Features.ResolveAnything;
@@ -18,6 +19,8 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
+    using Nancy;
+    using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -27,10 +30,10 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class Bootstrapper
+    class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
             if (configuration == null)
             {
@@ -40,6 +43,7 @@ namespace Particular.ServiceControl
             this.onCriticalError = onCriticalError;
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
+            this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
             Initialize();
         }
@@ -94,6 +98,12 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<DomainEventBusPublisher>().AsImplementedInterfaces().AsSelf().SingleInstance();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
             containerBuilder.RegisterType<MonitoringDataPersister>().SingleInstance();
+
+            containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetSerializer>().As<ISerializer>();
+            containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetBodyDeserializer>().As<IBodyDeserializer>();
+            containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsAssignableTo<INancyModule>()).As<INancyModule>();
+
+            additionalRegistrationActions?.Invoke(containerBuilder);
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
@@ -205,6 +215,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         public IDisposable WebApp;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
+        readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();

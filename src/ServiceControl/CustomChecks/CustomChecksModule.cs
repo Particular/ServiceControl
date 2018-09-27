@@ -9,7 +9,7 @@
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class CustomChecksModule : BaseModule
+    class CustomChecksModule : BaseModule
     {
         public CustomChecksModule()
         {

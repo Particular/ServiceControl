@@ -2,26 +2,25 @@
 {
     using System;
 
-    public static class Chunker
+    static class Chunker
     {
-        public static void ExecuteInChunks(int total, Action<int, int> action)
+        public static int ExecuteInChunks<T1, T2>(int total, Func<T1, T2, int, int, int> action, T1 t1, T2 t2)
         {
             if (total == 0)
             {
-                return;
+                return 0;
             }
 
             if (total < CHUNK_SIZE)
             {
-                action(0, total - 1);
-                return;
+                return action(t1, t2, 0, total - 1);
             }
 
             int start = 0, end = CHUNK_SIZE - 1;
-
+            var chunkCount = 0;
             do
             {
-                action(start, end);
+                chunkCount += action(t1, t2, start, end);
 
                 start = end + 1;
                 end += CHUNK_SIZE;
@@ -30,6 +29,8 @@
                     end = total - 1;
                 }
             } while (start < total);
+
+            return chunkCount;
         }
 
         const int CHUNK_SIZE = 500;

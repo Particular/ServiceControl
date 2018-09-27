@@ -11,7 +11,7 @@
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_an_unmonitored_endpoint_starts_sending_heartbeats : AcceptanceTest
+    class When_an_unmonitored_endpoint_starts_sending_heartbeats : AcceptanceTest
     {
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(MyEndpoint));
 

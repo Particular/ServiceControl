@@ -5,7 +5,7 @@
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class LicenseModule : BaseModule
+    class LicenseModule : BaseModule
     {
         public LicenseModule()
         {

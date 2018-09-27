@@ -11,7 +11,7 @@
     using Raven.Abstractions.Data;
     using Raven.Database;
 
-    public static class EventLogItemsCleaner
+    static class EventLogItemsCleaner
     {
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
@@ -41,7 +41,7 @@
                 };
                 var indexName = new ExpiryEventLogItemsIndex().IndexName;
                 database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    doc =>
+                    (doc, commands) =>
                     {
                         var id = doc.Value<string>("__document_id");
                         if (string.IsNullOrEmpty(id))
@@ -49,27 +49,25 @@
                             return;
                         }
 
-                        items.Add(new DeleteCommandData
+                        commands.Add(new DeleteCommandData
                         {
                             Key = id
                         });
-                    });
+                    }, items);
             }
             catch (OperationCanceledException)
             {
                 //Ignore
             }
 
-            var deletionCount = 0;
-
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
+            var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
+                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents completed.", s, e);
 
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
+                return results.Count(x => x.Deleted == true);
+            }, items, database);
 
             if (deletionCount == 0)
             {

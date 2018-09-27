@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using Infrastructure.DomainEvents;
 
-    public class EventLogMappings
+    class EventLogMappings
     {
         public EventLogMappings(Dictionary<Type, Type> mappings)
         {

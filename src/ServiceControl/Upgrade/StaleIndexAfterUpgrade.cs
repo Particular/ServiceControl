@@ -11,7 +11,7 @@
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class StaleIndexAfterUpgrade : Feature
+    class StaleIndexAfterUpgrade : Feature
     {
         public StaleIndexAfterUpgrade()
         {

@@ -14,7 +14,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
-    public class When_a_message_fails_twice_with_different_exceptions : AcceptanceTest
+    class When_a_message_fails_twice_with_different_exceptions : AcceptanceTest
     {
         [Test]
         public async Task Only_the_second_groups_should_apply()

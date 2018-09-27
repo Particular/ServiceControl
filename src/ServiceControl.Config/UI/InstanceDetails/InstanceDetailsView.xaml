@@ -24,12 +24,13 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="80" />
             <RowDefinition Height="8" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="7"
+        <Border Grid.Row="8"
                 Grid.ColumnSpan="2"
                 BorderBrush="{StaticResource Gray90Brush}"
                 BorderThickness="0,1,0,0" 
@@ -217,6 +218,19 @@
                 </StackPanel>
 
             </Hyperlink>
+        </GroupBox>
+
+        <GroupBox Grid.Row="7"
+                  Grid.Column="1"
+                  Header="ENDPOINT NAME"
+                  HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
+            <TextBlock FontSize="14px" Text="{Binding Name}" />
+        </GroupBox>
+
+        <GroupBox Grid.Row="7"
+                  Header="TRANSPORT"
+                  HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
+            <TextBlock FontSize="14px" Text="{Binding Transport.Name}" />
         </GroupBox>
 
         <Border Grid.Row="1"

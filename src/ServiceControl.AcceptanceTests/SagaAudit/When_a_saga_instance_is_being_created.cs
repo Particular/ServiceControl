@@ -10,7 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
 
-    public class When_a_saga_instance_is_being_created : AcceptanceTest
+    class When_a_saga_instance_is_being_created : AcceptanceTest
     {
         [Test]
         public async Task Saga_audit_trail_should_contain_the_state_change()

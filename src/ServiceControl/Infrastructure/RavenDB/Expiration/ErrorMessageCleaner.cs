@@ -11,13 +11,15 @@
     using Raven.Abstractions.Data;
     using Raven.Database;
 
-    public static class ErrorMessageCleaner
+    static class ErrorMessageCleaner
     {
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
+            var itemsAndAttachements = Tuple.Create(items, attachments);
+            
             try
             {
                 var query = new IndexQuery
@@ -43,7 +45,7 @@
                 };
                 var indexName = new ExpiryErrorMessageIndex().IndexName;
                 database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    doc =>
+                    (doc, state) =>
                     {
                         var id = doc.Value<string>("__document_id");
                         if (string.IsNullOrEmpty(id))
@@ -51,33 +53,31 @@
                             return;
                         }
 
-                        items.Add(new DeleteCommandData
+                        state.Item1.Add(new DeleteCommandData
                         {
                             Key = id
                         });
                         var bodyid = doc.Value<string>("ProcessingAttempts[0].MessageId");
-                        attachments.Add(bodyid);
-                    });
+                        state.Item2.Add(bodyid);
+                    }, itemsAndAttachements);
             }
             catch (OperationCanceledException)
             {
                 //Ignore
             }
 
-            var deletionCount = 0;
-
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
+            var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} error documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
+                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} error documents completed.", s, e);
 
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
+                return results.Count(x => x.Deleted == true);
+            }, items, database);
 
-            Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
+            deletionCount += Chunker.ExecuteInChunks(attachments.Count, (atts, db, s, e) =>
             {
-                database.TransactionalStorage.Batch(accessor =>
+                db.TransactionalStorage.Batch(accessor =>
                 {
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents.", s, e);
                     for (var idx = s; idx <= e; idx++)
@@ -90,7 +90,8 @@
 
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents completed.", s, e);
                 });
-            });
+                return 0;
+            }, attachments, database);
 
             if (deletionCount == 0)
             {

@@ -3,7 +3,7 @@
     using Newtonsoft.Json;
     using ServiceBus.Management.Infrastructure.Nancy;
 
-    public static class SerializationSettingsFactoryForSignalR
+    static class SerializationSettingsFactoryForSignalR
     {
         public static JsonSerializerSettings CreateDefault()
         {

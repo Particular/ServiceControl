@@ -14,7 +14,7 @@
     using global::Nancy.Responses;
     using NServiceBus.Logging;
 
-    public class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
+    class NServiceBusContainerBootstrapper : AutofacNancyBootstrapper
     {
         public NServiceBusContainerBootstrapper(IContainer container)
         {

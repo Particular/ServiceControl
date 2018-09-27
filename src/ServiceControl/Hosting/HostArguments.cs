@@ -9,7 +9,7 @@ namespace Particular.ServiceControl.Hosting
     using global::ServiceControl.Hosting.Commands;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class HostArguments
+    class HostArguments
     {
         public HostArguments(string[] args)
         {

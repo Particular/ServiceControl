@@ -1,6 +1,6 @@
 namespace ServiceControl.Recoverability
 {
-    public class EndpointInstanceClassifier : IFailureClassifier
+    class EndpointInstanceClassifier : IFailureClassifier
     {
         public string Name => Id;
 

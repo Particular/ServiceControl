@@ -7,7 +7,7 @@
     using ServiceControl.CompositeViews.Messages;
 
     [TestFixture]
-    public class MessagesView_ScatterGather_DataFromBothInstances : MessageView_ScatterGatherTest
+    class MessagesView_ScatterGather_DataFromBothInstances : MessageView_ScatterGatherTest
     {
         protected override IEnumerable<QueryResult<List<MessagesView>>> GetData()
         {

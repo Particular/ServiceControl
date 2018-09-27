@@ -7,7 +7,7 @@
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class EventLogApiModule : BaseModule
+    class EventLogApiModule : BaseModule
     {
         public EventLogApiModule()
         {

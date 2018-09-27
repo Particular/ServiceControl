@@ -4,9 +4,9 @@
     using System.Threading.Tasks;
     using Microsoft.AspNet.SignalR;
 
-    public class GlobalEventHandler
+    class GlobalEventHandler
     {
-        public Task Broadcast(object @event)
+        public Task Broadcast(IUserInterfaceEvent @event)
         {
             var typeName = @event.GetType().Name;
             var types = new List<string>

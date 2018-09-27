@@ -13,7 +13,7 @@
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed : AcceptanceTest
+    class When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed : AcceptanceTest
     {
         [Test]
         public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()

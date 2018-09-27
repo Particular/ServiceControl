@@ -15,7 +15,7 @@
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Contracts.Operations;
 
-    public class When_processed_message_is_imported : AcceptanceTest
+    class When_processed_message_is_imported : AcceptanceTest
     {
         [Test]
         public async Task Should_be_accessible_via_the_rest_api()

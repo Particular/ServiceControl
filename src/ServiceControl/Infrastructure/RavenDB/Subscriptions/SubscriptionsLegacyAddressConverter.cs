@@ -8,9 +8,7 @@
     {
         public void BeforeConversionToDocument(string key, object entity, RavenJObject metadata)
         {
-            var subscription = entity as Subscription;
-
-            if (subscription == null)
+            if (!(entity is Subscription subscription))
             {
                 return;
             }
@@ -30,9 +28,7 @@
 
         public void AfterConversionToEntity(string key, RavenJObject document, RavenJObject metadata, object entity)
         {
-            var subscription = entity as Subscription;
-
-            if (subscription == null)
+            if (!(entity is Subscription subscription))
             {
                 return;
             }

@@ -3,13 +3,13 @@
     using System.IO;
     using System.Threading.Tasks;
 
-    public interface IBodyStorage
+    interface IBodyStorage
     {
         Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
         Task<StreamResult> TryFetch(string bodyId);
     }
 
-    public struct StreamResult
+    struct StreamResult
     {
         public bool HasResult;
         public Stream Stream;

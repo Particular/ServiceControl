@@ -16,7 +16,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class AuditImporterFeature : Feature
+    class AuditImporterFeature : Feature
     {
         public AuditImporterFeature()
         {
@@ -44,7 +44,7 @@
                     OnAuditError,
                     (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(builder, messageContext))
                 );
-                
+
                 context.RegisterStartupTask(b => new StartupTask(b.Build<SatelliteImportFailuresHandler>(), this));
 
                 if (settings.ForwardAuditMessages)
@@ -72,7 +72,7 @@
         }
 
         SatelliteImportFailuresHandler importFailuresHandler;
-        
+
         class StartupTask : FeatureStartupTask
         {
             public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditImporterFeature importer)
@@ -115,7 +115,7 @@
     }
 
 
-    public class AuditImporter
+    class AuditImporter
     {
         public AuditImporter(IBuilder builder, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
         {
@@ -134,7 +134,6 @@
             {
                 ["MessageId"] = messageId,
                 ["MessageIntent"] = message.Headers.MessageIntent(),
-                ["HeadersForSearching"] = string.Join(" ", message.Headers.Values)
             };
 
             var enricherTasks = new List<Task>(enrichers.Length);

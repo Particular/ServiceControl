@@ -3,7 +3,7 @@ namespace ServiceControl.SagaAudit
     using System;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    public class ApiModule : BaseModule
+    class ApiModule : BaseModule
     {
         public ApiModule()
         {

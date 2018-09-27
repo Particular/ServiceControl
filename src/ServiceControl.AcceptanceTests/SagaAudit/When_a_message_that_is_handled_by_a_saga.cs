@@ -11,7 +11,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    public class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
+    class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
     {
         [Test]
         public async Task Message_should_be_enriched_with_saga_state_changes()

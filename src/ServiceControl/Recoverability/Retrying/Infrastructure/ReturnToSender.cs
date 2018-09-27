@@ -8,7 +8,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Transport;
     using Operations.BodyStorage;
 
-    public class ReturnToSender
+    class ReturnToSender
     {
         public ReturnToSender(IBodyStorage bodyStorage)
         {

@@ -16,7 +16,7 @@
     using ServiceControl.Infrastructure.Settings;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_proessed_message_multi_instance_endpoint_by_messages : AcceptanceTest
+    class When_proessed_message_multi_instance_endpoint_by_messages : AcceptanceTest
     {
         [Test]
         public async Task Should_be_found()

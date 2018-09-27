@@ -8,7 +8,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using Raven.Client;
 
-    public class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
+    class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
         IHandleMessages<RetryPendingMessages>
     {
         public PendingRetriesHandler(IDocumentStore store, RetryDocumentManager manager)

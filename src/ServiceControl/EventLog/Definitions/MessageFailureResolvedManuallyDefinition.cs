@@ -2,7 +2,7 @@
 {
     using Contracts.MessageFailures;
 
-    public class MessageFailureResolvedManuallyDefinition : EventLogMappingDefinition<MessageFailureResolvedManually>
+    class MessageFailureResolvedManuallyDefinition : EventLogMappingDefinition<MessageFailureResolvedManually>
     {
         public MessageFailureResolvedManuallyDefinition()
         {

@@ -4,7 +4,7 @@ namespace ServiceControl.Infrastructure.DomainEvents
     using NServiceBus.Features;
     using SignalR;
 
-    public class ServicePulseNotifierFeature : Feature
+    class ServicePulseNotifierFeature : Feature
     {
         public ServicePulseNotifierFeature()
         {

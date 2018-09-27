@@ -4,7 +4,7 @@
     using System.Collections.Concurrent;
     using Infrastructure;
 
-    public class MessageRedirect
+    class MessageRedirect
     {
         public Guid MessageRedirectId
         {

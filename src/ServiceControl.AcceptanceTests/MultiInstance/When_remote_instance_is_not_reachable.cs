@@ -10,7 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    public class When_remote_instance_is_not_reachable : AcceptanceTest
+    class When_remote_instance_is_not_reachable : AcceptanceTest
     {
         [Test]
         public async Task Should_not_fail()

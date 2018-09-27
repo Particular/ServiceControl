@@ -9,7 +9,7 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
 
-    public class GetBodyByIdApi : RoutedApi<string>
+    class GetBodyByIdApi : RoutedApi<string>
     {
         public IDocumentStore Store { get; set; }
 

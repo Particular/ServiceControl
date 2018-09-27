@@ -14,10 +14,12 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
+    using Autofac;
     using Infrastructure;
     using Infrastructure.Nancy;
     using Infrastructure.Settings;
     using Microsoft.Owin.Builder;
+    using Nancy;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -187,7 +189,7 @@ namespace ServiceBus.Management.AcceptanceTests
                         };
                         context.Logs.Enqueue(logitem);
                         ctx.Stop().GetAwaiter().GetResult();
-                    }, settings, configuration, loggingSettings);
+                    }, settings, configuration, loggingSettings, builder => builder.RegisterType<FailedAuditsModule>().As<INancyModule>());
                     bootstrappers[instanceName] = bootstrapper;
                     bootstrapper.HttpClientFactory = HttpClientFactory;
                 }

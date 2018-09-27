@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
-    public class ArchivingManager
+    class ArchivingManager
     {
         public ArchivingManager(IDomainEvents domainEvents)
         {

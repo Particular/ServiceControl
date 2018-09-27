@@ -2,7 +2,7 @@
 {
     using Contracts.HeartbeatMonitoring;
 
-    public class HeartbeatingEndpointDetectedDefinition : EventLogMappingDefinition<HeartbeatingEndpointDetected>
+    class HeartbeatingEndpointDetectedDefinition : EventLogMappingDefinition<HeartbeatingEndpointDetected>
     {
         public HeartbeatingEndpointDetectedDefinition()
         {

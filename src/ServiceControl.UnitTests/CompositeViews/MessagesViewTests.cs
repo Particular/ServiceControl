@@ -36,6 +36,8 @@
 
                 session.SaveChanges();
             }
+            
+            documentStore.WaitForIndexing();
 
             using (var session = documentStore.OpenSession())
             {

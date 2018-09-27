@@ -13,7 +13,7 @@
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    public class When_message_successfully_processed : AcceptanceTest
+    class When_message_successfully_processed : AcceptanceTest
     {
         [Test]
         public async Task Should_list_the_endpoint_in_the_list_of_known_endpoints()

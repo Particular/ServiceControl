@@ -20,8 +20,7 @@
 
         public override bool Equals(object obj)
         {
-            var that = obj as TransportInfo;
-            if (that == null)
+            if (!(obj is TransportInfo that))
             {
                 return false;
             }
