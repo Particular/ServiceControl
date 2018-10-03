@@ -11,21 +11,21 @@
             new TransportInfo
             {
                 Name = "Azure Service Bus",
-                ZipName = "AzureServiceBusStandard",
+                ZipName = "AzureServiceBus",
                 TypeName = "NServiceBus.Transport.AzureServiceBus, NServiceBus.Transport.AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>"
             },
             new TransportInfo
             {
                 Name = "Azure Service Bus - Legacy (Forwarding Topology)",
-                ZipName = "AzureServiceBus",
+                ZipName = "AzureServiceBusLegacyForwardingTopology",
                 TypeName = "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>"
             },
             new TransportInfo
             {
                 Name = "Azure Service Bus - Legacy (Endpoint Oriented Topology)",
-                ZipName = "AzureServiceBus",
+                ZipName = "AzureServiceBusLegacyEndpointOrientedTopology",
                 TypeName = "EndpointOrientedTopologyAzureServiceBusTransport",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>"
             },
