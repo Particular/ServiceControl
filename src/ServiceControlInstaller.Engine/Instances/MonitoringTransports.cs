@@ -10,28 +10,28 @@
         {
             new TransportInfo
             {
-                Name = "AzureServiceBus (Forwarding Topology)",
+                Name = "Azure Service Bus",
                 ZipName = "AzureServiceBusStandard",
                 TypeName = "NServiceBus.Transport.AzureServiceBus, NServiceBus.Transport.AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>"
             },
             new TransportInfo
             {
-                Name = "AzureServiceBus Legacy (Forwarding Topology)",
+                Name = "Azure Service Bus - Legacy (Forwarding Topology)",
                 ZipName = "AzureServiceBus",
                 TypeName = "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>"
             },
             new TransportInfo
             {
-                Name = "AzureServiceBus Legacy (Endpoint Oriented Topology)",
+                Name = "Azure Service Bus - Legacy (Endpoint Oriented Topology)",
                 ZipName = "AzureServiceBus",
                 TypeName = "EndpointOrientedTopologyAzureServiceBusTransport",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>"
             },
             new TransportInfo
             {
-                Name = "AzureStorageQueue",
+                Name = "Azure Queue Storage",
                 ZipName = "AzureStorageQueue",
                 TypeName = "NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues",
                 SampleConnectionString = "DefaultEndpointsProtocol=[http|https];AccountName=<MyAccountName>;AccountKey=<MyAccountKey>"
