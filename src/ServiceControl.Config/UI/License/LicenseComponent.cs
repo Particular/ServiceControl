@@ -8,6 +8,7 @@
         public string Value { get; set; }
         public Importance Importance { get; set; }
         public string WarningText { get; set; }
+        public string ShortText { get; set; }
 
         public bool IsSerious => Importance == Importance.Serious;
         public bool IsWarning => Importance == Importance.Warning;

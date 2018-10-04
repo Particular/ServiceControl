@@ -47,12 +47,14 @@
             {
                 value.AppendFormat($" - {Inflect(-daysUntilExpiry, "day", "days")} ago");
                 component.Importance = Importance.Serious;
+                component.ShortText = "License expired";
                 component.WarningText = "You are no longer able to continue using the application. Please import a new license or contact us.";
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
                 value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} left");
                 component.Importance = Importance.Serious;
+                component.ShortText = $"License expiring in {Inflect(daysUntilExpiry, "day", "days")}";
                 component.WarningText = "Once the license expires you'll no longer be able to continue using the application.";
             }
 
@@ -73,12 +75,14 @@
             {
                 value.AppendFormat($" - {Inflect(-daysUntilExpiry, "day", "days")} ago");
                 component.Importance = Importance.Warning;
+                component.ShortText = "Upgrade protection expired";
                 component.WarningText = "You'll no longer have access to new product versions. Please import a new license or contact us.";
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
                 value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} left");
                 component.Importance = Importance.Warning;
+                component.ShortText = $"Upgrade protection expiring in {Inflect(daysUntilExpiry, "day", "days")}";
                 component.WarningText = "Once upgrade protection expires, you'll no longer have access to support or new product versions.";
             }
 
