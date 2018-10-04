@@ -94,11 +94,11 @@
                     <shell:NewInstanceOverlay />
                 </Popup>
 
-                <StackPanel Orientation="Horizontal" x:Name="StatusPanel">
+                <Button Margin="20,0,0,0"
+                    Command="{Binding LicenseStatusManager.OpenLicense}"
+                    Style="{StaticResource LicenseButton}" />
 
-                    <Button Margin="20,0,0,0"
-                        Command="{Binding LicenseStatusManager.OpenLicense}"
-                        Style="{StaticResource LicenseButton}" />
+                <StackPanel Orientation="Horizontal" x:Name="StatusPanel">
 
                     <ToggleButton Style="{StaticResource ImageButton}"
                                   Margin="5,0,0,0"
@@ -119,9 +119,9 @@
                     </ToggleButton>
 
                     <Popup IsOpen="{Binding LicenseStatusManager.ShowPopup, Mode=TwoWay}"
-                           StaysOpen="True"
+                           StaysOpen="False"
                            AllowsTransparency="True"
-                           HorizontalOffset="-200"
+                           HorizontalOffset="-288"
                            Placement="Top"
                            PlacementTarget="{Binding ElementName=StatusPanel}">
                         <shell:LicensePopupView cal:Bind.Model="{Binding LicenseStatusManager}" />
