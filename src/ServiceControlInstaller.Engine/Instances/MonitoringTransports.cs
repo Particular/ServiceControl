@@ -46,7 +46,7 @@
             new TransportInfo
             {
                 Name = "AzureServiceBus .NET Standard",
-                ZipName = "AzureServiceBus",
+                ZipName = "NetStandardAzureServiceBus",
                 TypeName = "ServiceControl.Transports.AzureServiceBusStandard.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBusStandard",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals("AzureServiceBus .NET Standard", StringComparison.OrdinalIgnoreCase)
