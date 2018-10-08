@@ -48,10 +48,10 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 Name = "AzureServiceBus .NET Standard",
                 ZipName = "NetStandardAzureServiceBus",
-                TypeName = "ServiceControl.Transports.AzureServiceBusStandard.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBusStandard",
+                TypeName = "ServiceControl.Transports.AzureServiceBusStandard.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBusStandard",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals("AzureServiceBus .NET Standard", StringComparison.OrdinalIgnoreCase)
-                          || name.Equals("ServiceControl.Transports.AzureServiceBusStandard.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBusStandard", StringComparison.OrdinalIgnoreCase)
+                          || name.Equals("ServiceControl.Transports.AzureServiceBusStandard.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBusStandard", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
