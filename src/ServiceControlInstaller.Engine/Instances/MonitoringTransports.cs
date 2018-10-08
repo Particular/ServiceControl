@@ -1,4 +1,4 @@
-namespace ServiceControlInstaller.Engine.Instances
+﻿namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
     using System.Collections.Generic;
@@ -94,7 +94,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 Matches = name => name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
                           || name.Equals("RabbitMQ - Conventional Routing Topology", StringComparison.OrdinalIgnoreCase)
                           || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
-                          || name.Equals("ServiceControl.Transports.RabbitMQ.ServiceControlRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                          || name.Equals("ServiceControl.Transports.RabbitMQ.ConventialTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -102,7 +102,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 TypeName = "ServiceControl.Transports.RabbitMQ.DirectTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>",
-                Matches = name => name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals("ServiceControl.Transports.RabbitMQ.DirectTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("RabbitMQ - Direct Routing Topology", StringComparison.OrdinalIgnoreCase)
             }
         };
