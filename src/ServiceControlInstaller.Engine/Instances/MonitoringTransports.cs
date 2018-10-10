@@ -89,20 +89,20 @@
             {
                 Name = "RabbitMQ - Conventional Routing Topology",
                 ZipName = "RabbitMQ",
-                TypeName = "ServiceControl.Transports.RabbitMQ.ConventialTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ",
+                TypeName = "ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>",
                 Matches = name => name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
                           || name.Equals("RabbitMQ - Conventional Routing Topology", StringComparison.OrdinalIgnoreCase)
                           || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
-                          || name.Equals("ServiceControl.Transports.RabbitMQ.ConventialTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                          || name.Equals("ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
                 Name = "RabbitMQ - Direct Routing Topology",
-                TypeName = "ServiceControl.Transports.RabbitMQ.DirectTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ",
+                TypeName = "ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>",
-                Matches = name => name.Equals("ServiceControl.Transports.RabbitMQ.DirectTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals("ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("RabbitMQ - Direct Routing Topology", StringComparison.OrdinalIgnoreCase)
             }
         };
