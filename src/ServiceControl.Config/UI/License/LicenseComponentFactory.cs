@@ -25,13 +25,46 @@
 
             if (details.ExpirationDate.HasValue)
             {
-                yield return PlatformExpiryComponent(details.ExpirationDate.Value);
+                if (details.IsTrialLicense)
+                {
+                    yield return TrialExpiryComponent(details.ExpirationDate.Value);
+                }
+                else
+                {
+                    yield return PlatformExpiryComponent(details.ExpirationDate.Value);
+                }
             }
 
             if (details.UpgradeProtectionExpiration.HasValue)
             {
                 yield return UpgradeProtectionExpiryComponent(details.UpgradeProtectionExpiration.Value);
             }
+        }
+
+        LicenseComponent TrialExpiryComponent(DateTime expiryDate)
+        {
+            var component = new LicenseComponent {Label = "Trial expiry date:"};
+
+            var value = new StringBuilder(expiryDate.ToShortDateString());
+
+            var daysUntilExpiry = (int)(expiryDate - today).TotalDays;
+
+            if (daysUntilExpiry < 0)
+            {
+                value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} ago");
+                component.Importance = Importance.Serious;
+                component.ShortText = "Trial expired";
+            }
+            else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
+            {
+                value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} ago");
+                component.Importance = Importance.Serious;
+                component.ShortText = $"Trial license expiring in {Inflect(daysUntilExpiry, "day", "days")}";
+            }
+
+            component.Value = value.ToString();
+
+            return component;
         }
 
 
