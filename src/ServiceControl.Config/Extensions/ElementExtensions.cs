@@ -16,7 +16,7 @@
             T foundChild = null;
             var childrenCount = VisualTreeHelper.GetChildrenCount(parent);
 
-            for (int i = 0; i < childrenCount; i++)
+            for (var i = 0; i < childrenCount; i++)
             {
                 var child = VisualTreeHelper.GetChild(parent, i);
                 var childType = child as T;
@@ -31,8 +31,7 @@
                 }
                 else if (!string.IsNullOrEmpty(childName))
                 {
-                    var frameworkElement = child as FrameworkElement;
-                    if (frameworkElement != null && frameworkElement.Name == childName)
+                    if (child is FrameworkElement frameworkElement && frameworkElement.Name == childName)
                     {
                         foundChild = (T)child;
                         break;
@@ -55,8 +54,7 @@
                 return null;
             }
 
-            var parent = parentObject as T;
-            if (parent != null)
+            if (parentObject is T parent)
             {
                 return parent;
             }
@@ -71,8 +69,7 @@
                 return null;
             }
 
-            var contentElement = child as ContentElement;
-            if (contentElement != null)
+            if (child is ContentElement contentElement)
             {
                 var parent = ContentOperations.GetParent(contentElement);
                 if (parent != null)
@@ -80,12 +77,10 @@
                     return parent;
                 }
 
-                var fce = contentElement as FrameworkContentElement;
-                return fce != null ? fce.Parent : null;
+                return contentElement is FrameworkContentElement fce ? fce.Parent : null;
             }
 
-            var frameworkElement = child as FrameworkElement;
-            if (frameworkElement != null)
+            if (child is FrameworkElement frameworkElement)
             {
                 var parent = frameworkElement.Parent;
                 if (parent != null)
@@ -107,9 +102,9 @@
             for (var i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
             {
                 var child = VisualTreeHelper.GetChild(depObj, i);
-                if (child is T)
+                if (child is T concreteChild)
                 {
-                    yield return (T)child;
+                    yield return concreteChild;
                 }
 
                 foreach (var childOfChild in FindVisualChildren<T>(child))
@@ -123,8 +118,7 @@
         {
             for (var dependencyObject = element; dependencyObject != null; dependencyObject = LogicalTreeHelper.GetParent(dependencyObject) ?? VisualTreeHelper.GetParent(dependencyObject))
             {
-                var frameworkElement = dependencyObject as FrameworkElement;
-                if (frameworkElement != null)
+                if (dependencyObject is FrameworkElement frameworkElement)
                 {
                     if (frameworkElement.Resources.Contains(key))
                     {
@@ -133,8 +127,7 @@
                 }
                 else
                 {
-                    var frameworkContentElement = dependencyObject as FrameworkContentElement;
-                    if (frameworkContentElement != null && frameworkContentElement.Resources.Contains(key))
+                    if (dependencyObject is FrameworkContentElement frameworkContentElement && frameworkContentElement.Resources.Contains(key))
                     {
                         return (T)frameworkContentElement.Resources[key];
                     }
