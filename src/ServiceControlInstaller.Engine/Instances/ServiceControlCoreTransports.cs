@@ -14,6 +14,7 @@
                 ZipName = "AmazonSQS",
                 TypeName = "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS",
                 SampleConnectionString = "AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;Region=<REGION>;QueueNamePrefix=<prefix>",
+                Help = "The 'QueueNamePrefix' is optional and can be left out. All other values are mandatory.",
                 Matches = name => name.Equals("ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS", StringComparison.OrdinalIgnoreCase)
                                 || name.Equals("AmazonSQS", StringComparison.OrdinalIgnoreCase)
             },
