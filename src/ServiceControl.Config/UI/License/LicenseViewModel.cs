@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.License
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Windows.Input;
     using Caliburn.Micro;
@@ -54,7 +52,7 @@
             else
             {
                 ApplyLicenseSuccess = null;
-                ApplyLicenseError = $"{importError}{Environment.NewLine}'{Path.GetFileName(path)}' was not imported";
+                ApplyLicenseError = importError;
             }
         }
 

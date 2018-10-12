@@ -28,8 +28,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
             <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
@@ -70,7 +70,7 @@
                                    Stretch="Uniform"
                                    Visibility="{Binding Path=IsWarning, Converter={StaticResource boolToVis}}" />
                         </StackPanel>
-                        <TextBlock Foreground="{StaticResource Gray60Brush}"
+                        <TextBlock Foreground="{StaticResource Gray80Brush}"
                                    TextWrapping="Wrap"
                                    Margin="24,5"
                                    Visibility="{Binding Path=WarningText, Converter={StaticResource nullOrEmptyToVis}}">
@@ -92,7 +92,8 @@
 
         <Button Grid.Row="3"
                 Margin="5"
-                HorizontalAlignment="Center"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
                 Command="{Binding BrowseForFile}"
                 Content="Import License"
                 FontSize="12"
