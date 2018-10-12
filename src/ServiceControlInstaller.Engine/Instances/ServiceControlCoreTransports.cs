@@ -13,7 +13,8 @@
                 Name = "AmazonSQS",
                 ZipName = "AmazonSQS",
                 TypeName = "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS",
-                SampleConnectionString = "AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;Region=<REGION>",
+                SampleConnectionString = "AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;Region=<REGION>;QueueNamePrefix=<prefix>",
+                Help = "'AccessKeyId', 'SecretAccessKey' and 'Region' are mandatory configurations.",
                 Matches = name => name.Equals("ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS", StringComparison.OrdinalIgnoreCase)
                                 || name.Equals("AmazonSQS", StringComparison.OrdinalIgnoreCase)
             },

@@ -41,6 +41,15 @@
                 throw new ArgumentException($"Unknown region: \"{region}\"");
             }
 
+            if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
+            {
+                var queueNamePrefixAsString = (string)queueNamePrefix;
+                if (!string.IsNullOrEmpty(queueNamePrefixAsString))
+                {
+                    transport.QueueNamePrefix(queueNamePrefixAsString);
+                }
+            }
+
             //HINT: This is needed to make Core doesn't load a connection string value from the app.config.
             //      This prevents SQS from throwing on startup.
             var connectionString = transport.GetSettings().Get("NServiceBus.TransportConnectionString");
