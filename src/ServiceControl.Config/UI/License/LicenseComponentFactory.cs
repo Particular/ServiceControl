@@ -57,8 +57,8 @@
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
-                value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} ago");
-                component.Importance = Importance.Serious;
+                value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} left");
+                component.Importance = Importance.Warning;
                 component.ShortText = $"Trial license expiring in {Inflect(daysUntilExpiry, "day", "days")}";
             }
 
