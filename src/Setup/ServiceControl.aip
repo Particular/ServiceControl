@@ -392,7 +392,7 @@
     <ATTRIBUTE name="PrereqsOrder" value="BB9062A4604BB61146D7C9AA49D"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">
-    <ROW SearchKey="BB9062A4604BB61146D7C9AA49DRelease" Prereq="BB9062A4604BB61146D7C9AA49D" SearchType="9" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release" RefContent="G394253" Order="1" Property="PreReqSearch_BB9062A4604BB61146D7C9AA49D"/>
+    <ROW SearchKey="BB9062A4604BB61146D7C9AA49DRelease" Prereq="BB9062A4604BB61146D7C9AA49D" SearchType="9" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release" RefContent="G394254" Order="1" Property="PreReqSearch_BB9062A4604BB61146D7C9AA49D"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.SynchronizedFolderComponent">
     <ROW Directory_="APPDIR" SourcePath="&lt;WPF_PATH&gt;" Feature="ServiceControlManagment" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store|\*|*.vshost.*" ExcludeFlags="6"/>
