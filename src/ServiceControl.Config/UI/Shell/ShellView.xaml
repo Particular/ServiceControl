@@ -118,11 +118,12 @@
                         <Image Source="/Resources/Images/Status-Warning.png" Stretch="Uniform"/>
                     </ToggleButton>
 
-                    <Popup IsOpen="{Binding LicenseStatusManager.ShowPopup, Mode=TwoWay}"
-                           StaysOpen="False"
+                    <Popup x:Name="licenseWarningPopup"
+                           IsOpen="{Binding LicenseStatusManager.ShowPopup, Mode=TwoWay}"
+                           StaysOpen="True"
                            AllowsTransparency="True"
                            HorizontalOffset="-288"
-                           Placement="Top"
+                           Placement="Bottom"
                            PlacementTarget="{Binding ElementName=StatusPanel}">
                         <shell:LicensePopupView cal:Bind.Model="{Binding LicenseStatusManager}" />
                     </Popup>

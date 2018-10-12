@@ -23,7 +23,15 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Border Grid.Row="0"
+        
+        <Path x:Name="Container"
+              Grid.Row="0"
+              Margin="280,-10,0,0"
+              Data="M 0,20 L 10,0 20,20"
+              Fill="{StaticResource PopupBackgroundBrush}">
+        </Path>
+
+        <Border Grid.Row="1"
                 Margin="0,0,8,8"
                 Width="380"
                 Background="{StaticResource PopupBackgroundBrush}"
@@ -56,35 +64,7 @@
                 <Button Click="OnCloseButtonClicked"
                         Style="{StaticResource CloseButton}"
                         Grid.Row="0" />
-
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*" />
-                        <ColumnDefinition Width="1*" />
-                    </Grid.ColumnDefinitions>
-                    
-                    <controls:LinkedIcon HorizontalAlignment="Left"
-                                         Grid.Column="0"
-                                         Margin="18,0,0,10"
-                                         Text="Contact us"
-                                         Command="{Binding ContactUs}"
-                                         ImageSource="/Resources/Images/Contact.png" />
-
-                    <controls:LinkedIcon HorizontalAlignment="Right"
-                                         Grid.Column="1"
-                                         Margin="0,0,18,10"
-                                         Text="Manage license..."
-                                         Command="{Binding OpenLicense}"
-                                         ImageSource="/Resources/Images/License.png" />
-                </Grid>
             </Grid>
             </Border>
-
-        <Path x:Name="Container"
-              Grid.Row="1"
-              Margin="280,-10,0,0"
-              Data="M 0,0 L 10,20 20,0"
-              Fill="{StaticResource PopupBackgroundBrush}">
-        </Path>
     </Grid>
 </UserControl>

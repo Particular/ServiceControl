@@ -11,10 +11,9 @@
 
     class LicenseStatusManager : RxScreen, IHandle<LicenseUpdated>
     {
-        public LicenseStatusManager(OpenViewModelCommand<LicenseViewModel> openLicense, ContactUsCommand contactUs)
+        public LicenseStatusManager(OpenViewModelCommand<LicenseViewModel> openLicense)
         {
             OpenLicense = openLicense;
-            ContactUs = contactUs;
             RefreshStatus();
         }
 
@@ -30,7 +29,6 @@
         public string PopupText { get; set; }
 
         public ICommand OpenLicense { get; set; }
-        public ICommand ContactUs { get; set; }
 
         public bool IsWarning { get; set; }
         public bool IsSerious { get; set; }

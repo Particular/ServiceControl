@@ -561,8 +561,9 @@
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal" />
                                 <VisualState Name="MouseOver" Storyboard="{StaticResource LinkButtonMouseOverStoryboard}" />
-                                <VisualState Name="Pressed" Storyboard="{StaticResource LinkButtonPressedStoryboard}" />
-                                <VisualState Name="Disabled" Storyboard="{StaticResource LinkButtonDisabledStoryboard}" />
+                                <VisualState Name="Pressed" Storyboard="{StaticResource LinkButtonPressedStoryboard}"/>
+                                <!-- Removed as we did not want the License button to gray out when the license dialog is open -->
+                                <!--<VisualState Name="Disabled" Storyboard="{StaticResource LinkButtonDisabledStoryboard}" />-->
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
 
