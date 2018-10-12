@@ -38,7 +38,7 @@ It is worth notice that the cost of cleanup seems to grow significantly with the
  
 ###  Investigate the impact of audit retention
  
-Tests were conducted using messages of decreasing sizes (as the database would be too extensive for the most extended retention periods). The messages sizes were kept under 80 KB to make sure the body is also stored as in metadata
+Tests were conducted using messages of decreasing sizes (as the database would be too extensive for the most extended retention periods). The messages sizes were kept under 80 KB to make sure the body is also stored as metadata
  
  - 5 minutes -> **80 msg/s , 4 GB database, 22 GB RAM after processing 450K messages, cleanup cost ~4 ms/message**
  - 30 minutes -> **65 msg/s, 20 GB database, up to 60 GB of RAM**
