@@ -89,11 +89,28 @@
                                Text="TRANSPORT CONFIGURATION" />
                 </Border>
 
-                <controls:FormComboBox HorizontalAlignment="Stretch"
-                                       DisplayMemberPath="Name"
-                                       Header="TRANSPORT"
-                                       ItemsSource="{Binding Transports}"
-                                       SelectedItem="{Binding SelectedTransport}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                   
+                    <controls:FormComboBox Grid.Column="0"
+                                           DisplayMemberPath="Name"
+                                           Header="TRANSPORT"
+                                           ItemsSource="{Binding Transports}"
+                                           SelectedItem="{Binding SelectedTransport}" />
+
+                    <controls:FormComboBox Grid.Column="1" 
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Top" 
+                                           DisplayMemberPath="Name"
+                                           Header="LEGACY TRANSPORTS"
+                                           ItemsSource="{Binding LegacyTransportsOptions}"
+                                           SelectedValue="{Binding LegacyTransportsOption}" />
+
+                </Grid>
 
                 <controls:FormTextBox AcceptsReturn="True"
                                       Header="TRANSPORT CONNECTION STRING"

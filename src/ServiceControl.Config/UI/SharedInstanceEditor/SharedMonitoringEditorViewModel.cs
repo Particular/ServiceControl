@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
@@ -13,8 +14,25 @@
         public SharedMonitoringEditorViewModel()
         {
             Transports = MonitoringTransports.All;
+
+            LegacyTransportsOptions = new[]
+            {
+                new LegacyTransportsOption
+                {
+                    Name = "On",
+                    Value = true
+                },
+                new LegacyTransportsOption
+                {
+                    Name = "Off",
+                    Value = false
+                }
+            };
+
+            LegacyTransportsOption = LegacyTransportsOptions.First();
         }
 
+      
         [DoNotNotify]
         public ValidationTemplate ValidationTemplate { get; set; }
 
@@ -110,6 +128,20 @@
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
 
+        public IEnumerable<LegacyTransportsOption> LegacyTransportsOptions { get; }
+
+        public LegacyTransportsOption LegacyTransportsOption
+        {
+            get => legacyTransportsOption;
+            set
+            {
+                legacyTransportsOption = value;
+                Transports = legacyTransportsOption.Value 
+                    ? MonitoringTransports.All 
+                    : MonitoringTransports.All.Where(t => !t.Name.EndsWith("(Legacy)"));
+            }
+        }
+
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
 
@@ -125,5 +157,6 @@
         string hostName;
         string serviceAccount;
         string password;
+        LegacyTransportsOption legacyTransportsOption;
     }
 }
