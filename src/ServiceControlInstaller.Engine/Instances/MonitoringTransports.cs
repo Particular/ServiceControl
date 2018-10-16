@@ -26,27 +26,27 @@
             },
             new TransportInfo
             {
-                Name = "AzureServiceBus - Endpoint-Oriented Topology",
+                Name = "Azure Service Bus - Endpoint-oriented topology (Legacy)",
                 ZipName = "AzureServiceBus",
                 TypeName = "ServiceControl.Transports.AzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
-                Matches = name => name.Equals("AzureServiceBus - Endpoint-Oriented Topology", StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals("Azure Service Bus - Endpoint-oriented topology (Legacy)", StringComparison.OrdinalIgnoreCase)
                           || name.Equals("ServiceControl.Transports.AzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
-                Name = "AzureServiceBus - Forwarding Topology",
+                Name = "Azure Service Bus - Forwarding topology (Legacy)",
                 ZipName = "AzureServiceBus",
                 TypeName = "ServiceControl.Transports.AzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
-                Matches = name => name.Equals("AzureServiceBus - Forwarding Topology", StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals("Azure Service Bus - Forwarding topology (Legacy)", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.AzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
-                Name = "AzureServiceBus .NET Standard",
+                Name = "Azure Service Bus",
                 ZipName = "NetStandardAzureServiceBus",
                 TypeName = "ServiceControl.Transports.AzureServiceBusStandard.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBusStandard",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
