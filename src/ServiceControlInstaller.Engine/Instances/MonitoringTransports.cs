@@ -19,7 +19,7 @@
                 ZipName = "AmazonSQS",
                 TypeName = "ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS",
                 SampleConnectionString = "AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;Region=<REGION>;QueueNamePrefix=<prefix>",
-                Help = "AccessKeyId will be promoted to AWS_ACCESS_KEY_ID, SecretAccessKey to AWS_SECRET_ACCESS_KEY and Region to AWS_REGION environment variable.",
+                Help = "'AccessKeyId', 'SecretAccessKey' and 'Region' are mandatory configurations.",
                 Matches = name => name.Equals("AmazonSQS", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.SqsTransport, NServiceBus.AmazonSQS", StringComparison.OrdinalIgnoreCase)
