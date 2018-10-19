@@ -27,7 +27,7 @@
                                             <Separator Grid.Column="0"/>
                                             <TextBlock Grid.Column="1" 
                                                                    VerticalAlignment="Center" Margin="5 0" 
-                                                                   Text="LEGACY"/>
+                                                                   Text="Legacy"/>
                                             <Separator Grid.Column="2" />
                                         </Grid>
                                     </ControlTemplate>
