@@ -27,10 +27,9 @@ namespace ServiceControl.ExternalIntegrations
             var failedMessages = new List<object>(failedMessageData.Length);
             foreach (var entity in failedMessageData)
             {
-                session.Advanced.Evict(entity);
-
                 if (entity != null)
                 {
+                    session.Advanced.Evict(entity);
                     failedMessages.Add(entity.ToEvent());
                 }
             }
