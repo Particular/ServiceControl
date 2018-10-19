@@ -26,6 +26,12 @@ namespace ServiceControl.Config.UI.InstanceAdd
             set => SetValue(SelectedTransportProperty, value);
         }
 
+        IEnumerable<TransportInfo> CategorizedTransports
+        {
+            get => (IEnumerable<TransportInfo>)GetValue(CategorizedTransportsProperty);
+            set => SetValue(CategorizedTransportsProperty, value);
+        }
+
         public static DependencyProperty TransportsProperty =
             DependencyProperty.Register("Transports", typeof(IEnumerable<TransportInfo>), typeof(TransportComboBox), new PropertyMetadata(OnTransportsChanged));
 
