@@ -14,7 +14,7 @@
         {
             Transports = MonitoringTransports.All;
         }
-      
+
         [DoNotNotify]
         public ValidationTemplate ValidationTemplate { get; set; }
 
@@ -109,7 +109,6 @@
 
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
-
 
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }

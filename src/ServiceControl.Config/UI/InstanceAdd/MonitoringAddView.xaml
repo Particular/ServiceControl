@@ -96,11 +96,11 @@
                 </uc:TransportComboBox>
 
                 <controls:FormTextBox AcceptsReturn="True"
-                                  Header="TRANSPORT CONNECTION STRING"
-                                  Text="{Binding ConnectionString}"
-                                  TextWrapping="Wrap"
-                                  Visibility="{Binding ShowConnectionString,
-                                                       Converter={StaticResource boolToVis}}" />
+                                      Header="TRANSPORT CONNECTION STRING"
+                                      Text="{Binding ConnectionString}"
+                                      TextWrapping="Wrap"
+                                      Visibility="{Binding ShowConnectionString,
+                                                           Converter={StaticResource boolToVis}}" />
 
                 <controls:FormWarningTextBlock 
                                            Text="{Binding TransportWarning}" 
@@ -138,4 +138,3 @@
         </sie:SharedMonitoringEditorView.SharedContent>
     </sie:SharedMonitoringEditorView>
 </UserControl>
-
