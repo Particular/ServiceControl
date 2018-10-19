@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
-    public partial class TransportComboBox : UserControl
+    public partial class TransportComboBox
     {
         public TransportComboBox()
         {
