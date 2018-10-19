@@ -6,6 +6,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sie="clr-namespace:ServiceControl.Config.UI.SharedInstanceEditor"
+             xmlns:uc="clr-namespace:ServiceControl.Config.UI.InstanceAdd"
              d:DesignHeight="800"
              d:DesignWidth="800"
              mc:Ignorable="d">
@@ -89,35 +90,17 @@
                                Text="TRANSPORT CONFIGURATION" />
                 </Border>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
 
-                   
-                    <controls:FormComboBox Grid.Column="0"
-                                           DisplayMemberPath="Name"
-                                           Header="TRANSPORT"
-                                           ItemsSource="{Binding Transports}"
-                                           SelectedItem="{Binding SelectedTransport}" />
-
-                    <controls:FormComboBox Grid.Column="1" 
-                                           HorizontalAlignment="Stretch"
-                                           VerticalAlignment="Top" 
-                                           DisplayMemberPath="Name"
-                                           Header="LEGACY TRANSPORTS"
-                                           ItemsSource="{Binding LegacyTransportsOptions}"
-                                           SelectedValue="{Binding LegacyTransportsOption}" />
-
-                </Grid>
+                <uc:TransportComboBox Transports="{Binding Transports}" 
+                                      SelectedTransport="{Binding SelectedTransport}">
+                </uc:TransportComboBox>
 
                 <controls:FormTextBox AcceptsReturn="True"
-                                      Header="TRANSPORT CONNECTION STRING"
-                                      Text="{Binding ConnectionString}"
-                                      TextWrapping="Wrap"
-                                      Visibility="{Binding ShowConnectionString,
-                                                           Converter={StaticResource boolToVis}}" />
+                                  Header="TRANSPORT CONNECTION STRING"
+                                  Text="{Binding ConnectionString}"
+                                  TextWrapping="Wrap"
+                                  Visibility="{Binding ShowConnectionString,
+                                                       Converter={StaticResource boolToVis}}" />
 
                 <controls:FormWarningTextBlock 
                                            Text="{Binding TransportWarning}" 
@@ -155,3 +138,4 @@
         </sie:SharedMonitoringEditorView.SharedContent>
     </sie:SharedMonitoringEditorView>
 </UserControl>
+

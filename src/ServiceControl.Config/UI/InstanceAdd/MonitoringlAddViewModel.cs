@@ -43,8 +43,6 @@
             HostName = "localhost";
             ErrorQueueName = "error";
             UseSystemAccount = true;
-
-            LegacyTransportsOption = LegacyTransportsOptions.Skip(1).First();
         }
 
         public string DestinationPath { get; set; }

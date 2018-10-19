@@ -16,6 +16,8 @@
         public string Help { get; set; }
         public bool Default { get; set; }
 
+        public bool IsLegacy { get; set; }
+
         public Func<string, bool> Matches { get; set; }
 
         public override bool Equals(object obj)
