@@ -32,7 +32,7 @@ public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransp
         return Task.FromResult(0);
     }
 
-    public string Name => "AzureServiceBus - Endpoint Topology";
+    public string Name => "Azure Service Bus - Endpoint topology";
     public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 }

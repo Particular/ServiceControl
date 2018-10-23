@@ -32,7 +32,7 @@ public class ConfigureEndpointRabbitMQConventionalRoutingTransport : ITransportI
         return Task.FromResult(0);
     }
 
-    public string Name => "RabbitMq - Conventional Routing Topology";
+    public string Name => "RabbitMQ - Conventional-Routing topology";
     public string TypeName => $"{typeof(RabbitMQConventionalRoutingTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 

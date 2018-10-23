@@ -61,7 +61,7 @@ namespace ServiceControlInstaller.PowerShell
         public string AuditLogQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet("AzureServiceBus - Forwarding Topology", "AzureServiceBus - Endpoint-Oriented Topology", "AzureStorageQueue", "MSMQ", "SQLServer", "RabbitMQ - Direct Routing Topology", "RabbitMQ - Conventional Routing Topology", "AmazonSQS")]
+        [ValidateSet("Azure Service Bus - Forwarding Topology", "Azure Service Bus - Endpoint-Oriented Topology", "AzureStorageQueue", "MSMQ", "SQLServer", "RabbitMQ - Direct-Routing topology", "RabbitMQ - Conventional-Routing topology", "AmazonSQS")]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
