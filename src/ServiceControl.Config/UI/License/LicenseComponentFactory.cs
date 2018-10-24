@@ -17,27 +17,36 @@
 
         public IEnumerable<LicenseComponent> CreateComponents(LicenseDetails details)
         {
-            yield return new LicenseComponent
+            if (details.IsTrialLicense)
             {
-                Label = "Platform license type:",
-                Value = details.Edition
-            };
+                yield return new LicenseComponent
+                {
+                    Label = "Platform license type:",
+                    Value = "Trial"
+                };
 
-            if (details.ExpirationDate.HasValue)
-            {
-                if (details.IsTrialLicense)
+                if (details.ExpirationDate.HasValue)
                 {
                     yield return TrialExpiryComponent(details.ExpirationDate.Value);
                 }
-                else
+            }
+            else
+            {
+                yield return new LicenseComponent
+                {
+                    Label = "Platform license type:",
+                    Value = $"{details.LicenseType}, {details.Edition}"
+                };
+
+                if (details.ExpirationDate.HasValue)
                 {
                     yield return PlatformExpiryComponent(details.ExpirationDate.Value);
                 }
-            }
 
-            if (details.UpgradeProtectionExpiration.HasValue)
-            {
-                yield return UpgradeProtectionExpiryComponent(details.UpgradeProtectionExpiration.Value);
+                if (details.UpgradeProtectionExpiration.HasValue)
+                {
+                    yield return UpgradeProtectionExpiryComponent(details.UpgradeProtectionExpiration.Value);
+                }
             }
         }
 
