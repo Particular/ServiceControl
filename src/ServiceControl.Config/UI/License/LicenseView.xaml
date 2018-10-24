@@ -95,7 +95,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Command="{Binding BrowseForFile}"
-                Content="Import License"
+                Content="Import License..."
                 FontSize="12"
                 Style="{StaticResource HiliteButton}" />
 
