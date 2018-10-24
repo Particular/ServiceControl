@@ -39,15 +39,15 @@
                 Matches = name => name.Equals("ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("Azure Service Bus - Forwarding topology", StringComparison.OrdinalIgnoreCase)
             },
-            // currently not supported due to issues with SendsWithAtomicReceive
-            /*new TransportInfo
+            new TransportInfo
             {
-                Name = "AzureServiceBus .NET Standard",
+                Name = "Azure Service Bus",
                 TypeName = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
                 ZipName = "NetStandardAzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals("ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS", StringComparison.OrdinalIgnoreCase)
-            },*/
+                                  || name.Equals("Azure Service Bus", StringComparison.OrdinalIgnoreCase)
+            },
             new TransportInfo
             {
                 Name = "AzureStorageQueue",
