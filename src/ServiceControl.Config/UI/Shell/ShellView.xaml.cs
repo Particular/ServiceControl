@@ -17,7 +17,7 @@
 
             Loaded += (sender, args) =>
             {
-                var window = Window.GetWindow(licenseWarningPopup);
+                var window = GetWindow(licenseWarningPopup);
 
                 if (window == null)
                 {
@@ -28,7 +28,7 @@
                 window.SizeChanged += Window_SizeChanged;
             };
 
-            var dpd = DependencyPropertyDescriptor.FromProperty(Image.IsMouseOverProperty, typeof(Image));
+            var dpd = DependencyPropertyDescriptor.FromProperty(IsMouseOverProperty, typeof(Image));
             dpd?.AddValueChanged(WarningIcon, OnIsMouseOverChanged);
             dpd?.AddValueChanged(ErrorIcon, OnIsMouseOverChanged);
         }
@@ -41,17 +41,17 @@
             }
         }
 
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             MovePopup();
         }
 
-        private void Window_LocationChanged(object sender, System.EventArgs e)
+        void Window_LocationChanged(object sender, EventArgs e)
         {
             MovePopup();
         }
 
-        private void MovePopup()
+        void MovePopup()
         {
             var offset = licenseWarningPopup.HorizontalOffset;
             licenseWarningPopup.HorizontalOffset = offset + 1;
