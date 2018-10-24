@@ -14,7 +14,7 @@
         public LicenseStatusManager(OpenViewModelCommand<LicenseViewModel> openLicense)
         {
             OpenLicense = openLicense;
-            RefreshStatus();
+            RefreshStatus(true);
         }
 
         bool forcePopup;
@@ -35,10 +35,10 @@
 
         public void Handle(LicenseUpdated message)
         {
-            RefreshStatus();
+            RefreshStatus(false);
         }
 
-        void RefreshStatus()
+        void RefreshStatus(bool updatePopupDisplay)
         {
             var license = LicenseManager.FindLicense();
 
@@ -50,8 +50,11 @@
             IsSerious = mostPressingComponent?.IsSerious ?? false;
             PopupHeading = mostPressingComponent?.ShortText;
             PopupText = mostPressingComponent?.WarningText;
-            
-            ShowPopup = IsWarning || IsSerious;
+
+            if (updatePopupDisplay)
+            {
+                ShowPopup = IsWarning || IsSerious;
+            }
         }
     }
 }
