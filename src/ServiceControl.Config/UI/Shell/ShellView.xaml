@@ -100,23 +100,25 @@
 
                 <StackPanel Orientation="Horizontal" x:Name="StatusPanel">
 
-                    <ToggleButton Style="{StaticResource ImageButton}"
-                                  Margin="5,0,0,0"
-                                  IsChecked="{Binding Path=LicenseStatusManager.ShowPopup, Mode=TwoWay}"
-                                  Visibility="{Binding Path=LicenseStatusManager.IsSerious, 
-                                                Converter={StaticResource boolToVis},
-                                                Mode=OneWay}">
-                        <Image Source="/Resources/Images/Status-Error.png" Stretch="Uniform"/>
-                    </ToggleButton>
+                    <Image x:Name="ErrorIcon"
+                           Width="16"
+                           Height="16"
+                           Margin="5,0,0,0"
+                           Source="/Resources/Images/Status-Error.png"
+                           Stretch="Uniform"
+                           Visibility="{Binding Path=LicenseStatusManager.IsSerious, 
+                                            Converter={StaticResource boolToVis},
+                                            Mode=OneWay}"/>
 
-                    <ToggleButton Style="{StaticResource ImageButton}"
-                                  Margin="5,0,0,0"
-                                  IsChecked="{Binding Path=LicenseStatusManager.ShowPopup, Mode=TwoWay}"
-                                  Visibility="{Binding Path=LicenseStatusManager.IsWarning, 
-                                                Converter={StaticResource boolToVis},
-                                                Mode=OneWay}">
-                        <Image Source="/Resources/Images/Status-Warning.png" Stretch="Uniform"/>
-                    </ToggleButton>
+                    <Image x:Name="WarningIcon"
+                           Width="16"
+                           Height="16"
+                           Margin="5,0,0,0"
+                           Source="/Resources/Images/Status-Warning.png"
+                           Stretch="Uniform"
+                           Visibility="{Binding Path=LicenseStatusManager.IsWarning, 
+                                            Converter={StaticResource boolToVis},
+                                            Mode=OneWay}"/>
 
                     <Popup x:Name="licenseWarningPopup"
                            IsOpen="{Binding LicenseStatusManager.ShowPopup, Mode=TwoWay}"
