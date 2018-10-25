@@ -188,7 +188,7 @@ Function Remove-ServiceControlInstance {
     This switch enables the forwarding of consumed audit messages to the queue specified by AuditLogQueue
 
     .Parameter Transport
-    Specifies the Transport files to install. Valid options are Azure Service Bus - Forwarding topology, Azure Service Bus - Endpoint-oriented topology, Azure Service Bus,  AzureStorageQueue, MSMQ, AmazonSQS, SQLServer, RabbitMQ - Direct-Routing topology, and RabbitMQ - Conventional-Routing topology
+    Specifies the Transport files to install. Valid options are Azure Service Bus - Forwarding topology, Azure Service Bus - Endpoint-oriented topology, Azure Service Bus,  AzureStorageQueue, MSMQ, AmazonSQS, SQLServer, RabbitMQ - Direct routing topology, and RabbitMQ - Conventional routing topology
 
     .Parameter DisplayName
     Set the display name on the Windows Service, if not set the Name will be used
@@ -221,7 +221,7 @@ Function Add-ServiceControlInstance {
 		[ValidateNotNullOrEmpty()][string] $AuditQueue = "audit", 
 		[ValidateNotNullOrEmpty()][string] $ErrorLogQueue = "errorlog",
 		[ValidateNotNullOrEmpty()][string] $AuditLogQueue = "auditlog",
-		[Parameter(Mandatory)] [ValidateSet("Azure Service Bus - Endpoint-oriented topology","Azure Service Bus - Forwarding topology", "Azure Service Bus", "AzureStorageQueue","MSMQ","SQLServer","AmazonSQS","RabbitMQ - Direct-Routing topology","RabbitMQ - Conventional-Routing topology")] $Transport,
+		[Parameter(Mandatory)] [ValidateSet("Azure Service Bus - Endpoint-oriented topology","Azure Service Bus - Forwarding topology", "Azure Service Bus", "AzureStorageQueue","MSMQ","SQLServer","AmazonSQS","RabbitMQ - Direct routing topology","RabbitMQ - Conventional routing topology")] $Transport,
 		[string] $DisplayName,
 		[string] $ConnectionString,
 		[string] $VirtualDirectory,
@@ -650,7 +650,7 @@ Function Import-ServiceControlLicense {
     This switch enables the forwarding of consumed audit messages to the queue specified by AuditLogQueue
 
     .Parameter Transport
-    Specifies the Transport files to install. Valid options are Azure Service Bus - Forwarding topology, Azure Service Bus - Endpoint-oriented topology, Azure Service Bus, AzureStorageQueue, MSMQ, AmazonSQS, SQLServer, RabbitMQ - Direct-Routing topology, and RabbitMQ - Conventional-Routing topology
+    Specifies the Transport files to install. Valid options are Azure Service Bus - Forwarding topology, Azure Service Bus - Endpoint-oriented topology, Azure Service Bus, AzureStorageQueue, MSMQ, AmazonSQS, SQLServer, RabbitMQ - Direct routing topology, and RabbitMQ - Conventional routing topology
 
     .Parameter DisplayName
     Set the display name on the Windows Service, if not set the Name will be used
@@ -686,7 +686,7 @@ Function New-ServiceControlUnattendedFile {
 		[ValidateNotNullOrEmpty()][string] $AuditQueue = "audit", 
 		[ValidateNotNullOrEmpty()][string] $ErrorLogQueue = "errorlog",
 		[ValidateNotNullOrEmpty()][string] $AuditLogQueue = "auditlog",
-		[Parameter(Mandatory)] [ValidateSet("Azure Service Bus - Endpoint-oriented topology","Azure Service Bus - Forwarding topology", "Azure Service Bus", "AzureStorageQueue","MSMQ","SQLServer","AmazonSQS","RabbitMQ - Direct-Routing topology","RabbitMQ - Conventional-Routing topology")] $Transport,
+		[Parameter(Mandatory)] [ValidateSet("Azure Service Bus - Endpoint-oriented topology","Azure Service Bus - Forwarding topology", "Azure Service Bus", "AzureStorageQueue","MSMQ","SQLServer","AmazonSQS","RabbitMQ - Direct routing topology","RabbitMQ - Conventional routing topology")] $Transport,
 		[string] $DisplayName,
 		[string] $ConnectionString,
 		[string] $VirtualDirectory,

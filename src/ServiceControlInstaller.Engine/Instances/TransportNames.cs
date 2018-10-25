@@ -16,8 +16,8 @@
 
         public const string SQLServer = "SQLServer";
 
-        public const string RabbitMQConventionalRoutingTopology = "RabbitMQ - Conventional-Routing topology";
+        public const string RabbitMQConventionalRoutingTopology = "RabbitMQ - Conventional routing topology";
 
-        public const string RabbitMQDriectRoutingTopology = "RabbitMQ - Direct-Routing topology";
+        public const string RabbitMQDriectRoutingTopology = "RabbitMQ - Direct routing topology";
     }
 }
