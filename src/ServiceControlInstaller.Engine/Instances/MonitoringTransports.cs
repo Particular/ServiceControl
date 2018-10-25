@@ -8,10 +8,10 @@
     {
         public static List<TransportInfo> All => new List<TransportInfo>
         {
-            //INFO: Those types are used in the SCMU and in PS scripts. In both cases Match predicate is used to find a transprot info.
+            //INFO: Those types are used in the SCMU and in PS scripts. In both cases Match predicate is used to find a transport info.
             //      In the UI the matching is done based on the transport TypeName from app.config. In PS it's done based on human friendly names.
-            //      As a result the Match predicate should evalute to true both for TypeName and human firendly name.
-            //      Matching separatelly on Name and TypeName would not be enough because we need to be backwards compatible.
+            //      As a result the Match predicate should evalute to true both for TypeName and human friendly name.
+            //      Matching separately on Name and TypeName would not be enough because we need to be backwards compatible.
             //      As a result Match is comparing to old/current names, old/current types.
             new TransportInfo
             {
