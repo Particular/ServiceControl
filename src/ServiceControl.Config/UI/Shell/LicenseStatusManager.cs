@@ -13,6 +13,7 @@
     {
         public LicenseStatusManager(OpenViewModelCommand<LicenseViewModel> openLicense)
         {
+            openLicense.OnCommandExecuting = () => ShowPopup = false;
             OpenLicense = openLicense;
             RefreshStatus(true);
         }
