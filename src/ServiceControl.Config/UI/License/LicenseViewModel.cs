@@ -27,6 +27,7 @@
 
         public ICommand BrowseForFile => new SelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] {new CommonFileDialogFilter("License File", "xml")});
 
+        public bool CanExtendTrial { get; set; }
 
         protected override void OnActivate()
         {
@@ -38,6 +39,8 @@
             license = LicenseManager.FindLicense();
 
             Components = new LicenseComponentFactory().CreateComponents(license.Details).ToList();
+
+            CanExtendTrial = license.Details.IsTrialLicense;
         }
 
         void OpenLicenseFile(string path)
