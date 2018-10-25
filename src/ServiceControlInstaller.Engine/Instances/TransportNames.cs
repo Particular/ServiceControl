@@ -10,7 +10,7 @@
 
         public const string AmazonSQS = "AmazonSQS";
 
-        public const string AzureStorageQueue = "AzureStorageQueue";
+        public const string AzureStorageQueue = "Azure Storage Queue";
 
         public const string MSMQ = "MSMQ";
 
