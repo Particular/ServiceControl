@@ -14,7 +14,7 @@
 
         public const string MSMQ = "MSMQ";
 
-        public const string SQLServer = "SQLServer";
+        public const string SQLServer = "SQL Server";
 
         public const string RabbitMQConventionalRoutingTopology = "RabbitMQ - Conventional routing topology";
 
