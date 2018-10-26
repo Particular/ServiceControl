@@ -36,6 +36,12 @@
                 return false;
             }
 
+            if(LicenseExpirationChecker.HasLicenseExpired(license))
+            {
+                errorMessage = "Failed to import because the license has expired";
+                return false;
+            }
+
             try
             {
                 new RegistryLicenseStore(Registry.LocalMachine).StoreLicense(licenseText);
