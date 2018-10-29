@@ -6,7 +6,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sie="clr-namespace:ServiceControl.Config.UI.SharedInstanceEditor"
-             xmlns:uc="clr-namespace:ServiceControl.Config.UI.InstanceAdd"
              d:DesignHeight="800"
              d:DesignWidth="800"
              mc:Ignorable="d">
@@ -119,9 +118,11 @@
                                Text="TRANSPORT CONFIGURATION" />
                 </Border>
 
-                <uc:TransportComboBox Transports="{Binding Transports}" 
-                                      SelectedTransport="{Binding SelectedTransport}">
-                </uc:TransportComboBox>
+                <controls:FormComboBox HorizontalAlignment="Stretch"
+                                       DisplayMemberPath="Name"
+                                       Header="TRANSPORT"
+                                       ItemsSource="{Binding Transports}"
+                                       SelectedItem="{Binding SelectedTransport}" />
 
                 <controls:FormTextBox AcceptsReturn="True"
                                       Header="TRANSPORT CONNECTION STRING"

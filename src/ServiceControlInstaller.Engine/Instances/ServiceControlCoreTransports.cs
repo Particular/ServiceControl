@@ -20,7 +20,6 @@
             new TransportInfo
             {
                 Name = TransportNames.AzureServiceBusEndpointOrientedTopology,
-                IsLegacy = true,
                 TypeName = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
@@ -32,7 +31,6 @@
             new TransportInfo
             {
                 Name = TransportNames.AzureServiceBusForwardingTopology,
-                IsLegacy = true,
                 TypeName = "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
@@ -94,7 +92,6 @@
             new TransportInfo
             {
                 Name = TransportNames.RabbitMQDriectRoutingTopology,
-                IsLegacy = true,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>",
