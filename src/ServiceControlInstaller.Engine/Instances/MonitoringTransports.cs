@@ -102,8 +102,8 @@
                 TypeName = "ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>",
-                Matches = name => name.Equals("ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals(TransportNames.RabbitMQDriectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals(TransportNames.RabbitMQDriectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             }
         };
 
