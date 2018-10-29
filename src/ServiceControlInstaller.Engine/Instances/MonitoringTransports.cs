@@ -28,32 +28,32 @@
             {
                 Name = TransportNames.AzureServiceBusEndpointOrientedTopology,
                 IsLegacy = true,
-                ZipName = "AzureServiceBus",
-                TypeName = "ServiceControl.Transports.AzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus",
+                ZipName = "LegacyAzureServiceBus",
+                TypeName = "ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopology, StringComparison.OrdinalIgnoreCase)
-                          || name.Equals("ServiceControl.Transports.AzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                          || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
                 Name = TransportNames.AzureServiceBusForwardingTopology,
                 IsLegacy = true,
-                ZipName = "AzureServiceBus",
-                TypeName = "ServiceControl.Transports.AzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus",
+                ZipName = "LegacyAzureServiceBus",
+                TypeName = "ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals(TransportNames.AzureServiceBusForwardingTopology, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("ServiceControl.Transports.AzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
                 Name = TransportNames.AzureServiceBus,
-                ZipName = "NetStandardAzureServiceBus",
-                TypeName = "ServiceControl.Transports.AzureServiceBusStandard.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBusStandard",
+                ZipName = "AzureServiceBus",
+                TypeName = "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>",
                 Matches = name => name.Equals(TransportNames.AzureServiceBus, StringComparison.OrdinalIgnoreCase)
-                          || name.Equals("ServiceControl.Transports.AzureServiceBusStandard.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBusStandard", StringComparison.OrdinalIgnoreCase)
+                          || name.Equals("ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
