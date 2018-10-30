@@ -10,6 +10,12 @@
         readonly DateTime today;
         const int ExpiryWarningPeriodInDays = 10;
 
+        CountInflector daysInflector = new CountInflector
+        {
+            Singular = "{0} day",
+            Plural = "{0} days"
+        };
+
         public LicenseComponentFactory(DateTime? today = null)
         {
             this.today = today ?? DateTime.Today;
@@ -56,7 +62,7 @@
 
             var value = new StringBuilder(expiryDate.ToShortDateString());
 
-            var daysUntilExpiry = (int)(expiryDate - today).TotalDays;
+            var daysUntilExpiry = (int)(expiryDate - today).TotalDays + 1;
 
             if (daysUntilExpiry < 0)
             {
@@ -67,9 +73,9 @@
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
-                value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} left");
+                value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
                 component.Importance = Importance.Warning;
-                component.ShortText = $"Warning: Trial expiring in {Inflect(daysUntilExpiry, "day", "days")}";
+                component.ShortText = $"Warning: Trial expiring in {daysInflector.Inflect(daysUntilExpiry)}";
                 component.WarningText = "Your trial will expire soon. To continue using the Particular Service Platform you'll need to extend your trial or purchase a license.";
             }
 
@@ -85,7 +91,7 @@
 
             var value = new StringBuilder(expiryDate.ToShortDateString());
 
-            var daysUntilExpiry = (int)(expiryDate - today).TotalDays;
+            var daysUntilExpiry = (int)(expiryDate - today).TotalDays + 1;
 
             if (daysUntilExpiry < 0)
             {
@@ -96,9 +102,9 @@
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
-                value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} left");
+                value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
                 component.Importance = Importance.Serious;
-                component.ShortText = $"Warning: Platform license expiring in {Inflect(daysUntilExpiry, "day", "days")}";
+                component.ShortText = $"Warning: Platform license expiring in {daysInflector.Inflect(daysUntilExpiry)}";
                 component.WarningText = "Once the license expires you'll no longer be able to continue using the Particular Service Platform.";
             }
 
@@ -113,7 +119,7 @@
 
             var value = new StringBuilder(upgradeProtectionExpiryDate.ToShortDateString());
 
-            var daysUntilExpiry = (int)(upgradeProtectionExpiryDate - today).TotalDays;
+            var daysUntilExpiry = (int)(upgradeProtectionExpiryDate - today).TotalDays + 1;
 
             if (daysUntilExpiry < 0)
             {
@@ -124,20 +130,15 @@
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
-                value.AppendFormat($" - {Inflect(daysUntilExpiry, "day", "days")} left");
+                value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
                 component.Importance = Importance.Warning;
-                component.ShortText = $"Warning: Upgrade protection expiring in {Inflect(daysUntilExpiry, "day", "days")}";
+                component.ShortText = $"Warning: Upgrade protection expiring in {daysInflector.Inflect(daysUntilExpiry)}";
                 component.WarningText = "Once upgrade protection expires, you'll no longer have access to support or new product versions.";
             }
 
             component.Value = value.ToString();
 
             return component;
-
         }
-
-        static string Inflect(int count, string singular, string plural) => count == 1
-            ? $"{count} {singular}"
-            : $"{count} {plural}";
     }
 }
