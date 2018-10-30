@@ -12,6 +12,7 @@
 
         public bool IsSerious => Importance == Importance.Serious;
         public bool IsWarning => Importance == Importance.Warning;
+        public string WarningLabel { get; set; }
 
         public override string ToString()
         {

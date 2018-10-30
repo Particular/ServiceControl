@@ -77,6 +77,7 @@
                 component.Importance = Importance.Warning;
                 component.ShortText = $"Warning: Trial expiring in {daysInflector.Inflect(daysUntilExpiry)}";
                 component.WarningText = "Your trial will expire soon. To continue using the Particular Service Platform you'll need to extend your trial or purchase a license.";
+                component.WarningLabel = "Warning: ";
             }
 
             component.Value = value.ToString();
@@ -106,6 +107,7 @@
                 component.Importance = Importance.Serious;
                 component.ShortText = $"Warning: Platform license expiring in {daysInflector.Inflect(daysUntilExpiry)}";
                 component.WarningText = "Once the license expires you'll no longer be able to continue using the Particular Service Platform.";
+                component.WarningLabel = "Warning: ";
             }
 
             component.Value = value.ToString();
@@ -127,6 +129,7 @@
                 component.Importance = Importance.Warning;
                 component.ShortText = "Platform license expired";
                 component.WarningText = "Once upgrade protection expires, you'll no longer have access to support or new product versions.";
+                component.WarningLabel = "Warning: ";
             }
             else if (daysUntilExpiry < ExpiryWarningPeriodInDays)
             {
@@ -134,6 +137,7 @@
                 component.Importance = Importance.Warning;
                 component.ShortText = $"Warning: Upgrade protection expiring in {daysInflector.Inflect(daysUntilExpiry)}";
                 component.WarningText = "Once upgrade protection expires, you'll no longer have access to support or new product versions.";
+                component.WarningLabel = "Warning: ";
             }
 
             component.Value = value.ToString();

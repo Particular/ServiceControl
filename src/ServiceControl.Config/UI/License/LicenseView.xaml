@@ -46,19 +46,19 @@
                 BorderThickness="0,1,0,0" />
 
         <ItemsControl Grid.Row="1"
-                      Margin="0,20,0,0"
+                      Margin="0,0,0,0"
                       VerticalAlignment="Top"
                       ItemsSource="{Binding Path=Components}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Margin="5,5"
+                        <StackPanel Orientation="Horizontal" Margin="5,20,20,0">
+                            <TextBlock Margin="5,0"
                                        FontSize="12"
                                        FontWeight="SemiBold"
                                        Text="{Binding Path=Label}" />
                             <TextBlock Name="Value"
-                                       Margin="5,5"
+                                       Margin="0,0,5,0"
                                        FontSize="12"
                                        Foreground="{StaticResource Gray90Brush}"
                                        Text="{Binding Path=Value}">
@@ -75,6 +75,7 @@
                                    Margin="24,5"
                                    Visibility="{Binding Path=WarningText, Converter={StaticResource nullOrEmptyToVis}}">
                             <TextBlock.Inlines>
+                                <Run Text="{Binding Path=WarningLabel}" FontWeight="Bold" />
                                 <Run Text="{Binding Path=WarningText}" />
                             </TextBlock.Inlines>
                         </TextBlock>
