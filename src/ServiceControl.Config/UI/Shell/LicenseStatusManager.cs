@@ -9,7 +9,7 @@
     using License;
     using ServiceControlInstaller.Engine.LicenseMgmt;
 
-    class LicenseStatusManager : RxScreen, IHandle<LicenseUpdated>
+    class LicenseStatusManager : RxScreen, IHandle<LicenseUpdated>, IHandle<FocusChanged>
     {
         public LicenseStatusManager(OpenViewModelCommand<LicenseViewModel> openLicense)
         {
@@ -22,7 +22,7 @@
 
         public bool ShowPopup
         {
-            get => (IsSerious || IsWarning) && forcePopup;
+            get => (IsSerious || IsWarning) && forcePopup && HasFocus;
             set => forcePopup = value;
         }
 
@@ -33,6 +33,12 @@
 
         public bool IsWarning { get; set; }
         public bool IsSerious { get; set; }
+        public bool HasFocus { get; set; }
+
+        public void Handle(FocusChanged message)
+        {
+            HasFocus = message.HasFocus;
+        }
 
         public void Handle(LicenseUpdated message)
         {

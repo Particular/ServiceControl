@@ -24,6 +24,8 @@
 
                 window.LocationChanged += Window_LocationChanged;
                 window.SizeChanged += Window_SizeChanged;
+                window.LostKeyboardFocus += (s, e) => IoC.Get<IEventAggregator>().PublishOnUIThread(new FocusChanged { HasFocus = false });
+                window.GotKeyboardFocus += (s, e) => IoC.Get<IEventAggregator>().PublishOnUIThread(new FocusChanged { HasFocus = true });
             };
         }
 
