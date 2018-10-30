@@ -18,7 +18,7 @@
 
         public const string RabbitMQConventionalRoutingTopology = "RabbitMQ - Conventional routing topology";
 
-        public const string RabbitMQDriectRoutingTopology = "RabbitMQ - Direct routing topology (Old)";
+        public const string RabbitMQDirectRoutingTopology = "RabbitMQ - Direct routing topology (Old)";
 
         TransportNames() { }
     }

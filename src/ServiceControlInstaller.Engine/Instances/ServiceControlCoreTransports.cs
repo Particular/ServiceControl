@@ -91,11 +91,11 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQDriectRoutingTopology,
+                Name = TransportNames.RabbitMQDirectRoutingTopology,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>",
-                Matches = name => name.Equals(TransportNames.RabbitMQDriectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals(TransportNames.RabbitMQDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             }
         };

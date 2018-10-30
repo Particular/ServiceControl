@@ -33,7 +33,7 @@ public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegra
         return Task.FromResult(0);
     }
 
-    public string Name => TransportNames.RabbitMQDriectRoutingTopology;
+    public string Name => TransportNames.RabbitMQDirectRoutingTopology;
     public string TypeName => $"{typeof(RabbitMQDirectRoutingTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 
