@@ -81,11 +81,11 @@
         public void TransportNames()
         {
             //HINT: Those names are used in PowerShell scripts thus constitute a public api
-            var transprotNamesType = typeof(ServiceControlInstaller.Engine.Instances.TransportNames);
+            var transportNamesType = typeof(ServiceControlInstaller.Engine.Instances.TransportNames);
 
-            var publicTransprotNames = ApiGenerator.GeneratePublicApi(transprotNamesType.Assembly, new []{ transprotNamesType });
+            var publicTransportNames = ApiGenerator.GeneratePublicApi(transportNamesType.Assembly, new []{ transportNamesType });
 
-            Approver.Verify(publicTransprotNames);
+            Approver.Verify(publicTransportNames);
         }
     }
 }
