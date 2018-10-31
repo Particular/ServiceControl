@@ -62,7 +62,7 @@
 
             var value = new StringBuilder(expiryDate.ToShortDateString());
 
-            var daysUntilExpiry = (int)(expiryDate - today).TotalDays + 1;
+            var daysUntilExpiry = (int)(expiryDate - today).TotalDays;
 
             if (daysUntilExpiry < 0)
             {
