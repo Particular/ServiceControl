@@ -75,7 +75,6 @@
                                    Margin="24,5"
                                    Visibility="{Binding Path=WarningText, Converter={StaticResource nullOrEmptyToVis}}">
                             <TextBlock.Inlines>
-                                <Run Text="{Binding Path=WarningLabel}" FontWeight="Bold" />
                                 <Run Text="{Binding Path=WarningText}" />
                             </TextBlock.Inlines>
                         </TextBlock>
