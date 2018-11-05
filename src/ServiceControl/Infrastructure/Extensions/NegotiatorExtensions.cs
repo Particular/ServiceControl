@@ -98,6 +98,8 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
             var queryParts = HttpUtility.ParseQueryString(request.Url.Query);
             var url = request.Url.Clone();
+
+
             var query = new StringBuilder();
 
             query.Append("?");
@@ -134,8 +136,9 @@ namespace ServiceBus.Management.Infrastructure.Extensions
         static void AddLink(ICollection<string> links, int page, string rel, string queryParams, Url url)
         {
             url.Query = queryParams + "page=" + page;
-
-            links.Add($"<{url}>; rel=\"{rel}\"");
+            Uri uri = url;
+        
+            links.Add($"<{uri.PathAndQuery}>; rel=\"{rel}\"");
         }
 
         public static Negotiator WithEtag(this Negotiator negotiator, RavenQueryStatistics stats)
