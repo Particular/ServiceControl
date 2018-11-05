@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
-    using System;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using NServiceBus;
@@ -34,7 +33,7 @@
 
                     return true;
                 })
-                .Run(TimeSpan.FromSeconds(30));
+                .Run();
 
             Assert.AreEqual(endpointName, endpoint?.Name);
         }

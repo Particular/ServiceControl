@@ -48,7 +48,7 @@
 
                     return true;
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
 
             Console.WriteLine(JsonConvert.SerializeObject(auditedMessage));
 

@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Audit
 {
-    using System;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using NServiceBus;
@@ -20,7 +19,7 @@
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
                 .Done(async c => c.MessageId != null && await this.TryGetMany<MessagesView>($"/api/endpoints/{c.EndpointNameOfReceivingEndpoint}/messages/search/{c.MessageId}"))
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
         }
 
         public class Sender : EndpointConfigurationBuilder

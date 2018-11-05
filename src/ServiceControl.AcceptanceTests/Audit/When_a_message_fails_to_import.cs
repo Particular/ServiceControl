@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Audit
 {
-    using System;
     using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
@@ -60,7 +59,7 @@
 
                     return await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}");
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
         }
 
         class FailOnceEnricher : ImportEnricher
