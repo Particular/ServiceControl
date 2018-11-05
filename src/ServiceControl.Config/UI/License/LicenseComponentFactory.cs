@@ -10,6 +10,10 @@
         readonly DateTime today;
         const int ExpiryWarningPeriodInDays = 10;
 
+        const string TrialLicenseText = "Please extend your trial or purchase a license to continue using the Particular Service Platform.";
+        const string UpgradeProtectionLicenseText = "Please extend your upgrade protection so that we can continue to provide you with support and new versions of the Particular Service Platform.";
+        const string SubscriptionLicenseText = "Please extend your license to continue using the Particular Service Platform.";
+
         CountInflector daysInflector = new CountInflector
         {
             Singular = "{0} day",
@@ -69,15 +73,14 @@
                 value.Append(" - expired");
                 component.Importance = Importance.Serious;
                 component.ShortText = "Trial expired";
-                component.WarningText = "Your trial has expired. To continue using the Particular Service Platform you'll need to extend your trial or purchase a license.";
+                component.WarningText = TrialLicenseText;
             }
             else if (daysUntilExpiry <= ExpiryWarningPeriodInDays)
             {
                 value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
                 component.Importance = Importance.Warning;
                 component.ShortText = $"Warning: Trial expiring in {daysInflector.Inflect(daysUntilExpiry)}";
-                component.WarningText = "Your trial will expire soon. To continue using the Particular Service Platform you'll need to extend your trial or purchase a license.";
-                component.WarningLabel = "Warning: ";
+                component.WarningText = TrialLicenseText;
             }
 
             component.Value = value.ToString();
@@ -99,15 +102,14 @@
                 value.Append(" - expired");
                 component.Importance = Importance.Serious;
                 component.ShortText = "Platform license expired";
-                component.WarningText = "Your platform license has expired. Please update your license to continue using the Particular Service Platform.";
+                component.WarningText = SubscriptionLicenseText;
             }
             else if (daysUntilExpiry <= ExpiryWarningPeriodInDays)
             {
                 value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
                 component.Importance = Importance.Serious;
                 component.ShortText = $"Warning: Platform license expiring in {daysInflector.Inflect(daysUntilExpiry)}";
-                component.WarningText = "Once the license expires you'll no longer be able to continue using the Particular Service Platform.";
-                component.WarningLabel = "Warning: ";
+                component.WarningText = SubscriptionLicenseText;
             }
 
             component.Value = value.ToString();
@@ -128,16 +130,14 @@
                 value.Append(" - expired");
                 component.Importance = Importance.Warning;
                 component.ShortText = "Platform license expired";
-                component.WarningText = "Once upgrade protection expires, you'll no longer have access to support or new product versions.";
-                component.WarningLabel = "Warning: ";
+                component.WarningText = UpgradeProtectionLicenseText;
             }
             else if (daysUntilExpiry <= ExpiryWarningPeriodInDays)
             {
                 value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
                 component.Importance = Importance.Warning;
                 component.ShortText = $"Warning: Upgrade protection expiring in {daysInflector.Inflect(daysUntilExpiry)}";
-                component.WarningText = "Once upgrade protection expires, you'll no longer have access to support or new product versions.";
-                component.WarningLabel = "Warning: ";
+                component.WarningText = UpgradeProtectionLicenseText;
             }
 
             component.Value = value.ToString();
