@@ -85,7 +85,7 @@
                 return;
             }
 
-            var summary = Get(requestId, retryType);
+            var summary = GetOrCreate(retryType, requestId);
 
             await summary.Forwarding().ConfigureAwait(false);
         }
@@ -97,7 +97,7 @@
                 return;
             }
 
-            var summary = Get(requestId, retryType);
+            var summary = GetOrCreate(retryType, requestId);
 
             await summary.BatchForwarded(numberOfMessagesForwarded)
                 .ConfigureAwait(false);
@@ -131,11 +131,6 @@
         {
             var key = InMemoryRetry.MakeOperationId(requestId, retryType);
             return retryOperations.GetOrAdd(key, _ => new InMemoryRetry(requestId, retryType, domainEvents));
-        }
-
-        private InMemoryRetry Get(string requestId, RetryType retryType)
-        {
-            return retryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)];
         }
 
         public InMemoryRetry GetStatusForRetryOperation(string requestId, RetryType retryType)
