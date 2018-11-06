@@ -13,7 +13,7 @@
         [Test]
         public void WithPagingLinks_ReturnsLinksWithRelativeUri()
         {
-            var pagingHeaders = GetLinks(200, currentPage: 3, path: "/api/test");
+            var pagingHeaders = GetLinks(totalResults: 200, currentPage: 3, path: "/api/test");
 
             Assert.Contains("</api/test?page=4>; rel=\"next\"", pagingHeaders);
             Assert.Contains("</api/test?page=4>; rel=\"last\"", pagingHeaders);
@@ -24,7 +24,7 @@
         [Test]
         public void WithPagingLinks_KeepsExistingQueryParams()
         {
-            var pagingHeaders = GetLinks(100, path: "/api", queryParams: "token=abc&id=42");
+            var pagingHeaders = GetLinks(totalResults: 100, path: "/api", queryParams: "token=abc&id=42");
 
             Assert.Contains("</api?token=abc&id=42&page=2>; rel=\"next\"", pagingHeaders);
             Assert.Contains("</api?token=abc&id=42&page=2>; rel=\"last\"", pagingHeaders);
@@ -33,7 +33,7 @@
         [Test]
         public void WithPagingLinks_WhenHasNextPage_AddNextPageLink()
         {
-            var pagingHeaders = GetLinks(51);
+            var pagingHeaders = GetLinks(totalResults: 51);
 
             Assert.Contains("</?page=2>; rel=\"next\"", pagingHeaders);
         }
@@ -41,7 +41,7 @@
         [Test]
         public void WithPagingLinks_WhenHasNoNextPage_AddNoNextPageLink()
         {
-            var pagingHeaders = GetLinks(50);
+            var pagingHeaders = GetLinks(totalResults: 50);
 
             Assert.IsEmpty(pagingHeaders);
         }
@@ -49,7 +49,7 @@
         [Test]
         public void WithPagingLinks_WhenHasNextPage_AddLastPageLink()
         {
-            var pagingHeaders = GetLinks(51, 150);
+            var pagingHeaders = GetLinks(totalResults: 51, 150);
 
             Assert.Contains("</?page=3>; rel=\"last\"", pagingHeaders);
         }
@@ -57,7 +57,7 @@
         [Test]
         public void WithPagingLinks_WhenHasNoNextPage_AddNoLastPageLink()
         {
-            var pagingHeaders = GetLinks(49, 150);
+            var pagingHeaders = GetLinks(totalResults: 49, 150);
 
             Assert.IsEmpty(pagingHeaders);
         }
@@ -65,7 +65,7 @@
         [Test]
         public void WithPagingLinks_WhenHasPreviousPage_AddPreviousPageLink()
         {
-            var pagingHeaders = GetLinks(120, currentPage: 3);
+            var pagingHeaders = GetLinks(totalResults: 120, currentPage: 3);
 
             Assert.Contains("</?page=2>; rel=\"prev\"", pagingHeaders);
         }
@@ -73,7 +73,7 @@
         [Test]
         public void WithPagingLinks_WhenHasNoPreviousPage_AddNoPreviousPageLink()
         {
-            var pagingHeaders = GetLinks(51, currentPage: 1);
+            var pagingHeaders = GetLinks(totalResults: 51, currentPage: 1);
 
             Assert.IsFalse(pagingHeaders.Any(link => link.Contains("rel=\"prev\"")));
         }
@@ -81,7 +81,7 @@
         [Test]
         public void WithPagingLinks_WhenHasPreviousPage_AddFirstPageLink()
         {
-            var pagingHeaders = GetLinks(200, currentPage: 4);
+            var pagingHeaders = GetLinks(totalResults: 200, currentPage: 4);
 
             Assert.Contains("</?page=1>; rel=\"first\"", pagingHeaders);
         }
@@ -89,7 +89,7 @@
         [Test]
         public void WithPagingLinks_WhenHasNoPreviousPage_AddNoFirstPageLink()
         {
-            var pagingHeaders = GetLinks(200, currentPage: 1);
+            var pagingHeaders = GetLinks(totalResults: 200, currentPage: 1);
 
             Assert.IsFalse(pagingHeaders.Any(link => link.Contains("rel=\"first\"")));
         }
@@ -97,7 +97,7 @@
         [Test]
         public void WithPagingLinks_WhenDefiningCustomPageSize_AdjustPagingToCustomPageSize()
         {
-            var pagingHeaders = GetLinks(300, currentPage: 2, resultsPerPage: 100);
+            var pagingHeaders = GetLinks(totalResults: 300, currentPage: 2, resultsPerPage: 100);
 
             Assert.Contains("</?per_page=100&page=3>; rel=\"next\"", pagingHeaders);
             Assert.Contains("</?per_page=100&page=3>; rel=\"last\"", pagingHeaders);
