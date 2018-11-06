@@ -10,7 +10,7 @@
     [TestFixture]
     public class NegotiatorExtensionsTests
     {
-        [TestCase]
+        [Test]
         public void WithPagingLinks_ReturnsLinksWithRelativeUri()
         {
             var pagingHeaders = GetLinks(200, currentPage: 3, path: "/api/test");
@@ -21,7 +21,7 @@
             Assert.Contains("</api/test?page=1>; rel=\"first\"", pagingHeaders);
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_KeepsExistingQueryParams()
         {
             var pagingHeaders = GetLinks(100, path: "/api", queryParams: "token=abc&id=42");
@@ -30,7 +30,7 @@
             Assert.Contains("</api?token=abc&id=42&page=2>; rel=\"last\"", pagingHeaders);
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenHasNextPage_AddNextPageLink()
         {
             var pagingHeaders = GetLinks(51);
@@ -38,7 +38,7 @@
             Assert.Contains("</?page=2>; rel=\"next\"", pagingHeaders);
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenHasNoNextPage_AddNoNextPageLink()
         {
             var pagingHeaders = GetLinks(50);
@@ -46,7 +46,7 @@
             Assert.IsEmpty(pagingHeaders);
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenHasNextPage_AddLastPageLink()
         {
             var pagingHeaders = GetLinks(51, 150);
@@ -54,7 +54,7 @@
             Assert.Contains("</?page=3>; rel=\"last\"", pagingHeaders);
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenHasNoNextPage_AddNoLastPageLink()
         {
             var pagingHeaders = GetLinks(49, 150);
@@ -62,7 +62,7 @@
             Assert.IsEmpty(pagingHeaders);
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenHasPreviousPage_AddPreviousPageLink()
         {
             var pagingHeaders = GetLinks(120, currentPage: 3);
@@ -70,7 +70,7 @@
             Assert.Contains("</?page=2>; rel=\"prev\"", pagingHeaders);
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenHasNoPreviousPage_AddNoPreviousPageLink()
         {
             var pagingHeaders = GetLinks(51, currentPage: 1);
@@ -78,7 +78,7 @@
             Assert.IsFalse(pagingHeaders.Any(link => link.Contains("rel=\"prev\"")));
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenHasPreviousPage_AddFirstPageLink()
         {
             var pagingHeaders = GetLinks(200, currentPage: 4);
@@ -86,7 +86,7 @@
             Assert.Contains("</?page=1>; rel=\"first\"", pagingHeaders);
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenHasNoPreviousPage_AddNoFirstPageLink()
         {
             var pagingHeaders = GetLinks(200, currentPage: 1);
@@ -94,7 +94,7 @@
             Assert.IsFalse(pagingHeaders.Any(link => link.Contains("rel=\"first\"")));
         }
 
-        [TestCase]
+        [Test]
         public void WithPagingLinks_WhenDefiningCustomPageSize_AdjustPagingToCustomPageSize()
         {
             var pagingHeaders = GetLinks(300, currentPage: 2, resultsPerPage: 100);
