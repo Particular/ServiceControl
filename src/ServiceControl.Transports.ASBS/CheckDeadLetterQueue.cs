@@ -14,31 +14,39 @@
             Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            var transportConnectionString = connectionStringSettings.ConnectionString;
-            managementClient = new ManagementClient(transportConnectionString);
+            connectionString = connectionStringSettings.ConnectionString;
             stagingQueue = $"{settings.EndpointName}.staging";
         }
 
         public async override Task<CheckResult> PerformCheck()
         {
             Logger.Debug("Checking Dead Letter Queue length");
+            var managementClient  = new ManagementClient(connectionString);
 
-            var queueRuntimeInfo = await managementClient.GetQueueRuntimeInfoAsync(stagingQueue).ConfigureAwait(false);
-            var deadLetterMessageCount = queueRuntimeInfo.MessageCountDetails.DeadLetterMessageCount;
-
-            if (deadLetterMessageCount > 0)
+            try
             {
-                var result = $"{deadLetterMessageCount} messages in the Dead Letter Queue '{stagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular using support@particular.net if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
+                var queueRuntimeInfo = await managementClient.GetQueueRuntimeInfoAsync(stagingQueue).ConfigureAwait(false);
+                var deadLetterMessageCount = queueRuntimeInfo.MessageCountDetails.DeadLetterMessageCount;
 
-                Logger.Warn(result);
-                return CheckResult.Failed(result);
+                if (deadLetterMessageCount > 0)
+                {
+                    var result = $"{deadLetterMessageCount} messages in the Dead Letter Queue '{stagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular using support@particular.net if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
+
+                    Logger.Warn(result);
+                    return CheckResult.Failed(result);
+                }
+
+                Logger.Debug("No messages in Dead Letter Queue");
             }
-
-            Logger.Debug("No messages in Dead Letter Queue");
+            finally
+            {
+                await managementClient.CloseAsync().ConfigureAwait(false);
+            }
+            
             return CheckResult.Pass;
         }
 
-        ManagementClient managementClient;
+        string connectionString;
         string stagingQueue;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
