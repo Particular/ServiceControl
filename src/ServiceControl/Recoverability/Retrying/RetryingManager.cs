@@ -37,7 +37,7 @@
 
         public bool IsRetryInProgressFor(string requestId)
         {
-            return retryOperations.Keys.Where(key => key.EndsWith($"/{requestId}")).Any(key => retryOperations[key].IsInProgress());
+            return retryOperations.Values.Any(o => o.RequestId == requestId && o.IsInProgress());
         }
 
         public async Task Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)

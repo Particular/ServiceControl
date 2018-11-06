@@ -9,11 +9,12 @@
     {
         public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents)
         {
-            this.requestId = requestId;
+            this.RequestId = requestId;
             this.retryType = retryType;
             this.domainEvents = domainEvents;
         }
 
+        public string RequestId { get; }
         public int TotalNumberOfMessages { get; private set; }
         public int NumberOfMessagesPrepared { get; private set; }
         public int NumberOfMessagesForwarded { get; private set; }
@@ -48,7 +49,7 @@
 
             return domainEvents.Raise(new RetryOperationWaiting
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 RetryType = retryType,
                 Progress = GetProgress(),
                 StartTime = Started
@@ -69,7 +70,7 @@
 
             return domainEvents.Raise(new RetryOperationPreparing
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 RetryType = retryType,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
@@ -84,7 +85,7 @@
 
             return domainEvents.Raise(new RetryOperationPreparing
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 RetryType = retryType,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
@@ -109,7 +110,7 @@
 
             return domainEvents.Raise(new RetryOperationForwarding
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 RetryType = retryType,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
@@ -124,7 +125,7 @@
 
             await domainEvents.Raise(new RetryMessagesForwarded
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 RetryType = retryType,
                 TotalNumberOfMessages = TotalNumberOfMessages,
                 Progress = GetProgress(),
@@ -153,7 +154,7 @@
 
             await domainEvents.Raise(new RetryOperationCompleted
             {
-                RequestId = requestId,
+                RequestId = RequestId,
                 RetryType = retryType,
                 Failed = Failed,
                 Progress = GetProgress(),
@@ -175,7 +176,7 @@
                 }).ConfigureAwait(false);
             }
 
-            Log.Info($"Retry operation {requestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
+            Log.Info($"Retry operation {RequestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");
         }
 
         public RetryProgress GetProgress()
@@ -198,7 +199,6 @@
             return RetryState != RetryState.Completed && RetryState != RetryState.Waiting;
         }
 
-        private readonly string requestId;
         private readonly RetryType retryType;
 
         IDomainEvents domainEvents;
