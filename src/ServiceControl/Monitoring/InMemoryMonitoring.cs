@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
-    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using NServiceBus;
@@ -28,14 +27,12 @@
             });
         }
 
-        private static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
 
         class MonitorEndpointInstances : FeatureStartupTask
         {
-            public MonitorEndpointInstances(EndpointInstanceMonitoring monitor, TimeKeeper timeKeeper, MonitoringDataPersister persistence)
+            public MonitorEndpointInstances(EndpointInstanceMonitoring monitor, MonitoringDataPersister persistence)
             {
                 this.monitor = monitor;
-                this.timeKeeper = timeKeeper;
                 this.persistence = persistence;
             }
 
@@ -44,34 +41,30 @@
             protected override async Task OnStart(IMessageSession session)
             {
                 await persistence.WarmupMonitoringFromPersistence().ConfigureAwait(false);
-                timer = timeKeeper.New(CheckEndpoints, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+                timer = new AsyncTimer(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e =>
+                {
+                    log.Error("Exception occurred when monitoring endpoint instances", e);
+                });
             }
 
-            private async Task CheckEndpoints()
+            async Task<TimerJobExecutionResult> CheckEndpoints()
             {
-                try
-                {
-                    var inactivityThreshold = DateTime.UtcNow - GracePeriod;
-                    log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
-                    await monitor.CheckEndpoints(inactivityThreshold)
-                        .ConfigureAwait(false);
-                }
-                catch (Exception exception)
-                {
-                    log.Error("Exception occurred when monitoring endpoint instances", exception);
-                }
+                var inactivityThreshold = DateTime.UtcNow - GracePeriod;
+                log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
+                await monitor.CheckEndpoints(inactivityThreshold).ConfigureAwait(false);
+                return TimerJobExecutionResult.ScheduleNextExecution;
             }
 
             protected override Task OnStop(IMessageSession session)
             {
-                timeKeeper.Release(timer);
-                return Task.FromResult(0);
+                return timer.Stop();
             }
 
-            private readonly EndpointInstanceMonitoring monitor;
-            private readonly TimeKeeper timeKeeper;
-            private readonly MonitoringDataPersister persistence;
-            private Timer timer;
+            EndpointInstanceMonitoring monitor;
+            MonitoringDataPersister persistence;
+            AsyncTimer timer;
         }
+
+        static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
     }
 }

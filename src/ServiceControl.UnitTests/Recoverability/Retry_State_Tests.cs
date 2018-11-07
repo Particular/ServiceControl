@@ -55,7 +55,7 @@
                     OperationManager = retryManager
                 };
 
-                var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, null, documentStore);
+                var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, documentStore);
                 await orphanage.AdoptOrphanedBatchesAsync();
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
