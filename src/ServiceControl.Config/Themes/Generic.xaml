@@ -221,7 +221,7 @@
                             <Border x:Name="Border"
                                     Grid.Row="1"
                                     MinWidth="300"
-                                    HorizontalAlignment="Left"
+                                    HorizontalAlignment="Stretch"
                                     Background="{StaticResource WhiteBrush}"
                                     BorderThickness="1">
                                 <Border.BorderBrush>
@@ -280,7 +280,7 @@
                             <ToggleButton x:Name="ToggleButton"
                                           Grid.Row="1"
                                           MinWidth="300"
-                                          HorizontalAlignment="Left"
+                                          HorizontalAlignment="Stretch"
                                           ClickMode="Press"
                                           Focusable="false"
                                           IsChecked="{Binding IsDropDownOpen,
