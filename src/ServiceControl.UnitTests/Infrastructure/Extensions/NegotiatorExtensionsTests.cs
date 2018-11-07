@@ -11,23 +11,23 @@
     public class NegotiatorExtensionsTests
     {
         [Test]
-        public void WithPagingLinks_ReturnsLinksWithRelativeUri()
+        public void WithPagingLinks_ReturnsLinksWithRelativeUriButWithoutApiPrefix()
         {
-            var pagingHeaders = GetLinks(totalResults: 200, currentPage: 3, path: "/api/test");
+            var pagingHeaders = GetLinks(totalResults: 200, currentPage: 3, path: "/test1/test2");
 
-            Assert.Contains("</api/test?page=4>; rel=\"next\"", pagingHeaders);
-            Assert.Contains("</api/test?page=4>; rel=\"last\"", pagingHeaders);
-            Assert.Contains("</api/test?page=2>; rel=\"prev\"", pagingHeaders);
-            Assert.Contains("</api/test?page=1>; rel=\"first\"", pagingHeaders);
+            Assert.Contains("</test1/test2?page=4>; rel=\"next\"", pagingHeaders);
+            Assert.Contains("</test1/test2?page=4>; rel=\"last\"", pagingHeaders);
+            Assert.Contains("</test1/test2?page=2>; rel=\"prev\"", pagingHeaders);
+            Assert.Contains("</test1/test2?page=1>; rel=\"first\"", pagingHeaders);
         }
 
         [Test]
         public void WithPagingLinks_KeepsExistingQueryParams()
         {
-            var pagingHeaders = GetLinks(totalResults: 100, path: "/api", queryParams: "token=abc&id=42");
+            var pagingHeaders = GetLinks(totalResults: 100, path: "/test", queryParams: "token=abc&id=42");
 
-            Assert.Contains("</api?token=abc&id=42&page=2>; rel=\"next\"", pagingHeaders);
-            Assert.Contains("</api?token=abc&id=42&page=2>; rel=\"last\"", pagingHeaders);
+            Assert.Contains("</test?token=abc&id=42&page=2>; rel=\"next\"", pagingHeaders);
+            Assert.Contains("</test?token=abc&id=42&page=2>; rel=\"last\"", pagingHeaders);
         }
 
         [Test]
@@ -114,7 +114,10 @@
             string queryParams = null)
         {
             var negotiator = new Negotiator(new NancyContext());
-            var request = new Request("GET", $"name.tld:99{ path ?? string.Empty }", "schema");
+            var request = new Request("GET", $"{ path ?? string.Empty }", "schema");
+            request.Url.HostName = "name.tld";
+            request.Url.Port = 99;
+            request.Url.BasePath = "/api";
             var queryString = "?";
 
             if (resultsPerPage.HasValue)
