@@ -23,7 +23,7 @@
                 })))
                 .WithEndpoint<Receiver>()
                 .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + c.PropertyToSearchFor))
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
         }
 
         public class Sender : EndpointConfigurationBuilder

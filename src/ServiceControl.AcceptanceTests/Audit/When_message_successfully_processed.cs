@@ -29,7 +29,7 @@
                     knownEndpoints = result;
                     return result;
                 })
-                .Run(TimeSpan.FromSeconds(20));
+                .Run();
 
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).Name);
             Assert.AreEqual(Environment.MachineName, knownEndpoints.Single(e => e.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);

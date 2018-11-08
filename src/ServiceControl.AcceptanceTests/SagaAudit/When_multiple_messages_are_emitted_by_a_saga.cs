@@ -27,7 +27,7 @@
                     sagaHistory = result;
                     return c.Done && result;
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
 
             Assert.NotNull(sagaHistory);
 
