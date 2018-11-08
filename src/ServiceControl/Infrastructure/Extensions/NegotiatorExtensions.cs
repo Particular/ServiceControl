@@ -97,7 +97,8 @@ namespace ServiceBus.Management.Infrastructure.Extensions
             }
 
             var queryParts = HttpUtility.ParseQueryString(request.Url.Query);
-            var url = request.Url.Clone();
+            var path = request.Url.Path;
+
             var query = new StringBuilder();
 
             query.Append("?");
@@ -110,32 +111,32 @@ namespace ServiceBus.Management.Infrastructure.Extensions
 
             if (page != 1)
             {
-                AddLink(links, 1, "first", queryParams, url);
+                AddLink(links, 1, "first", path, queryParams);
             }
 
             if (page > 1)
             {
-                AddLink(links, page - 1, "prev", queryParams, url);
+                AddLink(links, page - 1, "prev", path, queryParams);
             }
 
             if (page != lastPage)
             {
-                AddLink(links, lastPage, "last", queryParams, url);
+                AddLink(links, lastPage, "last", path, queryParams);
             }
 
             if (page < lastPage)
             {
-                AddLink(links, page + 1, "next", queryParams, url);
+                AddLink(links, page + 1, "next", path, queryParams);
             }
 
-            return negotiator.WithHeader("Link", String.Join(", ", links));
+            return negotiator.WithHeader("Link", string.Join(", ", links));
         }
 
-        static void AddLink(ICollection<string> links, int page, string rel, string queryParams, Url url)
+        static void AddLink(ICollection<string> links, int page, string rel, string uriPath, string queryParams)
         {
-            url.Query = queryParams + "page=" + page;
+            var query = $"{queryParams}page={page}";
 
-            links.Add($"<{url}>; rel=\"{rel}\"");
+            links.Add($"<{uriPath + query}>; rel=\"{rel}\"");
         }
 
         public static Negotiator WithEtag(this Negotiator negotiator, RavenQueryStatistics stats)

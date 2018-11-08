@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
 {
-    using System;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using NServiceBus;
@@ -16,7 +15,7 @@
             var context = await Define<MyContext>()
                 .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MyMessage {OrderId = 1})))
                 .Done(c => c.SagaNotFound)
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
 
             Assert.IsTrue(context.SagaNotFound);
         }
