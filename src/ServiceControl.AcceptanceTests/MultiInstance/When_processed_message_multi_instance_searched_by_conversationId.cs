@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using EndpointTemplates;
@@ -28,7 +27,7 @@
                     List<MessagesView> response = result;
                     return c.ConversationId != null && result && response.Count == 2;
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
         }
 
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)

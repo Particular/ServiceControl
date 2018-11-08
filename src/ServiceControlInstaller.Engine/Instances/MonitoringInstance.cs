@@ -104,7 +104,7 @@
         TransportInfo DetermineTransportPackage()
         {
             var transportAppSetting = AppConfig.Read(SettingsList.TransportType, MonitoringTransports.All.Single(t => t.Default).TypeName).Trim();
-            var transport = MonitoringTransports.All.FirstOrDefault(p => transportAppSetting.Equals(p.TypeName, StringComparison.OrdinalIgnoreCase));
+            var transport = MonitoringTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
             if (transport != null)
             {
                 return transport;

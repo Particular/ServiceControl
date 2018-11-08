@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -37,7 +36,7 @@
                     response = result;
                     return result && response.Count == 2;
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
 
             var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Master].ApiUrl);
             var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);

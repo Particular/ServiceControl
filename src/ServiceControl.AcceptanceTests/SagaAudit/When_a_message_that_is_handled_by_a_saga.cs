@@ -38,7 +38,7 @@
 
                     return false;
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
 
             Assert.AreEqual(5, messages.Count);
 

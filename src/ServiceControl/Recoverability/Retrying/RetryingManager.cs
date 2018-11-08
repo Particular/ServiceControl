@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
@@ -37,7 +37,7 @@
 
         public bool IsRetryInProgressFor(string requestId)
         {
-            return retryOperations.Keys.Where(key => key.EndsWith($"/{requestId}")).Any(key => retryOperations[key].IsInProgress());
+            return retryOperations.Values.Any(o => o.RequestId == requestId && o.IsInProgress());
         }
 
         public async Task Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
@@ -85,7 +85,7 @@
                 return;
             }
 
-            var summary = Get(requestId, retryType);
+            var summary = GetOrCreate(retryType, requestId);
 
             await summary.Forwarding().ConfigureAwait(false);
         }
@@ -97,7 +97,7 @@
                 return;
             }
 
-            var summary = Get(requestId, retryType);
+            var summary = GetOrCreate(retryType, requestId);
 
             await summary.BatchForwarded(numberOfMessagesForwarded)
                 .ConfigureAwait(false);
@@ -129,18 +129,8 @@
 
         private InMemoryRetry GetOrCreate(RetryType retryType, string requestId)
         {
-            if (!retryOperations.TryGetValue(InMemoryRetry.MakeOperationId(requestId, retryType), out var summary))
-            {
-                summary = new InMemoryRetry(requestId, retryType, domainEvents);
-                retryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)] = summary;
-            }
-
-            return summary;
-        }
-
-        private InMemoryRetry Get(string requestId, RetryType retryType)
-        {
-            return retryOperations[InMemoryRetry.MakeOperationId(requestId, retryType)];
+            var key = InMemoryRetry.MakeOperationId(requestId, retryType);
+            return retryOperations.GetOrAdd(key, _ => new InMemoryRetry(requestId, retryType, domainEvents));
         }
 
         public InMemoryRetry GetStatusForRetryOperation(string requestId, RetryType retryType)
@@ -151,6 +141,6 @@
         }
 
         IDomainEvents domainEvents;
-        Dictionary<string, InMemoryRetry> retryOperations = new Dictionary<string, InMemoryRetry>();
+        ConcurrentDictionary<string, InMemoryRetry> retryOperations = new ConcurrentDictionary<string, InMemoryRetry>();
     }
 }

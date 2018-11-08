@@ -78,8 +78,7 @@
                         // When the document changes update the source
                         richTextBox.TextChanged += (obj2, e2) =>
                         {
-                            var richTextBox2 = (RichTextBox)obj2;
-                            if (richTextBox2 != null)
+                            if (obj2 is RichTextBox richTextBox2)
                             {
                                 SetDocumentXaml(richTextBox, XamlWriter.Save(richTextBox2.Document));
                             }

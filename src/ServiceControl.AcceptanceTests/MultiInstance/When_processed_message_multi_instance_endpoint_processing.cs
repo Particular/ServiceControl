@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
@@ -41,7 +40,7 @@
 
                     return false;
                 })
-                .Run(TimeSpan.FromSeconds(20));
+                .Run();
 
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).EndpointDetails.Name);
             Assert.AreEqual(ReceiverHostDisplayName, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);

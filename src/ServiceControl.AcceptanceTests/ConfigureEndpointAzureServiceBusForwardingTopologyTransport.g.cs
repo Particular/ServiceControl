@@ -2,6 +2,7 @@
 using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using ServiceBus.Management.AcceptanceTests;
+using ServiceControlInstaller.Engine.Instances;
 
 public class ConfigureEndpointAzureServiceBusForwardingTopologyTransport : ITransportIntegration
 {
@@ -24,7 +25,7 @@ public class ConfigureEndpointAzureServiceBusForwardingTopologyTransport : ITran
         return Task.FromResult(0);
     }
 
-    public string Name => "AzureServiceBus - Forwarding Topology";
+    public string Name => TransportNames.AzureServiceBusForwardingTopology;
 
     public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization).AssemblyQualifiedName}";
 

@@ -28,7 +28,7 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
 
                     return true;
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
         }
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder
