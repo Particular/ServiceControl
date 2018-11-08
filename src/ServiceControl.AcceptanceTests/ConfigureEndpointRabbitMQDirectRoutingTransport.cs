@@ -9,6 +9,7 @@ using NServiceBus.Transport;
 using RabbitMQ.Client;
 using ServiceBus.Management.AcceptanceTests;
 using ServiceControl.Transports.RabbitMQ;
+using ServiceControlInstaller.Engine.Instances;
 
 public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegration
 {
@@ -32,7 +33,7 @@ public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegra
         return Task.FromResult(0);
     }
 
-    public string Name => "RabbitMQ - Direct Routing Topology";
+    public string Name => TransportNames.RabbitMQDirectRoutingTopology;
     public string TypeName => $"{typeof(RabbitMQDirectRoutingTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 

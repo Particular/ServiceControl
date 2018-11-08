@@ -76,5 +76,16 @@
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Approver.Verify(JToken.Parse(result.Body.AsString()).ToString(Formatting.Indented));
         }
+
+        [Test]
+        public void TransportNames()
+        {
+            //HINT: Those names are used in PowerShell scripts thus constitute a public api
+            var transportNamesType = typeof(ServiceControlInstaller.Engine.Instances.TransportNames);
+
+            var publicTransportNames = ApiGenerator.GeneratePublicApi(transportNamesType.Assembly, new []{ transportNamesType });
+
+            Approver.Verify(publicTransportNames);
+        }
     }
 }

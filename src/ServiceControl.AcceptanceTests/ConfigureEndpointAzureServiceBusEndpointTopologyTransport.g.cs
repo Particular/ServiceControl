@@ -2,6 +2,7 @@
 using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using ServiceBus.Management.AcceptanceTests;
+using ServiceControlInstaller.Engine.Instances;
 
 public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransportIntegration
 {
@@ -32,7 +33,7 @@ public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransp
         return Task.FromResult(0);
     }
 
-    public string Name => "AzureServiceBus - Endpoint Topology";
+    public string Name => TransportNames.AzureServiceBusEndpointOrientedTopology;
     public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 }

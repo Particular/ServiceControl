@@ -44,7 +44,7 @@ namespace ServiceControlInstaller.PowerShell
         public string ErrorQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet("AzureServiceBus", "AzureStorageQueue", "MSMQ", "SQLServer", "RabbitMQ", "AmazonSQS")]
+        [ValidateSet(TransportNames.AzureServiceBusForwardingTopology, TransportNames.AzureServiceBusEndpointOrientedTopology, TransportNames.AzureServiceBus, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
@@ -107,7 +107,7 @@ namespace ServiceControlInstaller.PowerShell
                 Port = Port,
                 ErrorQueue = ErrorQueue,
                 ConnectionString = ConnectionString,
-                TransportPackage = MonitoringTransports.All.First(t => t.Name.Equals(Transport, StringComparison.OrdinalIgnoreCase)),
+                TransportPackage = MonitoringTransports.All.First(t => t.Matches(Transport)),
                 SkipQueueCreation = SkipQueueCreation
             };
 
