@@ -31,11 +31,6 @@
             {
                 context.Container.ConfigureComponent<AuditImporter>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent(b =>
-                    new SatelliteImportFailuresHandler(b.Build<IDocumentStore>(), Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Audit"), msg => new FailedAuditImport
-                    {
-                        Message = msg
-                    }, b.Build<CriticalError>()), DependencyLifecycle.SingleInstance);
 
                 context.AddSatelliteReceiver(
                     "Audit Import",
@@ -45,13 +40,24 @@
                     (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(builder, messageContext))
                 );
 
-                context.RegisterStartupTask(b => new StartupTask(b.Build<SatelliteImportFailuresHandler>(), this));
+                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), this));
 
                 if (settings.ForwardAuditMessages)
                 {
                     context.RegisterStartupTask(b => new EnsureCanWriteToForwardingAddress(b.Build<IForwardMessages>(), settings.AuditLogQueue));
                 }
             }
+        }
+
+        static SatelliteImportFailuresHandler CreateFailureHandler(IBuilder b)
+        {
+            var documentStore = b.Build<IDocumentStore>();
+            var logPath = Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Audit");
+
+            return new SatelliteImportFailuresHandler(documentStore, logPath, msg => new FailedAuditImport
+            {
+                Message = msg
+            }, b.Build<CriticalError>());
         }
 
         Task OnAuditMessage(IBuilder builder, MessageContext messageContext)
