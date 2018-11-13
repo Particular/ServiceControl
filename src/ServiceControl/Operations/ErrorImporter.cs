@@ -23,7 +23,7 @@
             if (settings.IngestErrorMessages)
             {
                 context.Container.ConfigureComponent<ErrorIngestor>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent<FailedMessagePersister>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<ErrorPersister>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
 
                 context.AddSatelliteReceiver(

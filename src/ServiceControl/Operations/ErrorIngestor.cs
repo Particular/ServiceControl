@@ -8,9 +8,9 @@
 
     class ErrorIngestor
     {
-        public ErrorIngestor(FailedMessagePersister failedMessagePersister, FailedMessageAnnouncer failedMessageAnnouncer, IForwardMessages messageForwarder, Settings settings)
+        public ErrorIngestor(ErrorPersister errorPersister, FailedMessageAnnouncer failedMessageAnnouncer, IForwardMessages messageForwarder, Settings settings)
         {
-            this.failedMessagePersister = failedMessagePersister;
+            this.errorPersister = errorPersister;
             this.failedMessageAnnouncer = failedMessageAnnouncer;
             this.messageForwarder = messageForwarder;
             this.settings = settings;
@@ -24,7 +24,7 @@
                 log.Debug($"Ingesting error message {message.MessageId} (original message id: {originalMessageId ?? string.Empty})");
             }
 
-            var failureDetails = await failedMessagePersister.Persist(message)
+            var failureDetails = await errorPersister.Persist(message)
                 .ConfigureAwait(false);
 
             await failedMessageAnnouncer.Announce(message.Headers, failureDetails)
@@ -40,7 +40,7 @@
         IForwardMessages messageForwarder;
         Settings settings;
         FailedMessageAnnouncer failedMessageAnnouncer;
-        FailedMessagePersister failedMessagePersister;
+        ErrorPersister errorPersister;
         static ILog log = LogManager.GetLogger<ErrorIngestor>();
     }
 }

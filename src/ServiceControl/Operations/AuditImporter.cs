@@ -1,14 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
-    using BodyStorage;
-    using Infrastructure;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
@@ -16,9 +9,9 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class AuditImporterFeature : Feature
+    class AuditImporter : Feature
     {
-        public AuditImporterFeature()
+        public AuditImporter()
         {
             EnableByDefault();
         }
@@ -29,7 +22,7 @@
 
             if (settings.IngestAuditMessages)
             {
-                context.Container.ConfigureComponent<AuditImporter>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<AuditPersister>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
 
                 context.AddSatelliteReceiver(
@@ -81,7 +74,7 @@
 
         class StartupTask : FeatureStartupTask
         {
-            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditImporterFeature importer)
+            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditImporter importer)
             {
                 importer.importFailuresHandler = importFailuresHandler;
             }
@@ -118,52 +111,5 @@
                 return Task.CompletedTask;
             }
         }
-    }
-
-
-    class AuditImporter
-    {
-        public AuditImporter(IBuilder builder, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
-        {
-            this.bodyStorageEnricher = bodyStorageEnricher;
-            enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichAudits).ToArray();
-        }
-
-        public async Task<ProcessedMessage> ConvertToSaveMessage(MessageContext message)
-        {
-            if (!message.Headers.TryGetValue(Headers.MessageId, out var messageId))
-            {
-                messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
-            }
-
-            var metadata = new ConcurrentDictionary<string, object>
-            {
-                ["MessageId"] = messageId,
-                ["MessageIntent"] = message.Headers.MessageIntent(),
-            };
-
-            var enricherTasks = new List<Task>(enrichers.Length);
-            // ReSharper disable once LoopCanBeConvertedToQuery
-            foreach (var enricher in enrichers)
-            {
-                enricherTasks.Add(enricher.Enrich(message.Headers, metadata));
-            }
-
-            await Task.WhenAll(enricherTasks)
-                .ConfigureAwait(false);
-
-            await bodyStorageEnricher.StoreAuditMessageBody(message.Body, message.Headers, metadata)
-                .ConfigureAwait(false);
-
-            var auditMessage = new ProcessedMessage(message.Headers, new Dictionary<string, object>(metadata))
-            {
-                // We do this so Raven does not spend time assigning a hilo key
-                Id = $"ProcessedMessages/{Guid.NewGuid()}"
-            };
-            return auditMessage;
-        }
-
-        readonly IEnrichImportedMessages[] enrichers;
-        readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
     }
 }
