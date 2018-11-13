@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System.Collections.Generic;
-    using System.Net;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using NServiceBus;
@@ -20,8 +19,6 @@
             //Make sure the audit import attempt fails
             CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
 
-            FailedAuditsCountReponse failedAuditsCountReponse;
-
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
@@ -32,26 +29,15 @@
                         return false;
                     }
 
-                    if (!c.WasReimported)
+                    if (!c.WasImportedAgain)
                     {
                         var result = await this.TryGet<FailedAuditsCountReponse>("/api/failedaudits/count");
-                        failedAuditsCountReponse = result;
-                        if (result)
+                        FailedAuditsCountReponse failedAuditCountsResponse = result;
+                        if (result && failedAuditCountsResponse.Count > 0)
                         {
-                            if (failedAuditsCountReponse.Count > 0)
-                            {
-                                c.FailedImport = true;
-                                await this.Post<object>("/api/failedaudits/import", null, code =>
-                                {
-                                    if (code == HttpStatusCode.OK)
-                                    {
-                                        c.WasReimported = true;
-                                        return false;
-                                    }
-
-                                    return true;
-                                });
-                            }
+                            c.FailedImport = true;
+                            await this.Post<object>("/api/failedaudits/import");
+                            c.WasImportedAgain = true;
                         }
 
                         return false;
@@ -117,7 +103,7 @@
         public class MyContext : ScenarioContext
         {
             public bool FailedImport { get; set; }
-            public bool WasReimported { get; set; }
+            public bool WasImportedAgain { get; set; }
             public string MessageId { get; set; }
         }
     }
