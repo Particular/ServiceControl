@@ -30,10 +30,10 @@
                     context.Settings.ToTransportAddress(settings.AuditQueue),
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnAuditError,
-                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(builder, messageContext))
+                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(messageContext))
                 );
 
-                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), this));
+                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<AuditIngestor>(), this));
 
                 if (settings.ForwardAuditMessages)
                 {
@@ -53,9 +53,9 @@
             }, b.Build<CriticalError>());
         }
 
-        Task OnAuditMessage(IBuilder builder, MessageContext messageContext)
+        Task OnAuditMessage(MessageContext messageContext)
         {
-            return builder.Build<AuditIngestor>().Ingest(messageContext);
+            return auditIngestor.Ingest(messageContext);
         }
 
         RecoverabilityAction OnAuditError(RecoverabilityConfig config, ErrorContext errorContext)
@@ -71,12 +71,14 @@
         }
 
         SatelliteImportFailuresHandler importFailuresHandler;
+        AuditIngestor auditIngestor;
 
         class StartupTask : FeatureStartupTask
         {
-            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditImporter importer)
+            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditIngestor auditIngestor, AuditImporter importer)
             {
                 importer.importFailuresHandler = importFailuresHandler;
+                importer.auditIngestor = auditIngestor;
             }
 
             protected override Task OnStart(IMessageSession session)

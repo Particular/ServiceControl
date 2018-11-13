@@ -31,10 +31,10 @@
                     context.Settings.ToTransportAddress(settings.ErrorQueue),
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnError,
-                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(builder, messageContext))
+                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(messageContext))
                 );
                 
-                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), this));
+                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<ErrorIngestor>(), this));
 
                 if (settings.ForwardErrorMessages)
                 {
@@ -53,9 +53,9 @@
             }, b.Build<CriticalError>());
         }
 
-        Task OnMessage(IBuilder builder, MessageContext messageContext)
+        Task OnMessage(MessageContext messageContext)
         {
-            return builder.Build<ErrorIngestor>().Ingest(messageContext);
+            return errorIngestor.Ingest(messageContext);
         }
 
         RecoverabilityAction OnError(RecoverabilityConfig config, ErrorContext errorContext)
@@ -71,12 +71,14 @@
         }
 
         SatelliteImportFailuresHandler importFailuresHandler;
+        ErrorIngestor errorIngestor;
 
         class StartupTask : FeatureStartupTask
         {
-            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, ErrorImporter importer)
+            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, ErrorIngestor errorIngestor, ErrorImporter importer)
             {
                 importer.importFailuresHandler = importFailuresHandler;
+                importer.errorIngestor = errorIngestor;
             }
 
             protected override Task OnStart(IMessageSession session)
