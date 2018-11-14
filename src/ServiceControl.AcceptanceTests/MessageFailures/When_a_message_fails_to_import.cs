@@ -15,7 +15,7 @@
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
-        public async Task It_can_be_reimported()
+        public async Task It_is_stored_in_the_document_collection()
         {
             //Make sure the audit import attempt fails
             CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
@@ -32,8 +32,6 @@
                         return false;
                     }
                     var result = await this.TryGet<FailedErrorsCountReponse>("/api/failederrors/count");
-                    //The following line will make the test pass because the failure handling is broken
-                    //var result = await this.TryGet<FailedErrorsCountReponse>("/api/failedaudits/count");
                     countReponse = result;
                     if (result && countReponse.Count > 0)
                     {
