@@ -14,10 +14,10 @@
     using ServiceControl.Operations;
 
     /// <summary>
-    /// This is a specific test https://github.com/Particular/PlatformDevelopment/issues/2464 - an error message that ends up in failed audits collection
+    /// This is a specific test for https://github.com/Particular/ServiceControl/issues/1490 - an error message that ends up in failed audits collection
     /// To simulate this we used audit message that contains an artificial FailedQ header
     /// </summary>
-    class When_an_error_message_fails_to_import : AcceptanceTest
+    class When_a_failed_error_message_has_been_stored_as_audit : AcceptanceTest
     {
         [Test]
         public async Task It_can_be_reimported()
