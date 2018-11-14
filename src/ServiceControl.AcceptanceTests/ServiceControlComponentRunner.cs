@@ -189,7 +189,11 @@ namespace ServiceBus.Management.AcceptanceTests
                         };
                         context.Logs.Enqueue(logitem);
                         ctx.Stop().GetAwaiter().GetResult();
-                    }, settings, configuration, loggingSettings, builder => builder.RegisterType<FailedAuditsModule>().As<INancyModule>());
+                    }, settings, configuration, loggingSettings, builder =>
+                    {
+                        builder.RegisterType<FailedAuditsModule>().As<INancyModule>();
+                        builder.RegisterType<FailedErrorsModule>().As<INancyModule>();
+                    });
                     bootstrappers[instanceName] = bootstrapper;
                     bootstrapper.HttpClientFactory = HttpClientFactory;
                 }
