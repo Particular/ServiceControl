@@ -18,9 +18,9 @@
     using Recoverability;
     using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
-    class FailedMessagePersister
+    class ErrorPersister
     {
-        static FailedMessagePersister()
+        static ErrorPersister()
         {
             Serializer = JsonExtensions.CreateDefaultJsonSerializer();
             Serializer.TypeNameHandling = TypeNameHandling.Auto;
@@ -32,7 +32,7 @@
                                     }}");
         }
 
-        public FailedMessagePersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
+        public ErrorPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
