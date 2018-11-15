@@ -5,6 +5,7 @@ namespace ServiceControl.Operations
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Extensibility;
+    using NServiceBus.Faults;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
@@ -12,10 +13,11 @@ namespace ServiceControl.Operations
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(IDocumentStore store, AuditImporter auditImporter)
+        public ImportFailedAudits(IDocumentStore store, AuditPersister auditPersister, ErrorPersister errorPersister)
         {
             this.store = store;
-            this.auditImporter = auditImporter;
+            this.auditPersister = auditPersister;
+            this.errorPersister = errorPersister;
         }
 
         public Task Run(CancellationTokenSource tokenSource)
@@ -40,14 +42,16 @@ namespace ServiceControl.Operations
                         try
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
-                            var entity = await auditImporter.ConvertToSaveMessage(messageContext)
-                                .ConfigureAwait(false);
-                            using (var storeSession = store.OpenAsyncSession())
-                            {
-                                await storeSession.StoreAsync(entity, token).ConfigureAwait(false);
-                                await storeSession.SaveChangesAsync(token).ConfigureAwait(false);
-                            }
 
+                            //Due to bug https://github.com/Particular/PlatformDevelopment/issues/2464 some failed error could have ended up in failed audits collection
+                            if (messageContext.Headers.ContainsKey(FaultsHeaderKeys.FailedQ))
+                            {
+                                await errorPersister.Persist(messageContext).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                await auditPersister.Persist(messageContext).ConfigureAwait(false);
+                            }
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
                             succeeded++;
@@ -71,7 +75,8 @@ namespace ServiceControl.Operations
         }
 
         IDocumentStore store;
-        AuditImporter auditImporter;
+        AuditPersister auditPersister;
+        ErrorPersister errorPersister;
         CancellationTokenSource source;
 
         static TransportTransaction EmptyTransaction = new TransportTransaction();

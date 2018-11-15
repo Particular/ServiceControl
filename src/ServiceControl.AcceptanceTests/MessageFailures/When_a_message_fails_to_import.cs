@@ -1,5 +1,6 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Audit
+﻿namespace ServiceBus.Management.AcceptanceTests.MessageFailures
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using EndpointTemplates;
@@ -7,43 +8,36 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
+    using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
 
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
-        public async Task It_can_be_reimported()
+        public async Task It_is_stored_in_the_failed_errors_collection()
         {
-            //Make sure the audit import attempt fails
+            //Make sure the error import attempt fails
             CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
+
+            FailedErrorsCountReponse countReponse;
 
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
-                .WithEndpoint<Receiver>()
+                .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    if (c.MessageId == null)
+                    if (c.UniqueMessageId == null)
                     {
                         return false;
                     }
-
-                    if (!c.WasImportedAgain)
+                    var result = await this.TryGet<FailedErrorsCountReponse>("/api/failederrors/count");
+                    countReponse = result;
+                    if (result && countReponse.Count > 0)
                     {
-                        var result = await this.TryGet<FailedAuditsCountReponse>("/api/failedaudits/count");
-                        FailedAuditsCountReponse failedAuditCountsResponse = result;
-                        if (result && failedAuditCountsResponse.Count > 0)
-                        {
-                            c.FailedImport = true;
-                            await this.Post<object>("/api/failedaudits/import");
-                            c.WasImportedAgain = true;
-                        }
-
-                        return false;
+                        return true;
                     }
-
-                    return await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}");
+                    return false;
                 })
                 .Run();
         }
@@ -81,17 +75,24 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                EndpointSetup<DefaultServerWithAudit>(c =>
+                {
+                    var recoverability = c.Recoverability();
+                    recoverability.Immediate(x => x.NumberOfRetries(0));
+                    recoverability.Delayed(x => x.NumberOfRetries(0));
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
 
+                public ReadOnlySettings Settings { get; set; }
+
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    Context.UniqueMessageId = ServiceControl.Infrastructure.DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
+                    throw new Exception("Simulated");
                 }
             }
         }
@@ -103,8 +104,7 @@
         public class MyContext : ScenarioContext
         {
             public bool FailedImport { get; set; }
-            public bool WasImportedAgain { get; set; }
-            public string MessageId { get; set; }
+            public string UniqueMessageId { get; set; }
         }
     }
 }
