@@ -3,15 +3,13 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class AuditIngestor
     {
-        public AuditIngestor(AuditImporter auditImporter, IDocumentStore store, IForwardMessages messageForwarder, Settings settings)
+        public AuditIngestor(AuditPersister auditPersister, IForwardMessages messageForwarder, Settings settings)
         {
-            this.auditImporter = auditImporter;
-            this.store = store;
+            this.auditPersister = auditPersister;
             this.messageForwarder = messageForwarder;
             this.settings = settings;
         }
@@ -20,16 +18,7 @@
         {
             log.DebugFormat("Ingesting audit message {0}", context.MessageId);
 
-            var processedMessage = await auditImporter.ConvertToSaveMessage(context)
-                .ConfigureAwait(false);
-
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.StoreAsync(processedMessage)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            await auditPersister.Persist(context).ConfigureAwait(false);
 
             if (settings.ForwardAuditMessages)
             {
@@ -38,8 +27,7 @@
             }
         }
 
-        AuditImporter auditImporter;
-        IDocumentStore store;
+        AuditPersister auditPersister;
         IForwardMessages messageForwarder;
         Settings settings;
         static ILog log = LogManager.GetLogger<ErrorIngestor>();

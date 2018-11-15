@@ -23,23 +23,18 @@
             if (settings.IngestErrorMessages)
             {
                 context.Container.ConfigureComponent<ErrorIngestor>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent<FailedMessagePersister>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<ErrorPersister>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent(b =>
-                    new SatelliteImportFailuresHandler(b.Build<IDocumentStore>(), Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Error"), msg => new FailedErrorImport
-                    {
-                        Message = msg
-                    }, b.Build<CriticalError>()), DependencyLifecycle.SingleInstance);
 
                 context.AddSatelliteReceiver(
                     "Error Queue Ingestor",
                     context.Settings.ToTransportAddress(settings.ErrorQueue),
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnError,
-                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(builder, messageContext))
+                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(messageContext))
                 );
                 
-                context.RegisterStartupTask(b => new StartupTask(b.Build<SatelliteImportFailuresHandler>(), this));
+                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<ErrorIngestor>(), this));
 
                 if (settings.ForwardErrorMessages)
                 {
@@ -48,9 +43,19 @@
             }
         }
 
-        Task OnMessage(IBuilder builder, MessageContext messageContext)
+        static SatelliteImportFailuresHandler CreateFailureHandler(IBuilder b)
         {
-            return builder.Build<ErrorIngestor>().Ingest(messageContext);
+            var documentStore = b.Build<IDocumentStore>();
+            var logPath = Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Error");
+            return new SatelliteImportFailuresHandler(documentStore, logPath, msg => new FailedErrorImport
+            {
+                Message = msg
+            }, b.Build<CriticalError>());
+        }
+
+        Task OnMessage(MessageContext messageContext)
+        {
+            return errorIngestor.Ingest(messageContext);
         }
 
         RecoverabilityAction OnError(RecoverabilityConfig config, ErrorContext errorContext)
@@ -66,12 +71,14 @@
         }
 
         SatelliteImportFailuresHandler importFailuresHandler;
+        ErrorIngestor errorIngestor;
 
         class StartupTask : FeatureStartupTask
         {
-            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, ErrorImporter importer)
+            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, ErrorIngestor errorIngestor, ErrorImporter importer)
             {
                 importer.importFailuresHandler = importFailuresHandler;
+                importer.errorIngestor = errorIngestor;
             }
 
             protected override Task OnStart(IMessageSession session)
