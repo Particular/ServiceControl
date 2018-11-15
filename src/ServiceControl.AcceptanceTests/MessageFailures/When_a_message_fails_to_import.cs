@@ -15,9 +15,9 @@
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
-        public async Task It_is_stored_in_the_document_collection()
+        public async Task It_is_stored_in_the_failed_errors_collection()
         {
-            //Make sure the audit import attempt fails
+            //Make sure the error import attempt fails
             CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
 
             FailedErrorsCountReponse countReponse;

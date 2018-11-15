@@ -12,7 +12,6 @@
     using NServiceBus.Transport;
     using Raven.Client;
 
-
     class AuditPersister
     {
         public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedMessages[] enrichers)
