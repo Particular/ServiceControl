@@ -235,7 +235,10 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             bootstrappers.Clear();
+            Busses.Clear();
+            SettingsPerInstance.Clear();
             HttpClients.Clear();
+            portToHandler.Clear();
             Handlers.Clear();
         }
 
