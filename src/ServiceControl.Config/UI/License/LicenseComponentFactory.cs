@@ -1,15 +1,11 @@
 ﻿namespace ServiceControl.Config.UI.License
 {
-    using System;
     using System.Collections.Generic;
-    using System.Text;
+    using System.Linq;
     using ServiceControlInstaller.Engine.LicenseMgmt;
 
     class LicenseComponentFactory
     {
-        readonly DateTime today;
-        const int ExpiryWarningPeriodInDays = 10;
-
         const string TrialLicenseText = "Please extend your trial or purchase a license to continue using the Particular Service Platform.";
         const string UpgradeProtectionLicenseText = "Please extend your upgrade protection so that we can continue to provide you with support and new versions of the Particular Service Platform.";
         const string SubscriptionLicenseText = "Please extend your license to continue using the Particular Service Platform.";
@@ -20,129 +16,145 @@
             Plural = "{0} days"
         };
 
-        public LicenseComponentFactory(DateTime? today = null)
-        {
-            this.today = today ?? DateTime.Today;
-        }
-
         public IEnumerable<LicenseComponent> CreateComponents(LicenseDetails details)
         {
-            if (details.IsTrialLicense)
+            return details.IsTrialLicense ? TrialLicense(details) : CommercialLicense(details);
+        }
+
+        IEnumerable<LicenseComponent> TrialLicense(LicenseDetails details)
+        {
+            yield return new LicenseComponent
             {
-                yield return new LicenseComponent
+                Label = "Platform license type:",
+                Value = "Trial"
+            };
+
+            yield return TrialExpiryComponent(details);
+        }
+
+        LicenseComponent TrialExpiryComponent(LicenseDetails details)
+        {
+            if (details.WarnUserTrialHasExpired)
+            {
+                return new LicenseComponent
                 {
-                    Label = "Platform license type:",
-                    Value = "Trial"
+                    Label = "Trial expiry date:",
+                    Value = $"{details.ExpirationDate:d} - expired",
+                    Importance = Importance.Serious,
+                    ShortText = "Trial expired",
+                    WarningText = TrialLicenseText
                 };
-
-                if (details.ExpirationDate.HasValue)
-                {
-                    yield return TrialExpiryComponent(details.ExpirationDate.Value);
-                }
             }
-            else
+
+            if (details.WarnUserTrialIsExpiring)
             {
-                yield return new LicenseComponent
+                var daysRemaining = daysInflector.Inflect(details.DaysUntilSubscriptionExpires ?? 0);
+                return new LicenseComponent
                 {
-                    Label = "Platform license type:",
-                    Value = $"{details.LicenseType}, {details.Edition}"
+                    Label = "Trial expiry date:",
+                    Value = $"{details.ExpirationDate:d} - {daysRemaining} left",
+                    Importance = Importance.Warning,
+                    ShortText = $"Warning: Trial expiring in {daysRemaining}",
+                    WarningText = TrialLicenseText
                 };
+            }
 
-                if (details.ExpirationDate.HasValue)
+            return new LicenseComponent
+            {
+                Label = "Trial expiry date:",
+                Value = $"{details.ExpirationDate:d}"
+            };
+        }
+
+        IEnumerable<LicenseComponent> CommercialLicense(LicenseDetails details)
+        {
+            yield return new LicenseComponent
+            {
+                Label = "Platform license type:",
+                Value = string.Join(", ", new[]
                 {
-                    yield return PlatformExpiryComponent(details.ExpirationDate.Value);
-                }
+                    details.LicenseType,
+                    details.Edition
+                }.Where(x => x != null))
+            };
 
-                if (details.UpgradeProtectionExpiration.HasValue)
+            if (details.ExpirationDate.HasValue)
+            {
+                yield return SubscriptionExpiryComponent(details);
+            }
+
+            if (details.UpgradeProtectionExpiration.HasValue)
+            {
+                yield return UpgradeProtectionExpiryComponent(details);
+            }
+        }
+
+        LicenseComponent SubscriptionExpiryComponent(LicenseDetails details)
+        {
+            if (details.WarnUserSubscriptionHasExpired)
+            {
+                return new LicenseComponent
                 {
-                    yield return UpgradeProtectionExpiryComponent(details.UpgradeProtectionExpiration.Value);
-                }
+                    Label = "Platform license expiry date:",
+                    Value = $"{details.ExpirationDate:d} - expired",
+                    Importance = Importance.Serious,
+                    ShortText = "Platform license expired",
+                    WarningText = SubscriptionLicenseText
+                };
             }
+
+            if (details.WarnUserSubscriptionIsExpiring)
+            {
+                var daysRemain = daysInflector.Inflect(details.DaysUntilSubscriptionExpires ?? 0);
+                return new LicenseComponent
+                {
+                    Label = "Platform license expiry date:",
+                    Value = $"{details.ExpirationDate:d} - {daysRemain} left",
+                    Importance = Importance.Serious,
+                    ShortText = $"Platform license expiring in {daysRemain}",
+                    WarningText = SubscriptionLicenseText
+                };
+            }
+
+            return new LicenseComponent
+            {
+                Label = "Platform license expiry date:",
+                Value = $"{details.ExpirationDate:d}"
+            };
         }
 
-        LicenseComponent TrialExpiryComponent(DateTime expiryDate)
+        LicenseComponent UpgradeProtectionExpiryComponent(LicenseDetails details)
         {
-            var component = new LicenseComponent {Label = "Trial expiry date:"};
-
-            var value = new StringBuilder(expiryDate.ToShortDateString());
-
-            var daysUntilExpiry = (int)(expiryDate - today).TotalDays;
-
-            if (daysUntilExpiry < 0)
+            if (details.WarnUserUpgradeProtectionHasExpired)
             {
-                value.Append(" - expired");
-                component.Importance = Importance.Serious;
-                component.ShortText = "Trial expired";
-                component.WarningText = TrialLicenseText;
-            }
-            else if (daysUntilExpiry <= ExpiryWarningPeriodInDays)
-            {
-                value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
-                component.Importance = Importance.Warning;
-                component.ShortText = $"Warning: Trial expiring in {daysInflector.Inflect(daysUntilExpiry)}";
-                component.WarningText = TrialLicenseText;
+                return new LicenseComponent
+                {
+                    Label = "Upgrade protection expiry date:",
+                    Value = $"{details.UpgradeProtectionExpiration:d} - expired",
+                    Importance = Importance.Warning,
+                    ShortText = "Platform license expired",
+                    WarningText = UpgradeProtectionLicenseText
+                };
             }
 
-            component.Value = value.ToString();
-
-            return component;
-        }
-
-
-        LicenseComponent PlatformExpiryComponent(DateTime expiryDate)
-        {
-            var component = new LicenseComponent {Label = "Platform license expiry date:"};
-
-            var value = new StringBuilder(expiryDate.ToShortDateString());
-
-            var daysUntilExpiry = (int)(expiryDate - today).TotalDays + 1;
-
-            if (daysUntilExpiry < 0)
+            if (details.WarnUserUpgradeProtectionIsExpiring)
             {
-                value.Append(" - expired");
-                component.Importance = Importance.Serious;
-                component.ShortText = "Platform license expired";
-                component.WarningText = SubscriptionLicenseText;
-            }
-            else if (daysUntilExpiry <= ExpiryWarningPeriodInDays)
-            {
-                value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
-                component.Importance = Importance.Serious;
-                component.ShortText = $"Warning: Platform license expiring in {daysInflector.Inflect(daysUntilExpiry)}";
-                component.WarningText = SubscriptionLicenseText;
+                var daysRemain = daysInflector.Inflect(details.DaysUntilUpgradeProtectionExpires ?? 0);
+                return new LicenseComponent
+                {
+                    Label = "Upgrade protection expiry date:",
+                    Value = $"{details.UpgradeProtectionExpiration:d} - {daysRemain} left",
+                    Importance = Importance.Warning,
+                    ShortText = $"Warning: Upgrade protection expiring in {daysRemain}",
+                    WarningText = UpgradeProtectionLicenseText
+                };
             }
 
-            component.Value = value.ToString();
-
-            return component;
-        }
-
-        LicenseComponent UpgradeProtectionExpiryComponent(DateTime upgradeProtectionExpiryDate)
-        {
-            var component = new LicenseComponent {Label = "Upgrade protection expiry date:"};
-
-            var value = new StringBuilder(upgradeProtectionExpiryDate.ToShortDateString());
-
-            var daysUntilExpiry = (int)(upgradeProtectionExpiryDate - today).TotalDays + 1;
-
-            if (daysUntilExpiry < 0)
+            return new LicenseComponent
             {
-                value.Append(" - expired");
-                component.Importance = Importance.Warning;
-                component.ShortText = "Platform license expired";
-                component.WarningText = UpgradeProtectionLicenseText;
-            }
-            else if (daysUntilExpiry <= ExpiryWarningPeriodInDays)
-            {
-                value.AppendFormat($" - {daysInflector.Inflect(daysUntilExpiry)} left");
-                component.Importance = Importance.Warning;
-                component.ShortText = $"Warning: Upgrade protection expiring in {daysInflector.Inflect(daysUntilExpiry)}";
-                component.WarningText = UpgradeProtectionLicenseText;
-            }
-
-            component.Value = value.ToString();
-
-            return component;
+                Label = "Upgrade protection expiry date:",
+                Value = $"{details.UpgradeProtectionExpiration:d}"
+            };
         }
     }
 }

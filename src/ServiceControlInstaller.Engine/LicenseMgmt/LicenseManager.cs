@@ -36,7 +36,7 @@
                 return false;
             }
 
-            if(LicenseExpirationChecker.HasLicenseExpired(license))
+            if(license.HasExpired())
             {
                 errorMessage = "Failed to import because the license has expired";
                 return false;
@@ -54,7 +54,9 @@
 
             try
             {
-                new FilePathLicenseStore().StoreLicense(FilePathLicenseStore.MachineLevelLicenseLocation, licenseText);
+                var machineLevelLicenseLocation = LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
+
+                new FilePathLicenseStore().StoreLicense(machineLevelLicenseLocation, licenseText);
             }
             catch (Exception)
             {
