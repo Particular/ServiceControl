@@ -221,7 +221,7 @@
                             <Border x:Name="Border"
                                     Grid.Row="1"
                                     MinWidth="300"
-                                    HorizontalAlignment="Left"
+                                    HorizontalAlignment="Stretch"
                                     Background="{StaticResource WhiteBrush}"
                                     BorderThickness="1">
                                 <Border.BorderBrush>
@@ -257,11 +257,11 @@
                                    Grid.Row="1"
                                    AllowsTransparency="True"
                                    Focusable="False"
-                                   HorizontalOffset="{TemplateBinding ActualWidth, Converter={StaticResource SubtractValueConverter}, ConverterParameter=11}"
                                    IsOpen="{TemplateBinding IsDropDownOpen}"
                                    Placement="Bottom"
                                    PlacementTarget="{Binding ElementName=PART_EditableTextBox}"
                                    PopupAnimation="Slide"
+                                   HorizontalOffset="-3"
                                    VerticalOffset="3">
                                 <Grid x:Name="DropDown"
                                       MinWidth="{TemplateBinding ActualWidth}"
@@ -280,7 +280,7 @@
                             <ToggleButton x:Name="ToggleButton"
                                           Grid.Row="1"
                                           MinWidth="300"
-                                          HorizontalAlignment="Left"
+                                          HorizontalAlignment="Stretch"
                                           ClickMode="Press"
                                           Focusable="false"
                                           IsChecked="{Binding IsDropDownOpen,

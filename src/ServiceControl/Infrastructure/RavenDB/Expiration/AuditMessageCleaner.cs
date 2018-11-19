@@ -19,6 +19,8 @@
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
+            var itemsAndAttachements = Tuple.Create(items, attachments);
+            
             try
             {
                 var query = new IndexQuery
@@ -31,7 +33,8 @@
                     FieldsToFetch = new[]
                     {
                         "__document_id",
-                        "MessageMetadata"
+                        "MessageMetadata.MessageId",
+                        "MessageMetadata.BodyNotStored",
                     },
                     SortedFields = new[]
                     {
@@ -44,24 +47,24 @@
                 };
                 var indexName = new ExpiryProcessedMessageIndex().IndexName;
                 database.Query(indexName, query, database.WorkContext.CancellationToken,
-                    doc =>
-                    {
+                    (doc, state) =>
+                    {                       
                         var id = doc.Value<string>("__document_id");
                         if (string.IsNullOrEmpty(id))
                         {
                             return;
                         }
 
-                        items.Add(new DeleteCommandData
+                        state.Item1.Add(new DeleteCommandData
                         {
                             Key = id
                         });
 
                         if (TryGetBodyId(doc, out var bodyId))
                         {
-                            attachments.Add(bodyId);
+                            state.Item2.Add(bodyId);
                         }
-                    });
+                    }, itemsAndAttachements);
             }
             catch (OperationCanceledException)
             {
@@ -70,31 +73,32 @@
 
             var deletionCount = 0;
 
-            Chunker.ExecuteInChunks(items.Count, (s, e) =>
+            deletionCount += Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents.", s, e);
-                var results = database.Batch(items.GetRange(s, e - s + 1), CancellationToken.None);
+                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
 
-                deletionCount += results.Count(x => x.Deleted == true);
-            });
+                return results.Count(x => x.Deleted == true);
+            }, items, database);
 
-            Chunker.ExecuteInChunks(attachments.Count, (s, e) =>
+            deletionCount += Chunker.ExecuteInChunks(attachments.Count, (att, db, s, e) =>
             {
-                database.TransactionalStorage.Batch(accessor =>
+                db.TransactionalStorage.Batch(accessor =>
                 {
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents.", s, e);
                     for (var idx = s; idx <= e; idx++)
                     {
                         //We want to continue using attachments for now
 #pragma warning disable 618
-                        accessor.Attachments.DeleteAttachment(attachments[idx], null);
+                        accessor.Attachments.DeleteAttachment(att[idx], null);
 #pragma warning restore 618
                     }
 
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
                 });
-            });
+                return 0;
+            }, attachments, database);
 
             if (deletionCount == 0)
             {
@@ -109,19 +113,18 @@
         static bool TryGetBodyId(RavenJObject doc, out string bodyId)
         {
             bodyId = null;
-            var bodyNotStored = doc.SelectToken("MessageMetadata.BodyNotStored", false);
-            if (bodyNotStored != null && bodyNotStored.Value<bool>())
+            if (doc.Value<bool>("MessageMetadata.BodyNotStored"))
             {
                 return false;
             }
 
-            var messageId = doc.SelectToken("MessageMetadata.MessageId", false);
+            var messageId = doc.Value<string>("MessageMetadata.MessageId");
             if (messageId == null)
             {
                 return false;
             }
 
-            bodyId = "messagebodies/" + messageId.Value<string>();
+            bodyId = $"messagebodies/{messageId}";
             return true;
         }
 

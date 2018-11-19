@@ -1,6 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
 {
-    using System;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Infrastructure.Settings;
@@ -23,7 +22,7 @@
             await Define<MyContext>(Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: Master))
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
         }
 
         private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)

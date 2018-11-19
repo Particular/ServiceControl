@@ -8,12 +8,12 @@
 
     static class Extensions
     {
-        public static void Query(this DocumentDatabase db, string index, IndexQuery query, CancellationToken externalCancellationToken, Action<RavenJObject> onItem)
+        public static void Query<TState>(this DocumentDatabase db, string index, IndexQuery query, CancellationToken externalCancellationToken, Action<RavenJObject, TState> onItem, TState state)
         {
             var results = db.Queries.Query(index, query, externalCancellationToken);
             foreach (var doc in results.Results)
             {
-                onItem(doc);
+                onItem(doc, state);
             }
         }
     }

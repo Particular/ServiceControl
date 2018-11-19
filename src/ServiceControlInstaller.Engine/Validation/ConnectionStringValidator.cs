@@ -5,6 +5,7 @@
     using System.Data.SqlClient;
     using System.Linq;
     using Accounts;
+    using Instances;
 
     class ConnectionStringValidator
     {
@@ -17,7 +18,7 @@
         public static void Validate(IServiceControlInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage.ZipName.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
+            if (instance.TransportPackage.Name.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase))
             {
                 validator.CheckMsSqlConnectionString();
             }
@@ -26,7 +27,7 @@
         public static void Validate(IMonitoringInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage.ZipName.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
+            if (instance.TransportPackage.Name.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase))
             {
                 validator.CheckMsSqlConnectionString();
             }

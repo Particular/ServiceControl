@@ -30,7 +30,7 @@
                     auditedMessage = result;
                     return result;
                 })
-                .Run(TimeSpan.FromSeconds(40));
+                .Run();
 
 
             Assert.NotNull(auditedMessage);
