@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- This reference can be removed as soon as the target is > net4.7.1 -->
+    <ProjectReference Include="..\NetStandard20Ref\NetStandard20Ref.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
