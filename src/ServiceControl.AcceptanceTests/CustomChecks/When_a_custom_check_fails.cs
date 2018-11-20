@@ -11,6 +11,7 @@
     using NUnit.Framework;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.EventLog;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
     class When_a_custom_check_fails : AcceptanceTest
@@ -32,7 +33,7 @@
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"));
-            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/CustomChecks.EndpointWithFailingCustomCheck")));
+            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith($"/endpoint/{Conventions.EndpointNamingConvention(typeof(EndpointWithFailingCustomCheck))}")));
         }
 
         public class MyContext : ScenarioContext

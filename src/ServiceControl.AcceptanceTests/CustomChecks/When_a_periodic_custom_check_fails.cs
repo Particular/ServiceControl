@@ -16,6 +16,7 @@
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.EventLog;
     using ServiceControl.Infrastructure.SignalR;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
@@ -38,7 +39,7 @@
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"));
-            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/CustomChecks.EndpointWithFailingCustomCheck")));
+            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith($"/endpoint/{Conventions.EndpointNamingConvention(typeof(EndpointWithFailingCustomCheck))}")));
         }
 
         [Test]
