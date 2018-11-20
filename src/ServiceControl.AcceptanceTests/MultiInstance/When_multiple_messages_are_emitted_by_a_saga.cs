@@ -16,7 +16,7 @@
     class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
         [SetUp]
-        public void SetUp()
+        public void ConfigSetup()
         {
             // To configure the SagaAudit plugin
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -27,7 +27,7 @@
         }
 
         [TearDown]
-        public void TearDown()
+        public void ConfigTeardown()
         {
             // Cleanup the saga audit plugin configuration to not leak into other tests
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

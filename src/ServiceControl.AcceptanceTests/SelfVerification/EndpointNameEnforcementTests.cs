@@ -5,10 +5,11 @@
     using System.Reflection;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
 
     [TestFixture]
-    class EndpointNameEnforcementTests : AcceptanceTest
+    class EndpointNameEnforcementTests : NServiceBusAcceptanceTest
     {
         const int endpointNameMaxLength = 77;
 

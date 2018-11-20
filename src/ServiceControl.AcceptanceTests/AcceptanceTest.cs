@@ -21,10 +21,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Logging;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.DomainEvents;
-    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
-    abstract class AcceptanceTest : IAcceptanceTestInfrastructureProvider
+    abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider
     {
         protected AcceptanceTest()
         {
@@ -76,23 +75,6 @@ namespace ServiceBus.Management.AcceptanceTests
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
 
             RemoveOtherTransportAssemblies(transportToUse.TypeName);
-
-            Conventions.EndpointNamingConvention = t =>
-            {
-                var classAndEndpoint = t.FullName.Split('.').Last();
-
-                var testName = classAndEndpoint.Split('+').First();
-
-                testName = testName.Replace("When_", "");
-
-                var endpointBuilder = classAndEndpoint.Split('+').Last();
-
-                testName = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(testName);
-
-                testName = testName.Replace("_", "");
-
-                return testName + "." + endpointBuilder;
-            };
         }
 
         [TearDown]
