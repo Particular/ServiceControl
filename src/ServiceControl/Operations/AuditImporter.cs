@@ -1,14 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
-    using BodyStorage;
-    using Infrastructure;
-    using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
@@ -16,9 +9,9 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class AuditImporterFeature : Feature
+    class AuditImporter : Feature
     {
-        public AuditImporterFeature()
+        public AuditImporter()
         {
             EnableByDefault();
         }
@@ -29,23 +22,18 @@
 
             if (settings.IngestAuditMessages)
             {
-                context.Container.ConfigureComponent<AuditImporter>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<AuditPersister>(DependencyLifecycle.SingleInstance);
                 context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent(b =>
-                    new SatelliteImportFailuresHandler(b.Build<IDocumentStore>(), Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Audit"), msg => new FailedAuditImport
-                    {
-                        Message = msg
-                    }, b.Build<CriticalError>()), DependencyLifecycle.SingleInstance);
 
                 context.AddSatelliteReceiver(
                     "Audit Import",
                     context.Settings.ToTransportAddress(settings.AuditQueue),
                     new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                     OnAuditError,
-                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(builder, messageContext))
+                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(messageContext))
                 );
 
-                context.RegisterStartupTask(b => new StartupTask(b.Build<SatelliteImportFailuresHandler>(), this));
+                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<AuditIngestor>(), this));
 
                 if (settings.ForwardAuditMessages)
                 {
@@ -54,9 +42,20 @@
             }
         }
 
-        Task OnAuditMessage(IBuilder builder, MessageContext messageContext)
+        static SatelliteImportFailuresHandler CreateFailureHandler(IBuilder b)
         {
-            return builder.Build<AuditIngestor>().Ingest(messageContext);
+            var documentStore = b.Build<IDocumentStore>();
+            var logPath = Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Audit");
+
+            return new SatelliteImportFailuresHandler(documentStore, logPath, msg => new FailedAuditImport
+            {
+                Message = msg
+            }, b.Build<CriticalError>());
+        }
+
+        Task OnAuditMessage(MessageContext messageContext)
+        {
+            return auditIngestor.Ingest(messageContext);
         }
 
         RecoverabilityAction OnAuditError(RecoverabilityConfig config, ErrorContext errorContext)
@@ -72,12 +71,14 @@
         }
 
         SatelliteImportFailuresHandler importFailuresHandler;
+        AuditIngestor auditIngestor;
 
         class StartupTask : FeatureStartupTask
         {
-            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditImporterFeature importer)
+            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditIngestor auditIngestor, AuditImporter importer)
             {
                 importer.importFailuresHandler = importFailuresHandler;
+                importer.auditIngestor = auditIngestor;
             }
 
             protected override Task OnStart(IMessageSession session)
@@ -112,52 +113,5 @@
                 return Task.CompletedTask;
             }
         }
-    }
-
-
-    class AuditImporter
-    {
-        public AuditImporter(IBuilder builder, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher)
-        {
-            this.bodyStorageEnricher = bodyStorageEnricher;
-            enrichers = builder.BuildAll<IEnrichImportedMessages>().Where(e => e.EnrichAudits).ToArray();
-        }
-
-        public async Task<ProcessedMessage> ConvertToSaveMessage(MessageContext message)
-        {
-            if (!message.Headers.TryGetValue(Headers.MessageId, out var messageId))
-            {
-                messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
-            }
-
-            var metadata = new ConcurrentDictionary<string, object>
-            {
-                ["MessageId"] = messageId,
-                ["MessageIntent"] = message.Headers.MessageIntent(),
-            };
-
-            var enricherTasks = new List<Task>(enrichers.Length);
-            // ReSharper disable once LoopCanBeConvertedToQuery
-            foreach (var enricher in enrichers)
-            {
-                enricherTasks.Add(enricher.Enrich(message.Headers, metadata));
-            }
-
-            await Task.WhenAll(enricherTasks)
-                .ConfigureAwait(false);
-
-            await bodyStorageEnricher.StoreAuditMessageBody(message.Body, message.Headers, metadata)
-                .ConfigureAwait(false);
-
-            var auditMessage = new ProcessedMessage(message.Headers, new Dictionary<string, object>(metadata))
-            {
-                // We do this so Raven does not spend time assigning a hilo key
-                Id = $"ProcessedMessages/{Guid.NewGuid()}"
-            };
-            return auditMessage;
-        }
-
-        readonly IEnrichImportedMessages[] enrichers;
-        readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
     }
 }
