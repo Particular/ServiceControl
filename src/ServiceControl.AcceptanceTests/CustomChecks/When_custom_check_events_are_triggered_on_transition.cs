@@ -14,7 +14,7 @@
     using ServiceControl.EventLog;
 
     [TestFixture]
-    class Custom_check_should_only_trigger_events_on_transition : AcceptanceTest
+    class When_custom_check_events_are_triggered_on_transition : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
