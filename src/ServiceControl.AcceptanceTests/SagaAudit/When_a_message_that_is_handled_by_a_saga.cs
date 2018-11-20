@@ -19,7 +19,7 @@
             var messages = new List<MessagesView>();
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingSagas>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga
+                .WithEndpoint<SagasEndpoint>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga
                 {
                     Saga1Id = Guid.NewGuid(),
                     Saga2Id = Guid.NewGuid()
@@ -68,9 +68,9 @@
             Assert.AreEqual($"{sagaId}:{stateChange}", m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value);
         }
 
-        public class EndpointThatIsHostingSagas : EndpointConfigurationBuilder
+        public class SagasEndpoint : EndpointConfigurationBuilder
         {
-            public EndpointThatIsHostingSagas()
+            public SagasEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }

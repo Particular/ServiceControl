@@ -17,8 +17,8 @@
         public async Task The_reply_should_go_to_the_correct_endpoint()
         {
             var context = await Define<RetryReplyContext>()
-                .WithEndpoint<OriginatingEndpoint>(c => c.When(bus => bus.Send(new OriginalMessage())))
-                .WithEndpoint<ReceivingEndpoint>(c => c.DoNotFailOnErrorMessages())
+                .WithEndpoint<Originator>(c => c.When(bus => bus.Send(new OriginalMessage())))
+                .WithEndpoint<Receiver>(c => c.DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (string.IsNullOrWhiteSpace(c.UniqueMessageId))
@@ -60,14 +60,14 @@
             public string ReplyHandledBy { get; set; }
         }
 
-        class OriginatingEndpoint : EndpointConfigurationBuilder
+        class Originator : EndpointConfigurationBuilder
         {
-            public OriginatingEndpoint()
+            public Originator()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
-                    routing.RouteToEndpoint(typeof(OriginalMessage), typeof(ReceivingEndpoint));
+                    routing.RouteToEndpoint(typeof(OriginalMessage), typeof(Receiver));
                 });
             }
 
@@ -83,9 +83,9 @@
             }
         }
 
-        class ReceivingEndpoint : EndpointConfigurationBuilder
+        class Receiver : EndpointConfigurationBuilder
         {
-            public ReceivingEndpoint()
+            public Receiver()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
             }

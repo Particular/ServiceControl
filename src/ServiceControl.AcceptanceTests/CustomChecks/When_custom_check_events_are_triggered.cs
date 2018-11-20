@@ -22,7 +22,7 @@
             EventLogItem entry = null;
 
             await Define<MyContext>()
-                .WithEndpoint<EndpointWithFailingCustomCheck>()
+                .WithEndpoint<EndpointWithCustomCheck>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
@@ -39,9 +39,9 @@
         {
         }
 
-        public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
+        public class EndpointWithCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck()
+            public EndpointWithCustomCheck()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
             }

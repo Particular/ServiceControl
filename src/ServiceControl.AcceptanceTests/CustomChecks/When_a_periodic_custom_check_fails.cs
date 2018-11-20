@@ -28,7 +28,7 @@
             EventLogItem entry = null;
 
             await Define<MyContext>(ctx => { ctx.SignalrStarted = true; })
-                .WithEndpoint<EndpointWithFailingCustomCheck>()
+                .WithEndpoint<WithCustomCheck>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
@@ -39,7 +39,7 @@
 
             Assert.AreEqual(Severity.Error, entry.Severity, "Failed custom checks should be treated as error");
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/MyCustomCheckId"));
-            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith($"/endpoint/{Conventions.EndpointNamingConvention(typeof(EndpointWithFailingCustomCheck))}")));
+            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith($"/endpoint/{Conventions.EndpointNamingConvention(typeof(WithCustomCheck))}")));
         }
 
         [Test]
@@ -47,7 +47,7 @@
         {
             var context = await Define<MyContext>(
                     ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
-                .WithEndpoint<EndpointWithFailingCustomCheck>()
+                .WithEndpoint<WithCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
                 .Run();
@@ -118,9 +118,9 @@
             }
         }
 
-        public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
+        public class WithCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck()
+            public WithCustomCheck()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
             }

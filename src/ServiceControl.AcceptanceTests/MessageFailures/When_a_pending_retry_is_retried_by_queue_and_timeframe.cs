@@ -17,7 +17,7 @@
         public async Task Should_succeed()
         {
             await Define<Context>()
-                .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
+                .WithEndpoint<Failing>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Do("DetectFailure", async ctx =>
                 {
                     return ctx.UniqueMessageId != null
@@ -47,9 +47,9 @@
                 .Run();
         }
 
-        public class FailingEndpoint : EndpointConfigurationBuilder
+        public class Failing : EndpointConfigurationBuilder
         {
-            public FailingEndpoint()
+            public Failing()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
