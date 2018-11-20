@@ -88,6 +88,8 @@ namespace ServiceBus.Management.AcceptanceTests
         [TearDown]
         public void Teardown()
         {
+            Trace.Flush();
+            Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
         }
 
