@@ -51,6 +51,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public Task Initialize(RunDescriptor run)
         {
+            SettingsPerInstance.Clear();
             return InitializeServiceControl(run.ScenarioContext);
         }
 
@@ -240,7 +241,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
             bootstrappers.Clear();
             Busses.Clear();
-            SettingsPerInstance.Clear();
             HttpClients.Clear();
             portToHandler.Clear();
             Handlers.Clear();
