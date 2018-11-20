@@ -12,7 +12,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    class Audit_Messages_Have_Proper_IsSystemMessage_Tests : AcceptanceTest
+    class When_messages_are_marked_as_system_messages : AcceptanceTest
     {
         [Test]
         public async Task Should_set_the_IsSystemMessage_when_message_type_is_not_a_scheduled_task()
@@ -24,7 +24,7 @@
                     ctx.EnclosedMessageType = "SendOnlyError.SendSomeCommand, TestSendOnlyError, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
                     ctx.IncludeControlMessageHeader = false;
                 })
-                .WithEndpoint<ServerEndpoint>()
+                .WithEndpoint<SystemMessageEndpoint>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
@@ -47,7 +47,7 @@
                     ctx.EnclosedMessageType = "NServiceBus.Scheduling.Messages.ScheduledTask, TestSendOnlyError, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null";
                     ctx.IncludeControlMessageHeader = false;
                 })
-                .WithEndpoint<ServerEndpoint>()
+                .WithEndpoint<SystemMessageEndpoint>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=true&sort=id", r => r.MessageId == c.MessageId);
@@ -71,7 +71,7 @@
                     ctx.IncludeControlMessageHeader = true; // If the control message header is present, then its a system message regardless of the value
                     ctx.ControlMessageHeaderValue = null;
                 })
-                .WithEndpoint<ServerEndpoint>()
+                .WithEndpoint<SystemMessageEndpoint>()
                 .Done(async c =>
                 {
                     if (!c.QueryForMessages)
@@ -107,7 +107,7 @@
                     ctx.EnclosedMessageType = null;
                     ctx.IncludeControlMessageHeader = false;
                 })
-                .WithEndpoint<ServerEndpoint>()
+                .WithEndpoint<SystemMessageEndpoint>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages", r => r.MessageId == c.MessageId);
@@ -120,9 +120,9 @@
             Assert.IsFalse(auditMessage.IsSystemMessage);
         }
 
-        public class ServerEndpoint : EndpointConfigurationBuilder
+        class SystemMessageEndpoint : EndpointConfigurationBuilder
         {
-            public ServerEndpoint()
+            public SystemMessageEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>();
             }
@@ -134,7 +134,7 @@
                     // Transport message has no headers for Processing endpoint and the ReplyToAddress is set to null
                     var headers = new Dictionary<string, string>
                     {
-                        [Headers.ProcessingEndpoint] = "ServerEndpoint",
+                        [Headers.ProcessingEndpoint] = "SystemMessageEndpoint",
                         [Headers.MessageId] = context.MessageId,
                         [Headers.ConversationId] = "a59395ee-ec80-41a2-a728-a3df012fc707",
                         ["$.diagnostics.hostid"] = "bdd4b0510bff5a6d07e91baa7e16a804",
