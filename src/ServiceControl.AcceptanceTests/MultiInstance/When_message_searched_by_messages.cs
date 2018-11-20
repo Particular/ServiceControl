@@ -13,9 +13,8 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
-    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_proessed_message_multi_instance_endpoint_by_messages : AcceptanceTest
+    class When_message_searched_by_messages : AcceptanceTest
     {
         [Test]
         public async Task Should_be_found()
@@ -24,20 +23,30 @@
 
             var response = new List<MessagesView>();
 
-            var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
-
             var context = await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
+                .WithEndpoint<Sender>(b => b.When(async (bus, c) =>
+                {
+                    await bus.Send(new MyMessage());
+                    await bus.SendLocal(new MyMessage());
+                }))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/", instanceName: Master);
+                    var result = await this.TryGetMany<MessagesView>("/api/messages/", instanceName: Master);
                     response = result;
-                    return result && response.Count == 1;
+                    return result && response.Count == 2;
                 })
                 .Run();
 
+            var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Master].ApiUrl);
             var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+
+            Assert.AreNotEqual(expectedMasterInstanceId, expectedRemote1InstanceId);
+
+            var masterMessage = response.SingleOrDefault(msg => msg.MessageId == context.MasterMessageId);
+
+            Assert.NotNull(masterMessage, "Master message not found");
+            Assert.AreEqual(expectedMasterInstanceId, masterMessage.InstanceId, "Master instance id mismatch");
 
             var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
 
@@ -85,11 +94,24 @@
                 {
                     c.AuditProcessedMessagesTo(AuditMaster);
                     c.SendFailedMessagesTo(ErrorMaster);
-
                     c.ConfigureTransport()
                         .Routing()
                         .RouteToEndpoint(typeof(MyMessage), typeof(ReceiverRemote));
                 });
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public ReadOnlySettings Settings { get; set; }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.MasterMessageId = context.MessageId;
+                    return Task.FromResult(0);
+                }
             }
         }
 
@@ -126,6 +148,7 @@
 
         public class MyContext : ScenarioContext
         {
+            public string MasterMessageId { get; set; }
             public string Remote1MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }

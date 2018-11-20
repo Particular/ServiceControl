@@ -15,7 +15,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
 
-    class When_a_multiple_error_message_with_same_uniqueid_are_imported_concurrently : AcceptanceTest
+    class When_errors_with_same_uniqueid_are_imported : AcceptanceTest
     {
         [Test]
         public async Task The_import_should_support_it()

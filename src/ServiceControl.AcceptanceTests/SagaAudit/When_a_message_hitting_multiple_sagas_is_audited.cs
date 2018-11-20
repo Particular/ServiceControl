@@ -18,7 +18,7 @@
             MessagesView auditedMessage = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
                     if (c.SagaId == Guid.Empty)
@@ -34,8 +34,8 @@
 
             Assert.NotNull(auditedMessage);
 
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.InvokedSagas.First().SagaType);
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MyOtherSaga).FullName, auditedMessage.InvokedSagas.Last().SagaType);
+            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, auditedMessage.InvokedSagas.First().SagaType);
+            Assert.AreEqual(typeof(SagaEndpoint.MyOtherSaga).FullName, auditedMessage.InvokedSagas.Last().SagaType);
 
             Assert.AreEqual(context.SagaId, auditedMessage.InvokedSagas.First().SagaId);
             Assert.AreEqual(context.OtherSagaId, auditedMessage.InvokedSagas.Last().SagaId);
@@ -44,9 +44,9 @@
             Assert.AreEqual("Completed", auditedMessage.InvokedSagas.Last().ChangeStatus);
         }
 
-        public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
+        public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public EndpointThatIsHostingTheSaga()
+            public SagaEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }

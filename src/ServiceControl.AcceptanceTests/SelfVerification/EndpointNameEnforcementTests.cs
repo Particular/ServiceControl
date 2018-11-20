@@ -11,7 +11,7 @@
     [TestFixture]
     class EndpointNameEnforcementTests : NServiceBusAcceptanceTest
     {
-        const int endpointNameMaxLength = 77;
+        const int endpointNameMaxLength = 60;
 
         [Test]
         public void EndpointName_should_not_exceed_maximum_length()

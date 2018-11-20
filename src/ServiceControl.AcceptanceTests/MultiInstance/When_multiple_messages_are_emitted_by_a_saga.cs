@@ -45,7 +45,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
@@ -57,7 +57,7 @@
             Assert.NotNull(sagaHistory);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, sagaHistory.SagaType);
+            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, sagaHistory.SagaType);
 
             var sagaStateChange = sagaHistory.Changes.First();
             Assert.AreEqual("Send", sagaStateChange.InitiatingMessage.Intent);
@@ -106,9 +106,9 @@
         private static string AuditRemote = $"{Remote1}.audit1";
         private static string ErrorRemote = $"{Remote1}.error1";
 
-        public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
+        public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public EndpointThatIsHostingTheSaga()
+            public SagaEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                     {
@@ -117,7 +117,7 @@
                         c.AuditProcessedMessagesTo(AuditRemote);
                         c.SendFailedMessagesTo(ErrorMaster);
                     },
-                    publishers => { publishers.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga)); });
+                    publishers => { publishers.RegisterPublisherFor<MessagePublishedBySaga>(typeof(SagaEndpoint)); });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>

@@ -4,23 +4,24 @@
     using System.Linq;
     using System.Threading.Tasks;
     using EndpointTemplates;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_an_endpoint_with_audit_enabled_without_heartbeat_plugin_starts_up : AcceptanceTest
+    class When_unmonitored_endpoint_sends_heartbeats : AcceptanceTest
     {
-        static string EndpointName => Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
+        static string EndpointName => Conventions.EndpointNamingConvention(typeof(WithoutHeartbeat));
 
         [Test]
-        public async Task Should_not_be_monitored()
+        public async Task Should_be_marked_as_monitored()
         {
             List<EndpointsView> endpoints = null;
 
             await Define<MyContext>()
-                .WithEndpoint<StartingEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<WithoutHeartbeat>(c => c.When(bus => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
@@ -32,15 +33,30 @@
             var myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);
             Assert.NotNull(myEndpoint);
             Assert.IsFalse(myEndpoint.Monitored);
+
+            await Define<MyContext>()
+                .WithEndpoint<WithHeartbeat>()
+                .Done(async c =>
+                {
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
+                    endpoints = result;
+                    return result;
+                })
+                .Run();
+
+            myEndpoint = endpoints.SingleOrDefault(e => e.Name == EndpointName);
+            Assert.NotNull(myEndpoint);
+            Assert.IsTrue(myEndpoint.Monitored);
+            Assert.IsTrue(myEndpoint.IsSendingHeartbeats);
         }
 
         public class MyContext : ScenarioContext
         {
         }
 
-        public class StartingEndpoint : EndpointConfigurationBuilder
+        public class WithoutHeartbeat : EndpointConfigurationBuilder
         {
-            public StartingEndpoint()
+            public WithoutHeartbeat()
             {
                 EndpointSetup<DefaultServerWithAudit>();
             }
@@ -51,6 +67,14 @@
                 {
                     return Task.FromResult(0);
                 }
+            }
+        }
+
+        public class WithHeartbeat : EndpointConfigurationBuilder
+        {
+            public WithHeartbeat()
+            {
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
             }
         }
 

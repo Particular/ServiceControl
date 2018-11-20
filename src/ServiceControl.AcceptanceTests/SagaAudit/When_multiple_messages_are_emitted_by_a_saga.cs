@@ -20,7 +20,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
@@ -32,7 +32,7 @@
             Assert.NotNull(sagaHistory);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, sagaHistory.SagaType);
+            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, sagaHistory.SagaType);
 
             var sagaStateChange = sagaHistory.Changes.First();
             Assert.AreEqual("Send", sagaStateChange.InitiatingMessage.Intent);
@@ -49,16 +49,16 @@
             Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName]);
         }
 
-        public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
+        public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public EndpointThatIsHostingTheSaga()
+            public SagaEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
                     c.EnableFeature<AutoSubscribe>();
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-                }, metadata => { metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga)); });
+                }, metadata => { metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(SagaEndpoint)); });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>

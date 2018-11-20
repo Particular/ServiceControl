@@ -13,16 +13,16 @@
         public async Task Saga_info_should_not_be_available_through_the_http_api()
         {
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MyMessage {OrderId = 1})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MyMessage {OrderId = 1})))
                 .Done(c => c.SagaNotFound)
                 .Run();
 
             Assert.IsTrue(context.SagaNotFound);
         }
 
-        public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
+        public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public EndpointThatIsHostingTheSaga()
+            public SagaEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>();
             }

@@ -12,13 +12,13 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
     using ServiceControl.CompositeViews.Messages;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_a_message_has_been_successfully_processed_from_sendonly : AcceptanceTest
+    class When_message_processed_successfully_from_sendonly : AcceptanceTest
     {
         [Test]
         public async Task Should_import_messages_from_sendonly_endpoint()
         {
             await Define<MyContext>(ctx => { ctx.MessageId = Guid.NewGuid().ToString(); })
-                .WithEndpoint<SendOnlyEndpoint>()
+                .WithEndpoint<Sendonly>()
                 .Done(async c =>
                 {
                     if (!await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId))
@@ -31,9 +31,9 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                 .Run();
         }
 
-        public class SendOnlyEndpoint : EndpointConfigurationBuilder
+        class Sendonly : EndpointConfigurationBuilder
         {
-            public SendOnlyEndpoint()
+            public Sendonly()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
@@ -45,7 +45,7 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                     var headers = new Dictionary<string, string>
                     {
                         [Headers.MessageId] = context.MessageId,
-                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(SendOnlyEndpoint))
+                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(Sendonly))
                     };
                     return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }

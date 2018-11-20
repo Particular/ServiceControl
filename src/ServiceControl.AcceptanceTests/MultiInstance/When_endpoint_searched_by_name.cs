@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Infrastructure.Settings;
@@ -11,44 +12,44 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Infrastructure.Settings;
-    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
+    using ServiceControl.CompositeViews.Endpoints;
 
-    class When_processed_message_multi_instance_endpoint_by_messagetype : AcceptanceTest
+    class When_endpoint_searched_by_name : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_found()
+        public async Task Should_be_listed_in_known_endpoints()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            var response = new List<MessagesView>();
-
-            var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
-
-            //search for the message type
-            var searchString = typeof(MyMessage).Name;
+            List<KnownEndpointsView> knownEndpoints = null;
+            HttpResponseMessage httpResponseMessage = null;
 
             var context = await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/search/" + searchString, instanceName: Master);
-                    response = result;
-                    return result && response.Count == 1;
+                    var result = await this.TryGetMany<KnownEndpointsView>("/api/endpoints/known", m => m.EndpointDetails.Name == c.EndpointNameOfReceivingEndpoint, Master);
+                    knownEndpoints = result;
+                    if (result)
+                    {
+                        httpResponseMessage = await this.GetRaw("/api/endpoints/known", Master);
+
+                        return true;
+                    }
+
+                    return false;
                 })
                 .Run();
 
-            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+            Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).EndpointDetails.Name);
+            Assert.AreEqual(ReceiverHostDisplayName, knownEndpoints.Single(e => e.EndpointDetails.Name == context.EndpointNameOfReceivingEndpoint).HostDisplayName);
 
-            var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
-
-            Assert.NotNull(remote1Message, "Remote1 message not found");
-            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
+            Assert.NotNull(httpResponseMessage);
+            Assert.False(httpResponseMessage.Headers.Contains("ETag"), "Expected not to contain ETag header, but it was found.");
         }
 
-        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -72,13 +73,14 @@
             }
         }
 
-        string addressOfRemote;
-        const string Master = "master";
-        const string Remote1 = "remote1";
-        static string AuditMaster = $"{Master}.audit";
-        static string ErrorMaster = $"{Master}.error";
-        static string AuditRemote = $"{Remote1}.audit";
-        static string ErrorRemote = $"{Remote1}.error";
+        private string addressOfRemote;
+        private const string Master = "master";
+        private const string Remote1 = "remote1";
+        private const string ReceiverHostDisplayName = "Rico";
+        private static string AuditMaster = $"{Master}.audit";
+        private static string ErrorMaster = $"{Master}.error";
+        private static string AuditRemote = $"{Remote1}.audit";
+        private static string ErrorRemote = $"{Remote1}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {
@@ -88,10 +90,25 @@
                 {
                     c.AuditProcessedMessagesTo(AuditMaster);
                     c.SendFailedMessagesTo(ErrorMaster);
+
                     c.ConfigureTransport()
                         .Routing()
                         .RouteToEndpoint(typeof(MyMessage), typeof(ReceiverRemote));
                 });
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public ReadOnlySettings Settings { get; set; }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.MasterMessageId = context.MessageId;
+                    return Task.FromResult(0);
+                }
             }
         }
 
@@ -103,6 +120,8 @@
                 {
                     c.AuditProcessedMessagesTo(AuditRemote);
                     c.SendFailedMessagesTo(ErrorRemote);
+
+                    c.UniquelyIdentifyRunningInstance().UsingCustomDisplayName(ReceiverHostDisplayName);
                 });
             }
 
@@ -128,9 +147,12 @@
 
         public class MyContext : ScenarioContext
         {
+            public string MasterMessageId { get; set; }
             public string Remote1MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
+
+            public string ConversationId { get; set; }
         }
     }
 }

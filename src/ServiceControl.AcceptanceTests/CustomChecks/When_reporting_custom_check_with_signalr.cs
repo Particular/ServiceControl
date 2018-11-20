@@ -23,7 +23,7 @@
         public async Task Should_result_in_a_custom_check_failed_event()
         {
             var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
-                .WithEndpoint<EndpointWithFailingCustomCheck>()
+                .WithEndpoint<EndpointWithCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
                 .Run(TimeSpan.FromMinutes(2));
@@ -95,9 +95,9 @@
             }
         }
 
-        public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
+        class EndpointWithCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck()
+            public EndpointWithCustomCheck()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
             }
