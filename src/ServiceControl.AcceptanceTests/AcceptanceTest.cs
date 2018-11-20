@@ -79,9 +79,19 @@ namespace ServiceBus.Management.AcceptanceTests
 
             Conventions.EndpointNamingConvention = t =>
             {
-                var baseNs = typeof(AcceptanceTest).Namespace;
-                var testName = GetType().Name;
-                return t.FullName?.Replace($"{baseNs}.", string.Empty).Replace($"{testName}+", string.Empty);
+                var classAndEndpoint = t.FullName.Split('.').Last();
+
+                var testName = classAndEndpoint.Split('+').First();
+
+                testName = testName.Replace("When_", "");
+
+                var endpointBuilder = classAndEndpoint.Split('+').Last();
+
+                testName = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(testName);
+
+                testName = testName.Replace("_", "");
+
+                return testName + "." + endpointBuilder;
             };
         }
 
