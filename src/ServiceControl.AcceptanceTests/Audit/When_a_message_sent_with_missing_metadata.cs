@@ -12,10 +12,10 @@
     using ServiceControl.CompositeViews.Messages;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_a_message_sent_from_third_party_endpoint_with_missing_metadata : AcceptanceTest
+    class When_a_message_sent_with_missing_metadata : AcceptanceTest
     {
         [Test]
-        public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()
+        public async Task Should_not_be_cast_TimeSent_to_DateTimeMin()
         {
             MessagesView auditedMessage = null;
 

@@ -17,7 +17,7 @@
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
-    class Custom_check_transition_should_trigger_signalr_event : AcceptanceTest
+    class When_reporting_custom_check_with_signalr : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
