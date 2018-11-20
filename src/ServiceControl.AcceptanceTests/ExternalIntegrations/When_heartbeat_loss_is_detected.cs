@@ -18,7 +18,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     class When_heartbeat_loss_is_detected : AcceptanceTest
     {
         [Test]
-        public async Task Notification_is_published_on_a_bus()
+        public async Task Should_publish_notification()
         {
             var externalProcessorSubscribed = false;
 
