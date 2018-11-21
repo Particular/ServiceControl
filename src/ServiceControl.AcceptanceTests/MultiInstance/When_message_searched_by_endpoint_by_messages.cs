@@ -1,5 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
 {
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Infrastructure.Settings;
@@ -10,22 +12,40 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Infrastructure.Settings;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_processed_message_multi_instance_searched_by_messageid : AcceptanceTest
+    class When_message_searched_by_endpoint_by_messages : AcceptanceTest
     {
         [Test]
         public async Task Should_be_found()
         {
             SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
 
-            await Define<MyContext>(Remote1, Master)
+            var response = new List<MessagesView>();
+
+            var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
+
+            var context = await Define<MyContext>(Remote1, Master)
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(async c => c.Remote1MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: Master))
+                .Done(async c =>
+                {
+                    var result = await this.TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/", instanceName: Master);
+                    response = result;
+                    return result && response.Count == 1;
+                })
                 .Run();
+
+            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+
+            var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
+
+            Assert.NotNull(remote1Message, "Remote1 message not found");
+            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
         {
             switch (instanceName)
             {
@@ -49,13 +69,13 @@
             }
         }
 
-        private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit";
-        private static string ErrorRemote = $"{Remote1}.error";
+        string addressOfRemote;
+        const string Master = "master";
+        const string Remote1 = "remote1";
+        static string AuditMaster = $"{Master}.audit";
+        static string ErrorMaster = $"{Master}.error";
+        static string AuditRemote = $"{Remote1}.audit";
+        static string ErrorRemote = $"{Remote1}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {

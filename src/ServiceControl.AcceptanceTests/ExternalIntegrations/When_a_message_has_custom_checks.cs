@@ -14,7 +14,7 @@
     class When_a_message_has_custom_checks : AcceptanceTest
     {
         [Test]
-        public async Task Notification_should_be_published_on_the_bus()
+        public async Task Should_publish_notification()
         {
             var externalProcessorSubscribed = false;
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>

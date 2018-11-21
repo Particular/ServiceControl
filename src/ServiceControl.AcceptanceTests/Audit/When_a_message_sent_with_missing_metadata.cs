@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.AcceptanceTests.Audit
+﻿namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System;
     using System.Collections.Generic;
@@ -12,28 +12,30 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
     using ServiceControl.CompositeViews.Messages;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_a_message_has_been_successfully_processed_from_sendonly : AcceptanceTest
+    class When_a_message_sent_with_missing_metadata : AcceptanceTest
     {
         [Test]
-        public async Task Should_import_messages_from_sendonly_endpoint()
+        public async Task Should_not_be_cast_TimeSent_to_DateTimeMin()
         {
+            MessagesView auditedMessage = null;
+
             await Define<MyContext>(ctx => { ctx.MessageId = Guid.NewGuid().ToString(); })
-                .WithEndpoint<SendOnlyEndpoint>()
+                .WithEndpoint<ThirdPartyEndpoint>()
                 .Done(async c =>
                 {
-                    if (!await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId))
-                    {
-                        return false;
-                    }
-
-                    return true;
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    auditedMessage = result;
+                    return result;
                 })
                 .Run();
+
+            Assert.IsNotNull(auditedMessage);
+            Assert.IsNull(auditedMessage.TimeSent);
         }
 
-        public class SendOnlyEndpoint : EndpointConfigurationBuilder
+        public class ThirdPartyEndpoint : EndpointConfigurationBuilder
         {
-            public SendOnlyEndpoint()
+            public ThirdPartyEndpoint()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
@@ -44,15 +46,15 @@ namespace ServiceBus.Management.AcceptanceTests.Audit
                 {
                     var headers = new Dictionary<string, string>
                     {
-                        [Headers.MessageId] = context.MessageId,
-                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(SendOnlyEndpoint))
+                        {Headers.ProcessingEndpoint, Conventions.EndpointNamingConvention(typeof(ThirdPartyEndpoint))},
+                        {Headers.MessageId, context.MessageId}
                     };
                     return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }
         }
 
-        public class MyContext : ScenarioContext
+        class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
         }

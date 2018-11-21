@@ -12,10 +12,10 @@
     using ServiceControl.Contracts;
 
     [TestFixture]
-    class When_a_message_has_failed : AcceptanceTest
+    class When_a_message_has_failed_detected : AcceptanceTest
     {
         [Test]
-        public async Task Notification_should_be_published_on_the_bus()
+        public async Task Should_publish_notification()
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {

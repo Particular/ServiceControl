@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Infrastructure.Settings;
@@ -15,14 +17,19 @@
     class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
         [Test]
-        public async Task All_outgoing_message_intents_should_be_captured()
+        public async Task Should_capture_all_outgoing_message_intents()
         {
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
+                    if (!c.SagaId.HasValue)
+                    {
+                        return false;
+                    }
+
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
                     sagaHistory = result;
                     return c.Done && result;
@@ -32,7 +39,7 @@
             Assert.NotNull(sagaHistory);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, sagaHistory.SagaType);
+            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, sagaHistory.SagaType);
 
             var sagaStateChange = sagaHistory.Changes.First();
             Assert.AreEqual("Send", sagaStateChange.InitiatingMessage.Intent);
@@ -40,42 +47,39 @@
             var outgoingIntents = new Dictionary<string, string>();
             foreach (var message in sagaStateChange.OutgoingMessages)
             {
+                Trace.WriteLine($"{message.MessageType} - {message.Intent}");
                 outgoingIntents[message.MessageType] = message.Intent;
             }
 
-            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyBySaga).FullName]);
-            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName]);
-            Assert.AreEqual("Send", outgoingIntents[typeof(MessageSentBySaga).FullName]);
-            Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName]);
+            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyBySaga).FullName], "MessageReplyBySaga was not present");
+            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName], "MessageReplyToOriginatorBySaga was not present");
+            Assert.AreEqual("Send", outgoingIntents[typeof(MessageSentBySaga).FullName], "MessageSentBySaga was not present");
+            Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName], "MessagePublishedBySaga was not present");
         }
 
-        public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
+        public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public EndpointThatIsHostingTheSaga()
+            public SagaEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
                     c.EnableFeature<AutoSubscribe>();
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-                }, metadata => { metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(EndpointThatIsHostingTheSaga)); });
+                }, metadata => { metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(SagaEndpoint)); });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                public MyContext Context { get; set; }
-
                 public async Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    Context.SagaId = Data.Id;
-
-                    await context.Reply(new MessageReplyBySaga())
+                    await context.Reply(new MessageReplyBySaga { SagaId = Data.Id })
                         .ConfigureAwait(false);
-                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga())
+                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga { SagaId = Data.Id })
                         .ConfigureAwait(false);
-                    await context.SendLocal(new MessageSentBySaga())
+                    await context.SendLocal(new MessageSentBySaga { SagaId = Data.Id })
                         .ConfigureAwait(false);
-                    await context.Publish(new MessagePublishedBySaga())
+                    await context.Publish(new MessagePublishedBySaga { SagaId = Data.Id })
                         .ConfigureAwait(false);
                 }
 
@@ -96,7 +100,11 @@
 
                 public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
                 {
-                    Context.Done1 = true;
+                    if (!Context.SagaId.HasValue)
+                    {
+                        Context.SagaId = message.SagaId;
+                    }
+                    Context.Done1();
                     return Task.FromResult(0);
                 }
             }
@@ -107,7 +115,11 @@
 
                 public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
                 {
-                    Context.Done2 = true;
+                    if (!Context.SagaId.HasValue)
+                    {
+                        Context.SagaId = message.SagaId;
+                    }
+                    Context.Done2();
                     return Task.FromResult(0);
                 }
             }
@@ -118,7 +130,11 @@
 
                 public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
                 {
-                    Context.Done3 = true;
+                    if (!Context.SagaId.HasValue)
+                    {
+                        Context.SagaId = message.SagaId;
+                    }
+                    Context.Done3();
                     return Task.FromResult(0);
                 }
             }
@@ -129,7 +145,11 @@
 
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
-                    Context.Done4 = true;
+                    if (!Context.SagaId.HasValue)
+                    {
+                        Context.SagaId = message.SagaId;
+                    }
+                    Context.Done4();
                     return Task.FromResult(0);
                 }
             }
@@ -142,29 +162,50 @@
 
         public class MessageSentBySaga : ICommand
         {
+            public Guid SagaId { get; set; }
         }
 
         public class MessagePublishedBySaga : IEvent
         {
+            public Guid SagaId { get; set; }
         }
 
         public class MessageReplyBySaga : IMessage
         {
+            public Guid SagaId { get; set; }
         }
 
         public class MessageReplyToOriginatorBySaga : IMessage
         {
+            public Guid SagaId { get; set; }
         }
 
         public class MyContext : ScenarioContext
         {
-            public bool Done1 { get; set; }
-            public bool Done2 { get; set; }
-            public bool Done3 { get; set; }
-            public bool Done4 { get; set; }
+            long steps;
 
-            public bool Done => Done1 && Done2 && Done3 && Done4;
-            public Guid SagaId { get; set; }
+            public void Done1()
+            {
+                Interlocked.Increment(ref steps);
+            }
+
+            public void Done2()
+            {
+                Interlocked.Increment(ref steps);
+            }
+
+            public void Done3()
+            {
+                Interlocked.Increment(ref steps);
+            }
+
+            public void Done4()
+            {
+                Interlocked.Increment(ref steps);
+            }
+
+            public bool Done => Interlocked.Read(ref steps) >= 4;
+            public Guid? SagaId { get; set; }
         }
     }
 }

@@ -19,7 +19,7 @@
         public async Task The_header_should_not_be_changed()
         {
             var context = await Define<ReplyToContext>(ctx => { ctx.ReplyToAddress = "ReplyToAddress@SOMEMACHINE"; })
-                .WithEndpoint<VerifyHeaderEndpoint>()
+                .WithEndpoint<VerifyHeader>()
                 .Done(async x =>
                 {
                     if (!x.RetryIssued && await this.TryGetMany<FailedMessageView>("/api/errors"))
@@ -47,9 +47,9 @@
             public bool Done { get; set; }
         }
 
-        class VerifyHeaderEndpoint : EndpointConfigurationBuilder
+        class VerifyHeader : EndpointConfigurationBuilder
         {
-            public VerifyHeaderEndpoint()
+            public VerifyHeader()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(
                     (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((ReplyToContext)r.ScenarioContext))
@@ -65,13 +65,13 @@
                     {
                         [Headers.MessageId] = messageId,
                         [Headers.ReplyToAddress] = context.ReplyToAddress,
-                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)),
+                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(VerifyHeader)),
                         ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
                         ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeaderEndpoint)),
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                         [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
                         [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
