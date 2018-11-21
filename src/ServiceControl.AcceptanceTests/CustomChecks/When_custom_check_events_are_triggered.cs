@@ -14,7 +14,7 @@
     using ServiceControl.EventLog;
 
     [TestFixture]
-    class Custom_check_should_only_trigger_events_on_transition : AcceptanceTest
+    class When_custom_check_events_are_triggered : AcceptanceTest
     {
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
@@ -22,7 +22,7 @@
             EventLogItem entry = null;
 
             await Define<MyContext>()
-                .WithEndpoint<EndpointWithFailingCustomCheck>()
+                .WithEndpoint<EndpointWithCustomCheck>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
@@ -39,9 +39,9 @@
         {
         }
 
-        public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
+        public class EndpointWithCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck()
+            public EndpointWithCustomCheck()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
             }

@@ -13,7 +13,7 @@
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_a_message_sent_from_third_party_endpoint_with_missing_metadata_failed : AcceptanceTest
+    class When_processing_message_with_missing_metadata_failed : AcceptanceTest
     {
         [Test]
         public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()
@@ -21,7 +21,7 @@
             FailedMessageView failure = null;
 
             await Define<MyContext>()
-                .WithEndpoint<FailureEndpoint>()
+                .WithEndpoint<Failing>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<FailedMessageView>("/api/errors/", m => m.Id == c.UniqueMessageId);
@@ -42,7 +42,7 @@
             var sentTime = DateTime.Parse("2014-11-11T02:26:58.000462Z");
 
             await Define<MyContext>(ctx => { ctx.TimeSent = sentTime; })
-                .WithEndpoint<FailureEndpoint>()
+                .WithEndpoint<Failing>()
                 .Done(async c =>
                 {
                     var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
@@ -61,7 +61,7 @@
             FailedMessageView failure = null;
 
             await Define<MyContext>()
-                .WithEndpoint<FailureEndpoint>()
+                .WithEndpoint<Failing>()
                 .Done(async c =>
                 {
                     var result = await this.TryGet<FailedMessageView>($"/api/errors/last/{c.UniqueMessageId}");
@@ -73,9 +73,9 @@
             Assert.IsNotNull(failure);
         }
 
-        public class FailureEndpoint : EndpointConfigurationBuilder
+        public class Failing : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
+            public Failing()
             {
                 EndpointSetup<DefaultServerWithAudit>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
             }
@@ -84,7 +84,7 @@
             {
                 protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    context.EndpointNameOfReceivingEndpoint = Conventions.EndpointNamingConvention(typeof(FailureEndpoint));
+                    context.EndpointNameOfReceivingEndpoint = Conventions.EndpointNamingConvention(typeof(Failing));
                     context.MessageId = Guid.NewGuid().ToString();
                     context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, context.EndpointNameOfReceivingEndpoint).ToString();
 
@@ -97,7 +97,7 @@
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                         ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)),
+                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(Failing)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z"
                     };
                     if (context.TimeSent.HasValue)

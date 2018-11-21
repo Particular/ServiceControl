@@ -23,7 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     class When_encountered_an_error : AcceptanceTest
     {
         [Test]
-        public async Task Dispatched_thread_is_restarted()
+        public async Task Should_restart_dispatch_thread()
         {
             var externalProcessorSubscribed = false;
 

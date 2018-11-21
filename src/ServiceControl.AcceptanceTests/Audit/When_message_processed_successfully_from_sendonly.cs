@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Audit
+namespace ServiceBus.Management.AcceptanceTests.Audit
 {
     using System;
     using System.Collections.Generic;
@@ -12,30 +12,28 @@
     using ServiceControl.CompositeViews.Messages;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_a_message_sent_from_third_party_endpoint_with_missing_metadata : AcceptanceTest
+    class When_message_processed_successfully_from_sendonly : AcceptanceTest
     {
         [Test]
-        public async Task Null_TimeSent_should_not_be_cast_to_DateTimeMin()
+        public async Task Should_import_messages_from_sendonly_endpoint()
         {
-            MessagesView auditedMessage = null;
-
             await Define<MyContext>(ctx => { ctx.MessageId = Guid.NewGuid().ToString(); })
-                .WithEndpoint<ThirdPartyEndpoint>()
+                .WithEndpoint<Sendonly>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
-                    auditedMessage = result;
-                    return result;
+                    if (!await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId))
+                    {
+                        return false;
+                    }
+
+                    return true;
                 })
                 .Run();
-
-            Assert.IsNotNull(auditedMessage);
-            Assert.IsNull(auditedMessage.TimeSent);
         }
 
-        public class ThirdPartyEndpoint : EndpointConfigurationBuilder
+        class Sendonly : EndpointConfigurationBuilder
         {
-            public ThirdPartyEndpoint()
+            public Sendonly()
             {
                 EndpointSetup<DefaultServerWithoutAudit>();
             }
@@ -46,15 +44,15 @@
                 {
                     var headers = new Dictionary<string, string>
                     {
-                        {Headers.ProcessingEndpoint, Conventions.EndpointNamingConvention(typeof(ThirdPartyEndpoint))},
-                        {Headers.MessageId, context.MessageId}
+                        [Headers.MessageId] = context.MessageId,
+                        [Headers.ProcessingEndpoint] = Conventions.EndpointNamingConvention(typeof(Sendonly))
                     };
                     return new TransportOperations(new TransportOperation(new OutgoingMessage(context.MessageId, headers, new byte[0]), new UnicastAddressTag("audit")));
                 }
             }
         }
 
-        class MyContext : ScenarioContext
+        public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
         }

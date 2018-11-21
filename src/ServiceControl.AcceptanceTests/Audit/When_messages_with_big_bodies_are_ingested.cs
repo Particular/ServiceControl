@@ -8,7 +8,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
-    class Audit_Messages_That_Big_Bodies_Audit_Test : AcceptanceTest
+    class When_messages_with_big_bodies_are_ingested : AcceptanceTest
     {
         [Test]
         public async Task Should_not_get_an_empty_audit_message_body_when_configured_MaxBodySizeToStore_is_greater_then_message_size()
@@ -20,7 +20,7 @@
 
             //Act
             await Define<Context>()
-                .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
+                .WithEndpoint<FatMessageEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
                         BigFatBody = new byte[MAX_BODY_SIZE - 10000]
@@ -61,7 +61,7 @@
 
             //Act
             await Define<Context>()
-                .WithEndpoint<ServerEndpoint>(c => c.When(b => b.SendLocal(
+                .WithEndpoint<FatMessageEndpoint>(c => c.When(b => b.SendLocal(
                     new BigFatMessage // An endpoint that is configured for audit
                     {
                         BigFatBody = new byte[MAX_BODY_SIZE + 1000]
@@ -94,9 +94,9 @@
 
         const int MAX_BODY_SIZE = 20536;
 
-        class ServerEndpoint : EndpointConfigurationBuilder
+        class FatMessageEndpoint : EndpointConfigurationBuilder
         {
-            public ServerEndpoint()
+            public FatMessageEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>();
             }

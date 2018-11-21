@@ -16,7 +16,7 @@
             MessagesView auditedMessage = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointThatIsHostingTheSaga>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);
@@ -27,13 +27,13 @@
 
             Assert.NotNull(auditedMessage.OriginatesFromSaga);
 
-            Assert.AreEqual(typeof(EndpointThatIsHostingTheSaga.MySaga).FullName, auditedMessage.OriginatesFromSaga.SagaType);
+            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, auditedMessage.OriginatesFromSaga.SagaType);
             Assert.AreEqual(context.SagaId, auditedMessage.OriginatesFromSaga.SagaId);
         }
 
-        public class EndpointThatIsHostingTheSaga : EndpointConfigurationBuilder
+        public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public EndpointThatIsHostingTheSaga()
+            public SagaEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>();
             }

@@ -22,7 +22,7 @@
             FailedMessage failure;
 
             await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<FailureEndpoint>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
+                .WithEndpoint<Failing>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
                     bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
@@ -109,9 +109,9 @@
         private static string AuditRemote = $"{Remote1}.audit1";
         private static string ErrorRemote = $"{Remote1}.error1";
 
-        public class FailureEndpoint : EndpointConfigurationBuilder
+        public class Failing : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
+            public Failing()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
