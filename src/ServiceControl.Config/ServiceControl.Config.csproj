@@ -67,6 +67,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="UI\Shell\LicensePopupView.xaml.cs">
+      <DependentUpon>LicensePopupView.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <Target Name="CopyZips" AfterTargets="Build">

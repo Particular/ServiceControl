@@ -18,10 +18,18 @@ namespace ServiceControlInstaller.Engine.LicenseMgmt
         public string Edition { get; set; }
         public string RegisteredTo { get; private set; }
         public bool ValidForServiceControl { get; private set; }
+        public int? DaysUntilSubscriptionExpires { get; private set; }
+        public int? DaysUntilUpgradeProtectionExpires { get; private set; }
+        public bool WarnUserTrialIsExpiring { get; private set; }
+        public bool WarnUserTrialHasExpired { get; private set; }
+        public bool WarnUserSubscriptionIsExpiring { get; private set; }
+        public bool WarnUserSubscriptionHasExpired { get; private set; }
+        public bool WarnUserUpgradeProtectionIsExpiring { get; private set; }
+        public bool WarnUserUpgradeProtectionHasExpired { get; private set; }
 
         internal static LicenseDetails FromLicense(License license)
         {
-            return new LicenseDetails
+            var details = new LicenseDetails
             {
                 UpgradeProtectionExpiration = license.UpgradeProtectionExpiration,
                 //If expiration date is greater that 50 years treat is as no expiration date
@@ -34,8 +42,42 @@ namespace ServiceControlInstaller.Engine.LicenseMgmt
                 IsTrialLicense = license.IsTrialLicense,
                 LicenseType = license.LicenseType,
                 Edition = license.Edition,
-                ValidForServiceControl = license.ValidForApplication("ServiceControl")
+                ValidForServiceControl = license.ValidForApplication("ServiceControl"),
+                DaysUntilSubscriptionExpires = license.GetDaysUntilLicenseExpires(),
+                DaysUntilUpgradeProtectionExpires = license.GetDaysUntilUpgradeProtectionExpires()
             };
+
+            switch (license.GetLicenseStatus())
+            {
+                case LicenseStatus.Valid:
+                    break;
+                case LicenseStatus.ValidWithExpiredUpgradeProtection:
+                    details.WarnUserUpgradeProtectionHasExpired = true;
+                    break;
+                case LicenseStatus.ValidWithExpiringTrial:
+                    details.WarnUserTrialIsExpiring = true;
+                    break;
+                case LicenseStatus.ValidWithExpiringSubscription:
+                    details.WarnUserSubscriptionIsExpiring = true;
+                    break;
+                case LicenseStatus.ValidWithExpiringUpgradeProtection:
+                    details.WarnUserUpgradeProtectionIsExpiring = true;
+                    break;
+                case LicenseStatus.InvalidDueToExpiredTrial:
+                    details.WarnUserTrialHasExpired = true;
+                    break;
+                case LicenseStatus.InvalidDueToExpiredSubscription:
+                    details.WarnUserSubscriptionHasExpired = true;
+                    break;
+                case LicenseStatus.InvalidDueToExpiredUpgradeProtection:
+                    details.WarnUserUpgradeProtectionHasExpired = true;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+
+            return details;
         }
 
         public bool HasLicenseExpired()
