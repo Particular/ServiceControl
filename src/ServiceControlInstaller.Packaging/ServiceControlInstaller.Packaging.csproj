@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.0.1" PrivateAssets="All" />
+    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.0.2" PrivateAssets="All" />
   </ItemGroup>
 
   <UsingTask AssemblyFile="..\..\buildsupport\DeploymentZipTask.Dll" TaskName="DeploymentZipTask.AddToZip" />
@@ -52,7 +52,7 @@
     <AddToZip IncludeMask="NServiceBus.Transport.AzureServiceBus.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="Microsoft.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="ServiceControl.Transports.ASBS.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="System.Diagnostics.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="System.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- RabbitMQ -->
     <AddToZip IncludeMask="NServiceBus.Transport.RabbitMQ.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="RabbitMQ.Client.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
