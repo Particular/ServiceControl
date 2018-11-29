@@ -11,7 +11,6 @@
     using Extensions;
     using Framework;
     using Framework.Rx;
-    using License;
     using ListInstances;
     using NoInstances;
     using ServiceControlInstaller.Engine.Instances;
@@ -23,7 +22,7 @@
             ListInstancesViewModel listInstances,
             AddServiceControlInstanceCommand addInstance,
             AddMonitoringInstanceCommand addMonitoringInstance,
-            OpenViewModelCommand<LicenseViewModel> openLicense,
+            LicenseStatusManager licenseStatusManager,
             IEventAggregator eventAggregator
         )
         {
@@ -32,7 +31,7 @@
             OpenUrl = new OpenURLCommand();
             AddInstance = addInstance;
             AddMonitoringInstance = addMonitoringInstance;
-            OpenLicense = openLicense;
+            LicenseStatusManager = licenseStatusManager;
             DisplayName = "ServiceControl Config";
             IsModal = false;
             LoadAppVersion();
@@ -74,13 +73,13 @@
 
         public ICommand AddMonitoringInstance { get; private set; }
 
-        public ICommand OpenLicense { get; private set; }
-
         public ICommand OpenUrl { get; private set; }
 
         public ICommand OpenFeedBack { get; set; }
 
         public ICommand RefreshInstancesCmd { get; }
+
+        public LicenseStatusManager LicenseStatusManager { get; private set; }
 
         public void Handle(RefreshInstances message)
         {

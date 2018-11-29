@@ -15,6 +15,20 @@
                       x:Name="ShellContainer"
                       CloseOnEscape="False"
                       mc:Ignorable="d">
+    <Window.Resources>
+        <Style TargetType="{x:Type ToggleButton}" x:Key="ImageButton">
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <ContentPresenter Content="{TemplateBinding Content}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid>
             <Grid.RowDefinitions>
@@ -80,8 +94,42 @@
                 </Popup>
 
                 <Button Margin="20,0,0,0"
-                        Command="{Binding OpenLicense}"
-                        Style="{StaticResource LicenseButton}" />
+                    Command="{Binding LicenseStatusManager.OpenLicense}"
+                    Style="{StaticResource LicenseButton}" />
+
+                <StackPanel Orientation="Horizontal" x:Name="StatusPanel">
+
+                    <Image x:Name="ErrorIcon"
+                           Width="16"
+                           Height="16"
+                           Margin="5,0,0,0"
+                           Source="/Resources/Images/Status-Error.png"
+                           Stretch="Uniform"
+                           Visibility="{Binding Path=LicenseStatusManager.IsSerious, 
+                                            Converter={StaticResource boolToVis},
+                                            Mode=OneWay}"/>
+
+                    <Image x:Name="WarningIcon"
+                           Width="16"
+                           Height="16"
+                           Margin="5,0,0,0"
+                           Source="/Resources/Images/Status-Warning.png"
+                           Stretch="Uniform"
+                           Visibility="{Binding Path=LicenseStatusManager.IsWarning, 
+                                            Converter={StaticResource boolToVis},
+                                            Mode=OneWay}"/>
+
+                    <Popup x:Name="licenseWarningPopup"
+                           IsOpen="{Binding LicenseStatusManager.ShowPopup, Mode=TwoWay}"
+                           StaysOpen="True"
+                           AllowsTransparency="True"
+                           HorizontalOffset="-288"
+                           Placement="Bottom"
+                           PlacementTarget="{Binding ElementName=StatusPanel}">
+                        <shell:LicensePopupView cal:Bind.Model="{Binding LicenseStatusManager}" />
+                    </Popup>
+
+                </StackPanel>
             </StackPanel>
 
             <ContentControl Grid.Row="1"
