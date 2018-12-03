@@ -13,7 +13,7 @@
 
     static class EventLogItemsCleaner
     {
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
@@ -40,7 +40,7 @@
                     }
                 };
                 var indexName = new ExpiryEventLogItemsIndex().IndexName;
-                database.Query(indexName, query, database.WorkContext.CancellationToken,
+                database.Query(indexName, query, token,
                     (doc, commands) =>
                     {
                         var id = doc.Value<string>("__document_id");
@@ -57,7 +57,13 @@
             }
             catch (OperationCanceledException)
             {
-                //Ignore
+                logger.Info("Cleanup operation cancelled");
+                return;
+            }
+
+            if (token.IsCancellationRequested)
+            {
+                return;
             }
 
             var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
@@ -67,7 +73,7 @@
                 logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents completed.", s, e);
 
                 return results.Count(x => x.Deleted == true);
-            }, items, database);
+            }, items, database, token);
 
             if (deletionCount == 0)
             {

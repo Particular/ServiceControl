@@ -14,7 +14,7 @@
 
     static class AuditMessageCleaner
     {
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
@@ -46,7 +46,7 @@
                     }
                 };
                 var indexName = new ExpiryProcessedMessageIndex().IndexName;
-                database.Query(indexName, query, database.WorkContext.CancellationToken,
+                database.Query(indexName, query, token,
                     (doc, state) =>
                     {                       
                         var id = doc.Value<string>("__document_id");
@@ -68,7 +68,13 @@
             }
             catch (OperationCanceledException)
             {
-                //Ignore
+                logger.Info("Cleanup operation cancelled");
+                return;
+            }
+
+            if (token.IsCancellationRequested)
+            {
+                return;
             }
 
             var deletionCount = 0;
@@ -80,7 +86,7 @@
                 logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
 
                 return results.Count(x => x.Deleted == true);
-            }, items, database);
+            }, items, database, token);
 
             deletionCount += Chunker.ExecuteInChunks(attachments.Count, (att, db, s, e) =>
             {
@@ -98,7 +104,7 @@
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
                 });
                 return 0;
-            }, attachments, database);
+            }, attachments, database, token);
 
             if (deletionCount == 0)
             {
