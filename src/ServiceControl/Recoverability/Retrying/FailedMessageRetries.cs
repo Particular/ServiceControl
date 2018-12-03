@@ -12,6 +12,8 @@
 
     public class FailedMessageRetries : Feature
     {
+        static ILog log = LogManager.GetLogger<FailedMessageRetries>();
+
         public FailedMessageRetries()
         {
             EnableByDefault();
@@ -31,48 +33,37 @@
 
         class BulkRetryBatchCreation : FeatureStartupTask
         {
-            public BulkRetryBatchCreation(RetriesGateway retries, TimeKeeper timeKeeper)
+            public BulkRetryBatchCreation(RetriesGateway retries)
             {
                 this.retries = retries;
-                this.timeKeeper = timeKeeper;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
                 if (retries != null)
                 {
-                    var due = TimeSpan.FromSeconds(5);
-                    timer = timeKeeper.New(ProcessRequestedBulkRetryOperations, due, due);
+                    timer = new AsyncTimer(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e =>
+                    {
+                        log.Error("Unhandled exception while processing bulk retry operations", e);
+                    });
                 }
-
                 return Task.FromResult(0);
             }
 
             protected override Task OnStop(IMessageSession session)
             {
-                if (retries != null)
-                {
-                    abortProcessing = true;
-                    timeKeeper.Release(timer);
-                }
-
-                return Task.FromResult(0);
+                return timer?.Stop() ?? Task.CompletedTask;
             }
 
-            async Task ProcessRequestedBulkRetryOperations()
+            async Task<TimerJobExecutionResult> ProcessRequestedBulkRetryOperations()
             {
-                bool processedRequests;
-                do
-                {
-                    processedRequests = await retries.ProcessNextBulkRetry()
-                        .ConfigureAwait(false);
-                } while (processedRequests && !abortProcessing);
+                var processedRequests = await retries.ProcessNextBulkRetry().ConfigureAwait(false);
+                return processedRequests ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
             }
 
-            readonly RetriesGateway retries;
-            private readonly TimeKeeper timeKeeper;
-            private Timer timer;
-            private bool abortProcessing;
+            RetriesGateway retries;
+            AsyncTimer timer;
+            static TimeSpan interval = TimeSpan.FromSeconds(5);
         }
 
         class RebuildRetryGroupStatuses : FeatureStartupTask
@@ -102,25 +93,11 @@
 
         internal class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
-            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, TimeKeeper timeKeeper, IDocumentStore store)
+            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, IDocumentStore store)
             {
                 this.retryDocumentManager = retryDocumentManager;
-                this.timeKeeper = timeKeeper;
                 this.store = store;
                 startTime = DateTime.UtcNow;
-            }
-
-            async Task<bool> AdoptOrphanedBatches()
-            {
-                var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
-
-                if (!hasMoreWork)
-                {
-                    //Disable timeout
-                    timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                }
-
-                return hasMoreWork;
             }
 
             internal async Task<bool> AdoptOrphanedBatchesAsync()
@@ -136,78 +113,66 @@
 
             protected override Task OnStart(IMessageSession session)
             {
-                timer = timeKeeper.NewTimer(() => AdoptOrphanedBatches(), TimeSpan.Zero, TimeSpan.FromMinutes(2));
+                timer = new AsyncTimer(async _ =>
+                {
+                    var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
+                    return hasMoreWork ? TimerJobExecutionResult.ScheduleNextExecution : TimerJobExecutionResult.DoNotContinueExecuting;
+                }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e =>
+                {
+                    log.Error("Unhandled exception while trying to adopt orphaned batches", e);
+                });
                 return Task.FromResult(0);
             }
 
             protected override Task OnStop(IMessageSession session)
             {
-                timeKeeper.Release(timer);
-                return Task.FromResult(0);
+                return timer.Stop();
             }
 
-            private readonly TimeKeeper timeKeeper;
-            private Timer timer;
-            private DateTime startTime;
-
+            AsyncTimer timer;
+            DateTime startTime;
             IDocumentStore store;
             RetryDocumentManager retryDocumentManager;
         }
 
         class ProcessRetryBatches : FeatureStartupTask
         {
-            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, TimeKeeper timeKeeper, Settings settings)
+            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, Settings settings)
             {
                 this.processor = processor;
-                this.timeKeeper = timeKeeper;
                 this.store = store;
                 this.settings = settings;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
-                timer = timeKeeper.New(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency);
+                timer = new AsyncTimer(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e =>
+                {
+                    log.Error("Unhandled exception while processing retry batches", e);
+                });
                 return Task.FromResult(0);
             }
 
             protected override Task OnStop(IMessageSession session)
             {
-                shuttingDown.Cancel();
-                timeKeeper.Release(timer);
-                return Task.FromResult(0);
+                return timer.Stop();
             }
 
-            async Task Process()
+            async Task<TimerJobExecutionResult> Process(CancellationToken token)
             {
-                try
+                using (var session = store.OpenAsyncSession())
                 {
-                    bool batchesProcessed;
-                    do
-                    {
-                        using (var session = store.OpenAsyncSession())
-                        {
-                            batchesProcessed = await processor.ProcessBatches(session, shuttingDown.Token).ConfigureAwait(false);
-                            await session.SaveChangesAsync().ConfigureAwait(false);
-                        }
-                    } while (batchesProcessed && !shuttingDown.IsCancellationRequested);
-                }
-                catch (OperationCanceledException)
-                {
-                    // ignore
-                }
-                catch (Exception ex)
-                {
-                    log.Error("Error during retry batch processing", ex);
+                    var batchesProcessed = await processor.ProcessBatches(session, token).ConfigureAwait(false);
+                    await session.SaveChangesAsync().ConfigureAwait(false);
+                    return batchesProcessed ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
                 }
             }
 
-            private readonly Settings settings;
-            private readonly TimeKeeper timeKeeper;
-            private Timer timer;
+            readonly Settings settings;
+            AsyncTimer timer;
 
             IDocumentStore store;
             RetryProcessor processor;
-            private CancellationTokenSource shuttingDown = new CancellationTokenSource();
             static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
         }
     }
