@@ -82,7 +82,7 @@
                     DocumentStore = documentStore
                 };
 
-                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -101,7 +101,7 @@
                     };
                     await documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                    processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                     await processor.ProcessBatches(session, CancellationToken.None);
                     await session.SaveChangesAsync();
@@ -130,7 +130,7 @@
                 };
 
                 var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint");
-                var processor = new RetryProcessor(sender, domainEvents, returnToSender, retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
@@ -143,6 +143,62 @@
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
                 Assert.AreEqual(RetryState.Completed, status.RetryState);
+            }
+        }
+
+        [Test]
+        public async Task When_there_is_one_poison_message_it_is_removed_from_batch_and_the_status_is_Complete()
+        {
+            var domainEvents = new FakeDomainEvents();
+            var retryManager = new RetryingManager(domainEvents);
+
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            {
+                await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, "A", "B", "C");
+
+                var sender = new TestSender();
+                sender.Callback = operation =>
+                {
+                    //Always fails staging message B
+                    if (operation.Message.MessageId == "FailedMessages/B")
+                    {
+                        throw new Exception("Simulated");
+                    }
+                };
+
+                var bodyStorage = new RavenAttachmentsBodyStorage
+                {
+                    DocumentStore = documentStore
+                };
+
+                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint");
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
+
+                bool c;
+                do
+                {
+                    try
+                    {
+                        using (var session = documentStore.OpenAsyncSession())
+                        {
+                            c = await processor.ProcessBatches(session, CancellationToken.None);
+                            await session.SaveChangesAsync();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        //Continue trying until there is no exception -> poison message is removed from the batch
+                        c = true;
+                    }
+
+                } while (c);
+
+                var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
+                
+                Assert.AreEqual(RetryState.Completed, status.RetryState);
+                Assert.AreEqual(3, status.NumberOfMessagesPrepared);
+                Assert.AreEqual(2, status.NumberOfMessagesForwarded);
+                Assert.AreEqual(1, status.NumberOfMessagesSkipped);
             }
         }
 
@@ -165,7 +221,7 @@
 
                 var sender = new TestSender();
 
-                var processor = new RetryProcessor(sender, domainEvents, new TestReturnToSenderDequeuer(returnToSender, documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(returnToSender, documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -183,37 +239,37 @@
             }
         }
 
-        async Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
+        Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, RetryingManager retryManager, string groupId, bool progressToStaged, int numberOfMessages)
         {
-            var messages = Enumerable.Range(0, numberOfMessages).Select(i =>
-            {
-                var id = Guid.NewGuid().ToString();
+            return CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, groupId, progressToStaged, Enumerable.Range(0, numberOfMessages).Select(i => Guid.NewGuid().ToString()).ToArray());
+        }
 
-                return new FailedMessage
+        async Task CreateAFailedMessageAndMarkAsPartOfRetryBatch(IDocumentStore documentStore, RetryingManager retryManager, string groupId, bool progressToStaged, params string[] messageIds)
+        {
+            var messages = messageIds.Select(id => new FailedMessage
+            {
+                Id = FailedMessage.MakeDocumentId(id),
+                UniqueMessageId = id,
+                FailureGroups = new List<FailedMessage.FailureGroup>
                 {
-                    Id = FailedMessage.MakeDocumentId(id),
-                    UniqueMessageId = id,
-                    FailureGroups = new List<FailedMessage.FailureGroup>
+                    new FailedMessage.FailureGroup
                     {
-                        new FailedMessage.FailureGroup
-                        {
-                            Id = groupId,
-                            Title = groupId,
-                            Type = groupId
-                        }
-                    },
-                    Status = FailedMessageStatus.Unresolved,
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                    {
-                        new FailedMessage.ProcessingAttempt
-                        {
-                            AttemptedAt = DateTime.UtcNow,
-                            MessageMetadata = new Dictionary<string, object>(),
-                            FailureDetails = new FailureDetails(),
-                            Headers = new Dictionary<string, string>()
-                        }
+                        Id = groupId,
+                        Title = groupId,
+                        Type = groupId
                     }
-                };
+                },
+                Status = FailedMessageStatus.Unresolved,
+                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                {
+                    new FailedMessage.ProcessingAttempt
+                    {
+                        AttemptedAt = DateTime.UtcNow,
+                        MessageMetadata = new Dictionary<string, object>(),
+                        FailureDetails = new FailureDetails(),
+                        Headers = new Dictionary<string, string>()
+                    }
+                }
             });
 
             using (var session = documentStore.OpenAsyncSession())
@@ -282,8 +338,14 @@
 
     public class TestSender : IDispatchMessages
     {
+        public Action<UnicastTransportOperation> Callback { get; set; } = m => { };
+
         public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
         {
+            foreach (var operation in outgoingMessages.UnicastTransportOperations)
+            {
+                Callback(operation);
+            }
             return Task.FromResult(0);
         }
     }
