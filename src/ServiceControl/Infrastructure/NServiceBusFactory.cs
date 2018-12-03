@@ -8,7 +8,6 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.MessageFailures;
@@ -20,7 +19,7 @@ namespace ServiceBus.Management.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -31,7 +30,7 @@ namespace ServiceBus.Management.Infrastructure
             }
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            configuration.GetSettings().Set<EmbeddableDocumentStore>(documentStore);
+            configuration.GetSettings().Set(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
             var remoteInstanceAddresses = settings.RemoteInstances.Select(x => x.QueueAddress).ToArray();
             configuration.GetSettings().Set("ServiceControl.RemoteInstances", remoteInstanceAddresses);
@@ -44,8 +43,7 @@ namespace ServiceBus.Management.Infrastructure
             transportCustomization.CustomizeEndpoint(configuration, transportSettings);
 
             configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
-            configuration.GetSettings().Set<LoggingSettings>(loggingSettings);
-            configuration.GetSettings().Set<IDocumentStore>(documentStore);
+            configuration.GetSettings().Set(loggingSettings);
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
@@ -94,7 +92,7 @@ namespace ServiceBus.Management.Infrastructure
             transportSettings.MaxConcurrency = settings.MaximumConcurrencyLevel;
         }
 
-        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var startableEndpoint = await Create(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
