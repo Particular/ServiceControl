@@ -25,7 +25,7 @@
                     if (await ie.MoveNextAsync().ConfigureAwait(false))
                     {
                         var message = @"One or more audit messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database.
-The import of these messages could have failed for a number of reasons and ServiceControl is not able to automatically reimport them. For guidance on how to resolve this see https://docs.particular.net/servicecontrol/import-failed-audit-messages";
+The import of these messages could have failed for a number of reasons and ServiceControl is not able to automatically reimport them. For guidance on how to resolve this see https://docs.particular.net/servicecontrol/import-failed-audit";
 
                         Logger.Warn(message);
                         return CheckResult.Failed(message);
