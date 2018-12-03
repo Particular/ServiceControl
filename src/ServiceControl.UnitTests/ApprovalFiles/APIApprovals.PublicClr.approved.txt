@@ -111,6 +111,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public ServiceBus.Management.Infrastructure.Settings.RemoteInstanceSetting[] RemoteInstances { get; set; }
         public int RetryHistoryDepth { get; set; }
         public string RootUrl { get; }
+        public bool RunCleanupBundle { get; set; }
         public bool RunInMemory { get; set; }
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }

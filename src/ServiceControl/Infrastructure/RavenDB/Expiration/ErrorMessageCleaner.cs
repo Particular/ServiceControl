@@ -13,7 +13,7 @@
 
     static class ErrorMessageCleaner
     {
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
@@ -44,7 +44,7 @@
                     }
                 };
                 var indexName = new ExpiryErrorMessageIndex().IndexName;
-                database.Query(indexName, query, database.WorkContext.CancellationToken,
+                database.Query(indexName, query, token,
                     (doc, state) =>
                     {
                         var id = doc.Value<string>("__document_id");
@@ -63,7 +63,13 @@
             }
             catch (OperationCanceledException)
             {
-                //Ignore
+                logger.Info("Cleanup operation cancelled");
+                return;
+            }
+
+            if (token.IsCancellationRequested)
+            {
+                return;
             }
 
             var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
@@ -73,7 +79,7 @@
                 logger.InfoFormat("Batching deletion of {0}-{1} error documents completed.", s, e);
 
                 return results.Count(x => x.Deleted == true);
-            }, items, database);
+            }, items, database, token);
 
             deletionCount += Chunker.ExecuteInChunks(attachments.Count, (atts, db, s, e) =>
             {
@@ -91,7 +97,7 @@
                     logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents completed.", s, e);
                 });
                 return 0;
-            }, attachments, database);
+            }, attachments, database, token);
 
             if (deletionCount == 0)
             {

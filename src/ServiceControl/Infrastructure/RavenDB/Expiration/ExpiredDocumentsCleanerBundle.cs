@@ -2,7 +2,7 @@
 {
     using System;
     using System.ComponentModel.Composition;
-    using System.Threading;
+    using System.Threading.Tasks;
     using Raven.Abstractions.Logging;
     using Raven.Database;
     using Raven.Database.Plugins;
@@ -13,18 +13,27 @@
     {
         public void Dispose()
         {
-            if (timer != null)
+            lock (this)
             {
-                lock (timer)
+                if (timer == null)
                 {
-                    using (var manualResetEvent = new ManualResetEvent(false))
-                    {
-                        timer.Dispose(manualResetEvent);
-                        manualResetEvent.WaitOne();
-                    }
-
-                    timer = null;
+                    return;
                 }
+
+                var stopTask = timer.Stop();
+                var delayTask = Task.Delay(TimeSpan.FromSeconds(30));
+                var composite = Task.WhenAny(stopTask, delayTask);
+
+                var finishedTask = composite.GetAwaiter().GetResult();
+                if (finishedTask == delayTask)
+                {
+                    logger.Error("Cleanup process did not finish on time. Forcing shutdown.");
+                }
+                else
+                {
+                    logger.Info("Expired documents cleanup process stopped.");
+                }
+                timer = null;
             }
         }
 
@@ -37,30 +46,22 @@
                 return;
             }
 
+            var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
             var deletionBatchSize = RavenBootstrapper.Settings.ExpirationProcessBatchSize;
 
             logger.Info("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
             logger.Info("Deletion batch size set to {0}", deletionBatchSize);
-            logger.Info("Retention period for audits and sagahistory is {0}", RavenBootstrapper.Settings.AuditRetentionPeriod);
+            logger.Info("Retention period for audits and saga history is {0}", RavenBootstrapper.Settings.AuditRetentionPeriod);
             logger.Info("Retention period for errors is {0}", RavenBootstrapper.Settings.ErrorRetentionPeriod);
 
-            var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
-            timer = new Timer(executor =>
+            timer = new AsyncTimer(
+                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e =>
             {
-                ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings);
-
-                try
-                {
-                    timer.Change(due, Timeout.InfiniteTimeSpan);
-                }
-                catch (ObjectDisposedException)
-                {
-                    //Ignored, we are shuting down
-                }
-            }, null, due, Timeout.InfiniteTimeSpan);
+                logger.ErrorException("Error when trying to find expired documents", e);
+            });
         }
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
-        Timer timer;
+        AsyncTimer timer;
     }
 }
