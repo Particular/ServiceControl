@@ -37,7 +37,11 @@
 
             var loggingSettings = new LoggingSettings(ServiceName);
 
-            bootstrapper = new Bootstrapper(ctx => Stop(), new Settings(ServiceName), busConfiguration, loggingSettings);
+            var settings = new Settings(ServiceName)
+            {
+                RunCleanupBundle = true
+            };
+            bootstrapper = new Bootstrapper(ctx => Stop(), settings, busConfiguration, loggingSettings);
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 
