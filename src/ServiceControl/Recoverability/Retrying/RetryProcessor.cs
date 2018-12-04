@@ -20,6 +20,8 @@ namespace ServiceControl.Recoverability
 
     class RetryProcessor
     {
+        protected internal const int MaxStagingAttempts = 5;
+
         public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
             this.store = store;
@@ -37,34 +39,41 @@ namespace ServiceControl.Recoverability
 
         private async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session)
         {
-            isRecoveringFromPrematureShutdown = false;
-
-            var stagingBatch = await session.Query<RetryBatch>()
-                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging)
-                .ConfigureAwait(false);
-
-            if (stagingBatch != null)
+            try
             {
-                redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
-                var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
-                var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
-                await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
+                isRecoveringFromPrematureShutdown = false;
+
+                var stagingBatch = await session.Query<RetryBatch>()
+                    .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                    .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging)
                     .ConfigureAwait(false);
 
-                if (stagedMessages > 0)
+                if (stagingBatch != null)
                 {
-                    await session.StoreAsync(new RetryBatchNowForwarding
-                    {
-                        RetryBatchId = stagingBatch.Id
-                    }, RetryBatchNowForwarding.Id)
+                    redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
+                    var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
+                    var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
+                    await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
                         .ConfigureAwait(false);
+
+                    if (stagedMessages > 0)
+                    {
+                        await session.StoreAsync(new RetryBatchNowForwarding
+                            {
+                                RetryBatchId = stagingBatch.Id
+                            }, RetryBatchNowForwarding.Id)
+                            .ConfigureAwait(false);
+                    }
+
+                    return true;
                 }
 
-                return true;
+                return false;
             }
-
-            return false;
+            catch (RetryStagingException)
+            {
+                return true; //Execute another staging attempt immediately
+            }
         }
 
         private async Task<bool> ForwardCurrentBatch(IAsyncDocumentSession session, CancellationToken cancellationToken)
@@ -206,25 +215,27 @@ namespace ServiceControl.Recoverability
             }
             catch (Exception e)
             {
-                if (failedMessageRetry.StageAttempts < 5)
+                if (failedMessageRetry.StageAttempts < MaxStagingAttempts)
                 {
-                    await IncrementAttemptCounter(failedMessageRetry).ConfigureAwait(false);
-                    //We need to rethrow here to stop the current staging process
-                    throw new Exception($"Error while trying to stage failed message {message.UniqueMessageId}", e);
+                    Log.Error($"Attempt {failedMessageRetry.StageAttempts + 1} of {MaxStagingAttempts} to stage a retry message {message.UniqueMessageId} failed", e);
+
+                    await IncrementAttemptCounter(failedMessageRetry)
+                        .ConfigureAwait(false);
+
                 }
-
-                Log.Error($"Failed message {message.UniqueMessageId} reached its staging retry limit ({failedMessageRetry.StageAttempts}) and is going to be removed from the batch.", e);
-
-                await store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(message.UniqueMessageId), null)
-                    .ConfigureAwait(false);
-
-                await domainEvents.Raise(new MessageFailedInStaging
+                else
                 {
-                    UniqueMessageId = message.UniqueMessageId
-                }).ConfigureAwait(false);
+                    Log.Error($"Retry message {message.UniqueMessageId} reached its staging retry limit ({MaxStagingAttempts}) and is going to be removed from the batch.", e);
 
-                //We need to rethrow here to force re-loading the batch
-                throw new Exception($"Error while trying to stage failed message {message.UniqueMessageId}", e);
+                    await store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(message.UniqueMessageId), null)
+                        .ConfigureAwait(false);
+
+                    await domainEvents.Raise(new MessageFailedInStaging
+                    {
+                        UniqueMessageId = message.UniqueMessageId
+                    }).ConfigureAwait(false);
+                }
+                throw new RetryStagingException();
             }
         }
 
