@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.InstanceEdit
 {
+    using System;
     using Commands;
     using PropertyChanged;
     using ServiceControlInstaller.Engine.Accounts;
@@ -62,6 +63,16 @@
 
         // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+
+
+        public void UpdateInstanceFromViewModel(MonitoringInstance instance)
+        {
+            instance.HostName = HostName;
+            instance.Port = Convert.ToInt32(PortNumber);
+            instance.LogPath = LogPath;
+            instance.ErrorQueue = ErrorQueueName;
+            instance.ConnectionString = ConnectionString;
+        }
 
         TransportInfo selectedTransport;
     }
