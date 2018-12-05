@@ -782,6 +782,7 @@ namespace ServiceControl.Recoverability
         public string FailedMessageId { get; set; }
         public string Id { get; set; }
         public string RetryBatchId { get; set; }
+        public int StageAttempts { get; set; }
         public static string MakeDocumentId(string messageUniqueId) { }
     }
     public class FailedMessages_ByGroup : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupMessageView>
@@ -834,6 +835,11 @@ namespace ServiceControl.Recoverability
     {
         string Name { get; }
         string ClassifyFailure(ServiceControl.Recoverability.ClassifiableMessageDetails failureDetails);
+    }
+    public class MessageFailedInStaging
+    {
+        public MessageFailedInStaging() { }
+        public string UniqueMessageId { get; set; }
     }
     public class MessagesSubmittedForRetry
     {
