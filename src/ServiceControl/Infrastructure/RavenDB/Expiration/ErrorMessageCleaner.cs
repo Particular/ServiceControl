@@ -72,20 +72,29 @@
                 return;
             }
 
-            var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
+            var deletedFailedMessage = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
-                logger.InfoFormat("Batching deletion of {0}-{1} error documents.", s, e);
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} error documents.");
+                }
                 var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
-                logger.InfoFormat("Batching deletion of {0}-{1} error documents completed.", s, e);
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} error documents completed.");
+                }
 
                 return results.Count(x => x.Deleted == true);
             }, items, database, token);
 
-            deletionCount += Chunker.ExecuteInChunks(attachments.Count, (atts, db, s, e) =>
+            var deletedAttachments = Chunker.ExecuteInChunks(attachments.Count, (atts, db, s, e) =>
             {
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} attachment error documents.");
+                }
                 db.TransactionalStorage.Batch(accessor =>
                 {
-                    logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents.", s, e);
                     for (var idx = s; idx <= e; idx++)
                     {
                         //We want to continue using attachments for now
@@ -93,19 +102,21 @@
                         accessor.Attachments.DeleteAttachment("messagebodies/" + attachments[idx], null);
 #pragma warning restore 618
                     }
-
-                    logger.InfoFormat("Batching deletion of {0}-{1} attachment error documents completed.", s, e);
                 });
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} attachment error documents completed.");
+                }
                 return 0;
             }, attachments, database, token);
 
-            if (deletionCount == 0)
+            if (deletedFailedMessage + deletedAttachments == 0)
             {
                 logger.Info("No expired error documents found");
             }
             else
             {
-                logger.InfoFormat("Deleted {0} expired error documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
+                logger.Info($"Deleted {deletedFailedMessage} expired error documents and {deletedAttachments} message body attachments. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
             }
         }
 

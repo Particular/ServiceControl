@@ -66,7 +66,7 @@ namespace ServiceControl.Recoverability
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus
         {
-            log.InfoFormat("Enqueuing index based bulk retry '{0}'", originator);
+            log.Info($"Enqueuing index based bulk retry '{originator}'");
 
             var request = new IndexBasedBulkRetryRequest<TType, TIndex>(requestId, retryType, originator, classifier, startTime, filter);
 
@@ -75,7 +75,7 @@ namespace ServiceControl.Recoverability
 
         public async Task StartRetryForSingleMessage(string uniqueMessageId)
         {
-            log.InfoFormat("Retrying a single message {0}", uniqueMessageId);
+            log.Info($"Retrying a single message {uniqueMessageId}");
 
             var requestId = uniqueMessageId;
             var retryType = RetryType.SingleMessage;
@@ -91,7 +91,7 @@ namespace ServiceControl.Recoverability
 
         public async Task StartRetryForMessageSelection(string[] uniqueMessageIds)
         {
-            log.InfoFormat("Retrying a selection of {0} messages", uniqueMessageIds.Length);
+            log.Info($"Retrying a selection of {uniqueMessageIds.Length} messages");
 
             var requestId = Guid.NewGuid().ToString();
             var retryType = RetryType.MultipleMessages;
@@ -109,7 +109,7 @@ namespace ServiceControl.Recoverability
         {
             if (messageIds == null || !messageIds.Any())
             {
-                log.DebugFormat("Batch '{0}' contains no messages", batchName);
+                log.Info($"Batch '{batchName}' contains no messages");
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace ServiceControl.Recoverability
             var batchDocumentId = await retryDocumentManager.CreateBatchDocument(requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier)
                 .ConfigureAwait(false);
 
-            log.InfoFormat("Created Batch '{0}' with {1} messages for '{2}'", batchDocumentId, messageIds.Length, batchName);
+            log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
 
             var commands = new ICommandData[messageIds.Length];
             for (var i = 0; i < messageIds.Length; i++)
@@ -131,7 +131,7 @@ namespace ServiceControl.Recoverability
 
             await retryDocumentManager.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
 
-            log.InfoFormat("Moved Batch '{0}' to Staging", batchDocumentId);
+            log.Info($"Moved Batch '{batchDocumentId}' to Staging");
         }
 
         internal async Task<bool> ProcessNextBulkRetry()

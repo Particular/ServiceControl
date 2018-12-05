@@ -77,22 +77,30 @@
                 return;
             }
 
-            var deletionCount = 0;
 
-            deletionCount += Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
+            var deletedAuditDocuments = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
-                logger.InfoFormat("Batching deletion of {0}-{1} audit documents.", s, e);
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} audit documents.");
+                }
                 var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
-                logger.InfoFormat("Batching deletion of {0}-{1} audit documents completed.", s, e);
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} audit documents completed.");
+                }
 
                 return results.Count(x => x.Deleted == true);
             }, items, database, token);
 
-            deletionCount += Chunker.ExecuteInChunks(attachments.Count, (att, db, s, e) =>
+            var deletedAttachments = Chunker.ExecuteInChunks(attachments.Count, (att, db, s, e) =>
             {
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} attachment audit documents.");
+                }
                 db.TransactionalStorage.Batch(accessor =>
                 {
-                    logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents.", s, e);
                     for (var idx = s; idx <= e; idx++)
                     {
                         //We want to continue using attachments for now
@@ -100,19 +108,21 @@
                         accessor.Attachments.DeleteAttachment(att[idx], null);
 #pragma warning restore 618
                     }
-
-                    logger.InfoFormat("Batching deletion of {0}-{1} attachment audit documents completed.", s, e);
                 });
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} attachment audit documents completed.");
+                }
                 return 0;
             }, attachments, database, token);
 
-            if (deletionCount == 0)
+            if (deletedAttachments + deletedAuditDocuments == 0)
             {
                 logger.Info("No expired audit documents found");
             }
             else
             {
-                logger.InfoFormat("Deleted {0} expired audit documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
+                logger.Info($"Deleted {deletedAuditDocuments} expired audit documents and {deletedAttachments} message body attachments. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
             }
         }
 
