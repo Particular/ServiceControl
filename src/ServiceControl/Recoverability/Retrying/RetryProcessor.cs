@@ -215,9 +215,11 @@ namespace ServiceControl.Recoverability
             }
             catch (Exception e)
             {
-                if (failedMessageRetry.StageAttempts < MaxStagingAttempts)
+                var incrementedAttempts = failedMessageRetry.StageAttempts + 1;
+
+                if (incrementedAttempts < MaxStagingAttempts)
                 {
-                    Log.Error($"Attempt {failedMessageRetry.StageAttempts + 1} of {MaxStagingAttempts} to stage a retry message {message.UniqueMessageId} failed", e);
+                    Log.Warn($"Attempt {incrementedAttempts} of {MaxStagingAttempts} to stage a retry message {message.UniqueMessageId} failed", e);
 
                     await IncrementAttemptCounter(failedMessageRetry)
                         .ConfigureAwait(false);
