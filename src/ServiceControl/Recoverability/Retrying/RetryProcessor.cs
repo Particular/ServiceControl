@@ -41,6 +41,10 @@ namespace ServiceControl.Recoverability
         {
             try
             {
+                if (Log.IsDebugEnabled)
+                {
+                    Log.Debug("Looking for batch to stage.");
+                }
                 isRecoveringFromPrematureShutdown = false;
 
                 var stagingBatch = await session.Query<RetryBatch>()
@@ -50,18 +54,16 @@ namespace ServiceControl.Recoverability
 
                 if (stagingBatch != null)
                 {
+                    Log.Info($"Staging batch {stagingBatch.Id}.");
                     redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
                     var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
                     var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
                     await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
-
-                    {
-                        RetryBatchId = stagingBatch.Id
-                    }, RetryBatchNowForwarding.Id)
                         .ConfigureAwait(false);
 
                     if (stagedMessages > 0)
                     {
+                        Log.Info($"Batch {stagingBatch.Id} with {stagedMessages} messages staged and {skippedMessages} skipped ready to be forwarded.");
                         await session.StoreAsync(new RetryBatchNowForwarding
                             {
                                 RetryBatchId = stagingBatch.Id
@@ -72,6 +74,7 @@ namespace ServiceControl.Recoverability
                     return true;
                 }
 
+                Log.Info("No batch found to stage.");
                 return false;
             }
             catch (RetryStagingException)
@@ -102,7 +105,7 @@ namespace ServiceControl.Recoverability
 
                 if (forwardingBatch != null)
                 {
-                    Log.InfoFormat($"Forwarding batch {forwardingBatch.Id}.");
+                    Log.Info($"Forwarding batch {forwardingBatch.Id}.");
                     await Forward(forwardingBatch, session, cancellationToken)
                         .ConfigureAwait(false);
                     Log.DebugFormat("Retry batch {0} forwarded.", forwardingBatch.Id);
