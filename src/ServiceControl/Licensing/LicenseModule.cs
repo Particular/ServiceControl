@@ -23,7 +23,9 @@
                     RegisteredTo = ActiveLicense.Details.RegisteredTo ?? string.Empty,
                     UpgradeProtectionExpiration = ActiveLicense.Details.UpgradeProtectionExpiration?.ToString("O") ?? string.Empty,
                     ExpirationDate = ActiveLicense.Details.ExpirationDate?.ToString("O") ?? string.Empty,
-                    Status = ActiveLicense.IsValid ? "valid" : "invalid"
+                    Status = ActiveLicense.IsValid ? "valid" : "invalid",
+                    LicenseType = ActiveLicense.Details.LicenseType ?? string.Empty,
+                    InstanceName = Settings.ServiceName ?? string.Empty
                 };
                 return Negotiate.WithModel(licenseInfo);
             };
@@ -39,6 +41,8 @@
             public string UpgradeProtectionExpiration { get; set; }
             public string ExpirationDate { get; set; }
             public string Status { get; set; }
+            public string LicenseType { get; set; }
+            public string InstanceName { get; set; }
         }
     }
 }
