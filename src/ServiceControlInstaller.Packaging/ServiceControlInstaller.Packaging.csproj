@@ -64,6 +64,8 @@
     <AddToZip IncludeMask="AWSSDK.*" ZipFolder="Transports\AmazonSQS" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="NServiceBus.AmazonSQS.dll" ZipFolder="Transports\AmazonSQS" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <AddToZip IncludeMask="ServiceControl.Transports.SQS.dll" ZipFolder="Transports\AmazonSQS" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <!-- LearningTransport -->
+    <AddToZip IncludeMask="ServiceControl.Transports.Learning.*" ZipFolder="Transports\LearningTransport" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
     <!-- ServiceControl  -->
     <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)\$(TargetFramework)" ZipFileName="$(ZipToCreate)" />
   </Target>
