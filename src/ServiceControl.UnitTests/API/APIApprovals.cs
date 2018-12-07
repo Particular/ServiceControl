@@ -26,8 +26,8 @@
         [Test]
         public void ServiceControlTransport()
         {
-            var serviceControlTrasportApi = ApiGenerator.GeneratePublicApi(typeof(Transports.TransportSettings).Assembly);
-            Approver.Verify(serviceControlTrasportApi);
+            var serviceControlTransportApi = ApiGenerator.GeneratePublicApi(typeof(Transports.TransportSettings).Assembly);
+            Approver.Verify(serviceControlTransportApi);
         }
 
         [Test]
