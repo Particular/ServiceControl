@@ -1,2 +1,5 @@
 assembly-versioning-scheme: MajorMinor
 next-version: 3.0
+ignore:
+  sha:
+    - be94a966cb0f2a48edfe67cb9baf174e585757fc
