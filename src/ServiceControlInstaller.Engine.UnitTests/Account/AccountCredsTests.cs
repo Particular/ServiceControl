@@ -4,7 +4,9 @@
     using System.DirectoryServices.AccountManagement;
     using System.Linq;
     using System.Security.Principal;
+    using System.ServiceProcess;
     using Accounts;
+    using Engine.Validation;
     using NUnit.Framework;
 
     [TestFixture]
@@ -27,6 +29,26 @@
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName(@"NT Authority\NotAValidAccount").CheckPassword(null), "Test for Invalid System Account should throw IdentityNotMappedException");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName("missingaccount").CheckPassword("foo"), "Test for Missing Account should should throw IdentityNotMappedException");
             Assert.Throws<IdentityNotMappedException>(() => UserAccount.ParseAccountName(@"UnknownDomain\AUser").CheckPassword("foo"), "Test for unknown domain should throw IdentityNotMappedException");
+        }
+
+        [Test]
+        public void TestIfServiceAccountAreSupportedByParser()
+        {
+            var serviceName = "EventLog";
+
+            var ctl = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == serviceName);
+            if (ctl == null)
+            {
+                Assert.Inconclusive($"{serviceName} service not present for testing");
+            }
+
+            // Using EventLog as that is a service available on all windows environments
+            var accountName = @"NT SERVICE\" + serviceName;
+
+            var account = UserAccount.ParseAccountName(accountName);
+
+            Assert.IsTrue(account.CheckPassword(""), "Service account passwords must be blank.");
+            Assert.Throws<EngineValidationException>(() => account.CheckPassword("MySecret!"), "Service account password cannot have a value and must be blank");
         }
     }
 }

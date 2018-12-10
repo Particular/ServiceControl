@@ -26,6 +26,11 @@
             return SID.IsWellKnown(WellKnownSidType.LocalServiceSid);
         }
 
+        bool IsServiceAccount()
+        {
+            return Domain == "NT SERVICE";
+        }
+
         // ReSharper disable once InconsistentNaming
         static string LocalizedNTAuthority()
         {
@@ -65,6 +70,16 @@
                 return true;
             }
 
+            if (Domain.Equals("NT SERVICE", StringComparison.CurrentCulture))
+            {
+                if (!string.IsNullOrEmpty(password))
+                {
+                    throw new EngineValidationException("Windows Service accounts cannot have a password");
+                }
+
+                return true;
+            }
+
             // AD Group Managed Service Account are always named with a trailing $
             // In this case the installing user does not provide a password and Windows handles the password management
             if (Name.EndsWith("$"))
@@ -74,7 +89,7 @@
 
             if (password == null)
             {
-                throw new EngineValidationException("A password is required for this service account");
+                throw new EngineValidationException("A password is required for this user account");
             }
 
             var localAccount = Domain.Equals(Environment.MachineName, StringComparison.OrdinalIgnoreCase);
@@ -122,7 +137,7 @@
 
             if (!userAccount.Domain.Equals(LocalizedNTAuthority(), StringComparison.OrdinalIgnoreCase))
             {
-                if (!userAccount.SID.IsAccountSid())
+                if (!userAccount.SID.IsAccountSid() && !userAccount.IsServiceAccount())
                 {
                     throw new Exception("Not a valid account");
                 }
