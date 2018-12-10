@@ -25,7 +25,8 @@
                     ExpirationDate = ActiveLicense.Details.ExpirationDate?.ToString("O") ?? string.Empty,
                     Status = ActiveLicense.IsValid ? "valid" : "invalid",
                     LicenseType = ActiveLicense.Details.LicenseType ?? string.Empty,
-                    InstanceName = Settings.ServiceName ?? string.Empty
+                    InstanceName = Settings.ServiceName ?? string.Empty,
+                    LicenseStatus = ActiveLicense.Details.GetLicenseStatus().ToString()
                 };
                 return Negotiate.WithModel(licenseInfo);
             };
@@ -43,6 +44,7 @@
             public string Status { get; set; }
             public string LicenseType { get; set; }
             public string InstanceName { get; set; }
+            public string LicenseStatus { get; set; }
         }
     }
 }

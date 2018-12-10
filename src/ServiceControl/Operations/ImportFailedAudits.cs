@@ -55,7 +55,10 @@ namespace ServiceControl.Operations
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
                             succeeded++;
-                            Logger.Info($"Successfully re-imported failed audit message {dto.Id}.");
+                            if (Logger.IsDebugEnabled)
+                            {
+                                Logger.Debug($"Successfully re-imported failed audit message {dto.Id}.");
+                            }
                         }
                         catch (Exception e)
                         {

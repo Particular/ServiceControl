@@ -14,12 +14,17 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
+    using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Client;
 
     class RetryProcessor
     {
-        public RetryProcessor(IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
+        protected internal const int MaxStagingAttempts = 5;
+
+        public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
+            this.store = store;
             this.sender = sender;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
@@ -34,39 +39,56 @@ namespace ServiceControl.Recoverability
 
         private async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session)
         {
-            isRecoveringFromPrematureShutdown = false;
-
-            var stagingBatch = await session.Query<RetryBatch>()
-                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging)
-                .ConfigureAwait(false);
-
-            if (stagingBatch != null)
+            try
             {
-                redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
-                var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
-                var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
-                await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
+                if (Log.IsDebugEnabled)
+                {
+                    Log.Debug("Looking for batch to stage.");
+                }
+                isRecoveringFromPrematureShutdown = false;
+
+                var stagingBatch = await session.Query<RetryBatch>()
+                    .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                    .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging)
                     .ConfigureAwait(false);
 
-                if (stagedMessages > 0)
+                if (stagingBatch != null)
                 {
-                    await session.StoreAsync(new RetryBatchNowForwarding
-                        {
-                            RetryBatchId = stagingBatch.Id
-                        }, RetryBatchNowForwarding.Id)
+                    Log.Info($"Staging batch {stagingBatch.Id}.");
+                    redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
+                    var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
+                    var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
+                    await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
                         .ConfigureAwait(false);
+
+                    if (stagedMessages > 0)
+                    {
+                        Log.Info($"Batch {stagingBatch.Id} with {stagedMessages} messages staged and {skippedMessages} skipped ready to be forwarded.");
+                        await session.StoreAsync(new RetryBatchNowForwarding
+                            {
+                                RetryBatchId = stagingBatch.Id
+                            }, RetryBatchNowForwarding.Id)
+                            .ConfigureAwait(false);
+                    }
+
+                    return true;
                 }
 
-                return true;
+                Log.Info("No batch found to stage.");
+                return false;
             }
-
-            return false;
+            catch (RetryStagingException)
+            {
+                return true; //Execute another staging attempt immediately
+            }
         }
 
         private async Task<bool> ForwardCurrentBatch(IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
-            Log.Debug("Looking for batch to forward");
+            if (Log.IsDebugEnabled)
+            {
+                Log.Debug("Looking for batch to forward.");
+            }
 
             var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
                 .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id)
@@ -74,30 +96,35 @@ namespace ServiceControl.Recoverability
 
             if (nowForwarding != null)
             {
-                Log.DebugFormat("Loading batch {0} for forwarding", nowForwarding.RetryBatchId);
+                if (Log.IsDebugEnabled)
+                {
+                    Log.Debug($"Loading batch {nowForwarding.RetryBatchId} for forwarding.");
+                }
 
                 var forwardingBatch = await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId, cancellationToken).ConfigureAwait(false);
 
                 if (forwardingBatch != null)
                 {
-                    Log.InfoFormat("Found batch {0}. Forwarding...", forwardingBatch.Id);
+                    Log.Info($"Forwarding batch {forwardingBatch.Id}.");
                     await Forward(forwardingBatch, session, cancellationToken)
                         .ConfigureAwait(false);
                     Log.DebugFormat("Retry batch {0} forwarded.", forwardingBatch.Id);
                 }
                 else
                 {
-                    Log.WarnFormat("Could not find retry batch {0} to forward", nowForwarding.RetryBatchId);
+                    Log.Warn($"Could not find retry batch {nowForwarding.RetryBatchId} to forward.");
                 }
 
-                Log.Debug("Removing Forwarding record");
+                if (Log.IsDebugEnabled)
+                {
+                    Log.Debug("Removing forwarding document.");
+                }
 
                 session.Delete(nowForwarding);
                 return true;
             }
 
-            Log.Debug("No batch found to forward");
-
+            Log.Info("No batch found to forward.");
             return false;
         }
 
@@ -105,30 +132,36 @@ namespace ServiceControl.Recoverability
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
-            Log.InfoFormat("Forwarding batch {0} with {1} messages", forwardingBatch.Id, messageCount);
             await retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType)
                 .ConfigureAwait(false);
 
             if (isRecoveringFromPrematureShutdown)
             {
-                Log.Warn("Recovering from premature shutdown. Starting forwarder in timeout mode");
-                await returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken)
+                Log.Warn($"Recovering from premature shutdown. Starting forwarder for batch {forwardingBatch.Id} in timeout mode.");
+                await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, null)
                     .ConfigureAwait(false);
                 await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize)
                     .ConfigureAwait(false);
             }
             else
             {
-                Log.DebugFormat("Starting forwarder in counting mode with {0} messages", messageCount);
-                await returnToSender.Run(IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount)
-                    .ConfigureAwait(false);
+                if (messageCount == 0)
+                {
+                    Log.Info($"Skipping forwarding of batch {forwardingBatch.Id}: no messages to forward.");
+                }
+                else
+                {
+                    Log.Info($"Starting forwarder for batch {forwardingBatch.Id} with {messageCount} messages in counting mode.");
+                    await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount)
+                        .ConfigureAwait(false);
+                }
                 await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount)
                     .ConfigureAwait(false);
             }
 
             session.Delete(forwardingBatch);
 
-            Log.InfoFormat("Retry batch {0} done", forwardingBatch.Id);
+            Log.Info($"Done forwarding batch {forwardingBatch.Id}.");
         }
 
         static Predicate<MessageContext> IsPartOfStagedBatch(string stagingId)
@@ -156,23 +189,23 @@ namespace ServiceControl.Recoverability
                 }
             }
 
-            var messageIds = matchingFailures.Select(x => x.FailedMessageId).ToArray();
+            var failedMessagesById = matchingFailures.ToDictionary(x => x.FailedMessageId, x => x);
 
-            if (!messageIds.Any())
+            if (!failedMessagesById.Any())
             {
-                Log.Info($"Retry batch {stagingBatch.Id} cancelled as all matching unresolved messages are already marked for retry as part of another batch");
+                Log.Info($"Retry batch {stagingBatch.Id} cancelled as all matching unresolved messages are already marked for retry as part of another batch.");
                 session.Delete(stagingBatch);
                 return 0;
             }
 
-            var failedMessagesDocs = await session.LoadAsync<FailedMessage>(messageIds).ConfigureAwait(false);
+            var failedMessagesDocs = await session.LoadAsync<FailedMessage>(failedMessagesById.Keys).ConfigureAwait(false);
             var messages = failedMessagesDocs
                 .Where(m => m != null)
                 .ToArray();
 
-            Log.DebugFormat("Staging {0} messages for Retry Batch {1} with staging attempt Id {2}", messages.Length, stagingBatch.Id, stagingId);
+            Log.Info($"Staging {messages.Length} messages for retry batch {stagingBatch.Id} with staging attempt Id {stagingId}.");
 
-            await Task.WhenAll(messages.Select(m => StageMessage(m, stagingId)).ToArray()).ConfigureAwait(false);
+            await Task.WhenAll(messages.Select(m => TryStageMessage(m, stagingId, failedMessagesById[m.Id])).ToArray()).ConfigureAwait(false);
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
@@ -190,9 +223,63 @@ namespace ServiceControl.Recoverability
             stagingBatch.Status = RetryBatchStatus.Forwarding;
             stagingBatch.StagingId = stagingId;
             stagingBatch.FailureRetries = matchingFailures.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
-            Log.DebugFormat("Retry batch {0} staged with Staging Id {1} and {2} matching failure retries", stagingBatch.Id, stagingBatch.StagingId, stagingBatch.FailureRetries.Count);
-            Log.InfoFormat("Retry batch {0} staged {1} messages", stagingBatch.Id, messages.Length);
+            Log.Info($"Retry batch {stagingBatch.Id} staged with Staging Id {stagingBatch.StagingId} and {stagingBatch.FailureRetries.Count} matching failure retries");
             return messages.Length;
+        }
+
+        async Task TryStageMessage(FailedMessage message, string stagingId, FailedMessageRetry failedMessageRetry)
+        {
+            try
+            {
+                await StageMessage(message, stagingId).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                var incrementedAttempts = failedMessageRetry.StageAttempts + 1;
+
+                if (incrementedAttempts < MaxStagingAttempts)
+                {
+                    Log.Warn($"Attempt {incrementedAttempts} of {MaxStagingAttempts} to stage a retry message {message.UniqueMessageId} failed", e);
+
+                    await IncrementAttemptCounter(failedMessageRetry)
+                        .ConfigureAwait(false);
+
+                }
+                else
+                {
+                    Log.Error($"Retry message {message.UniqueMessageId} reached its staging retry limit ({MaxStagingAttempts}) and is going to be removed from the batch.", e);
+
+                    await store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(message.UniqueMessageId), null)
+                        .ConfigureAwait(false);
+
+                    await domainEvents.Raise(new MessageFailedInStaging
+                    {
+                        UniqueMessageId = message.UniqueMessageId
+                    }).ConfigureAwait(false);
+                }
+                throw new RetryStagingException();
+            }
+        }
+
+        async Task IncrementAttemptCounter(FailedMessageRetry message)
+        {
+            try
+            {
+                await store.AsyncDatabaseCommands.PatchAsync(message.Id,
+                    new[]
+                    {
+                        new PatchRequest
+                        {
+                            Type = PatchCommandType.Set,
+                            Name = "StageAttempts",
+                            Value = message.StageAttempts + 1
+                        }
+                    }).ConfigureAwait(false);
+            }
+            catch (ConcurrencyException)
+            {
+                Log.DebugFormat("Ignoring concurrency exception while incrementing staging attempt count for {0}", message.FailedMessageId);
+            }
         }
 
         Task StageMessage(FailedMessage message, string stagingId)
@@ -238,6 +325,7 @@ namespace ServiceControl.Recoverability
         byte[] emptyBody = new byte[0];
         TransportTransaction transaction = new TransportTransaction();
         ContextBag contextBag = new ContextBag();
+        IDocumentStore store;
         IDispatchMessages sender;
         IDomainEvents domainEvents;
         ReturnToSenderDequeuer returnToSender;

@@ -21,6 +21,8 @@
     {
         public static Settings Settings { get; set; }
 
+        public bool RunCleanup { get; set; }
+
         public void Customize(EndpointConfiguration configuration)
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>();
@@ -78,7 +80,7 @@
             documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
             documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
 
-            if (!maintenanceMode)
+            if (Settings.RunCleanupBundle)
             {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }

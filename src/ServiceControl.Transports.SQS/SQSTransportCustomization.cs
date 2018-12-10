@@ -7,6 +7,7 @@
     using Amazon;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Logging;
     using NServiceBus.Raw;
 
     public class SQSTransportCustomization : TransportCustomization
@@ -29,8 +30,17 @@
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
 
-            PromoteEnvironmentVariableFromConnectionString(builder, "AccessKeyId", "AWS_ACCESS_KEY_ID");
-            PromoteEnvironmentVariableFromConnectionString(builder, "SecretAccessKey", "AWS_SECRET_ACCESS_KEY");
+            if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
+            {
+                PromoteEnvironmentVariableFromConnectionString(builder, "AccessKeyId", "AWS_ACCESS_KEY_ID");
+                PromoteEnvironmentVariableFromConnectionString(builder, "SecretAccessKey", "AWS_SECRET_ACCESS_KEY");
+            }
+            else
+            {
+                //See https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/net-dg-config-creds.html#creds-assign
+                log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials.");
+            }
+
             var region = PromoteEnvironmentVariableFromConnectionString(builder, "Region", "AWS_REGION");
 
             var awsRegion = RegionEndpoint.EnumerableAllRegions
@@ -73,5 +83,7 @@
 
             throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
         }
+
+        static ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }
 }

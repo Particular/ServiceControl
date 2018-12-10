@@ -110,12 +110,12 @@ namespace ServiceControl.Recoverability
                 .ToListAsync()
                 .ConfigureAwait(false);
 
-            log.InfoFormat("Found {0} orphaned retry batches from previous sessions", orphanedBatches.Count);
+            log.Info($"Found {orphanedBatches.Count} orphaned retry batches from previous sessions.");
 
             // let's leave Task.Run for now due to sync sends
             await Task.WhenAll(orphanedBatches.Select(b => Task.Run(async () =>
             {
-                log.InfoFormat("Adopting retry batch {0} from previous session with {1} messages", b.Id, b.FailureRetries.Count);
+                log.Info($"Adopting retry batch {b.Id} with {b.FailureRetries.Count} messages.");
                 await MoveBatchToStaging(b.Id).ConfigureAwait(false);
             }))).ConfigureAwait(false);
 

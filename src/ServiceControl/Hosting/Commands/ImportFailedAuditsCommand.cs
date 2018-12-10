@@ -17,7 +17,7 @@
 
         void RunAndWait(HostArguments args)
         {
-            var settings = new Settings
+            var settings = new Settings(args.ServiceName)
             {
                 IngestAuditMessages = false,
                 IngestErrorMessages = false
