@@ -104,7 +104,8 @@
                     {
                         Context.SagaId = message.SagaId;
                     }
-                    Context.Done1();
+
+                    Context.Replied = true;
                     return Task.FromResult(0);
                 }
             }
@@ -119,7 +120,8 @@
                     {
                         Context.SagaId = message.SagaId;
                     }
-                    Context.Done2();
+
+                    Context.Published = true;
                     return Task.FromResult(0);
                 }
             }
@@ -134,7 +136,8 @@
                     {
                         Context.SagaId = message.SagaId;
                     }
-                    Context.Done3();
+
+                    Context.RepliedToOriginator = true;
                     return Task.FromResult(0);
                 }
             }
@@ -149,7 +152,8 @@
                     {
                         Context.SagaId = message.SagaId;
                     }
-                    Context.Done4();
+
+                    Context.Sent = true;
                     return Task.FromResult(0);
                 }
             }
@@ -182,29 +186,12 @@
 
         public class MyContext : ScenarioContext
         {
-            long steps;
+            public bool Sent { get; set; }
+            public bool Replied { get; set; }
+            public bool RepliedToOriginator { get; set; }
+            public bool Published { get; set; }
 
-            public void Done1()
-            {
-                Interlocked.Increment(ref steps);
-            }
-
-            public void Done2()
-            {
-                Interlocked.Increment(ref steps);
-            }
-
-            public void Done3()
-            {
-                Interlocked.Increment(ref steps);
-            }
-
-            public void Done4()
-            {
-                Interlocked.Increment(ref steps);
-            }
-
-            public bool Done => Interlocked.Read(ref steps) >= 4;
+            public bool Done => Sent && Replied && RepliedToOriginator && Published;
             public Guid? SagaId { get; set; }
         }
     }
