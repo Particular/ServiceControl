@@ -54,7 +54,6 @@ namespace ServiceControl.Recoverability
             }
         }
 
-
         void IncrementCounterOrProlongTimer()
         {
             if (IsCounting)
@@ -71,10 +70,18 @@ namespace ServiceControl.Recoverability
         void CountMessageAndStopIfReachedTarget()
         {
             var currentMessageCount = Interlocked.Increment(ref actualMessageCount);
-            Log.DebugFormat("Handling message {0} of {1}", currentMessageCount, targetMessageCount);
+            if (Log.IsDebugEnabled)
+            {
+                Log.Debug($"Forwarding message {currentMessageCount} of {targetMessageCount}.");
+            }
+
             if (currentMessageCount >= targetMessageCount.GetValueOrDefault())
             {
-                Log.DebugFormat("Target count reached. Shutting down forwarder");
+                if (Log.IsDebugEnabled)
+                {
+                    Log.DebugFormat("Target count reached. Shutting down forwarder");
+                }
+
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
                 Task.Run(StopInternal).Ignore();
             }
@@ -86,23 +93,20 @@ namespace ServiceControl.Recoverability
             return RawEndpoint.Create(config);
         }
 
-        public virtual async Task Run(Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
+        public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount)
         {
             IReceivingRawEndpoint processor = null;
             CancellationTokenRegistration? registration = null;
             try
             {
-                Log.DebugFormat("Started. Expectected message count {0}", expectedMessageCount);
-
-                if (expectedMessageCount.HasValue && expectedMessageCount.Value == 0)
-                {
-                    return;
-                }
-
                 shouldProcess = filter;
                 targetMessageCount = expectedMessageCount;
                 actualMessageCount = 0;
-                Log.DebugFormat("Starting receiver");
+
+                if (Log.IsDebugEnabled)
+                {
+                    Log.DebugFormat("Starting receiver");
+                }
 
                 var config = createEndpointConfiguration();
                 syncEvent = new TaskCompletionSource<bool>();
@@ -111,17 +115,25 @@ namespace ServiceControl.Recoverability
 
                 processor = await RawEndpoint.Start(config).ConfigureAwait(false);
 
+                Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
+
                 if (!expectedMessageCount.HasValue)
                 {
-                    Log.Debug("Running in timeout mode. Starting timer");
+                    if (Log.IsDebugEnabled)
+                    {
+                        Log.Debug("Running in timeout mode. Starting timer.");
+                    }
                     timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
                 }
 
-                Log.InfoFormat("{0} started", GetType().Name);
             }
             finally
             {
-                Log.DebugFormat("Waiting for {0} finish", GetType().Name);
+                if (Log.IsDebugEnabled)
+                {
+                    Log.DebugFormat($"Waiting for forwarder for batch {forwardingBatchId} to finish.");
+                }
+
                 await syncEvent.Task.ConfigureAwait(false);
                 registration?.Dispose();
                 if (processor != null)
@@ -129,11 +141,12 @@ namespace ServiceControl.Recoverability
                     await processor.Stop().ConfigureAwait(false);
                 }
 
+                Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
+
                 await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None).ConfigureAwait(false);
-                Log.DebugFormat("{0} finished", GetType().Name);
             }
 
-            if (endedPrematurelly || cancellationToken.IsCancellationRequested)
+            if (endedPrematurely || cancellationToken.IsCancellationRequested)
             {
                 throw new Exception("We are in the process of shutting down. Safe to ignore.");
             }
@@ -142,27 +155,34 @@ namespace ServiceControl.Recoverability
         public Task Stop()
         {
             timer.Dispose();
-            endedPrematurelly = true;
+            endedPrematurely = true;
             return StopInternal();
         }
 
         private async Task StopInternal()
         {
+            if (Log.IsDebugEnabled)
+            {
+                Log.Debug("Completing forwarding.");
+            }
             await Task.Run(() => syncEvent?.TrySetResult(true)).ConfigureAwait(false);
             await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0)).ConfigureAwait(false);
-            Log.InfoFormat("{0} stopped", GetType().Name);
+            if (Log.IsDebugEnabled)
+            {
+                Log.Debug("Forwarding completed.");
+            }
         }
 
         Timer timer;
         TaskCompletionSource<bool> syncEvent;
         TaskCompletionSource<bool> stopCompletionSource;
-        private bool endedPrematurelly;
+        bool endedPrematurely;
         int? targetMessageCount;
         int actualMessageCount;
         Predicate<MessageContext> shouldProcess;
         CaptureIfMessageSendingFails faultManager;
         Func<RawEndpointConfiguration> createEndpointConfiguration;
-        private ReturnToSender returnToSender;
+        ReturnToSender returnToSender;
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
 
         class CaptureIfMessageSendingFails : IErrorHandlingPolicy

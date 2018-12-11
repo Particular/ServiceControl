@@ -13,7 +13,7 @@
 
     static class EventLogItemsCleaner
     {
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
@@ -40,7 +40,7 @@
                     }
                 };
                 var indexName = new ExpiryEventLogItemsIndex().IndexName;
-                database.Query(indexName, query, database.WorkContext.CancellationToken,
+                database.Query(indexName, query, token,
                     (doc, commands) =>
                     {
                         var id = doc.Value<string>("__document_id");
@@ -57,25 +57,39 @@
             }
             catch (OperationCanceledException)
             {
-                //Ignore
+                logger.Info("Cleanup operation cancelled");
+                return;
+            }
+
+            if (token.IsCancellationRequested)
+            {
+                return;
             }
 
             var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
-                logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents.", s, e);
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} event log documents.");
+                }
+
                 var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
-                logger.InfoFormat("Batching deletion of {0}-{1} eventlogitem documents completed.", s, e);
+
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} event log documents completed.");
+                }
 
                 return results.Count(x => x.Deleted == true);
-            }, items, database);
+            }, items, database, token);
 
             if (deletionCount == 0)
             {
-                logger.Info("No expired eventlogitem documents found");
+                logger.Info("No expired event log documents found");
             }
             else
             {
-                logger.InfoFormat("Deleted {0} expired eventlogitem documents. Batch execution took {1}ms", deletionCount, stopwatch.ElapsedMilliseconds);
+                logger.Info($"Deleted {deletionCount} expired event log documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
             }
         }
 

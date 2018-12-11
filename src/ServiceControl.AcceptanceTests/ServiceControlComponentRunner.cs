@@ -51,6 +51,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public Task Initialize(RunDescriptor run)
         {
+            SettingsPerInstance.Clear();
             return InitializeServiceControl(run.ScenarioContext);
         }
 
@@ -145,7 +146,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 configuration.EnableInstallers();
 
                 configuration.GetSettings().Set("SC.ScenarioContext", context);
-                configuration.GetSettings().Set<ScenarioContext>(context);
+                configuration.GetSettings().Set(context);
 
                 // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
                 // This is needed because we no longer use the AppDomain separation.
@@ -239,7 +240,9 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             bootstrappers.Clear();
+            Busses.Clear();
             HttpClients.Clear();
+            portToHandler.Clear();
             Handlers.Clear();
         }
 

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.Expiration
 {
     using System.Collections.Generic;
+    using System.Threading;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
 
@@ -18,7 +19,7 @@
                 startList.Add(s);
                 endList.Add(e);
                 return 1;
-            }, starts, ends);
+            }, starts, ends, CancellationToken.None);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(499, ends[0]);
@@ -45,7 +46,7 @@
                 startList.Add(s);
                 endList.Add(e);
                 return 1;
-            }, starts, ends);
+            }, starts, ends, CancellationToken.None);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(0, ends[0]);
@@ -66,7 +67,7 @@
                 startList.Add(s);
                 endList.Add(e);
                 return 1;
-            }, starts, ends);
+            }, starts, ends, CancellationToken.None);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(499, ends[0]);

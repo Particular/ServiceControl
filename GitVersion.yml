@@ -1,2 +1,5 @@
 assembly-versioning-scheme: MajorMinor
 next-version: 3.0
+ignore:
+  sha: [be94a966cb0f2a48edfe67cb9baf174e585757fc, da067e2ea690d337fafcd12ea89b19be7d26f0d9, e7887eb702b14e07a0324b9366387032af658698]
+  commits-before: 2018-11-29T00:00:00

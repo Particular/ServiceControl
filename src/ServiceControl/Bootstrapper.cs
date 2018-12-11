@@ -68,8 +68,6 @@ namespace Particular.ServiceControl
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
 
-            timeKeeper = new TimeKeeper();
-
             transportCustomization = settings.LoadTransportCustomization();
             var containerBuilder = new ContainerBuilder();
 
@@ -88,7 +86,6 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(timeKeeper).ExternallyOwned();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
@@ -138,7 +135,6 @@ namespace Particular.ServiceControl
                 await bus.Stop().ConfigureAwait(false);
             }
 
-            timeKeeper.Dispose();
             documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
@@ -220,7 +216,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
-        private TimeKeeper timeKeeper;
         private IContainer container;
         private BusInstance bus;
         private TransportSettings transportSettings;

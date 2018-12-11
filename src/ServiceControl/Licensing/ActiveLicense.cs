@@ -24,7 +24,9 @@
             sources.Add(new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ParticularPlatformLicense.xml")));
             var result = Particular.Licensing.ActiveLicense.Find("ServiceControl", sources.ToArray());
 
-            if (result.HasExpired)
+            IsValid = !result.License.HasExpired();
+
+            if (!IsValid)
             {
                 foreach (var report in result.Report)
                 {
@@ -35,7 +37,6 @@
             }
 
             Details = result.License;
-            IsValid = !result.HasExpired;
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(ActiveLicense));
