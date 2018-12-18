@@ -47,6 +47,8 @@
 
         public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, MarkerFileService markerFileService, bool maintenanceMode)
         {
+            Settings = settings;
+
             Directory.CreateDirectory(settings.DbPath);
 
             documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
