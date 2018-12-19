@@ -25,31 +25,36 @@
 
             task = Task.Run(async () =>
             {
-                await Task.Delay(due, token).ConfigureAwait(false);
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    try
+                    await Task.Delay(due, token).ConfigureAwait(false);
+
+                    while (!token.IsCancellationRequested)
                     {
-                        var result = await callback(token).ConfigureAwait(false);
-                        if (result == TimerJobExecutionResult.DoNotContinueExecuting)
+                        try
                         {
-                            tokenSource.Cancel();
+                            var result = await callback(token).ConfigureAwait(false);
+                            if (result == TimerJobExecutionResult.DoNotContinueExecuting)
+                            {
+                                tokenSource.Cancel();
+                            }
+                            else if (result == TimerJobExecutionResult.ScheduleNextExecution)
+                            {
+                                await Task.Delay(interval, token).ConfigureAwait(false);
+                            }
+                            //Otherwise execute immediately
                         }
-                        else if (result == TimerJobExecutionResult.ScheduleNextExecution)
+                        catch (Exception ex)
                         {
-                            await Task.Delay(interval, token).ConfigureAwait(false);
+                            errorCallback(ex);
                         }
-                        //Otherwise execute immediately
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // no-op
-                    }
-                    catch (Exception ex)
-                    {
-                        errorCallback(ex);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    // no-op
+                }
+
             }, CancellationToken.None);
         }
 
