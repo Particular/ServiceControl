@@ -30,6 +30,6 @@
         AuditPersister auditPersister;
         IForwardMessages messageForwarder;
         Settings settings;
-        static ILog log = LogManager.GetLogger<ErrorIngestor>();
+        static ILog log = LogManager.GetLogger<AuditIngestor>();
     }
 }
