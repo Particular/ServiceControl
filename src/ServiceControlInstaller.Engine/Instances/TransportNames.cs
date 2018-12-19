@@ -4,9 +4,9 @@
     {
         public const string AzureServiceBus = "Azure Service Bus";
 
-        public const string AzureServiceBusEndpointOrientedTopology = "Azure Service Bus - Endpoint-oriented topology (Old)";
+        public const string AzureServiceBusEndpointOrientedTopology = "Azure Service Bus - Endpoint-oriented topology (Legacy)";
 
-        public const string AzureServiceBusForwardingTopology = "Azure Service Bus - Forwarding topology (Old)";
+        public const string AzureServiceBusForwardingTopology = "Azure Service Bus - Forwarding topology (Legacy)";
 
         public const string AmazonSQS = "AmazonSQS";
 
