@@ -15,6 +15,8 @@
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
             var topology = transport.UseEndpointOrientedTopology();
+            topology.EnableMigrationToForwardingTopology();
+            
             foreach (var remoteInstance in remoteInstances)
             {
                 foreach (var remoteType in remoteTypesToSubscribeTo)
