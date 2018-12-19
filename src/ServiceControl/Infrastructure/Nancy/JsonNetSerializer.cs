@@ -8,6 +8,7 @@
     using global::Nancy.IO;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using Newtonsoft.Json.Serialization;
     using ServiceControl.Infrastructure.SignalR;
 
     class JsonNetSerializer : ISerializer
@@ -93,7 +94,7 @@
                     },
                     new StringEnumConverter
                     {
-                        CamelCaseText = true
+                        NamingStrategy = new CamelCaseNamingStrategy()
                     }
                 }
             };
