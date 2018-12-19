@@ -5,6 +5,8 @@
     using System.Linq;
     using System.Reflection;
     using Amazon;
+    using Amazon.Runtime;
+    using Amazon.SQS;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -34,6 +36,9 @@
             {
                 PromoteEnvironmentVariableFromConnectionString(builder, "AccessKeyId", "AWS_ACCESS_KEY_ID");
                 PromoteEnvironmentVariableFromConnectionString(builder, "SecretAccessKey", "AWS_SECRET_ACCESS_KEY");
+
+                // if the user provided the access key and secret access key they should always be loaded from environment credentials
+                transport.ClientFactory(() => new AmazonSQSClient(new EnvironmentVariablesAWSCredentials()));
             }
             else
             {
