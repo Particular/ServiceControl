@@ -2,12 +2,14 @@
 [assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.0", FrameworkDisplayName=".NET Framework 4")]
 namespace ServiceControlInstaller.Engine.Instances
 {
-    public class TransportNames
+    public class static TransportNames
     {
         public const string AmazonSQS = "AmazonSQS";
         public const string AzureServiceBus = "Azure Service Bus";
-        public const string AzureServiceBusEndpointOrientedTopology = "Azure Service Bus - Endpoint-oriented topology (Old)";
-        public const string AzureServiceBusForwardingTopology = "Azure Service Bus - Forwarding topology (Old)";
+        public const string AzureServiceBusEndpointOrientedTopology = "Azure Service Bus - Endpoint-oriented topology (Legacy)";
+        public const string AzureServiceBusEndpointOrientedTopologyOld = "Azure Service Bus - Endpoint-oriented topology (Old)";
+        public const string AzureServiceBusForwardingTopology = "Azure Service Bus - Forwarding topology (Legacy)";
+        public const string AzureServiceBusForwardingTopologyOld = "Azure Service Bus - Forwarding topology (Old)";
         public const string AzureStorageQueue = "Azure Storage Queue";
         public const string MSMQ = "MSMQ";
         public const string RabbitMQConventionalRoutingTopology = "RabbitMQ - Conventional routing topology";
