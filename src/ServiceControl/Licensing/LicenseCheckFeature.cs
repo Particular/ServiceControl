@@ -26,6 +26,7 @@
         public LicenseCheckFeatureStartup(ActiveLicense activeLicense)
         {
             this.activeLicense = activeLicense;
+            ScheduleNextExecutionTask = Task.FromResult(TimerJobExecutionResult.ScheduleNextExecution);
         }
 
         protected override Task OnStart(IMessageSession session)
@@ -34,11 +35,8 @@
             timer = new AsyncTimer(_ =>
             {
                 activeLicense.Refresh();
-                return Task.FromResult(TimerJobExecutionResult.ScheduleNextExecution);
-            }, due, due, ex =>
-            {
-                log.Error("Unhandled error while refreshing the license.", ex);
-            });
+                return ScheduleNextExecutionTask;
+            }, due, due, ex => { log.Error("Unhandled error while refreshing the license.", ex); });
             return Task.FromResult(0);
         }
 
@@ -47,8 +45,10 @@
             return timer.Stop();
         }
 
-        static ILog log = LogManager.GetLogger<LicenseCheckFeature>();
         ActiveLicense activeLicense;
         AsyncTimer timer;
+
+        static ILog log = LogManager.GetLogger<LicenseCheckFeature>();
+        static Task<TimerJobExecutionResult> ScheduleNextExecutionTask;
     }
 }

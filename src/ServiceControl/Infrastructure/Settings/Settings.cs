@@ -216,13 +216,13 @@
 
         private string GetAuditLogQueue()
         {
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
-
             if (AuditQueue == null)
             {
                 return null;
             }
-
+            
+            var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
+            
             if (value == null)
             {
                 logger.Info("No settings found for audit log queue to import, default name will be used");
@@ -275,14 +275,14 @@
         }
 
         private string GetErrorLogQueue()
-        {
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
-
+        {            
             if (ErrorQueue == null)
             {
                 return null;
             }
 
+            var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
+            
             if (value == null)
             {
                 logger.Info("No settings found for error log queue to import, default name will be used");

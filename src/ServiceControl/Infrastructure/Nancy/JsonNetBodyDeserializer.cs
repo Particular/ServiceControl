@@ -10,6 +10,7 @@
     using global::Nancy.ModelBinding;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using Newtonsoft.Json.Serialization;
     using ServiceControl.Infrastructure.SignalR;
 
     class JsonNetBodyDeserializer : IBodyDeserializer
@@ -24,8 +25,8 @@
                 ContractResolver = new UnderscoreMappingResolver(),
                 Converters =
                 {
-                    new IsoDateTimeConverter {DateTimeStyles = DateTimeStyles.RoundtripKind},
-                    new StringEnumConverter {CamelCaseText = true}
+                    new IsoDateTimeConverter { DateTimeStyles = DateTimeStyles.RoundtripKind },
+                    new StringEnumConverter { NamingStrategy = new CamelCaseNamingStrategy() }
                 }
             };
             serializer = JsonSerializer.Create(serializerSettings);
