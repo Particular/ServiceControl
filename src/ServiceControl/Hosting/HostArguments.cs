@@ -100,7 +100,8 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
-            var reimportOptions = new OptionSet
+            //TODO why does this throw a SO exception?
+            var reimportFailedAuditsOptions = new OptionSet
             {
                 {
                     "import-failed-audits",
@@ -109,6 +110,19 @@ namespace Particular.ServiceControl.Hosting
                     {
                         Commands = new List<Type> {typeof(ImportFailedAuditsCommand)};
                         executionMode = ExecutionMode.ImportFailedAudits;
+                    }
+                }
+            };
+
+            var reimportFailedErrorsOptions = new OptionSet
+            {
+                {
+                    "import-failed-errors",
+                    "Import failed error messages",
+                    s =>
+                    {
+                        Commands = new List<Type> {typeof(ImportFailedErrorsCommand)};
+                        executionMode = ExecutionMode.ImportFailedErrors;
                     }
                 }
             };
@@ -133,8 +147,14 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
-                reimportOptions.Parse(args);
+                reimportFailedAuditsOptions.Parse(args);
                 if (executionMode == ExecutionMode.ImportFailedAudits)
+                {
+                    return;
+                }
+
+                reimportFailedErrorsOptions.Parse(args);
+                if (executionMode == ExecutionMode.ImportFailedErrors)
                 {
                     return;
                 }
@@ -185,6 +205,7 @@ namespace Particular.ServiceControl.Hosting
         Run,
         ImportFailedAudits,
         Maintenance,
-        DatabaseMigrations
+        DatabaseMigrations,
+        ImportFailedErrors
     }
 }
