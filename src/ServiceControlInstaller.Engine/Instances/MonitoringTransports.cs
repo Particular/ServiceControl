@@ -10,7 +10,7 @@
         {
             //INFO: Those types are used in the SCMU and in PS scripts. In both cases Match predicate is used to find a transport info.
             //      In the UI the matching is done based on the transport TypeName from app.config. In PS it's done based on human friendly names.
-            //      As a result the Match predicate should evalute to true both for TypeName and human friendly name.
+            //      As a result the Match predicate should evaluate to true both for TypeName and human friendly name.
             //      Matching separately on Name and TypeName would not be enough because we need to be backwards compatible.
             //      As a result Match is comparing to old/current names, old/current types.
             new TransportInfo
@@ -18,8 +18,8 @@
                 Name = TransportNames.AmazonSQS,
                 ZipName = "AmazonSQS",
                 TypeName = "ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS",
-                SampleConnectionString = "AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;Region=<REGION>;QueueNamePrefix=<prefix>",
-                Help = "'AccessKeyId', 'SecretAccessKey' and 'Region' are mandatory configurations.",
+                SampleConnectionString = "Region=<REGION>;QueueNamePrefix=<prefix>;AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>",
+                Help = "'Region' is mandatory. Specify 'AccessKeyId' and 'SecretAccessKey' values to set the AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY environment variables if not using IAM roles or EC2 metadata.",
                 Matches = name => name.Equals(TransportNames.AmazonSQS, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.SqsTransport, NServiceBus.AmazonSQS", StringComparison.OrdinalIgnoreCase)
