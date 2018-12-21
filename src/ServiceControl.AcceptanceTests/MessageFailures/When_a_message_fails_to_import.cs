@@ -16,7 +16,7 @@
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
-        public async Task It_is_stored_in_the_failed_errors_collection()
+        public async Task It_can_be_reimported()
         {
             //Make sure the error import attempt fails
             CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
