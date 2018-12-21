@@ -14,31 +14,33 @@
         public AuditImporter()
         {
             EnableByDefault();
+            Prerequisite(c =>
+            {
+                var settings = c.Settings.Get<Settings>("ServiceControl.Settings");
+                return settings.IngestAuditMessages;
+            }, "Ingestion of audit messages has been disabled.");
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
 
-            if (settings.IngestAuditMessages)
+            context.Container.ConfigureComponent<AuditPersister>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
+
+            context.AddSatelliteReceiver(
+                "Audit Import",
+                context.Settings.ToTransportAddress(settings.AuditQueue),
+                new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
+                OnAuditError,
+                (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(messageContext))
+            );
+
+            context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<AuditIngestor>(), this));
+
+            if (settings.ForwardAuditMessages)
             {
-                context.Container.ConfigureComponent<AuditPersister>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
-
-                context.AddSatelliteReceiver(
-                    "Audit Import",
-                    context.Settings.ToTransportAddress(settings.AuditQueue),
-                    new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
-                    OnAuditError,
-                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(messageContext))
-                );
-
-                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<AuditIngestor>(), this));
-
-                if (settings.ForwardAuditMessages)
-                {
-                    context.RegisterStartupTask(b => new EnsureCanWriteToForwardingAddress(b.Build<IForwardMessages>(), settings.AuditLogQueue));
-                }
+                context.RegisterStartupTask(b => new EnsureCanWriteToForwardingAddress(b.Build<IForwardMessages>(), settings.AuditLogQueue));
             }
         }
 

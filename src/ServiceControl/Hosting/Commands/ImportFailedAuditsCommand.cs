@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
     using Hosting;
     using NLog;
     using NServiceBus;
@@ -11,16 +12,17 @@
     {
         public override void Execute(HostArguments args)
         {
-            RunAndWait(args);
+            RunAndWait(args).GetAwaiter().GetResult();
         }
 
 
-        void RunAndWait(HostArguments args)
+        async Task RunAndWait(HostArguments args)
         {
             var settings = new Settings(args.ServiceName)
             {
                 IngestAuditMessages = false,
-                IngestErrorMessages = false
+                IngestErrorMessages = false,
+                RunRetryProcessor = false
             };
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
@@ -36,8 +38,9 @@
 
             var importTask = importer.Run(tokenSource);
 
-            Console.WriteLine("Press Ctrl+C to exit");
-            importTask.GetAwaiter().GetResult();
+            await importTask.ConfigureAwait(false);
+
+            await bootstrapper.Stop().ConfigureAwait(false);
         }
     }
 }

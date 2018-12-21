@@ -23,7 +23,8 @@
             var settings = new Settings(serviceName)
             {
                 IngestAuditMessages = false,
-                IngestErrorMessages = false
+                IngestErrorMessages = false,
+                RunRetryProcessor = false
             };
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
@@ -40,8 +41,9 @@
 
             var importTask = importer.Run(tokenSource);
 
-            Console.WriteLine("Press Ctrl+C to exit");
             await importTask.ConfigureAwait(false);
+
+            await bootstrapper.Stop().ConfigureAwait(false);
         }
     }
 }

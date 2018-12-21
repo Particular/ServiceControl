@@ -126,6 +126,7 @@
 
         public bool IngestAuditMessages { get; set; } = true;
         public bool IngestErrorMessages { get; set; } = true;
+        public bool RunRetryProcessor { get; set; } = true;
 
         public string AuditLogQueue { get; set; }
 
