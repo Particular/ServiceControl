@@ -10,6 +10,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
 
     class When_a_message_fails_to_import : AcceptanceTest
@@ -20,8 +21,6 @@
             //Make sure the error import attempt fails
             CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
 
-            FailedErrorsCountReponse countReponse;
-
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
@@ -31,13 +30,22 @@
                     {
                         return false;
                     }
-                    var result = await this.TryGet<FailedErrorsCountReponse>("/api/failederrors/count");
-                    countReponse = result;
-                    if (result && countReponse.Count > 0)
+
+                    if (!c.WasImportedAgain)
                     {
-                        return true;
+                        var result = await this.TryGet<FailedErrorsCountReponse>("/api/failederrors/count");
+                        FailedErrorsCountReponse failedAuditCountsResponse = result;
+                        if (result && failedAuditCountsResponse.Count > 0)
+                        {
+                            c.FailedImport = true;
+                            await this.Post<object>("/api/failederrors/import");
+                            c.WasImportedAgain = true;
+                        }
+
+                        return false;
                     }
-                    return false;
+
+                    return await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageId}");
                 })
                 .Run();
         }
@@ -105,6 +113,7 @@
         {
             public bool FailedImport { get; set; }
             public string UniqueMessageId { get; set; }
+            public bool WasImportedAgain { get; set; }
         }
     }
 }

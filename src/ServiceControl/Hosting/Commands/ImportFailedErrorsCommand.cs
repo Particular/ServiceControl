@@ -15,7 +15,6 @@
         public override void Execute(HostArguments args)
         {
             RunAndWait(args.ServiceName).GetAwaiter().GetResult();
-            //TODO see ravendb disposal message after command completed
         }
 
         async Task RunAndWait(string serviceName)
