@@ -11,12 +11,12 @@
     class ImportFailedErrors
     {
         IDocumentStore store;
-        ErrorPersister errorPersister;
+        ErrorIngestor errorIngestor;
 
-        public ImportFailedErrors(IDocumentStore store, ErrorPersister errorPersister)
+        public ImportFailedErrors(IDocumentStore store, ErrorIngestor errorIngestor)
         {
             this.store = store;
-            this.errorPersister = errorPersister;
+            this.errorIngestor = errorIngestor;
         }
 
         public async Task Run(CancellationTokenSource tokenSource)
@@ -37,7 +37,7 @@
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                            await errorPersister.Persist(messageContext).ConfigureAwait(false);
+                            await errorIngestor.Ingest(messageContext).ConfigureAwait(false);
 
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);

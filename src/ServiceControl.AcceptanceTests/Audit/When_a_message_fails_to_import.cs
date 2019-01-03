@@ -10,6 +10,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_fails_to_import : AcceptanceTest
     {
@@ -17,11 +18,21 @@
         public async Task It_can_be_reimported()
         {
             //Make sure the audit import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config =>
+            {
+                config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance));
+            };
 
-            await Define<MyContext>()
+            SetSettings = settings =>
+            {
+                settings.ForwardAuditMessages = true;
+                settings.AuditLogQueue = Conventions.EndpointNamingConvention(typeof(AuditLogSpy));
+            };
+
+            var runResult = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<Receiver>()
+                .WithEndpoint<AuditLogSpy>()
                 .Done(async c =>
                 {
                     if (c.MessageId == null)
@@ -43,9 +54,11 @@
                         return false;
                     }
 
-                    return await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}");
+                    return await this.TryGetMany<MessagesView>($"/api/messages/search/{c.MessageId}") && c.AuditForwarded;
                 })
                 .Run();
+
+            Assert.IsTrue(runResult.AuditForwarded);
         }
 
         class FailOnceEnricher : ImportEnricher
@@ -62,6 +75,25 @@
 
                 TestContext.WriteLine("Message processed correctly");
                 return Task.FromResult(0);
+            }
+        }
+
+        public class AuditLogSpy : EndpointConfigurationBuilder
+        {
+            public AuditLogSpy()
+            {
+                EndpointSetup<DefaultServerWithAudit>();
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    Context.AuditForwarded = true;
+                    return Task.CompletedTask;
+                }
             }
         }
 
@@ -91,7 +123,7 @@
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
@@ -105,6 +137,7 @@
             public bool FailedImport { get; set; }
             public bool WasImportedAgain { get; set; }
             public string MessageId { get; set; }
+            public bool AuditForwarded { get; set; }
         }
     }
 }

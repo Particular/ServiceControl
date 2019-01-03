@@ -13,10 +13,10 @@ namespace ServiceControl.Operations
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(IDocumentStore store, AuditPersister auditPersister, ErrorPersister errorPersister)
+        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor, ErrorPersister errorPersister)
         {
             this.store = store;
-            this.auditPersister = auditPersister;
+            this.auditIngestor = auditIngestor;
             this.errorPersister = errorPersister;
         }
 
@@ -50,7 +50,7 @@ namespace ServiceControl.Operations
                             }
                             else
                             {
-                                await auditPersister.Persist(messageContext).ConfigureAwait(false);
+                                await auditIngestor.Ingest(messageContext).ConfigureAwait(false);
                             }
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
@@ -78,7 +78,7 @@ namespace ServiceControl.Operations
         }
 
         IDocumentStore store;
-        AuditPersister auditPersister;
+        AuditIngestor auditIngestor;
         ErrorPersister errorPersister;
         CancellationTokenSource source;
 
