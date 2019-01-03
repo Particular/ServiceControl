@@ -100,7 +100,6 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
-            //TODO why does this throw a SO exception?
             var reimportFailedAuditsOptions = new OptionSet
             {
                 {
