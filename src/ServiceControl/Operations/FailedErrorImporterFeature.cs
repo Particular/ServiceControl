@@ -3,7 +3,7 @@
     using NServiceBus;
     using NServiceBus.Features;
 
-    public class FailedErrorImporterFeature : Feature
+    class FailedErrorImporterFeature : Feature
     {
         public FailedErrorImporterFeature()
         {
