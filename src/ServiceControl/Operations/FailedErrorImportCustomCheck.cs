@@ -1,12 +1,10 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client;
-    using Raven.Client.Indexes;
 
     class FailedErrorImportCustomCheck : CustomCheck
     {
@@ -39,20 +37,5 @@ The import of these messages could have failed for a number of reasons and Servi
 
         readonly IDocumentStore store;
         static readonly ILog Logger = LogManager.GetLogger(typeof(FailedErrorImportCustomCheck));
-    }
-
-    class FailedErrorImportIndex : AbstractIndexCreationTask<FailedErrorImport>
-    {
-        public FailedErrorImportIndex()
-        {
-            Map = docs => from cc in docs
-                select new FailedErrorImport
-                {
-                    Id = cc.Id,
-                    Message = cc.Message
-                };
-
-            DisableInMemoryIndexing = true;
-        }
     }
 }

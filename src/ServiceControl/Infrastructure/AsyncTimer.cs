@@ -44,6 +44,10 @@
                             }
                             //Otherwise execute immediately
                         }
+                        catch (OperationCanceledException)
+                        {
+                            // no-op
+                        }
                         catch (Exception ex)
                         {
                             errorCallback(ex);

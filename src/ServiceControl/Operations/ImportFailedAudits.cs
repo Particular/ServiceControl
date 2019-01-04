@@ -13,10 +13,10 @@ namespace ServiceControl.Operations
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(IDocumentStore store, AuditPersister auditPersister, ErrorPersister errorPersister)
+        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor, ErrorPersister errorPersister)
         {
             this.store = store;
-            this.auditPersister = auditPersister;
+            this.auditIngestor = auditIngestor;
             this.errorPersister = errorPersister;
         }
 
@@ -50,7 +50,7 @@ namespace ServiceControl.Operations
                             }
                             else
                             {
-                                await auditPersister.Persist(messageContext).ConfigureAwait(false);
+                                await auditIngestor.Ingest(messageContext).ConfigureAwait(false);
                             }
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
@@ -69,16 +69,16 @@ namespace ServiceControl.Operations
                 }
             }
 
-            Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messaged. Failed re-importing {failed} messages.");
+            Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");
 
             if (failed > 0)
             {
-                Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help in recovering the messages.");
+                Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.");
             }
         }
 
         IDocumentStore store;
-        AuditPersister auditPersister;
+        AuditIngestor auditIngestor;
         ErrorPersister errorPersister;
         CancellationTokenSource source;
 
