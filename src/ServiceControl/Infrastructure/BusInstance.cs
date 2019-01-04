@@ -7,9 +7,10 @@ namespace ServiceBus.Management.Infrastructure
 
     class BusInstance
     {
-        public BusInstance(IEndpointInstance bus, IDomainEvents domainEvents, ImportFailedAudits importFailedAudits)
+        public BusInstance(IEndpointInstance bus, IDomainEvents domainEvents, ImportFailedAudits importFailedAudits, ImportFailedErrors importFailedErrors)
         {
             ImportFailedAudits = importFailedAudits;
+            ImportFailedErrors = importFailedErrors;
             Bus = bus;
             DomainEvents = domainEvents;
         }
@@ -17,6 +18,7 @@ namespace ServiceBus.Management.Infrastructure
         public IEndpointInstance Bus { get; }
         public IDomainEvents DomainEvents { get; }
         public ImportFailedAudits ImportFailedAudits { get; }
+        public ImportFailedErrors ImportFailedErrors { get; }
 
         public Task Stop()
         {

@@ -16,6 +16,11 @@
 
         public FailedMessageRetries()
         {
+            Prerequisite(c =>
+            {
+                var settings = c.Settings.Get<Settings>("ServiceControl.Settings");
+                return settings.RunRetryProcessor;
+            }, "Failed message retry processing is disabled.");
             EnableByDefault();
         }
 

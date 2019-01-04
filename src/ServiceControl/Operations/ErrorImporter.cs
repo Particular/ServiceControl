@@ -14,32 +14,34 @@
         public ErrorImporter()
         {
             EnableByDefault();
+            Prerequisite(c =>
+            {
+                var settings = c.Settings.Get<Settings>("ServiceControl.Settings");
+                return settings.IngestErrorMessages;
+            }, "Ingestion of failed messages has been disabled.");
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
 
-            if (settings.IngestErrorMessages)
+            context.Container.ConfigureComponent<ErrorIngestor>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<ErrorPersister>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
+
+            context.AddSatelliteReceiver(
+                "Error Queue Ingestor",
+                context.Settings.ToTransportAddress(settings.ErrorQueue),
+                new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
+                OnError,
+                (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(messageContext))
+            );
+
+            context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<ErrorIngestor>(), this));
+
+            if (settings.ForwardErrorMessages)
             {
-                context.Container.ConfigureComponent<ErrorIngestor>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent<ErrorPersister>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
-
-                context.AddSatelliteReceiver(
-                    "Error Queue Ingestor",
-                    context.Settings.ToTransportAddress(settings.ErrorQueue),
-                    new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
-                    OnError,
-                    (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(messageContext))
-                );
-                
-                context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<ErrorIngestor>(), this));
-
-                if (settings.ForwardErrorMessages)
-                {
-                    context.RegisterStartupTask(b => new EnsureCanWriteToForwardingAddress(b.Build<IForwardMessages>(), settings.ErrorLogQueue));
-                }
+                context.RegisterStartupTask(b => new EnsureCanWriteToForwardingAddress(b.Build<IForwardMessages>(), settings.ErrorLogQueue));
             }
         }
 
