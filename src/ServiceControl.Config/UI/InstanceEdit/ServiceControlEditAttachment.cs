@@ -95,6 +95,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
             }
 
             viewModel.TryClose(true);
+
+            eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
 
         readonly IWindowManagerEx windowManager;
