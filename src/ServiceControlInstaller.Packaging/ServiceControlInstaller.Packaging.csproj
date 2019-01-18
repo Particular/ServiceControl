@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.1.1" PrivateAssets="All" />
+    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.1.2" PrivateAssets="All" />
   </ItemGroup>
 
   <UsingTask AssemblyFile="..\..\buildsupport\DeploymentZipTask.Dll" TaskName="DeploymentZipTask.AddToZip" />
