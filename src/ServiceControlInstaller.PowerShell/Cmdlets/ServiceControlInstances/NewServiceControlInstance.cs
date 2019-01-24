@@ -108,7 +108,7 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
-        [Parameter(Mandatory = false)]
+        [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
 
         protected override void BeginProcessing()
@@ -214,7 +214,7 @@ namespace ServiceControlInstaller.PowerShell
 
             if (!Force.ToBool())
             {
-                throw new EngineValidationException($"The directory specified for {pathInfo.Name} is not empty.  Use -Force to if you are sure you want to use this path");
+                throw new EngineValidationException($"The directory specified for {pathInfo.Name} is not empty.  Use -Force if you are sure you want to use this path");
             }
 
             WriteWarning($"The directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");
