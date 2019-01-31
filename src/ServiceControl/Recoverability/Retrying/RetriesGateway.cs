@@ -41,7 +41,7 @@ namespace ServiceControl.Recoverability
 
                     if (currentBatch.Count == BatchSize)
                     {
-                        response.Add(currentBatch.ToArray());
+                        response.Add(currentBatch.Distinct().ToArray());
 
                         currentBatch.Clear();
                     }
