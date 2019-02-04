@@ -53,7 +53,7 @@ namespace ServiceControl.Recoverability
                     }
                 }
 
-                if (currentBatch.Any())
+                if (currentBatch.Count > 0)
                 {
                     response.Add(currentBatch.ToArray());
                 }
