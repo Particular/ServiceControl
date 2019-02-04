@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
-
-namespace ServiceControl.Recoverability
+﻿namespace ServiceControl.Recoverability
 {
+    using System.Collections.Generic;
+
     class FailedMessageEqualityComparer : IEqualityComparer<FailedMessageRetry>
     {
-        private static FailedMessageEqualityComparer instance = new FailedMessageEqualityComparer();
-
         public bool Equals(FailedMessageRetry x, FailedMessageRetry y)
         {
             return x.FailedMessageId == y.FailedMessageId;
@@ -16,12 +14,6 @@ namespace ServiceControl.Recoverability
             return obj.FailedMessageId.GetHashCode();
         }
 
-        public static FailedMessageEqualityComparer Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
+        public static readonly FailedMessageEqualityComparer Instance = new FailedMessageEqualityComparer();
     }
 }
