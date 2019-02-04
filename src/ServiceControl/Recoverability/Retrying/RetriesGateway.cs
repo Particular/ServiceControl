@@ -28,7 +28,7 @@ namespace ServiceControl.Recoverability
         async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IBulkRetryRequest request)
         {
             var response = new List<string[]>();
-            var currentBatch = new HashSet<string>();
+            var currentBatch = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var latestAttempt = DateTime.MinValue;
 
             using (var session = store.OpenAsyncSession())
