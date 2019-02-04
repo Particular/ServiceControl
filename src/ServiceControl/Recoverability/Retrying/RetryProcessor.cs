@@ -179,7 +179,7 @@ namespace ServiceControl.Recoverability
             var failedMessageRetryDocs = await session.LoadAsync<FailedMessageRetry>(stagingBatch.FailureRetries).ConfigureAwait(false);
             var matchingFailures = failedMessageRetryDocs
                 .Where(r => r != null && r.RetryBatchId == stagingBatch.Id)
-                .Distinct(new FailedMessageEqualityComparer())
+                .Distinct(FailedMessageEqualityComparer.Instance)
                 .ToArray();
 
             foreach (var failedMessageRetry in failedMessageRetryDocs)
