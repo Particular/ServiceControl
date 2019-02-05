@@ -18,7 +18,7 @@
             settings.Set("MainSerializer", serializer);
 
             var ctor = typeof(MessageMetadataRegistry).GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, new[] {typeof(Func<Type, bool>)}, null);
-            settings.Set<MessageMetadataRegistry>(ctor.Invoke(new object[] {(Func<Type, bool>)IsMessageType}));
+            settings.Set((MessageMetadataRegistry)ctor.Invoke(new object[] {(Func<Type, bool>)IsMessageType}));
         }
 
         static bool IsMessageType(Type t) => t == typeof(MessageWrapper);
