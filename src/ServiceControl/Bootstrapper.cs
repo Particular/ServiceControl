@@ -129,15 +129,10 @@ namespace Particular.ServiceControl
 
         public async Task Stop()
         {
-            notifier.Dispose();
             if (bus != null)
             {
                 await bus.Stop().ConfigureAwait(false);
             }
-
-            documentStore.Dispose();
-            WebApp?.Dispose();
-            container.Dispose();
         }
 
         private long DataSize()
@@ -222,11 +217,12 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         TransportCustomization transportCustomization;
         private static HttpClient httpClient;
 
-        public void Dispose()
+        public async void Dispose()
         {
+            notifier?.Dispose();
+            await Stop().ConfigureAwait(false);
             WebApp?.Dispose();
             documentStore?.Dispose();
-            notifier?.Dispose();
             container?.Dispose();
         }
     }
