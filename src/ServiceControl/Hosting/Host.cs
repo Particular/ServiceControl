@@ -55,6 +55,7 @@
         protected override void Dispose(bool disposing)
         {
             OnStop();
+            bootstrapper?.Dispose();
         }
 
         internal Action OnStopping = () => { };

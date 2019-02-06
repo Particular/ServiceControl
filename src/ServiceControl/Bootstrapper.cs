@@ -30,7 +30,7 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class Bootstrapper
+    class Bootstrapper : IDisposable
     {
         // Windows Service
         public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
@@ -221,5 +221,13 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         private TransportSettings transportSettings;
         TransportCustomization transportCustomization;
         private static HttpClient httpClient;
+
+        public void Dispose()
+        {
+            WebApp?.Dispose();
+            documentStore?.Dispose();
+            notifier?.Dispose();
+            container?.Dispose();
+        }
     }
 }

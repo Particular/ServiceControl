@@ -31,16 +31,18 @@
             var tokenSource = new CancellationTokenSource();
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
-            var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
-            var importer = bootstrapper.Start().GetAwaiter().GetResult().ImportFailedAudits;
+            using (var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings))
+            {
+                var importer = bootstrapper.Start().GetAwaiter().GetResult().ImportFailedAudits;
 
-            Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
+                Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
-            var importTask = importer.Run(tokenSource);
+                var importTask = importer.Run(tokenSource);
 
-            await importTask.ConfigureAwait(false);
+                await importTask.ConfigureAwait(false);
 
-            await bootstrapper.Stop().ConfigureAwait(false);
+                await bootstrapper.Stop().ConfigureAwait(false);
+            }
         }
     }
 }
