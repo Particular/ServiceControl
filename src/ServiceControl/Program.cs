@@ -3,13 +3,14 @@
     using System;
     using System.IO;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Commands;
     using Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
 
@@ -24,7 +25,8 @@
             var loggingSettings = new LoggingSettings(arguments.ServiceName);
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-            new CommandRunner(arguments.Commands).Execute(arguments);
+            await new CommandRunner(arguments.Commands).Execute(arguments)
+                .ConfigureAwait(false);
         }
 
         static Assembly ResolveAssembly(string name)

@@ -52,6 +52,7 @@ namespace ServiceControl.Operations
                             {
                                 await auditIngestor.Ingest(messageContext).ConfigureAwait(false);
                             }
+
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
                             succeeded++;
@@ -59,6 +60,10 @@ namespace ServiceControl.Operations
                             {
                                 Logger.Debug($"Successfully re-imported failed audit message {dto.Id}.");
                             }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // no-op
                         }
                         catch (Exception e)
                         {

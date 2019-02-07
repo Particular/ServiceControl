@@ -1,5 +1,6 @@
 namespace Particular.ServiceControl
 {
+    using System.Threading.Tasks;
     using Autofac;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Transports;
@@ -17,7 +18,7 @@ namespace Particular.ServiceControl
             this.settings = settings;
         }
 
-        public void Run(string username)
+        public async Task Run(string username)
         {
             var configuration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = configuration.AssemblyScanner();
@@ -48,7 +49,8 @@ namespace Particular.ServiceControl
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, null, documentStore, configuration, false).GetAwaiter().GetResult();
+                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, null, documentStore, configuration, false)
+                    .ConfigureAwait(false);
             }
         }
 

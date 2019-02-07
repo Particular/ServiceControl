@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Hosting;
 
     class CommandRunner
@@ -11,12 +12,12 @@
             this.commands = commands;
         }
 
-        public void Execute(HostArguments args)
+        public async Task Execute(HostArguments args)
         {
             foreach (var commandType in commands)
             {
                 var command = (AbstractCommand)Activator.CreateInstance(commandType);
-                command.Execute(args);
+                await command.Execute(args).ConfigureAwait(false);
             }
         }
 

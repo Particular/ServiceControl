@@ -1,23 +1,22 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
     using System;
-    using System.Threading;
+    using System.Threading.Tasks;
     using Hosting;
 
     class RunCommand : AbstractCommand
     {
-        public override void Execute(HostArguments args)
+        public override async Task Execute(HostArguments args)
         {
             if (!args.Portable && !Environment.UserInteractive)
             {
                 RunNonBlocking(args);
-                return;
             }
 
-            RunAndWait(args);
+            await RunAndWait(args).ConfigureAwait(false);
         }
 
-        void RunNonBlocking(HostArguments args)
+        static void RunNonBlocking(HostArguments args)
         {
             using (var service = new Host {ServiceName = args.ServiceName})
             {
@@ -25,34 +24,32 @@
             }
         }
 
-        void RunAndWait(HostArguments args)
+        static async Task RunAndWait(HostArguments args)
         {
             using (var service = new Host {ServiceName = args.ServiceName})
             {
-                using (var waitHandle = new ManualResetEvent(false))
+                var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                service.OnStopping = () =>
                 {
-                    service.OnStopping = () =>
-                    {
-                        service.OnStopping = () => { };
-                        waitHandle.Set();
-                    };
+                    service.OnStopping = () => { };
+                    completionSource.TrySetResult(true);
+                };
 
-                    service.Run(args.Portable || Environment.UserInteractive);
+                service.Run(args.Portable || Environment.UserInteractive);
 
-                    var r = new CancelWrapper(waitHandle, service);
-                    Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;
+                var r = new CancelWrapper(completionSource, service);
+                Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;
 
-                    Console.WriteLine("Press Ctrl+C to exit");
-                    waitHandle.WaitOne();
-                }
+                Console.WriteLine("Press Ctrl+C to exit");
+                await completionSource.Task.ConfigureAwait(false);
             }
         }
 
         class CancelWrapper
         {
-            public CancelWrapper(ManualResetEvent manualReset, Host host)
+            public CancelWrapper(TaskCompletionSource<bool> syncEvent, Host host)
             {
-                this.manualReset = manualReset;
+                this.syncEvent = syncEvent;
                 this.host = host;
             }
 
@@ -60,11 +57,11 @@
             {
                 host.OnStopping = () => { };
                 e.Cancel = true;
-                manualReset.Set();
+                syncEvent.TrySetResult(true);
                 Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
             }
 
-            readonly ManualResetEvent manualReset;
+            readonly TaskCompletionSource<bool> syncEvent;
             readonly Host host;
         }
     }
