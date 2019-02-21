@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <IncludeBuildOutput>False</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>True</SuppressDependenciesWhenPacking>
+    <Description>Particular ServiceControl binaries for use by Particular.PlatformSample. Not intended for use outside of Particular.PlatformSample.</Description>
+    <PackageProjectUrl>https://docs.particular.net/servicecontrol/</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Particular.Packaging" Version="0.2.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="bin\debug\net461\*.*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" Link="hidden"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="buildProps\**\*" />
+    <Content Include="buildProps\**\*" PackagePath="" />
+  </ItemGroup>
+
+</Project>
