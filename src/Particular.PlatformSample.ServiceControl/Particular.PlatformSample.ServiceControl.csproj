@@ -19,7 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="bin\debug\net461\*.*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" Link="hidden"/>
+    <Content Include="..\ServiceControl\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" Link="hidden"/>
+    <Content Include="..\ServiceControl.Transports.Learning\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" Link="hidden"/>
   </ItemGroup>
 
   <ItemGroup>
