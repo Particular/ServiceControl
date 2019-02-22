@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <Content Include="..\ServiceControl\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" Link="hidden"/>
-    <Content Include="..\ServiceControl.Transports.Learning\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" Link="hidden"/>
+    <Content Include="..\ServiceControl.Transports.Learning\$(OutputPath)\ServiceControl.Transports.Learning.dll" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" Link="hidden"/>
   </ItemGroup>
 
   <ItemGroup>
