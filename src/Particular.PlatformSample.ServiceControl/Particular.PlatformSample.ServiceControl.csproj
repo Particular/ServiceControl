@@ -6,7 +6,7 @@
     <SuppressDependenciesWhenPacking>True</SuppressDependenciesWhenPacking>
     <Description>Particular ServiceControl binaries for use by Particular.PlatformSample. Not intended for use outside of Particular.PlatformSample.</Description>
     <PackageProjectUrl>https://docs.particular.net/servicecontrol/</PackageProjectUrl>
-    <NoWarn>$(NoWarn);NU5118;NU5100</NoWarn>
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
