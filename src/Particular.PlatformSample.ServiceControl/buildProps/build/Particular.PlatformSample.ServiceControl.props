@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)\..\platform\**\*" CopyToOutputDirectory="PreserveNewest" Link="platform\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Content Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\servicecontrol-instance\**\*" CopyToOutputDirectory="PreserveNewest" Link="platform\servicecontrol\servicecontrol-instance\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>
