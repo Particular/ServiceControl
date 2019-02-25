@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
-    <IncludeBuildOutput>False</IncludeBuildOutput>
-    <SuppressDependenciesWhenPacking>True</SuppressDependenciesWhenPacking>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <Description>Particular ServiceControl binaries for use by Particular.PlatformSample. Not intended for use outside of Particular.PlatformSample.</Description>
     <PackageProjectUrl>https://docs.particular.net/servicecontrol/</PackageProjectUrl>
     <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
