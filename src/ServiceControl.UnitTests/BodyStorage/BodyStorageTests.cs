@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.BodyStorage
 {
     using System.IO;
-    using System.Threading.Tasks;
     using NUnit.Framework;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
