@@ -9,7 +9,7 @@
     public class BodyStorageTests
     {
         [Test]
-        public async Task Message_bodies_from_native_msmq_should_be_readable()
+        public async Task Attachments_with_ids_that_contain_backslash_should_be_readable()
         {
             using (var store = InMemoryStoreBuilder.GetInMemoryStore())
             {
