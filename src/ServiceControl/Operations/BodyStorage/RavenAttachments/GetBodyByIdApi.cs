@@ -12,6 +12,7 @@
     class GetBodyByIdApi : RoutedApi<string>
     {
         public IDocumentStore Store { get; set; }
+        public IBodyStorage BodyStorage { get; set; }
 
         protected override async Task<Response> LocalQuery(Request request, string input, string instanceId)
         {
@@ -23,11 +24,11 @@
 
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = await Store.AsyncDatabaseCommands.GetAttachmentAsync("messagebodies/" + messageId).ConfigureAwait(false);
+            var result = await BodyStorage.TryFetch(messageId).ConfigureAwait(false);
 #pragma warning restore 618
             Etag currentEtag;
 
-            if (attachment == null)
+            if (!result.HasResult)
             {
                 using (var session = Store.OpenAsyncSession())
                 {
@@ -61,10 +62,10 @@
             }
             else
             {
-                contents = stream => attachment.Data().CopyTo(stream);
-                contentType = attachment.Metadata["ContentType"].Value<string>();
-                bodySize = attachment.Metadata["ContentLength"].Value<int>();
-                currentEtag = attachment.Etag;
+                contents = stream => result.Stream.CopyTo(stream);
+                contentType = result.ContentType;
+                bodySize = result.BodySize;
+                currentEtag = result.Etag;
             }
 
             return new Response
