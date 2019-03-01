@@ -26,7 +26,7 @@
 
             lock (locks[lockIndex])
             {
-                DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
+                DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + HttpUtility.UrlEncode(bodyId), null, bodyStream, new RavenJObject
                 {
                     {"ContentType", contentType},
                     {"ContentLength", bodySize}
