@@ -123,6 +123,7 @@
   <ItemGroup>
     <Compile Include="ApprovalTestConfig.cs" />
     <Compile Include="Archiving\ArchiveGroupTests.cs" />
+    <Compile Include="BodyStorage\BodyStorageTests.cs" />
     <Compile Include="CompositeViews\FailedMessagesTests.cs" />
     <Compile Include="EventHierarchy.cs" />
     <Compile Include="Expiration\ChunkerTests.cs" />

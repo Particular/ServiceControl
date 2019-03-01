@@ -138,9 +138,9 @@
                 throw new NotImplementedException();
             }
 
-            public bool TryFetch(string bodyId, out Stream stream)
+            public bool TryFetch(string bodyId, out StreamResult stream)
             {
-                stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)); //Echo back the body ID.
+                stream = new StreamResult { Stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)) }; //Echo back the body ID.
                 return true;
             }
         }

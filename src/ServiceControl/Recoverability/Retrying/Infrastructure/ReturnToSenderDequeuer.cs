@@ -101,10 +101,10 @@ namespace ServiceControl.Recoverability
             string attemptMessageId;
             if (message.Headers.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
             {
-                Stream stream;
-                if (bodyStorage.TryFetch(attemptMessageId, out stream))
+                StreamResult result;
+                if (bodyStorage.TryFetch(attemptMessageId, out result))
                 {
-                    using (stream)
+                    using (var stream = result.Stream)
                     {
                         message.Body = ReadFully(stream);
                     }

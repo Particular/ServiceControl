@@ -12,6 +12,7 @@
     public class GetBodyByIdApi : RoutedApi<string>
     {
         public IDocumentStore Store { get; set; }
+        public IBodyStorage BodyStorage { get; set; }
 
         protected override async Task<Response> LocalQuery(Request request, string input, string instanceId)
         {
@@ -20,10 +21,12 @@
             Action<Stream> contents;
             string contentType;
             int bodySize;
-            var attachment = await Store.AsyncDatabaseCommands.GetAttachmentAsync("messagebodies/" + messageId).ConfigureAwait(false);
+
+            StreamResult result;
+            var hasResult = BodyStorage.TryFetch(messageId, out result);
             Etag currentEtag;
 
-            if (attachment == null)
+            if (hasResult)
             {
                 using (var session = Store.OpenAsyncSession())
                 {
@@ -58,10 +61,10 @@
             }
             else
             {
-                contents = stream => attachment.Data().CopyTo(stream);
-                contentType = attachment.Metadata["ContentType"].Value<string>();
-                bodySize = attachment.Metadata["ContentLength"].Value<int>();
-                currentEtag = attachment.Etag;
+                contents = stream => result.Stream.CopyTo(stream);
+                contentType = result.ContentType;
+                bodySize = result.BodySize;
+                currentEtag = result.Etag;
             }
 
             return new Response

@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Linq;
+    using Nancy.Helpers;
     using Raven.Client;
     using Raven.Json.Linq;
 
@@ -35,18 +36,31 @@
             }
         }
 
-        public bool TryFetch(string bodyId, out Stream stream)
+        public bool TryFetch(string bodyId, out StreamResult stream)
         {
-            var attachment = DocumentStore.DatabaseCommands.GetAttachment("messagebodies/" + bodyId);
+            //We want to continue using attachments for now
+#pragma warning disable 618
+            var attachment = DocumentStore.DatabaseCommands.GetAttachment($"messagebodies/{HttpUtility.UrlEncode(bodyId)}");
+#pragma warning restore 618
 
-            if (attachment == null)
-            {
-                stream = null;
-                return false;
-            }
+            var result = attachment == null
+                ? new StreamResult
+                {
+                    HasResult = false,
+                    Stream = null
+                }
+                : new StreamResult
+                {
+                    HasResult = true,
+                    Stream = attachment.Data(),
+                    ContentType = attachment.Metadata["ContentType"].Value<string>(),
+                    BodySize = attachment.Metadata["ContentLength"].Value<int>(),
+                    Etag = attachment.Etag
+                };
 
-            stream = attachment.Data();
-            return true;
+            stream = result;
+
+            return attachment != null;
         }
 
         object[] locks;

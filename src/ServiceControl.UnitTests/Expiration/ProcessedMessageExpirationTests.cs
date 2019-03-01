@@ -11,6 +11,7 @@
     using NUnit.Framework;
     using Raven.Client.Embedded;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
     [TestFixture]
@@ -203,7 +204,7 @@
                 }
 
                 // Verify body expired
-                Stream dummy;
+                StreamResult dummy;
                 Assert.False(bodyStorage.TryFetch(messageId, out dummy), "Audit document body should be deleted");
             }
         }
