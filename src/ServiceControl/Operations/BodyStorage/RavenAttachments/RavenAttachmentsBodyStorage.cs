@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Nancy.Helpers;
     using Raven.Client;
     using Raven.Json.Linq;
 
@@ -51,7 +52,7 @@
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
+            var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{HttpUtility.UrlEncode(bodyId)}").ConfigureAwait(false);
 #pragma warning restore 618
 
             return attachment == null
