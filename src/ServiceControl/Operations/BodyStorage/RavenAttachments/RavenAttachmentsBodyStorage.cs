@@ -64,7 +64,10 @@
                 : new StreamResult
                 {
                     HasResult = true,
-                    Stream = attachment.Data()
+                    Stream = attachment.Data(),
+                    ContentType = attachment.Metadata["ContentType"].Value<string>(),
+                    BodySize = attachment.Metadata["ContentLength"].Value<int>(),
+                    Etag = attachment.Etag
                 };
         }
 
