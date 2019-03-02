@@ -3,7 +3,6 @@
     using System;
     using System.IO;
     using System.Linq;
-    using Nancy.Helpers;
     using Raven.Client;
     using Raven.Json.Linq;
 
@@ -26,7 +25,7 @@
 
             lock (locks[lockIndex])
             {
-                DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + HttpUtility.UrlEncode(bodyId), null, bodyStream, new RavenJObject
+                DocumentStore.DatabaseCommands.PutAttachment("messagebodies/" + bodyId, null, bodyStream, new RavenJObject
                 {
                     {"ContentType", contentType},
                     {"ContentLength", bodySize}
@@ -40,7 +39,7 @@
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = DocumentStore.DatabaseCommands.GetAttachment($"messagebodies/{HttpUtility.UrlEncode(bodyId)}");
+            var attachment = DocumentStore.DatabaseCommands.GetAttachment($"messagebodies/{bodyId}");
 #pragma warning restore 618
 
             return attachment == null
