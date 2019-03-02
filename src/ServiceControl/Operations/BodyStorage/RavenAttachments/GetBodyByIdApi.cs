@@ -25,7 +25,7 @@
             var result = BodyStorage.TryFetch(messageId);
             Etag currentEtag;
 
-            if (result.HasResult)
+            if (!result.HasResult)
             {
                 using (var session = Store.OpenAsyncSession())
                 {
