@@ -101,8 +101,8 @@ namespace ServiceControl.Recoverability
             string attemptMessageId;
             if (message.Headers.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out attemptMessageId))
             {
-                StreamResult result;
-                if (bodyStorage.TryFetch(attemptMessageId, out result))
+                var result = bodyStorage.TryFetch(attemptMessageId);
+                if (result.HasResult)
                 {
                     using (var stream = result.Stream)
                     {
@@ -110,7 +110,7 @@ namespace ServiceControl.Recoverability
                     }
                 }
                 else
-                { 
+                {
                     Log.WarnFormat("{0}: Message Body not found for attempt Id {1}", message.Id, attemptMessageId);
                 }
                 message.Headers.Remove("ServiceControl.Retry.Attempt.MessageId");

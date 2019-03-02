@@ -138,10 +138,10 @@
                 throw new NotImplementedException();
             }
 
-            public bool TryFetch(string bodyId, out StreamResult stream)
+            public StreamResult TryFetch(string bodyId)
             {
-                stream = new StreamResult { Stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)) }; //Echo back the body ID.
-                return true;
+                var bodyBytes = Encoding.UTF8.GetBytes(bodyId);
+                return new StreamResult { HasResult = true, ContentType = "text/plain", BodySize = bodyBytes.Length, Etag = Guid.Empty.ToString(), Stream = new MemoryStream(bodyBytes) }; //Echo back the body ID.
             }
         }
     }

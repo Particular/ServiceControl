@@ -204,8 +204,8 @@
                 }
 
                 // Verify body expired
-                StreamResult dummy;
-                Assert.False(bodyStorage.TryFetch(messageId, out dummy), "Audit document body should be deleted");
+                StreamResult dummy = bodyStorage.TryFetch(messageId);
+                Assert.False(dummy.HasResult, "Audit document body should be deleted");
             }
         }
 

@@ -2,7 +2,6 @@
 {
     using System.IO;
     using NUnit.Framework;
-    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
     [TestFixture]
@@ -21,9 +20,14 @@
 
                 bodyStore.Store(messageId, contentType, body.Length, new MemoryStream(body));
 
-                StreamResult retrieved;
-                var hasResult = bodyStore.TryFetch(messageId, out retrieved);
-                Assert.True(hasResult);
+                var retrieved = bodyStore.TryFetch(messageId);
+                Assert.True(retrieved.HasResult);
+                Assert.AreEqual(contentType, retrieved.ContentType);
+                using (var memoryStream = new MemoryStream())
+                {
+                    retrieved.Stream.CopyTo(memoryStream);
+                    Assert.AreEqual(body, memoryStream.ToArray());
+                }
             }
         }
     }

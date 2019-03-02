@@ -22,11 +22,10 @@
             string contentType;
             int bodySize;
 
-            StreamResult result;
-            var hasResult = BodyStorage.TryFetch(messageId, out result);
+            var result = BodyStorage.TryFetch(messageId);
             Etag currentEtag;
 
-            if (hasResult)
+            if (result.HasResult)
             {
                 using (var session = Store.OpenAsyncSession())
                 {

@@ -36,14 +36,14 @@
             }
         }
 
-        public bool TryFetch(string bodyId, out StreamResult stream)
+        public StreamResult TryFetch(string bodyId)
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
             var attachment = DocumentStore.DatabaseCommands.GetAttachment($"messagebodies/{HttpUtility.UrlEncode(bodyId)}");
 #pragma warning restore 618
 
-            var result = attachment == null
+            return attachment == null
                 ? new StreamResult
                 {
                     HasResult = false,
@@ -57,10 +57,6 @@
                     BodySize = attachment.Metadata["ContentLength"].Value<int>(),
                     Etag = attachment.Etag
                 };
-
-            stream = result;
-
-            return attachment != null;
         }
 
         object[] locks;

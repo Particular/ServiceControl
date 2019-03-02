@@ -5,7 +5,7 @@
     public interface IBodyStorage
     {
         string Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
-        bool TryFetch(string bodyId, out StreamResult stream);
+        StreamResult TryFetch(string bodyId);
     }
 
     public struct StreamResult
