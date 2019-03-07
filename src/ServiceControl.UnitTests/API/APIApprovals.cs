@@ -12,6 +12,7 @@
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using System;
     using System.Linq;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]
     class APIApprovals
@@ -80,12 +81,22 @@
         [Test]
         public void TransportNames()
         {
-            //HINT: Those names are used in PowerShell scripts thus constitute a public api. Also Particular.PlatformSamples relies on it to specify the learning transport.
+            //HINT: Those names are used in PowerShell scripts thus constitute a public api.
+            //Also Particular.PlatformSamples relies on it to specify the learning transport.
             var transportNamesType = typeof(ServiceControlInstaller.Engine.Instances.TransportNames);
 
             var publicTransportNames = ApiGenerator.GeneratePublicApi(transportNamesType.Assembly, new []{ transportNamesType });
 
             Approver.Verify(publicTransportNames);
+        }
+
+        [Test]
+        public void PlatformSampleSettings()
+        {
+            //HINT: Particular.PlatformSample includes a parameterized version of the ServiceControl.exe.config file.
+            //If any changes have been made to settings, this may break the embedded config in that project, which may need to be updated.
+
+            Approver.Verify(new Settings());
         }
     }
 }
