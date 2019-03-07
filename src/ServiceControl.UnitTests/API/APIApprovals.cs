@@ -80,7 +80,7 @@
         [Test]
         public void TransportNames()
         {
-            //HINT: Those names are used in PowerShell scripts thus constitute a public api
+            //HINT: Those names are used in PowerShell scripts thus constitute a public api. Also Particular.PlatformSamples relies on it to specify the learning transport.
             var transportNamesType = typeof(ServiceControlInstaller.Engine.Instances.TransportNames);
 
             var publicTransportNames = ApiGenerator.GeneratePublicApi(transportNamesType.Assembly, new []{ transportNamesType });
