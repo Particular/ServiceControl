@@ -48,6 +48,10 @@
                                 Logger.Debug($"Successfully re-imported failed error message {dto.Id}.");
                             }
                         }
+                        catch (OperationCanceledException)
+                        {
+                            //  no-op
+                        }
                         catch (Exception e)
                         {
                             Logger.Error($"Error while attempting to re-import failed error message {dto.Id}.", e);

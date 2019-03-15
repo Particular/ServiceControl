@@ -1,9 +1,10 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
+    using System.Threading.Tasks;
     using Hosting;
 
     abstract class AbstractCommand
     {
-        public abstract void Execute(HostArguments args);
+        public abstract Task Execute(HostArguments args);
     }
 }

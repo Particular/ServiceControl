@@ -12,14 +12,9 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
-        public override void Execute(HostArguments args)
+        public override async Task Execute(HostArguments args)
         {
-            RunAndWait(args.ServiceName).GetAwaiter().GetResult();
-        }
-
-        async Task RunAndWait(string serviceName)
-        {
-            var settings = new Settings(serviceName)
+            var settings = new Settings(args.ServiceName)
             {
                 IngestAuditMessages = false,
                 IngestErrorMessages = false,
@@ -38,11 +33,18 @@
 
             Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
-            var importTask = importer.Run(tokenSource);
-
-            await importTask.ConfigureAwait(false);
-
-            await bootstrapper.Stop().ConfigureAwait(false);
+            try
+            {
+                await importer.Run(tokenSource).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // no-op
+            }
+            finally
+            {
+                await bootstrapper.Stop().ConfigureAwait(false);
+            }
         }
     }
 }
