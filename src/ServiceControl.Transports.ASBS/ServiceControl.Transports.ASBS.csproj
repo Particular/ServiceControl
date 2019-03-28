@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.0" />
-    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="1.0.1" />
+    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="1.1.0" />
     <PackageReference Include="Particular.CodeRules" Version="0.2.1" PrivateAssets="All" />
   </ItemGroup>
 
