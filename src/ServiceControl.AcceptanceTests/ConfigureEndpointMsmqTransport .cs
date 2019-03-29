@@ -14,10 +14,12 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
 {
     public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
-        queueBindings = configuration.GetSettings().Get<QueueBindings>();
+        var settingsHolder = configuration.GetSettings();
+        queueBindings = settingsHolder.Get<QueueBindings>();
 
         var transportConfig = configuration.UseTransport<MsmqTransport>();
         transportConfig.DisableConnectionCachingForSends();
+        settingsHolder.Set("NServiceBus.Transport.Msmq.MessageEnumeratorTimeout", TimeSpan.FromMilliseconds(10));
 
         var routingConfig = transportConfig.Routing();
 
