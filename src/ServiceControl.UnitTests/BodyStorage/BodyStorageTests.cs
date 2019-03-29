@@ -18,7 +18,7 @@
                 var messageId = "messagebodies/3f0240a7-9b2e-4e2a-ab39-6114932adad1\\2055783";
                 var contentType = "NotImportant";
                 var body = new byte[] { 1, 2, 3 };
-                
+
                 await bodyStore.Store(messageId, contentType, body.Length, new MemoryStream(body));
 
                 var retrieved = await bodyStore.TryFetch(messageId);
