@@ -35,41 +35,23 @@
     </ItemGroup>
     <Delete Files="@(OldZips)" />
     <!-- SQL Server -->
-    <AddToZip IncludeMask="NServiceBus.Transport.SQLServer.*" ZipFolder="Transports\SQLServer" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="NServiceBus.Transports.SQLServer.*" ZipFolder="Transports\SQLServer" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="ServiceControl.Transports.SQLServer.*" ZipFolder="Transports\SQLServer" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.SqlServer\$(OutputPath)" ZipFolder="Transports\SQLServer" />
     <!-- AzureStorageQueue -->
-    <AddToZip IncludeMask="NServiceBus.Azure.Transports.WindowsAzureStorageQueues.*" ZipFolder="Transports\AzureStorageQueue" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="Microsoft.WindowsAzure.Storage.*" ZipFolder="Transports\AzureStorageQueue" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="Microsoft.Data.*" ZipFolder="Transports\AzureStorageQueue" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="System.Spatial.*" ZipFolder="Transports\AzureStorageQueue" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="ServiceControl.Transports.ASQ.*" ZipFolder="Transports\AzureStorageQueue" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASQ\$(OutputPath)" ZipFolder="Transports\AzureStorageQueue" />
     <!-- AzureServiceBus -->
-    <AddToZip IncludeMask="NServiceBus.Azure.Transports.WindowsAzureServiceBus.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="Microsoft.Data.Services.Client.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="ServiceControl.Transports.ASB.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="Microsoft.ServiceBus.*" ZipFolder="Transports\AzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASB\$(OutputPath)" ZipFolder="Transports\AzureServiceBus" />
     <!--AzureServiceBus .NET Standard-->
-    <AddToZip IncludeMask="NServiceBus.Transport.AzureServiceBus.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="Microsoft.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="ServiceControl.Transports.ASBS.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="System.*" ZipFolder="Transports\NetStandardAzureServiceBus" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASBS\$(OutputPath)" ZipFolder="Transports\NetStandardAzureServiceBus" />
     <!-- RabbitMQ -->
-    <AddToZip IncludeMask="NServiceBus.Transport.RabbitMQ.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="RabbitMQ.Client.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="ServiceControl.Transports.RabbitMQ.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="Microsoft.Diagnostics.Tracing.EventSource.*" ZipFolder="Transports\RabbitMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.RabbitMQ\$(OutputPath)" ZipFolder="Transports\RabbitMQ" />
     <!-- MSMQ -->
-    <AddToZip IncludeMask="NServiceBus.Transport.MSMQ.*" ZipFolder="Transports\MSMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="ServiceControl.Transports.MSMQ.*" ZipFolder="Transports\MSMQ" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.Msmq\$(OutputPath)" ZipFolder="Transports\MSMQ" />
     <!-- SQS -->
-    <AddToZip IncludeMask="AWSSDK.*" ZipFolder="Transports\AmazonSQS" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="NServiceBus.AmazonSQS.dll" ZipFolder="Transports\AmazonSQS" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
-    <AddToZip IncludeMask="ServiceControl.Transports.SQS.dll" ZipFolder="Transports\AmazonSQS" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.SQS\$(OutputPath)" ZipFolder="Transports\AmazonSQS" />
     <!-- LearningTransport -->
-    <AddToZip IncludeMask="ServiceControl.Transports.Learning.*" ZipFolder="Transports\LearningTransport" SourceFolder="$(OutputPath)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.Learning\$(OutputPath)" ZipFolder="Transports\LearningTransport" />
     <!-- ServiceControl  -->
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)\$(TargetFramework)" ZipFileName="$(ZipToCreate)" />
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFileName="$(ZipToCreate)" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)\$(TargetFramework)" />
   </Target>
 
   <Target Name="CopyServiceControlMonitoringZip" AfterTargets="CreateServiceControlZip">
