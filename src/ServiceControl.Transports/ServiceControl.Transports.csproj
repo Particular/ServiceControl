@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.Raw" Version="3.0.0" />
+    <PackageReference Include="NServiceBus" Version="7.1.6" />
   </ItemGroup>
 
 </Project>
