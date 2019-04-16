@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using InternalMessages;
     using Nancy;
@@ -23,6 +24,37 @@
                 }
 
                 return await RetryMessagesApi.Execute(this, failedMessageId);
+            };
+
+            Post["/errors/{messageid}/editandretry", true] = async (parameters, token) =>
+            {
+                string failedMessageId = parameters.MessageId;
+
+                if (string.IsNullOrEmpty(failedMessageId))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                string body;
+                using (var streamReader = new StreamReader(this.Request.Body))
+                {
+                    body = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+
+                    if (string.IsNullOrWhiteSpace(body))
+                    {
+                        return HttpStatusCode.BadRequest;
+                    }
+                }
+
+                await Bus.SendLocal(new RetryWithModifications
+                {
+                    FailedMessageId = failedMessageId,
+                    NewBody = body,
+                }).ConfigureAwait(false);
+
+                
+
+                return HttpStatusCode.Accepted;
             };
 
             Post["/errors/retry", true] = async (_, token) =>
