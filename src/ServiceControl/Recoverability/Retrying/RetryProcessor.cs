@@ -343,7 +343,9 @@ namespace ServiceControl.Recoverability
             "NServiceBus.ExceptionInfo.ExceptionType",
             "NServiceBus.ExceptionInfo.AuditMessage",
             "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace"
+            "NServiceBus.ExceptionInfo.StackTrace",
+            "NServiceBus.ExceptionInfo.HelpLink",
+            "NServiceBus.ExceptionInfo.Message"
         };
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
