@@ -290,14 +290,15 @@ namespace ServiceControl.Recoverability
             }
         }
 
+        
+
         Task StageMessage(FailedMessage message, string stagingId)
         {
             message.Status = FailedMessageStatus.RetryIssued;
 
             var attempt = message.ProcessingAttempts.Last();
 
-            var headersToRetryWith = attempt.Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
-                .ToDictionary(kv => kv.Key, kv => kv.Value);
+            var headersToRetryWith = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
 
             var addressOfFailingEndpoint = attempt.FailureDetails.AddressOfFailingEndpoint;
 
@@ -332,6 +333,7 @@ namespace ServiceControl.Recoverability
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
 
+<<<<<<< HEAD
         static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
         {
             "NServiceBus.Retries",
@@ -350,6 +352,8 @@ namespace ServiceControl.Recoverability
             "$.diagnostics.hostdisplayname"
         };
 
+=======
+>>>>>>> update outgoing headers
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
     }
 }
