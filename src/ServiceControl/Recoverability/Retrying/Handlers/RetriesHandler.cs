@@ -109,18 +109,19 @@ namespace ServiceControl.Recoverability
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            
+
             // send
-            var attempt = failedMessage.ProcessingAttempts.Last();
-            var headers = new Dictionary<string, string>(attempt.Headers);
-            // remove other headers
-            // set new message id
-            // add additional header representing the edit
 
             //TODO not accessible here
             //var messageId = CombGuid.Generate();
-
             var messageId = Guid.NewGuid().ToString("N");
+
+            var attempt = failedMessage.ProcessingAttempts.Last();
+            var headers = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
+            headers[Headers.MessageId] = Guid.NewGuid().ToString("D");
+            //TODO: do we need the CorruptedReplyToHeaderStrategy as well?
+            // add additional header representing the edit
+
             var body = Convert.FromBase64String(message.NewBody);
             var outgoingMessage = new OutgoingMessage(messageId, headers, body);
             AddressTag destination = new UnicastAddressTag(attempt.FailureDetails.AddressOfFailingEndpoint);
