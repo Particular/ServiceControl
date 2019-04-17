@@ -66,8 +66,6 @@ namespace ServiceControl.Recoverability
 
         public async Task Handle(RetryWithModifications message, IMessageHandlerContext context)
         {
-            //return Retries.StartRetryForEditedMessage(message.MessageId);
-
             FailedMessage failedMessage;
             using (var session = Store.OpenAsyncSession())
             {
@@ -86,7 +84,7 @@ namespace ServiceControl.Recoverability
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
                 // todo: complete "original" message when edited message completes.
 
-
+                //TODO do we need to prefix the id?
                 var edit = await session.LoadAsync<FailedMessageEdit>(message.FailedMessageId)
                     .ConfigureAwait(false);
                 if (edit == null)
@@ -118,7 +116,9 @@ namespace ServiceControl.Recoverability
             //TODO not accessible here
             //var messageId = CombGuid.Generate();
 
-            var outgoingMessage = new OutgoingMessage(Guid.NewGuid().ToString("N"), headers, Encoding.UTF8.GetBytes(message.NewBody));
+            var messageId = Guid.NewGuid().ToString("N");
+            var body = Convert.FromBase64String(message.NewBody);
+            var outgoingMessage = new OutgoingMessage(messageId, headers, body);
             AddressTag destination = new UnicastAddressTag(attempt.FailureDetails.AddressOfFailingEndpoint);
 
             //                var redirect = redirects[addressOfFailingEndpoint];
@@ -127,6 +127,7 @@ namespace ServiceControl.Recoverability
             //                    addressOfFailingEndpoint = redirect.ToPhysicalAddress;
             //                }
 
+            //TODO: can we use the incoming transaction?
             await Dispatcher.Dispatch(
                     new TransportOperations(new TransportOperation(outgoingMessage, destination)),
                     new TransportTransaction(),

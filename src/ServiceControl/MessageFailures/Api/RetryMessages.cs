@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using InternalMessages;
     using Nancy;
     using Nancy.ModelBinding;
@@ -35,6 +37,7 @@
                     return HttpStatusCode.BadRequest;
                 }
 
+                //TODO: consider sending base64 encoded body from the client
                 string body;
                 using (var streamReader = new StreamReader(this.Request.Body))
                 {
@@ -46,10 +49,12 @@
                     }
                 }
 
+                var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(body));
                 await Bus.SendLocal(new RetryWithModifications
                 {
                     FailedMessageId = failedMessageId,
-                    NewBody = body,
+                    // Encode the body in base64 so that the new body doesn't have to be escaped
+                    NewBody = base64String,
                 }).ConfigureAwait(false);
 
                 
