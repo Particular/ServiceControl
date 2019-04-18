@@ -45,13 +45,19 @@
                         return false;
                     }
 
-                    return ctx.EditedMessageProperty != null;
+                    if (ctx.EditedMessageProperty == null)
+                    {
+                        return false;
+                    }
+
+                    ctx.OriginalMessageFailure = (await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}")).Item;
+                    return true;
                 })
                 .Run();
 
             Assert.AreEqual("StarWars rocks", context.EditedMessageProperty);
             Assert.AreNotEqual(context.OriginalMessageId, context.EditedMessageId);
-            //TODO: test message is no longer shown as failed
+            Assert.AreEqual(FailedMessageStatus.Resolved, context.OriginalMessageFailure.Status);
             //TODO: should not contain exception error headers
         }
 
@@ -102,6 +108,7 @@
         public string EditedMessageProperty { get; set; }
         public string OriginalMessageId { get; set; }
         public string EditedMessageId { get; set; }
+        public FailedMessage OriginalMessageFailure { get; set; }
     }
 
     class EditMessage : IMessage

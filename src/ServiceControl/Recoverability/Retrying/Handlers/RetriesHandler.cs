@@ -1,9 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using MessageFailures;
@@ -82,10 +80,8 @@ namespace ServiceControl.Recoverability
                     return;
                 }
 
-                // mark the message as retried
                 // todo: introduce a new state?
-                // todo do we need to prevent regular retries?
-                failedMessage.Status = FailedMessageStatus.RetryIssued;
+                failedMessage.Status = FailedMessageStatus.Resolved;
                 // todo: complete "original" message when edited message completes.
 
                 //TODO do we need to prefix the id?
