@@ -115,8 +115,8 @@ namespace ServiceControl.Recoverability
             var attempt = failedMessage.ProcessingAttempts.Last();
             var headers = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
             headers[Headers.MessageId] = Guid.NewGuid().ToString("D");
+            headers.Add("ServiceControl.EditOf", attempt.MessageId);
             //TODO: do we need the CorruptedReplyToHeaderStrategy as well?
-            // add additional header representing the edit
 
             var body = Convert.FromBase64String(message.NewBody);
             var outgoingMessage = new OutgoingMessage(messageId, headers, body);
