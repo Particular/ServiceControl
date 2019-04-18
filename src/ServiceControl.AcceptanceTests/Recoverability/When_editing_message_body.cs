@@ -1,5 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Newtonsoft.Json;
@@ -7,6 +8,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using Raven.Abstractions.Extensions;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
@@ -58,7 +60,7 @@
             Assert.AreEqual("StarWars rocks", context.EditedMessageProperty);
             Assert.AreNotEqual(context.OriginalMessageId, context.EditedMessageId);
             Assert.AreEqual(FailedMessageStatus.Resolved, context.OriginalMessageFailure.Status);
-            //TODO: should not contain exception error headers
+            CollectionAssert.DoesNotContain(context.EditedMessageHeaders, "NServiceBus.ExceptionInfo.StackTrace");
         }
 
         class EditedMessageReceiver : EndpointConfigurationBuilder
@@ -94,7 +96,7 @@
 
                     testContext.EditedMessageProperty = message.SomeProperty;
                     testContext.EditedMessageId = context.MessageId;
-
+                    testContext.EditedMessageHeaders = context.MessageHeaders.Keys.ToHashSet();
                     return Task.CompletedTask;
                 }
             }
@@ -109,6 +111,7 @@
         public string OriginalMessageId { get; set; }
         public string EditedMessageId { get; set; }
         public FailedMessage OriginalMessageFailure { get; set; }
+        public HashSet<string> EditedMessageHeaders { get; set; }
     }
 
     class EditMessage : IMessage
