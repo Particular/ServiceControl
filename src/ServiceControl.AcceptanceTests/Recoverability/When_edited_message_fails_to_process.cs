@@ -41,7 +41,7 @@
                         {
                             HasBeenEdited = true
                         });
-                        await this.Post($"/api/errors/{ctx.OriginalMessageFailureId}/editandretry", editedMessage, "application/json");
+                        await this.Post($"/api/edit/{ctx.OriginalMessageFailureId}", editedMessage, "application/json");
 
                         return false;
                     }

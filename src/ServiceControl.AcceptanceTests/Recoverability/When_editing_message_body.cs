@@ -13,7 +13,6 @@
     using ServiceControl.MessageFailures;
 
     //TODO: when edited message has been successfully processed
-    //TODO: when edited message fails to process
     class When_editing_message_body : AcceptanceTest
     {
         [Test]
@@ -43,7 +42,7 @@
                         {
                             SomeProperty = "StarWars rocks"
                         });
-                        await this.Post($"/api/errors/{ctx.UniqueMessageId}/editandretry", editedMessage, "application/json");
+                        await this.Post($"/api/edit/{ctx.UniqueMessageId}", editedMessage, "application/json");
                         return false;
                     }
 
