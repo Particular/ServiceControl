@@ -186,9 +186,9 @@
             Assert.AreEqual(redirectAddress, sentMessage.Destination);
         }
 
-        static RetryWithModifications CreateEditMessage(string failedMessageId, byte[] newBodyContent = null)
+        static EditAndSend CreateEditMessage(string failedMessageId, byte[] newBodyContent = null)
         {
-            return new RetryWithModifications
+            return new EditAndSend
             {
                 FailedMessageId = failedMessageId,
                 NewBody = Convert.ToBase64String(newBodyContent ?? Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))

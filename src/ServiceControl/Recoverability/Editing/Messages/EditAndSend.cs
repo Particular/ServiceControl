@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using NServiceBus;
 
-    public class RetryWithModifications : ICommand
+    public class EditAndSend : ICommand
     {
         public string FailedMessageId { get; set; }
 

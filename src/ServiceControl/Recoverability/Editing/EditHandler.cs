@@ -12,13 +12,13 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
 
-    public class EditHandler : IHandleMessages<RetryWithModifications>
+    public class EditHandler : IHandleMessages<EditAndSend>
     {
         public IDocumentStore Store { get; set; }
         public IDispatchMessages Dispatcher { get; set; }
 
 
-        public async Task Handle(RetryWithModifications message, IMessageHandlerContext context)
+        public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
             FailedMessage failedMessage;
             MessageRedirectsCollection redirects;
