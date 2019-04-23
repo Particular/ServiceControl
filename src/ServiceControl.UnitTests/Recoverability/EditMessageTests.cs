@@ -15,12 +15,13 @@
     using Raven.Client;
     using Raven.Tests.Helpers;
     using ServiceControl.Recoverability;
+    using ServiceControl.Recoverability.Editing;
 
     [TestFixture]
     public class EditMessageTests : RavenTestBase
     {
         IDocumentStore Store { get; set; }
-        RetriesHandler Handler { get; set; }
+        EditHandler Handler { get; set; }
         TestableUnicastDispatcher Dispatcher { get; set; }
 
         [SetUp]
@@ -28,7 +29,7 @@
         {
             Store = NewDocumentStore(runInMemory: true);
             Dispatcher = new TestableUnicastDispatcher();
-            Handler = new RetriesHandler()
+            Handler = new EditHandler
             {
                 Store = Store,
                 Dispatcher = Dispatcher
@@ -85,9 +86,10 @@
             {
                 await session.StoreAsync(new FailedMessageEdit
                 {
+                    Id = FailedMessageEdit.MakeDocumentId(failedMessageId),
                     FailedMessageId = failedMessageId,
                     EditId = previousEdit
-                }, failedMessageId);
+                });
 
                 await session.SaveChangesAsync();
             }
@@ -98,7 +100,7 @@
             using (var session = Store.OpenAsyncSession())
             {
                 var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId));
-                var editOperation = await session.LoadAsync<FailedMessageEdit>(failedMessageId);
+                var editOperation = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId));
 
                 Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status);
                 Assert.AreEqual(previousEdit, editOperation.EditId);
@@ -125,7 +127,7 @@
             using (var session = Store.OpenAsyncSession())
             {
                 failedMessage = await session.LoadAsync<FailedMessage>(failedMessage.Id);
-                var editOperation = await session.LoadAsync<FailedMessageEdit>(failedMessage.UniqueMessageId);
+                var editOperation = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessage.UniqueMessageId));
 
                 Assert.AreEqual(FailedMessageStatus.Resolved, failedMessage.Status);
                 Assert.AreEqual(handlerContent.MessageId, editOperation.EditId);
@@ -220,8 +222,6 @@
                 return failedMessage;
             }
         }
-
-
     }
 
     public class TestableUnicastDispatcher : IDispatchMessages
