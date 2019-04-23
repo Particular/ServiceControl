@@ -50,7 +50,7 @@
                 }
 
                 var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(body));
-                await Bus.SendLocal(new RetryWithModifications
+                await Bus.SendLocal(new EditAndSend
                 {
                     FailedMessageId = failedMessageId,
                     // Encode the body in base64 so that the new body doesn't have to be escaped
