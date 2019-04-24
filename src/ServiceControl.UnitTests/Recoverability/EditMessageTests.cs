@@ -29,11 +29,7 @@
         {
             Store = NewDocumentStore(runInMemory: true);
             Dispatcher = new TestableUnicastDispatcher();
-            Handler = new EditHandler
-            {
-                Store = Store,
-                Dispatcher = Dispatcher
-            };
+            Handler = new EditHandler(Store, Dispatcher);
         }
 
         [TearDown]
