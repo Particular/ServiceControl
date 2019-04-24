@@ -7,6 +7,7 @@
     using MessageRedirects;
     using NServiceBus;
     using NServiceBus.Extensibility;
+    using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
@@ -14,9 +15,9 @@
 
     public class EditHandler : IHandleMessages<EditAndSend>
     {
+        static ILog log = LogManager.GetLogger<EditHandler>();
         public IDocumentStore Store { get; set; }
         public IDispatchMessages Dispatcher { get; set; }
-
 
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
@@ -29,7 +30,7 @@
 
                 if (failedMessage == null)
                 {
-                    //TODO: log
+                    log.WarnFormat("Discarding edit {0} because no message failure for id {1} has been found.", context.MessageId, message.FailedMessageId);
                     return;
                 }
 
@@ -39,7 +40,7 @@
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
                     {
-                        //TODO log
+                        log.WarnFormat("Discarding edit {0} because message failure {1} doesn't have state 'Unresolved'.", context.MessageId, message.FailedMessageId);
                         return;
                     }
 
@@ -53,12 +54,11 @@
                 }
                 else if (edit.EditId != context.MessageId)
                 {
-                    // this is a concurrent edit -> discard
-                    //TODO log
+                    log.WarnFormat("Discarding edit {0} because the failure ({1}) has already been edited by edit {2}", context.MessageId, message.FailedMessageId, edit.EditId);
                     return;
                 }
 
-                // todo: introduce a new state?
+                // the original failure is marked as resolved as any failures of the edited message are treated as a new message failure.
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
                 redirects = await MessageRedirectsCollection.GetOrCreate(session)
