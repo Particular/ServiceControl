@@ -9,6 +9,7 @@
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
+    using NServiceBus.Support;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -16,14 +17,23 @@
     public class EditHandler : IHandleMessages<EditAndSend>
     {
         static ILog log = LogManager.GetLogger<EditHandler>();
-        public IDocumentStore Store { get; set; }
-        public IDispatchMessages Dispatcher { get; set; }
+
+        CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
+        IDocumentStore store;
+        IDispatchMessages dispatcher;
+
+        public EditHandler(IDocumentStore store, IDispatchMessages dispatcher)
+        {
+            this.store = store;
+            this.dispatcher = dispatcher;
+            corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
+        }
 
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
             FailedMessage failedMessage;
             MessageRedirectsCollection redirects;
-            using (var session = Store.OpenAsyncSession())
+            using (var session = store.OpenAsyncSession())
             {
                 failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(message.FailedMessageId))
                     .ConfigureAwait(false);
@@ -72,8 +82,7 @@
             var headers = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
             headers[Headers.MessageId] = Guid.NewGuid().ToString("D");
             headers.Add("ServiceControl.EditOf", attempt.MessageId);
-
-            //TODO: do we need the CorruptedReplyToHeaderStrategy as well?
+            corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headers);
 
             var body = Convert.FromBase64String(message.NewBody);
             var outgoingMessage = new OutgoingMessage(messageId, headers, body);
@@ -81,7 +90,7 @@
             var destination = CreateDestinationAddress(attempt, redirects);
 
             var transportTransaction = context.Extensions.GetOrCreate<TransportTransaction>();
-            await Dispatcher.Dispatch(
+            await dispatcher.Dispatch(
                     new TransportOperations(new TransportOperation(outgoingMessage, destination)),
                     transportTransaction,
                     new ContextBag())
