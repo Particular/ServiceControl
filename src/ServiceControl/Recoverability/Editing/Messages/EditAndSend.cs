@@ -9,6 +9,6 @@
 
         public string NewBody { get; set; }
 
-        public Dictionary<string, string> NewHeaders { get; set; }
+        public Dictionary<string, string> NewHeaders { get; set; } = new Dictionary<string, string>(0);
     }
 }
