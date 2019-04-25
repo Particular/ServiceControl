@@ -446,26 +446,7 @@ namespace ServiceControl.AcceptanceTests
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
         }
-
-        public static async Task Post(this IAcceptanceTestInfrastructureProvider provider, string url, string payload, string mediaType, string instanceName = Settings.DEFAULT_SERVICE_NAME)
-        {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
-            }
-
-            var httpClient = provider.HttpClients[instanceName];
-            var response = await httpClient.PostAsync(url, new StringContent(payload, null, mediaType)).ConfigureAwait(false);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
-            }
-        }
-
+        
         public static async Task Delete(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             if (!url.StartsWith("http://"))

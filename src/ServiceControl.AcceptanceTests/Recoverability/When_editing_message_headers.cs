@@ -9,20 +9,19 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using Raven.Abstractions.Extensions;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
 
-    class When_editing_message_body : AcceptanceTest
+    class When_editing_message_headers : AcceptanceTest
     {
         [Test]
-        public async Task A_new_message_with_edited_body_is_sent()
+        public async Task A_new_message_with_edited_headers_is_sent()
         {
             var context = await Define<EditMessageContext>()
                 .WithEndpoint<EditedMessageReceiver>(e => e
                     .DoNotFailOnErrorMessages()
-                    .When(c => c.SendLocal(new EditMessage {SomeProperty = "StarTrek rocks" })))
+                    .When(c => c.SendLocal(new EditMessage())))
                 .Done(async ctx =>
                 {
                     if (string.IsNullOrWhiteSpace(ctx.UniqueMessageId))
@@ -39,20 +38,19 @@
                         }
 
                         ctx.EditedMessage = true;
-                        var editedMessage = JsonConvert.SerializeObject(new EditMessage
-                        {
-                            SomeProperty = "StarWars rocks"
-                        });
+                        var newHeaders = EditMessageHelper.TryRestoreOriginalHeaderKeys(failedMessage.Item.ProcessingAttempts.Last().Headers);
+                        newHeaders.Add(new KeyValuePair<string, string>("AcceptanceTest.NewHeader", "42"));
                         var editModel = new EditMessageModel
                         {
-                            MessageBody = editedMessage,
-                            MessageHeaders = EditMessageHelper.TryRestoreOriginalHeaderKeys(failedMessage.Item.ProcessingAttempts.Last().Headers)
+                            MessageBody = JsonConvert.SerializeObject(new EditMessage()),
+                            MessageHeaders = newHeaders
                         };
+
                         await this.Post($"/api/edit/{ctx.UniqueMessageId}", editModel);
                         return false;
                     }
 
-                    if (ctx.EditedMessageProperty == null)
+                    if (ctx.EditedMessageHeaders == null)
                     {
                         return false;
                     }
@@ -62,10 +60,10 @@
                 })
                 .Run();
 
-            Assert.AreEqual("StarWars rocks", context.EditedMessageProperty);
             Assert.AreNotEqual(context.OriginalMessageId, context.EditedMessageId);
             Assert.AreEqual(FailedMessageStatus.Resolved, context.OriginalMessageFailure.Status);
-            CollectionAssert.DoesNotContain(context.EditedMessageHeaders, "NServiceBus.ExceptionInfo.StackTrace");
+            CollectionAssert.AreEqual("42", context.EditedMessageHeaders["AcceptanceTest.NewHeader"]);
+            CollectionAssert.AreEqual(context.OriginalMessageId, context.EditedMessageHeaders["ServiceControl.EditOf"]);
         }
 
         class EditedMessageReceiver : EndpointConfigurationBuilder
@@ -99,9 +97,8 @@
                         throw new SimulatedException("message body needs to be changed");
                     }
 
-                    testContext.EditedMessageProperty = message.SomeProperty;
+                    testContext.EditedMessageHeaders = context.MessageHeaders.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                     testContext.EditedMessageId = context.MessageId;
-                    testContext.EditedMessageHeaders = context.MessageHeaders.Keys.ToHashSet();
                     return Task.CompletedTask;
                 }
             }
@@ -111,16 +108,16 @@
         {
             public bool EditedMessage { get; set; }
             public string UniqueMessageId { get; set; }
-            public string EditedMessageProperty { get; set; }
+            public Dictionary<string, string> EditedMessageHeaders { get; set; }
             public string OriginalMessageId { get; set; }
             public string EditedMessageId { get; set; }
             public FailedMessage OriginalMessageFailure { get; set; }
-            public HashSet<string> EditedMessageHeaders { get; set; }
         }
 
         class EditMessage : IMessage
         {
-            public string SomeProperty { get; set; }
         }
     }
+
+
 }

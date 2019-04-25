@@ -1,9 +1,11 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System;
-    using System.IO;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using Nancy;
+    using Nancy.ModelBinding;
     using NServiceBus;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
@@ -21,32 +23,35 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                //TODO: consider sending base64 encoded body from the client
-                string body;
-                using (var streamReader = new StreamReader(this.Request.Body))
-                {
-                    body = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+                var edit = this.Bind<EditMessageModel>();
 
-                    if (string.IsNullOrWhiteSpace(body))
-                    {
-                        return HttpStatusCode.BadRequest;
-                    }
+                if (edit == null || string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
+                {
+                    //TODO: load original body if no new body provided?
+                    //TODO: load original headers if no new headers provided?
+                    return HttpStatusCode.BadRequest;
                 }
 
-                var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(body));
+                //TODO: consider sending base64 encoded body from the client
+                var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(edit.MessageBody));
                 await Bus.SendLocal(new EditAndSend
                 {
                     FailedMessageId = failedMessageId,
                     // Encode the body in base64 so that the new body doesn't have to be escaped
                     NewBody = base64String,
+                    NewHeaders = edit.MessageHeaders.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
                 }).ConfigureAwait(false);
-
-
 
                 return HttpStatusCode.Accepted;
             };
         }
 
         public IMessageSession Bus { get; set; }
+    }
+
+    class EditMessageModel
+    {
+        public string MessageBody { get; set; }
+        public IEnumerable<KeyValuePair<string, string>> MessageHeaders { get; set; }
     }
 }
