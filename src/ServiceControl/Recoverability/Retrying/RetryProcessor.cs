@@ -289,8 +289,6 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        
-
         Task StageMessage(FailedMessage message, string stagingId)
         {
             message.Status = FailedMessageStatus.RetryIssued;
