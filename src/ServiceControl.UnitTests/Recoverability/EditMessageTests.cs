@@ -17,7 +17,6 @@
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
-    //TODO: do not edit headers when not provided
     [TestFixture]
     public class EditMessageTests : RavenTestBase
     {
@@ -111,7 +110,8 @@
             var failedMessage = await CreateFailedMessage();
 
             var newBodyContent = Encoding.UTF8.GetBytes("new body content");
-            var message = CreateEditMessage(failedMessage.UniqueMessageId, newBodyContent);
+            var newHeaders = new Dictionary<string, string> {{"someKey", "someValue"}};
+            var message = CreateEditMessage(failedMessage.UniqueMessageId, newBodyContent, newHeaders);
 
             var handlerContent = new TestableMessageHandlerContext();
             await Handler.Handle(message, handlerContent);
@@ -121,6 +121,7 @@
                 failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint, 
                 dispatchedMessage.Item1.Destination);
             Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body);
+            Assert.AreEqual("someValue", dispatchedMessage.Item1.Message.Headers["someKey"]);
             using (var session = Store.OpenAsyncSession())
             {
                 failedMessage = await session.LoadAsync<FailedMessage>(failedMessage.Id);
