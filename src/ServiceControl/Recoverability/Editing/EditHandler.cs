@@ -16,12 +16,6 @@
 
     public class EditHandler : IHandleMessages<EditAndSend>
     {
-        static ILog log = LogManager.GetLogger<EditHandler>();
-
-        CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
-        IDocumentStore store;
-        IDispatchMessages dispatcher;
-
         public EditHandler(IDocumentStore store, IDispatchMessages dispatcher)
         {
             this.store = store;
@@ -79,20 +73,15 @@
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
-            var outgoingMessage = CreateClone(message);
+            var outgoingMessage = BuildMessage(message);
             // mark the new message with a link to the original message id
             outgoingMessage.Headers.Add("ServiceControl.EditOf", attempt.MessageId);
-
-            var destination = CreateDestinationAddress(attempt, redirects);
-            var transportTransaction = context.Extensions.GetOrCreate<TransportTransaction>();
-            await dispatcher.Dispatch(
-                    new TransportOperations(new TransportOperation(outgoingMessage, destination)),
-                    transportTransaction,
-                    new ContextBag())
+            var address = ApplyRedirect(attempt.FailureDetails.AddressOfFailingEndpoint, redirects);
+            await DispatchEditedMessage(outgoingMessage, address, context)
                 .ConfigureAwait(false);
         }
 
-        OutgoingMessage CreateClone(EditAndSend message)
+        OutgoingMessage BuildMessage(EditAndSend message)
         {
             var messageId = CombGuid.Generate().ToString();
             var headers = HeaderFilter.RemoveErrorMessageHeaders(message.NewHeaders);
@@ -104,19 +93,31 @@
             return outgoingMessage;
         }
 
-        static AddressTag CreateDestinationAddress(FailedMessage.ProcessingAttempt attempt, MessageRedirectsCollection redirects)
+        static string ApplyRedirect(string addressOfFailingEndpoint, MessageRedirectsCollection redirects)
         {
-            var addressOfFailingEndpoint = attempt.FailureDetails.AddressOfFailingEndpoint;
             var redirect = redirects[addressOfFailingEndpoint];
             if (redirect != null)
             {
                 addressOfFailingEndpoint = redirect.ToPhysicalAddress;
             }
 
-            AddressTag destination = new UnicastAddressTag(addressOfFailingEndpoint);
-            return destination;
+            return addressOfFailingEndpoint;
         }
+
+        Task DispatchEditedMessage(OutgoingMessage editedMessage, string address, IMessageHandlerContext context)
+        {
+            AddressTag destination = new UnicastAddressTag(address);
+            var transportTransaction = context.Extensions.GetOrCreate<TransportTransaction>();
+
+            return dispatcher.Dispatch(
+                new TransportOperations(new TransportOperation(editedMessage, destination)),
+                transportTransaction,
+                new ContextBag());
+        }
+
+        CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
+        IDocumentStore store;
+        IDispatchMessages dispatcher;
+        static ILog log = LogManager.GetLogger<EditHandler>();
     }
-
-
 }

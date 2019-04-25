@@ -33,11 +33,11 @@
                 }
 
                 //TODO: consider sending base64 encoded body from the client
+                // Encode the body in base64 so that the new body doesn't have to be escaped
                 var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(edit.MessageBody));
                 await Bus.SendLocal(new EditAndSend
                 {
                     FailedMessageId = failedMessageId,
-                    // Encode the body in base64 so that the new body doesn't have to be escaped
                     NewBody = base64String,
                     NewHeaders = edit.MessageHeaders.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
                 }).ConfigureAwait(false);
@@ -52,6 +52,8 @@
     class EditMessageModel
     {
         public string MessageBody { get; set; }
+
+        // this way dictionary keys won't be converted to properties and renamed due to the UnderscoreMappingResolver
         public IEnumerable<KeyValuePair<string, string>> MessageHeaders { get; set; }
     }
 }
