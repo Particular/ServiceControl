@@ -79,7 +79,7 @@
 
             var messageId = CombGuid.Generate().ToString();
             var attempt = failedMessage.ProcessingAttempts.Last();
-            var headers = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
+            var headers = HeaderFilter.RemoveErrorMessageHeaders(message.NewHeaders);
             headers[Headers.MessageId] = Guid.NewGuid().ToString("D");
             headers.Add("ServiceControl.EditOf", attempt.MessageId);
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headers);

@@ -17,6 +17,7 @@
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
+    //TODO: do not edit headers when not provided
     [TestFixture]
     public class EditMessageTests : RavenTestBase
     {

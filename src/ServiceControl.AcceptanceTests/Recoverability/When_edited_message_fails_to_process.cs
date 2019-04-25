@@ -10,6 +10,7 @@
     using NServiceBus.Settings;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
     using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
     class When_edited_message_fails_to_process : AcceptanceTest
@@ -41,7 +42,12 @@
                         {
                             HasBeenEdited = true
                         });
-                        await this.Post($"/api/edit/{ctx.OriginalMessageFailureId}", editedMessage, "application/json");
+                        var editModel = new EditMessageModel
+                        {
+                            MessageBody = editedMessage,
+                            MessageHeaders = EditMessageHelper.TryRestoreOriginalHeaderKeys(failedMessage.Item.ProcessingAttempts.Last().Headers)
+                        };
+                        await this.Post($"/api/edit/{ctx.OriginalMessageFailureId}", editModel);
 
                         return false;
                     }
