@@ -77,24 +77,31 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            var messageId = CombGuid.Generate().ToString();
             var attempt = failedMessage.ProcessingAttempts.Last();
-            var headers = HeaderFilter.RemoveErrorMessageHeaders(message.NewHeaders);
-            headers[Headers.MessageId] = Guid.NewGuid().ToString("D");
-            headers.Add("ServiceControl.EditOf", attempt.MessageId);
-            corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headers);
 
-            var body = Convert.FromBase64String(message.NewBody);
-            var outgoingMessage = new OutgoingMessage(messageId, headers, body);
+            var outgoingMessage = CreateClone(message);
+            // mark the new message with a link to the original message id
+            outgoingMessage.Headers.Add("ServiceControl.EditOf", attempt.MessageId);
 
             var destination = CreateDestinationAddress(attempt, redirects);
-
             var transportTransaction = context.Extensions.GetOrCreate<TransportTransaction>();
             await dispatcher.Dispatch(
                     new TransportOperations(new TransportOperation(outgoingMessage, destination)),
                     transportTransaction,
                     new ContextBag())
                 .ConfigureAwait(false);
+        }
+
+        OutgoingMessage CreateClone(EditAndSend message)
+        {
+            var messageId = CombGuid.Generate().ToString();
+            var headers = HeaderFilter.RemoveErrorMessageHeaders(message.NewHeaders);
+            corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headers);
+            headers[Headers.MessageId] = Guid.NewGuid().ToString("D");
+
+            var body = Convert.FromBase64String(message.NewBody);
+            var outgoingMessage = new OutgoingMessage(messageId, headers, body);
+            return outgoingMessage;
         }
 
         static AddressTag CreateDestinationAddress(FailedMessage.ProcessingAttempt attempt, MessageRedirectsCollection redirects)
