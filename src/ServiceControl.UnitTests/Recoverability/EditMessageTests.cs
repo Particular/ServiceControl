@@ -183,12 +183,41 @@
             Assert.AreEqual(redirectAddress, sentMessage.Destination);
         }
 
-        static EditAndSend CreateEditMessage(string failedMessageId, byte[] newBodyContent = null)
+        [Test]
+        public async Task Should_mark_edited_message_with_edit_information()
+        {
+            var messageFailure = await CreateFailedMessage();
+            var message = CreateEditMessage(messageFailure.UniqueMessageId);
+
+            await Handler.Handle(message, new TestableInvokeHandlerContext());
+
+            var sentMessage = Dispatcher.DispatchedMessages.Single();
+            Assert.AreEqual(
+                messageFailure.ProcessingAttempts.Last().MessageId, 
+                sentMessage.Item1.Message.Headers["ServiceControl.EditOf"]);
+        }
+
+        [Test]
+        public async Task Should_assign_edited_message_new_message_id()
+        {
+            var messageFailure = await CreateFailedMessage();
+            var message = CreateEditMessage(messageFailure.UniqueMessageId);
+
+            await Handler.Handle(message, new TestableInvokeHandlerContext());
+
+            var sentMessage = Dispatcher.DispatchedMessages.Single();
+            Assert.AreNotEqual(
+                messageFailure.ProcessingAttempts.Last().MessageId,
+                sentMessage.Item1.Message.MessageId);
+        }
+
+        static EditAndSend CreateEditMessage(string failedMessageId, byte[] newBodyContent = null, Dictionary<string, string> newHeaders = null)
         {
             return new EditAndSend
             {
                 FailedMessageId = failedMessageId,
-                NewBody = Convert.ToBase64String(newBodyContent ?? Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))
+                NewBody = Convert.ToBase64String(newBodyContent ?? Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())),
+                NewHeaders = newHeaders ?? new Dictionary<string, string>()
             };
         }
 
