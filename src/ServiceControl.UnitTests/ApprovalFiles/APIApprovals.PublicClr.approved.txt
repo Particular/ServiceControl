@@ -814,6 +814,13 @@ namespace ServiceControl.Recoverability
         public string MessageType { get; }
         public ServiceControl.MessageFailures.FailedMessage.ProcessingAttempt ProcessingAttempt { get; }
     }
+    public class EditAndSend : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public EditAndSend() { }
+        public string FailedMessageId { get; set; }
+        public string NewBody { get; set; }
+        public System.Collections.Generic.Dictionary<string, string> NewHeaders { get; set; }
+    }
     public class EndpointNameClassifier : ServiceControl.Recoverability.IFailureClassifier
     {
         public const string Id = "Endpoint Name";
