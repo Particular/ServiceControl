@@ -18,6 +18,9 @@
     "DELETE: /customchecks/{id}",
     "GET: /customchecks"
   ],
+  "ServiceControl.MessageFailures.Api.EditFailedMessages": [
+    "POST: /edit/{messageid}"
+  ],
   "ServiceControl.EventLog.EventLogApiModule": [
     "GET: /eventlogitems"
   ],
