@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public static class HeaderFilter
+    static class HeaderFilter
     {
         public static Dictionary<string, string> RemoveErrorMessageHeaders(Dictionary<string, string> headers)
         {
