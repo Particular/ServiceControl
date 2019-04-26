@@ -6,6 +6,11 @@
 
     class UnderscoreMappingResolver : DefaultContractResolver
     {
+        protected override string ResolveDictionaryKey(string dictionaryKey)
+        {
+            return dictionaryKey;
+        }
+
         protected override string ResolvePropertyName(string propertyName)
         {
             return Regex.Replace(
