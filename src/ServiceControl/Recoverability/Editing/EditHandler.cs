@@ -14,7 +14,7 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
 
-    public class EditHandler : IHandleMessages<EditAndSend>
+    class EditHandler : IHandleMessages<EditAndSend>
     {
         public EditHandler(IDocumentStore store, IDispatchMessages dispatcher)
         {
