@@ -6,6 +6,7 @@
     using System.Reflection;
     using Amazon;
     using Amazon.Runtime;
+    using Amazon.S3;
     using Amazon.SQS;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -32,18 +33,20 @@
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
 
+            var alwaysLoadFromEnvironmentVariable = false;
             if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
             {
                 PromoteEnvironmentVariableFromConnectionString(builder, "AccessKeyId", "AWS_ACCESS_KEY_ID");
                 PromoteEnvironmentVariableFromConnectionString(builder, "SecretAccessKey", "AWS_SECRET_ACCESS_KEY");
 
                 // if the user provided the access key and secret access key they should always be loaded from environment credentials
+                alwaysLoadFromEnvironmentVariable = true;
                 transport.ClientFactory(() => new AmazonSQSClient(new EnvironmentVariablesAWSCredentials()));
             }
             else
             {
                 //See https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/net-dg-config-creds.html#creds-assign
-                log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials.");
+                log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for SQS Client.");
             }
 
             var region = PromoteEnvironmentVariableFromConnectionString(builder, "Region", "AWS_REGION");
@@ -62,6 +65,29 @@
                 if (!string.IsNullOrEmpty(queueNamePrefixAsString))
                 {
                     transport.QueueNamePrefix(queueNamePrefixAsString);
+                }
+            }
+
+            if (builder.TryGetValue("S3BucketForLargeMessages", out var bucketForLargeMessages))
+            {
+                var bucketForLargeMessagesAsString = (string)bucketForLargeMessages;
+                if (!string.IsNullOrEmpty(bucketForLargeMessagesAsString))
+                {
+                    var keyPrefixAsString = string.Empty;
+                    if (builder.TryGetValue("S3KeyPrefix", out var keyPrefix))
+                    {
+                        keyPrefixAsString = (string)keyPrefix;
+                    }
+
+                    var s3Settings = transport.S3(bucketForLargeMessagesAsString, keyPrefixAsString);
+                    if (alwaysLoadFromEnvironmentVariable)
+                    {
+                        s3Settings.ClientFactory(() => new AmazonS3Client(new EnvironmentVariablesAWSCredentials()));
+                    }
+                    else
+                    {
+                        log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
+                    }
                 }
             }
 
