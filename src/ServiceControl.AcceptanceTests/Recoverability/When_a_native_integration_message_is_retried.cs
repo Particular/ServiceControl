@@ -35,10 +35,10 @@
 
             Assert.False(context.Headers.ContainsKey(Headers.MessageIntent), "Should not add the intent header");
 
-            //Rabbit sets the header when deserializing
+            //Rabbit defaults the header the header when deserializing the message based on the IBasicProperties.DeliveryMode
             if (TransportIntegration.Name == TransportNames.RabbitMQConventionalRoutingTopology || TransportIntegration.Name == TransportNames.RabbitMQDirectRoutingTopology)
             {
-                Assert.AreEqual("True", context.Headers[Headers.NonDurableMessage], "Should not corrupt the non-durable header");
+                Assert.AreEqual("False", context.Headers[Headers.NonDurableMessage], "Should not corrupt the non-durable header");
             }
 
             Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");
