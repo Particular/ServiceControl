@@ -11,6 +11,7 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
+    using ServiceControlInstaller.Engine.Instances;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_native_integration_message_is_retried : AcceptanceTest
@@ -33,11 +34,14 @@
                 .Run();
 
             Assert.False(context.Headers.ContainsKey(Headers.MessageIntent), "Should not add the intent header");
-            Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");
-        }
 
-        class OriginalMessage : IMessage
-        {
+            //Rabbit sets the header when deserializing
+            if (TransportIntegration.Name == TransportNames.RabbitMQConventionalRoutingTopology || TransportIntegration.Name == TransportNames.RabbitMQDirectRoutingTopology)
+            {
+                Assert.AreEqual("True", context.Headers[Headers.NonDurableMessage], "Should not corrupt the non-durable header");
+            }
+
+            Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");
         }
 
         class Context : ScenarioContext
