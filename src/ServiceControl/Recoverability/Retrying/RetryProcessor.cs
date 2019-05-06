@@ -334,7 +334,12 @@ namespace ServiceControl.Recoverability
             "NServiceBus.ExceptionInfo.Source",
             "NServiceBus.ExceptionInfo.StackTrace",
             "NServiceBus.ExceptionInfo.HelpLink",
-            "NServiceBus.ExceptionInfo.Message"
+            "NServiceBus.ExceptionInfo.Message",
+            "NServiceBus.ExceptionInfo.InnerExceptionType",
+            "NServiceBus.ProcessingMachine",
+            "NServiceBus.ProcessingEndpoint",
+            "$.diagnostics.hostid",
+            "$.diagnostics.hostdisplayname"
         };
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));

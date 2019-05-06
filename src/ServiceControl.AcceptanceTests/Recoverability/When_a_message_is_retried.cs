@@ -11,13 +11,30 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
-    using ServiceControlInstaller.Engine.Instances;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_a_native_integration_message_is_retried : AcceptanceTest
+    class When_a_message_is_retried : AcceptanceTest
     {
+        static readonly List<string> HeadersThatShouldBeRemoved = new List<string>
+        {
+            "NServiceBus.Retries",
+            "NServiceBus.FailedQ",
+            "NServiceBus.TimeOfFailure",
+            "NServiceBus.ExceptionInfo.ExceptionType",
+            "NServiceBus.ExceptionInfo.AuditMessage",
+            "NServiceBus.ExceptionInfo.Source",
+            "NServiceBus.ExceptionInfo.StackTrace",
+            "NServiceBus.ExceptionInfo.HelpLink",
+            "NServiceBus.ExceptionInfo.Message",
+            "NServiceBus.ExceptionInfo.InnerExceptionType",
+            "NServiceBus.ProcessingMachine",
+            "NServiceBus.ProcessingEndpoint",
+            "$.diagnostics.hostid",
+            "$.diagnostics.hostdisplayname"
+        };
+
         [Test]
-        public async Task Should_not_corrupt_headers()
+        public async Task Should_clean_headers()
         {
             var context = await Define<TestContext>()
                 .WithEndpoint<VerifyHeader>()
@@ -33,15 +50,7 @@
                 })
                 .Run();
 
-            Assert.False(context.Headers.ContainsKey(Headers.MessageIntent), "Should not add the intent header");
-
-            //Rabbit defaults the header the header when deserializing the message based on the IBasicProperties.DeliveryMode
-            if (TransportIntegration.Name == TransportNames.RabbitMQConventionalRoutingTopology || TransportIntegration.Name == TransportNames.RabbitMQDirectRoutingTopology)
-            {
-                Assert.AreEqual("False", context.Headers[Headers.NonDurableMessage], "Should not corrupt the non-durable header");
-            }
-
-            Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");
+            CollectionAssert.DoesNotContain(HeadersThatShouldBeRemoved, context.Headers.Keys);
         }
 
         class TestContext : ScenarioContext
@@ -56,7 +65,7 @@
             public VerifyHeader()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(
-                    (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((TestContext)r.ScenarioContext))
+                    (c, r) => c.RegisterMessageMutator(new CaptureHeaders((TestContext)r.ScenarioContext))
                 );
             }
 
@@ -67,9 +76,17 @@
                     var messageId = Guid.NewGuid().ToString();
                     var headers = new Dictionary<string, string>
                     {
-                        [Headers.MessageId] = messageId,
-                        ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader))
+                        [Headers.MessageId] = messageId
                     };
+
+                    foreach (var headerKey in HeadersThatShouldBeRemoved)
+                    {
+                        headers[headerKey] = "test";
+                    }
+
+                    headers["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader));
+                    headers["$.diagnostics.hostid"] = Guid.NewGuid().ToString();
+                    headers["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
 
                     var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
 
@@ -77,9 +94,9 @@
                 }
             }
 
-            class VerifyHeaderIsUnchanged : IMutateIncomingTransportMessages
+            class CaptureHeaders : IMutateIncomingTransportMessages
             {
-                public VerifyHeaderIsUnchanged(TestContext context)
+                public CaptureHeaders(TestContext context)
                 {
                     testContext = context;
                 }
@@ -87,7 +104,6 @@
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     testContext.Headers = context.Headers;
-
                     testContext.Done = true;
                     return Task.FromResult(0);
                 }
