@@ -71,11 +71,7 @@
             var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                 message.Headers,
                 new Dictionary<string, object>(metadata), 
-                failureDetails,
-                // TODO: Do we need to persist all of these things separately still?
-                message.Headers.MessageIntent(),
-                true,
-                message.Headers.CorrelationId());
+                failureDetails);
 
             var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 

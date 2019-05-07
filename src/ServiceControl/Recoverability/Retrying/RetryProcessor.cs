@@ -8,7 +8,6 @@ namespace ServiceControl.Recoverability
     using Infrastructure.DomainEvents;
     using MessageFailures;
     using MessageRedirects;
-    using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
@@ -309,16 +308,6 @@ namespace ServiceControl.Recoverability
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 
             var transportMessage = new OutgoingMessage(message.Id, headersToRetryWith, emptyBody);
-            transportMessage.Headers[Headers.MessageIntent] = attempt.MessageIntent.ToString();
-            if (attempt.Recoverable)
-            {
-                transportMessage.Headers[Headers.NonDurableMessage] = true.ToString();
-            }
-
-            if (attempt.CorrelationId != null)
-            {
-                transportMessage.Headers[Headers.CorrelationId] = attempt.CorrelationId;
-            }
 
             return sender.Dispatch(new TransportOperations(new TransportOperation(transportMessage, new UnicastAddressTag(returnToSender.InputAddress))), transaction, contextBag);
         }
@@ -345,7 +334,12 @@ namespace ServiceControl.Recoverability
             "NServiceBus.ExceptionInfo.Source",
             "NServiceBus.ExceptionInfo.StackTrace",
             "NServiceBus.ExceptionInfo.HelpLink",
-            "NServiceBus.ExceptionInfo.Message"
+            "NServiceBus.ExceptionInfo.Message",
+            "NServiceBus.ExceptionInfo.InnerExceptionType",
+            "NServiceBus.ProcessingMachine",
+            "NServiceBus.ProcessingEndpoint",
+            "$.diagnostics.hostid",
+            "$.diagnostics.hostdisplayname"
         };
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
