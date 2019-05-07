@@ -69,17 +69,18 @@ namespace ServiceBus.Management.AcceptanceTests
             textWriterTraceListener = new TextWriterTraceListener(logFile);
             Trace.Listeners.Add(textWriterTraceListener);
 
-            var transportToUse = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
-            TestContext.WriteLine($"Using transport {transportToUse.Name}");
+            TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
+            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(transportToUse, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
 
-            RemoveOtherTransportAssemblies(transportToUse.TypeName);
+            RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
 
         [TearDown]
         public void Teardown()
         {
+            TransportIntegration = null;
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
@@ -129,6 +130,8 @@ namespace ServiceBus.Management.AcceptanceTests
         protected Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
         protected Action<Settings> SetSettings = _ => { };
         protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
+        protected ITransportIntegration TransportIntegration;
+
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;
     }
