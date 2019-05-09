@@ -14,7 +14,7 @@ namespace Particular.ServiceControl
         {
             var containerBuilder = new ContainerBuilder();
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, false);
             containerBuilder.RegisterInstance(loggingSettings);
 
             var documentStore = new EmbeddableDocumentStore();

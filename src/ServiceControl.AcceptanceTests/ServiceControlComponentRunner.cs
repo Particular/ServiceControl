@@ -178,7 +178,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                     Directory.CreateDirectory(logPath);
 
-                    var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+                    var loggingSettings = new LoggingSettings(settings.ServiceName, false, logPath: logPath);
                     bootstrapper = new Bootstrapper(ctx =>
                     {
                         var logitem = new ScenarioContext.LogItem

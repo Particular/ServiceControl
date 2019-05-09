@@ -13,7 +13,7 @@ namespace Particular.ServiceControl
         {
             var settings = new Settings(args.ServiceName);
             var documentStore = new EmbeddableDocumentStore();
-            var markerFileService = new MarkerFileService(new LoggingSettings(settings.ServiceName).LogPath);
+            var markerFileService = new MarkerFileService(new LoggingSettings(settings.ServiceName, false).LogPath);
 
             new RavenBootstrapper().StartRaven(documentStore, settings, markerFileService, true);
 
