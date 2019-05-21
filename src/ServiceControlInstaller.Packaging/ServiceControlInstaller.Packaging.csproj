@@ -26,6 +26,8 @@
     <PropertyGroup>
       <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
       <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
+      <!-- All files that should not be copied from transport folders -->
+      <FilesToExclude>NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll</FilesToExclude>
     </PropertyGroup>
     <!-- Ensure Folder Exists  -->
     <MakeDir Directories="$(ZipTargetFolder)" />
@@ -35,21 +37,21 @@
     </ItemGroup>
     <Delete Files="@(OldZips)" />
     <!-- SQL Server -->
-    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.SqlServer\$(OutputPath)" ZipFolder="Transports\SQLServer" />
+    <AddToZip IncludeMask="*.dll" ExcludeMask="$(FilesToExclude)" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.SqlServer\$(OutputPath)" ZipFolder="Transports\SQLServer" />
     <!-- AzureStorageQueue -->
-    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASQ\$(OutputPath)" ZipFolder="Transports\AzureStorageQueue" />
+    <AddToZip IncludeMask="*.dll" ExcludeMask="$(FilesToExclude)" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASQ\$(OutputPath)" ZipFolder="Transports\AzureStorageQueue" />
     <!-- AzureServiceBus -->
-    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASB\$(OutputPath)" ZipFolder="Transports\AzureServiceBus" />
+    <AddToZip IncludeMask="*.dll" ExcludeMask="$(FilesToExclude)" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASB\$(OutputPath)" ZipFolder="Transports\AzureServiceBus" />
     <!--AzureServiceBus .NET Standard-->
-    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASBS\$(OutputPath)" ZipFolder="Transports\NetStandardAzureServiceBus" />
+    <AddToZip IncludeMask="*.dll" ExcludeMask="$(FilesToExclude)" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.ASBS\$(OutputPath)" ZipFolder="Transports\NetStandardAzureServiceBus" />
     <!-- RabbitMQ -->
-    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.RabbitMQ\$(OutputPath)" ZipFolder="Transports\RabbitMQ" />
+    <AddToZip IncludeMask="*.dll" ExcludeMask="$(FilesToExclude)" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.RabbitMQ\$(OutputPath)" ZipFolder="Transports\RabbitMQ" />
     <!-- MSMQ -->
-    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.Msmq\$(OutputPath)" ZipFolder="Transports\MSMQ" />
+    <AddToZip IncludeMask="*.dll" ExcludeMask="$(FilesToExclude)" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.Msmq\$(OutputPath)" ZipFolder="Transports\MSMQ" />
     <!-- SQS -->
-    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.SQS\$(OutputPath)" ZipFolder="Transports\AmazonSQS" />
+    <AddToZip IncludeMask="*.dll" ExcludeMask="$(FilesToExclude)" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.SQS\$(OutputPath)" ZipFolder="Transports\AmazonSQS" />
     <!-- LearningTransport -->
-    <AddToZip IncludeMask="*.dll" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.Learning\$(OutputPath)" ZipFolder="Transports\LearningTransport" />
+    <AddToZip IncludeMask="*.dll" ExcludeMask="$(FilesToExclude)" ZipFileName="$(ZipToCreate)" SourceFolder="..\ServiceControl.Transports.Learning\$(OutputPath)" ZipFolder="Transports\LearningTransport" />
     <!-- ServiceControl  -->
     <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFileName="$(ZipToCreate)" ZipFolder="ServiceControl" SourceFolder="..\ServiceControl\bin\$(Configuration)\$(TargetFramework)" />
   </Target>
