@@ -23,11 +23,6 @@
             logger.Debug("Trying to find expired FailedMessage documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
             ErrorMessageCleaner.Clean(deletionBatchSize, database, threshold, token);
 
-            threshold = SystemTime.UtcNow.Add(-settings.EventsRetentionPeriod);
-
-            logger.Debug("Trying to find expired EventLogItem documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
-            EventLogItemsCleaner.Clean(deletionBatchSize, database, threshold, token);
-
             return Task.FromResult(TimerJobExecutionResult.ScheduleNextExecution);
         }
 

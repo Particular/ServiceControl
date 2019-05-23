@@ -12,7 +12,6 @@ namespace ServiceControl.CompositeViews.Endpoints
 
         public bool MonitorHeartbeat { get; set; }
         public string LicenseStatus { get; set; }
-        public HeartbeatInformation HeartbeatInformation { get; set; }
         public bool IsSendingHeartbeats { get; set; }
     }
 }

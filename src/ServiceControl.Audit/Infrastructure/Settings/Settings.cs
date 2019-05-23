@@ -42,7 +42,6 @@
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
-            EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
@@ -153,8 +152,6 @@
         public TimeSpan AuditRetentionPeriod { get; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
-
-        public TimeSpan EventsRetentionPeriod { get; }
 
         public int ExpirationProcessBatchSize
         {
@@ -367,35 +364,6 @@
         private static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
-        }
-
-        private TimeSpan GetEventRetentionPeriod()
-        {
-            var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
-            if (valueRead != null)
-            {
-                if (TimeSpan.TryParse(valueRead, out var result))
-                {
-                    string message;
-                    if (ValidateConfiguration && result < TimeSpan.FromHours(1))
-                    {
-                        message = "EventRetentionPeriod settings is invalid, value should be minimum 1 hour.";
-                        logger.Fatal(message);
-                        throw new Exception(message);
-                    }
-
-                    if (ValidateConfiguration && result > TimeSpan.FromDays(200))
-                    {
-                        message = "EventRetentionPeriod settings is invalid, value should be maximum 200 days.";
-                        logger.Fatal(message);
-                        throw new Exception(message);
-                    }
-
-                    return result;
-                }
-            }
-
-            return TimeSpan.FromDays(14);
         }
 
         TimeSpan GetErrorRetentionPeriod()

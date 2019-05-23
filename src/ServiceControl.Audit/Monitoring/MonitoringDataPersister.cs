@@ -31,7 +31,6 @@
                     Id = id,
                     EndpointDetails = domainEvent.Endpoint,
                     HostDisplayName = domainEvent.Endpoint.Host,
-                    Monitored = monitoring.IsMonitored(id)
                 };
 
                 await session.StoreAsync(knownEndpoint)

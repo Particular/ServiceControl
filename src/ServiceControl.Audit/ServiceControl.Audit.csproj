@@ -51,6 +51,11 @@
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Contracts\EventLog\" />
+    <Folder Include="Monitoring\Handler\" />
+  </ItemGroup>
+
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <None Include="$(NuGetPackageRoot)%(PackageReference.Identity)\%(PackageReference.Version)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Condition="'%(PackageReference.Identity)' == 'RavenDB.Database'" />
