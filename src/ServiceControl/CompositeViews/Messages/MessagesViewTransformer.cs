@@ -25,7 +25,9 @@ namespace ServiceControl.CompositeViews.Messages
                 let status =
                     message.ProcessingAttempts == null
                         ? !(bool)message.MessageMetadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
-                        : message.Status == FailedMessageStatus.Archived
+                        : message.Status == FailedMessageStatus.RetryIssued
+                          ? MessageStatus.RetryIssued
+                          : message.Status == FailedMessageStatus.Archived
                             ? MessageStatus.ArchivedFailure
                             : message.ProcessingAttempts.Count == 1
                                 ? MessageStatus.Failed
