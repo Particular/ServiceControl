@@ -1,0 +1,23 @@
+{
+  "ServiceControl.Audit.Auditing.GetBodyById": [
+    "GET: /messages/{id*}/body"
+  ],
+  "ServiceControl.Audit.Auditing.MessagesView.GetMessages": [
+    "GET: /endpoints/{name}/messages",
+    "GET: /messages"
+  ],
+  "ServiceControl.Audit.Auditing.MessagesView.GetMessagesByConversation": [
+    "GET: /conversations/{conversationid}"
+  ],
+  "ServiceControl.Audit.Auditing.MessagesView.GetMessagesByQuery": [
+    "GET: /endpoints/{name}/messages/search",
+    "GET: /endpoints/{name}/messages/search/{keyword}",
+    "GET: /messages/search",
+    "GET: /messages/search/{keyword*}"
+  ],
+  "ServiceControl.Audit.Infrastructure.Nancy.Modules.RootModule": [
+    "GET: /",
+    "GET: /configuration",
+    "GET: /instance-info"
+  ]
+}

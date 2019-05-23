@@ -1,16 +1,17 @@
-namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
+namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Web;
-    using EndpointTemplates;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
@@ -79,7 +80,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public MeowReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoDelayedRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
             }
 
             public class FailingMessageHandler : IHandleMessages<Meow>
