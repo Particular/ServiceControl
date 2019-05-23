@@ -392,6 +392,7 @@ namespace ServiceControl.Contracts.Operations
         Successful = 3,
         ResolvedSuccessfully = 4,
         ArchivedFailure = 5,
+        RetryIssued = 6,
     }
 }
 namespace ServiceControl.CustomChecks
