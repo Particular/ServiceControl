@@ -19,6 +19,7 @@
             context.Container.ConfigureComponent<ProcessingStatisticsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
+        // TODO: Is only TimeSent needed?
         class ProcessingStatisticsEnricher : ErrorImportEnricher
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
