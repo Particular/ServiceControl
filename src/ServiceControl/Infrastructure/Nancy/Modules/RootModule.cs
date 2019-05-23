@@ -66,11 +66,8 @@
                     Transport = new
                     {
                         Settings.TransportCustomizationType,
-                        Settings.AuditLogQueue,
-                        Settings.AuditQueue,
                         Settings.ErrorLogQueue,
                         Settings.ErrorQueue,
-                        Settings.ForwardAuditMessages,
                         Settings.ForwardErrorMessages
                     },
                     Plugins = new

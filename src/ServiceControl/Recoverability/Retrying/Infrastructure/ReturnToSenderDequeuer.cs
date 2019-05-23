@@ -62,7 +62,10 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                Log.Debug("Resetting timer");
+                if(Log.IsDebugEnabled)
+                {
+                    Log.Debug("Resetting timer");
+                }
                 timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
             }
         }

@@ -3,7 +3,7 @@ namespace ServiceControl.MessageFailures.Api
     using System.Linq;
     using Raven.Client.Indexes;
 
-    class QueueAddressIndex : AbstractIndexCreationTask<FailedMessage, QueueAddress>
+    public class QueueAddressIndex : AbstractIndexCreationTask<FailedMessage, QueueAddress>
     {
         public QueueAddressIndex()
         {

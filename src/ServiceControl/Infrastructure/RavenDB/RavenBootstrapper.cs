@@ -4,8 +4,8 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
-    using CompositeViews.Endpoints;
-    using EndpointControl;
+    using Audit.Monitoring;
+    using Monitoring;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;

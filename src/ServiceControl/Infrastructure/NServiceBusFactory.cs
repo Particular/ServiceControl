@@ -14,6 +14,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations;
+    using ServiceControl.Plugin.CustomChecks.Messages;
     using ServiceControl.Transports;
     using Settings;
 
@@ -98,7 +99,6 @@ namespace ServiceBus.Management.Infrastructure
                 .ConfigureAwait(false);
 
             var domainEvents = container.Resolve<IDomainEvents>();
-            var importFailedAudits = container.Resolve<ImportFailedAudits>();
             var importFailedErrors = container.Resolve<ImportFailedErrors>();
 
             var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
@@ -109,7 +109,7 @@ namespace ServiceBus.Management.Infrastructure
 
             builder.Update(container.ComponentRegistry);
 
-            return new BusInstance(endpointInstance, domainEvents, importFailedAudits, importFailedErrors);
+            return new BusInstance(endpointInstance, domainEvents, importFailedErrors);
         }
 
         static bool IsExternalContract(Type t)
@@ -122,7 +122,8 @@ namespace ServiceBus.Management.Infrastructure
         static Type[] remoteTypesToSubscribeTo =
         {
             typeof(MessageFailureResolvedByRetry),
-            typeof(NewEndpointDetected)
+            typeof(NewEndpointDetected),
+            typeof(ReportCustomCheckResult)
         };
     }
 }

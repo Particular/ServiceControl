@@ -7,10 +7,9 @@
     [TestFixture]
     class MessagesView_ScatterGather_NoData : MessageView_ScatterGatherTest
     {
-        protected override IEnumerable<QueryResult<List<MessagesView>>> GetData()
+        protected override QueryResult<IList<MessagesView>>[] GetData()
         {
-            yield return QueryResult<List<MessagesView>>.Empty();
-            yield return QueryResult<List<MessagesView>>.Empty();
+            return new[] {QueryResult<IList<MessagesView>>.Empty(), QueryResult<IList<MessagesView>>.Empty()};
         }
 
         [Test]

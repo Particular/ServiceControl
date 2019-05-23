@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("ServiceControl.UnitTests")]
-[assembly: InternalsVisibleTo("ServiceBus.Management.AcceptanceTests")]
-[assembly: InternalsVisibleTo("ServiceControl.Loadtests.Reporter")]
+[assembly: InternalsVisibleTo("ServiceControl.AcceptanceTests")]
+[assembly: InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]

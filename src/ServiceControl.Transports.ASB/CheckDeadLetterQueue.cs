@@ -17,10 +17,16 @@
             var transportConnectionString = connectionStringSettings.ConnectionString;
             namespaceManager = NamespaceManager.CreateFromConnectionString(transportConnectionString);
             stagingQueue = $"{settings.EndpointName}.staging";
+            runCheck = settings.RunCustomChecks;
         }
 
         public override Task<CheckResult> PerformCheck()
         {
+            if (!runCheck)
+            {
+                return CheckResult.Pass;
+            }
+
             Logger.Debug("Checking Dead Letter Queue length");
 
             var queueDescription = namespaceManager.GetQueue(stagingQueue);
@@ -40,6 +46,7 @@
 
         NamespaceManager namespaceManager;
         string stagingQueue;
+        bool runCheck;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
     }

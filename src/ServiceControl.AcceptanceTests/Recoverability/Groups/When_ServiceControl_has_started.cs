@@ -1,9 +1,10 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
+﻿namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.Recoverability;
 
     class When_ServiceControl_has_started : AcceptanceTest

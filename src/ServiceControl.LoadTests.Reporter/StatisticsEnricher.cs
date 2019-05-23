@@ -2,15 +2,12 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Audit.Auditing;
     using Metrics;
     using NServiceBus;
-    using Operations;
 
-    class StatisticsEnricher : ImportEnricher
+    class StatisticsEnricher : AuditImportEnricher
     {
-        Statistics statistics;
-        Meter processedMeter;
-
         public StatisticsEnricher(Statistics statistics, Meter processedMeter)
         {
             this.statistics = statistics;
@@ -24,7 +21,11 @@
                 statistics.AuditReceived(headers[Headers.HostId]);
                 processedMeter.Mark();
             }
+
             return Task.CompletedTask;
         }
+
+        Statistics statistics;
+        Meter processedMeter;
     }
 }

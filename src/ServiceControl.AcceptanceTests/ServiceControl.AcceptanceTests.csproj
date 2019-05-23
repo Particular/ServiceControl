@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
-    <RootNamespace>ServiceBus.Management.AcceptanceTests</RootNamespace>
-    <AssemblyName>ServiceBus.Management.AcceptanceTests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

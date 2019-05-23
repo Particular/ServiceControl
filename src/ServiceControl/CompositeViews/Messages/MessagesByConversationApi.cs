@@ -1,7 +1,6 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
     using Nancy;
@@ -10,7 +9,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     class MessagesByConversationApi : ScatterGatherApiMessageView<string>
     {
-        public override async Task<QueryResult<List<MessagesView>>> LocalQuery(Request request, string input)
+        public override async Task<QueryResult<IList<MessagesView>>> LocalQuery(Request request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -23,7 +22,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<List<MessagesView>>(results.ToList(), stats.ToQueryStatsInfo());
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
         }
     }

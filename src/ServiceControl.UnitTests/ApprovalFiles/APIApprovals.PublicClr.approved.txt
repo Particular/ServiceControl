@@ -1,5 +1,5 @@
-[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceBus.Management.AcceptanceTests")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Loadtests.Reporter")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.AcceptanceTests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.MultiInstance.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.UnitTests")]
 [assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
 public class GroupOperation
@@ -50,11 +50,6 @@ namespace Particular.ServiceControl.Upgrade
 }
 namespace ServiceBus.Management.Infrastructure.Installers
 {
-    public class AuditLoqQueue : NServiceBus.Features.Feature
-    {
-        public AuditLoqQueue() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
     public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething
     {
         public const string SourceName = "ServiceControl";
@@ -81,8 +76,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public const string Disabled = "!disable";
         public Settings(string serviceName = null) { }
         public string ApiUrl { get; }
-        public string AuditLogQueue { get; set; }
-        public string AuditQueue { get; set; }
         public System.TimeSpan AuditRetentionPeriod { get; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
@@ -97,12 +90,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int ExpirationProcessTimerInSeconds { get; }
         public bool ExposeRavenDB { get; }
         public int ExternalIntegrationsDispatchingBatchSize { get; }
-        public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
         public System.TimeSpan HeartbeatGracePeriod { get; }
         public string Hostname { get; }
         public int HttpDefaultConnectionLimit { get; set; }
-        public bool IngestAuditMessages { get; set; }
         public bool IngestErrorMessages { get; set; }
         public int MaxBodySizeToStore { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
@@ -125,7 +116,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
     }
 }
-namespace ServiceControl.CompositeViews.Endpoints
+namespace ServiceControl.Audit.Monitoring
 {
     public class DisableEndpointMonitoring : NServiceBus.ICommand, NServiceBus.IMessage
     {
@@ -137,6 +128,13 @@ namespace ServiceControl.CompositeViews.Endpoints
         public EnableEndpointMonitoring() { }
         public System.Guid EndpointId { get; set; }
     }
+    public class KnownEndpointIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Monitoring.KnownEndpoint>
+    {
+        public KnownEndpointIndex() { }
+    }
+}
+namespace ServiceControl.CompositeViews.Endpoints
+{
     public class EndpointsView
     {
         public EndpointsView() { }
@@ -144,7 +142,6 @@ namespace ServiceControl.CompositeViews.Endpoints
         public string HostDisplayName { get; set; }
         public System.Guid Id { get; set; }
         public bool IsSendingHeartbeats { get; set; }
-        public string LicenseStatus { get; set; }
         public bool Monitored { get; set; }
         public bool MonitorHeartbeat { get; set; }
         public string Name { get; set; }
@@ -155,16 +152,22 @@ namespace ServiceControl.CompositeViews.Endpoints
         public System.DateTime LastReportAt { get; set; }
         public ServiceControl.HeartbeatMonitoring.Status ReportedStatus { get; set; }
     }
-    public class KnownEndpointsView
-    {
-        public KnownEndpointsView() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
-    }
 }
 namespace ServiceControl.CompositeViews.Messages
 {
+    public class MessagesBodyTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewTransformer.Result>
+    {
+        public MessagesBodyTransformer() { }
+        public class Result
+        {
+            public Result() { }
+            public string Body { get; set; }
+            public bool BodyNotStored { get; set; }
+            public int BodySize { get; set; }
+            public string ContentType { get; set; }
+            public string MessageId { get; set; }
+        }
+    }
     public class MessagesView
     {
         public MessagesView() { }
@@ -188,6 +191,41 @@ namespace ServiceControl.CompositeViews.Messages
         public ServiceControl.Contracts.Operations.EndpointDetails SendingEndpoint { get; set; }
         public ServiceControl.Contracts.Operations.MessageStatus Status { get; set; }
         public System.Nullable<System.DateTime> TimeSent { get; set; }
+    }
+    public class MessagesViewIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewIndex.SortAndFilterOptions>
+    {
+        public MessagesViewIndex() { }
+        public class SortAndFilterOptions
+        {
+            public SortAndFilterOptions() { }
+            public string ConversationId { get; set; }
+            public System.Nullable<System.TimeSpan> CriticalTime { get; set; }
+            public System.Nullable<System.TimeSpan> DeliveryTime { get; set; }
+            public bool IsSystemMessage { get; set; }
+            public string MessageId { get; set; }
+            public string MessageType { get; set; }
+            public System.DateTime ProcessedAt { get; set; }
+            public System.Nullable<System.TimeSpan> ProcessingTime { get; set; }
+            public string[] Query { get; set; }
+            public string ReceivingEndpointName { get; set; }
+            public ServiceControl.Contracts.Operations.MessageStatus Status { get; set; }
+            public System.DateTime TimeSent { get; set; }
+        }
+    }
+    public class MessagesViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewTransformer.Result>
+    {
+        public MessagesViewTransformer() { }
+        public class Result
+        {
+            public Result() { }
+            public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
+            public string Id { get; set; }
+            public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
+            public System.DateTime ProcessedAt { get; set; }
+            public System.Collections.Generic.List<ServiceControl.MessageFailures.FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
+            public ServiceControl.MessageFailures.FailedMessageStatus Status { get; set; }
+            public string UniqueMessageId { get; set; }
+        }
     }
 }
 namespace ServiceControl.Contracts.CustomChecks
@@ -214,13 +252,19 @@ namespace ServiceControl.Contracts.CustomChecks
 }
 namespace ServiceControl.Contracts.EndpointControl
 {
+    public class EndpointDetected
+    {
+        public EndpointDetected() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+    }
     public class EndpointStarted
     {
         public EndpointStarted() { }
         public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
         public System.DateTime StartedAt { get; set; }
     }
-    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IBusEvent
+    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage
     {
         public NewEndpointDetected() { }
         public System.DateTime DetectedAt { get; set; }
@@ -292,15 +336,7 @@ namespace ServiceControl.Contracts.MessageFailures
         public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
         public bool RepeatedFailure { get; set; }
     }
-    public class MessageFailedRepeatedly : NServiceBus.IEvent, NServiceBus.IMessage
-    {
-        public MessageFailedRepeatedly() { }
-        public string EndpointId { get; set; }
-        public string FailedMessageId { get; set; }
-        public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
-        public bool RepeatedFailure { get; set; }
-    }
-    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IBusEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }
@@ -414,6 +450,10 @@ namespace ServiceControl.CustomChecks
         public CustomCheckDeleted() { }
         public System.Guid Id { get; set; }
     }
+    public class CustomChecksIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.CustomChecks.CustomCheck>
+    {
+        public CustomChecksIndex() { }
+    }
     public class CustomChecksUpdated : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public CustomChecksUpdated() { }
@@ -439,18 +479,6 @@ namespace ServiceControl.EndpointControl.Contracts
         public MonitoringEnabledForEndpoint() { }
         public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
         public System.Guid EndpointInstanceId { get; set; }
-    }
-}
-namespace ServiceControl.EndpointControl
-{
-    public class KnownEndpoint
-    {
-        public KnownEndpoint() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public bool HasTemporaryId { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
-        public bool Monitored { get; set; }
     }
 }
 namespace ServiceControl
@@ -497,10 +525,6 @@ namespace ServiceControl.HeartbeatMonitoring
         Dead = 1,
     }
 }
-namespace ServiceControl.Infrastructure.DomainEvents
-{
-    public interface IBusEvent : NServiceBus.IEvent, NServiceBus.IMessage { }
-}
 namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     [System.ComponentModel.Composition.ExportMetadataAttribute("Bundle", "customDocumentExpiration")]
@@ -510,6 +534,22 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
         public ExpiredDocumentsCleanerBundle() { }
         public void Dispose() { }
         public void Execute(Raven.Database.DocumentDatabase database) { }
+    }
+    public class ExpiryErrorMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
+    {
+        public ExpiryErrorMessageIndex() { }
+    }
+    public class ExpiryEventLogItemsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.EventLog.EventLogItem>
+    {
+        public ExpiryEventLogItemsIndex() { }
+    }
+    public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageAuditing.ProcessedMessage>
+    {
+        public ExpiryProcessedMessageIndex() { }
+    }
+    public class ExpirySagaAuditIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask
+    {
+        public ExpirySagaAuditIndex() { }
     }
 }
 namespace ServiceControl.Infrastructure.SignalR
@@ -537,6 +577,10 @@ namespace ServiceControl.MessageAuditing
 }
 namespace ServiceControl.MessageFailures.Api
 {
+    public class FailedMessageFacetsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
+    {
+        public FailedMessageFacetsIndex() { }
+    }
     public class FailedMessageView
     {
         public FailedMessageView() { }
@@ -554,10 +598,30 @@ namespace ServiceControl.MessageFailures.Api
         public System.DateTime TimeOfFailure { get; set; }
         public System.Nullable<System.DateTime> TimeSent { get; set; }
     }
+    public class FailedMessageViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
+    {
+        public FailedMessageViewIndex() { }
+        public class SortAndFilterOptions : ServiceControl.MessageFailures.IHaveStatus
+        {
+            public SortAndFilterOptions() { }
+            public long LastModified { get; set; }
+            public string MessageId { get; set; }
+            public string MessageType { get; set; }
+            public string QueueAddress { get; set; }
+            public string ReceivingEndpointName { get; set; }
+            public ServiceControl.MessageFailures.FailedMessageStatus Status { get; set; }
+            public System.DateTime TimeOfFailure { get; set; }
+            public System.DateTime TimeSent { get; set; }
+        }
+    }
     public class FailedMessageViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.MessageFailures.FailedMessage>
     {
         public FailedMessageViewTransformer() { }
         public static string Name { get; }
+    }
+    public class QueueAddressIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.MessageFailures.QueueAddress>
+    {
+        public QueueAddressIndex() { }
     }
 }
 namespace ServiceControl.MessageFailures
@@ -647,9 +711,45 @@ namespace ServiceControl.Monitoring
         Alive = 1,
         Dead = 2,
     }
+    public class KnownEndpoint
+    {
+        public KnownEndpoint() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
+        public bool HasTemporaryId { get; set; }
+        public string HostDisplayName { get; set; }
+        public System.Guid Id { get; set; }
+        public bool Monitored { get; set; }
+    }
+    public class KnownEndpointsView
+    {
+        public KnownEndpointsView() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
+        public string HostDisplayName { get; set; }
+        public System.Guid Id { get; set; }
+    }
 }
 namespace ServiceControl.Operations
 {
+    public class FailedAuditImport
+    {
+        public FailedAuditImport() { }
+        public System.Guid Id { get; set; }
+        public ServiceControl.Operations.FailedTransportMessage Message { get; set; }
+    }
+    public class FailedAuditImportIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Operations.FailedAuditImport>
+    {
+        public FailedAuditImportIndex() { }
+    }
+    public class FailedErrorImport
+    {
+        public FailedErrorImport() { }
+        public System.Guid Id { get; set; }
+        public ServiceControl.Operations.FailedTransportMessage Message { get; set; }
+    }
+    public class FailedErrorImportIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Operations.FailedErrorImport>
+    {
+        public FailedErrorImportIndex() { }
+    }
     public class FailedTransportMessage
     {
         public FailedTransportMessage() { }

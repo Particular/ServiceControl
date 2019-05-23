@@ -18,9 +18,10 @@
         {
             context.Container.ConfigureComponent<EnrichWithTrackingIds>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<MessageTypeEnricher>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<ProcessingStatisticsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class MessageTypeEnricher : ImportEnricher
+        class MessageTypeEnricher : ErrorImportEnricher
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
@@ -61,7 +62,7 @@
             }
         }
 
-        class EnrichWithTrackingIds : ImportEnricher
+        class EnrichWithTrackingIds : ErrorImportEnricher
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
@@ -73,6 +74,20 @@
                 if (headers.TryGetValue(Headers.RelatedTo, out var relatedToId))
                 {
                     metadata.Add("RelatedToId", relatedToId);
+                }
+
+                return Task.CompletedTask;
+            }
+        }
+
+        class ProcessingStatisticsEnricher : ErrorImportEnricher
+        {
+            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            {
+                if (headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
+                {
+                    var timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
+                    metadata.Add("TimeSent", timeSent);
                 }
 
                 return Task.CompletedTask;
