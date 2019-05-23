@@ -43,7 +43,7 @@
             {
                 foreach (var file in GetFiles(sourceFolder))
                 {
-                    var entryName = Path.Combine(ZipFolder, Path.GetFileName(file));
+                    var entryName = Path.Combine(ZipFolder, Path.GetFileName(file)).Replace('\\', '/');
                     var entry = archive.GetEntry(entryName);
                     entry?.Delete();
                     archive.CreateEntryFromFile(file, entryName);
