@@ -13,10 +13,8 @@ namespace Particular.ServiceControl
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
-    using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Operations;
-    using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
     using Nancy;
@@ -79,10 +77,6 @@ namespace Particular.ServiceControl
             transportSettings = new TransportSettings();
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
-            var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
-            containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
-
-            containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();

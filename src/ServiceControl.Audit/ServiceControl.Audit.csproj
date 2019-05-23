@@ -31,8 +31,6 @@
     <PackageReference Include="ServiceControl.Contracts" Version="1.2.0" />
     <PackageReference Include="Lucene.Net" Version="3.0.3" />
     <PackageReference Include="Rx-Linq" Version="2.2.5" />
-    <PackageReference Include="Microsoft.AspNet.SignalR" Version="2.2.3" />
-    <PackageReference Include="Microsoft.AspNet.SignalR.Owin" Version="1.2.2" />
     <PackageReference Include="Microsoft.AspNet.Cors" Version="5.2.3" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="3.0.1" />
     <PackageReference Include="Owin.Metrics" Version="0.3.7" />
@@ -53,6 +51,7 @@
 
   <ItemGroup>
     <Folder Include="Contracts\EventLog\" />
+    <Folder Include="Infrastructure\SignalR\" />
     <Folder Include="Monitoring\Handler\" />
   </ItemGroup>
 

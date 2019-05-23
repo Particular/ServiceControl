@@ -5,7 +5,6 @@ namespace ServiceControl.Operations
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Extensibility;
-    using NServiceBus.Faults;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
@@ -13,11 +12,10 @@ namespace ServiceControl.Operations
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor, ErrorPersister errorPersister)
+        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor)
         {
             this.store = store;
             this.auditIngestor = auditIngestor;
-            this.errorPersister = errorPersister;
         }
 
         public Task Run(CancellationTokenSource tokenSource)
@@ -43,15 +41,7 @@ namespace ServiceControl.Operations
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                            //Due to bug https://github.com/Particular/PlatformDevelopment/issues/2464 some failed error could have ended up in failed audits collection
-                            if (messageContext.Headers.ContainsKey(FaultsHeaderKeys.FailedQ))
-                            {
-                                await errorPersister.Persist(messageContext).ConfigureAwait(false);
-                            }
-                            else
-                            {
-                                await auditIngestor.Ingest(messageContext).ConfigureAwait(false);
-                            }
+                            await auditIngestor.Ingest(messageContext).ConfigureAwait(false);
 
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
@@ -84,7 +74,6 @@ namespace ServiceControl.Operations
 
         IDocumentStore store;
         AuditIngestor auditIngestor;
-        ErrorPersister errorPersister;
         CancellationTokenSource source;
 
         static TransportTransaction EmptyTransaction = new TransportTransaction();

@@ -19,7 +19,7 @@
             context.Container.ConfigureComponent<ProcessingStatisticsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class ProcessingStatisticsEnricher : ImportEnricher
+        class ProcessingStatisticsEnricher : AuditImportEnricher
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {

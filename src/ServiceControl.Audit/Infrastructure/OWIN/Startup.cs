@@ -6,13 +6,10 @@
     using global::Nancy.Owin;
     using Metrics;
     using Microsoft.AspNet.SignalR;
-    using Microsoft.Owin.Cors;
     using Nancy;
-    using Newtonsoft.Json;
     using Owin;
     using Owin.Metrics;
     using ServiceControl.Infrastructure.OWIN;
-    using ServiceControl.Infrastructure.SignalR;
 
     class Startup
     {
@@ -35,34 +32,11 @@
             {
                 b.Use<LogApiCalls>();
 
-                ConfigureSignalR(b);
-
                 b.UseNancy(new NancyOptions
                 {
                     Bootstrapper = new NServiceBusContainerBootstrapper(container)
                 });
             });
-        }
-
-        private void ConfigureSignalR(IAppBuilder app)
-        {
-            var resolver = new AutofacDependencyResolver(container);
-
-            app.Map("/messagestream", map =>
-            {
-                map.UseCors(CorsOptions.AllowAll);
-                map.RunSignalR<MessageStreamerConnection>(
-                    new ConnectionConfiguration
-                    {
-                        EnableJSONP = true,
-                        Resolver = resolver
-                    });
-            });
-
-            GlobalHost.DependencyResolver = resolver;
-
-            var jsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
-            GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
         }
 
         private readonly IContainer container;

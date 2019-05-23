@@ -95,19 +95,6 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
-            var reimportFailedErrorsOptions = new OptionSet
-            {
-                {
-                    "import-failed-errors",
-                    "Import failed error messages",
-                    s =>
-                    {
-                        Commands = new List<Type> {typeof(ImportFailedErrorsCommand)};
-                        executionMode = ExecutionMode.ImportFailedErrors;
-                    }
-                }
-            };
-
             try
             {
                 externalInstallerOptions.Parse(args);
@@ -124,12 +111,6 @@ namespace Particular.ServiceControl.Hosting
 
                 reimportFailedAuditsOptions.Parse(args);
                 if (executionMode == ExecutionMode.ImportFailedAudits)
-                {
-                    return;
-                }
-
-                reimportFailedErrorsOptions.Parse(args);
-                if (executionMode == ExecutionMode.ImportFailedErrors)
                 {
                     return;
                 }
@@ -180,6 +161,5 @@ namespace Particular.ServiceControl.Hosting
         Run,
         ImportFailedAudits,
         Maintenance,
-        ImportFailedErrors
     }
 }

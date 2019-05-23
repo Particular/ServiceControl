@@ -18,12 +18,12 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<DetectNewEndpointsFromImportsEnricher>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<DetectNewEndpointsFromAuditImportsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class DetectNewEndpointsFromImportsEnricher : ImportEnricher
+        class DetectNewEndpointsFromAuditImportsEnricher : AuditImportEnricher
         {
-            public DetectNewEndpointsFromImportsEnricher(EndpointInstanceMonitoring monitoring)
+            public DetectNewEndpointsFromAuditImportsEnricher(EndpointInstanceMonitoring monitoring)
             {
                 this.monitoring = monitoring;
             }

@@ -4,14 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Api;
     using Contracts.MessageFailures;
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
-    using Raven.Client;
 
     class FailedMessagesFeature : Feature
     {
@@ -22,20 +20,15 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<FailedMessageViewIndexNotifications>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<DetectSuccessfullRetriesEnricher>(DependencyLifecycle.SingleInstance);
-
-            context.RegisterStartupTask(b => b.Build<WireUpFailedMessageNotifications>());
         }
 
-        class DetectSuccessfullRetriesEnricher : ImportEnricher
+        class DetectSuccessfullRetriesEnricher : AuditImportEnricher
         {
             public DetectSuccessfullRetriesEnricher(IDomainEvents domainEvents)
             {
                 this.domainEvents = domainEvents;
             }
-
-            public override bool EnrichErrors => false;
 
             public override async Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
@@ -90,31 +83,6 @@
             }
 
             IDomainEvents domainEvents;
-        }
-
-        class WireUpFailedMessageNotifications : FeatureStartupTask
-        {
-            public WireUpFailedMessageNotifications(FailedMessageViewIndexNotifications notifications, IDocumentStore store)
-            {
-                this.notifications = notifications;
-                this.store = store;
-            }
-
-            protected override Task OnStart(IMessageSession session)
-            {
-                subscription = store.Changes().ForIndex(new FailedMessageViewIndex().IndexName).Subscribe(notifications);
-                return Task.FromResult(true);
-            }
-
-            protected override Task OnStop(IMessageSession session)
-            {
-                subscription.Dispose();
-                return Task.FromResult(true);
-            }
-
-            FailedMessageViewIndexNotifications notifications;
-            IDocumentStore store;
-            IDisposable subscription;
         }
     }
 }

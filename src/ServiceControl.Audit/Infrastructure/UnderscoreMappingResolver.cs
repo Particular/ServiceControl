@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.SignalR
+﻿namespace ServiceControl.Audit.Infrastructure
 {
     using System.Globalization;
     using System.Text.RegularExpressions;

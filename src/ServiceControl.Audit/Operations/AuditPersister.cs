@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using BodyStorage;
     using Infrastructure;
@@ -14,11 +13,11 @@
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedMessages[] enrichers)
+        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
-            this.enrichers = enrichers.Where(e => e.EnrichAudits).ToArray();
+            this.enrichers = enrichers;
         }
 
         public async Task Persist(MessageContext message)
@@ -62,7 +61,7 @@
             }
         }
 
-        readonly IEnrichImportedMessages[] enrichers;
+        readonly IEnrichImportedAuditMessages[] enrichers;
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
     }

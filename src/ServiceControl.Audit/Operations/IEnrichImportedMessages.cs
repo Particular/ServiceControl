@@ -3,10 +3,8 @@ namespace ServiceControl.Operations
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    interface IEnrichImportedMessages
+    interface IEnrichImportedAuditMessages
     {
-        bool EnrichErrors { get; }
-        bool EnrichAudits { get; }
         Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata);
     }
 }

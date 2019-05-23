@@ -11,7 +11,7 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
-    using ServiceControl.Infrastructure.SignalR;
+    using ServiceControl.Audit.Infrastructure;
 
     class JsonNetBodyDeserializer : IBodyDeserializer
     {

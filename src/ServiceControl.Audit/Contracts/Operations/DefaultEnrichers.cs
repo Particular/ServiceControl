@@ -20,7 +20,7 @@
             context.Container.ConfigureComponent<MessageTypeEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class MessageTypeEnricher : ImportEnricher
+        class MessageTypeEnricher : AuditImportEnricher
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
@@ -61,7 +61,7 @@
             }
         }
 
-        class EnrichWithTrackingIds : ImportEnricher
+        class EnrichWithTrackingIds : AuditImportEnricher
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
