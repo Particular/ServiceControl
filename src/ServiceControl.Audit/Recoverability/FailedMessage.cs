@@ -9,13 +9,11 @@
         public FailedMessage()
         {
             ProcessingAttempts = new List<ProcessingAttempt>();
-            FailureGroups = new List<FailureGroup>();
         }
 
         public string Id { get; set; }
 
         public List<ProcessingAttempt> ProcessingAttempts { get; set; }
-        public List<FailureGroup> FailureGroups { get; set; }
 
         public string UniqueMessageId { get; set; }
 
