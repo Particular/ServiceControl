@@ -16,12 +16,6 @@
 
             logger.Debug("Trying to find expired ProcessedMessage and SagaHistory documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
             AuditMessageCleaner.Clean(deletionBatchSize, database, threshold, token);
-            SagaHistoryCleaner.Clean(deletionBatchSize, database, threshold, token);
-
-            threshold = SystemTime.UtcNow.Add(-settings.ErrorRetentionPeriod);
-
-            logger.Debug("Trying to find expired FailedMessage documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
-            ErrorMessageCleaner.Clean(deletionBatchSize, database, threshold, token);
 
             return Task.FromResult(TimerJobExecutionResult.ScheduleNextExecution);
         }

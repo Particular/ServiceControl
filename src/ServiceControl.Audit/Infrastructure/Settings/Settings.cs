@@ -41,7 +41,6 @@
             ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
-            ErrorRetentionPeriod = GetErrorRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
@@ -364,43 +363,6 @@
         private static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
-        }
-
-        TimeSpan GetErrorRetentionPeriod()
-        {
-            string message;
-            var valueRead = SettingsReader<string>.Read("ErrorRetentionPeriod");
-            if (valueRead == null)
-            {
-                message = "ErrorRetentionPeriod settings is missing, please make sure it is included.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            if (TimeSpan.TryParse(valueRead, out var result))
-            {
-                if (ValidateConfiguration && result < TimeSpan.FromDays(10))
-                {
-                    message = "ErrorRetentionPeriod settings is invalid, value should be minimum 10 days.";
-                    logger.Fatal(message);
-                    throw new Exception(message);
-                }
-
-                if (ValidateConfiguration && result > TimeSpan.FromDays(45))
-                {
-                    message = "ErrorRetentionPeriod settings is invalid, value should be maximum 45 days.";
-                    logger.Fatal(message);
-                    throw new Exception(message);
-                }
-            }
-            else
-            {
-                message = "ErrorRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            return result;
         }
 
         TimeSpan GetAuditRetentionPeriod()
