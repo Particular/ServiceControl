@@ -58,7 +58,7 @@
             Assert.AreEqual(10, failure.ProcessingAttempts.Count);
         }
 
-        class CounterEnricher : ImportEnricher
+        class CounterEnricher : ErrorImportEnricher
         {
             public MyContext Context { get; set; }
 

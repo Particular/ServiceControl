@@ -2,7 +2,6 @@
 {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using BodyStorage;
     using Contracts.Operations;
@@ -32,11 +31,11 @@
                                     }}");
         }
 
-        public ErrorPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
+        public ErrorPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
-            this.enrichers = enrichers.Where(x => x.EnrichErrors).ToArray();
+            this.enrichers = enrichers;
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
@@ -137,7 +136,7 @@
             );
         }
 
-        IEnrichImportedMessages[] enrichers;
+        IEnrichImportedErrorMessages[] enrichers;
         BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
         IDocumentStore store;

@@ -19,7 +19,7 @@ namespace ServiceControl.Operations
             context.Container.ConfigureComponent<LicenseStatusKeeper>(DependencyLifecycle.SingleInstance);
         }
 
-        public class UpdateLicenseEnricher : ImportEnricher
+        public class UpdateLicenseEnricher : ErrorImportEnricher
         {
             public UpdateLicenseEnricher(LicenseStatusKeeper licenseStatusKeeper)
             {

@@ -20,7 +20,7 @@
             context.Container.ConfigureComponent<SagaRelationshipsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        internal class SagaRelationshipsEnricher : ImportEnricher
+        internal class SagaRelationshipsEnricher : ErrorImportEnricher
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {

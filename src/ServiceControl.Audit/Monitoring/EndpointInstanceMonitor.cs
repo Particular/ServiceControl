@@ -6,7 +6,6 @@ namespace ServiceControl.Monitoring
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
     using EndpointControl.Contracts;
-    using HeartbeatMonitoring;
     using Infrastructure.DomainEvents;
 
     class EndpointInstanceMonitor
@@ -44,7 +43,6 @@ namespace ServiceControl.Monitoring
                     .ConfigureAwait(false);
             }
 
-            lastSeen = latestTimestamp;
             status = newStatus;
         }
 
@@ -108,23 +106,6 @@ namespace ServiceControl.Monitoring
             };
         }
 
-        public EndpointsView GetView()
-        {
-            return new EndpointsView
-            {
-                Id = Id.UniqueId,
-                Name = Id.LogicalName,
-                HostDisplayName = Id.HostName,
-                Monitored = Monitored,
-                MonitorHeartbeat = Monitored,
-                HeartbeatInformation = new HeartbeatInformation
-                {
-                    ReportedStatus = status == HeartbeatStatus.Alive ? Status.Beating : Status.Dead,
-                    LastReportAt = lastSeen ?? DateTime.MinValue
-                }
-            };
-        }
-
         public KnownEndpointsView GetKnownView()
         {
             return new KnownEndpointsView
@@ -136,7 +117,6 @@ namespace ServiceControl.Monitoring
         }
 
         IDomainEvents domainEvents;
-        DateTime? lastSeen;
         HeartbeatStatus status;
     }
 }

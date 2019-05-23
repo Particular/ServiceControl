@@ -18,12 +18,12 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<DetectNewEndpointsFromImportsEnricher>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<DetectNewEndpointsFromErrorImportsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class DetectNewEndpointsFromImportsEnricher : ImportEnricher
+        class DetectNewEndpointsFromErrorImportsEnricher : ErrorImportEnricher
         {
-            public DetectNewEndpointsFromImportsEnricher(EndpointInstanceMonitoring monitoring)
+            public DetectNewEndpointsFromErrorImportsEnricher(EndpointInstanceMonitoring monitoring)
             {
                 this.monitoring = monitoring;
             }
@@ -60,7 +60,7 @@
                     return;
                 }
 
-                await monitoring.DetectEndpointFromLocalAudit(endpointDetails)
+                await monitoring.EndpointDetected(endpointDetails)
                     .ConfigureAwait(false);
             }
 

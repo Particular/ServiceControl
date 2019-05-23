@@ -37,7 +37,7 @@ namespace ServiceControl.Monitoring
             await Update(stats).ConfigureAwait(false);
         }
 
-        public async Task DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
+        public async Task EndpointDetected(EndpointDetails newEndpointDetails)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
             if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))

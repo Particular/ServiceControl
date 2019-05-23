@@ -6,7 +6,7 @@
     using NServiceBus;
     using Operations;
 
-    class StatisticsEnricher : ImportEnricher
+    class StatisticsEnricher : ErrorImportEnricher
     {
         Statistics statistics;
         Meter processedMeter;

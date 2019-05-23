@@ -61,7 +61,7 @@
             Assert.IsTrue(runResult.AuditForwarded);
         }
 
-        class FailOnceEnricher : ImportEnricher
+        class FailOnceEnricher : ErrorImportEnricher
         {
             public MyContext Context { get; set; }
 

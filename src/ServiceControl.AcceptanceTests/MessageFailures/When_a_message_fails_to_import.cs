@@ -83,7 +83,7 @@
             }
         }
 
-        class FailOnceEnricher : ImportEnricher
+        class FailOnceEnricher : ErrorImportEnricher
         {
             public MyContext Context { get; set; }
 
