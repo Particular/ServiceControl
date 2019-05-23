@@ -1,13 +1,14 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
+﻿namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System;
     using System.Threading.Tasks;
-    using EndpointTemplates;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
 
     class When_a_group_is_retried : AcceptanceTest
@@ -89,7 +90,11 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.Recoverability().Delayed(x => x.NumberOfRetries(0)));
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.Recoverability().Delayed(x => x.NumberOfRetries(0));
+                    c.ReportSuccessfulRetriesToServiceControl();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

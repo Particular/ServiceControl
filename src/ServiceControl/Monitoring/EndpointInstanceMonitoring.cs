@@ -37,24 +37,17 @@ namespace ServiceControl.Monitoring
             await Update(stats).ConfigureAwait(false);
         }
 
-        public async Task DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
+        public async Task EndpointDetected(EndpointDetails newEndpointDetails)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
             if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))
             {
-                await domainEvents.Raise(new NewEndpointDetected
-                    {
-                        DetectedAt = DateTime.UtcNow,
-                        Endpoint = newEndpointDetails
-                    })
-                    .ConfigureAwait(false);
+                await domainEvents.Raise(new EndpointDetected
+                {
+                    DetectedAt = DateTime.UtcNow,
+                    Endpoint = newEndpointDetails
+                }).ConfigureAwait(false);
             }
-        }
-
-        public void DetectEndpointFromRemoteAudit(EndpointDetails newEndpointDetails)
-        {
-            var endpointInstanceId = newEndpointDetails.ToInstanceId();
-            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents));
         }
 
         public async Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt)

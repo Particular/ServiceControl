@@ -3,9 +3,9 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using Nancy;
 
-    abstract class ScatterGatherApiMessageView<TInput> : ScatterGatherApi<TInput, List<MessagesView>>
+    abstract class ScatterGatherApiMessageView<TInput> : ScatterGatherApi<TInput, IList<MessagesView>>
     {
-        protected override List<MessagesView> ProcessResults(Request request, QueryResult<List<MessagesView>>[] results)
+        protected override IList<MessagesView> ProcessResults(Request request, QueryResult<IList<MessagesView>>[] results)
         {
             var combined = new List<MessagesView>();
             foreach (var queryResult in results)

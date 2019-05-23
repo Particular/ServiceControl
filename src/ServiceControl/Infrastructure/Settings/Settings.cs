@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
+namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -28,16 +28,11 @@
                 // order matters
                 ErrorQueue = GetErrorQueue();
                 ErrorLogQueue = GetErrorLogQueue();
-
-                AuditQueue = GetAuditQueue();
-                AuditLogQueue = GetAuditLogQueue();
             }
 
             TransportConnectionString = GetConnectionString();
 
-            DbPath = GetDbPath();
             TransportCustomizationType = GetTransportType();
-            ForwardAuditMessages = GetForwardAuditMessages();
             ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
@@ -50,6 +45,8 @@
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             RemoteInstances = GetRemoteInstances();
+            DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
+            DbPath = GetDbPath();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
         }
 
@@ -119,16 +116,12 @@
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
-        public string AuditQueue { get; set; }
 
-        public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
 
-        public bool IngestAuditMessages { get; set; } = true;
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
-        public string AuditLogQueue { get; set; }
 
         public int ExpirationProcessTimerInSeconds
         {
@@ -217,56 +210,6 @@
             }
         }
 
-        public string GetConnectionString()
-        {
-            var settingsValue = SettingsReader<string>.Read("ConnectionString");
-            if (settingsValue != null)
-            {
-                return settingsValue;
-            }
-
-            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            return connectionStringSettings?.ConnectionString;
-        }
-
-        private string GetAuditLogQueue()
-        {
-            if (AuditQueue == null)
-            {
-                return null;
-            }
-            
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
-            
-            if (value == null)
-            {
-                logger.Info("No settings found for audit log queue to import, default name will be used");
-                return Subscope(AuditQueue);
-            }
-
-            return value;
-        }
-
-        private string GetAuditQueue()
-        {
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
-
-            if (value == null)
-            {
-                logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-                this.IngestAuditMessages = false;
-                return null;
-            }
-
-            if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Info("Audit ingestion disabled.");
-                this.IngestAuditMessages = false;
-                return null; // needs to be null to not create the queues
-            }
-
-            return value;
-        }
 
         private string GetErrorQueue()
         {
@@ -336,17 +279,6 @@
             }
 
             throw new Exception("ForwardErrorMessages settings is missing, please make sure it is included.");
-        }
-
-        private static bool GetForwardAuditMessages()
-        {
-            var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
-            if (forwardAuditMessages.HasValue)
-            {
-                return forwardAuditMessages.Value;
-            }
-
-            throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
         }
 
         static string GetTransportType()
