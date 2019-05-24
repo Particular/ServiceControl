@@ -12,7 +12,5 @@ namespace ServiceControl.Contracts.Operations
         public string AddressOfFailingEndpoint { get; set; }
 
         public DateTime TimeOfFailure { get; set; }
-
-        public ExceptionDetails Exception { get; set; }
     }
 }

@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using Contracts.Operations;
 
     public class FailedMessage : IHaveStatus
     {
@@ -35,17 +34,9 @@
             }
             
             public Dictionary<string, object> MessageMetadata { get; set; }
-            public FailureDetails FailureDetails { get; set; }
             public DateTime AttemptedAt { get; set; }
             public string MessageId { get; set; }
             public Dictionary<string, string> Headers { get; set; }
-        }
-
-        public class FailureGroup
-        {
-            public string Id { get; set; }
-            public string Title { get; set; }
-            public string Type { get; set; }
         }
     }
 
