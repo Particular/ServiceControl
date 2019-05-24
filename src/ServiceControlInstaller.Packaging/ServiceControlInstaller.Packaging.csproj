@@ -37,7 +37,7 @@
     <Delete Files="@(OldZips)" />
 
     <PropertyGroup>
-      <ServiceControlFolder>..\ServiceControl\bin\$(Configuration)\$(TargetFramework)\</ServiceControlFolder>
+      <ServiceControlFolder>..\ServiceControl\$(OutputPath)\</ServiceControlFolder>
       <SqlTransportFolder>..\ServiceControl.Transports.SqlServer\$(OutputPath)\</SqlTransportFolder>
       <ASQTransportFolder>..\ServiceControl.Transports.ASQ\$(OutputPath)\</ASQTransportFolder>
       <ASBTransportFolder>..\ServiceControl.Transports.ASB\$(OutputPath)\</ASBTransportFolder>
