@@ -1,7 +1,5 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
-    using System;
-    using System.Threading;
     using Infrastructure.Extensions;
     using Infrastructure.Nancy.Modules;
     using Nancy;
@@ -34,16 +32,6 @@
                         .WithEtag(stats);
                 }
             };
-
-            Post["/failedaudits/import", true] = async (_, token) =>
-            {
-                var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-                await ImportFailedAudits.Value.Run(tokenSource);
-                return HttpStatusCode.OK;
-            };
         }
-
-        // ReSharper disable once MemberCanBePrivate.Global
-        public Lazy<ImportFailedAudits> ImportFailedAudits { get; set; }
     }
 }
