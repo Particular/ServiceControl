@@ -69,7 +69,7 @@
             if (File.Exists(localRavenLicense))
             {
                 Logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
-                documentStore.Configuration.Settings["Raven/License"] = NonBlockingReader.ReadAllTextWithoutLocking(localRavenLicense);
+                documentStore.Configuration.Settings["Raven/License"] = ReadAllTextWithoutLocking(localRavenLicense);
             }
             else
             {
@@ -105,6 +105,16 @@
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
         }
 
+        static string ReadAllTextWithoutLocking(string path)
+        {
+            using (var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var textReader = new StreamReader(fileStream))
+            {
+                return textReader.ReadToEnd();
+            }
+        }
+
+        // TODO: Move that method to the monitoring folder
         static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)
         {
             using (var session = documentStore.OpenSession())

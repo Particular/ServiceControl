@@ -2,7 +2,6 @@
 {
     using System;
     using global::Nancy;
-    using Particular.ServiceControl.Licensing;
     using Settings;
 
     class RootModule : BaseModule
@@ -21,10 +20,8 @@
                         "/endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
                     EndpointsMessagesUrl =
                         BaseUrl + "/endpoints/{name}/messages/{?page,per_page,direction,sort}",
-                    Name = SettingsReader<string>.Read("Name", "ServiceControl"),
-                    Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
-                    LicenseStatus = License.IsValid ? "valid" : "invalid",
-                    LicenseDetails = BaseUrl + "/license",
+                    Name = SettingsReader<string>.Read("Name", "ServiceControl.Audit"),
+                    Description = SettingsReader<string>.Read("Description", "The audit backend for the Particular Service Platform"),
                     Configuration = BaseUrl + "/configuration"
                 };
 
@@ -74,8 +71,6 @@
 
         public LoggingSettings LoggingSettings { get; set; }
 
-        public ActiveLicense License { get; set; }
-
         public class RootUrls
         {
             public string Description { get; set; }
@@ -84,8 +79,6 @@
             public string EndpointsMessagesUrl { get; set; }
             public string Configuration { get; set; }
             public string MessageSearchUrl { get; set; }
-            public string LicenseStatus { get; set; }
-            public string LicenseDetails { get; set; }
             public string Name { get; set; }
         }
     }
