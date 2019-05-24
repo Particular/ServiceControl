@@ -31,7 +31,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             TransportConnectionString = connectionStringSettings?.ConnectionString;
 
-            DbPath = GetDbPath();
             TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
@@ -40,6 +39,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
+            DbPath = GetDbPath();
         }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();

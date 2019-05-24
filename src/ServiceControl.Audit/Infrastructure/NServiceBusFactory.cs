@@ -6,9 +6,7 @@ using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
 using Raven.Client.Embedded;
-using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.DomainEvents;
-using ServiceControl.Operations;
 using ServiceControl.Transports;
 using ServiceBus.Management.Infrastructure.Settings;
 
@@ -44,8 +42,6 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
 
-            configuration.EnableFeature<SubscriptionFeature>();
-
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));
             recoverability.Delayed(c => c.NumberOfRetries(0));
@@ -56,11 +52,6 @@ namespace ServiceBus.Management.Infrastructure
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-
-            if (!isRunningAcceptanceTests)
-            {
-                configuration.ReportCustomChecksTo(endpointName);
-            }
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
 

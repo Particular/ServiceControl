@@ -6,15 +6,15 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Logging;
     using Raven.Client;
 
-    class FailedAuditImportCustomCheck : CustomCheck
+    class FailedAuditImportCustomCheck /*: CustomCheck*/
     {
         public FailedAuditImportCustomCheck(IDocumentStore store)
-            : base("Audit Message Ingestion", "ServiceControl Health", TimeSpan.FromHours(1))
+            /*: base("Audit Message Ingestion", "ServiceControl Health", TimeSpan.FromHours(1))*/
         {
             this.store = store;
         }
 
-        public override async Task<CheckResult> PerformCheck()
+        public /*override*/ async Task<CheckResult> PerformCheck()
         {
             using (var session = store.OpenAsyncSession())
             {

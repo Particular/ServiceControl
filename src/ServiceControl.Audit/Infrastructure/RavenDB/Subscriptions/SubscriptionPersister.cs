@@ -18,11 +18,11 @@
     class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
     {
         public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings) :
-            this(store, settings, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
+            this(store, settings.EndpointName(), settings.LocalAddress())
         {
         }
 
-        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
+        public SubscriptionPersister(IDocumentStore store, string endpointName, string localAddress)
         {
             this.store = store;
             localClient = new SubscriptionClient
@@ -31,10 +31,7 @@
                 TransportAddress = localAddress
             };
 
-            this.locallyHandledEventTypes = locallyHandledEventTypes;
-
-
-            SetSubscriptions(new Subscriptions()).GetAwaiter().GetResult();
+            subscriptions = new Subscriptions();
         }
 
         public async Task Prime()
@@ -164,13 +161,7 @@
                 {
                     subscription.MessageType,
                     Subscriber = new Subscriber(client.TransportAddress, client.Endpoint)
-                }).Union(from eventType in locallyHandledEventTypes
-                select new
-                {
-                    MessageType = eventType,
-                    Subscriber = new Subscriber(localClient.TransportAddress, localClient.Endpoint)
-                }
-            ).ToLookup(x => x.MessageType, x => x.Subscriber);
+                }).ToLookup(x => x.MessageType, x => x.Subscriber);
         }
 
         private string FormatId(MessageType messageType)
@@ -234,7 +225,6 @@
         private SubscriptionClient localClient;
         private Subscriptions subscriptions;
         private ILookup<MessageType, Subscriber> subscriptionsLookup;
-        private MessageType[] locallyHandledEventTypes;
 
         private SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
 
