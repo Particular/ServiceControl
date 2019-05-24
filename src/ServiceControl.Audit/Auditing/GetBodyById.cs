@@ -10,7 +10,7 @@
             {
                 var messageId = parameters.id;
 
-                return await GetBodyByIdApi.Execute(this, messageId);
+                return await GetBodyByIdApi.Execute(messageId);
             };
         }
 

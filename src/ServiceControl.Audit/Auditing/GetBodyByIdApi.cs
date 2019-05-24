@@ -9,14 +9,13 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
 
-    class GetBodyByIdApi : RoutedApi<string>
+    class GetBodyByIdApi : IApi
     {
         public IDocumentStore Store { get; set; }
         public IBodyStorage BodyStorage { get; set; }
 
-        protected override async Task<Response> LocalQuery(Request request, string input, string instanceId)
+        public async Task<Response> Execute(string messageId)
         {
-            var messageId = input;
             messageId = messageId?.Replace("/", @"\");
             Action<Stream> contents;
             string contentType;
