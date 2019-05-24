@@ -38,8 +38,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Hosting\Help.txt" />
-    <EmbeddedResource Include="Hosting\Help.txt" />
+    <None Remove="Infrastructure\Hosting\Help.txt" />
+    <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
   </ItemGroup>
 
   <ItemGroup>
