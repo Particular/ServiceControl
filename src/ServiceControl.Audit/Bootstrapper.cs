@@ -88,7 +88,6 @@ namespace Particular.ServiceControl
 
             containerBuilder.RegisterType<DomainEventBusPublisher>().AsImplementedInterfaces().AsSelf().SingleInstance();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
-            containerBuilder.RegisterType<MonitoringDataPersister>().SingleInstance();
 
             containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetSerializer>().As<ISerializer>();
             containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetBodyDeserializer>().As<IBodyDeserializer>();

@@ -9,19 +9,41 @@ namespace ServiceControl.Monitoring
     using Contracts.EndpointControl;
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
+    using Raven.Client;
+    using ServiceControl.EndpointControl;
+    using ServiceControl.Infrastructure;
 
     class EndpointInstanceMonitoring
     {
-        public EndpointInstanceMonitoring(IDomainEvents domainEvents)
+        public EndpointInstanceMonitoring(IDocumentStore store, IDomainEvents domainEvents)
         {
+            this.store = store;
             this.domainEvents = domainEvents;
         }
-
+        // TODO: Test this end2end
         public async Task DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
-            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId)))
+            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstance(endpointInstanceId)))
             {
+                var id = DeterministicGuid.MakeId(newEndpointDetails.Name, newEndpointDetails.HostId.ToString());
+
+                using (var session = store.OpenAsyncSession())
+                {
+                    var knownEndpoint = new KnownEndpoint
+                    {
+                        Id = id,
+                        EndpointDetails = newEndpointDetails,
+                        HostDisplayName = newEndpointDetails.Host,
+                    };
+
+                    await session.StoreAsync(knownEndpoint)
+                        .ConfigureAwait(false);
+
+                    await session.SaveChangesAsync()
+                        .ConfigureAwait(false);
+                }
+
                 await domainEvents.Raise(new NewEndpointDetected
                     {
                         DetectedAt = DateTime.UtcNow,
@@ -31,10 +53,22 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
+        public async Task Warmup()
         {
-            var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
-            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId));
+            using (var documentSession = store.OpenAsyncSession())
+            {
+                using (var endpointsEnumerator = await documentSession.Advanced.StreamAsync(documentSession.Query<KnownEndpoint, KnownEndpointIndex>())
+                    .ConfigureAwait(false))
+                {
+                    while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        var endpoint = endpointsEnumerator.Current.Document;
+                        var endpointDetails = endpoint.EndpointDetails;
+                        var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
+                        endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstance(endpointInstanceId));
+                    }
+                }
+            }
         }
 
         public List<KnownEndpointsView> GetKnownEndpoints()
@@ -42,7 +76,8 @@ namespace ServiceControl.Monitoring
             return endpoints.Values.Select(endpoint => endpoint.GetKnownView()).ToList();
         }
 
+        private readonly IDocumentStore store;
         IDomainEvents domainEvents;
-        ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
+        ConcurrentDictionary<Guid, EndpointInstance> endpoints = new ConcurrentDictionary<Guid, EndpointInstance>();
     }
 }

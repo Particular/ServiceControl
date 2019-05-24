@@ -3,9 +3,9 @@ namespace ServiceControl.Monitoring
     using CompositeViews.Endpoints;
     using Contracts.Operations;
 
-    class EndpointInstanceMonitor
+    class EndpointInstance
     {
-        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId)
+        public EndpointInstance(EndpointInstanceId endpointInstanceId)
         {
             Id = endpointInstanceId;
         }
