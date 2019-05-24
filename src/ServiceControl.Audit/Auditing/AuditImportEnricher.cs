@@ -1,7 +1,8 @@
-namespace ServiceControl.Operations
+namespace ServiceControl.Audit.Auditing
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Operations;
 
     abstract class AuditImportEnricher : IEnrichImportedAuditMessages
     {

@@ -1,4 +1,4 @@
-namespace ServiceControl.Operations
+namespace ServiceControl.Audit.Licensing
 {
     using System.Collections.Concurrent;
 

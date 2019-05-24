@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+namespace ServiceControl.Audit.Auditing
 {
     using NServiceBus;
     using NServiceBus.Features;

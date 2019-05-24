@@ -8,10 +8,10 @@ namespace ServiceControl.Monitoring
     using CompositeViews.Endpoints;
     using Contracts.EndpointControl;
     using Contracts.Operations;
+    using EndpointControl;
+    using Infrastructure;
     using Infrastructure.DomainEvents;
     using Raven.Client;
-    using ServiceControl.EndpointControl;
-    using ServiceControl.Infrastructure;
 
     class EndpointInstanceMonitoring
     {
@@ -20,6 +20,7 @@ namespace ServiceControl.Monitoring
             this.store = store;
             this.domainEvents = domainEvents;
         }
+
         // TODO: Test this end2end
         public async Task DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
         {
@@ -34,7 +35,7 @@ namespace ServiceControl.Monitoring
                     {
                         Id = id,
                         EndpointDetails = newEndpointDetails,
-                        HostDisplayName = newEndpointDetails.Host,
+                        HostDisplayName = newEndpointDetails.Host
                     };
 
                     await session.StoreAsync(knownEndpoint)

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.IO;
@@ -12,7 +12,7 @@
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
         const decimal PercentageThreshold = 20m / 100m;
         readonly string dataPath;
-    
+
         public CheckFreeDiskSpace(Settings settings) : base("Message database", "Storage space", TimeSpan.FromMinutes(5))
         {
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {PercentageThreshold:P0}");
@@ -39,8 +39,8 @@
                 Logger.Debug($"Free space: {availableFreeSpace} | Total: {totalSpace} | Percent remaining {percentRemaining:P0}");
             }
 
-            return percentRemaining > PercentageThreshold 
-                ? CheckResult.Pass 
+            return percentRemaining > PercentageThreshold
+                ? CheckResult.Pass
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive {dataDriveInfo.VolumeLabel} on {Environment.MachineName}.");
         }
     }

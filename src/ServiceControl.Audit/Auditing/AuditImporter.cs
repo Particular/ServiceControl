@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Audit.Auditing
 {
     using System.IO;
     using System.Threading.Tasks;
@@ -6,6 +6,7 @@
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transport;
+    using Operations;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 

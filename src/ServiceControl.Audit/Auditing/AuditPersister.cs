@@ -1,15 +1,16 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using BodyStorage;
-    using Infrastructure;
     using MessageAuditing;
     using NServiceBus;
     using NServiceBus.Transport;
+    using Operations;
+    using Operations.BodyStorage;
     using Raven.Client;
+    using ServiceControl.Infrastructure;
 
     class AuditPersister
     {

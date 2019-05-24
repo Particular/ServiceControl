@@ -3,11 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Audit.Auditing;
+    using Contracts.Operations;
     using Monitoring;
     using NServiceBus;
     using NServiceBus.Features;
-    using Operations;
-    using ServiceControl.Contracts.Operations;
 
     class EndpointDetectionFeature : Feature
     {

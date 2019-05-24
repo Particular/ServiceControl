@@ -9,7 +9,6 @@
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Particular.Licensing;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;

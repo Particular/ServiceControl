@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Threading.Tasks;

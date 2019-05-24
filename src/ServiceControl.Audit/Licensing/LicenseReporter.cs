@@ -1,10 +1,12 @@
-namespace ServiceControl.Operations
+namespace ServiceControl.Audit.Licensing
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Auditing;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Features;
+    using Operations;
 
     // TODO: Figure out how to bring this information to ServiceControl primary
     class LicenseReporter : Feature

@@ -1,8 +1,9 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Audit.Auditing
 {
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
+    using Operations;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class AuditIngestor
@@ -16,7 +17,10 @@
 
         public async Task Ingest(MessageContext context)
         {
-            log.DebugFormat("Ingesting audit message {0}", context.MessageId);
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Ingesting audit message {0}", context.MessageId);
+            }
 
             await auditPersister.Persist(context).ConfigureAwait(false);
 

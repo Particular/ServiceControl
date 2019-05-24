@@ -1,4 +1,4 @@
-namespace ServiceControl.Operations
+namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Linq;
@@ -7,6 +7,7 @@ namespace ServiceControl.Operations
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
+    using Operations;
     using Raven.Client;
     using Raven.Client.Indexes;
 

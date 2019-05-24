@@ -2,8 +2,8 @@ namespace ServiceBus.Management.Infrastructure
 {
     using System.Threading.Tasks;
     using NServiceBus;
+    using ServiceControl.Audit.Auditing;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Operations;
 
     class BusInstance
     {

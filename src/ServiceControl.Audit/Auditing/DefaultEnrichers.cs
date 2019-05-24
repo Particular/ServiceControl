@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Audit.Auditing;
     using NServiceBus;
     using NServiceBus.Features;
     using ServiceControl.Operations;

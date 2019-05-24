@@ -14,6 +14,8 @@ using ServiceBus.Management.Infrastructure.Settings;
 
 namespace ServiceBus.Management.Infrastructure
 {
+    using ServiceControl.Audit.Auditing;
+
     static class NServiceBusFactory
     {
         public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
