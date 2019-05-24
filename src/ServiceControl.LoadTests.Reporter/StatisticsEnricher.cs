@@ -4,9 +4,9 @@
     using System.Threading.Tasks;
     using Metrics;
     using NServiceBus;
-    using Operations;
+    using ServiceControl.Audit.Auditing;
 
-    class StatisticsEnricher : ErrorImportEnricher
+    class StatisticsEnricher : AuditImportEnricher
     {
         Statistics statistics;
         Meter processedMeter;

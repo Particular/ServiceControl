@@ -96,7 +96,6 @@ namespace ServiceBus.Management.AcceptanceTests
                     DatabaseMaintenancePort = maintenancePort,
                     DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                     ForwardErrorMessages = false,
-                    ForwardAuditMessages = false,
                     TransportCustomizationType = transportToUse.TypeName,
                     TransportConnectionString = transportToUse.ConnectionString,
                     ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
