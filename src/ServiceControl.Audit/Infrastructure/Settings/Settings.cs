@@ -1,18 +1,16 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Configuration;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Threading.Tasks;
-    using Nancy;
-    using Newtonsoft.Json;
-    using NLog.Common;
-    using NServiceBus.Logging;
-    using ServiceControl.Transports;
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using NLog.Common;
+using NServiceBus.Logging;
+using ServiceControl.Transports;
 
+namespace ServiceBus.Management.Infrastructure.Settings
+{
     public class Settings
     {
         public Settings(string serviceName = null)
@@ -26,9 +24,6 @@
 
             {
                 // order matters
-                ErrorQueue = GetErrorQueue();
-                ErrorLogQueue = GetErrorLogQueue();
-
                 AuditQueue = GetAuditQueue();
                 AuditLogQueue = GetAuditLogQueue();
             }
@@ -39,16 +34,12 @@
             DbPath = GetDbPath();
             TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
-            ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
-            ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
-            RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
-            RemoteInstances = GetRemoteInstances();
         }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
@@ -56,8 +47,6 @@
         public bool RunInMemory { get; set; }
 
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
-
-        public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
@@ -96,35 +85,14 @@
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
-        public TimeSpan HeartbeatGracePeriod
-        {
-            get
-            {
-                try
-                {
-                    return TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
-                }
-                catch (Exception ex)
-                {
-                    logger.Error($"HeartbeatGracePeriod settings invalid - {ex}. Defaulting HeartbeatGracePeriod to '00:00:40'");
-                    return TimeSpan.FromSeconds(40);
-                }
-            }
-        }
-
         public string TransportCustomizationType { get; set; }
 
         public string DbPath { get; set; }
-        public string ErrorLogQueue { get; set; }
-        public string ErrorQueue { get; set; }
         public string AuditQueue { get; set; }
 
         public bool ForwardAuditMessages { get; set; }
-        public bool ForwardErrorMessages { get; set; }
 
         public bool IngestAuditMessages { get; set; } = true;
-        public bool IngestErrorMessages { get; set; } = true;
-        public bool RunRetryProcessor { get; set; } = true;
 
         public string AuditLogQueue { get; set; }
 
@@ -149,8 +117,6 @@
         }
 
         public TimeSpan AuditRetentionPeriod { get; }
-
-        public TimeSpan ErrorRetentionPeriod { get; }
 
         public int ExpirationProcessBatchSize
         {
@@ -191,12 +157,7 @@
 
         public int HttpDefaultConnectionLimit { get; set; }
         public string TransportConnectionString { get; set; }
-        public TimeSpan ProcessRetryBatchesFrequency { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
-
-        public int RetryHistoryDepth { get; set; }
-
-        public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {
@@ -250,45 +211,6 @@
             return value;
         }
 
-        private string GetErrorQueue()
-        {
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
-
-            if (value == null)
-            {
-                logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
-                this.IngestErrorMessages = false;
-                return null;
-            }
-
-            if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Info("Error ingestion disabled.");
-                this.IngestErrorMessages = false;
-                return null; // needs to be null to not create the queues
-            }
-
-            return value;
-        }
-
-        private string GetErrorLogQueue()
-        {            
-            if (ErrorQueue == null)
-            {
-                return null;
-            }
-
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
-            
-            if (value == null)
-            {
-                logger.Info("No settings found for error log queue to import, default name will be used");
-                return Subscope(ErrorQueue);
-            }
-
-            return value;
-        }
-
         private string GetDbPath()
         {
             var host = Hostname;
@@ -307,17 +229,6 @@
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
 
             return SettingsReader<string>.Read("DbPath", defaultPath);
-        }
-
-        private static bool GetForwardErrorMessages()
-        {
-            var forwardErrorMessages = NullableSettingsReader<bool>.Read("ForwardErrorMessages");
-            if (forwardErrorMessages.HasValue)
-            {
-                return forwardErrorMessages.Value;
-            }
-
-            throw new Exception("ForwardErrorMessages settings is missing, please make sure it is included.");
         }
 
         private static bool GetForwardAuditMessages()
@@ -402,21 +313,6 @@
             return result;
         }
 
-        static RemoteInstanceSetting[] GetRemoteInstances()
-        {
-            var valueRead = SettingsReader<string>.Read("RemoteInstances");
-            if (!string.IsNullOrEmpty(valueRead))
-            {
-                var jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
-                using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
-                {
-                    return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];
-                }
-            }
-
-            return new RemoteInstanceSetting[0];
-        }
-
         static string Subscope(string address)
         {
             var atIndex = address.IndexOf("@", StringComparison.InvariantCulture);
@@ -436,7 +332,7 @@
         int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
         int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
-        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
+        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
         public const string Disabled = "!disable";
 
         const int ExpirationProcessTimerInSecondsDefault = 600;

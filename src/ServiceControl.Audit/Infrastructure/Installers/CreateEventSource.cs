@@ -16,6 +16,6 @@
             return Task.FromResult(0);
         }
 
-        public const string SourceName = "ServiceControl";
+        public const string SourceName = "ServiceControl.Audit";
     }
 }

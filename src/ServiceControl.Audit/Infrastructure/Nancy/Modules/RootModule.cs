@@ -13,11 +13,7 @@
             {
                 var model = new RootUrls
                 {
-                    EndpointsUrl = BaseUrl + "/endpoints",
                     KnownEndpointsUrl = "/endpoints/known", // relative URI to allow proxying
-                    SagasUrl = BaseUrl + "/sagas",
-                    ErrorsUrl = BaseUrl + "/errors/{?page,per_page,direction,sort}",
-                    EndpointsErrorUrl = BaseUrl + "/endpoints/{name}/errors/{?page,per_page,direction,sort}",
                     MessageSearchUrl =
                         BaseUrl + "/messages/search/{keyword}/{?page,per_page,direction,sort}",
                     EndpointsMessageSearchUrl =
@@ -53,13 +49,11 @@
                     DataRetention = new
                     {
                         Settings.AuditRetentionPeriod,
-                        Settings.ErrorRetentionPeriod
                     },
                     PerformanceTunning = new
                     {
                         Settings.MaxBodySizeToStore,
                         Settings.HttpDefaultConnectionLimit,
-                        Settings.ExternalIntegrationsDispatchingBatchSize,
                         Settings.ExpirationProcessBatchSize,
                         Settings.ExpirationProcessTimerInSeconds
                     },
@@ -68,14 +62,10 @@
                         Settings.TransportCustomizationType,
                         Settings.AuditLogQueue,
                         Settings.AuditQueue,
-                        Settings.ErrorLogQueue,
-                        Settings.ErrorQueue,
                         Settings.ForwardAuditMessages,
-                        Settings.ForwardErrorMessages
                     },
                     Plugins = new
                     {
-                        Settings.HeartbeatGracePeriod
                     }
                 });
 
@@ -89,18 +79,14 @@
         public class RootUrls
         {
             public string Description { get; set; }
-            public string EndpointsErrorUrl { get; set; }
             public string KnownEndpointsUrl { get; set; }
             public string EndpointsMessageSearchUrl { get; set; }
             public string EndpointsMessagesUrl { get; set; }
-            public string EndpointsUrl { get; set; }
-            public string ErrorsUrl { get; set; }
             public string Configuration { get; set; }
             public string MessageSearchUrl { get; set; }
             public string LicenseStatus { get; set; }
             public string LicenseDetails { get; set; }
             public string Name { get; set; }
-            public string SagasUrl { get; set; }
         }
     }
 }

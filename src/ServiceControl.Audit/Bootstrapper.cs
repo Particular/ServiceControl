@@ -154,12 +154,8 @@ namespace Particular.ServiceControl
             var version = typeof(Bootstrapper).Assembly.GetName().Version;
             var startupMessage = $@"
 -------------------------------------------------------------
-ServiceControl Version:             {version}
+ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
-Error Retention Period:             {settings.ErrorRetentionPeriod}
-Ingest Error Messages:              {settings.IngestErrorMessages}
-Ingest Audit Messages:              {settings.IngestErrorMessages}
-Forwarding Error Messages:          {settings.ForwardErrorMessages}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
 Database Size:                      {DataSize()} bytes
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
@@ -178,21 +174,14 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.AuditLogQueue,
                     settings.AuditQueue,
                     settings.DatabaseMaintenancePort,
-                    settings.ErrorLogQueue,
                     settings.DisableRavenDBPerformanceCounters,
                     settings.DbPath,
-                    settings.ErrorQueue,
                     settings.ForwardAuditMessages,
-                    settings.ForwardErrorMessages,
                     settings.HttpDefaultConnectionLimit,
                     settings.IngestAuditMessages,
-                    settings.IngestErrorMessages,
                     settings.MaxBodySizeToStore,
                     settings.MaximumConcurrencyLevel,
                     settings.Port,
-                    settings.ProcessRetryBatchesFrequency,
-                    settings.RemoteInstances,
-                    settings.RetryHistoryDepth,
                     settings.RunInMemory,
                     settings.SkipQueueCreation,
                     settings.TransportCustomizationType

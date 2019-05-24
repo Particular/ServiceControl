@@ -8,6 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Infrastructure\SignalR\**" />
+    <Compile Remove="Monitoring\Handler\**" />
+    <EmbeddedResource Remove="Infrastructure\SignalR\**" />
+    <EmbeddedResource Remove="Monitoring\Handler\**" />
+    <None Remove="Infrastructure\SignalR\**" />
+    <None Remove="Monitoring\Handler\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
@@ -51,8 +60,6 @@
 
   <ItemGroup>
     <Folder Include="Contracts\EventLog\" />
-    <Folder Include="Infrastructure\SignalR\" />
-    <Folder Include="Monitoring\Handler\" />
   </ItemGroup>
 
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
