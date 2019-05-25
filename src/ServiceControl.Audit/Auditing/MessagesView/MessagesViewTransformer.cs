@@ -4,7 +4,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Linq;
     using Contracts.Operations;
-    using MessageFailures;
     using Raven.Client.Indexes;
 
     // TODO: Can we make this terse?
@@ -13,24 +12,10 @@ namespace ServiceControl.CompositeViews.Messages
         public MessagesViewTransformer()
         {
             TransformResults = messages => from message in messages
-                let metadata =
-                    message.ProcessingAttempts != null
-                        ? message.ProcessingAttempts.Last().MessageMetadata
-                        : message.MessageMetadata
-                let headers =
-                    message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().Headers : message.Headers
-                let processedAt =
-                    message.ProcessingAttempts != null
-                        ? message.ProcessingAttempts.Last().AttemptedAt
-                        : message.ProcessedAt
-                let status =
-                    message.ProcessingAttempts == null
-                        ? !(bool)message.MessageMetadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
-                        : message.Status == FailedMessageStatus.Archived
-                            ? MessageStatus.ArchivedFailure
-                            : message.ProcessingAttempts.Count == 1
-                                ? MessageStatus.Failed
-                                : MessageStatus.RepeatedFailure
+                let metadata = message.MessageMetadata
+                let headers = message.Headers
+                let processedAt = message.ProcessedAt
+                let status = !(bool)message.MessageMetadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
                 select new
                 {
                     Id = message.UniqueMessageId,
@@ -64,8 +49,6 @@ namespace ServiceControl.CompositeViews.Messages
             public DateTime ProcessedAt { get; set; }
             public Dictionary<string, string> Headers { get; set; }
             public Dictionary<string, object> MessageMetadata { get; set; }
-            public List<FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
-            public FailedMessageStatus Status { get; set; }
         }
     }
 }

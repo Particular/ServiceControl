@@ -8,10 +8,7 @@ namespace ServiceControl.CompositeViews.Messages
         public MessagesBodyTransformer()
         {
             TransformResults = messages => from message in messages
-                let metadata =
-                    message.ProcessingAttempts != null
-                        ? message.ProcessingAttempts.Last().MessageMetadata
-                        : message.MessageMetadata
+                let metadata = message.MessageMetadata
                 select new
                 {
                     MessageId = metadata["MessageId"],
