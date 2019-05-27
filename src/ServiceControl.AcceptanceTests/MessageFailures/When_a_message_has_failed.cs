@@ -122,7 +122,7 @@
         [Test]
         public async Task Should_raise_a_signalr_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handler; })
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)

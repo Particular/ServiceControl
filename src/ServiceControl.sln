@@ -73,7 +73,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.PlatformSample.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit", "ServiceControl.Audit\ServiceControl.Audit.csproj", "{F8511FED-7CA1-459C-8451-FDDFD721F2ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Audit.AcceptanceTests", "ServiceControl.Audit.AcceptanceTests\ServiceControl.Audit.AcceptanceTests.csproj", "{943F6EFD-5054-48F4-AC34-2235FD5B79F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.AcceptanceTests", "ServiceControl.Audit.AcceptanceTests\ServiceControl.Audit.AcceptanceTests.csproj", "{943F6EFD-5054-48F4-AC34-2235FD5B79F0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.MultiInstance.AcceptanceTests", "ServiceControl.MultiInstance.AcceptanceTests\ServiceControl.MultiInstance.AcceptanceTests.csproj", "{A70BB055-CE03-4C2E-8527-AC59B0EF3192}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -189,6 +191,10 @@ Global
 		{943F6EFD-5054-48F4-AC34-2235FD5B79F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{943F6EFD-5054-48F4-AC34-2235FD5B79F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{943F6EFD-5054-48F4-AC34-2235FD5B79F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A70BB055-CE03-4C2E-8527-AC59B0EF3192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A70BB055-CE03-4C2E-8527-AC59B0EF3192}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A70BB055-CE03-4C2E-8527-AC59B0EF3192}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A70BB055-CE03-4C2E-8527-AC59B0EF3192}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

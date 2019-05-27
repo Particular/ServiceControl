@@ -1,7 +1,6 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
@@ -12,7 +11,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
-    using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
     using Infrastructure;
@@ -30,28 +28,24 @@ namespace ServiceBus.Management.AcceptanceTests
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(string[] instanceNames, ITransportIntegration transportToUse, Action<Settings> setSettings, Action<string, Settings> setInstanceSettings, Action<EndpointConfiguration> customConfiguration, Action<string, EndpointConfiguration> customInstanceConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
-            this.instanceNames = instanceNames;
             this.transportToUse = transportToUse;
             this.customConfiguration = customConfiguration;
             this.setSettings = setSettings;
-            this.setInstanceSettings = setInstanceSettings;
-            this.customInstanceConfiguration = customInstanceConfiguration;
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
 
 
-        public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
+        public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializer.CreateDefault();
-        public Dictionary<string, Settings> SettingsPerInstance { get; } = new Dictionary<string, Settings>();
-        public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
-        public Dictionary<string, BusInstance> Busses { get; } = new Dictionary<string, BusInstance>();
+        public Settings Settings { get; set; }
+        public OwinHttpMessageHandler Handler { get; set; }
+        public BusInstance Bus { get; set; }
 
         public Task Initialize(RunDescriptor run)
         {
-            SettingsPerInstance.Clear();
             return InitializeServiceControl(run.ScenarioContext);
         }
 
@@ -75,175 +69,139 @@ namespace ServiceBus.Management.AcceptanceTests
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            if (instanceNames.Length == 0)
+            var instancePort = FindAvailablePort(33333);
+            var maintenancePort = FindAvailablePort(instancePort + 1);
+
+            ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
+
+            var settings = new Settings(instanceName)
             {
-                instanceNames = new[] {Settings.DEFAULT_SERVICE_NAME};
-            }
-
-            var startPort = 33333;
-            foreach (var instanceName in instanceNames)
-            {
-                typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
-
-                var instancePort = FindAvailablePort(startPort++);
-                var maintenancePort = FindAvailablePort(startPort++);
-
-                ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
-
-                var settings = new Settings(instanceName)
+                Port = instancePort,
+                DatabaseMaintenancePort = maintenancePort,
+                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                TransportCustomizationType = transportToUse.TypeName,
+                TransportConnectionString = transportToUse.ConnectionString,
+                MaximumConcurrencyLevel = 2,
+                HttpDefaultConnectionLimit = int.MaxValue,
+                RunInMemory = true,
+                OnMessage = (id, headers, body, @continue) =>
                 {
-                    Port = instancePort,
-                    DatabaseMaintenancePort = maintenancePort,
-                    DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
-                    ForwardErrorMessages = false,
-                    ForwardAuditMessages = false,
-                    TransportCustomizationType = transportToUse.TypeName,
-                    TransportConnectionString = transportToUse.ConnectionString,
-                    ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
-                    MaximumConcurrencyLevel = 2,
-                    HttpDefaultConnectionLimit = int.MaxValue,
-                    RunInMemory = true,
-                    OnMessage = (id, headers, body, @continue) =>
+                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
+                    headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+                    log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
+
+                    //Do not filter out CC, SA and HB messages as they can't be stamped
+                    if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
+                        && messageTypes.StartsWith("ServiceControl."))
                     {
-                        var log = LogManager.GetLogger<ServiceControlComponentRunner>();
-                        headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                        log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
-
-                        //Do not filter out CC, SA and HB messages as they can't be stamped
-                        if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
-                            && messageTypes.StartsWith("ServiceControl."))
-                        {
-                            return @continue();
-                        }
-
-                        //Do not filter out subscribe messages as they can't be stamped
-                        if (headers.TryGetValue(Headers.MessageIntent, out var intent)
-                            && intent == MessageIntentEnum.Subscribe.ToString())
-                        {
-                            return @continue();
-                        }
-
-                        var currentSession = context.TestRunId.ToString();
-                        if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
-                        {
-                            log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                            return Task.FromResult(0);
-                        }
-
                         return @continue();
                     }
-                };
 
-                if (instanceName == Settings.DEFAULT_SERVICE_NAME)
-                {
-                    setSettings(settings);
-                }
-
-                setInstanceSettings(instanceName, settings);
-                SettingsPerInstance[instanceName] = settings;
-
-                var configuration = new EndpointConfiguration(instanceName);
-                configuration.EnableInstallers();
-
-                configuration.GetSettings().Set("SC.ScenarioContext", context);
-                configuration.GetSettings().Set(context);
-
-                // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
-                // This is needed because we no longer use the AppDomain separation.
-                configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
-
-                configuration.RegisterComponents(r =>
-                {
-                    r.RegisterSingleton(context.GetType(), context);
-                    r.RegisterSingleton(typeof(ScenarioContext), context);
-                });
-
-                configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
-                configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-                configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
-                configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-
-                configuration.AssemblyScanner().ExcludeAssemblies("ServiceBus.Management.AcceptanceTests");
-
-                if (instanceName == Settings.DEFAULT_SERVICE_NAME)
-                {
-                    customConfiguration(configuration);
-                }
-
-                customInstanceConfiguration(instanceName, configuration);
-
-                Bootstrapper bootstrapper;
-                using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
-                {
-                    var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                    Directory.CreateDirectory(logPath);
-
-                    var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                    bootstrapper = new Bootstrapper(ctx =>
+                    //Do not filter out subscribe messages as they can't be stamped
+                    if (headers.TryGetValue(Headers.MessageIntent, out var intent)
+                        && intent == MessageIntentEnum.Subscribe.ToString())
                     {
-                        var logitem = new ScenarioContext.LogItem
-                        {
-                            Endpoint = settings.ServiceName,
-                            Level = LogLevel.Fatal,
-                            LoggerName = $"{settings.ServiceName}.CriticalError",
-                            Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
-                        };
-                        context.Logs.Enqueue(logitem);
-                        ctx.Stop().GetAwaiter().GetResult();
-                    }, settings, configuration, loggingSettings, builder =>
+                        return @continue();
+                    }
+
+                    var currentSession = context.TestRunId.ToString();
+                    if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                     {
-                        builder.RegisterType<FailedAuditsModule>().As<INancyModule>();
-                        builder.RegisterType<FailedErrorsModule>().As<INancyModule>();
-                    });
-                    bootstrappers[instanceName] = bootstrapper;
-                    bootstrapper.HttpClientFactory = HttpClientFactory;
+                        log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
+                        return Task.FromResult(0);
+                    }
+
+                    return @continue();
                 }
+            };
 
-                using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            setSettings(settings);
+            Settings = settings;
+            var configuration = new EndpointConfiguration(instanceName);
+            configuration.EnableInstallers();
+
+            configuration.GetSettings().Set("SC.ScenarioContext", context);
+            configuration.GetSettings().Set(context);
+
+            // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
+            // This is needed because we no longer use the AppDomain separation.
+            configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
+
+            configuration.RegisterComponents(r =>
+            {
+                r.RegisterSingleton(context.GetType(), context);
+                r.RegisterSingleton(typeof(ScenarioContext), context);
+            });
+
+            configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
+            configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
+            configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
+            configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
+
+            configuration.AssemblyScanner().ExcludeAssemblies("ServiceBus.Management.AcceptanceTests");
+
+            customConfiguration(configuration);
+
+            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                Directory.CreateDirectory(logPath);
+
+                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+                bootstrapper = new Bootstrapper(ctx =>
                 {
-                    var app = new AppBuilder();
-                    bootstrapper.Startup.Configuration(app);
-                    var appFunc = app.Build();
-
-                    var handler = new OwinHttpMessageHandler(appFunc)
+                    var logitem = new ScenarioContext.LogItem
                     {
-                        UseCookies = false,
-                        AllowAutoRedirect = false
+                        Endpoint = settings.ServiceName,
+                        Level = LogLevel.Fatal,
+                        LoggerName = $"{settings.ServiceName}.CriticalError",
+                        Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
                     };
-                    Handlers[instanceName] = handler;
-                    portToHandler[settings.Port] = handler; // port should be unique enough
-                    var httpClient = new HttpClient(handler);
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    HttpClients[instanceName] = httpClient;
-                }
-
-                using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+                    context.Logs.Enqueue(logitem);
+                    ctx.Stop().GetAwaiter().GetResult();
+                }, settings, configuration, loggingSettings, builder =>
                 {
-                    Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
-                }
+                    builder.RegisterType<FailedAuditsModule>().As<INancyModule>();
+                });
+                bootstrapper.HttpClientFactory = HttpClientFactory;
+            }
+
+            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            {
+                var app = new AppBuilder();
+                bootstrapper.Startup.Configuration(app);
+                var appFunc = app.Build();
+
+                Handler = new OwinHttpMessageHandler(appFunc)
+                {
+                    UseCookies = false,
+                    AllowAutoRedirect = false
+                };
+                var httpClient = new HttpClient(Handler);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                HttpClient = httpClient;
+            }
+
+            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+            {
+                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
             }
         }
 
         public override async Task Stop()
         {
-            foreach (var instanceAndSettings in SettingsPerInstance)
+            using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                var instanceName = instanceAndSettings.Key;
-                var settings = instanceAndSettings.Value;
-                using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
-                {
-                    await bootstrappers[instanceName].Stop().ConfigureAwait(false);
-                    HttpClients[instanceName].Dispose();
-                    Handlers[instanceName].Dispose();
-                    DeleteFolder(settings.DbPath);
-                }
+                await bootstrapper.Stop().ConfigureAwait(false);
+                HttpClient.Dispose();
+                Handler.Dispose();
+                DeleteFolder(Settings.DbPath);
             }
 
-            bootstrappers.Clear();
-            Busses.Clear();
-            HttpClients.Clear();
-            portToHandler.Clear();
-            Handlers.Clear();
+            bootstrapper = null;
+            Bus = null;
+            HttpClient = null;
+            Handler = null;
         }
 
         static void DeleteFolder(string path)
@@ -290,36 +248,15 @@ namespace ServiceBus.Management.AcceptanceTests
 
         HttpClient HttpClientFactory()
         {
-            var httpClient = new HttpClient(new ForwardingHandler(portToHandler));
+            var httpClient = new HttpClient(Handler);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return httpClient;
         }
 
-        Dictionary<string, Bootstrapper> bootstrappers = new Dictionary<string, Bootstrapper>();
-        Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
+        Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
-        Action<string, Settings> setInstanceSettings;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
-        Action<string, EndpointConfiguration> customInstanceConfiguration;
-        string[] instanceNames;
-
-        class ForwardingHandler : DelegatingHandler
-        {
-            public ForwardingHandler(Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers)
-            {
-                this.portsToHttpMessageHandlers = portsToHttpMessageHandlers;
-            }
-
-            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                var delegatingHandler = portsToHttpMessageHandlers[request.RequestUri.Port];
-                InnerHandler = delegatingHandler;
-                await Task.Yield();
-                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            }
-
-            Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers;
-        }
+        string instanceName = Settings.DEFAULT_SERVICE_NAME;
     }
 }

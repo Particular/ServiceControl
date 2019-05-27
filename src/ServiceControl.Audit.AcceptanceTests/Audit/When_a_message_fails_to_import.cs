@@ -8,6 +8,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
+    using ServiceControl.Audit.Auditing;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -61,7 +62,7 @@
             Assert.IsTrue(runResult.AuditForwarded);
         }
 
-        class FailOnceEnricher : ErrorImportEnricher
+        class FailOnceEnricher : AuditImportEnricher
         {
             public MyContext Context { get; set; }
 
