@@ -170,6 +170,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
+                StaticConfiguration.DisableErrorTraces = false;
                 var app = new AppBuilder();
                 bootstrapper.Startup.Configuration(app);
                 var appFunc = app.Build();
