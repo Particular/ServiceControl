@@ -8,11 +8,11 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
-    class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
+    class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
     {
         public MessagesViewIndex()
         {
-            AddMap<ProcessedMessage>(messages => from message in messages
+            Map = messages => from message in messages
                 select new SortAndFilterOptions
                 {
                     MessageId = (string)message.MessageMetadata["MessageId"],
@@ -27,7 +27,7 @@ namespace ServiceControl.CompositeViews.Messages
                     DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
                     Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
                     ConversationId = (string)message.MessageMetadata["ConversationId"]
-                });
+                };
 
             Index(x => x.Query, FieldIndexing.Analyzed);
 
