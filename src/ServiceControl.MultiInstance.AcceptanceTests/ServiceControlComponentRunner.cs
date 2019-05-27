@@ -95,9 +95,10 @@ namespace ServiceBus.Management.AcceptanceTests
                     Port = instancePort,
                     DatabaseMaintenancePort = maintenancePort,
                     DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
-                    ForwardAuditMessages = false,
+                    ForwardErrorMessages = false,
                     TransportCustomizationType = transportToUse.TypeName,
                     TransportConnectionString = transportToUse.ConnectionString,
+                    ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                     MaximumConcurrencyLevel = 2,
                     HttpDefaultConnectionLimit = int.MaxValue,
                     RunInMemory = true,
@@ -190,7 +191,9 @@ namespace ServiceBus.Management.AcceptanceTests
                         ctx.Stop().GetAwaiter().GetResult();
                     }, settings, configuration, loggingSettings, builder =>
                     {
-                        builder.RegisterType<FailedAuditsModule>().As<INancyModule>();
+                        // TODO: fix
+                        //builder.RegisterType<FailedAuditsModule>().As<INancyModule>();
+                        //builder.RegisterType<FailedErrorsModule>().As<INancyModule>();
                     });
                     bootstrappers[instanceName] = bootstrapper;
                     bootstrapper.HttpClientFactory = HttpClientFactory;
