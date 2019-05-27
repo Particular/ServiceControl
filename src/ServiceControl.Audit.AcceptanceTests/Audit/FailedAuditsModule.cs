@@ -7,7 +7,6 @@
     using Nancy;
     using Raven.Client;
     using ServiceControl.Audit.Auditing;
-    using ServiceControl.Operations;
 
     public class FailedAuditsCountReponse
     {

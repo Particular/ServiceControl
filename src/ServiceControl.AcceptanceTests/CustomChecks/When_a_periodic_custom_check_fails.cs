@@ -46,7 +46,7 @@
         public async Task Should_raise_a_signalr_event()
         {
             var context = await Define<MyContext>(
-                    ctx => { ctx.Handler = () => Handlers[Settings.DEFAULT_SERVICE_NAME]; })
+                    ctx => { ctx.Handler = () => Handler; })
                 .WithEndpoint<WithCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)

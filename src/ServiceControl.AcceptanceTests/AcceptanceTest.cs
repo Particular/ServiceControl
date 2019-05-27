@@ -34,11 +34,12 @@ namespace ServiceBus.Management.AcceptanceTests
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
         }
 
-        public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
+
+        public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
-        public Dictionary<string, Settings> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
-        public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
-        public Dictionary<string, BusInstance> Busses => serviceControlRunnerBehavior.Busses;
+        public Settings Settings => serviceControlRunnerBehavior.Settings;
+        public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
+        public BusInstance Bus => serviceControlRunnerBehavior.Bus;
 
         [OneTimeSetUp]
         public void OneTimeSetup()
@@ -50,9 +51,7 @@ namespace ServiceBus.Management.AcceptanceTests
         public void Setup()
         {
             SetSettings = _ => { };
-            SetInstanceSettings = (i, s) => { };
             CustomConfiguration = _ => { };
-            CustomInstanceConfiguration = (i, c) => { };
 
 #if !NETCOREAPP2_0
             ConfigurationManager.GetSection("X");
@@ -72,7 +71,7 @@ namespace ServiceBus.Management.AcceptanceTests
             TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), s => CustomConfiguration(s));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
@@ -110,26 +109,23 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                 }
 
-                await action(Busses[instanceName].DomainEvents);
+                await action(Bus.DomainEvents);
             });
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(params string[] instanceNames) where T : ScenarioContext, new()
+        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
         {
-            return Define<T>(c => { }, instanceNames);
+            return Define<T>(c => { });
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer, params string[] instanceNames) where T : ScenarioContext, new()
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new()
         {
-            serviceControlRunnerBehavior.Initialize(instanceNames);
             return Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
         }
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
-        protected Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
         protected Action<Settings> SetSettings = _ => { };
-        protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
         protected ITransportIntegration TransportIntegration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
@@ -274,7 +270,7 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
+                url = $"http://localhost:{provider.Settings.Port}{url}";
             }
 
             if (requestHasFailed == null)
@@ -283,7 +279,7 @@ namespace ServiceBus.Management.AcceptanceTests
             }
 
             var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
-            var httpClient = provider.HttpClients[instanceName];
+            var httpClient = provider.HttpClient;
             var response = await httpClient.PutAsync(url, new StringContent(json, null, "application/json"));
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
@@ -298,10 +294,10 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
+                url = $"http://localhost:{provider.Settings.Port}{url}";
             }
 
-            var httpClient = provider.HttpClients[instanceName];
+            var httpClient = provider.HttpClient;
             return httpClient.GetAsync(url);
         }
 
@@ -326,11 +322,11 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
+                url = $"http://localhost:{provider.Settings.Port}{url}";
             }
 
             var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
-            var httpClient = provider.HttpClients[instanceName];
+            var httpClient = provider.HttpClient;
             var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
 
             Console.WriteLine($"PATCH - {url} - {(int)response.StatusCode}");
@@ -406,10 +402,10 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
+                url = $"http://localhost:{provider.Settings.Port}{url}";
             }
 
-            var httpClient = provider.HttpClients[instanceName];
+            var httpClient = provider.HttpClient;
             var response = await httpClient.GetAsync(url).ConfigureAwait(false);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
@@ -421,11 +417,11 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
+                url = $"http://localhost:{provider.Settings.Port}{url}";
             }
 
             var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
-            var httpClient = provider.HttpClients[instanceName];
+            var httpClient = provider.HttpClient;
             var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
@@ -451,10 +447,10 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}{url}";
+                url = $"http://localhost:{provider.Settings.Port}{url}";
             }
 
-            var httpClient = provider.HttpClients[instanceName];
+            var httpClient = provider.HttpClient;
             var response = await httpClient.DeleteAsync(url);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
@@ -470,10 +466,10 @@ namespace ServiceBus.Management.AcceptanceTests
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.SettingsPerInstance[instanceName].Port}/api{url}";
+                url = $"http://localhost:{provider.Settings.Port}/api{url}";
             }
 
-            var httpClient = provider.HttpClients[instanceName];
+            var httpClient = provider.HttpClient;
             var response = await httpClient.GetAsync(url);
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
             if (response.StatusCode != successCode)
