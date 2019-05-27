@@ -34,8 +34,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
-            Port = SettingsReader<int>.Read("Port", 33333);
-            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
+            Port = SettingsReader<int>.Read("Port", 43333);
+            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 43334);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);

@@ -11,6 +11,7 @@ namespace Particular.ServiceControl
     using Autofac;
     using Autofac.Features.ResolveAnything;
     using global::ServiceControl.CompositeViews.Messages;
+    using global::ServiceControl.Contracts;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Monitoring;
@@ -22,6 +23,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using Particular.ServiceControl.Audit;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
@@ -103,6 +105,10 @@ namespace Particular.ServiceControl
 
         public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
         {
+            var startupDetails = new InstanceStartUpDetails();
+
+            configuration.GetSettings().Set(startupDetails);
+            configuration.Pipeline.Register(typeof(PublishFullTypeNameOnlyBehavior), "Removes assembly details from mesage types so that ServiceControl can deserialize");
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
@@ -116,6 +122,11 @@ namespace Particular.ServiceControl
             }
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
+
+            await bus.Bus.Publish(new AuditInstanceStarted
+            {
+                StartUpDetails = startupDetails.Details
+            }).ConfigureAwait(false);
 
             return bus;
         }

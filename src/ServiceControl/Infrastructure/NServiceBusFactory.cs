@@ -9,6 +9,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using Raven.Client.Embedded;
+    using ServiceControl.Contracts;
     using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Infrastructure;
@@ -121,7 +122,8 @@ namespace ServiceBus.Management.Infrastructure
         static Type[] remoteTypesToSubscribeTo =
         {
             typeof(MessageFailureResolvedByRetry),
-            typeof(NewEndpointDetected)
+            typeof(NewEndpointDetected),
+            typeof(AuditInstanceStarted)
         };
     }
 }
