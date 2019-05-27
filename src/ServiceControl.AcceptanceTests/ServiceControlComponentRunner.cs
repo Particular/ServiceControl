@@ -69,8 +69,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
-
             var instancePort = FindAvailablePort(33333);
             var maintenancePort = FindAvailablePort(instancePort + 1);
 
