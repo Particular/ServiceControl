@@ -1,6 +1,5 @@
 namespace ServiceBus.Management.AcceptanceTests
 {
-    using System.Collections.Generic;
     using System.Net.Http;
     using Infrastructure;
     using Infrastructure.Settings;
@@ -8,12 +7,12 @@ namespace ServiceBus.Management.AcceptanceTests
 
     interface IAcceptanceTestInfrastructureProvider
     {
-        Dictionary<string, HttpClient> HttpClients { get; }
+        HttpClient HttpClient { get; }
 
         JsonSerializerSettings SerializerSettings { get; }
 
-        Dictionary<string, Settings> SettingsPerInstance { get; }
-        Dictionary<string, OwinHttpMessageHandler> Handlers { get; }
-        Dictionary<string, BusInstance> Busses { get; }
+        Settings Settings { get; }
+        OwinHttpMessageHandler Handler { get; }
+        BusInstance Bus { get; }
     }
 }

@@ -144,10 +144,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             configuration.AssemblyScanner().ExcludeAssemblies("ServiceBus.Management.AcceptanceTests");
 
-            if (instanceName == Settings.DEFAULT_SERVICE_NAME)
-            {
-                customConfiguration(configuration);
-            }
+            customConfiguration(configuration);
 
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
@@ -168,7 +165,6 @@ namespace ServiceBus.Management.AcceptanceTests
                     ctx.Stop().GetAwaiter().GetResult();
                 }, settings, configuration, loggingSettings, builder =>
                 {
-                    builder.RegisterType<FailedAuditsModule>().As<INancyModule>();
                     builder.RegisterType<FailedErrorsModule>().As<INancyModule>();
                 });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
