@@ -18,7 +18,7 @@ namespace ServiceControl.CompositeViews.Messages
                     MessageId = (string)message.MessageMetadata["MessageId"],
                     MessageType = (string)message.MessageMetadata["MessageType"],
                     IsSystemMessage = (bool)message.MessageMetadata["IsSystemMessage"],
-                    Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
+                    Status = MessageStatus.Successful,
                     TimeSent = (DateTime)message.MessageMetadata["TimeSent"],
                     ProcessedAt = message.ProcessedAt,
                     ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
