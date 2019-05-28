@@ -72,12 +72,8 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        public List<KnownEndpointsView> GetKnownEndpoints()
-        {
-            return endpoints.Values.Select(endpoint => endpoint.GetKnownView()).ToList();
-        }
 
-        private readonly IDocumentStore store;
+        readonly IDocumentStore store;
         IDomainEvents domainEvents;
         ConcurrentDictionary<Guid, EndpointInstance> endpoints = new ConcurrentDictionary<Guid, EndpointInstance>();
     }
