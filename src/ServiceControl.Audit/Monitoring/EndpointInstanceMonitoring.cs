@@ -5,7 +5,6 @@ namespace ServiceControl.Monitoring
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using CompositeViews.Endpoints;
     using Contracts.EndpointControl;
     using Contracts.Operations;
     using EndpointControl;
@@ -24,18 +23,14 @@ namespace ServiceControl.Monitoring
         // TODO: Test this end2end
         public async Task DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
         {
-            var endpointInstanceId = newEndpointDetails.ToInstanceId();
-            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstance(endpointInstanceId)))
+            var enpointInstanceId = DeterministicGuid.MakeId(newEndpointDetails.Name, newEndpointDetails.HostId.ToString());
+            if (endpoints.TryAdd(enpointInstanceId, new byte()))
             {
-                var id = DeterministicGuid.MakeId(newEndpointDetails.Name, newEndpointDetails.HostId.ToString());
-
                 using (var session = store.OpenAsyncSession())
                 {
                     var knownEndpoint = new KnownEndpoint
                     {
-                        Id = id,
-                        EndpointDetails = newEndpointDetails,
-                        HostDisplayName = newEndpointDetails.Host
+                        Id = enpointInstanceId
                     };
 
                     await session.StoreAsync(knownEndpoint)
@@ -58,15 +53,13 @@ namespace ServiceControl.Monitoring
         {
             using (var documentSession = store.OpenAsyncSession())
             {
-                using (var endpointsEnumerator = await documentSession.Advanced.StreamAsync(documentSession.Query<KnownEndpoint, KnownEndpointIndex>())
+                using (var endpointsEnumerator = await documentSession.Advanced.StreamAsync(documentSession.Query<KnownEndpoint>())
                     .ConfigureAwait(false))
                 {
                     while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
-                        var endpointDetails = endpoint.EndpointDetails;
-                        var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
-                        endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstance(endpointInstanceId));
+                        endpoints.GetOrAdd(endpoint.Id, null);
                     }
                 }
             }
@@ -75,6 +68,6 @@ namespace ServiceControl.Monitoring
 
         readonly IDocumentStore store;
         IDomainEvents domainEvents;
-        ConcurrentDictionary<Guid, EndpointInstance> endpoints = new ConcurrentDictionary<Guid, EndpointInstance>();
+        ConcurrentDictionary<Guid, byte> endpoints = new ConcurrentDictionary<Guid, byte>();
     }
 }

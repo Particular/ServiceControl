@@ -4,7 +4,6 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
-    using CompositeViews.Endpoints;
     using EndpointControl;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -100,8 +99,6 @@
             Logger.Info("Index creation started");
 
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
-
-            PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
         }
 
         static string ReadAllTextWithoutLocking(string path)
@@ -110,26 +107,6 @@
             using (var textReader = new StreamReader(fileStream))
             {
                 return textReader.ReadToEnd();
-            }
-        }
-
-        // TODO: Move that method to the monitoring folder
-        static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)
-        {
-            using (var session = documentStore.OpenSession())
-            {
-                var endpoints = session.Query<KnownEndpoint, KnownEndpointIndex>().ToList();
-
-                foreach (var knownEndpoints in endpoints.GroupBy(e => e.EndpointDetails.Host + e.EndpointDetails.Name))
-                {
-                    var fixedIdsCount = knownEndpoints.Count(e => !e.HasTemporaryId);
-
-                    //If we have knowEndpoints with non temp ids, we should delete all temp ids ones.
-                    if (fixedIdsCount > 0)
-                    {
-                        knownEndpoints.Where(e => e.HasTemporaryId).ForEach(k => { documentStore.DatabaseCommands.Delete(documentStore.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(k.Id, typeof(KnownEndpoint), false), null); });
-                    }
-                }
             }
         }
 

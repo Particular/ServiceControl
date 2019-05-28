@@ -9,9 +9,9 @@
     using NServiceBus;
     using NServiceBus.Features;
 
-    class EndpointDetectionFeature : Feature
+    class DetectNewEndpointsFromAudits : Feature
     {
-        public EndpointDetectionFeature()
+        public DetectNewEndpointsFromAudits()
         {
             EnableByDefault();
         }

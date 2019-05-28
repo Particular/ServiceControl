@@ -20,7 +20,6 @@ namespace ServiceControl.Audit.Monitoring
             });
         }
 
-
         class Startup : FeatureStartupTask
         {
             public Startup(EndpointInstanceMonitoring monitoring)
@@ -38,7 +37,7 @@ namespace ServiceControl.Audit.Monitoring
                 return Task.CompletedTask;
             }
 
-            private readonly EndpointInstanceMonitoring monitoring;
+            readonly EndpointInstanceMonitoring monitoring;
         }
     }
 }
