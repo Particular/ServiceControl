@@ -9,9 +9,9 @@
     using Operations;
     using ServiceControl.Contracts.Operations;
 
-    class EndpointDetectionFeature : Feature
+    class DetectNewEndpointsFromErrors : Feature
     {
-        public EndpointDetectionFeature()
+        public DetectNewEndpointsFromErrors()
         {
             EnableByDefault();
         }

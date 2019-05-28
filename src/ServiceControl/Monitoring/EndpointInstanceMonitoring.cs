@@ -51,12 +51,6 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        public void DetectEndpointFromRemoteAudit(EndpointDetails newEndpointDetails)
-        {
-            var endpointInstanceId = newEndpointDetails.ToInstanceId();
-            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents));
-        }
-
         public async Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
