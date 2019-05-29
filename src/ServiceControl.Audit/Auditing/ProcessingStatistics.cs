@@ -6,7 +6,6 @@
     using Audit.Auditing;
     using NServiceBus;
     using NServiceBus.Features;
-    using Operations;
 
     class ProcessingStatistics : Feature
     {

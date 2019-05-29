@@ -6,12 +6,12 @@ namespace ServiceControl.CompositeViews.Messages
     using Contracts.Operations;
     using Raven.Client.Indexes;
 
-    // TODO: Can we make this terse?
     class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
     {
         public MessagesViewTransformer()
         {
             TransformResults = messages => from message in messages
+                where message.ProcessedAt != null // necessary to avoid NullReferenceException deep in raven black magic
                 let metadata = message.MessageMetadata
                 let headers = message.Headers
                 let processedAt = message.ProcessedAt

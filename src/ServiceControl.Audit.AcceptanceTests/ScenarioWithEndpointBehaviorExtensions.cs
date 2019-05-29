@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
+    using System.Runtime.ExceptionServices;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
@@ -67,20 +68,29 @@
             this.checkDone = checkDone;
         }
 
-        public bool Done => isDone;
+        public bool Done
+        {
+            get
+            {
+                exceptionInfo?.Throw();
+                return isDone;
+            }
+        }
 
         public Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            return Task.FromResult<ComponentRunner>(new Runner(checkDone, () => isDone = true, (TContext)run.ScenarioContext));
+            return Task.FromResult<ComponentRunner>(new Runner(checkDone, () => isDone = true, info => exceptionInfo = info, (TContext)run.ScenarioContext));
         }
 
         Func<TContext, Task<bool>> checkDone;
+        volatile ExceptionDispatchInfo exceptionInfo;
         volatile bool isDone;
 
         class Runner : ComponentRunner
         {
-            public Runner(Func<TContext, Task<bool>> isDone, Action setDone, TContext scenarioContext)
+            public Runner(Func<TContext, Task<bool>> isDone, Action setDone, Action<ExceptionDispatchInfo> setException, TContext scenarioContext)
             {
+                this.setException = setException;
                 this.isDone = isDone;
                 this.setDone = setDone;
                 this.scenarioContext = scenarioContext;
@@ -95,15 +105,22 @@
                 tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
                 checkTask = Task.Run(async () =>
                 {
-                    while (!tokenSource.IsCancellationRequested)
+                    try
                     {
-                        if (await isDone(scenarioContext).ConfigureAwait(false))
+                        while (!tokenSource.IsCancellationRequested)
                         {
-                            setDone();
-                            return;
-                        }
+                            if (await isDone(scenarioContext).ConfigureAwait(false))
+                            {
+                                setDone();
+                                return;
+                            }
 
-                        await Task.Delay(100, tokenSource.Token).ConfigureAwait(false);
+                            await Task.Delay(100, tokenSource.Token).ConfigureAwait(false);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        setException(ExceptionDispatchInfo.Capture(e));
                     }
                 }, tokenSource.Token);
                 return Task.FromResult(0);
@@ -136,6 +153,7 @@
             TContext scenarioContext;
             Task checkTask;
             CancellationTokenSource tokenSource;
+            Action<ExceptionDispatchInfo> setException;
         }
     }
 }

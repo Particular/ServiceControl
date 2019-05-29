@@ -10,7 +10,6 @@
     using NUnit.Framework;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Operations;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_fails_to_import : AcceptanceTest
@@ -19,10 +18,7 @@
         public async Task It_can_be_reimported()
         {
             //Make sure the audit import attempt fails
-            CustomConfiguration = config =>
-            {
-                config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance));
-            };
+            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
 
             SetSettings = settings =>
             {

@@ -6,7 +6,6 @@
     using Audit.Auditing;
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceControl.Operations;
 
     public class DefaultEnrichers : Feature
     {
