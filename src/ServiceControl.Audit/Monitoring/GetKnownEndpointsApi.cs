@@ -1,9 +1,8 @@
-﻿namespace ServiceControl.CompositeViews.Endpoints
+﻿namespace ServiceControl.Audit.Monitoring
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Messages;
-    using Monitoring;
+    using Auditing.MessagesView;
     using Nancy;
 
     class GetKnownEndpointsApi : ApiBase<NoInput, List<KnownEndpointsView>>

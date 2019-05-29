@@ -1,13 +1,13 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
+    using Infrastructure.Installers;
     using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Installers;
 
     class SatelliteImportFailuresHandler
     {

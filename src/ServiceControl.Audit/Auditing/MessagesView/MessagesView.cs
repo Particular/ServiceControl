@@ -1,8 +1,8 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System;
     using System.Collections.Generic;
-    using Contracts.Operations;
+    using Monitoring;
     using NServiceBus;
 
     public class MessagesView

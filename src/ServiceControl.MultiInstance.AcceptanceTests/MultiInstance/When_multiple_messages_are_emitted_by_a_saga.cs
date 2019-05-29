@@ -40,11 +40,9 @@
         [Test]
         public async Task Saga_history_can_be_fetched_on_master()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
             SagaHistory sagaHistory = null;
 
-            var context = await Define<MyContext>(Remote1, Master)
+            var context = await Define<MyContext>()
                 .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {

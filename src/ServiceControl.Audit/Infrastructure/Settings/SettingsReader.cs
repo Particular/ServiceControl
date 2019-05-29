@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
+﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
     class SettingsReader<T>
     {

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Contracts.MessageFailures
+﻿namespace ServiceControl.Audit.Recoverability
 {
     using Infrastructure.DomainEvents;
 

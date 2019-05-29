@@ -1,4 +1,4 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;

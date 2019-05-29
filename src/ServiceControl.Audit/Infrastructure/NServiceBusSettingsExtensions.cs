@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Audit.Infrastructure
 {
     using NServiceBus;
     using NServiceBus.Settings;

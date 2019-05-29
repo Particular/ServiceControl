@@ -1,11 +1,10 @@
-﻿namespace ServiceControl.MessageFailures
+﻿namespace ServiceControl.Audit.Recoverability
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Audit.Auditing;
-    using Contracts.MessageFailures;
+    using Auditing;
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using NServiceBus;

@@ -14,12 +14,10 @@
         [Test]
         public async Task Should_not_fail()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            await Define<MyContext>(Master)
+            await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: Master))
                 .Run();

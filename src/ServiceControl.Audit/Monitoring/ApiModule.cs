@@ -1,8 +1,7 @@
 namespace ServiceControl.Audit.Monitoring
 {
-    using CompositeViews.Endpoints;
-    using CompositeViews.Messages;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using Auditing.MessagesView;
+    using Infrastructure.Nancy.Modules;
 
     class ApiModule : BaseModule
     {

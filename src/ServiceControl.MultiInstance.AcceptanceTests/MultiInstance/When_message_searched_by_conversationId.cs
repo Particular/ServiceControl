@@ -16,9 +16,7 @@
         [Test]
         public async Task Should_be_found()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
-            await Define<MyContext>(Remote1, Master)
+            await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new TriggeringMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>

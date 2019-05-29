@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.Plugins
+﻿namespace ServiceControl.Audit.Infrastructure.Plugins
 {
     using NServiceBus;
     using NServiceBus.Features;

@@ -1,6 +1,6 @@
-﻿namespace ServiceControl.Operations.BodyStorage.Api
+﻿namespace ServiceControl.Audit.Auditing
 {
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using Infrastructure.Nancy.Modules;
 
     class GetBodyById : BaseModule
     {

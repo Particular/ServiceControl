@@ -1,9 +1,9 @@
-namespace ServiceBus.Management.Infrastructure
+namespace ServiceControl.Audit.Infrastructure
 {
     using System.Threading.Tasks;
+    using Auditing;
+    using DomainEvents;
     using NServiceBus;
-    using ServiceControl.Audit.Auditing;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     class BusInstance
     {

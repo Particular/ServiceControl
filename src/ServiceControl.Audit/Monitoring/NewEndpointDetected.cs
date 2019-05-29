@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Contracts.EndpointControl
 {
     using System;
-    using Infrastructure.DomainEvents;
-    using Operations;
+    using Audit.Infrastructure.DomainEvents;
+    using Audit.Monitoring;
 
     public class NewEndpointDetected : IDomainEvent, IBusEvent
     {

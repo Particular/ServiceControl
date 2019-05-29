@@ -1,7 +1,8 @@
-﻿namespace ServiceControl.MessageAuditing
+﻿namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Collections.Generic;
+    using Infrastructure;
     using NServiceBus;
 
     public class ProcessedMessage

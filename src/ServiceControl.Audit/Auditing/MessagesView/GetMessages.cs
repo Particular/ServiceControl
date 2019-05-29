@@ -1,6 +1,6 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.Audit.Auditing.MessagesView
 {
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using Infrastructure.Nancy.Modules;
 
     class GetMessages : BaseModule
     {

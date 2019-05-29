@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.LoadTests.Reporter
 {
     using System;
+    using Audit.Infrastructure;
+    using Audit.Infrastructure.Settings;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Features;
-    using Operations;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class ReporterFeature : Feature
     {

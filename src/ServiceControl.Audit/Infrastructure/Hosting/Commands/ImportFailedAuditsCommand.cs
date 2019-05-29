@@ -1,12 +1,11 @@
-﻿namespace Particular.ServiceControl.Commands
+﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Hosting;
     using NLog;
     using NServiceBus;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
 
     class ImportFailedAuditsCommand : AbstractCommand
     {

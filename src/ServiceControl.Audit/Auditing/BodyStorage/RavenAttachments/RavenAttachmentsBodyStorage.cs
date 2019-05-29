@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
+﻿namespace ServiceControl.Audit.Auditing.BodyStorage.RavenAttachments
 {
     using System;
     using System.IO;

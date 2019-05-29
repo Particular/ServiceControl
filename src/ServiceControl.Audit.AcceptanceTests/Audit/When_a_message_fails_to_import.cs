@@ -9,7 +9,7 @@
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using ServiceControl.Audit.Auditing;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Audit.Auditing.MessagesView;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_fails_to_import : AcceptanceTest

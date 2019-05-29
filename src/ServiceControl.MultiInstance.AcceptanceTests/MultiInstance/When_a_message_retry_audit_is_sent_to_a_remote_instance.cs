@@ -16,12 +16,11 @@
         [Test]
         public async Task Should_mark_as_resolved_on_master()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
+            CustomEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             FailedMessage failure;
 
-            await Define<MyContext>(Remote1, Master)
+            await Define<MyContext>()
                 .WithEndpoint<Failing>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
                     bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
@@ -69,18 +68,15 @@
             //}
         }
 
-        void ConfigureWaitingForMasterToSubscribe(string instance, EndpointConfiguration config)
+        static void ConfigureWaitingForMasterToSubscribe(EndpointConfiguration config)
         {
-            if (instance == Remote1)
+            config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                config.OnEndpointSubscribed<MyContext>((s, ctx) =>
+                if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        ctx.MasterSubscribed = true;
-                    }
-                });
-            }
+                    ctx.MasterSubscribed = true;
+                }
+            });
         }
 
         Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c)

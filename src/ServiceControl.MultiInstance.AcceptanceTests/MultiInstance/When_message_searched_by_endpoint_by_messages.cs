@@ -20,13 +20,11 @@
         [Test]
         public async Task Should_be_found()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
             var response = new List<MessagesView>();
 
             var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
 
-            var context = await Define<MyContext>(Remote1, Master)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>

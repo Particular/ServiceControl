@@ -18,12 +18,11 @@
         [Test]
         public async Task Should_be_configurable_on_master()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
+            CustomEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             List<EndpointsView> response = null;
 
-            await Define<MyContext>(Slave, Master)
+            await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
                     (bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
@@ -82,18 +81,15 @@
             //}
         }
 
-        void ConfigureWaitingForMasterToSubscribe(string instance, EndpointConfiguration config)
+        void ConfigureWaitingForMasterToSubscribe(EndpointConfiguration config)
         {
-            if (instance == Slave)
+            config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                config.OnEndpointSubscribed<MyContext>((s, ctx) =>
+                if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        ctx.MasterSubscribed = true;
-                    }
-                });
-            }
+                    ctx.MasterSubscribed = true;
+                }
+            });
         }
 
         //private string addressOfRemote;

@@ -1,14 +1,11 @@
-namespace ServiceControl.Monitoring
+namespace ServiceControl.Audit.Monitoring
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using CompositeViews.Endpoints;
     using Contracts.EndpointControl;
-    using Contracts.Operations;
-    using EndpointControl;
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Raven.Client;

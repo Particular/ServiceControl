@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.MessageFailures
+﻿namespace ServiceControl.Audit.Recoverability
 {
     public class QueueAddress
     {

@@ -1,7 +1,6 @@
-﻿namespace ServiceControl.EndpointControl
+﻿namespace ServiceControl.Audit.Monitoring
 {
     using System;
-    using ServiceControl.Contracts.Operations;
 
     public class KnownEndpoint
     {

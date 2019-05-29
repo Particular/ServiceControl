@@ -17,11 +17,9 @@
         [Test]
         public async Task Should_be_forwarded_and_resolved_on_remote()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
             FailedMessage failure;
 
-            await Define<MyContext>(Remote1, Master)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {

@@ -20,12 +20,10 @@
         [Test]
         public async Task Should_be_forwarded_to_remote()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;
 
-            var context = await Define<MyContext>(Remote1, Master)
+            var context = await Define<MyContext>()
                 .WithEndpoint<RemoteEndpoint>(b => b.When(async (bus, ctx) =>
                 {
                     ctx.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);

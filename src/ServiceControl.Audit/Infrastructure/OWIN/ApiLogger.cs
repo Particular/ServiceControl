@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.OWIN
+﻿namespace ServiceControl.Audit.Infrastructure.OWIN
 {
     using System.Threading.Tasks;
     using Microsoft.Owin;

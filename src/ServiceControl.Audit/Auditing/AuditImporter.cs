@@ -2,13 +2,13 @@
 {
     using System.IO;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.ObjectBuilder;
     using NServiceBus.Transport;
-    using Operations;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class AuditImporter : Feature
     {

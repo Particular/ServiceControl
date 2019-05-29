@@ -11,8 +11,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
-    using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -20,7 +18,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Logging;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Infrastructure.DomainEvents;
+    using ServiceControl.Audit.Infrastructure.Settings;
 
     [TestFixture]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider

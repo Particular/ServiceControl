@@ -1,4 +1,4 @@
-namespace ServiceControl.CompositeViews.Endpoints
+namespace ServiceControl.Audit.Monitoring
 {
     using System;
 

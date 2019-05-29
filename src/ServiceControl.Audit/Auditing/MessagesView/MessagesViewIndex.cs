@@ -1,10 +1,9 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System;
     using System.Linq;
-    using Contracts.Operations;
     using Lucene.Net.Analysis.Standard;
-    using MessageAuditing;
+    using Monitoring;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 

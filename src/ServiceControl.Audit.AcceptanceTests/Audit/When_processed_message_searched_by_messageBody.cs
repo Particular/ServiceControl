@@ -9,7 +9,7 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Audit.Auditing.MessagesView;
 
     class When_processed_message_searched_by_messageBody : AcceptanceTest
     {

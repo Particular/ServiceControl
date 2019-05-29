@@ -1,11 +1,11 @@
-namespace ServiceControl.Infrastructure.Extensions
+namespace ServiceControl.Audit.Infrastructure.Extensions
 {
     using System;
     using System.Globalization;
     using System.Linq;
     using System.Linq.Expressions;
-    using CompositeViews.Messages;
-    using Nancy;
+    using Auditing.MessagesView;
+    using global::Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
 

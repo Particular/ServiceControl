@@ -1,8 +1,5 @@
-namespace ServiceControl.Monitoring
+namespace ServiceControl.Audit.Monitoring
 {
-    using CompositeViews.Endpoints;
-    using Contracts.Operations;
-
     class EndpointInstance
     {
         public EndpointInstance(EndpointInstanceId endpointInstanceId)

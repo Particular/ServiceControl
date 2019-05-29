@@ -1,6 +1,5 @@
 ﻿using NServiceBus;
 using NServiceBus.Features;
-using ServiceControl.Monitoring;
 using System.Threading.Tasks;
 
 namespace ServiceControl.Audit.Monitoring

@@ -11,7 +11,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -36,9 +35,9 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
-        public Dictionary<string, Settings> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
+        public Dictionary<string, dynamic> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
         public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
-        public Dictionary<string, BusInstance> Busses => serviceControlRunnerBehavior.Busses;
+        public Dictionary<string, dynamic> Busses => serviceControlRunnerBehavior.Busses;
 
         [OneTimeSetUp]
         public void OneTimeSetup()
@@ -49,11 +48,8 @@ namespace ServiceBus.Management.AcceptanceTests
         [SetUp]
         public void Setup()
         {
-            SetSettings = _ => { };
-            SetInstanceSettings = (i, s) => { };
-            CustomConfiguration = _ => { };
-            CustomInstanceConfiguration = (i, c) => { };
-
+            CustomEndpointConfiguration = c => { };
+            CustomAuditEndpointConfiguration = c => { };
 #if !NETCOREAPP2_0
             ConfigurationManager.GetSection("X");
 #endif
@@ -72,7 +68,7 @@ namespace ServiceBus.Management.AcceptanceTests
             TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), (i, s) => SetInstanceSettings(i, s), s => CustomConfiguration(s), (i, c) => CustomInstanceConfiguration(i, c));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
@@ -114,22 +110,19 @@ namespace ServiceBus.Management.AcceptanceTests
             });
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(params string[] instanceNames) where T : ScenarioContext, new()
+        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
         {
-            return Define<T>(c => { }, instanceNames);
+            return Define<T>(c => { });
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer, params string[] instanceNames) where T : ScenarioContext, new()
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new()
         {
-            serviceControlRunnerBehavior.Initialize(instanceNames);
             return Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
         }
 
-        protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
-        protected Action<string, EndpointConfiguration> CustomInstanceConfiguration = (i, c) => { };
-        protected Action<Settings> SetSettings = _ => { };
-        protected Action<string, Settings> SetInstanceSettings = (i, s) => { };
+        protected Action<EndpointConfiguration> CustomEndpointConfiguration = c => { };
+        protected Action<EndpointConfiguration> CustomAuditEndpointConfiguration = c => { };
         protected ITransportIntegration TransportIntegration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;

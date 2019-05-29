@@ -19,12 +19,10 @@
         [Test]
         public async Task Should_be_listed_in_known_endpoints()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
             List<KnownEndpointsView> knownEndpoints = null;
             HttpResponseMessage httpResponseMessage = null;
 
-            var context = await Define<MyContext>(Remote1, Master)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>

@@ -1,4 +1,4 @@
-namespace ServiceControl.Monitoring
+namespace ServiceControl.Audit.Monitoring
 {
     using System;
     using Infrastructure;

@@ -1,7 +1,6 @@
-﻿namespace ServiceControl.CompositeViews.Endpoints
+﻿namespace ServiceControl.Audit.Monitoring
 {
     using System;
-    using Contracts.Operations;
 
     public class KnownEndpointsView
     {

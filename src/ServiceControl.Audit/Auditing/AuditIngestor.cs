@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.Settings;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Operations;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class AuditIngestor
     {

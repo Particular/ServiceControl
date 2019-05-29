@@ -1,9 +1,9 @@
-﻿namespace Particular.ServiceControl.Hosting
+﻿namespace ServiceControl.Audit.Infrastructure.Hosting
 {
     using System;
     using System.ServiceProcess;
     using NServiceBus;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
 
     class Host : ServiceBase
     {
