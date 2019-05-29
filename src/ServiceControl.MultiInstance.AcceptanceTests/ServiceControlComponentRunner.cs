@@ -25,6 +25,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
+    using Audit = ServiceControl.Audit;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -149,6 +150,8 @@ namespace ServiceBus.Management.AcceptanceTests
 
             configuration.AssemblyScanner().ExcludeAssemblies("ServiceBus.Management.AcceptanceTests");
 
+            customEndpointConfiguration(configuration);
+
             Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
@@ -167,12 +170,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder =>
-                {
-                    // TODO: fix
-                    //builder.RegisterType<FailedAuditsModule>().As<INancyModule>();
-                    //builder.RegisterType<FailedErrorsModule>().As<INancyModule>();
-                });
+                }, settings, configuration, loggingSettings, builder => {});
                 bootstrappers[instanceName] = bootstrapper;
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
@@ -214,15 +212,13 @@ namespace ServiceBus.Management.AcceptanceTests
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
 
-            var settings = new Settings(instanceName)
+            var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
-                ForwardErrorMessages = false,
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
-                ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
@@ -282,14 +278,16 @@ namespace ServiceBus.Management.AcceptanceTests
 
             configuration.AssemblyScanner().ExcludeAssemblies("ServiceBus.Management.AcceptanceTests");
 
-            Bootstrapper bootstrapper;
+            customAuditEndpointConfiguration(configuration);
+
+            Audit.Infrastructure.Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(ctx =>
+                var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
+                bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -300,12 +298,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder =>
-                {
-                    // TODO: fix
-                    //builder.RegisterType<FailedAuditsModule>().As<INancyModule>();
-                    //builder.RegisterType<FailedErrorsModule>().As<INancyModule>();
-                });
+                }, settings, configuration, loggingSettings, builder => { });
                 bootstrappers[instanceName] = bootstrapper;
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
