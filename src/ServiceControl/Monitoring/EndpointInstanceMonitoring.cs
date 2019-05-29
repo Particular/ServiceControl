@@ -42,7 +42,7 @@ namespace ServiceControl.Monitoring
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
             if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))
             {
-                await domainEvents.Raise(new NewEndpointDetected
+                await domainEvents.Raise(new EndpointDetected
                     {
                         DetectedAt = DateTime.UtcNow,
                         Endpoint = newEndpointDetails
