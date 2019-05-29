@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB
+﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
 {
     using System;
     using System.Threading;

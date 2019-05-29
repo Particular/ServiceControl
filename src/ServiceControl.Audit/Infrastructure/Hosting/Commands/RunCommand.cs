@@ -1,8 +1,7 @@
-﻿namespace Particular.ServiceControl.Commands
+﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System;
     using System.Threading.Tasks;
-    using Hosting;
 
     class RunCommand : AbstractCommand
     {

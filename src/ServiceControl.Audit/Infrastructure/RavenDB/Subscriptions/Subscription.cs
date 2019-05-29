@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
+﻿namespace ServiceControl.Audit.Infrastructure.RavenDB.Subscriptions
 {
     using System.Collections.Generic;
     using NServiceBus.Unicast.Subscriptions;

@@ -1,12 +1,13 @@
-﻿namespace Particular.ServiceControl
+﻿namespace ServiceControl.Audit
 {
     using System;
     using System.IO;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Commands;
-    using Hosting;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Infrastructure;
+    using Infrastructure.Hosting;
+    using Infrastructure.Hosting.Commands;
+    using Infrastructure.Settings;
 
     class Program
     {

@@ -2,8 +2,6 @@ namespace ServiceBus.Management.AcceptanceTests
 {
     using System.Collections.Generic;
     using System.Net.Http;
-    using Infrastructure;
-    using Infrastructure.Settings;
     using Newtonsoft.Json;
 
     interface IAcceptanceTestInfrastructureProvider
@@ -12,8 +10,8 @@ namespace ServiceBus.Management.AcceptanceTests
 
         JsonSerializerSettings SerializerSettings { get; }
 
-        Dictionary<string, Settings> SettingsPerInstance { get; }
+        Dictionary<string, dynamic> SettingsPerInstance { get; }
         Dictionary<string, OwinHttpMessageHandler> Handlers { get; }
-        Dictionary<string, BusInstance> Busses { get; }
+        Dictionary<string, dynamic> Busses { get; }
     }
 }

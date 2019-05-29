@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
-    using CompositeViews.Endpoints;
-    using CompositeViews.Messages;
     using Nancy;
     using Nancy.ModelBinding;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;

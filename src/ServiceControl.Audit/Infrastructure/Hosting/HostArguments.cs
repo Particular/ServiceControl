@@ -1,4 +1,4 @@
-namespace Particular.ServiceControl.Hosting
+namespace ServiceControl.Audit.Infrastructure.Hosting
 {
     using System;
     using System.Collections.Generic;
@@ -6,8 +6,7 @@ namespace Particular.ServiceControl.Hosting
     using System.Linq;
     using System.Reflection;
     using Commands;
-    using global::ServiceControl.Hosting.Commands;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
 
     class HostArguments
     {

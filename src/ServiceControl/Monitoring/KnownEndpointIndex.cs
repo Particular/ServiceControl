@@ -1,8 +1,8 @@
-namespace ServiceControl.CompositeViews.Endpoints
+namespace ServiceControl.Audit.Monitoring
 {
     using System.Linq;
-    using EndpointControl;
     using Raven.Client.Indexes;
+    using ServiceControl.Monitoring;
 
     class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
     {

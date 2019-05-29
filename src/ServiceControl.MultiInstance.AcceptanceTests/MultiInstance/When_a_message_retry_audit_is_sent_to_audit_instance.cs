@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -11,18 +10,17 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
+    class When_a_message_retry_audit_is_sent_to_audit_instance : AcceptanceTest
     {
         [Test]
-        public async Task Should_mark_as_resolved_on_master()
+        public async Task Should_mark_as_resolved()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-            CustomInstanceConfiguration = ConfigureWaitingForMasterToSubscribe;
+            CustomAuditEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             FailedMessage failure;
 
-            await Define<MyContext>(Remote1, Master)
-                .WithEndpoint<Failing>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
+            await Define<MyContext>()
+                .WithEndpoint<Failing>(b => b.When(c => c.HasNativePubSubSupport || c.ServiceControlSubscribed,
                     bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
@@ -35,7 +33,7 @@
 
                     if (failure.Status == FailedMessageStatus.Unresolved)
                     {
-                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
+                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, ServiceControlInstanceName));
                         return false;
                     }
 
@@ -44,43 +42,15 @@
                 .Run(TimeSpan.FromMinutes(2));
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
+        static void ConfigureWaitingForMasterToSubscribe(EndpointConfiguration config)
         {
-            // TODO: fix
-            //switch (instanceName)
-            //{
-            //    case Remote1:
-            //        addressOfRemote = settings.ApiUrl;
-            //        settings.AuditQueue = AuditRemote;
-            //        settings.ErrorQueue = ErrorRemote;
-            //        break;
-            //    case Master:
-            //        settings.RemoteInstances = new[]
-            //        {
-            //            new RemoteInstanceSetting
-            //            {
-            //                ApiUri = addressOfRemote,
-            //                QueueAddress = Remote1
-            //            }
-            //        };
-            //        settings.AuditQueue = AuditMaster;
-            //        settings.ErrorQueue = ErrorMaster;
-            //        break;
-            //}
-        }
-
-        void ConfigureWaitingForMasterToSubscribe(string instance, EndpointConfiguration config)
-        {
-            if (instance == Remote1)
+            config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                config.OnEndpointSubscribed<MyContext>((s, ctx) =>
+                if (s.SubscriberReturnAddress.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        ctx.MasterSubscribed = true;
-                    }
-                });
-            }
+                    ctx.ServiceControlSubscribed = true;
+                }
+            });
         }
 
         Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c)
@@ -90,7 +60,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, msg => true, Master);
+            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, msg => true, ServiceControlInstanceName);
         }
 
         async Task IssueRetry(MyContext c, Func<Task> retryAction)
@@ -102,24 +72,11 @@
             }
         }
 
-        //private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
-
         public class Failing : EndpointConfigurationBuilder
         {
             public Failing()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.NoRetries();
-                    c.AuditProcessedMessagesTo(AuditRemote);
-                    c.SendFailedMessagesTo(ErrorMaster);
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -160,7 +117,7 @@
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
             public string LocalAddress { get; set; }
             public bool RetryIssued { get; set; }
-            public bool MasterSubscribed { get; set; }
+            public bool ServiceControlSubscribed { get; set; }
         }
     }
 }

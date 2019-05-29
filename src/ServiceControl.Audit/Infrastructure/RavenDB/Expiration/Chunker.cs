@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
+﻿namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
 {
     using System;
     using System.Threading;

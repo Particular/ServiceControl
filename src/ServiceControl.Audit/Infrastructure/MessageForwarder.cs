@@ -1,10 +1,10 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using NServiceBus.Extensibility;
     using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 

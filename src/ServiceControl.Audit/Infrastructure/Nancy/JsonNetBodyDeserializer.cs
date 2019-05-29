@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Nancy
+﻿namespace ServiceControl.Audit.Infrastructure.Nancy
 {
     using System;
     using System.Collections;
@@ -11,7 +11,6 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
-    using ServiceControl.Audit.Infrastructure;
 
     class JsonNetBodyDeserializer : IBodyDeserializer
     {

@@ -14,46 +14,35 @@
         [Test]
         public async Task Should_not_fail()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
+            CustomServiceControlSettings = s =>
+            {
+                var currentSetting = s.RemoteInstances[0];
+                s.RemoteInstances = new[]
+                {
+                    currentSetting,
+                    new RemoteInstanceSetting
+                    {
+                        ApiUri = "http://localhost:12121",
+                        QueueAddress = ServiceControlAuditInstanceName
+                    }
+                };
+            };
+            
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
-            await Define<MyContext>(Master)
+            await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
-                .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: Master))
+                .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: ServiceControlInstanceName))
                 .Run();
         }
-
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
-        {
-            // TODO: fix
-            //addressOfRemote = "http://localhost:12121";
-            //settings.RemoteInstances = new[]
-            //{
-            //    new RemoteInstanceSetting
-            //    {
-            //        ApiUri = addressOfRemote,
-            //        QueueAddress = "remote1"
-            //    }
-            //};
-            //settings.AuditQueue = AuditMaster;
-            //settings.ErrorQueue = ErrorMaster;
-        }
-
-        //private string addressOfRemote;
-        private const string Master = "master";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-
+        
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.AuditProcessedMessagesTo(AuditMaster);
-                    c.SendFailedMessagesTo(ErrorMaster);
                 });
             }
 

@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.Infrastructure.Extensions
+namespace ServiceControl.Audit.Infrastructure.Extensions
 {
     using System;
     using System.Threading;

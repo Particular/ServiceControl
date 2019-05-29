@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -12,60 +11,37 @@
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
 
-    class When_issuing_retry_on_master : AcceptanceTest
+    // Tests https://docs.particular.net/servicecontrol/servicecontrol-instances/distributed-instances#advanced-scenarios-multi-region-deployments
+    class When_issuing_retry_by_specifying_instance_id : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_forwarded_and_resolved_on_remote()
+        public async Task Should_be_work()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
+            // instead of setting up a multiple crazy instances we just use the current instance and rely on it forwarding the instance call to itself
+            CustomServiceControlSettings = s => { addressOfItself = s.ApiUrl; };
 
             FailedMessage failure;
 
-            await Define<MyContext>(Remote1, Master)
+            await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     if (!c.RetryIssued)
                     {
-                        var result = await GetFailedMessage(c, Remote1, FailedMessageStatus.Unresolved);
+                        var result = await GetFailedMessage(c, ServiceControlInstanceName, FailedMessageStatus.Unresolved);
                         failure = result;
                         if (result)
                         {
                             c.RetryIssued = true;
-                            await this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, Master);
+                            await this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfItself)}", null, null, ServiceControlInstanceName);
                         }
 
                         return false;
                     }
 
-                    return await GetFailedMessage(c, Remote1, FailedMessageStatus.Resolved);
+                    return await GetFailedMessage(c, ServiceControlInstanceName, FailedMessageStatus.Resolved);
                 })
                 .Run(TimeSpan.FromMinutes(2));
-        }
-
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
-        {
-            // TODO: fix
-            //switch (instanceName)
-            //{
-            //    case Remote1:
-            //        addressOfRemote = settings.ApiUrl;
-            //        settings.AuditQueue = AuditRemote;
-            //        settings.ErrorQueue = ErrorRemote;
-            //        break;
-            //    case Master:
-            //        settings.RemoteInstances = new[]
-            //        {
-            //            new RemoteInstanceSetting
-            //            {
-            //                ApiUri = addressOfRemote,
-            //                QueueAddress = Remote1
-            //            }
-            //        };
-            //        settings.AuditQueue = AuditMaster;
-            //        settings.ErrorQueue = ErrorMaster;
-            //        break;
-            //}
         }
 
         Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, string instance, FailedMessageStatus expectedStatus)
@@ -78,24 +54,13 @@
             return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
         }
 
-        private string addressOfRemote = "TODO";
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
+        private string addressOfItself = "TODO";
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.NoRetries();
-                    c.AuditProcessedMessagesTo(AuditRemote);
-                    c.SendFailedMessagesTo(ErrorRemote);
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

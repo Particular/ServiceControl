@@ -1,9 +1,6 @@
-﻿namespace ServiceControl.Hosting.Commands
+﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System.Threading.Tasks;
-    using Particular.ServiceControl;
-    using Particular.ServiceControl.Commands;
-    using Particular.ServiceControl.Hosting;
 
     class MaintCommand : AbstractCommand
     {

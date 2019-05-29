@@ -1,10 +1,11 @@
-﻿namespace ServiceControl.Operations.BodyStorage.Api
+﻿namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.IO;
     using System.Text;
     using System.Threading.Tasks;
-    using CompositeViews.Messages;
+    using BodyStorage;
+    using MessagesView;
     using Nancy;
     using Raven.Abstractions.Data;
     using Raven.Client;

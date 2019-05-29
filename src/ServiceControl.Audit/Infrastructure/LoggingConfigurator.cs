@@ -1,4 +1,4 @@
-namespace Particular.ServiceControl
+namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.IO;
@@ -8,7 +8,7 @@ namespace Particular.ServiceControl
     using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
     using LogLevel = NLog.LogLevel;
 
     static class LoggingConfigurator

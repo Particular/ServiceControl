@@ -6,7 +6,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Features;
@@ -21,7 +20,7 @@
             // To configure the SagaAudit plugin
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             var appSettings = (AppSettingsSection)config.GetSection("appSettings");
-            appSettings.Settings.Add("ServiceControl/Queue", Remote1);
+            appSettings.Settings.Add("ServiceControl/Queue", ServiceControlInstanceName);
             config.Save();
             ConfigurationManager.RefreshSection("appSettings");
         }
@@ -40,15 +39,13 @@
         [Test]
         public async Task Saga_history_can_be_fetched_on_master()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
             SagaHistory sagaHistory = null;
 
-            var context = await Define<MyContext>(Remote1, Master)
+            var context = await Define<MyContext>()
                 .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
-                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: Master);
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: ServiceControlInstanceName);
                     sagaHistory = result;
                     return c.Done && result;
                 })
@@ -74,39 +71,6 @@
             Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName]);
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
-        {
-            // TODO: fix
-            //switch (instanceName)
-            //{
-            //    case Remote1:
-            //        addressOfRemote = settings.ApiUrl;
-            //        settings.AuditQueue = AuditRemote;
-            //        settings.ErrorQueue = ErrorRemote;
-            //        break;
-            //    case Master:
-            //        settings.RemoteInstances = new[]
-            //        {
-            //            new RemoteInstanceSetting
-            //            {
-            //                ApiUri = addressOfRemote,
-            //                QueueAddress = Remote1
-            //            }
-            //        };
-            //        settings.AuditQueue = AuditMaster;
-            //        settings.ErrorQueue = ErrorMaster;
-            //        break;
-            //}
-        }
-
-        //private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
-
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
             public SagaEndpoint()
@@ -114,9 +78,8 @@
                 EndpointSetup<DefaultServerWithAudit>(c =>
                     {
                         c.EnableFeature<AutoSubscribe>();
-                        c.AuditSagaStateChanges(Remote1);
-                        c.AuditProcessedMessagesTo(AuditRemote);
-                        c.SendFailedMessagesTo(ErrorMaster);
+                        c.AuditSagaStateChanges(ServiceControlInstanceName);
+                        c.AuditProcessedMessagesTo(ServiceControlInstanceName);
                     },
                     publishers => { publishers.RegisterPublisherFor<MessagePublishedBySaga>(typeof(SagaEndpoint)); });
             }

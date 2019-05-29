@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.Infrastructure.Nancy
+namespace ServiceControl.Audit.Infrastructure.Nancy
 {
     using global::Nancy;
     using global::Nancy.ErrorHandling;

@@ -1,14 +1,14 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Autofac;
+    using Infrastructure.Extensions;
+    using Infrastructure.Nancy.Modules;
+    using Infrastructure.Settings;
     using Nancy;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Extensions;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     interface IApi
     {

@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
-    using Infrastructure.DomainEvents;
-
+    using Audit.Infrastructure.DomainEvents;
+    
     public class MessageFailureResolvedByRetry : IDomainEvent, IBusEvent
     {
         public string FailedMessageId { get; set; }

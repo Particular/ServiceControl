@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.Infrastructure.Extensions
+namespace ServiceControl.Audit.Infrastructure.Extensions
 {
     using System;
     using System.Collections.Generic;
@@ -10,8 +10,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using global::Nancy.Responses.Negotiation;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using ServiceControl.Infrastructure;
-    using QueryResult = ServiceControl.CompositeViews.Messages.QueryResult;
+    using QueryResult = Auditing.MessagesView.QueryResult;
 
     static class NegotiatorExtensions
     {

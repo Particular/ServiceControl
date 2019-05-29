@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EndpointControl.Handlers
+﻿namespace ServiceControl.Audit.Monitoring
 {
     using NServiceBus;
     using NServiceBus.Features;

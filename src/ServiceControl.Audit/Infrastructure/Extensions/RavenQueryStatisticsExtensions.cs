@@ -1,6 +1,6 @@
-﻿namespace ServiceControl.Infrastructure.Extensions
+﻿namespace ServiceControl.Audit.Infrastructure.Extensions
 {
-    using CompositeViews.Messages;
+    using Auditing.MessagesView;
     using Raven.Client;
 
     static class RavenQueryStatisticsExtensions

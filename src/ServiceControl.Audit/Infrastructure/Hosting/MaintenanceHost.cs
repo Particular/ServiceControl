@@ -1,8 +1,8 @@
-﻿namespace Particular.ServiceControl.Hosting
+﻿namespace ServiceControl.Audit.Infrastructure.Hosting
 {
     using System.ServiceProcess;
     using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
 
     class MaintenanceHost : ServiceBase
     {

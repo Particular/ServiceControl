@@ -1,9 +1,9 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Contracts.Operations;
+    using Monitoring;
     using Raven.Client.Indexes;
 
     class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>

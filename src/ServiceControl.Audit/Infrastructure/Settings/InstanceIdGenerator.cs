@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.Settings
+﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
     using System.Text;

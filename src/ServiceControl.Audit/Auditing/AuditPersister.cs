@@ -4,13 +4,11 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using MessageAuditing;
+    using BodyStorage;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Transport;
-    using Operations;
-    using Operations.BodyStorage;
     using Raven.Client;
-    using ServiceControl.Infrastructure;
 
     class AuditPersister
     {

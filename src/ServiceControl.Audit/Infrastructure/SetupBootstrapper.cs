@@ -1,19 +1,18 @@
-namespace Particular.ServiceControl
+namespace ServiceControl.Audit.Infrastructure
 {
     using System.Threading.Tasks;
     using Autofac;
-    using global::ServiceControl.Infrastructure.DomainEvents;
-    using global::ServiceControl.Transports;
+    using DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
+    using Transports;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings settings)
+        public SetupBootstrapper(Settings.Settings settings)
         {
             this.settings = settings;
         }
@@ -34,7 +33,7 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
 
-            var domainEvents = new DomainEvents();
+            var domainEvents = new DomainEvents.DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
             var transportSettings = new TransportSettings();
@@ -54,7 +53,7 @@ namespace Particular.ServiceControl
             }
         }
 
-        private readonly Settings settings;
+        private readonly Settings.Settings settings;
 
         private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }

@@ -1,10 +1,9 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB
+﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
 {
     using System;
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
-    using EndpointControl;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -12,7 +11,7 @@
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
     using Subscriptions;
 
     class RavenBootstrapper : INeedInitialization

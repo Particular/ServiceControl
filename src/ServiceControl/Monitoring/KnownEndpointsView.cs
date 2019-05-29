@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CompositeViews.Endpoints
+﻿namespace ServiceControl.Monitoring
 {
     using System;
     using Contracts.Operations;

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
     using System;
-    using Operations;
 
     class FailedAuditImport
     {

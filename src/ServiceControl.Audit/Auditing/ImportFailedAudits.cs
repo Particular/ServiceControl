@@ -6,7 +6,6 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Operations;
     using Raven.Client;
     using Raven.Client.Indexes;
 

@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Installers
+﻿namespace ServiceControl.Audit.Infrastructure.Installers
 {
     using System.Diagnostics;
     using System.Threading.Tasks;

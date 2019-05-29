@@ -1,4 +1,4 @@
-﻿namespace ServiceControl
+﻿namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Collections.Generic;
