@@ -8,7 +8,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
-    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -161,10 +160,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder =>
-                {
-                    builder.RegisterType<FailedErrorsModule>().As<INancyModule>();
-                });
+                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedErrorsModule>().As<INancyModule>(); });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 

@@ -1,6 +1,5 @@
 namespace ServiceControl.Audit.Auditing
 {
-    using System;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;

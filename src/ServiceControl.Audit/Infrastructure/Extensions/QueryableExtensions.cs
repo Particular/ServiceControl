@@ -5,7 +5,6 @@ namespace ServiceControl.Infrastructure.Extensions
     using System.Linq;
     using System.Linq.Expressions;
     using CompositeViews.Messages;
-    using MessageFailures;
     using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
