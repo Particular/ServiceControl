@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
@@ -49,6 +50,12 @@
   <ItemGroup>
     <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">

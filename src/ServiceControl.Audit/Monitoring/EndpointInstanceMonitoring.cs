@@ -11,6 +11,7 @@ namespace ServiceControl.Monitoring
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Raven.Client;
+    using ServiceControl.CompositeViews.Endpoints;
 
     class EndpointInstanceMonitoring
     {
@@ -41,10 +42,10 @@ namespace ServiceControl.Monitoring
                 }
 
                 await domainEvents.Raise(new NewEndpointDetected
-                    {
-                        DetectedAt = DateTime.UtcNow,
-                        Endpoint = newEndpointDetails
-                    })
+                {
+                    DetectedAt = DateTime.UtcNow,
+                    Endpoint = newEndpointDetails
+                })
                     .ConfigureAwait(false);
             }
         }
@@ -53,13 +54,13 @@ namespace ServiceControl.Monitoring
         {
             using (var documentSession = store.OpenAsyncSession())
             {
-                using (var endpointsEnumerator = await documentSession.Advanced.StreamAsync(documentSession.Query<KnownEndpoint>())
+                using (var endpointsEnumerator = await documentSession.Advanced.StreamAsync(documentSession.Query<KnownEndpoint, KnownEndpointIndex>())
                     .ConfigureAwait(false))
                 {
                     while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
-                        endpoints.GetOrAdd(endpoint.Id, null);
+                        endpoints.GetOrAdd(endpoint.Id, new byte());
                     }
                 }
             }

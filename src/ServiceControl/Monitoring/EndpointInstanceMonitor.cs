@@ -11,10 +11,11 @@ namespace ServiceControl.Monitoring
 
     class EndpointInstanceMonitor
     {
-        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, IDomainEvents domainEvents)
+        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, bool heartbeatsEnabled, IDomainEvents domainEvents)
         {
             Id = endpointInstanceId;
             Monitored = monitored;
+            HeartbeatsEnabled = heartbeatsEnabled;
             this.domainEvents = domainEvents;
         }
 
@@ -22,16 +23,18 @@ namespace ServiceControl.Monitoring
 
         public bool Monitored { get; private set; }
 
+        public bool HeartbeatsEnabled { get; private set; }
+
         public async Task EnableMonitoring()
         {
-            await domainEvents.Raise(new MonitoringEnabledForEndpoint {Endpoint = Convert(Id)})
+            await domainEvents.Raise(new MonitoringEnabledForEndpoint { Endpoint = Convert(Id) })
                 .ConfigureAwait(false);
             Monitored = true;
         }
 
         public async Task DisableMonitoring()
         {
-            await domainEvents.Raise(new MonitoringDisabledForEndpoint {Endpoint = Convert(Id)})
+            await domainEvents.Raise(new MonitoringDisabledForEndpoint { Endpoint = Convert(Id) })
                 .ConfigureAwait(false);
             Monitored = false;
         }
@@ -117,6 +120,7 @@ namespace ServiceControl.Monitoring
                 HostDisplayName = Id.HostName,
                 Monitored = Monitored,
                 MonitorHeartbeat = Monitored,
+
                 HeartbeatInformation = new HeartbeatInformation
                 {
                     ReportedStatus = status == HeartbeatStatus.Alive ? Status.Beating : Status.Dead,

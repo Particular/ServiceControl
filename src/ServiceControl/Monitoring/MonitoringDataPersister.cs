@@ -12,44 +12,40 @@
     using ServiceControl.Contracts.Operations;
 
     class MonitoringDataPersister :
+        IDomainHandler<EndpointDetected>,
         IDomainHandler<HeartbeatingEndpointDetected>,
         IDomainHandler<MonitoringEnabledForEndpoint>,
-        IDomainHandler<MonitoringDisabledForEndpoint>,
-        IDomainHandler<EndpointDetected>
+        IDomainHandler<MonitoringDisabledForEndpoint>
     {
         public MonitoringDataPersister(IDocumentStore store, EndpointInstanceMonitoring monitoring)
         {
             this.store = store;
             this.monitoring = monitoring;
         }
+
         public Task Handle(EndpointDetected domainEvent)
-        {
-            return StoreEndpoint(domainEvent.Endpoint);
-        }
-
-        public Task Handle(HeartbeatingEndpointDetected domainEvent)
-        {
-            return StoreEndpoint(domainEvent.Endpoint);
-        }
-
-        public Task Handle(MonitoringDisabledForEndpoint domainEvent)
         {
             return StoreEndpoint(domainEvent.Endpoint, false);
         }
 
-        public Task Handle(MonitoringEnabledForEndpoint domainEvent)
+        public Task Handle(HeartbeatingEndpointDetected domainEvent)
         {
             return StoreEndpoint(domainEvent.Endpoint, true);
         }
 
-        public async Task StoreEndpoint(EndpointDetails endpoint, bool? isMonitored = null)
+        public Task Handle(MonitoringDisabledForEndpoint domainEvent)
+        {
+            return UpdateEndpointMonitoring(domainEvent.Endpoint, false);
+        }
+
+        public Task Handle(MonitoringEnabledForEndpoint domainEvent)
+        {
+            return UpdateEndpointMonitoring(domainEvent.Endpoint, true);
+        }
+
+        public async Task StoreEndpoint(EndpointDetails endpoint, bool hasHeartbeatsEnabled)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
-
-            if (!isMonitored.HasValue)
-            {
-                isMonitored = monitoring.IsMonitored(id);
-            }
 
             using (var session = store.OpenAsyncSession())
             {
@@ -63,17 +59,39 @@
                         Id = id,
                         EndpointDetails = endpoint,
                         HostDisplayName = endpoint.Host,
-                        Monitored = isMonitored.Value
+                        Monitored = monitoring.IsMonitored(id),
+                        HeartbeatsEnabled = hasHeartbeatsEnabled
                     };
                     await session.StoreAsync(knownEndpoint).ConfigureAwait(false);
 
                     return;
                 }
 
-                knownEndpoint.Monitored = isMonitored.Value;
+                knownEndpoint.Monitored = monitoring.IsMonitored(id);
+                knownEndpoint.HeartbeatsEnabled = hasHeartbeatsEnabled;
 
                 await session.SaveChangesAsync()
                     .ConfigureAwait(false);
+            }
+        }
+
+        public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
+        {
+            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+
+            using (var session = store.OpenAsyncSession())
+            {
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
+                    .ConfigureAwait(false);
+
+                if (knownEndpoint != null)
+                {
+                    knownEndpoint.Monitored = isMonitored;
+                    knownEndpoint.HeartbeatsEnabled = true;
+
+                    await session.SaveChangesAsync()
+                        .ConfigureAwait(false);
+                }
             }
         }
 
@@ -87,7 +105,9 @@
                     while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
-                        monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
+                        var heartbeatsEnabled = !endpoint.HeartbeatsEnabled.HasValue || endpoint.HeartbeatsEnabled.HasValue;
+
+                        monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored, heartbeatsEnabled);
                     }
                 }
             }

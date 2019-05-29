@@ -27,7 +27,7 @@ namespace ServiceControl.Monitoring
                 var recordedHeartbeat = entry.Value.MarkDeadIfOlderThan(threshold);
 
                 var endpointInstanceId = entry.Key;
-                var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
+                var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, true, domainEvents));
                 await monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp)
                     .ConfigureAwait(false);
             }
@@ -40,21 +40,20 @@ namespace ServiceControl.Monitoring
         public async Task EndpointDetected(EndpointDetails newEndpointDetails)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
-            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))
+            if (endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, false, domainEvents)))
             {
                 await domainEvents.Raise(new EndpointDetected
-                    {
-                        DetectedAt = DateTime.UtcNow,
-                        Endpoint = newEndpointDetails
-                    })
-                    .ConfigureAwait(false);
+                {
+                    DetectedAt = DateTime.UtcNow,
+                    Endpoint = newEndpointDetails
+                }).ConfigureAwait(false);
             }
         }
 
         public async Task DetectEndpointFromHeartbeatStartup(EndpointDetails newEndpointDetails, DateTime startedAt)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();
-            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, true, domainEvents));
 
             await domainEvents.Raise(new EndpointStarted
             {
@@ -63,10 +62,10 @@ namespace ServiceControl.Monitoring
             }).ConfigureAwait(false);
         }
 
-        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
+        public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored, bool heartbeatsEnabled)
         {
             var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
-            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
+            endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, heartbeatsEnabled, domainEvents));
         }
 
         async Task Update(EndpointMonitoringStats stats)
@@ -100,13 +99,13 @@ namespace ServiceControl.Monitoring
         public Task DisableMonitoring(Guid id) => endpoints[id]?.DisableMonitoring();
         public bool IsMonitored(Guid id) => endpoints[id]?.Monitored ?? false;
 
-        public EndpointsView[] GetEndpoints()
+        public EndpointsView[] GetEndpointsWithHeartbeatPluginInstalled()
         {
             var list = new List<EndpointsView>();
 
             var heartbeatLookup = heartbeats.ToLookup(x => x.Key, x => x.Value);
 
-            foreach (var endpoint in endpoints.Values)
+            foreach (var endpoint in endpoints.Values.Where(e => e.HeartbeatsEnabled))
             {
                 var view = endpoint.GetView();
                 view.IsSendingHeartbeats = heartbeatLookup[endpoint.Id].Any(x => x.IsSendingHeartbeats());
