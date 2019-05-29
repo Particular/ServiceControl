@@ -13,6 +13,7 @@ using ServiceBus.Management.Infrastructure.Settings;
 namespace ServiceBus.Management.Infrastructure
 {
     using ServiceControl.Audit.Auditing;
+    using ServiceControl.Audit.Infrastructure;
 
     static class NServiceBusFactory
     {
@@ -25,6 +26,8 @@ namespace ServiceBus.Management.Infrastructure
                 var assemblyScanner = configuration.AssemblyScanner();
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
+
+            configuration.Pipeline.Register(new PublishFullTypeNameOnlyBehavior(), "Removes assembly details from message types so that ServiceControl can deserialize");
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set(documentStore);
