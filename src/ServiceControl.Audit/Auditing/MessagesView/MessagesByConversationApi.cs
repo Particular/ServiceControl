@@ -8,9 +8,9 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Client;
     using Raven.Client.Linq;
 
-    class MessagesByConversationApi : ApiBase<string, List<MessagesView>>
+    class MessagesByConversationApi : ApiBase<string, IList<MessagesView>>
     {
-        public override async Task<QueryResult<List<MessagesView>>> Query(Request request, string input)
+        public override async Task<QueryResult<IList<MessagesView>>> Query(Request request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -23,7 +23,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<List<MessagesView>>(results.ToList(), stats.ToQueryStatsInfo());
+                return new QueryResult<IList<MessagesView>>(results.ToList(), stats.ToQueryStatsInfo());
             }
         }
     }

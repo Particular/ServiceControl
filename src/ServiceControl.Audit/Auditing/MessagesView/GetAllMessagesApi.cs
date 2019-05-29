@@ -1,15 +1,14 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
     using Nancy;
     using Raven.Client;
 
-    class GetAllMessagesApi : ApiBase<NoInput, List<MessagesView>>
+    class GetAllMessagesApi : ApiBase<NoInput, IList<MessagesView>>
     {
-        public override async Task<QueryResult<List<MessagesView>>> Query(Request request, NoInput input)
+        public override async Task<QueryResult<IList<MessagesView>>> Query(Request request, NoInput input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -22,7 +21,7 @@ namespace ServiceControl.CompositeViews.Messages
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<List<MessagesView>>(results.ToList(), stats.ToQueryStatsInfo());
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
         }
     }
