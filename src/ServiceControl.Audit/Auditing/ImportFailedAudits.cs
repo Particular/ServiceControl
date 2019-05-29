@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Auditing
 {
     using System;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Extensibility;
@@ -81,20 +80,5 @@ namespace ServiceControl.Audit.Auditing
         static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
         static ContextBag EmptyContextBag = new ContextBag();
         static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedAudits));
-    }
-
-    class FailedAuditImportIndex : AbstractIndexCreationTask<FailedAuditImport>
-    {
-        public FailedAuditImportIndex()
-        {
-            Map = docs => from cc in docs
-                select new FailedAuditImport
-                {
-                    Id = cc.Id,
-                    Message = cc.Message
-                };
-
-            DisableInMemoryIndexing = true;
-        }
     }
 }
