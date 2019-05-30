@@ -38,5 +38,6 @@
   "ServiceName": "Particular.ServiceControl.Audit",
   "HttpDefaultConnectionLimit": 100,
   "TransportConnectionString": null,
-  "MaximumConcurrencyLevel": 10
+  "MaximumConcurrencyLevel": 10,
+  "DataSpaceRemainingThreshold": 20
 }

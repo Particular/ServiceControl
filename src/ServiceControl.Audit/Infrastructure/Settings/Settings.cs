@@ -40,6 +40,7 @@
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             DbPath = GetDbPath();
+            DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
         }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
@@ -158,6 +159,7 @@
         public int HttpDefaultConnectionLimit { get; set; }
         public string TransportConnectionString { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
+        public int DataSpaceRemainingThreshold { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {
@@ -327,6 +329,26 @@
             return $"{queue}.log@{machine}";
         }
 
+        int GetDataSpaceRemainingThreshold()
+        {
+            string message;
+            var threshold = SettingsReader<int>.Read("DataSpaceRemainingThreshold", DataSpaceRemainingThresholdDefault);
+            if (threshold < 0)
+            {
+                message = $"{nameof(DataSpaceRemainingThreshold)} is invalid, minimum value is 0.";
+                logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            if (threshold > 100)
+            {
+                message = $"{nameof(DataSpaceRemainingThreshold)} is invalid, maximum value is 100.";
+                logger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return threshold;
+        }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
         int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
@@ -339,5 +361,6 @@
         const int ExpirationProcessBatchSizeDefault = 65512;
         const int ExpirationProcessBatchSizeMinimum = 10240;
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
+        const int DataSpaceRemainingThresholdDefault = 20;
     }
 }
