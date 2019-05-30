@@ -8,4 +8,5 @@ ADD /ServiceControl/bin/Release/net461 .
 
 SHELL ["powershell"]
 
-CMD powershell
+CMD ./ServiceControl.exe --portable --setup
+CMD ./ServiceControl.exe --portable
