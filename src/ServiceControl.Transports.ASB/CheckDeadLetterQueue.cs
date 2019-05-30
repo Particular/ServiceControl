@@ -13,8 +13,7 @@
         {
             Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
 
-            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            var transportConnectionString = connectionStringSettings.ConnectionString;
+            var transportConnectionString = settings.ConnectionString;
             namespaceManager = NamespaceManager.CreateFromConnectionString(transportConnectionString);
             stagingQueue = $"{settings.EndpointName}.staging";
         }

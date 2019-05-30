@@ -33,8 +33,7 @@
                 AuditLogQueue = GetAuditLogQueue();
             }
 
-            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            TransportConnectionString = connectionStringSettings?.ConnectionString;
+            TransportConnectionString = GetConnectionString();
 
             DbPath = GetDbPath();
             TransportCustomizationType = GetTransportType();
@@ -216,6 +215,18 @@
             {
                 throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
             }
+        }
+
+        public string GetConnectionString()
+        {
+            var settingsValue = SettingsReader<string>.Read("ConnectionString");
+            if (settingsValue != null)
+            {
+                return settingsValue;
+            }
+
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
+            return connectionStringSettings?.ConnectionString;
         }
 
         private string GetAuditLogQueue()

@@ -1,0 +1,11 @@
+FROM mcr.microsoft.com/dotnet/framework/runtime:4.8
+
+WORKDIR /servicecontrol
+
+
+ADD /ServiceControl.Transports.Asb/bin/Release/net461 .
+ADD /ServiceControl/bin/Release/net461 .
+
+SHELL ["powershell"]
+
+CMD powershell
