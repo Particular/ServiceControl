@@ -51,12 +51,6 @@
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="App.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <None Include="$(NuGetPackageRoot)%(PackageReference.Identity)\%(PackageReference.Version)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Condition="'%(PackageReference.Identity)' == 'RavenDB.Database'" />
