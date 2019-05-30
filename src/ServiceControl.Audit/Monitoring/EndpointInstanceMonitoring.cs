@@ -24,14 +24,15 @@ namespace ServiceControl.Monitoring
         // TODO: Test this end2end
         public async Task DetectEndpointFromLocalAudit(EndpointDetails newEndpointDetails)
         {
-            var enpointInstanceId = DeterministicGuid.MakeId(newEndpointDetails.Name, newEndpointDetails.HostId.ToString());
-            if (endpoints.TryAdd(enpointInstanceId, new byte()))
+            object previouslyDetected = null;
+            var endpointInstanceId = DeterministicGuid.MakeId(newEndpointDetails.Name, newEndpointDetails.HostId.ToString());
+            if (endpoints.TryAdd(endpointInstanceId, previouslyDetected))
             {
                 using (var session = store.OpenAsyncSession())
                 {
                     var knownEndpoint = new KnownEndpoint
                     {
-                        Id = enpointInstanceId
+                        Id = endpointInstanceId
                     };
 
                     await session.StoreAsync(knownEndpoint)
@@ -69,6 +70,6 @@ namespace ServiceControl.Monitoring
 
         readonly IDocumentStore store;
         IDomainEvents domainEvents;
-        ConcurrentDictionary<Guid, byte> endpoints = new ConcurrentDictionary<Guid, byte>();
+        ConcurrentDictionary<Guid, object> endpoints = new ConcurrentDictionary<Guid, object>();
     }
 }
