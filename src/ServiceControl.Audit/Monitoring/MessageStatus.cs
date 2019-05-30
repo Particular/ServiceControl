@@ -2,6 +2,7 @@
 {
     public enum MessageStatus
     {
-        Successful = 3
+        Successful = 3,
+        ResolvedSuccessfully = 4
     }
 }

@@ -15,6 +15,7 @@ namespace ServiceControl.CompositeViews.Messages
                 let metadata = message.MessageMetadata
                 let headers = message.Headers
                 let processedAt = message.ProcessedAt
+                let status = !(bool)message.MessageMetadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
                 select new
                 {
                     Id = message.UniqueMessageId,
@@ -32,7 +33,7 @@ namespace ServiceControl.CompositeViews.Messages
                     //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
                     // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
                     Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
-                    Status = MessageStatus.Successful,
+                    Status = status,
                     MessageIntent = metadata["MessageIntent"],
                     BodyUrl = metadata["BodyUrl"],
                     BodySize = (int)metadata["ContentLength"],
