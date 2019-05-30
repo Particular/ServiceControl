@@ -86,6 +86,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public System.TimeSpan AuditRetentionPeriod { get; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
+        public int DataSpaceRemainingThreshold { get; set; }
         public string DbPath { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public string ErrorLogQueue { get; set; }

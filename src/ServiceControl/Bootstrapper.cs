@@ -186,6 +186,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.AuditQueue,
                     settings.DatabaseMaintenancePort,
                     settings.ErrorLogQueue,
+                    settings.DataSpaceRemainingThreshold,
                     settings.DisableRavenDBPerformanceCounters,
                     settings.DbPath,
                     settings.ErrorQueue,
