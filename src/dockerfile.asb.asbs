@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/framework/runtime:4.8
 
 WORKDIR /servicecontrol
 
-ADD /ServiceControl.Transports.RabbitMQ/bin/Release/net461 .
+ADD /ServiceControl.Transports.ASBS/bin/Release/net461 .
 ADD /ServiceControl/bin/Release/net461 .
 ADD runcontainer.ps1 .
 
