@@ -44,8 +44,12 @@
             {
                 Assert.AreEqual("False", context.Headers[Headers.NonDurableMessage], "Should not corrupt the non-durable header");
             }
+            else
+            {
+                Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");    
+            }
 
-            Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");
+            
         }
 
         class TestContext : ScenarioContext
