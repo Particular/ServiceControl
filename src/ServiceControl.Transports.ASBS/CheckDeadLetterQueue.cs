@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
     using System;
-    using System.Configuration;
     using System.Threading.Tasks;
     using Microsoft.Azure.ServiceBus.Management;
     using NServiceBus.CustomChecks;
