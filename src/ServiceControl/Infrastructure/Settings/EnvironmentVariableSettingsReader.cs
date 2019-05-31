@@ -1,7 +1,6 @@
 namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
-    using System.Configuration;
 
     static class EnvironmentVariableSettingsReader<T>
     {

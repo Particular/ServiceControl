@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Transports.ASB
 {
     using System;
-    using System.Configuration;
     using System.Threading.Tasks;
     using Microsoft.ServiceBus;
     using NServiceBus.CustomChecks;
