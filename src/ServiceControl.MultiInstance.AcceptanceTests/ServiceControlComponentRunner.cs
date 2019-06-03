@@ -100,7 +100,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                     new RemoteInstanceSetting
                     {
-                        ApiUri = $"http://localhost:{startPort-2}/api", // evil assumption for now
+                        ApiUri = $"http://localhost:{instancePort-2}/api", // evil assumption for now
                         QueueAddress = $"{Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME}"
                     }
                 },
