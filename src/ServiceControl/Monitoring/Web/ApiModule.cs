@@ -18,7 +18,7 @@
         {
             Get["/heartbeats/stats"] = _ => Negotiate.WithModel(Monitoring.GetStats());
 
-            Get["/endpoints"] = _ => Negotiate.WithModel(Monitoring.GetEndpointsWithHeartbeatPluginInstalled());
+            Get["/endpoints"] = _ => Negotiate.WithModel(Monitoring.GetEndpoints());
 
             Get["/endpoints/known"] = _ => Negotiate.WithModel(Monitoring.GetKnownEndpoints());
 

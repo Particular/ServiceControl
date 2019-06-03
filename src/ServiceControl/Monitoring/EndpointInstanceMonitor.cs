@@ -11,19 +11,16 @@ namespace ServiceControl.Monitoring
 
     class EndpointInstanceMonitor
     {
-        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, bool heartbeatsEnabled, IDomainEvents domainEvents)
+        public EndpointInstanceMonitor(EndpointInstanceId endpointInstanceId, bool monitored, IDomainEvents domainEvents)
         {
             Id = endpointInstanceId;
             Monitored = monitored;
-            HeartbeatsEnabled = heartbeatsEnabled;
             this.domainEvents = domainEvents;
         }
 
         public EndpointInstanceId Id { get; }
 
         public bool Monitored { get; private set; }
-
-        public bool HeartbeatsEnabled { get; private set; }
 
         public async Task EnableMonitoring()
         {

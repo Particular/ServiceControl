@@ -43,8 +43,7 @@
                     Id = id,
                     EndpointDetails = endpoint,
                     HostDisplayName = endpoint.Host,
-                    Monitored = false,
-                    HeartbeatsEnabled = false
+                    Monitored = false
                 };
 
                 await session.StoreAsync(knownEndpoint).ConfigureAwait(false);
@@ -71,8 +70,7 @@
                         Id = id,
                         EndpointDetails = endpoint,
                         HostDisplayName = endpoint.Host,
-                        Monitored = true,
-                        HeartbeatsEnabled = true
+                        Monitored = true
                     };
 
                     await session.StoreAsync(knownEndpoint).ConfigureAwait(false);
@@ -80,7 +78,6 @@
                 else
                 {
                     knownEndpoint.Monitored = monitoring.IsMonitored(id);
-                    knownEndpoint.HeartbeatsEnabled = true;
                 }
 
                 await session.SaveChangesAsync()
@@ -110,7 +107,6 @@
                 if (knownEndpoint != null)
                 {
                     knownEndpoint.Monitored = isMonitored;
-                    knownEndpoint.HeartbeatsEnabled = true;
 
                     await session.SaveChangesAsync()
                         .ConfigureAwait(false);
@@ -128,15 +124,14 @@
                     while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
-                        var heartbeatsEnabled = endpoint.HeartbeatsEnabled ?? true; //default to "on" since older versions only stored endpoints with heartbeats enabled
 
-                        monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored, heartbeatsEnabled);
+                        monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
                     }
                 }
             }
         }
 
-        private IDocumentStore store;
-        private EndpointInstanceMonitoring monitoring;
+        IDocumentStore store;
+        EndpointInstanceMonitoring monitoring;
     }
 }

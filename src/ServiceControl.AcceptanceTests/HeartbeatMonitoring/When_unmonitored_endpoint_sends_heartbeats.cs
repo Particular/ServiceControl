@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests.HeartbeatMonitoring
 {
-    using System.Collections.Generic;
-    using System.Linq;
+    using System;
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Infrastructure.Settings;
@@ -9,6 +8,7 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.Contracts.EndpointControl;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_unmonitored_endpoint_sends_heartbeats : AcceptanceTest
@@ -18,36 +18,55 @@
         [Test]
         public async Task Should_be_marked_as_monitored()
         {
-            List<EndpointsView> endpoints = null;
+            EndpointsView endpoint = null;
 
             await Define<MyContext>()
-                .WithEndpoint<WithoutHeartbeat>(c => c.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<WithoutHeartbeat>(c => c.When(bus =>
+                {
+                    var options = new SendOptions();
+
+                    options.DoNotEnforceBestPractices();
+                    options.SetDestination(Settings.DEFAULT_SERVICE_NAME);
+
+                    return bus.Send(new NewEndpointDetected
+                    {
+                        Endpoint = new ServiceControl.Contracts.Operations.EndpointDetails
+                        {
+                            HostId = Guid.NewGuid(),
+                            Host = "myhost",
+                            Name = EndpointName
+                        },
+                        DetectedAt = DateTime.UtcNow
+                    }, options);
+                }))
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName);
-                    endpoints = result;
-                    return result;
+                    var result = await this.TryGetSingle<EndpointsView>("/api/endpoints", e => e.Name == EndpointName);
+
+                    endpoint = result.Item;
+
+                    return result.HasResult;
                 })
                 .Run();
 
-            var myEndpoint = endpoints.FirstOrDefault(e => e.Name == EndpointName);
-            Assert.NotNull(myEndpoint);
-            Assert.IsFalse(myEndpoint.Monitored);
+            Assert.IsFalse(endpoint.MonitorHeartbeat);
+            Assert.IsFalse(endpoint.Monitored);
 
             await Define<MyContext>()
                 .WithEndpoint<WithHeartbeat>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", e => e.Name == EndpointName && e.Monitored && e.MonitorHeartbeat && e.IsSendingHeartbeats);
-                    endpoints = result;
-                    return result;
+                    var result = await this.TryGetSingle<EndpointsView>("/api/endpoints", e => e.Name == EndpointName && e.IsSendingHeartbeats);
+
+                    endpoint = result.Item;
+
+                    return result.HasResult;
                 })
                 .Run();
 
-            myEndpoint = endpoints.SingleOrDefault(e => e.Name == EndpointName);
-            Assert.NotNull(myEndpoint);
-            Assert.IsTrue(myEndpoint.Monitored);
-            Assert.IsTrue(myEndpoint.IsSendingHeartbeats);
+            Assert.IsTrue(endpoint.MonitorHeartbeat, "Should have heartbeat monitoring on");
+            Assert.IsTrue(endpoint.Monitored, "Should be flagged as monitored");
+            Assert.IsTrue(endpoint.IsSendingHeartbeats, "Should be emitting heartbeats");
         }
 
         public class MyContext : ScenarioContext
@@ -60,14 +79,6 @@
             {
                 EndpointSetup<DefaultServerWithAudit>();
             }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
-                {
-                    return Task.FromResult(0);
-                }
-            }
         }
 
         public class WithHeartbeat : EndpointConfigurationBuilder
@@ -76,10 +87,6 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
             }
-        }
-
-        public class MyMessage : IMessage
-        {
         }
     }
 }

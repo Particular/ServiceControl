@@ -15,8 +15,7 @@ namespace ServiceControl.CompositeViews.Endpoints
                     EndpointDetails_Host = message.EndpointDetails.Host,
                     message.HostDisplayName,
                     message.Monitored,
-                    message.HasTemporaryId,
-                    message.HeartbeatsEnabled
+                    message.HasTemporaryId
                 };
 
             DisableInMemoryIndexing = true;
