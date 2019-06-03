@@ -77,7 +77,7 @@
         {
             public WithoutHeartbeat()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServer>();
             }
         }
 
@@ -85,7 +85,7 @@
         {
             public WithHeartbeat()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
+                EndpointSetup<DefaultServer>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
             }
         }
     }

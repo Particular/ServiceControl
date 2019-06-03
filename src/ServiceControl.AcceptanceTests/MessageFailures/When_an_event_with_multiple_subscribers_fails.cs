@@ -78,7 +78,7 @@
         {
             public Publisher()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServer>();
             }
         }
 
@@ -86,7 +86,7 @@
         {
             public FailingSubscriber1()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(0));
@@ -110,7 +110,7 @@
         {
             public FailingSubscriber2()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(0));

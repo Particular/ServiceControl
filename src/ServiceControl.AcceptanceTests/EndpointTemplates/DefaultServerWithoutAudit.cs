@@ -14,7 +14,7 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
 
-    public class DefaultServerWithoutAudit : IEndpointSetupTemplate
+    public class DefaultServer : IEndpointSetupTemplate
     {
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {

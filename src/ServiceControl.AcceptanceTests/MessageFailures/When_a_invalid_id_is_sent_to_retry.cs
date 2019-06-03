@@ -44,7 +44,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(0));

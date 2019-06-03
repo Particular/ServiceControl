@@ -59,7 +59,7 @@
         {
             public SendOnlyEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServer>();
             }
 
             class Foo : DispatchRawMessages<MyContext>

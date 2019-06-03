@@ -42,7 +42,7 @@
         {
             public StartingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME));
+                EndpointSetup<DefaultServer>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME));
             }
         }
     }

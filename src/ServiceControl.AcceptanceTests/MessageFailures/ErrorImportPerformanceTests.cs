@@ -40,7 +40,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.Recoverability().Delayed(s => s.NumberOfRetries(0)));
+                EndpointSetup<DefaultServer>(c => c.Recoverability().Delayed(s => s.NumberOfRetries(0)));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

@@ -37,7 +37,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoDelayedRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
             }
 
             public class SendFailedMessage : DispatchRawMessages<MyContext>

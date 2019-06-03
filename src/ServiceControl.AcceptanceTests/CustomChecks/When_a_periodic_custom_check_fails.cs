@@ -67,7 +67,7 @@
         {
             public EndpointThatUsesSignalR()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<EnableSignalR>());
+                EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
             }
 
             class EnableSignalR : Feature
@@ -122,7 +122,7 @@
         {
             public WithCustomCheck()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
+                EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
             }
 
             class FailingCustomCheck : CustomCheck

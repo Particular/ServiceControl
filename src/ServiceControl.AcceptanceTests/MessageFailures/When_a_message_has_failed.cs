@@ -204,7 +204,7 @@
         {
             public EndpointThatUsesSignalR()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
@@ -269,7 +269,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
+                EndpointSetup<DefaultServer>(c => c.NoRetries());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -292,7 +292,7 @@
         {
             public FailingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));

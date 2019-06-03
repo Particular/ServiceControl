@@ -51,7 +51,7 @@
         {
             public Failing()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.NoOutbox();

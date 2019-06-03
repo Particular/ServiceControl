@@ -64,7 +64,7 @@
         {
             public Originator()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(OriginalMessage), typeof(Receiver));
@@ -87,7 +87,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
             }
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>

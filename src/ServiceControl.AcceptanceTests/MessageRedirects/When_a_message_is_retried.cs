@@ -53,7 +53,7 @@
         {
             public FromEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
             }
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
@@ -74,7 +74,7 @@
         {
             public ToNewEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServer>();
             }
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>

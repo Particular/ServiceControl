@@ -53,7 +53,7 @@
         {
             public FailingEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableFeature<Outbox>();
 

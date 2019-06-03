@@ -64,7 +64,7 @@
         {
             public VerifyHeader()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(
+                EndpointSetup<DefaultServer>(
                     (c, r) => c.RegisterMessageMutator(new CaptureHeaders((TestContext)r.ScenarioContext))
                 );
             }

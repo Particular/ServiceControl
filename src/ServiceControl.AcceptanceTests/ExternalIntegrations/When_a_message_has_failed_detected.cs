@@ -52,7 +52,7 @@
         {
             public FailingReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.Recoverability().Immediate(s => s.NumberOfRetries(2)).Delayed(s => s.NumberOfRetries(0)); });
+                EndpointSetup<DefaultServer>(c => { c.Recoverability().Immediate(s => s.NumberOfRetries(2)).Delayed(s => s.NumberOfRetries(0)); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

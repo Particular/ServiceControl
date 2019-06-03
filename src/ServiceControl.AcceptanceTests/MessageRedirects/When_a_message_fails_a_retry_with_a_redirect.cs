@@ -69,7 +69,7 @@
         {
             public OriginalEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
             }
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
@@ -90,7 +90,7 @@
         {
             public NewEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
             }
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>

@@ -66,7 +66,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
             }
 
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>

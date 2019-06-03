@@ -77,7 +77,7 @@
         {
             public Failing()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
+                EndpointSetup<DefaultServer>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
             }
 
             class SendFailedMessage : DispatchRawMessages<MyContext>

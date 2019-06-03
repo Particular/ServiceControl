@@ -81,7 +81,7 @@
         {
             public SourceEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServer>();
             }
 
             class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages<MyContext>
