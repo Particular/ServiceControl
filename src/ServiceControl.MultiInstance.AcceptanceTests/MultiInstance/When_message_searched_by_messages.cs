@@ -36,19 +36,19 @@
                 .Run();
 
             var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlInstanceName].ApiUrl);
-            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].ApiUrl);
+            var expectedAuditInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].ApiUrl);
 
-            Assert.AreNotEqual(expectedMasterInstanceId, expectedRemote1InstanceId);
+            Assert.AreNotEqual(expectedMasterInstanceId, expectedAuditInstanceId);
 
-            var masterMessage = response.SingleOrDefault(msg => msg.MessageId == context.MasterMessageId);
+            var sentMessage = response.SingleOrDefault(msg => msg.MessageId == context.SentMessageId);
 
-            Assert.NotNull(masterMessage, "Master message not found");
-            Assert.AreEqual(expectedMasterInstanceId, masterMessage.InstanceId, "Master instance id mismatch");
+            Assert.NotNull(sentMessage, "Sent message not found");
+            Assert.AreEqual(expectedAuditInstanceId, sentMessage.InstanceId, "Audit instance id mismatch");
 
-            var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
+            var sentLocalMessage = response.SingleOrDefault(msg => msg.MessageId == context.SentLocalMessageId);
 
-            Assert.NotNull(remote1Message, "Remote1 message not found");
-            Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
+            Assert.NotNull(sentLocalMessage, "Sent local message not found");
+            Assert.AreEqual(expectedAuditInstanceId, sentLocalMessage.InstanceId, "Audit instance id mismatch");
         }
 
         public class Sender : EndpointConfigurationBuilder
@@ -72,7 +72,7 @@
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MasterMessageId = context.MessageId;
+                    Context.SentLocalMessageId = context.MessageId;
                     return Task.FromResult(0);
                 }
             }
@@ -94,7 +94,7 @@
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.Remote1MessageId = context.MessageId;
+                    Context.SentMessageId = context.MessageId;
                     return Task.FromResult(0);
                 }
             }
@@ -107,8 +107,8 @@
 
         public class MyContext : ScenarioContext
         {
-            public string MasterMessageId { get; set; }
-            public string Remote1MessageId { get; set; }
+            public string SentMessageId { get; set; }
+            public string SentLocalMessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
         }

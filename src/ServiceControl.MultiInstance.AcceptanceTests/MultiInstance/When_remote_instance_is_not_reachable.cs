@@ -16,8 +16,10 @@
         {
             CustomServiceControlSettings = s =>
             {
+                var currentSetting = s.RemoteInstances[0];
                 s.RemoteInstances = new[]
                 {
+                    currentSetting,
                     new RemoteInstanceSetting
                     {
                         ApiUri = "http://localhost:12121",
@@ -34,8 +36,7 @@
                 .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: ServiceControlInstanceName))
                 .Run();
         }
-
-        //private string addressOfRemote;
+        
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
