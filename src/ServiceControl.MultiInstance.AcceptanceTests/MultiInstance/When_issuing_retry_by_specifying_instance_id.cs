@@ -11,12 +11,14 @@
     using ServiceControl.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
 
-    class When_issuing_retry_on_master : AcceptanceTest
+    // Tests https://docs.particular.net/servicecontrol/servicecontrol-instances/distributed-instances#advanced-scenarios-multi-region-deployments
+    class When_issuing_retry_by_specifying_instance_id : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_forwarded_and_resolved_on_remote()
+        public async Task Should_be_work()
         {
-            CustomServiceControlAuditSettings = s => addressOfRemote = s.ApiUrl;
+            // instead of setting up a multiple crazy instances we just use the current instance and rely on it forwarding the instance call to itself
+            CustomServiceControlSettings = s => { addressOfItself = s.ApiUrl; };
 
             FailedMessage failure;
 
@@ -26,18 +28,18 @@
                 {
                     if (!c.RetryIssued)
                     {
-                        var result = await GetFailedMessage(c, ServiceControlAuditInstanceName, FailedMessageStatus.Unresolved);
+                        var result = await GetFailedMessage(c, ServiceControlInstanceName, FailedMessageStatus.Unresolved);
                         failure = result;
                         if (result)
                         {
                             c.RetryIssued = true;
-                            await this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfRemote)}", null, null, ServiceControlInstanceName);
+                            await this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfItself)}", null, null, ServiceControlInstanceName);
                         }
 
                         return false;
                     }
 
-                    return await GetFailedMessage(c, ServiceControlAuditInstanceName, FailedMessageStatus.Resolved);
+                    return await GetFailedMessage(c, ServiceControlInstanceName, FailedMessageStatus.Resolved);
                 })
                 .Run(TimeSpan.FromMinutes(2));
         }
@@ -52,7 +54,7 @@
             return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
         }
 
-        private string addressOfRemote = "TODO";
+        private string addressOfItself = "TODO";
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
