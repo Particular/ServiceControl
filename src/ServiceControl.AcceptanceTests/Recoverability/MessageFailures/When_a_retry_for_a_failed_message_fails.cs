@@ -100,7 +100,10 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
+                EndpointSetup<DefaultServer>(c => {
+                    c.NoRetries();
+                    c.ReportSuccessfulRetriesToServiceControl();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
