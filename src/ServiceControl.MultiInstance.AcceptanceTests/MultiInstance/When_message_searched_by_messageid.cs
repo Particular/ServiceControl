@@ -17,8 +17,8 @@
         {
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
-                .WithEndpoint<ReceiverRemote>()
-                .Done(async c => c.Remote1MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: ServiceControlInstanceName))
+                .WithEndpoint<Receiver>()
+                .Done(async c => c.MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/" + c.MessageId, instanceName: ServiceControlInstanceName))
                 .Run();
         }
 
@@ -31,14 +31,14 @@
                 {
                     c.ConfigureTransport()
                         .Routing()
-                        .RouteToEndpoint(typeof(MyMessage), typeof(ReceiverRemote));
+                        .RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }
         }
 
-        public class ReceiverRemote : EndpointConfigurationBuilder
+        public class Receiver : EndpointConfigurationBuilder
         {
-            public ReceiverRemote()
+            public Receiver()
             {
                 EndpointSetup<DefaultServerWithAudit>(c => { });
             }
@@ -52,7 +52,7 @@
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.Remote1MessageId = context.MessageId;
+                    Context.MessageId = context.MessageId;
                     return Task.FromResult(0);
                 }
             }
@@ -65,7 +65,7 @@
 
         public class MyContext : ScenarioContext
         {
-            public string Remote1MessageId { get; set; }
+            public string MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
         }

@@ -14,12 +14,12 @@
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
 
-    class When_requesting_a_message_body_on_master : AcceptanceTest
+    class When_requesting_a_message_body : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_forwarded_to_remote()
+        public async Task Should_be_forwarded_to_audit_instance()
         {
-            CustomServiceControlAuditSettings = s => addressOfRemote = s.ApiUrl;
+            CustomServiceControlAuditSettings = s => addressOfAuditInstance = s.ApiUrl;
 
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;
@@ -27,60 +27,60 @@
             var context = await Define<MyContext>()
                 .WithEndpoint<RemoteEndpoint>(b => b.When(async (bus, ctx) =>
                 {
-                    ctx.Remote1InstanceId = InstanceIdGenerator.FromApiUrl(addressOfRemote);
+                    ctx.AuditInstanceId = InstanceIdGenerator.FromApiUrl(addressOfAuditInstance);
                     await bus.SendLocal(new MyMessage());
                 }))
                 .Done(async c =>
                 {
-                    if (string.IsNullOrWhiteSpace(c.Remote1MessageId))
+                    if (string.IsNullOrWhiteSpace(c.AuditInstanceMessageId))
                     {
                         return false;
                     }
 
-                    if (!c.Remote1MessageAudited)
+                    if (!c.MessageAudited)
                     {
-                        var result = await this.TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.Remote1MessageId, ServiceControlInstanceName);
+                        var result = await this.TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.AuditInstanceMessageId, ServiceControlInstanceName);
                         List<MessagesView> messages = result;
                         if (!result)
                         {
                             return false;
                         }
 
-                        c.Remote1MessageAudited = true;
-                        capturedMessage = messages.Single(msg => msg.MessageId == c.Remote1MessageId);
+                        c.MessageAudited = true;
+                        capturedMessage = messages.Single(msg => msg.MessageId == c.AuditInstanceMessageId);
                     }
 
                     response = await this.GetRaw($"/api/{capturedMessage.BodyUrl}", ServiceControlInstanceName);
-                    Console.WriteLine($"GetRaw for {c.Remote1MessageId} resulted in {response.StatusCode}");
+                    Console.WriteLine($"GetRaw for {c.AuditInstanceMessageId} resulted in {response.StatusCode}");
                     return response.StatusCode == HttpStatusCode.OK;
                 })
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.AreEqual(context.Remote1MessageContentType, response.Content.Headers.ContentType.ToString(), "ContentType mismatch");
+            Assert.AreEqual(context.MessageContentType, response.Content.Headers.ContentType.ToString(), "ContentType mismatch");
             Assert.NotNull(response.Content.Headers.Expires, "Expires header missing");
 
             Assert.GreaterOrEqual(response.Content.Headers.Expires.Value, DateTimeOffset.UtcNow.AddDays(360), "Unexpected Expires datetime year value");
 
             Assert.NotNull(response.Content.Headers.ContentLength, "ContentLength not set");
 
-            Assert.AreEqual(context.Remote1MessageBody.Length, response.Content.Headers.ContentLength.Value, "ContentLength mismatch");
+            Assert.AreEqual(context.MessageBody.Length, response.Content.Headers.ContentLength.Value, "ContentLength mismatch");
 
             var body = await response.Content.ReadAsByteArrayAsync();
 
-            Assert.AreEqual(context.Remote1MessageBody, body, "Body bytes mismatch");
+            Assert.AreEqual(context.MessageBody, body, "Body bytes mismatch");
 
             Assert.NotNull(response.Headers.GetValues("ETag").SingleOrDefault(), "Etag not set");
         }
 
-        private string addressOfRemote = "TODO";
+        private string addressOfAuditInstance = "TODO";
 
         class MyContext : ScenarioContext
         {
-            public string Remote1MessageId { get; set; }
-            public byte[] Remote1MessageBody { get; set; }
-            public string Remote1MessageContentType { get; set; }
-            public bool Remote1MessageAudited { get; set; }
-            public string Remote1InstanceId { get; set; }
+            public string AuditInstanceMessageId { get; set; }
+            public byte[] MessageBody { get; set; }
+            public string MessageContentType { get; set; }
+            public bool MessageAudited { get; set; }
+            public string AuditInstanceId { get; set; }
         }
 
         class MyMessage : ICommand
@@ -101,8 +101,8 @@
 
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
-                    Context.Remote1MessageContentType = context.Headers[Headers.ContentType];
-                    Context.Remote1MessageBody = context.Body;
+                    Context.MessageContentType = context.Headers[Headers.ContentType];
+                    Context.MessageBody = context.Body;
                     return Task.FromResult(0);
                 }
             }
@@ -113,7 +113,7 @@
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.Remote1MessageId = context.MessageId;
+                    Context.AuditInstanceMessageId = context.MessageId;
                     return Task.FromResult(0);
                 }
             }

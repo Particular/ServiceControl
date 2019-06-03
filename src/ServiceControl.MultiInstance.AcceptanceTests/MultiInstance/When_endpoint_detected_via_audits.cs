@@ -12,17 +12,17 @@
     using ServiceControl.CompositeViews.Endpoints;
     using ServiceControl.Monitoring;
 
-    class When_endpoint_detected_via_audits_on_slave : AcceptanceTest
+    class When_endpoint_detected_via_audits : AcceptanceTest
     {
         [Test]
-        public async Task Should_be_configurable_on_master()
+        public async Task Should_be_configurable()
         {
             CustomEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             List<EndpointsView> response = null;
 
             await Define<MyContext>()
-                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
+                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.ServiceControlSubscribed,
                     (bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
@@ -61,7 +61,7 @@
             {
                 if (s.SubscriberReturnAddress.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    ctx.MasterSubscribed = true;
+                    ctx.ServiceControlSubscribed = true;
                 }
             });
         }
@@ -93,7 +93,7 @@
         public class MyContext : ScenarioContext
         {
             public bool EndpointKnownOnMaster { get; set; }
-            public bool MasterSubscribed { get; set; }
+            public bool ServiceControlSubscribed { get; set; }
         }
     }
 }

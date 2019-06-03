@@ -26,7 +26,7 @@
                     await bus.Send(new MyMessage());
                     await bus.SendLocal(new MyMessage());
                 }))
-                .WithEndpoint<ReceiverRemote>()
+                .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetMany<MessagesView>("/api/messages/", instanceName: ServiceControlInstanceName);
@@ -59,7 +59,7 @@
                 {
                     c.ConfigureTransport()
                         .Routing()
-                        .RouteToEndpoint(typeof(MyMessage), typeof(ReceiverRemote));
+                        .RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }
 
@@ -78,9 +78,9 @@
             }
         }
 
-        public class ReceiverRemote : EndpointConfigurationBuilder
+        public class Receiver : EndpointConfigurationBuilder
         {
-            public ReceiverRemote()
+            public Receiver()
             {
                 EndpointSetup<DefaultServerWithAudit>(c => { });
             }

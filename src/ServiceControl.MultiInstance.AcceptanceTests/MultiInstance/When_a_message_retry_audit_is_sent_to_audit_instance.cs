@@ -10,17 +10,17 @@
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
 
-    class When_a_message_retry_audit_is_sent_to_a_remote_instance : AcceptanceTest
+    class When_a_message_retry_audit_is_sent_to_audit_instance : AcceptanceTest
     {
         [Test]
-        public async Task Should_mark_as_resolved_on_master()
+        public async Task Should_mark_as_resolved()
         {
             CustomAuditEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             FailedMessage failure;
 
             await Define<MyContext>()
-                .WithEndpoint<Failing>(b => b.When(c => c.HasNativePubSubSupport || c.MasterSubscribed,
+                .WithEndpoint<Failing>(b => b.When(c => c.HasNativePubSubSupport || c.ServiceControlSubscribed,
                     bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
@@ -48,7 +48,7 @@
             {
                 if (s.SubscriberReturnAddress.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    ctx.MasterSubscribed = true;
+                    ctx.ServiceControlSubscribed = true;
                 }
             });
         }
@@ -117,7 +117,7 @@
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
             public string LocalAddress { get; set; }
             public bool RetryIssued { get; set; }
-            public bool MasterSubscribed { get; set; }
+            public bool ServiceControlSubscribed { get; set; }
         }
     }
 }
