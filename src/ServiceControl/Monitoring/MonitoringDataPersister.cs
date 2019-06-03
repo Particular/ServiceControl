@@ -128,7 +128,7 @@
                     while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
-                        var heartbeatsEnabled = endpoint.HeartbeatsEnabled ?? true; //default to "on" since older versions only stored heart beat enabled endpoints
+                        var heartbeatsEnabled = endpoint.HeartbeatsEnabled ?? true; //default to "on" since older versions only stored endpoints with heartbeats enabled
 
                         monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored, heartbeatsEnabled);
                     }
