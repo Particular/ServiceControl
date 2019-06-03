@@ -15,7 +15,7 @@
         [Test]
         public async Task Should_mark_as_resolved_on_master()
         {
-            CustomEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
+            CustomAuditEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             FailedMessage failure;
 

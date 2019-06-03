@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Auditing;
+    using Contracts.MessageFailures;
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using NServiceBus;
