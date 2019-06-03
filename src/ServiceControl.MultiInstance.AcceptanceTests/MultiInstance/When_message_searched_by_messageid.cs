@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -19,42 +18,10 @@
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
-                .Done(async c => c.Remote1MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: Master))
+                .Done(async c => c.Remote1MessageId != null && await this.TryGetMany<MessagesView>("/api/messages/search/" + c.Remote1MessageId, instanceName: ServiceControlInstanceName))
                 .Run();
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
-        {
-            // TODO: fix
-            //switch (instanceName)
-            //{
-            //    case Remote1:
-            //        addressOfRemote = settings.ApiUrl;
-            //        settings.AuditQueue = AuditRemote;
-            //        settings.ErrorQueue = ErrorRemote;
-            //        break;
-            //    case Master:
-            //        settings.RemoteInstances = new[]
-            //        {
-            //            new RemoteInstanceSetting
-            //            {
-            //                ApiUri = addressOfRemote,
-            //                QueueAddress = Remote1
-            //            }
-            //        };
-            //        settings.AuditQueue = AuditMaster;
-            //        settings.ErrorQueue = ErrorMaster;
-            //        break;
-            //}
-        }
-
-        //private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit";
-        private static string ErrorRemote = $"{Remote1}.error";
 
         public class Sender : EndpointConfigurationBuilder
         {
@@ -62,9 +29,6 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.AuditProcessedMessagesTo(AuditMaster);
-                    c.SendFailedMessagesTo(ErrorMaster);
-
                     c.ConfigureTransport()
                         .Routing()
                         .RouteToEndpoint(typeof(MyMessage), typeof(ReceiverRemote));
@@ -76,11 +40,7 @@
         {
             public ReceiverRemote()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.AuditProcessedMessagesTo(AuditRemote);
-                    c.SendFailedMessagesTo(ErrorRemote);
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

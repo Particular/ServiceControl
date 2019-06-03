@@ -7,7 +7,6 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
@@ -20,6 +19,8 @@
         [Test]
         public async Task Should_be_forwarded_to_remote()
         {
+            CustomServiceControlAuditSettings = s => addressOfRemote = s.ApiUrl;
+
             HttpResponseMessage response = null;
             MessagesView capturedMessage = null;
 
@@ -38,7 +39,7 @@
 
                     if (!c.Remote1MessageAudited)
                     {
-                        var result = await this.TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.Remote1MessageId, Master);
+                        var result = await this.TryGetMany<MessagesView>("/api/messages", msg => msg.MessageId == c.Remote1MessageId, ServiceControlInstanceName);
                         List<MessagesView> messages = result;
                         if (!result)
                         {
@@ -49,7 +50,7 @@
                         capturedMessage = messages.Single(msg => msg.MessageId == c.Remote1MessageId);
                     }
 
-                    response = await this.GetRaw($"/api/{capturedMessage.BodyUrl}", Master);
+                    response = await this.GetRaw($"/api/{capturedMessage.BodyUrl}", ServiceControlInstanceName);
                     Console.WriteLine($"GetRaw for {c.Remote1MessageId} resulted in {response.StatusCode}");
                     return response.StatusCode == HttpStatusCode.OK;
                 })
@@ -71,38 +72,7 @@
             Assert.NotNull(response.Headers.GetValues("ETag").SingleOrDefault(), "Etag not set");
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
-        {
-            // TODO: fix
-            //switch (instanceName)
-            //{
-            //    case Remote1:
-            //        addressOfRemote = settings.ApiUrl;
-            //        settings.AuditQueue = AuditRemote;
-            //        settings.ErrorQueue = ErrorRemote;
-            //        break;
-            //    case Master:
-            //        settings.RemoteInstances = new[]
-            //        {
-            //            new RemoteInstanceSetting
-            //            {
-            //                ApiUri = addressOfRemote,
-            //                QueueAddress = Remote1
-            //            }
-            //        };
-            //        settings.AuditQueue = AuditMaster;
-            //        settings.ErrorQueue = ErrorMaster;
-            //        break;
-            //}
-        }
-
         private string addressOfRemote = "TODO";
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
 
         class MyContext : ScenarioContext
         {
@@ -122,11 +92,7 @@
         {
             public RemoteEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.RegisterComponents(cc => cc.ConfigureComponent<MessageBodySpy>(DependencyLifecycle.SingleInstance));
-                    c.AuditProcessedMessagesTo(AuditRemote);
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.RegisterComponents(cc => cc.ConfigureComponent<MessageBodySpy>(DependencyLifecycle.SingleInstance)); });
             }
 
             public class MessageBodySpy : IMutateIncomingTransportMessages

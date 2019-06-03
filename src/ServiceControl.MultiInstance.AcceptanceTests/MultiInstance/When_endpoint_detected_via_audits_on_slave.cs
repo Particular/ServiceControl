@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -27,7 +26,7 @@
                     (bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                    var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: ServiceControlInstanceName);
                     response = result;
                     if (result && response.Count > 0)
                     {
@@ -41,9 +40,9 @@
                         await this.Patch($"/api/endpoints/{endpointId}", new EndpointUpdateModel
                         {
                             MonitorHeartbeat = true
-                        }, Master);
+                        }, ServiceControlInstanceName);
 
-                        var resultAfterPath = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: Master);
+                        var resultAfterPath = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: ServiceControlInstanceName);
                         response = resultAfterPath;
                         return resultAfterPath;
                     }
@@ -56,59 +55,22 @@
             Assert.IsTrue(response.First().MonitorHeartbeat);
         }
 
-        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
-        {
-            // TODO: fix
-            //switch (instanceName)
-            //{
-            //    case Slave:
-            //        addressOfRemote = settings.ApiUrl;
-            //        settings.AuditQueue = AuditSlave;
-            //        settings.ErrorQueue = ErrorSlave;
-            //        break;
-            //    case Master:
-            //        settings.RemoteInstances = new[]
-            //        {
-            //            new RemoteInstanceSetting
-            //            {
-            //                ApiUri = addressOfRemote,
-            //                QueueAddress = Slave
-            //            }
-            //        };
-            //        settings.AuditQueue = AuditMaster;
-            //        settings.ErrorQueue = ErrorMaster;
-            //        break;
-            //}
-        }
-
         void ConfigureWaitingForMasterToSubscribe(EndpointConfiguration config)
         {
             config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (s.SubscriberReturnAddress.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     ctx.MasterSubscribed = true;
                 }
             });
         }
 
-        //private string addressOfRemote;
-        private const string Master = "master";
-        private const string Slave = "slave";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditSlave = $"{Slave}.audit";
-        private static string ErrorSlave = $"{Slave}.error";
-
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.AuditProcessedMessagesTo(AuditSlave);
-                    c.SendFailedMessagesTo(ErrorMaster);
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

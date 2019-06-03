@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -34,7 +33,7 @@
 
                     if (failure.Status == FailedMessageStatus.Unresolved)
                     {
-                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, Master));
+                        await IssueRetry(c, () => this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry", null, null, ServiceControlInstanceName));
                         return false;
                     }
 
@@ -43,36 +42,11 @@
                 .Run(TimeSpan.FromMinutes(2));
         }
 
-        private void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
-        {
-            // TODO: fix
-            //switch (instanceName)
-            //{
-            //    case Remote1:
-            //        addressOfRemote = settings.ApiUrl;
-            //        settings.AuditQueue = AuditRemote;
-            //        settings.ErrorQueue = ErrorRemote;
-            //        break;
-            //    case Master:
-            //        settings.RemoteInstances = new[]
-            //        {
-            //            new RemoteInstanceSetting
-            //            {
-            //                ApiUri = addressOfRemote,
-            //                QueueAddress = Remote1
-            //            }
-            //        };
-            //        settings.AuditQueue = AuditMaster;
-            //        settings.ErrorQueue = ErrorMaster;
-            //        break;
-            //}
-        }
-
         static void ConfigureWaitingForMasterToSubscribe(EndpointConfiguration config)
         {
             config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.IndexOf(Master, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (s.SubscriberReturnAddress.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     ctx.MasterSubscribed = true;
                 }
@@ -86,7 +60,7 @@
                 return Task.FromResult(SingleResult<FailedMessage>.Empty);
             }
 
-            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, msg => true, Master);
+            return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, msg => true, ServiceControlInstanceName);
         }
 
         async Task IssueRetry(MyContext c, Func<Task> retryAction)
@@ -98,24 +72,11 @@
             }
         }
 
-        //private string addressOfRemote;
-        private const string Master = "master";
-        private const string Remote1 = "remote1";
-        private static string AuditMaster = $"{Master}.audit";
-        private static string ErrorMaster = $"{Master}.error";
-        private static string AuditRemote = $"{Remote1}.audit1";
-        private static string ErrorRemote = $"{Remote1}.error1";
-
         public class Failing : EndpointConfigurationBuilder
         {
             public Failing()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.NoRetries();
-                    c.AuditProcessedMessagesTo(AuditRemote);
-                    c.SendFailedMessagesTo(ErrorMaster);
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
