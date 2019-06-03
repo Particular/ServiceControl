@@ -29,8 +29,10 @@ namespace ServiceBus.Management.AcceptanceTests
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {
+            this.customServiceControlSettings = customServiceControlSettings;
+            this.customServiceControlAuditSettings = customServiceControlAuditSettings;
             this.customAuditEndpointConfiguration = customAuditEndpointConfiguration;
             this.customEndpointConfiguration = customEndpointConfiguration;
             this.transportToUse = transportToUse;
@@ -48,8 +50,10 @@ namespace ServiceBus.Management.AcceptanceTests
         public async Task Initialize(RunDescriptor run)
         {
             SettingsPerInstance.Clear();
-            await InitializeServiceControl(run.ScenarioContext).ConfigureAwait(false);
-            await InitializeServiceControlAudit(run.ScenarioContext).ConfigureAwait(false);
+            
+            var startPort = 33333;
+            startPort = await InitializeServiceControlAudit(run.ScenarioContext, startPort).ConfigureAwait(false);
+            await InitializeServiceControl(run.ScenarioContext, startPort).ConfigureAwait(false);
         }
 
         static int FindAvailablePort(int startPort)
@@ -70,10 +74,8 @@ namespace ServiceBus.Management.AcceptanceTests
             return startPort;
         }
 
-        async Task InitializeServiceControl(ScenarioContext context)
+        async Task<int> InitializeServiceControl(ScenarioContext context, int startPort)
         {
-            var startPort = 33333;
-
             var instanceName = Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
 
@@ -94,6 +96,14 @@ namespace ServiceBus.Management.AcceptanceTests
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                RemoteInstances = new[]
+                {
+                    new RemoteInstanceSetting
+                    {
+                        ApiUri = $"http://localhost:{startPort-2}/api", // evil assumption for now
+                        QueueAddress = $"{Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME}"
+                    }
+                },
                 OnMessage = (id, headers, body, @continue) =>
                 {
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();
@@ -125,10 +135,13 @@ namespace ServiceBus.Management.AcceptanceTests
                 }
             };
 
+            customServiceControlSettings(settings);
             SettingsPerInstance[instanceName] = settings;
 
             var configuration = new EndpointConfiguration(instanceName);
             configuration.EnableInstallers();
+            var scanner = configuration.AssemblyScanner();
+            scanner.ExcludeAssemblies(Path.GetFileName(typeof(ServiceControl.Audit.Infrastructure.Settings.Settings).Assembly.CodeBase));
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
@@ -198,13 +211,13 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
             }
+
+            return startPort;
         }
 
-        async Task InitializeServiceControlAudit(ScenarioContext context)
+        async Task<int> InitializeServiceControlAudit(ScenarioContext context, int startPort)
         {
-            var startPort = 33333;
-
-            var instanceName = Settings.DEFAULT_SERVICE_NAME;
+            var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
 
             var instancePort = FindAvailablePort(startPort++);
@@ -253,10 +266,13 @@ namespace ServiceBus.Management.AcceptanceTests
                 }
             };
 
+            customServiceControlAuditSettings(settings);
             SettingsPerInstance[instanceName] = settings;
 
             var configuration = new EndpointConfiguration(instanceName);
             configuration.EnableInstallers();
+            var scanner = configuration.AssemblyScanner();
+            scanner.ExcludeAssemblies(Path.GetFileName(typeof(Settings).Assembly.CodeBase));
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
@@ -326,6 +342,8 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
             }
+
+            return startPort;
         }
 
         public override async Task Stop()
@@ -404,6 +422,8 @@ namespace ServiceBus.Management.AcceptanceTests
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
+        Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<Settings> customServiceControlSettings;
 
         class ForwardingHandler : DelegatingHandler
         {
