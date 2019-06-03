@@ -80,7 +80,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));

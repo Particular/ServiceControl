@@ -60,7 +60,7 @@
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
                     c.EnableFeature<AutoSubscribe>();

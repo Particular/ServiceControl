@@ -48,7 +48,7 @@
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }
 
             public class MySaga : Saga<MySaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>

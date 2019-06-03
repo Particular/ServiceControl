@@ -77,7 +77,7 @@
         {
             public WithoutHeartbeat()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
         }
 

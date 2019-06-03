@@ -104,7 +104,7 @@
         {
             public ErrorLogSpy()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -135,7 +135,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));
