@@ -12,6 +12,7 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceBus.Management.AcceptanceTests;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_retry_for_a_empty_body_message_is_successful : AcceptanceTest
@@ -70,6 +71,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoDelayedRetries();
+                    c.ReportSuccessfulRetriesToServiceControl();
                     c.Pipeline.Register(cc => new LookForControlMessage(cc.Build<MyContext>()), "Look for control messages");
                 });
             }

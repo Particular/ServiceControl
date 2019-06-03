@@ -25,5 +25,10 @@
         {
             configuration.DisableFeature<Outbox>();
         }
+
+        public static void ReportSuccessfulRetriesToServiceControl(this EndpointConfiguration configuration)
+        {
+            configuration.Pipeline.Register(typeof(ReportSuccessfulRetryToServiceControl), "Simulate that the audit instance detects and reports successfull retries");
+        }
     }
 }
