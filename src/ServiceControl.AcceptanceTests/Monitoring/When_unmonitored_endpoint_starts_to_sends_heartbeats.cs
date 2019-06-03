@@ -11,7 +11,7 @@
     using ServiceControl.Contracts.EndpointControl;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_unmonitored_endpoint_sends_heartbeats : AcceptanceTest
+    class When_unmonitored_endpoint_starts_to_sends_heartbeats : AcceptanceTest
     {
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(WithoutHeartbeat));
 
