@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading;
-    using Infrastructure.Extensions;
-    using Infrastructure.Nancy.Modules;
     using Nancy;
     using Raven.Client;
     using ServiceControl.Audit.Auditing;
+    using ServiceControl.Audit.Infrastructure.Extensions;
+    using ServiceControl.Audit.Infrastructure.Nancy.Modules;
 
     public class FailedAuditsCountReponse
     {

@@ -1,4 +1,4 @@
-namespace Particular.ServiceControl
+namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.IO;
@@ -8,30 +8,28 @@ namespace Particular.ServiceControl
     using System.Net.Http.Headers;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Auditing.MessagesView;
     using Autofac;
     using Autofac.Features.ResolveAnything;
-    using global::ServiceControl.CompositeViews.Messages;
-    using global::ServiceControl.Infrastructure;
-    using global::ServiceControl.Infrastructure.DomainEvents;
-    using global::ServiceControl.Monitoring;
-    using global::ServiceControl.Operations;
-    using global::ServiceControl.Transports;
+    using DomainEvents;
+    using global::Nancy;
+    using global::Nancy.ModelBinding;
     using Microsoft.Owin.Hosting;
+    using Monitoring;
     using Nancy;
-    using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using OWIN;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure;
-    using ServiceBus.Management.Infrastructure.OWIN;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
+    using Transports;
 
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
             if (configuration == null)
             {
@@ -71,7 +69,7 @@ namespace Particular.ServiceControl
 
             containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
 
-            var domainEvents = new DomainEvents();
+            var domainEvents = new DomainEvents.DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
             transportSettings = new TransportSettings();
@@ -89,8 +87,8 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<DomainEventBusPublisher>().AsImplementedInterfaces().AsSelf().SingleInstance();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
 
-            containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetSerializer>().As<ISerializer>();
-            containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetBodyDeserializer>().As<IBodyDeserializer>();
+            containerBuilder.RegisterType<JsonNetSerializer>().As<ISerializer>();
+            containerBuilder.RegisterType<JsonNetBodyDeserializer>().As<IBodyDeserializer>();
             containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsAssignableTo<INancyModule>()).As<INancyModule>();
 
             additionalRegistrationActions?.Invoke(containerBuilder);
@@ -197,7 +195,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
-        private Settings settings;
+        private Settings.Settings settings;
         private IContainer container;
         private BusInstance bus;
         private TransportSettings transportSettings;

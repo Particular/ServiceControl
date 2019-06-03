@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using NLog.Common;
-using NServiceBus.Logging;
-using ServiceControl.Transports;
-
-namespace ServiceBus.Management.Infrastructure.Settings
+﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Configuration;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
+    using System.Threading.Tasks;
+    using NLog.Common;
+    using NServiceBus.Logging;
+    using Transports;
+
     public class Settings
     {
         public Settings(string serviceName = null)

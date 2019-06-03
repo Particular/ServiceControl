@@ -1,11 +1,9 @@
-﻿namespace ServiceControl.EndpointControl.Handlers
+﻿namespace ServiceControl.Audit.Monitoring
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Audit.Auditing;
-    using Contracts.Operations;
-    using Monitoring;
+    using Auditing;
 
     class DetectNewEndpointsFromAuditImportsEnricher : AuditImportEnricher
     {
@@ -52,5 +50,4 @@
 
         EndpointInstanceMonitoring monitoring;
     }
-
 }

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Contracts.Operations
+﻿namespace ServiceControl.Audit.Monitoring
 {
     public enum MessageStatus
     {

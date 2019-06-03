@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Monitoring
 {
     using System.Threading.Tasks;
+    using Contracts.EndpointControl;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceControl.Contracts.EndpointControl;
-    using ServiceControl.Infrastructure.DomainEvents;
 
     class When_a_new_endpoint_is_detected : AcceptanceTest
     {
@@ -27,7 +27,7 @@
         public class DomainEventSpy : IDomainHandler<NewEndpointDetected>
         {
             public MyContext TestContext { get; set; }
-           
+
             public Task Handle(NewEndpointDetected domainEvent)
             {
                 TestContext.EventRaised = true;

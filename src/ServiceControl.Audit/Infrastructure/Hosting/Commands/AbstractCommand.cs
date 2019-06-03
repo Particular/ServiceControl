@@ -1,7 +1,6 @@
-﻿namespace Particular.ServiceControl.Commands
+﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System.Threading.Tasks;
-    using Hosting;
 
     abstract class AbstractCommand
     {

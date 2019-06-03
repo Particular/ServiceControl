@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class CheckFreeDiskSpace : CustomCheck
     {
@@ -13,7 +12,7 @@
         const decimal PercentageThreshold = 20m / 100m;
         readonly string dataPath;
 
-        public CheckFreeDiskSpace(Settings settings) : base("Message database", "Storage space", TimeSpan.FromMinutes(5))
+        public CheckFreeDiskSpace(Settings.Settings settings) : base("Message database", "Storage space", TimeSpan.FromMinutes(5))
         {
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {PercentageThreshold:P0}");
             dataPath = settings.DbPath;

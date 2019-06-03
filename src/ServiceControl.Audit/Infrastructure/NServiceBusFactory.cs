@@ -1,19 +1,17 @@
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using Autofac;
-using NServiceBus;
-using NServiceBus.Configuration.AdvancedExtensibility;
-using NServiceBus.Features;
-using Raven.Client.Embedded;
-using ServiceControl.Infrastructure.DomainEvents;
-using ServiceControl.Transports;
-using ServiceBus.Management.Infrastructure.Settings;
-
-namespace ServiceBus.Management.Infrastructure
+namespace ServiceControl.Audit.Infrastructure
 {
-    using ServiceControl.Audit.Auditing;
-    using ServiceControl.Audit.Infrastructure;
+    using System;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+    using Auditing;
+    using Autofac;
+    using DomainEvents;
+    using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Features;
+    using Raven.Client.Embedded;
+    using Settings;
+    using Transports;
 
     static class NServiceBusFactory
     {

@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.OWIN
+﻿namespace ServiceControl.Audit.Infrastructure.OWIN
 {
     using System;
     using Autofac;
@@ -7,7 +7,6 @@
     using Nancy;
     using Owin;
     using Owin.Metrics;
-    using ServiceControl.Infrastructure.OWIN;
 
     class Startup
     {

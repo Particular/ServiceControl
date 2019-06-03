@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Installers
+﻿namespace ServiceControl.Audit.Infrastructure.Installers
 {
     using NServiceBus.Features;
     using NServiceBus.Transport;

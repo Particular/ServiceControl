@@ -6,7 +6,7 @@
     using System.Reflection;
     using AcceptanceTesting.Support;
     using Hosting.Helpers;
-    using Particular.ServiceControl;
+    using ServiceControl.Audit.Infrastructure;
 
     public static class EndpointCustomizationConfigurationExtensions
     {

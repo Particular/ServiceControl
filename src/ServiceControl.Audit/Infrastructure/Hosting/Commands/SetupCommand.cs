@@ -1,8 +1,7 @@
-﻿namespace Particular.ServiceControl.Commands
+﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System.Threading.Tasks;
-    using Hosting;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Settings;
 
     class SetupCommand : AbstractCommand
     {

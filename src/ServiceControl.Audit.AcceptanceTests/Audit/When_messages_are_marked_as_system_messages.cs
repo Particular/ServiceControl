@@ -10,7 +10,7 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Audit.Auditing.MessagesView;
 
     class When_messages_are_marked_as_system_messages : AcceptanceTest
     {

@@ -12,9 +12,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Security.Principal;
     using System.Threading.Tasks;
     using Autofac;
-    using Infrastructure;
-    using Infrastructure.Nancy;
-    using Infrastructure.Settings;
     using Microsoft.Owin.Builder;
     using Nancy;
     using Newtonsoft.Json;
@@ -23,7 +20,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Particular.ServiceControl;
+    using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Infrastructure.Nancy;
+    using ServiceControl.Audit.Infrastructure.Settings;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {

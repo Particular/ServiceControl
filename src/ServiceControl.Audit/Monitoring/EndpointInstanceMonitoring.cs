@@ -1,10 +1,9 @@
-namespace ServiceControl.Monitoring
+namespace ServiceControl.Audit.Monitoring
 {
     using System;
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
     using Contracts.EndpointControl;
-    using Contracts.Operations;
     using Infrastructure;
     using Infrastructure.DomainEvents;
 

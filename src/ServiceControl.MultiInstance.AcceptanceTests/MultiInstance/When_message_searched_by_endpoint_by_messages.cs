@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -20,24 +19,22 @@
         [Test]
         public async Task Should_be_found()
         {
-            SetInstanceSettings = ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues;
-
             var response = new List<MessagesView>();
 
             var endpointName = Conventions.EndpointNamingConvention(typeof(ReceiverRemote));
 
-            var context = await Define<MyContext>(Remote1, Master)
+            var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
                 .WithEndpoint<ReceiverRemote>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/", instanceName: Master);
+                    var result = await this.TryGetMany<MessagesView>($"/api/endpoints/{endpointName}/messages/", instanceName: ServiceControlInstanceName);
                     response = result;
                     return result && response.Count == 1;
                 })
                 .Run();
 
-            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[Remote1].ApiUrl);
+            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].ApiUrl);
 
             var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
 
@@ -45,47 +42,12 @@
             Assert.AreEqual(expectedRemote1InstanceId, remote1Message.InstanceId, "Remote1 instance id mismatch");
         }
 
-        void ConfigureRemoteInstanceForMasterAsWellAsAuditAndErrorQueues(string instanceName, Settings settings)
-        {
-            //switch (instanceName)
-            //{
-            //    case Remote1:
-            //        addressOfRemote = settings.ApiUrl;
-            //        settings.AuditQueue = AuditRemote;
-            //        settings.ErrorQueue = ErrorRemote;
-            //        break;
-            //    case Master:
-            //        settings.RemoteInstances = new[]
-            //        {
-            //            new RemoteInstanceSetting
-            //            {
-            //                ApiUri = addressOfRemote,
-            //                QueueAddress = Remote1
-            //            }
-            //        };
-            //        settings.AuditQueue = AuditMaster;
-            //        settings.ErrorQueue = ErrorMaster;
-            //        break;
-            //}
-        }
-
-        //string addressOfRemote;
-        const string Master = "master";
-        const string Remote1 = "remote1";
-        static string AuditMaster = $"{Master}.audit";
-        static string ErrorMaster = $"{Master}.error";
-        static string AuditRemote = $"{Remote1}.audit";
-        static string ErrorRemote = $"{Remote1}.error";
-
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.AuditProcessedMessagesTo(AuditMaster);
-                    c.SendFailedMessagesTo(ErrorMaster);
-
                     c.ConfigureTransport()
                         .Routing()
                         .RouteToEndpoint(typeof(MyMessage), typeof(ReceiverRemote));
@@ -97,11 +59,7 @@
         {
             public ReceiverRemote()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                    c.AuditProcessedMessagesTo(AuditRemote);
-                    c.SendFailedMessagesTo(ErrorRemote);
-                });
+                EndpointSetup<DefaultServerWithAudit>(c => { });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

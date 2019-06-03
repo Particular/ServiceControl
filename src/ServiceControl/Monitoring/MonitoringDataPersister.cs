@@ -1,15 +1,14 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System.Threading.Tasks;
-    using CompositeViews.Endpoints;
+    using Audit.Monitoring;
+    using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
-    using EndpointControl;
+    using Contracts.Operations;
     using EndpointControl.Contracts;
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Raven.Client;
-    using ServiceControl.Contracts.EndpointControl;
-    using ServiceControl.Contracts.Operations;
 
     class MonitoringDataPersister :
         IDomainHandler<EndpointDetected>,

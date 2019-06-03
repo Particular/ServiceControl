@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System.Threading.Tasks;
-    using CompositeViews.Endpoints;
+    using Audit.Monitoring;
     using EndpointControl.InternalMessages;
     using InternalMessages;
     using NServiceBus;

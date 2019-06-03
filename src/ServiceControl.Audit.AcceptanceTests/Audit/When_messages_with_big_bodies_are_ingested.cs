@@ -6,7 +6,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Audit.Auditing.MessagesView;
 
     class When_messages_with_big_bodies_are_ingested : AcceptanceTest
     {

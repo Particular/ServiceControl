@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
+﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
     using System.Threading.Tasks;

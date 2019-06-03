@@ -1,9 +1,8 @@
-﻿namespace ServiceControl.Contracts.Operations
+﻿namespace ServiceControl.Audit.Auditing
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Audit.Auditing;
     using NServiceBus;
     using NServiceBus.Features;
 

@@ -1,16 +1,15 @@
-namespace Particular.ServiceControl
+namespace ServiceControl.Audit.Infrastructure
 {
     using System;
-    using global::ServiceControl.Infrastructure.RavenDB;
     using Hosting;
     using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using RavenDB;
 
     class MaintenanceBootstrapper
     {
         public void Run(HostArguments args)
         {
-            var settings = new Settings(args.ServiceName);
+            var settings = new Settings.Settings(args.ServiceName);
             var documentStore = new EmbeddableDocumentStore();
 
             new RavenBootstrapper().StartRaven(documentStore, settings, true);

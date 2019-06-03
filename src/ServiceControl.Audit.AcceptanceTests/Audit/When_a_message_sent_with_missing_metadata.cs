@@ -9,7 +9,7 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Audit.Auditing.MessagesView;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_sent_with_missing_metadata : AcceptanceTest

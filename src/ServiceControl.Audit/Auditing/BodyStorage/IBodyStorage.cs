@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Operations.BodyStorage
+﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
     using System.IO;
     using System.Threading.Tasks;

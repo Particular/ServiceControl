@@ -12,8 +12,8 @@
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Audit.Auditing.MessagesView;
+    using ServiceControl.Audit.Monitoring;
 
     class When_processed_message_is_imported : AcceptanceTest
     {

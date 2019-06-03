@@ -1,13 +1,14 @@
-﻿namespace ServiceControl.Operations.BodyStorage
+﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.Features;
     using RavenAttachments;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class BodyStorageFeature : Feature
     {

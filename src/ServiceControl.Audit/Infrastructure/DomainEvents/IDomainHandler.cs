@@ -1,4 +1,4 @@
-namespace ServiceControl.Infrastructure.DomainEvents
+namespace ServiceControl.Audit.Infrastructure.DomainEvents
 {
     using System.Threading.Tasks;
 

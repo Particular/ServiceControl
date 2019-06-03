@@ -1,7 +1,7 @@
-namespace ServiceControl.CompositeViews.Messages
+namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System.Threading.Tasks;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using Infrastructure.Nancy.Modules;
 
     static class NoInputExtensions
     {
