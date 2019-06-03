@@ -131,7 +131,7 @@
         {
             public ServerEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
 
             class Foo : DispatchRawMessages<SystemMessageTestContext>

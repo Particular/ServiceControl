@@ -24,7 +24,7 @@
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>,

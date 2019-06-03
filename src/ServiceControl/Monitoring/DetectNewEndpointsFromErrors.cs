@@ -3,27 +3,27 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Audit.Auditing;
-    using Contracts.Operations;
     using Monitoring;
     using NServiceBus;
     using NServiceBus.Features;
+    using Operations;
+    using ServiceControl.Contracts.Operations;
 
-    class EndpointDetectionFeature : Feature
+    class DetectNewEndpointsFromErrors : Feature
     {
-        public EndpointDetectionFeature()
+        public DetectNewEndpointsFromErrors()
         {
             EnableByDefault();
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<DetectNewEndpointsFromAuditImportsEnricher>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<DetectNewEndpointsFromErrorImportsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class DetectNewEndpointsFromAuditImportsEnricher : AuditImportEnricher
+        class DetectNewEndpointsFromErrorImportsEnricher : ErrorImportEnricher
         {
-            public DetectNewEndpointsFromAuditImportsEnricher(EndpointInstanceMonitoring monitoring)
+            public DetectNewEndpointsFromErrorImportsEnricher(EndpointInstanceMonitoring monitoring)
             {
                 this.monitoring = monitoring;
             }
@@ -60,7 +60,7 @@
                     return;
                 }
 
-                await monitoring.DetectEndpointFromLocalAudit(endpointDetails)
+                await monitoring.EndpointDetected(endpointDetails)
                     .ConfigureAwait(false);
             }
 

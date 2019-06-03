@@ -9,6 +9,7 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Endpoints;
+    using ServiceControl.Contracts.EndpointControl;
     using ServiceControl.Monitoring;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -23,7 +24,24 @@
             var state = State.WaitingForEndpointDetection;
 
             await Define<MyContext>()
-                .WithEndpoint<MyEndpoint>(c => c.When(bus => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<MyEndpoint>(c => c.When(bus =>
+                {
+                    var options = new SendOptions();
+
+                    options.DoNotEnforceBestPractices();
+                    options.SetDestination(Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME);
+
+                    return bus.Send(new NewEndpointDetected
+                    {
+                        Endpoint = new ServiceControl.Contracts.Operations.EndpointDetails
+                        {
+                            HostId = Guid.NewGuid(),
+                            Host = "myhost",
+                            Name = EndpointName
+                        },
+                        DetectedAt = DateTime.UtcNow
+                    }, options);
+                }))
                 .Done(async c =>
                 {
                     if (state == State.WaitingForEndpointDetection)
@@ -71,20 +89,8 @@
         {
             public MyEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
-                {
-                    return Task.FromResult(0);
-                }
-            }
-        }
-
-        public class MyMessage : IMessage
-        {
         }
     }
 }

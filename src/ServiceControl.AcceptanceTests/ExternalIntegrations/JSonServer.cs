@@ -10,7 +10,7 @@ namespace ServiceBus.Management.AcceptanceTests.ExternalIntegrations
     {
         public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            return new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, b =>
+            return new DefaultServerWithoutAudit().GetConfiguration(runDescriptor, endpointConfiguration, b =>
             {
                 b.UseSerialization<NewtonsoftSerializer>();
                 configurationBuilderCustomization(b);

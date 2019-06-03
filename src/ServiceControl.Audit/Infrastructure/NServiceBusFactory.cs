@@ -27,7 +27,7 @@ namespace ServiceBus.Management.Infrastructure
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
 
-            configuration.Pipeline.Register(new PublishFullTypeNameOnlyBehavior(), "Removes assembly details from message types so that ServiceControl can deserialize");
+            configuration.Pipeline.Register(typeof(PublishFullTypeNameOnlyBehavior), "Remove asm qualified name from the message type header");
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set(documentStore);

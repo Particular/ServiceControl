@@ -13,8 +13,7 @@
 
         public Task Handle(NewEndpointDetected message, IMessageHandlerContext context)
         {
-            endpointInstanceMonitoring.DetectEndpointFromRemoteAudit(message.Endpoint);
-            return Task.FromResult(0);
+            return endpointInstanceMonitoring.EndpointDetected(message.Endpoint);
         }
 
         readonly EndpointInstanceMonitoring endpointInstanceMonitoring;

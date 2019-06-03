@@ -127,7 +127,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.NoDelayedRetries());
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.NoDelayedRetries());
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

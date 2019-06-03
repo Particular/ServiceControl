@@ -4,7 +4,7 @@
     using Infrastructure.DomainEvents;
     using Operations;
 
-    public class NewEndpointDetected : IDomainEvent, IBusEvent
+    public class NewEndpointDetected : IBusEvent
     {
         public DateTime DetectedAt { get; set; }
         public EndpointDetails Endpoint { get; set; }

@@ -67,7 +67,7 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoDelayedRetries();
                     c.Pipeline.Register(cc => new LookForControlMessage(cc.Build<MyContext>()), "Look for control messages");

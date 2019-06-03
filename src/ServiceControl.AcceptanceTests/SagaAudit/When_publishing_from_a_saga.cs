@@ -42,9 +42,9 @@
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                     {
-                        // NOTE: The DefaultServerWithAudit disables this
+                        // NOTE: The DefaultServerWithoutAudit disables this
                         c.EnableFeature<AutoSubscribe>();
                         c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
                     },
