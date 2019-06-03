@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.EndpointControl
 {
     using System;
-    using ServiceControl.Contracts.Operations;
 
     public class KnownEndpoint
     {
