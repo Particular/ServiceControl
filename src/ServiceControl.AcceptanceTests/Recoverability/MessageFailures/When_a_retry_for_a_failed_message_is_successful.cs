@@ -18,10 +18,9 @@
     class When_a_retry_for_a_failed_message_is_successful : AcceptanceTest
     {
         [Test]
-        public async Task Should_show_up_as_resolved_when_doing_a_single_retry()
+        public async Task Should_show_up_as_resolved_in_the_eventlog()
         {
             FailedMessage failure = null;
-            MessagesView message = null;
             List<EventLogItem> eventLogItems = null;
 
             await Define<MyContext>()
@@ -39,9 +38,7 @@
                     {
                         var eventLogItemsResult = await this.TryGetMany<EventLogItem>("/api/eventlogitems");
                         eventLogItems = eventLogItemsResult;
-                        var messagesResult = await this.TryGetSingle<MessagesView>("/api/messages", m => m.Status == MessageStatus.ResolvedSuccessfully);
-                        message = messagesResult;
-                        return messagesResult && eventLogItemsResult;
+                        return eventLogItemsResult;
                     }
 
                     await IssueRetry(c, () => this.Post<object>($"/api/errors/{c.UniqueMessageId}/retry"));
@@ -51,8 +48,6 @@
                 .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(FailedMessageStatus.Resolved, failure.Status);
-            //Assert.AreEqual(failure.UniqueMessageId, message.Id);
-            Assert.AreEqual(MessageStatus.ResolvedSuccessfully, message.Status);
             Assert.IsTrue(eventLogItems.Any(item => item.Description.Equals("Failed message resolved by retry") && item.RelatedTo.Contains("/message/" + failure.UniqueMessageId)));
         }
 

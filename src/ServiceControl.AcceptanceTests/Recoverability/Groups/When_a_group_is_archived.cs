@@ -127,7 +127,10 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>(c => c.NoDelayedRetries());
+                EndpointSetup<DefaultServer>(c => {
+                    c.NoDelayedRetries();
+                    c.ReportSuccessfulRetriesToServiceControl();
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
