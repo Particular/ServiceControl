@@ -29,7 +29,7 @@ public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIn
         return Task.FromResult(0);
     }
 
-    public string Name => "AzureServiceBus .NET Standard";
+    public string Name => ServiceControlInstaller.Engine.Instances.TransportNames.AzureServiceBus;
     public string TypeName => $"{typeof(ServiceControl.Transports.ASBS.ASBSTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 }
