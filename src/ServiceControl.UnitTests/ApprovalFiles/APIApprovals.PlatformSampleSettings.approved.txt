@@ -50,5 +50,6 @@
   "ProcessRetryBatchesFrequency": "00:00:30",
   "MaximumConcurrencyLevel": 10,
   "RetryHistoryDepth": 10,
-  "RemoteInstances": []
+  "RemoteInstances": [],
+  "DataSpaceRemainingThreshold": 20
 }

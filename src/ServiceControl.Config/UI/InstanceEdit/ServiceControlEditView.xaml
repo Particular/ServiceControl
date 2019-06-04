@@ -233,7 +233,7 @@
                     <controls:FormTextBox Grid.Column="{Binding ErrorForwardingQueueColumn}" 
                                           Grid.ColumnSpan="{Binding ErrorForwardingQueueColumnSpan}"
                                           Grid.Row="1"
-                                          Header="ERROR FORWARDING QUEUE NAME" 
+                                          Header="ERROR FORWARDING LOG QUEUE NAME" 
                                           Text="{Binding ErrorForwardingQueueName}" 
                                           Visibility="{Binding ShowErrorForwardingQueue, Converter={StaticResource boolToVis}}"/>
 
@@ -261,7 +261,7 @@
 
                     <controls:FormTextBox Grid.Column="1" 
                                           Grid.Row="4"
-                                          Header="AUDIT FORWARDING QUEUE NAME"
+                                          Header="AUDIT FORWARDING LOG QUEUE NAME"
                                           Text="{Binding AuditForwardingQueueName}"
                                           Visibility="{Binding ShowAuditForwardingQueue, Converter={StaticResource boolToVis}}"/>
 

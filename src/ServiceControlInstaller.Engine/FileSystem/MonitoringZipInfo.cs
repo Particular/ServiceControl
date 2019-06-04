@@ -71,7 +71,7 @@
             {
                 using (var zip = ZipFile.Read(FilePath))
                 {
-                    var entry = zip.Entries.FirstOrDefault(p => p.FileName == $"ServiceControl.Monitoring/{Constants.MonitoringExe}");
+                    var entry = zip.Entries.FirstOrDefault(p => Path.GetFileName(p.FileName) == Constants.MonitoringExe);
                     if (entry == null)
                     {
                         return false;

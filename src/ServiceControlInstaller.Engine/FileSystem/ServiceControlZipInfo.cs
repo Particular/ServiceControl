@@ -67,7 +67,7 @@
             {
                 using (var zip = ZipFile.Read(FilePath))
                 {
-                    var entry = zip.Entries.FirstOrDefault(p => p.FileName == $"ServiceControl/{Constants.ServiceControlExe}");
+                    var entry = zip.Entries.FirstOrDefault(p => Path.GetFileName(p.FileName) == Constants.ServiceControlExe);
                     if (entry == null)
                     {
                         return false;

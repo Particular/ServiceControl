@@ -6,6 +6,7 @@
         RepeatedFailure = 2,
         Successful = 3,
         ResolvedSuccessfully = 4,
-        ArchivedFailure = 5
+        ArchivedFailure = 5,
+        RetryIssued = 6
     }
 }
