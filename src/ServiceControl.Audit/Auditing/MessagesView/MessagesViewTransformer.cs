@@ -6,7 +6,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Monitoring;
     using Raven.Client.Indexes;
 
-    class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
+    public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
     {
         public MessagesViewTransformer()
         {

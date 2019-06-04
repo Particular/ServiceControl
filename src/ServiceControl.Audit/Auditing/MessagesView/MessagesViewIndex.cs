@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
 
-    class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
+    public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
     {
         public MessagesViewIndex()
         {

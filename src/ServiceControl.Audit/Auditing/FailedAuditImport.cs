@@ -2,7 +2,7 @@
 {
     using System;
 
-    class FailedAuditImport
+    public class FailedAuditImport
     {
         public Guid Id { get; set; }
         public FailedTransportMessage Message { get; set; }
