@@ -8,6 +8,7 @@ using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Transport;
 using ServiceBus.Management.AcceptanceTests;
 using ServiceControl.Transports.SqlServer;
+using ServiceControlInstaller.Engine.Instances;
 
 public class ConfigureEndpointSqlServerTransport : ITransportIntegration
 {
@@ -50,7 +51,7 @@ public class ConfigureEndpointSqlServerTransport : ITransportIntegration
         }
     }
 
-    public string Name => "SqlServer";
+    public string Name => TransportNames.SQLServer;
     public string TypeName => $"{typeof(SqlServerTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 
