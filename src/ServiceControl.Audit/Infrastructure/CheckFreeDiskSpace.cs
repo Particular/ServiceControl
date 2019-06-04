@@ -12,7 +12,7 @@
         const decimal PercentageThreshold = 20m / 100m;
         readonly string dataPath;
 
-        public CheckFreeDiskSpace(Settings.Settings settings) : base("Message database", "Storage space", TimeSpan.FromMinutes(5))
+        public CheckFreeDiskSpace(Settings.Settings settings) : base("ServiceControl.Audit database", "Storage space", TimeSpan.FromSeconds(3))
         {
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {PercentageThreshold:P0}");
             dataPath = settings.DbPath;
@@ -40,7 +40,10 @@
 
             return percentRemaining > PercentageThreshold
                 ? CheckResult.Pass
-                : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive {dataDriveInfo.VolumeLabel} on {Environment.MachineName}.");
+                : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
+        }
+    }
+
         }
     }
 }

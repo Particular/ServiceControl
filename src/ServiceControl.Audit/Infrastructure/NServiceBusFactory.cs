@@ -54,6 +54,12 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
+            if (!isRunningAcceptanceTests)
+            {
+                // Sending the custom check to ourselves and then republish it to the primary
+                configuration.ReportCustomChecksTo(endpointName);
+            }
+
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
 
             configuration.DefineCriticalErrorAction(criticalErrorContext =>
