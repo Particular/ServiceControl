@@ -11,7 +11,6 @@
             var options = new PublishOptions();
             options.DoNotEnforceBestPractices();
 
-            // TODO: Do we need to copy the message and headers?
             return context.Publish(message, options);
         }
     }
