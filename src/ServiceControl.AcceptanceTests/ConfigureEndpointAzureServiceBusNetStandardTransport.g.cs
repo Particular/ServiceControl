@@ -4,6 +4,7 @@ using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using ServiceBus.Management.AcceptanceTests;
 using ServiceControl.Transports.ASBS;
+using ServiceControlInstaller.Engine.Instances;
 
 public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIntegration
 {
@@ -29,7 +30,7 @@ public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIn
         return Task.FromResult(0);
     }
 
-    public string Name => ServiceControlInstaller.Engine.Instances.TransportNames.AzureServiceBus;
+    public string Name => TransportNames.AzureServiceBus;
     public string TypeName => $"{typeof(ServiceControl.Transports.ASBS.ASBSTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 }
