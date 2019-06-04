@@ -18,8 +18,9 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
         queueBindings = settingsHolder.Get<QueueBindings>();
 
         var transportConfig = configuration.UseTransport<MsmqTransport>();
-        transportConfig.DisableConnectionCachingForSends();
+
         transportConfig.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
+        transportConfig.DisableConnectionCachingForSends();
         settingsHolder.Set("NServiceBus.Transport.Msmq.MessageEnumeratorTimeout", TimeSpan.FromMilliseconds(10));
 
         var routingConfig = transportConfig.Routing();
