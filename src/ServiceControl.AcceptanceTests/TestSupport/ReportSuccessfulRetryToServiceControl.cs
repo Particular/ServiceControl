@@ -2,27 +2,28 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.Pipeline;
     using ServiceControl.Contracts.MessageFailures;
 
-    class ReportSuccessfulRetryToServiceControl : Behavior<IIncomingPhysicalMessageContext>
+    class ReportSuccessfulRetryToServiceControl : IBehavior<IIncomingPhysicalMessageContext, IIncomingPhysicalMessageContext>
     {
-        public async override Task Invoke(IIncomingPhysicalMessageContext context, Func<Task> next)
+        public async Task Invoke(IIncomingPhysicalMessageContext context, Func<IIncomingPhysicalMessageContext, Task> next)
         {
-            await next();
+            await next(context).ConfigureAwait(false);
 
             if (context.MessageHeaders.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var messageId))
             {
                 var options = new SendOptions();
 
                 options.DoNotEnforceBestPractices();
-                options.SetDestination(Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME);
+                options.SetDestination(Settings.DEFAULT_SERVICE_NAME);
 
                 await context.Send(new MessageFailureResolvedByRetry
                 {
                     FailedMessageId = messageId
-                },options);
+                }, options).ConfigureAwait(false);
             }
         }
     }
