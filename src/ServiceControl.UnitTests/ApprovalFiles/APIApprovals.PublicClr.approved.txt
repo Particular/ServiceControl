@@ -50,11 +50,6 @@ namespace Particular.ServiceControl.Upgrade
 }
 namespace ServiceBus.Management.Infrastructure.Installers
 {
-    public class AuditLoqQueue : NServiceBus.Features.Feature
-    {
-        public AuditLoqQueue() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
     public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething
     {
         public const string SourceName = "ServiceControl";
@@ -81,8 +76,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public const string Disabled = "!disable";
         public Settings(string serviceName = null) { }
         public string ApiUrl { get; }
-        public string AuditLogQueue { get; set; }
-        public string AuditQueue { get; set; }
         public System.TimeSpan AuditRetentionPeriod { get; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
@@ -96,12 +89,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int ExpirationProcessTimerInSeconds { get; }
         public bool ExposeRavenDB { get; }
         public int ExternalIntegrationsDispatchingBatchSize { get; }
-        public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
         public System.TimeSpan HeartbeatGracePeriod { get; }
         public string Hostname { get; }
         public int HttpDefaultConnectionLimit { get; set; }
-        public bool IngestAuditMessages { get; set; }
         public bool IngestErrorMessages { get; set; }
         public int MaxBodySizeToStore { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
@@ -124,7 +115,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
     }
 }
-namespace ServiceControl.CompositeViews.Endpoints
+namespace ServiceControl.Audit.Monitoring
 {
     public class DisableEndpointMonitoring : NServiceBus.ICommand, NServiceBus.IMessage
     {
@@ -136,6 +127,9 @@ namespace ServiceControl.CompositeViews.Endpoints
         public EnableEndpointMonitoring() { }
         public System.Guid EndpointId { get; set; }
     }
+}
+namespace ServiceControl.CompositeViews.Endpoints
+{
     public class EndpointsView
     {
         public EndpointsView() { }
@@ -143,7 +137,6 @@ namespace ServiceControl.CompositeViews.Endpoints
         public string HostDisplayName { get; set; }
         public System.Guid Id { get; set; }
         public bool IsSendingHeartbeats { get; set; }
-        public string LicenseStatus { get; set; }
         public bool Monitored { get; set; }
         public bool MonitorHeartbeat { get; set; }
         public string Name { get; set; }
@@ -153,13 +146,6 @@ namespace ServiceControl.CompositeViews.Endpoints
         public HeartbeatInformation() { }
         public System.DateTime LastReportAt { get; set; }
         public ServiceControl.HeartbeatMonitoring.Status ReportedStatus { get; set; }
-    }
-    public class KnownEndpointsView
-    {
-        public KnownEndpointsView() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
     }
 }
 namespace ServiceControl.CompositeViews.Messages
@@ -213,6 +199,12 @@ namespace ServiceControl.Contracts.CustomChecks
 }
 namespace ServiceControl.Contracts.EndpointControl
 {
+    public class EndpointDetected
+    {
+        public EndpointDetected() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+    }
     public class EndpointStarted
     {
         public EndpointStarted() { }
@@ -439,18 +431,6 @@ namespace ServiceControl.EndpointControl.Contracts
         public System.Guid EndpointInstanceId { get; set; }
     }
 }
-namespace ServiceControl.EndpointControl
-{
-    public class KnownEndpoint
-    {
-        public KnownEndpoint() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public bool HasTemporaryId { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
-        public bool Monitored { get; set; }
-    }
-}
 namespace ServiceControl
 {
     public class EndpointInstanceId
@@ -644,6 +624,22 @@ namespace ServiceControl.Monitoring
         Unknown = 0,
         Alive = 1,
         Dead = 2,
+    }
+    public class KnownEndpoint
+    {
+        public KnownEndpoint() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
+        public bool HasTemporaryId { get; set; }
+        public string HostDisplayName { get; set; }
+        public System.Guid Id { get; set; }
+        public bool Monitored { get; set; }
+    }
+    public class KnownEndpointsView
+    {
+        public KnownEndpointsView() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
+        public string HostDisplayName { get; set; }
+        public System.Guid Id { get; set; }
     }
 }
 namespace ServiceControl.Operations
