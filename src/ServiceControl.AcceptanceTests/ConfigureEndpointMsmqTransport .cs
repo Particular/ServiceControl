@@ -9,6 +9,7 @@ using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Transport;
 using ServiceBus.Management.AcceptanceTests;
 using ServiceControl.Transports.Msmq;
+using ServiceControlInstaller.Engine.Instances;
 
 public class ConfigureEndpointMsmqTransport : ITransportIntegration
 {
@@ -77,7 +78,7 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
         return Task.FromResult(0);
     }
 
-    public string Name => "Msmq";
+    public string Name => TransportNames.MSMQ;
     public string TypeName => $"{typeof(MsmqTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; }
 

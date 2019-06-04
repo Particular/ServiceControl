@@ -7,6 +7,7 @@ using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using ServiceBus.Management.AcceptanceTests;
 using ServiceControl.Transports.SQS;
+using ServiceControlInstaller.Engine.Instances;
 
 public class ConfigureEndpointSQSTransport : ITransportIntegration
 {
@@ -42,7 +43,7 @@ public class ConfigureEndpointSQSTransport : ITransportIntegration
         return Task.FromResult(0);
     }
 
-    public string Name => "SQS";
+    public string Name => TransportNames.AmazonSQS;
 
     public string TypeName => $"{typeof(SQSTransportCustomization).AssemblyQualifiedName}";
 
