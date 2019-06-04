@@ -3,14 +3,13 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.Audit.Auditing.MessagesView;
 
-    class When_a_message_hitting_multiple_sagas_is_audited : AcceptanceTest
+    class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
     {
         [Test]
         public async Task Saga_info_should_be_available_through_the_http_api()
@@ -32,26 +31,22 @@
                 })
                 .Run();
 
+
             Assert.NotNull(auditedMessage);
 
-            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, auditedMessage.InvokedSagas.First().SagaType);
-            Assert.AreEqual(typeof(SagaEndpoint.MyOtherSaga).FullName, auditedMessage.InvokedSagas.Last().SagaType);
-
+            Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, auditedMessage.InvokedSagas.Single().SagaType);
             Assert.AreEqual(context.SagaId, auditedMessage.InvokedSagas.First().SagaId);
-            Assert.AreEqual(context.OtherSagaId, auditedMessage.InvokedSagas.Last().SagaId);
-
             Assert.AreEqual("New", auditedMessage.InvokedSagas.First().ChangeStatus);
-            Assert.AreEqual("Completed", auditedMessage.InvokedSagas.Last().ChangeStatus);
         }
 
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
-            public class MySaga : Saga<MySaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
+            public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
                 public MyContext Context { get; set; }
 
@@ -66,36 +61,11 @@
                 {
                     mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
                 }
-
-                public class MySagaData : ContainSagaData
-                {
-                    public string MessageId { get; set; }
-                }
             }
 
-            public class MyOtherSaga : Saga<MyOtherSaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
+            public class MySagaData : ContainSagaData
             {
-                public MyContext Context { get; set; }
-
-                public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
-                {
-                    Context.OtherSagaId = Data.Id;
-                    Context.MessageId = context.MessageId;
-
-                    MarkAsComplete();
-
-                    return Task.FromResult(0);
-                }
-
-                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
-                {
-                    mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
-                }
-
-                public class MySagaData : ContainSagaData
-                {
-                    public string MessageId { get; set; }
-                }
+                public string MessageId { get; set; }
             }
         }
 
@@ -108,7 +78,6 @@
         {
             public string MessageId { get; set; }
             public Guid SagaId { get; set; }
-            public Guid OtherSagaId { get; set; }
         }
     }
 }
