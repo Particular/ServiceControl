@@ -4,12 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.Audit.Auditing.MessagesView;
 
     class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
     {
@@ -72,7 +71,8 @@
         {
             public SagasEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
+                //we need to enable the plugin for it to enrich the audited messages, state changes will go to our input queue and just be discarded
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(ServiceControl.Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME));
             }
 
             public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
