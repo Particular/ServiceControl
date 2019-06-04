@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.CustomChecks
+﻿namespace ServiceBus.Management.AcceptanceTests.Infrastructure.CustomChecks
 {
     using System;
     using System.Collections.Concurrent;
