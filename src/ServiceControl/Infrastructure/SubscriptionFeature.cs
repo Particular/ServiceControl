@@ -40,7 +40,12 @@
 
         protected override Task OnStart(IMessageSession session)
         {
-            return Task.WhenAll(localEventsToSubscribeTo.Select(session.Subscribe));
+            return Task.WhenAll(localEventsToSubscribeTo.Select(t =>
+            {
+                var options = new SubscribeOptions();
+                options.DoNotEnforceBestPractices();
+                return session.Subscribe(t, options);
+            }));
         }
 
         protected override Task OnStop(IMessageSession session)
