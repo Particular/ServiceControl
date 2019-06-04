@@ -17,7 +17,7 @@
             MessagesView auditedMessage = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
                 .Done(async c =>
                 {
                     if (c.SagaId == Guid.Empty)
@@ -47,7 +47,8 @@
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                //we need to enable the plugin for it to enrich the audited messages, state changes will go to our input queue and just be discarded
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(ServiceControl.Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME));
             }
 
             public class MySaga : Saga<MySaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>

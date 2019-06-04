@@ -43,7 +43,8 @@
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                //we need to enable the plugin for it to enrich the audited messages, state changes will go to our input queue and just be discarded
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(ServiceControl.Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME));
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
