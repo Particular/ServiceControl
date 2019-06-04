@@ -14,6 +14,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations;
+    using ServiceControl.Plugin.CustomChecks.Messages;
     using ServiceControl.Transports;
     using Settings;
 
@@ -121,7 +122,8 @@ namespace ServiceBus.Management.Infrastructure
         static Type[] remoteTypesToSubscribeTo =
         {
             typeof(MessageFailureResolvedByRetry),
-            typeof(NewEndpointDetected)
+            typeof(NewEndpointDetected),
+            typeof(ReportCustomCheckResult)
         };
     }
 }
