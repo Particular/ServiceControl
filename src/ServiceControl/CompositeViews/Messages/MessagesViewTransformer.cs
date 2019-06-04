@@ -12,7 +12,6 @@ namespace ServiceControl.CompositeViews.Messages
         public MessagesViewTransformer()
         {
             TransformResults = messages => from message in messages
-                where message.ProcessedAt != null // necessary to avoid NullReferenceException deep in raven black magic
                 let metadata =
                     message.ProcessingAttempts != null
                         ? message.ProcessingAttempts.Last().MessageMetadata
