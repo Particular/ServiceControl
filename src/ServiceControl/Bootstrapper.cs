@@ -76,7 +76,10 @@ namespace Particular.ServiceControl
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
-            transportSettings = new TransportSettings();
+            transportSettings = new TransportSettings
+            {
+                RunCustomChecks = true
+            };
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);

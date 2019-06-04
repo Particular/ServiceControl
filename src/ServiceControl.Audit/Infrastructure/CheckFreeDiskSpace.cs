@@ -8,10 +8,6 @@
 
     class CheckFreeDiskSpace : CustomCheck
     {
-        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
-        const decimal PercentageThreshold = 20m / 100m;
-        readonly string dataPath;
-
         public CheckFreeDiskSpace(Settings.Settings settings) : base("ServiceControl.Audit database", "Storage space", TimeSpan.FromSeconds(3))
         {
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {PercentageThreshold:P0}");
@@ -31,7 +27,7 @@
             var availableFreeSpace = (decimal)dataDriveInfo.AvailableFreeSpace;
             var totalSpace = (decimal)dataDriveInfo.TotalSize;
 
-            var percentRemaining = (decimal) dataDriveInfo.AvailableFreeSpace / dataDriveInfo.TotalSize;
+            var percentRemaining = (decimal)dataDriveInfo.AvailableFreeSpace / dataDriveInfo.TotalSize;
 
             if (Logger.IsDebugEnabled)
             {
@@ -42,8 +38,9 @@
                 ? CheckResult.Pass
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
-    }
 
-        }
+        readonly string dataPath;
+        const decimal PercentageThreshold = 20m / 100m;
+        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
     }
 }
