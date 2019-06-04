@@ -5,7 +5,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     using EventLog;
     using Raven.Client.Indexes;
 
-    class ExpiryEventLogItemsIndex : AbstractIndexCreationTask<EventLogItem>
+    public class ExpiryEventLogItemsIndex : AbstractIndexCreationTask<EventLogItem>
     {
         public ExpiryEventLogItemsIndex()
         {

@@ -4,7 +4,7 @@ namespace ServiceControl.Audit.Monitoring
     using Raven.Client.Indexes;
     using ServiceControl.Monitoring;
 
-    class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
+    public class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
     {
         public KnownEndpointIndex()
         {
