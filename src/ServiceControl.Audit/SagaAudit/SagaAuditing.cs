@@ -8,7 +8,7 @@
     using NServiceBus.Features;
     using ServiceControl.Audit.Auditing;
 
-    public class SagaAuditing : Feature
+    class SagaAuditing : Feature
     {
         public SagaAuditing()
         {

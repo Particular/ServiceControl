@@ -50,10 +50,12 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>> Headers { get; set; }
         public string Id { get; set; }
         public string InstanceId { get; set; }
+        public System.Collections.Generic.List<ServiceControl.SagaAudit.SagaInfo> InvokedSagas { get; set; }
         public bool IsSystemMessage { get; set; }
         public string MessageId { get; set; }
         public NServiceBus.MessageIntentEnum MessageIntent { get; set; }
         public string MessageType { get; set; }
+        public ServiceControl.SagaAudit.SagaInfo OriginatesFromSaga { get; set; }
         public System.DateTime ProcessedAt { get; set; }
         public System.TimeSpan ProcessingTime { get; set; }
         public ServiceControl.Audit.Monitoring.EndpointDetails ReceivingEndpoint { get; set; }
@@ -207,5 +209,15 @@ namespace ServiceControl.Contracts.MessageFailures
         public MessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }
         public string FailedMessageId { get; set; }
+    }
+}
+namespace ServiceControl.SagaAudit
+{
+    public class SagaInfo
+    {
+        public SagaInfo() { }
+        public string ChangeStatus { get; set; }
+        public System.Guid SagaId { get; set; }
+        public string SagaType { get; set; }
     }
 }
