@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
+﻿namespace ServiceBus.Management.AcceptanceTests.Auditing
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;

@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.MultiInstance
+﻿namespace ServiceBus.Management.AcceptanceTests.Auditing
 {
     using System;
     using System.Collections.Generic;
