@@ -1,5 +1,4 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceBus.Management.AcceptanceTests")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Loadtests.Reporter")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.UnitTests")]
 [assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
 public class GroupOperation
