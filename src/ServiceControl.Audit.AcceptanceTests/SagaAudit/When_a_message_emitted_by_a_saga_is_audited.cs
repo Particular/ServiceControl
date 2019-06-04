@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
-    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.Audit.Auditing.MessagesView;
 
     class When_a_message_emitted_by_a_saga_is_audited : AcceptanceTest
     {
@@ -35,7 +35,7 @@
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
