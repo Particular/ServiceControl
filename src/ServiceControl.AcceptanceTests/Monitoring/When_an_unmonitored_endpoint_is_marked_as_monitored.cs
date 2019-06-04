@@ -89,7 +89,7 @@
         {
             public MyEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>();
+                EndpointSetup<DefaultServer>();
             }
         }
     }

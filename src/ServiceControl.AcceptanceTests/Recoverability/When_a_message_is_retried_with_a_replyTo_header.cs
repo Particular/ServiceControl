@@ -51,7 +51,7 @@
         {
             public VerifyHeader()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(
+                EndpointSetup<DefaultServer>(
                     (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((ReplyToContext)r.ScenarioContext))
                 );
             }

@@ -79,7 +79,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public MeowReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoDelayedRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
             }
 
             public class FailingMessageHandler : IHandleMessages<Meow>

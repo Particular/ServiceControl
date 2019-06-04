@@ -42,7 +42,7 @@
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(
+                EndpointSetup<DefaultServer>(
                     c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
             }
         }
