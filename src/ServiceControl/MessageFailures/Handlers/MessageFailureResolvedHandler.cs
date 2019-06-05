@@ -106,11 +106,5 @@
 
         IDocumentStore store;
         IDomainEvents domainEvents;
-
-        private enum MarkMessageAsResolvedStatus
-        {
-            NotFound,
-            Updated
-        }
     }
 }
