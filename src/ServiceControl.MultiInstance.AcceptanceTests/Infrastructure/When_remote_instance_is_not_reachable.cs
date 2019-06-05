@@ -41,9 +41,7 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
-                {
-                });
+                EndpointSetup<DefaultServerWithAudit>();
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
