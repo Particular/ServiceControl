@@ -62,7 +62,6 @@
         public bool TryReadServiceControlReleaseDate(out DateTime releaseDate)
         {
             releaseDate = DateTime.MinValue;
-            var tempFile = Path.Combine(Path.GetTempPath(), $@"ServiceControl\{Constants.ServiceControlExe}");
             try
             {
                 using (var zip = ZipFile.Read(FilePath))
@@ -73,17 +72,22 @@
                         return false;
                     }
 
-                    entry.Extract(Path.GetTempPath(), ExtractExistingFileAction.OverwriteSilently);
-                    return ReleaseDateReader.TryReadReleaseDateAttribute(tempFile, out releaseDate);
+                    var tempPath = Path.GetTempPath();
+                    var tempFile = Path.Combine(tempPath, entry.FileName);
+                    try
+                    {
+                        entry.Extract(tempPath, ExtractExistingFileAction.OverwriteSilently);
+                        return ReleaseDateReader.TryReadReleaseDateAttribute(tempFile, out releaseDate);
+                    }
+                    finally
+                    {
+                        File.Delete(tempFile);
+                    }
                 }
             }
             catch
             {
                 return false;
-            }
-            finally
-            {
-                File.Delete(tempFile);
             }
         }
     }
