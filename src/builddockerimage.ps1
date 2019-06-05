@@ -8,3 +8,7 @@ docker build -f .\dockerfile.rabbitmq.conventional -t servicecontrolrabbitconven
 docker build -f .\dockerfile.rabbitmq.direct -t servicecontrolrabbitdirect .
 
 docker build -f .\dockerfile.asq -t servicecontrolasq .
+
+docker build -f .\dockerfile.sql -t servicecontrolsql .
+
+docker build -f .\dockerfile.msmq -t servicecontrolmsmq .
