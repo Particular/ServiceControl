@@ -100,8 +100,11 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
-                    routing.DoNotEnforceBestPractices();
+                    c.Conventions().DefiningCommandsAs(t => typeof(ICommand).IsAssignableFrom(t) && t != typeof(ReportCustomCheckResult));
+                    c.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || t == typeof(ReportCustomCheckResult));
+                }, metadata =>
+                {
+                    metadata.RegisterPublisherFor<ReportCustomCheckResult>(Settings.DEFAULT_SERVICE_NAME);
                 });
             }
 
