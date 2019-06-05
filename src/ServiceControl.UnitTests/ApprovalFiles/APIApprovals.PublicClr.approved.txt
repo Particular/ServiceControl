@@ -122,6 +122,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string TransportCustomizationType { get; set; }
         public bool ValidateConfiguration { get; }
         public string VirtualDirectory { get; }
+        public string GetConnectionString() { }
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
     }
 }
