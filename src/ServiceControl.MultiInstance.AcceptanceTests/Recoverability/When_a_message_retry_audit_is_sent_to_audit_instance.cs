@@ -12,6 +12,7 @@
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
 
+
     class When_a_message_retry_audit_is_sent_to_audit_instance : AcceptanceTest
     {
         [Test]
@@ -48,7 +49,7 @@
         {
             config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (s.SubscriberEndpoint.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     ctx.ServiceControlSubscribed = true;
                 }
