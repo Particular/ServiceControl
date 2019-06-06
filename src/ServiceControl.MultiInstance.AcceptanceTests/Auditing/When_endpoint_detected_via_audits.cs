@@ -20,7 +20,7 @@
         [Test]
         public async Task Should_be_configurable()
         {
-            CustomEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
+            CustomAuditEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
 
             List<EndpointsView> response = null;
 
