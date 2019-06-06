@@ -7,12 +7,12 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
@@ -22,7 +22,17 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When(async (bus, c) =>
+                {
+                    await bus.Subscribe<MessagePublishedBySaga>();
+
+                    if (c.HasNativePubSubSupport == false)
+                    {
+                        await c.EventSubscribed.Task;
+                    }
+
+                    await bus.SendLocal(new MessageInitiatingSaga {Id = "Id"});
+                }))
                 .Done(async c =>
                 {
                     if (!c.SagaId.HasValue)
@@ -57,15 +67,21 @@
             Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName], "MessagePublishedBySaga was not present");
         }
 
+
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
             public SagaEndpoint()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
-                    c.EnableFeature<AutoSubscribe>();
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
+                    c.OnEndpointSubscribed<MyContext>((s, ctx) =>
+                    {
+                        if (s.SubscriberReturnAddress.IndexOf(Conventions.EndpointNamingConvention(typeof(SagaEndpoint)), StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            ctx.EventSubscribed.TrySetResult(true);
+                        }
+                    });
                 }, metadata => { metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(SagaEndpoint)); });
             }
 
@@ -193,6 +209,8 @@
 
             public bool Done => Sent && Replied && RepliedToOriginator && Published;
             public Guid? SagaId { get; set; }
+
+            public TaskCompletionSource<bool> EventSubscribed { get; set; } = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
     }
 }
