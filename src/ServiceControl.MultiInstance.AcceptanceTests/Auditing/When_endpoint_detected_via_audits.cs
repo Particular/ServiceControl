@@ -14,6 +14,7 @@
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Monitoring;
 
+
     class When_endpoint_detected_via_audits : AcceptanceTest
     {
         [Test]
@@ -61,7 +62,7 @@
         {
             config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (s.SubscriberEndpoint.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     ctx.ServiceControlSubscribed = true;
                 }
