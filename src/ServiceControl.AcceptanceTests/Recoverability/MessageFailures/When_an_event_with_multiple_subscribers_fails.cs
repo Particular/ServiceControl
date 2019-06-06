@@ -61,6 +61,11 @@
                     ).DoNotFailOnErrorMessages()
                 ).Done(async ctx =>
                 {
+                    if (!ctx.Subscriber1Received || !ctx.Subscriber2Received)
+                    {
+                        return false;
+                    }
+
                     var result = await this.TryGetMany<FailedMessageView>("/api/errors");
                     failedMessages = result;
                     return result && failedMessages.Sum(x => x.NumberOfProcessingAttempts) >= 2;
@@ -100,8 +105,11 @@
 
             public class SampleEventHandler : IHandleMessages<SampleEvent>
             {
+                public FailingEventContext Context { get; set; }
+
                 public Task Handle(SampleEvent message, IMessageHandlerContext context)
                 {
+                    Context.Subscriber1Received = true;
                     throw new Exception("Failing Subscriber 1");
                 }
             }
@@ -124,8 +132,11 @@
 
             public class SampleEventHandler : IHandleMessages<SampleEvent>
             {
+                public FailingEventContext Context { get; set; }
+
                 public Task Handle(SampleEvent message, IMessageHandlerContext context)
                 {
+                    Context.Subscriber2Received = true;
                     throw new Exception("Failing Subscriber 2");
                 }
             }
@@ -139,7 +150,9 @@
         public class FailingEventContext : ScenarioContext
         {
             public bool Subscriber1Subscribed { get; set; }
+            public bool Subscriber1Received { get; set; }
             public bool Subscriber2Subscribed { get; set; }
+            public bool Subscriber2Received { get; set; }
         }
     }
 }
