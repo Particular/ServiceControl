@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
     using System;
-    using System.Configuration;
     using System.Threading.Tasks;
     using Microsoft.Azure.ServiceBus.Management;
     using NServiceBus.CustomChecks;
@@ -13,8 +12,7 @@
         {
             Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
 
-            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            connectionString = connectionStringSettings.ConnectionString;
+            connectionString = settings.ConnectionString;
             stagingQueue = $"{settings.EndpointName}.staging";
         }
 
