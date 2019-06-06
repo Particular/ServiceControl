@@ -21,7 +21,15 @@
             CustomConfiguration = ConfigureWaitingForEventSpyToSubscribe;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EventSpy>(b => b.When(s => s.Subscribe<ReportCustomCheckResult>()))
+                .WithEndpoint<EventSpy>(b => b.When(async (s, c) =>
+                {
+                    await s.Subscribe<ReportCustomCheckResult>();
+
+                    if (c.HasNativePubSubSupport)
+                    {
+                        c.EventSpySubscribed.TrySetResult(true);
+                    }
+                }))
                 .WithEndpoint<EndpointWithCustomChecks>()
                 .Done(c => c.Messages.Count == 2)
                 .Run();
