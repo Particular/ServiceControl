@@ -49,7 +49,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
+      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb;Newtonsoft.Json.dll" />
 
       <ServiceControl Include="$(ServiceControlFolder)*.*" Exclude="$(ServiceControlFolder)*.config" />
       <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
