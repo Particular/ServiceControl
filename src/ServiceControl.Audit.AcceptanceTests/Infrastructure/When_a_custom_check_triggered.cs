@@ -78,6 +78,8 @@
             public bool HasFailed { get; set; }
             public string FailureReason { get; set; }
 
+            public override string ToString() => new { CustomCheckId, Category, HasFailed, FailureReason }.ToString();
+
             protected bool Equals(CustomCheckData other)
             {
                 return string.Equals(CustomCheckId, other.CustomCheckId) && string.Equals(Category, other.Category) && HasFailed == other.HasFailed && string.Equals(FailureReason, other.FailureReason);
@@ -133,7 +135,10 @@
 
                 public Task Handle(ReportCustomCheckResult message, IMessageHandlerContext context)
                 {
-                    TestContext.Messages.Add(new CustomCheckData(message));
+                    if (!TestContext.HasNativePubSubSupport || context.MessageHeaders[Headers.OriginatingEndpoint] == Settings.DEFAULT_SERVICE_NAME)
+                    {
+                        TestContext.Messages.Add(new CustomCheckData(message));
+                    }
                     return Task.CompletedTask;
                 }
             }
