@@ -17,5 +17,3 @@ EXPOSE 33333
 SHELL ["powershell"]
 
 ENTRYPOINT ["powershell", "./runcontainer.ps1"]
-
-# docker run --hostname servicecontrol --name sc -e $connection -v c:/data/:c:/data/ -v c:/logs/:c:/logs/ -it servicecontrolrabbitdirect
