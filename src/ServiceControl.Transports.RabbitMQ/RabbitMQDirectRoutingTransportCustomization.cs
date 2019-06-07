@@ -19,7 +19,7 @@
 
         static void ConfigureTransport(TransportExtensions<RabbitMQTransport> transport, TransportSettings transportSettings)
         {
-            transport.UseDirectRoutingTopology();
+            transport.UseDirectRoutingTopology(routingKeyConvention: type => type.FullName.Replace(".", "-"));
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(transportSettings.ConnectionString);
         }
