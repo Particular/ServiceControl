@@ -80,7 +80,7 @@
         {
             public AuditLogSpy()
             {
-                EndpointSetup<DefaultServerWithAudit>();
+                EndpointSetup<DefaultServerWithoutAudit>();
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
