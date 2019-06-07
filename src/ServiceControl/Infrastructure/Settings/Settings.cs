@@ -30,8 +30,7 @@
                 ErrorLogQueue = GetErrorLogQueue();
             }
 
-            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            TransportConnectionString = connectionStringSettings?.ConnectionString;
+            TransportConnectionString = GetConnectionString();
 
             TransportCustomizationType = GetTransportType();
             ForwardErrorMessages = GetForwardErrorMessages();
@@ -211,6 +210,17 @@
             }
         }
 
+        public string GetConnectionString()
+        {
+            var settingsValue = SettingsReader<string>.Read("ConnectionString");
+            if (settingsValue != null)
+            {
+                return settingsValue;
+            }
+
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
+            return connectionStringSettings?.ConnectionString;
+        }
 
         private string GetErrorQueue()
         {
