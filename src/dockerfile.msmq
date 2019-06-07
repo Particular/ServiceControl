@@ -22,5 +22,3 @@ RUN mkdir c:\\MessageLogStore
 
 RUN powershell -Command Enable-WindowsOptionalFeature -Online -FeatureName MSMQ-Server -All
 RUN powershell -Command Set-MsmqQueueManager -MsgStore C:\MessageStore -TransactionLogStore C:\MessageStore -MsgLogStore C:\MessageStore
-
-# docker run --hostname servicecontrol --name sc -v c:/data/:c:/data/ -v c:/logs/:c:/logs/ -v c:/MessageStore/:c:/a/MessageStore/ -it servicecontrolmsmq
