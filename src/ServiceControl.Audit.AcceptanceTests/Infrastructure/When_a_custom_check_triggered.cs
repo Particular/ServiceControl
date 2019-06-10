@@ -46,7 +46,7 @@
         {
             config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.IndexOf(Conventions.EndpointNamingConvention(typeof(EventSpy)), StringComparison.OrdinalIgnoreCase) >= 0)
+                if (s.SubscriberEndpoint.IndexOf(Conventions.EndpointNamingConvention(typeof(EventSpy)), StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     ctx.EventSpySubscribed.TrySetResult(true);
                 }
