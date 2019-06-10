@@ -21,7 +21,7 @@
 
         class MessageTypeEnricher : IEnrichImportedAuditMessages
         {
-            public Task Enrich(AuditEnricherContext context)
+            public void Enrich(AuditEnricherContext context)
             {
                 var isSystemMessage = false;
                 string messageType = null;
@@ -40,8 +40,6 @@
 
                 context.Metadata.Add("IsSystemMessage", isSystemMessage);
                 context.Metadata.Add("MessageType", messageType);
-
-                return Task.CompletedTask;
             }
 
             bool DetectSystemMessage(string messageTypeString)
@@ -62,7 +60,7 @@
 
         class EnrichWithTrackingIds : IEnrichImportedAuditMessages
         {
-            public Task Enrich(AuditEnricherContext context)
+            public void Enrich(AuditEnricherContext context)
             {
                 if (context.Headers.TryGetValue(Headers.ConversationId, out var conversationId))
                 {
@@ -73,8 +71,6 @@
                 {
                     context.Metadata.Add("RelatedToId", relatedToId);
                 }
-
-                return Task.CompletedTask;
             }
         }
     }

@@ -5,15 +5,22 @@
 
     class AuditEnricherContext
     {
-        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IMessageSession messageSession, IDictionary<string, object> metadata)
+        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IList<IEvent> outgoingEvents, IDictionary<string, object> metadata)
         {
             Headers = headers;
-            MessageSession = messageSession;
+            this.outgoingEvents = outgoingEvents;
             Metadata = metadata;
         }
 
         public IReadOnlyDictionary<string, string> Headers { get; }
-        public IMessageSession MessageSession { get; }
+
         public IDictionary<string, object> Metadata { get; }
+
+        public void Emit(IEvent @event)
+        {
+            outgoingEvents.Add(@event);
+        }
+
+        IList<IEvent> outgoingEvents;
     }
 }

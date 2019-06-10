@@ -22,7 +22,7 @@
 
         internal class SagaRelationshipsEnricher : IEnrichImportedAuditMessages
         {
-            public Task Enrich(AuditEnricherContext context)
+            public void Enrich(AuditEnricherContext context)
             {
                 var headers = context.Headers;
                 var metadata = context.Metadata;
@@ -120,8 +120,6 @@
                         SagaType = sagaType
                     });
                 }
-
-                return Task.CompletedTask;
             }
 
             static IEnumerable<string> SplitInvokedSagas(string sagasInvokedRaw)

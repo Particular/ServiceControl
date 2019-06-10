@@ -4,6 +4,6 @@ namespace ServiceControl.Audit.Auditing
 
     interface IEnrichImportedAuditMessages
     {
-        Task Enrich(AuditEnricherContext context);
+        void Enrich(AuditEnricherContext context);
     }
 }

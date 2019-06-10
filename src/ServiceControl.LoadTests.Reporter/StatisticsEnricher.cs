@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.LoadTests.Reporter
 {
-    using System.Threading.Tasks;
     using Audit.Auditing;
     using Metrics;
     using NServiceBus;
@@ -13,7 +12,7 @@
             this.processedMeter = processedMeter;
         }
 
-        public Task Enrich(AuditEnricherContext context)
+        public void Enrich(AuditEnricherContext context)
         {
             var headers = context.Headers;
 
@@ -22,8 +21,6 @@
                 statistics.AuditReceived(headers[Headers.HostId]);
                 processedMeter.Mark();
             }
-
-            return Task.CompletedTask;
         }
 
         Statistics statistics;

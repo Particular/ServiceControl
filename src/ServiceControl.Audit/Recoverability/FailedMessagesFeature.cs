@@ -24,7 +24,7 @@
 
         class DetectSuccessfullRetriesEnricher : IEnrichImportedAuditMessages
         {
-            public async Task Enrich(AuditEnricherContext context)
+            public void Enrich(AuditEnricherContext context)
             {
                 var headers = context.Headers;
                 var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out _);
@@ -39,11 +39,11 @@
                     return;
                 }
 
-                await context.MessageSession.Publish(new MessageFailureResolvedByRetry
+                context.Emit(new MessageFailureResolvedByRetry
                 {
                     FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
                     AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()
-                }).ConfigureAwait(false);
+                });
             }
 
             IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)

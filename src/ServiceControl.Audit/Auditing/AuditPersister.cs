@@ -32,17 +32,14 @@
                 ["MessageIntent"] = context.Message.Headers.MessageIntent(),
             };
 
-            var enricherContext = new AuditEnricherContext(context.Message.Headers, context.MessageSession, metadata);
-            var enricherTasks = new List<Task>(enrichers.Length);
-
+            var eventsToEmit = new List<IEvent>();
+            var enricherContext = new AuditEnricherContext(context.Message.Headers, eventsToEmit, metadata);
+          
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var enricher in enrichers)
             {
-                enricherTasks.Add(enricher.Enrich(enricherContext));
+                enricher.Enrich(enricherContext);
             }
-
-            await Task.WhenAll(enricherTasks)
-                .ConfigureAwait(false);
 
             await bodyStorageEnricher.StoreAuditMessageBody(context.Message.Body, context.Message.Headers, metadata)
                 .ConfigureAwait(false);
@@ -58,6 +55,12 @@
                 await session.StoreAsync(auditMessage)
                     .ConfigureAwait(false);
                 await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+
+            foreach (var eventToEmit in eventsToEmit)
+            {
+                await context.MessageSession.Publish(eventToEmit)
                     .ConfigureAwait(false);
             }
         }

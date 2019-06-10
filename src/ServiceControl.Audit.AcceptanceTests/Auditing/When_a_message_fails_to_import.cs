@@ -63,7 +63,7 @@
         {
             public MyContext Context { get; set; }
 
-            public Task Enrich(AuditEnricherContext context)
+            public void Enrich(AuditEnricherContext context)
             {
                 if (!Context.FailedImport)
                 {
@@ -72,7 +72,6 @@
                 }
 
                 TestContext.WriteLine("Message processed correctly");
-                return Task.FromResult(0);
             }
         }
 

@@ -20,7 +20,7 @@
 
         class ProcessingStatisticsEnricher : IEnrichImportedAuditMessages
         {
-            public Task Enrich(AuditEnricherContext context)
+            public void Enrich(AuditEnricherContext context)
             {
                 var headers = context.Headers;
                 var metadata = context.Metadata;
@@ -70,8 +70,6 @@
                 }
 
                 metadata.Add("DeliveryTime", deliveryTime);
-
-                return Task.CompletedTask;
             }
         }
     }
