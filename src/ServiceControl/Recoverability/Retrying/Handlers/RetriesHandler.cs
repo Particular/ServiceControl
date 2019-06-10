@@ -12,7 +12,6 @@ namespace ServiceControl.Recoverability
         IHandleMessages<RetryMessagesById>,
         IHandleMessages<RetryMessage>,
         IHandleMessages<MessageFailed>,
-        IHandleMessages<MessageFailedRepeatedly>,
         IHandleMessages<RetryMessagesByQueueAddress>
     {
         public RetriesGateway Retries { get; set; }
@@ -29,11 +28,6 @@ namespace ServiceControl.Recoverability
             }
 
             return Task.FromResult(0);
-        }
-
-        public Task Handle(MessageFailedRepeatedly message, IMessageHandlerContext context)
-        {
-            return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
         }
 
         public Task Handle(RequestRetryAll message, IMessageHandlerContext context)

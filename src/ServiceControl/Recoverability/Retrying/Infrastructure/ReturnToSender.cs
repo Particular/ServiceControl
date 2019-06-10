@@ -23,7 +23,10 @@ namespace ServiceControl.Recoverability
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
 
             var messageId = message.MessageId;
-            Log.DebugFormat("{0}: Retrieving message body", messageId);
+            if(Log.IsDebugEnabled)
+            {
+                Log.DebugFormat("{0}: Retrieving message body", messageId);
+            }
 
             if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
             {
@@ -36,7 +39,10 @@ namespace ServiceControl.Recoverability
                         body = ReadFully(result.Stream);
                     }
 
-                    Log.DebugFormat("{0}: Body size: {1} bytes", messageId, body.LongLength);
+                    if(Log.IsDebugEnabled)
+                    {
+                        Log.DebugFormat("{0}: Body size: {1} bytes", messageId, body.LongLength);
+                    }
                 }
                 else
                 {
@@ -53,7 +59,11 @@ namespace ServiceControl.Recoverability
             var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body);
 
             var destination = outgoingHeaders["ServiceControl.TargetEndpointAddress"];
-            Log.DebugFormat("{0}: Forwarding message to {1}", messageId, destination);
+            if(Log.IsDebugEnabled)
+            {
+                Log.DebugFormat("{0}: Forwarding message to {1}", messageId, destination);
+            }
+
             if (!outgoingHeaders.TryGetValue("ServiceControl.RetryTo", out var retryTo))
             {
                 retryTo = destination;
@@ -61,14 +71,21 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                Log.DebugFormat("{0}: Found ServiceControl.RetryTo header. Rerouting to {1}", messageId, retryTo);
+                if(Log.IsDebugEnabled)
+                {
+                    Log.DebugFormat("{0}: Found ServiceControl.RetryTo header. Rerouting to {1}", messageId, retryTo);
+                }
             }
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
 
             await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions)
                 .ConfigureAwait(false);
-            Log.DebugFormat("{0}: Forwarded message to {1}", messageId, retryTo);
+
+            if (Log.IsDebugEnabled)
+            {
+                Log.DebugFormat("{0}: Forwarded message to {1}", messageId, retryTo);
+            }
         }
 
         static byte[] ReadFully(Stream input)

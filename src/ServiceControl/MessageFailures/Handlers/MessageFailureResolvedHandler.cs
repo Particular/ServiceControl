@@ -10,7 +10,7 @@
     using NServiceBus;
     using Raven.Client;
 
-    class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>
+    class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>, IDomainHandler<MessageFailureResolvedByRetry>
     {
         public MessageFailureResolvedHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
@@ -59,20 +59,26 @@
             }).ConfigureAwait(false);
         }
 
-        public async Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
+        // This is only needed because we are reusing an external event that comes from secondaries as a domain event
+        public Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
         {
-            if (await MarkMessageAsResolved(message.FailedMessageId)
+            return domainEvents.Raise(message);
+        }
+
+        public async Task Handle(MessageFailureResolvedByRetry domainEvent)
+        {
+            if (await MarkMessageAsResolved(domainEvent.FailedMessageId)
                 .ConfigureAwait(false))
             {
                 return;
             }
 
-            if (message.AlternativeFailedMessageIds == null)
+            if (domainEvent.AlternativeFailedMessageIds == null)
             {
                 return;
             }
 
-            foreach (var alternative in message.AlternativeFailedMessageIds.Where(x => x != message.FailedMessageId))
+            foreach (var alternative in domainEvent.AlternativeFailedMessageIds.Where(x => x != domainEvent.FailedMessageId))
             {
                 if (await MarkMessageAsResolved(alternative)
                     .ConfigureAwait(false))
@@ -105,12 +111,7 @@
         }
 
         IDocumentStore store;
-        IDomainEvents domainEvents;
 
-        private enum MarkMessageAsResolvedStatus
-        {
-            NotFound,
-            Updated
-        }
+        IDomainEvents domainEvents;
     }
 }

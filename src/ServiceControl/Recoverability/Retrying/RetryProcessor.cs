@@ -104,10 +104,18 @@ namespace ServiceControl.Recoverability
 
                 if (forwardingBatch != null)
                 {
-                    Log.Info($"Forwarding batch {forwardingBatch.Id}.");
+                    if(Log.IsDebugEnabled)
+                    {
+                        Log.Info($"Forwarding batch {forwardingBatch.Id}.");
+                    }
+
                     await Forward(forwardingBatch, session, cancellationToken)
                         .ConfigureAwait(false);
-                    Log.DebugFormat("Retry batch {0} forwarded.", forwardingBatch.Id);
+
+                    if(Log.IsDebugEnabled)
+                    {
+                        Log.DebugFormat("Retry batch {0} forwarded.", forwardingBatch.Id);
+                    }
                 }
                 else
                 {

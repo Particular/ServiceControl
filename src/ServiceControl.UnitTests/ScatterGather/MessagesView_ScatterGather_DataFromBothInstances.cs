@@ -9,10 +9,10 @@
     [TestFixture]
     class MessagesView_ScatterGather_DataFromBothInstances : MessageView_ScatterGatherTest
     {
-        protected override IEnumerable<QueryResult<List<MessagesView>>> GetData()
+        protected override QueryResult<IList<MessagesView>>[] GetData()
         {
-            yield return LocalPage(1);
-            yield return RemotePage(1);
+
+            return new[] {LocalPage(1), RemotePage(1)};
         }
 
         [Test]

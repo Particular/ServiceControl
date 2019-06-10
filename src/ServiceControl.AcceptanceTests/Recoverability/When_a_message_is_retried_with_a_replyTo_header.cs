@@ -1,15 +1,16 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability
+﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -51,7 +52,7 @@
         {
             public VerifyHeader()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(
+                EndpointSetup<DefaultServer>(
                     (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((ReplyToContext)r.ScenarioContext))
                 );
             }

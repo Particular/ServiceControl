@@ -34,17 +34,7 @@
                 this.settings = settings;
             }
 
-            public Task StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
-                return StoreMessageBody(body, headers, metadata, isFailedMessage: false);
-            }
-
-            public Task StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
-                return StoreMessageBody(body, headers, metadata, isFailedMessage: true);
-            }
-
-            async Task StoreMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, bool isFailedMessage)
+            public async Task StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.Add("ContentLength", bodySize);
@@ -56,7 +46,7 @@
                 var contentType = GetContentType(headers, "text/xml");
                 metadata.Add("ContentType", contentType);
 
-                var stored = await TryStoreBody(body, headers, metadata, bodySize, contentType, isFailedMessage)
+                var stored = await TryStoreBody(body, headers, metadata, bodySize, contentType)
                     .ConfigureAwait(false);
                 if (!stored)
                 {
@@ -74,7 +64,7 @@
                 return contentType;
             }
 
-            async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType, bool isFailedMessage)
+            async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
                 var bodyId = headers.MessageId();
                 var storedInBodyStorage = false;
@@ -83,7 +73,7 @@
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-                if (isFailedMessage || isBelowMaxSize)
+                if (isBelowMaxSize)
                 {
                     bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
                         .ConfigureAwait(false);

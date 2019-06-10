@@ -14,12 +14,18 @@
 
             connectionString = settings.ConnectionString;
             stagingQueue = $"{settings.EndpointName}.staging";
+            runCheck = settings.RunCustomChecks;
         }
 
-        public async override Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck()
         {
+            if (!runCheck)
+            {
+                return CheckResult.Pass;
+            }
+
             Logger.Debug("Checking Dead Letter Queue length");
-            var managementClient  = new ManagementClient(connectionString);
+            var managementClient = new ManagementClient(connectionString);
 
             try
             {
@@ -40,12 +46,14 @@
             {
                 await managementClient.CloseAsync().ConfigureAwait(false);
             }
-            
+
             return CheckResult.Pass;
         }
 
         string connectionString;
         string stagingQueue;
+        bool runCheck;
+
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
     }

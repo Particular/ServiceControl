@@ -1,14 +1,15 @@
-namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
+namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
@@ -80,7 +81,7 @@ namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));

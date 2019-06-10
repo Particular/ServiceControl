@@ -1,0 +1,17 @@
+﻿ServiceControl by Particular Software
+
+USAGE:
+   ServiceControl.exe --maintenance 
+
+MAINTENANCE 
+
+The maintenance switch allows RavenDB Maintenance tasks to be carried out.  In this mode ServiceControl enables the RavenDB Web UI only.  
+The REST API, message importers and the background document expiry are all disabled.
+
+This mode is only supported when run interactively. 
+
+SERVICE INSTALL AND UNINSTALL AND CONFIGURATION OPTIONS
+
+As of Service Control 1.7 the command line  uninstall and install switches have been removed. 
+Please use the ServiceControl Management Utilities for adding and removing ServiceControl instances.
+

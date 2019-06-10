@@ -16,7 +16,6 @@
         {
             var settings = new Settings(args.ServiceName)
             {
-                IngestAuditMessages = false,
                 IngestErrorMessages = false,
                 RunRetryProcessor = false
             };

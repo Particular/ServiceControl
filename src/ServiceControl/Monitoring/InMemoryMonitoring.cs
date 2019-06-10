@@ -50,7 +50,10 @@
             async Task<TimerJobExecutionResult> CheckEndpoints()
             {
                 var inactivityThreshold = DateTime.UtcNow - GracePeriod;
-                log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
+                if(log.IsDebugEnabled)
+                {
+                    log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
+                }
                 await monitor.CheckEndpoints(inactivityThreshold).ConfigureAwait(false);
                 return TimerJobExecutionResult.ScheduleNextExecution;
             }

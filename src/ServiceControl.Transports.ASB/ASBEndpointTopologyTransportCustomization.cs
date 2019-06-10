@@ -8,8 +8,8 @@
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
-            var remoteInstances = transportSettings.Get<string[]>("TransportSettings.RemoteInstances");
-            var remoteTypesToSubscribeTo = transportSettings.Get<Type[]>("TransportSettings.RemoteTypesToSubscribeTo");
+            var remoteInstances = transportSettings.GetOrDefault<string[]>("TransportSettings.RemoteInstances") ?? new string[0];
+            var remoteTypesToSubscribeTo = transportSettings.GetOrDefault<Type[]>("TransportSettings.RemoteTypesToSubscribeTo") ?? new Type[0];
             var endpointName = transportSettings.EndpointName;
 
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();

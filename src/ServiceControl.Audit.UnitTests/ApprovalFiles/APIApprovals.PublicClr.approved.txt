@@ -1,0 +1,225 @@
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Audit.AcceptanceTests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Audit.UnitTests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Loadtests.Reporter")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.MultiInstance.AcceptanceTests")]
+[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
+namespace ServiceControl.Audit.Auditing
+{
+    public class DefaultEnrichers : NServiceBus.Features.Feature
+    {
+        public DefaultEnrichers() { }
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+    public class FailedAuditImport
+    {
+        public FailedAuditImport() { }
+        public System.Guid Id { get; set; }
+        public ServiceControl.Audit.Auditing.FailedTransportMessage Message { get; set; }
+    }
+    public class FailedAuditImportIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.FailedAuditImport>
+    {
+        public FailedAuditImportIndex() { }
+    }
+    public class FailedTransportMessage
+    {
+        public FailedTransportMessage() { }
+        public byte[] Body { get; set; }
+        public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
+        public string Id { get; set; }
+    }
+    public class ProcessedMessage
+    {
+        public ProcessedMessage() { }
+        public ProcessedMessage(System.Collections.Generic.Dictionary<string, string> headers, System.Collections.Generic.Dictionary<string, object> metadata) { }
+        public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
+        public string Id { get; set; }
+        public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
+        public System.DateTime ProcessedAt { get; set; }
+        public string UniqueMessageId { get; set; }
+    }
+}
+namespace ServiceControl.Audit.Auditing.MessagesView
+{
+    public class MessagesView
+    {
+        public MessagesView() { }
+        public int BodySize { get; set; }
+        public string BodyUrl { get; set; }
+        public string ConversationId { get; set; }
+        public System.TimeSpan CriticalTime { get; set; }
+        public System.TimeSpan DeliveryTime { get; set; }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>> Headers { get; set; }
+        public string Id { get; set; }
+        public string InstanceId { get; set; }
+        public System.Collections.Generic.List<ServiceControl.SagaAudit.SagaInfo> InvokedSagas { get; set; }
+        public bool IsSystemMessage { get; set; }
+        public string MessageId { get; set; }
+        public NServiceBus.MessageIntentEnum MessageIntent { get; set; }
+        public string MessageType { get; set; }
+        public ServiceControl.SagaAudit.SagaInfo OriginatesFromSaga { get; set; }
+        public System.DateTime ProcessedAt { get; set; }
+        public System.TimeSpan ProcessingTime { get; set; }
+        public ServiceControl.Audit.Monitoring.EndpointDetails ReceivingEndpoint { get; set; }
+        public ServiceControl.Audit.Monitoring.EndpointDetails SendingEndpoint { get; set; }
+        public ServiceControl.Audit.Monitoring.MessageStatus Status { get; set; }
+        public System.Nullable<System.DateTime> TimeSent { get; set; }
+    }
+    public class MessagesViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage, ServiceControl.Audit.Auditing.MessagesView.MessagesViewIndex.SortAndFilterOptions>
+    {
+        public MessagesViewIndex() { }
+        public class SortAndFilterOptions
+        {
+            public SortAndFilterOptions() { }
+            public string ConversationId { get; set; }
+            public System.Nullable<System.TimeSpan> CriticalTime { get; set; }
+            public System.Nullable<System.TimeSpan> DeliveryTime { get; set; }
+            public bool IsSystemMessage { get; set; }
+            public string MessageId { get; set; }
+            public string MessageType { get; set; }
+            public System.DateTime ProcessedAt { get; set; }
+            public System.Nullable<System.TimeSpan> ProcessingTime { get; set; }
+            public string[] Query { get; set; }
+            public string ReceivingEndpointName { get; set; }
+            public ServiceControl.Audit.Monitoring.MessageStatus Status { get; set; }
+            public System.DateTime TimeSent { get; set; }
+        }
+    }
+    public class MessagesViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.Audit.Auditing.MessagesView.MessagesViewTransformer.Result>
+    {
+        public MessagesViewTransformer() { }
+        public class Result
+        {
+            public Result() { }
+            public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
+            public string Id { get; set; }
+            public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
+            public System.DateTime ProcessedAt { get; set; }
+            public string UniqueMessageId { get; set; }
+        }
+    }
+}
+namespace ServiceControl.Audit.Infrastructure.DomainEvents
+{
+    public interface IBusEvent : NServiceBus.IEvent, NServiceBus.IMessage { }
+}
+namespace ServiceControl.Audit.Infrastructure.Installers
+{
+    public class AuditLoqQueue : NServiceBus.Features.Feature
+    {
+        public AuditLoqQueue() { }
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+    public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething
+    {
+        public const string SourceName = "ServiceControl.Audit";
+        public CreateEventSource() { }
+        public System.Threading.Tasks.Task Install(string identity) { }
+    }
+}
+namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
+{
+    [System.ComponentModel.Composition.ExportMetadataAttribute("Bundle", "customDocumentExpiration")]
+    [System.ComponentModel.Composition.InheritedExportAttribute(typeof(Raven.Database.Plugins.IStartupTask))]
+    public class ExpiredDocumentsCleanerBundle : Raven.Database.Plugins.IStartupTask, System.IDisposable
+    {
+        public ExpiredDocumentsCleanerBundle() { }
+        public void Dispose() { }
+        public void Execute(Raven.Database.DocumentDatabase database) { }
+    }
+    public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage>
+    {
+        public ExpiryProcessedMessageIndex() { }
+    }
+}
+namespace ServiceControl.Audit.Infrastructure.Settings
+{
+    public class Settings
+    {
+        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
+        public const string Disabled = "!disable";
+        public Settings(string serviceName = null) { }
+        public string ApiUrl { get; }
+        public string AuditLogQueue { get; set; }
+        public string AuditQueue { get; set; }
+        public System.TimeSpan AuditRetentionPeriod { get; }
+        public int DatabaseMaintenancePort { get; set; }
+        public string DatabaseMaintenanceUrl { get; }
+        public int DataSpaceRemainingThreshold { get; set; }
+        public string DbPath { get; set; }
+        public bool DisableRavenDBPerformanceCounters { get; set; }
+        public int ExpirationProcessBatchSize { get; }
+        public int ExpirationProcessTimerInSeconds { get; }
+        public bool ExposeRavenDB { get; }
+        public bool ForwardAuditMessages { get; set; }
+        public string Hostname { get; }
+        public int HttpDefaultConnectionLimit { get; set; }
+        public bool IngestAuditMessages { get; set; }
+        public int MaxBodySizeToStore { get; set; }
+        public int MaximumConcurrencyLevel { get; set; }
+        public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
+        public int Port { get; set; }
+        public string RootUrl { get; }
+        public bool RunCleanupBundle { get; set; }
+        public bool RunInMemory { get; set; }
+        public string ServiceName { get; }
+        public bool SkipQueueCreation { get; set; }
+        public string StorageUrl { get; }
+        public string TransportConnectionString { get; set; }
+        public string TransportCustomizationType { get; set; }
+        public bool ValidateConfiguration { get; }
+        public string VirtualDirectory { get; }
+        public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
+    }
+}
+namespace ServiceControl.Audit.Monitoring
+{
+    public class EndpointDetails
+    {
+        public EndpointDetails() { }
+        public string Host { get; set; }
+        public System.Guid HostId { get; set; }
+        public string Name { get; set; }
+    }
+    public enum MessageStatus
+    {
+        Successful = 3,
+        ResolvedSuccessfully = 4,
+    }
+}
+namespace ServiceControl.Audit.Recoverability
+{
+    public class QueueAddress
+    {
+        public QueueAddress() { }
+        public int FailedMessageCount { get; set; }
+        public string PhysicalAddress { get; set; }
+    }
+}
+namespace ServiceControl.Contracts.EndpointControl
+{
+    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Audit.Infrastructure.DomainEvents.IBusEvent
+    {
+        public NewEndpointDetected() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Audit.Monitoring.EndpointDetails Endpoint { get; set; }
+    }
+}
+namespace ServiceControl.Contracts.MessageFailures
+{
+    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Audit.Infrastructure.DomainEvents.IBusEvent
+    {
+        public MessageFailureResolvedByRetry() { }
+        public string[] AlternativeFailedMessageIds { get; set; }
+        public string FailedMessageId { get; set; }
+    }
+}
+namespace ServiceControl.SagaAudit
+{
+    public class SagaInfo
+    {
+        public SagaInfo() { }
+        public string ChangeStatus { get; set; }
+        public System.Guid SagaId { get; set; }
+        public string SagaType { get; set; }
+    }
+}
