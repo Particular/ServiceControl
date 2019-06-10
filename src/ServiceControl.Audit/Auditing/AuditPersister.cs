@@ -19,33 +19,41 @@
             this.enrichers = enrichers;
         }
 
-        public async Task Persist(MessageContext message)
+        public async Task Persist(ProcessAuditMessageContext context)
         {
-            if (!message.Headers.TryGetValue(Headers.MessageId, out var messageId))
+            if (!context.Message.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
-                messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
+                messageId = DeterministicGuid.MakeId(context.Message.MessageId).ToString();
             }
 
             var metadata = new ConcurrentDictionary<string, object>
             {
                 ["MessageId"] = messageId,
-                ["MessageIntent"] = message.Headers.MessageIntent(),
+                ["MessageIntent"] = context.Message.Headers.MessageIntent(),
+            };
+
+            
+            var enricherContext = new AuditEnricherContext {
+                Headers = context.Message.Headers,
+                MessageSession = context.MessageSession,
+                Metadata = metadata
             };
 
             var enricherTasks = new List<Task>(enrichers.Length);
+
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var enricher in enrichers)
             {
-                enricherTasks.Add(enricher.Enrich(message.Headers, metadata));
+                enricherTasks.Add(enricher.Enrich(enricherContext));
             }
 
             await Task.WhenAll(enricherTasks)
                 .ConfigureAwait(false);
 
-            await bodyStorageEnricher.StoreAuditMessageBody(message.Body, message.Headers, metadata)
+            await bodyStorageEnricher.StoreAuditMessageBody(context.Message.Body, context.Message.Headers, metadata)
                 .ConfigureAwait(false);
 
-            var auditMessage = new ProcessedMessage(message.Headers, new Dictionary<string, object>(metadata))
+            var auditMessage = new ProcessedMessage(context.Message.Headers, new Dictionary<string, object>(metadata))
             {
                 // We do this so Raven does not spend time assigning a hilo key
                 Id = $"ProcessedMessages/{Guid.NewGuid()}"

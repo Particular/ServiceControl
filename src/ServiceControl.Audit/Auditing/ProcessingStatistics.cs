@@ -18,10 +18,12 @@
             context.Container.ConfigureComponent<ProcessingStatisticsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class ProcessingStatisticsEnricher : AuditImportEnricher
+        class ProcessingStatisticsEnricher : IEnrichImportedAuditMessages
         {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public Task Enrich(AuditEnricherContext context)
             {
+                var headers = context.Headers;
+                var metadata = context.Metadata;
                 var processingEnded = DateTime.MinValue;
                 var timeSent = DateTime.MinValue;
                 var processingStarted = DateTime.MinValue;

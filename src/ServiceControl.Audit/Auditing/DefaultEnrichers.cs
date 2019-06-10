@@ -19,27 +19,27 @@
             context.Container.ConfigureComponent<MessageTypeEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class MessageTypeEnricher : AuditImportEnricher
+        class MessageTypeEnricher : IEnrichImportedAuditMessages
         {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public Task Enrich(AuditEnricherContext context)
             {
                 var isSystemMessage = false;
                 string messageType = null;
 
-                if (headers.ContainsKey(Headers.ControlMessageHeader))
+                if (context.Headers.ContainsKey(Headers.ControlMessageHeader))
                 {
                     isSystemMessage = true;
                 }
 
-                if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var enclosedMessageTypes))
+                if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var enclosedMessageTypes))
                 {
                     messageType = GetMessageType(enclosedMessageTypes);
                     isSystemMessage = DetectSystemMessage(messageType);
-                    metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
+                    context.Metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
                 }
 
-                metadata.Add("IsSystemMessage", isSystemMessage);
-                metadata.Add("MessageType", messageType);
+                context.Metadata.Add("IsSystemMessage", isSystemMessage);
+                context.Metadata.Add("MessageType", messageType);
 
                 return Task.CompletedTask;
             }
@@ -60,18 +60,18 @@
             }
         }
 
-        class EnrichWithTrackingIds : AuditImportEnricher
+        class EnrichWithTrackingIds : IEnrichImportedAuditMessages
         {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public Task Enrich(AuditEnricherContext context)
             {
-                if (headers.TryGetValue(Headers.ConversationId, out var conversationId))
+                if (context.Headers.TryGetValue(Headers.ConversationId, out var conversationId))
                 {
-                    metadata.Add("ConversationId", conversationId);
+                    context.Metadata.Add("ConversationId", conversationId);
                 }
 
-                if (headers.TryGetValue(Headers.RelatedTo, out var relatedToId))
+                if (context.Headers.TryGetValue(Headers.RelatedTo, out var relatedToId))
                 {
-                    metadata.Add("RelatedToId", relatedToId);
+                    context.Metadata.Add("RelatedToId", relatedToId);
                 }
 
                 return Task.CompletedTask;

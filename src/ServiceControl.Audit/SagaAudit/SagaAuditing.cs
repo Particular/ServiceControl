@@ -20,10 +20,13 @@
             context.Container.ConfigureComponent<SagaRelationshipsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        internal class SagaRelationshipsEnricher : AuditImportEnricher
+        internal class SagaRelationshipsEnricher : IEnrichImportedAuditMessages
         {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public Task Enrich(AuditEnricherContext context)
             {
+                var headers = context.Headers;
+                var metadata = context.Metadata;
+
                 if (headers.TryGetValue("NServiceBus.InvokedSagas", out var sagasInvokedRaw))
                 {
                     var sagasChanges = new Dictionary<string, string>();

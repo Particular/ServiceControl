@@ -3,10 +3,10 @@
     using System;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
-    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
 
@@ -15,7 +15,7 @@
         [Test]
         public async Task Should_raise_integration_event()
         {
-            CustomConfiguration = config => config.RegisterComponents(c => c.ConfigureComponent<DomainEventSpy>(DependencyLifecycle.SingleInstance));
+            CustomConfiguration = config => config.Pipeline.Register(typeof(IntegrationEventSpy), "Captures the integration event");
 
             var failedMessageId = Guid.NewGuid().ToString();
             var context = await Define<MyContext>()
@@ -33,14 +33,18 @@
             Assert.AreEqual(failedMessageId, context.EventRaised.FailedMessageId);
         }
 
-        public class DomainEventSpy : IDomainHandler<MessageFailureResolvedByRetry>
+        public class IntegrationEventSpy: Behavior<IOutgoingPublishContext>
         {
             public MyContext TestContext { get; set; }
 
-            public Task Handle(MessageFailureResolvedByRetry domainEvent)
+            public override Task Invoke(IOutgoingPublishContext context, Func<Task> next)
             {
-                TestContext.EventRaised = domainEvent;
-                return Task.CompletedTask;
+                if (context.Message.Instance is MessageFailureResolvedByRetry)
+                {
+                    TestContext.EventRaised = (MessageFailureResolvedByRetry)context.Message.Instance;
+                }
+
+                return next();
             }
         }
 

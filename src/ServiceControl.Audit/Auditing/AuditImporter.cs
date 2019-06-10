@@ -34,7 +34,11 @@
                 context.Settings.ToTransportAddress(settings.AuditQueue),
                 new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                 OnAuditError,
-                (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(messageContext))
+                (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(new ProcessAuditMessageContext
+                {
+                    Message = messageContext,
+                    MessageSession = builder.Build<IMessageSession>()
+                }))
             );
 
             context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<AuditIngestor>(), this));
@@ -56,9 +60,9 @@
             }, b.Build<CriticalError>());
         }
 
-        Task OnAuditMessage(MessageContext messageContext)
+        Task OnAuditMessage(ProcessAuditMessageContext context)
         {
-            return auditIngestor.Ingest(messageContext);
+            return auditIngestor.Ingest(context);
         }
 
         RecoverabilityAction OnAuditError(RecoverabilityConfig config, ErrorContext errorContext)
@@ -116,5 +120,11 @@
                 return Task.CompletedTask;
             }
         }
+    }
+
+    class ProcessAuditMessageContext
+    {
+        public IMessageSession MessageSession{ get; set; }
+        public MessageContext Message { get; set; }
     }
 }

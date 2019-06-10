@@ -7,7 +7,6 @@
     using Auditing;
     using Contracts.MessageFailures;
     using Infrastructure;
-    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Features;
 
@@ -23,28 +22,24 @@
             context.Container.ConfigureComponent<DetectSuccessfullRetriesEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class DetectSuccessfullRetriesEnricher : AuditImportEnricher
+        class DetectSuccessfullRetriesEnricher : IEnrichImportedAuditMessages
         {
-            public DetectSuccessfullRetriesEnricher(IDomainEvents domainEvents)
+            public async Task Enrich(AuditEnricherContext context)
             {
-                this.domainEvents = domainEvents;
-            }
-
-            public override async Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
+                var headers = context.Headers;
                 var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out _);
                 var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var newRetryMessageId);
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
 
-                metadata.Add("IsRetried", hasBeenRetried);
+                context.Metadata.Add("IsRetried", hasBeenRetried);
 
                 if (!hasBeenRetried)
                 {
                     return;
                 }
 
-                await domainEvents.Raise(new MessageFailureResolvedByRetry
+                await context.MessageSession.Publish(new MessageFailureResolvedByRetry
                 {
                     FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
                     AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()
@@ -81,8 +76,6 @@
 
                 return address;
             }
-
-            IDomainEvents domainEvents;
         }
     }
 }

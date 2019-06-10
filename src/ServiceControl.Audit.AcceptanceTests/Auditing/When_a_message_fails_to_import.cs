@@ -59,11 +59,11 @@
             Assert.IsTrue(runResult.AuditForwarded);
         }
 
-        class FailOnceEnricher : AuditImportEnricher
+        class FailOnceEnricher : IEnrichImportedAuditMessages
         {
             public MyContext Context { get; set; }
 
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public Task Enrich(AuditEnricherContext context)
             {
                 if (!Context.FailedImport)
                 {

@@ -5,10 +5,10 @@
     using Audit.Auditing.MessagesView;
     using Audit.Monitoring;
     using Contracts.MessageFailures;
-    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
 
@@ -17,6 +17,8 @@
         [Test]
         public async Task Should_set_status_to_resolved()
         {
+            CustomConfiguration = config => config.Pipeline.Register(typeof(DomainEventSpy), "Captures the event");
+
             MessagesView auditedMessage = null;
 
             var messageId = Guid.NewGuid().ToString();
@@ -43,14 +45,18 @@
             Assert.AreEqual(MessageStatus.ResolvedSuccessfully, auditedMessage.Status);
         }
 
-        public class DomainEventSpy : IDomainHandler<MessageFailureResolvedByRetry>
+        public class DomainEventSpy : Behavior<IOutgoingPublishContext>
         {
             public MyContext TestContext { get; set; }
 
-            public Task Handle(MessageFailureResolvedByRetry domainEvent)
+            public override Task Invoke(IOutgoingPublishContext context, Func<Task> next)
             {
-                TestContext.EventRaised = domainEvent;
-                return Task.CompletedTask;
+                if (context.Message.Instance is MessageFailureResolvedByRetry)
+                {
+                    TestContext.EventRaised = (MessageFailureResolvedByRetry)context.Message.Instance;
+                }
+
+                return next();
             }
         }
 

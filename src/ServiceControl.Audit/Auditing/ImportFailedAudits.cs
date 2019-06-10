@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Auditing
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -11,10 +12,11 @@ namespace ServiceControl.Audit.Auditing
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor)
+        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor, IMessageSession messageSession)
         {
             this.store = store;
             this.auditIngestor = auditIngestor;
+            this.messageSession = messageSession;
         }
 
         public Task Run(CancellationTokenSource tokenSource)
@@ -40,7 +42,11 @@ namespace ServiceControl.Audit.Auditing
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                            await auditIngestor.Ingest(messageContext).ConfigureAwait(false);
+                            await auditIngestor.Ingest(new ProcessAuditMessageContext
+                            {
+                                Message = messageContext,
+                                MessageSession = messageSession
+                            }).ConfigureAwait(false);
 
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
@@ -73,6 +79,7 @@ namespace ServiceControl.Audit.Auditing
 
         IDocumentStore store;
         AuditIngestor auditIngestor;
+        IMessageSession messageSession;
         CancellationTokenSource source;
 
         static TransportTransaction EmptyTransaction = new TransportTransaction();

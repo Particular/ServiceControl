@@ -16,7 +16,6 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Infrastructure.DomainEvents;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     [TestFixture]
@@ -94,20 +93,6 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 File.Delete(transportAssembly);
             }
-        }
-
-        protected void ExecuteWhen(Func<bool> execute, Func<IDomainEvents, Task> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
-        {
-            var timeout = TimeSpan.FromSeconds(1);
-
-            Task.Run(async () =>
-            {
-                while (!SpinWait.SpinUntil(execute, timeout))
-                {
-                }
-
-                await action(Bus.DomainEvents);
-            });
         }
 
         protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
