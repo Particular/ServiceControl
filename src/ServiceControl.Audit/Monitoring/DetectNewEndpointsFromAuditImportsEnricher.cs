@@ -2,7 +2,7 @@
 {
     using System;
     using Auditing;
-    using ServiceControl.Contracts.EndpointControl;
+    using Contracts.EndpointControl;
 
     class DetectNewEndpointsFromAuditImportsEnricher : IEnrichImportedAuditMessages
     {
@@ -47,7 +47,7 @@
 
             if (monitoring.IsNewInstance(endpointDetails))
             {
-                context.Emit(new NewEndpointDetected
+                context.AddForPublish(new NewEndpointDetected
                 {
                     DetectedAt = DateTime.UtcNow,
                     Endpoint = endpointDetails

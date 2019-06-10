@@ -16,7 +16,7 @@
 
         public IDictionary<string, object> Metadata { get; }
 
-        public void Emit(IEvent @event)
+        public void AddForPublish(IEvent @event)
         {
             outgoingEvents.Add(@event);
         }
