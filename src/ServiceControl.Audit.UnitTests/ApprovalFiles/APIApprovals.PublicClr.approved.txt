@@ -98,10 +98,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         }
     }
 }
-namespace ServiceControl.Audit.Infrastructure.DomainEvents
-{
-    public interface IBusEvent : NServiceBus.IEvent, NServiceBus.IMessage { }
-}
 namespace ServiceControl.Audit.Infrastructure.Installers
 {
     public class AuditLoqQueue : NServiceBus.Features.Feature
@@ -197,7 +193,7 @@ namespace ServiceControl.Audit.Recoverability
 }
 namespace ServiceControl.Contracts.EndpointControl
 {
-    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Audit.Infrastructure.DomainEvents.IBusEvent
+    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage
     {
         public NewEndpointDetected() { }
         public System.DateTime DetectedAt { get; set; }
@@ -206,7 +202,7 @@ namespace ServiceControl.Contracts.EndpointControl
 }
 namespace ServiceControl.Contracts.MessageFailures
 {
-    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Audit.Infrastructure.DomainEvents.IBusEvent
+    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage
     {
         public MessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }
