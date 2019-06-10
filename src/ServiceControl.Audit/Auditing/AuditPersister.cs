@@ -7,7 +7,6 @@
     using BodyStorage;
     using Infrastructure;
     using NServiceBus;
-    using NServiceBus.Transport;
     using Raven.Client;
 
     class AuditPersister

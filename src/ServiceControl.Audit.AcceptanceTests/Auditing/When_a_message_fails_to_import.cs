@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;

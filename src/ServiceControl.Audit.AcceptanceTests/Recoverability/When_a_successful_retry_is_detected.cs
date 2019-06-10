@@ -39,9 +39,9 @@
 
             public override Task Invoke(IOutgoingPublishContext context, Func<Task> next)
             {
-                if (context.Message.Instance is MessageFailureResolvedByRetry)
+                if (context.Message.Instance is MessageFailureResolvedByRetry failureResolvedByRetry)
                 {
-                    TestContext.EventRaised = (MessageFailureResolvedByRetry)context.Message.Instance;
+                    TestContext.EventRaised = failureResolvedByRetry;
                 }
 
                 return next();

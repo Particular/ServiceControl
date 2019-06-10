@@ -4,7 +4,6 @@
     using Infrastructure;
     using Infrastructure.Settings;
     using NServiceBus.Logging;
-    using NServiceBus.Transport;
 
     class AuditIngestor
     {

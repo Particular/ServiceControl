@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
 

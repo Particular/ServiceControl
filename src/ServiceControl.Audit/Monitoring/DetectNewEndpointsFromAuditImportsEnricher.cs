@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.Monitoring
 {
     using System;
-    using System.Threading.Tasks;
     using Auditing;
     using ServiceControl.Contracts.EndpointControl;
 
