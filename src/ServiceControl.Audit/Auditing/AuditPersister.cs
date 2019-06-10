@@ -32,13 +32,7 @@
                 ["MessageIntent"] = context.Message.Headers.MessageIntent(),
             };
 
-            
-            var enricherContext = new AuditEnricherContext {
-                Headers = context.Message.Headers,
-                MessageSession = context.MessageSession,
-                Metadata = metadata
-            };
-
+            var enricherContext = new AuditEnricherContext(context.Message.Headers, context.MessageSession, metadata);
             var enricherTasks = new List<Task>(enrichers.Length);
 
             // ReSharper disable once LoopCanBeConvertedToQuery

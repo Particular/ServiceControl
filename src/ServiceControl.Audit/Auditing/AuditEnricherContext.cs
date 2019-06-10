@@ -5,8 +5,15 @@
 
     class AuditEnricherContext
     {
-        public IReadOnlyDictionary<string, string> Headers { get; set; }
-        public IMessageSession MessageSession { get; set; }
-        public IDictionary<string, object> Metadata { get; set; }
+        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IMessageSession messageSession, IDictionary<string, object> metadata)
+        {
+            Headers = headers;
+            MessageSession = messageSession;
+            Metadata = metadata;
+        }
+
+        public IReadOnlyDictionary<string, string> Headers { get; }
+        public IMessageSession MessageSession { get; }
+        public IDictionary<string, object> Metadata { get; }
     }
 }
