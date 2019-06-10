@@ -34,11 +34,7 @@
                 context.Settings.ToTransportAddress(settings.AuditQueue),
                 new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
                 OnAuditError,
-                (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(new ProcessAuditMessageContext
-                {
-                    Message = messageContext,
-                    MessageSession = builder.Build<IMessageSession>()
-                }))
+                (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(new ProcessAuditMessageContext(messageContext, builder.Build<IMessageSession>())))
             );
 
             context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<AuditIngestor>(), this));
@@ -120,11 +116,5 @@
                 return Task.CompletedTask;
             }
         }
-    }
-
-    class ProcessAuditMessageContext
-    {
-        public IMessageSession MessageSession{ get; set; }
-        public MessageContext Message { get; set; }
     }
 }

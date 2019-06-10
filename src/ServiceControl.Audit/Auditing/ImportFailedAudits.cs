@@ -42,11 +42,7 @@ namespace ServiceControl.Audit.Auditing
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                            await auditIngestor.Ingest(new ProcessAuditMessageContext
-                            {
-                                Message = messageContext,
-                                MessageSession = messageSession
-                            }).ConfigureAwait(false);
+                            await auditIngestor.Ingest(new ProcessAuditMessageContext(messageContext, messageSession)).ConfigureAwait(false);
 
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
