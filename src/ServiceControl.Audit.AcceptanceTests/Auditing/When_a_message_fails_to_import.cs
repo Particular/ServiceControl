@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
@@ -59,11 +58,11 @@
             Assert.IsTrue(runResult.AuditForwarded);
         }
 
-        class FailOnceEnricher : AuditImportEnricher
+        class FailOnceEnricher : IEnrichImportedAuditMessages
         {
             public MyContext Context { get; set; }
 
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public void Enrich(AuditEnricherContext context)
             {
                 if (!Context.FailedImport)
                 {
@@ -72,7 +71,6 @@
                 }
 
                 TestContext.WriteLine("Message processed correctly");
-                return Task.FromResult(0);
             }
         }
 
