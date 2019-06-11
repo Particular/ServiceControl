@@ -37,7 +37,6 @@
                         new RemoteInstanceSetting
                         {
                             ApiUri = "http://localhost:33334/api",
-                            QueueAddress = "remote1"
                         }
                     }
                 }

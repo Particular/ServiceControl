@@ -19,6 +19,7 @@
         {
             context.Container.ConfigureComponent<MessageFailureResolvedHandler>(DependencyLifecycle.InstancePerCall);
             context.Container.ConfigureComponent<FailedMessageViewIndexNotifications>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<MessageFailureResolvedDomainHandler>(DependencyLifecycle.SingleInstance);
 
             context.RegisterStartupTask(b => b.Build<WireUpFailedMessageNotifications>());
         }
