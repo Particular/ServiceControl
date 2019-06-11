@@ -1,14 +1,14 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
 
     class EditFailedMessages : BaseModule
     {
@@ -24,6 +24,9 @@
                 }
 
                 var edit = this.Bind<EditMessageModel>();
+
+                //TODO: verify that locked headers are not edited
+                //TODO: should we verify here if the edit body is still a valid xml or json?
 
                 if (edit == null || string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
                 {
