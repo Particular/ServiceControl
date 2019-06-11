@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using Audit.Auditing;
     using NServiceBus;
     using NServiceBus.Features;
@@ -20,10 +19,13 @@
             context.Container.ConfigureComponent<SagaRelationshipsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        internal class SagaRelationshipsEnricher : AuditImportEnricher
+        internal class SagaRelationshipsEnricher : IEnrichImportedAuditMessages
         {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public void Enrich(AuditEnricherContext context)
             {
+                var headers = context.Headers;
+                var metadata = context.Metadata;
+
                 if (headers.TryGetValue("NServiceBus.InvokedSagas", out var sagasInvokedRaw))
                 {
                     var sagasChanges = new Dictionary<string, string>();
@@ -117,8 +119,6 @@
                         SagaType = sagaType
                     });
                 }
-
-                return Task.CompletedTask;
             }
 
             static IEnumerable<string> SplitInvokedSagas(string sagasInvokedRaw)

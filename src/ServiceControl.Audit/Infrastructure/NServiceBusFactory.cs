@@ -5,7 +5,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Threading.Tasks;
     using Auditing;
     using Autofac;
-    using DomainEvents;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
@@ -88,9 +87,6 @@ namespace ServiceControl.Audit.Infrastructure
             var startableEndpoint = await Create(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
-            var domainEvents = container.Resolve<IDomainEvents>();
-            var importFailedAudits = container.Resolve<ImportFailedAudits>();
-
             var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
 
             var builder = new ContainerBuilder();
@@ -99,7 +95,9 @@ namespace ServiceControl.Audit.Infrastructure
 
             builder.Update(container.ComponentRegistry);
 
-            return new BusInstance(endpointInstance, domainEvents, importFailedAudits);
+            var importFailedAudits = container.Resolve<ImportFailedAudits>();
+
+            return new BusInstance(endpointInstance, importFailedAudits);
         }
 
         static bool IsExternalContract(Type t)

@@ -1,11 +1,12 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Monitoring
 {
+    using System;
     using System.Threading.Tasks;
     using Contracts.EndpointControl;
-    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
 
@@ -14,7 +15,7 @@
         [Test]
         public async Task Should_raise_integration_event()
         {
-            CustomConfiguration = config => config.RegisterComponents(c => c.ConfigureComponent<DomainEventSpy>(DependencyLifecycle.SingleInstance));
+            CustomConfiguration = config => config.Pipeline.Register(typeof(NewEndpointDetectedSpy), "Captures the event");
 
             var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
@@ -24,14 +25,18 @@
             Assert.True(context.EventRaised);
         }
 
-        public class DomainEventSpy : IDomainHandler<NewEndpointDetected>
+        public class NewEndpointDetectedSpy : Behavior<IOutgoingPublishContext>
         {
             public MyContext TestContext { get; set; }
 
-            public Task Handle(NewEndpointDetected domainEvent)
+            public override Task Invoke(IOutgoingPublishContext context, Func<Task> next)
             {
-                TestContext.EventRaised = true;
-                return Task.CompletedTask;
+                if (context.Message.Instance is NewEndpointDetected)
+                {
+                    TestContext.EventRaised = true;
+                }
+
+                return next();
             }
         }
 
