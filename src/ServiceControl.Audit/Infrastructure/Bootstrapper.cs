@@ -11,7 +11,6 @@ namespace ServiceControl.Audit.Infrastructure
     using Auditing.MessagesView;
     using Autofac;
     using Autofac.Features.ResolveAnything;
-    using DomainEvents;
     using global::Nancy;
     using global::Nancy.ModelBinding;
     using Microsoft.Owin.Hosting;
@@ -69,9 +68,6 @@ namespace ServiceControl.Audit.Infrastructure
 
             containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
 
-            var domainEvents = new DomainEvents.DomainEvents();
-            containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
-
             transportSettings = new TransportSettings();
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
@@ -82,21 +78,18 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
             containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
-            containerBuilder.Register(c => bus.Bus);
-
-            containerBuilder.RegisterType<DomainEventBusPublisher>().AsImplementedInterfaces().AsSelf().SingleInstance();
+         
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
 
             containerBuilder.RegisterType<JsonNetSerializer>().As<ISerializer>();
             containerBuilder.RegisterType<JsonNetBodyDeserializer>().As<IBodyDeserializer>();
+
             containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsAssignableTo<INancyModule>()).As<INancyModule>();
 
             additionalRegistrationActions?.Invoke(containerBuilder);
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
-
-            domainEvents.SetContainer(container);
         }
 
         public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)

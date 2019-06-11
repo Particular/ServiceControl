@@ -2,7 +2,6 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System.Threading.Tasks;
     using Autofac;
-    using DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -32,9 +31,6 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             var containerBuilder = new ContainerBuilder();
-
-            var domainEvents = new DomainEvents.DomainEvents();
-            containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
             var transportSettings = new TransportSettings();
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
