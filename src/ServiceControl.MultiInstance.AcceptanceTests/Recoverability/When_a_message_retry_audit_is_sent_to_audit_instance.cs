@@ -10,9 +10,10 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.AcceptanceTests;
     using ServiceControl.Infrastructure;
 
-
+    [RunOnAllTransports]
     class When_a_message_retry_audit_is_sent_to_audit_instance : AcceptanceTest
     {
         [Test]

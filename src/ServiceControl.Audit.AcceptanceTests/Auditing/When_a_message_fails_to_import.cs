@@ -10,8 +10,10 @@
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
+    using ServiceControl.AcceptanceTests;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllTransports]
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]

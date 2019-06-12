@@ -56,12 +56,7 @@
             Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyBySaga).FullName], "MessageReplyBySaga was not present");
             Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName], "MessageReplyToOriginatorBySaga was not present");
             Assert.AreEqual("Send", outgoingIntents[typeof(MessageSentBySaga).FullName], "MessageSentBySaga was not present");
-
-            // SagaAuditPlugin does not capture outgoing events for message-driven pub-sub if there are no subscribers
-            if (context.HasNativePubSubSupport)
-            {
-                Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName], "MessagePublishedBySaga was not present");
-            }
+            Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName], "MessagePublishedBySaga was not present");
         }
 
 

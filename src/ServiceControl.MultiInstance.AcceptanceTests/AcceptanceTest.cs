@@ -18,6 +18,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.AcceptanceTests;
 
     [TestFixture]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider
@@ -69,8 +70,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             Trace.Listeners.Add(textWriterTraceListener);
 
             TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
-            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 
+            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
+            if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
+            {
+                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
+            }
+
+            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
