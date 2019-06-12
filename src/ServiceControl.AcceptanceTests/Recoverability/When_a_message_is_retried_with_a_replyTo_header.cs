@@ -14,6 +14,7 @@
     using ServiceControl.MessageFailures.Api;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllTransports]
     class When_a_message_is_retried_with_a_replyTo_header : AcceptanceTest
     {
         [Test]

@@ -1,19 +1,18 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.SagaAudit
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
-    using AcceptanceTests;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.AcceptanceTests;
     using ServiceControl.SagaAudit;
 
+    [RunOnAllTransports]
     class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
         [SetUp]
@@ -47,9 +46,14 @@
                 .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
+                    if (!c.SagaId.HasValue)
+                    {
+                        return false;
+                    }
+
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: ServiceControlInstanceName);
                     sagaHistory = result;
-                    return c.Done && result;
+                    return result;
                 })
                 .Run();
 
@@ -60,17 +64,6 @@
 
             var sagaStateChange = sagaHistory.Changes.First();
             Assert.AreEqual("Send", sagaStateChange.InitiatingMessage.Intent);
-
-            var outgoingIntents = new Dictionary<string, string>();
-            foreach (var message in sagaStateChange.OutgoingMessages)
-            {
-                outgoingIntents[message.MessageType] = message.Intent;
-            }
-
-            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyBySaga).FullName]);
-            Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName]);
-            Assert.AreEqual("Send", outgoingIntents[typeof(MessageSentBySaga).FullName]);
-            Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName]);
         }
 
         public class SagaEndpoint : EndpointConfigurationBuilder
@@ -78,26 +71,20 @@
             public SagaEndpoint()
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
-                    {
-                        c.EnableFeature<AutoSubscribe>();
-                        c.AuditSagaStateChanges(ServiceControlInstanceName);
-                        c.AuditProcessedMessagesTo(ServiceControlInstanceName);
-                    },
-                    publishers => { publishers.RegisterPublisherFor<MessagePublishedBySaga>(typeof(SagaEndpoint)); });
+                {
+                    c.AuditSagaStateChanges(ServiceControlInstanceName);
+                    c.AuditProcessedMessagesTo(ServiceControlInstanceName);
+                });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                public MyContext Context { get; set; }
+                public MyContext TestContext { get; set; }
 
-                public async Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
+                public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    Context.SagaId = Data.Id;
-
-                    await context.Reply(new MessageReplyBySaga());
-                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga());
-                    await context.SendLocal(new MessageSentBySaga());
-                    await context.Publish(new MessagePublishedBySaga());
+                    TestContext.SagaId = Data.Id;
+                    return Task.CompletedTask;
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -110,41 +97,6 @@
             {
                 public string MessageId { get; set; }
             }
-
-            class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
-            {
-                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
-                {
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessagePublishedBySagaHandler : IHandleMessages<MessagePublishedBySaga>
-            {
-                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
-                {
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessageReplyToOriginatorBySagaHandler : IHandleMessages<MessageReplyToOriginatorBySaga>
-            {
-                public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
-                {
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
-            {
-                public MyContext Context { get; set; }
-
-                public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
-                {
-                    Context.Done = true;
-                    return Task.FromResult(0);
-                }
-            }
         }
 
 
@@ -154,29 +106,9 @@
         }
 
 
-        public class MessageSentBySaga : ICommand
-        {
-        }
-
-
-        public class MessagePublishedBySaga : IEvent
-        {
-        }
-
-
-        public class MessageReplyBySaga : IMessage
-        {
-        }
-
-
-        public class MessageReplyToOriginatorBySaga : IMessage
-        {
-        }
-
         public class MyContext : ScenarioContext
         {
-            public bool Done { get; set; }
-            public Guid SagaId { get; set; }
+            public Guid? SagaId { get; set; }
         }
     }
 }
