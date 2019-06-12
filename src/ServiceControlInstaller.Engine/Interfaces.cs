@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine
+namespace ServiceControlInstaller.Engine
 {
     using System;
     using Instances;
