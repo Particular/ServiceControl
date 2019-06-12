@@ -11,6 +11,7 @@
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
+    [RunOnAllTransports]
     class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
     {
         [Test]

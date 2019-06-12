@@ -18,6 +18,7 @@
     using ServiceControl.MessageFailures;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllTransports]
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]

@@ -13,8 +13,10 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.AcceptanceTests;
     using ServiceControl.Infrastructure.Settings;
 
+    [RunOnAllTransports]
     class When_message_searched_by_messages : AcceptanceTest
     {
         [Test]
