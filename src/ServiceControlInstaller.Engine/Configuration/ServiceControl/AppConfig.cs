@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
+namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
     using System;
     using System.Collections.Generic;
