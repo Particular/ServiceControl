@@ -21,7 +21,7 @@
             var failedMessages = new List<FailedMessageView>();
 
             await Define<FailingEventContext>()
-                .WithEndpoint<SimulateTwoFailedMessagesFromOnePublish>()
+                .WithEndpoint<FakeFailedSubscribers>()
                 .Done(async ctx =>
                 {
                     var result = await this.TryGetMany<FailedMessageView>("/api/errors");
@@ -38,9 +38,9 @@
             Assert.AreNotSame(subscriber1FailedMessage, subscriber2FailedMessage, "There should be two distinct failed messages");
         }
 
-        public class SimulateTwoFailedMessagesFromOnePublish : EndpointConfigurationBuilder
+        public class FakeFailedSubscribers : EndpointConfigurationBuilder
         {
-            public SimulateTwoFailedMessagesFromOnePublish()
+            public FakeFailedSubscribers()
             {
                 EndpointSetup<DefaultServer>();
             }
