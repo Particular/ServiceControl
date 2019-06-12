@@ -1,0 +1,317 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NServiceBus.AmazonSQS</name>
+    </assembly>
+    <members>
+        <member name="T:NServiceBus.S3Settings">
+            <summary>
+            Exposes settings to configure S3 bucket and client factory.
+            </summary>
+        </member>
+        <member name="M:NServiceBus.S3Settings.ClientFactory(System.Func{Amazon.S3.IAmazonS3})">
+            <summary>
+            Configures the S3 client factory. The default client factory creates a new S3 client with the standard constructor.
+            </summary>
+        </member>
+        <member name="T:NServiceBus.SqsTransport">
+            <summary>
+            Sqs transport definition.
+            </summary>
+        </member>
+        <member name="P:NServiceBus.SqsTransport.ExampleConnectionStringForErrorMessage">
+            <inheritdoc />
+        </member>
+        <member name="P:NServiceBus.SqsTransport.RequiresConnectionString">
+            <inheritdoc />
+        </member>
+        <member name="M:NServiceBus.SqsTransport.Initialize(NServiceBus.Settings.SettingsHolder,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:NServiceBus.SqsTransportSettings">
+            <summary>
+            Adds access to the SQS transport config to the global Transports object.
+            </summary>
+        </member>
+        <member name="M:NServiceBus.SqsTransportSettings.ClientFactory(NServiceBus.TransportExtensions{NServiceBus.SqsTransport},System.Func{Amazon.SQS.IAmazonSQS})">
+            <summary>
+            Configures a client factory for the SQS client. The default client factory creates a SQS client with the default
+            constructor.
+            </summary>
+        </member>
+        <member name="M:NServiceBus.SqsTransportSettings.MaxTimeToLive(NServiceBus.TransportExtensions{NServiceBus.SqsTransport},System.TimeSpan)">
+            <summary>
+            This is the maximum time that a message will be retained within SQS
+            and S3. If you send a message, and that message is not received and successfully
+            processed within the specified time, the message will be lost. This value applies
+            to both SQS and S3 - messages in SQS will be deleted after this amount of time
+            expires, and large message bodies stored in S3 will automatically be deleted
+            after this amount of time expires.
+            </summary>
+            <remarks>
+            If not specified, the endpoint uses a max TTL of 4 days.
+            </remarks>
+            <param name="transportExtensions"></param>
+            <param name="maxTimeToLive">The max time to live. Must be a value between 60 seconds and not greater than 14 days.</param>
+        </member>
+        <member name="M:NServiceBus.SqsTransportSettings.S3(NServiceBus.TransportExtensions{NServiceBus.SqsTransport},System.String,System.String)">
+            <summary>
+            Configures the S3 Bucket that will be used to store message bodies
+            for messages that are larger than 256k in size. If this option is not specified,
+            S3 will not be used at all. Any attempt to send a message larger than 256k will
+            throw if this option hasn't been specified. If the specified bucket doesn't
+            exist, NServiceBus.AmazonSQS will create it when the endpoint starts up.
+            Allows to optionally configure the client factory.
+            </summary>
+            <param name="transportExtensions">The transport extensions.</param>
+            <param name="bucketForLargeMessages">The name of the S3 Bucket.</param>
+            <param name="keyPrefix">The path within the specified S3 Bucket to store large message bodies.</param>
+        </member>
+        <member name="M:NServiceBus.SqsTransportSettings.QueueNamePrefix(NServiceBus.TransportExtensions{NServiceBus.SqsTransport},System.String)">
+            <summary>
+            Specifies a string value that will be prepended to the name of every SQS queue
+            referenced by the endpoint. This is useful when deploying many environments of the
+            same application in the same AWS region (say, a development environment, a QA environment
+            and a production environment), and you need to differentiate the queue names per environment.
+            </summary>
+        </member>
+        <member name="M:NServiceBus.SqsTransportSettings.UnrestrictedDurationDelayedDelivery(NServiceBus.TransportExtensions{NServiceBus.SqsTransport})">
+            <summary>
+            Configures the SQS transport to support delayed messages of any duration.
+            Without calling this API, delayed messages are subject to SQS Delivery Delay duration restrictions.
+            </summary>
+        </member>
+        <member name="M:NServiceBus.SqsTransportSettings.EnableV1CompatibilityMode(NServiceBus.TransportExtensions{NServiceBus.SqsTransport})">
+            <summary>
+            Configures the SQS transport to be compatible with 1.x versions of the transport.
+            </summary>
+            <param name="transportExtensions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:NServiceBus.SqsTransportSettings.PreTruncateQueueNamesForAcceptanceTests(NServiceBus.TransportExtensions{NServiceBus.SqsTransport},System.Boolean)">
+            <summary>
+            Internal use only.
+            The queue names generated by the acceptance test suite are often longer than the SQS maximum of
+            80 characters. This setting allows queue names to be pre-truncated so the tests can work.
+            The "pre-truncation" mechanism removes characters from the first character *after* the queue name prefix.
+            For example, if the queue name prefix is "AcceptanceTest-", and the queue name is "abcdefg", and we need
+            to have a queue name of no more than 20 characters for the sake of the example, the pre-truncated queue
+            name would be "AcceptanceTest-cdefg".
+            This gives us the ability to locate all queues by the given prefix, and we do not interfere with the
+            discriminator or qualifier at the end of the queue name.
+            </summary>
+        </member>
+        <member name="T:SimpleJson.JsonArray">
+            <summary>
+            Represents the json array.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonArray.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:SimpleJson.JsonArray"/> class. 
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonArray.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SimpleJson.JsonArray"/> class. 
+            </summary>
+            <param name="capacity">The capacity of the json array.</param>
+        </member>
+        <member name="M:SimpleJson.JsonArray.ToString">
+            <summary>
+            The json representation of the array.
+            </summary>
+            <returns>The json representation of the array.</returns>
+        </member>
+        <member name="T:SimpleJson.JsonObject">
+            <summary>
+            Represents the json object.
+            </summary>
+        </member>
+        <member name="F:SimpleJson.JsonObject._members">
+            <summary>
+            The internal member dictionary.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonObject.#ctor">
+            <summary>
+            Initializes a new instance of <see cref="T:SimpleJson.JsonObject"/>.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonObject.#ctor(System.Collections.Generic.IEqualityComparer{System.String})">
+            <summary>
+            Initializes a new instance of <see cref="T:SimpleJson.JsonObject"/>.
+            </summary>
+            <param name="comparer">The <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> implementation to use when comparing keys, or null to use the default <see cref="T:System.Collections.Generic.EqualityComparer`1"/> for the type of the key.</param>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Item(System.Int32)">
+            <summary>
+            Gets the <see cref="T:System.Object"/> at the specified index.
+            </summary>
+            <value></value>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Add(System.String,System.Object)">
+            <summary>
+            Adds the specified key.
+            </summary>
+            <param name="key">The key.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="M:SimpleJson.JsonObject.ContainsKey(System.String)">
+            <summary>
+            Determines whether the specified key contains key.
+            </summary>
+            <param name="key">The key.</param>
+            <returns>
+                <c>true</c> if the specified key contains key; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Keys">
+            <summary>
+            Gets the keys.
+            </summary>
+            <value>The keys.</value>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Remove(System.String)">
+            <summary>
+            Removes the specified key.
+            </summary>
+            <param name="key">The key.</param>
+            <returns></returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.TryGetValue(System.String,System.Object@)">
+            <summary>
+            Tries the get value.
+            </summary>
+            <param name="key">The key.</param>
+            <param name="value">The value.</param>
+            <returns></returns>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Values">
+            <summary>
+            Gets the values.
+            </summary>
+            <value>The values.</value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Item(System.String)">
+            <summary>
+            Gets or sets the <see cref="T:System.Object"/> with the specified key.
+            </summary>
+            <value></value>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Add(System.Collections.Generic.KeyValuePair{System.String,System.Object})">
+            <summary>
+            Adds the specified item.
+            </summary>
+            <param name="item">The item.</param>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Clear">
+            <summary>
+            Clears this instance.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Contains(System.Collections.Generic.KeyValuePair{System.String,System.Object})">
+            <summary>
+            Determines whether [contains] [the specified item].
+            </summary>
+            <param name="item">The item.</param>
+            <returns>
+            	<c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.CopyTo(System.Collections.Generic.KeyValuePair{System.String,System.Object}[],System.Int32)">
+            <summary>
+            Copies to.
+            </summary>
+            <param name="array">The array.</param>
+            <param name="arrayIndex">Index of the array.</param>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Count">
+            <summary>
+            Gets the count.
+            </summary>
+            <value>The count.</value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.IsReadOnly">
+            <summary>
+            Gets a value indicating whether this instance is read only.
+            </summary>
+            <value>
+            	<c>true</c> if this instance is read only; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Remove(System.Collections.Generic.KeyValuePair{System.String,System.Object})">
+            <summary>
+            Removes the specified item.
+            </summary>
+            <param name="item">The item.</param>
+            <returns></returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.GetEnumerator">
+            <summary>
+            Gets the enumerator.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+            Returns an enumerator that iterates through a collection.
+            </summary>
+            <returns>
+            An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
+            </returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.ToString">
+            <summary>
+            Returns a json <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
+            </summary>
+            <returns>
+            A json <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
+            </returns>
+        </member>
+        <member name="T:SimpleJson.SimpleJson">
+            <summary>
+            This class encodes and decodes JSON strings.
+            Spec. details, see http://www.json.org/
+            
+            JSON uses Arrays and Objects. These correspond here to the datatypes JsonArray(IList&lt;object>) and JsonObject(IDictionary&lt;string,object>).
+            All numbers are parsed to doubles.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.SimpleJson.DeserializeObject(System.String)">
+            <summary>
+            Parses the string json into a value
+            </summary>
+            <param name="json">A JSON string.</param>
+            <returns>An IList&lt;object>, a IDictionary&lt;string,object>, a double, a string, null, true, or false</returns>
+        </member>
+        <member name="M:SimpleJson.SimpleJson.TryDeserializeObject(System.String,System.Object@)">
+            <summary>
+            Try parsing the json string into a value.
+            </summary>
+            <param name="json">
+            A JSON string.
+            </param>
+            <param name="obj">
+            The object.
+            </param>
+            <returns>
+            Returns true if successful otherwise false.
+            </returns>
+        </member>
+        <member name="M:SimpleJson.SimpleJson.SerializeObject(System.Object,SimpleJson.IJsonSerializerStrategy)">
+            <summary>
+            Converts a IDictionary&lt;string,object> / IList&lt;object> object into a JSON string
+            </summary>
+            <param name="json">A IDictionary&lt;string,object> / IList&lt;object></param>
+            <param name="jsonSerializerStrategy">Serializer strategy to use</param>
+            <returns>A JSON encoded string, or null if object 'json' is not serializable</returns>
+        </member>
+        <member name="M:SimpleJson.SimpleJson.IsNumeric(System.Object)">
+            <summary>
+            Determines if a given object is numeric in any way
+            (can be integer, double, null, etc).
+            </summary>
+        </member>
+    </members>
+</doc>
