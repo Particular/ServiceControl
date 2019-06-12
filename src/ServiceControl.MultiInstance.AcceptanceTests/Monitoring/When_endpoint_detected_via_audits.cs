@@ -1,9 +1,8 @@
-﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
+﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Monitoring
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using AcceptanceTests;
     using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -11,9 +10,10 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.AcceptanceTests;
     using ServiceControl.Monitoring;
 
-
+    [RunOnAllTransports]
     class When_endpoint_detected_via_audits : AcceptanceTest
     {
         [Test]

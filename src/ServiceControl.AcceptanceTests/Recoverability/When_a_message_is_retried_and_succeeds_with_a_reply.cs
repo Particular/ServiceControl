@@ -12,6 +12,7 @@
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
+    [RunOnAllTransports]
     class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
     {
         [Test]

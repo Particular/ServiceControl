@@ -15,7 +15,9 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
+    using ServiceControl.AcceptanceTests;
 
+    [RunOnAllTransports]
     class When_processed_message_is_imported : AcceptanceTest
     {
         [Test]

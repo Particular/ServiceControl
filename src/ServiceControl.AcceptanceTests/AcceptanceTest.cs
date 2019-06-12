@@ -67,8 +67,14 @@ namespace ServiceControl.AcceptanceTests
             Trace.Listeners.Add(textWriterTraceListener);
 
             TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
-            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 
+            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
+            if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
+            {
+                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
+            }
+
+            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), s => CustomConfiguration(s));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);

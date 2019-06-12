@@ -12,6 +12,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]
+    [RunOnAllTransports]
     class When_a_custom_check_fails : AcceptanceTest
     {
         [Test]

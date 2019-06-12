@@ -15,6 +15,7 @@
     using ServiceControlInstaller.Engine.Instances;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllTransports]
     class When_a_native_integration_message_is_retried : AcceptanceTest
     {
         [Test]
