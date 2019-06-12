@@ -5,18 +5,13 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Pipeline;
 
-    class PublishFullTypeNameOnlyBehavior : IBehavior<IOutgoingPhysicalMessageContext, IOutgoingPhysicalMessageContext>
+    class FullTypeNameOnlyBehavior : IBehavior<IOutgoingPhysicalMessageContext, IOutgoingPhysicalMessageContext>
     {
 
         public Task Invoke(IOutgoingPhysicalMessageContext context, Func<IOutgoingPhysicalMessageContext, Task> next)
         {
-            if (context.Headers[Headers.MessageIntent] != "Publish")
-            {
-                return next(context);
-            }
-
             var types = context.Headers[Headers.EnclosedMessageTypes];
-            var assemblyFullName = typeof(PublishFullTypeNameOnlyBehavior).Assembly.FullName;
+            var assemblyFullName = typeof(FullTypeNameOnlyBehavior).Assembly.FullName;
             var enclosedTypes = types.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
             for (var i = 0; i < enclosedTypes.Length; i++)
             {

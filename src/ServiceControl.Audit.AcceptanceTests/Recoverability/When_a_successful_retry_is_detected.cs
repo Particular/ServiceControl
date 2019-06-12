@@ -1,12 +1,11 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Recoverability
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
-    using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
 
@@ -15,10 +14,8 @@
         [Test]
         public async Task Should_raise_integration_event()
         {
-            CustomConfiguration = config => config.Pipeline.Register(typeof(IntegrationEventSpy), "Captures the integration event");
-
             var failedMessageId = Guid.NewGuid().ToString();
-            var context = await Define<MyContext>()
+            var context = await Define<InterceptedMessagesScenarioContext>()
                 .WithEndpoint<Receiver>(b => b.When(s =>
                 {
                     var options = new SendOptions();
@@ -27,25 +24,11 @@
                     options.RouteToThisEndpoint();
                     return s.Send(new MyMessage(), options);
                 }))
-                .Done(c => c.EventRaised != null)
+                .Done(c => c.SentMarkMessageFailureResolvedByRetriesCommands.Any())
                 .Run();
 
-            Assert.AreEqual(failedMessageId, context.EventRaised.FailedMessageId);
-        }
-
-        public class IntegrationEventSpy: Behavior<IOutgoingPublishContext>
-        {
-            public MyContext TestContext { get; set; }
-
-            public override Task Invoke(IOutgoingPublishContext context, Func<Task> next)
-            {
-                if (context.Message.Instance is MessageFailureResolvedByRetry failureResolvedByRetry)
-                {
-                    TestContext.EventRaised = failureResolvedByRetry;
-                }
-
-                return next();
-            }
+            var command = context.SentMarkMessageFailureResolvedByRetriesCommands.Single();
+            Assert.AreEqual(failedMessageId, command.FailedMessageId);
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -66,11 +49,6 @@
 
         public class MyMessage : ICommand
         {
-        }
-
-        public class MyContext : ScenarioContext
-        {
-            public MessageFailureResolvedByRetry EventRaised { get; internal set; }
         }
     }
 }

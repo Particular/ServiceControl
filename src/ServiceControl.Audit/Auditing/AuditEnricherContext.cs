@@ -5,10 +5,10 @@
 
     class AuditEnricherContext
     {
-        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IList<IEvent> outgoingEvents, IDictionary<string, object> metadata)
+        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IList<ICommand> outgoingCommands, IDictionary<string, object> metadata)
         {
             Headers = headers;
-            this.outgoingEvents = outgoingEvents;
+            this.outgoingCommands = outgoingCommands;
             Metadata = metadata;
         }
 
@@ -16,11 +16,11 @@
 
         public IDictionary<string, object> Metadata { get; }
 
-        public void AddForPublish(IEvent @event)
+        public void AddForSend(ICommand command)
         {
-            outgoingEvents.Add(@event);
+            outgoingCommands.Add(command);
         }
 
-        IList<IEvent> outgoingEvents;
+        IList<ICommand> outgoingCommands;
     }
 }

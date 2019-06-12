@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
     using Api;
     using Contracts.MessageFailures;
@@ -10,12 +9,24 @@
     using NServiceBus;
     using Raven.Client;
 
-    class MessageFailureResolvedHandler : IHandleMessages<MessageFailureResolvedByRetry>, IHandleMessages<MarkPendingRetryAsResolved>, IHandleMessages<MarkPendingRetriesAsResolved>, IDomainHandler<MessageFailureResolvedByRetry>
+    class MessageFailureResolvedHandler :
+        IHandleMessages<MarkMessageFailureResolvedByRetry>,
+        IHandleMessages<MarkPendingRetryAsResolved>,
+        IHandleMessages<MarkPendingRetriesAsResolved>
     {
         public MessageFailureResolvedHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
             this.domainEvents = domainEvents;
+        }
+
+        public Task Handle(MarkMessageFailureResolvedByRetry message, IMessageHandlerContext context)
+        {
+            return domainEvents.Raise(new MessageFailureResolvedByRetry
+            {
+                AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
+                FailedMessageId = message.FailedMessageId
+            });
         }
 
         public async Task Handle(MarkPendingRetriesAsResolved message, IMessageHandlerContext context)
@@ -53,42 +64,14 @@
         {
             await MarkMessageAsResolved(message.FailedMessageId)
                 .ConfigureAwait(false);
+
             await domainEvents.Raise(new MessageFailureResolvedManually
             {
                 FailedMessageId = message.FailedMessageId
             }).ConfigureAwait(false);
         }
 
-        // This is only needed because we are reusing an external event that comes from secondaries as a domain event
-        public Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
-        {
-            return domainEvents.Raise(message);
-        }
-
-        public async Task Handle(MessageFailureResolvedByRetry domainEvent)
-        {
-            if (await MarkMessageAsResolved(domainEvent.FailedMessageId)
-                .ConfigureAwait(false))
-            {
-                return;
-            }
-
-            if (domainEvent.AlternativeFailedMessageIds == null)
-            {
-                return;
-            }
-
-            foreach (var alternative in domainEvent.AlternativeFailedMessageIds.Where(x => x != domainEvent.FailedMessageId))
-            {
-                if (await MarkMessageAsResolved(alternative)
-                    .ConfigureAwait(false))
-                {
-                    return;
-                }
-            }
-        }
-
-        private async Task<bool> MarkMessageAsResolved(string failedMessageId)
+        async Task MarkMessageAsResolved(string failedMessageId)
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -99,14 +82,12 @@
 
                 if (failedMessage == null)
                 {
-                    return false;
+                    return;
                 }
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
-
-                return true;
             }
         }
 

@@ -66,7 +66,8 @@
 
         static bool IsExternalContract(Type t)
         {
-            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts");
+            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts")
+                                       && t.Assembly.GetName().Name == "ServiceControl.Contracts";
         }
     }
 }

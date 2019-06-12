@@ -7,7 +7,7 @@
     {
         public static T? Read(string name)
         {
-            return Read("ServiceControl", name, null);
+            return Read("ServiceControl.Audit", name, null);
         }
 
         public static T? Read(string root, string name, T? defaultValue)
