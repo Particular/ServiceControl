@@ -17,10 +17,11 @@
         {
             builder.RegisterType<ServiceControlInstanceInstaller>().SingleInstance();
             builder.RegisterType<MonitoringInstanceInstaller>().SingleInstance();
+            builder.RegisterType<ServiceControlAuditInstanceInstaller>().SingleInstance();
         }
     }
 
-    public class ServiceControlInstanceInstaller
+    public class ServiceControlInstanceInstaller : ServiceControlInstallerBase
     {
         public ServiceControlInstanceInstaller()
         {
@@ -28,9 +29,32 @@
             ZipInfo = ServiceControlZipInfo.Find(appDirectory);
         }
 
-        public ServiceControlZipInfo ZipInfo { get; }
+        protected override void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
+        {
+            upgradeOptions.ApplyChangesToInstance((ServiceControlInstance)instance);
+        }
+    }
 
-        internal ReportCard Add(ServiceControlNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
+    public class ServiceControlAuditInstanceInstaller : ServiceControlInstallerBase
+    {
+        public ServiceControlAuditInstanceInstaller()
+        {
+            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            ZipInfo = ServiceControlAuditZipInfo.Find(appDirectory);
+        }
+
+        protected override void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
+        {
+            //TODO: Do we need to upgrade? or leave blank.
+            //upgradeOptions.ApplyChangesToInstance((ServiceControlAuditInstance) instance);
+        }
+    }
+
+    public class ServiceControlInstallerBase
+    {
+        public PlatformZipInfo ZipInfo { get; protected set; }
+
+        internal  ReportCard Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -71,7 +95,7 @@
             return instanceInstaller.ReportCard;
         }
 
-        internal ReportCard Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Upgrade(ServiceControlBaseService instance, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
 
@@ -104,7 +128,7 @@
                 instance.RestoreAppConfig(backupFile);
             }
 
-            upgradeOptions.ApplyChangesToInstance(instance);
+            UpgradeOptions(upgradeOptions, instance);
 
             if (upgradeOptions.UpgradeInfo.DeleteIndexes)
             {
@@ -124,6 +148,10 @@
 
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
+        }
+
+        protected virtual void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
+        {
         }
 
         internal ReportCard Update(ServiceControlInstance instance, bool startService)
@@ -224,7 +252,7 @@
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadServiceControlReleaseDate(out var releaseDate))
+            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {
@@ -260,7 +288,7 @@
             ZipInfo = MonitoringZipInfo.Find(appDirectory);
         }
 
-        public MonitoringZipInfo ZipInfo { get; }
+        public PlatformZipInfo ZipInfo { get; }
 
         internal ReportCard Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
@@ -432,7 +460,7 @@
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadMonitoringReleaseDate(out var releaseDate))
+            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {

@@ -143,7 +143,8 @@ namespace ServiceControlInstaller.PowerShell
                 ForwardErrorMessages = ForwardErrorMessages,
                 ConnectionString = ConnectionString,
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
-                AuditRetentionPeriod = AuditRetentionPeriod,
+                //TODO: Fix
+                //AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod
             };
             details.Save(OutputFile);

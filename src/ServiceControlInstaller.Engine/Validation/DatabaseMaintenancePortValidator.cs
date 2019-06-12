@@ -5,7 +5,7 @@
 
     public class DatabaseMaintenancePortValidator
     {
-        public static void Validate(IServiceControlInstance instance)
+        public static void Validate(IDatabaseMaintenanceSupport instance)
         {
             if (instance.Version < SettingsList.DatabaseMaintenancePort.SupportedFrom)
             {

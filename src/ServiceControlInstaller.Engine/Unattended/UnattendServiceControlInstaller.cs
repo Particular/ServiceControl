@@ -28,7 +28,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             ZipInfo = ServiceControlZipInfo.Find(sourceroot);
         }
 
-        public ServiceControlZipInfo ZipInfo { get; }
+        public PlatformZipInfo ZipInfo { get; }
 
         public bool Add(ServiceControlNewInstance details, Func<PathInfo, bool> promptToProceed)
         {
@@ -284,7 +284,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadServiceControlReleaseDate(out var releaseDate))
+            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {

@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using Commands;
+    using InstanceAdd;
     using PropertyChanged;
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
@@ -11,39 +12,39 @@
     using Validar;
 
     [InjectValidation]
-    public class ServiceControlEditViewModel : SharedServiceControlEditorViewModel
+    public class ServiceControlEditViewModel : ServiceControlEditorViewModel
     {
         public ServiceControlEditViewModel(ServiceControlInstance instance)
         {
             DisplayName = "EDIT SERVICECONTROL INSTANCE";
-            SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
+            //SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
 
-            InstanceName = instance.Name;
-            Description = instance.Description;
+            //InstanceName = instance.Name;
+            //Description = instance.Description;
 
             var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
-            UseSystemAccount = userAccount.IsLocalSystem();
-            UseServiceAccount = userAccount.IsLocalService();
+            //UseSystemAccount = userAccount.IsLocalSystem();
+            //UseServiceAccount = userAccount.IsLocalService();
 
-            UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
+            //UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
 
-            if (UseProvidedAccount)
-            {
-                ServiceAccount = instance.ServiceAccount;
-            }
+            //if (UseProvidedAccount)
+            //{
+            //    ServiceAccount = instance.ServiceAccount;
+            //}
 
-            HostName = instance.HostName;
-            PortNumber = instance.Port.ToString();
-            DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
-            LogPath = instance.LogPath;
+            //HostName = instance.HostName;
+            //PortNumber = instance.Port.ToString();
+            //DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
+            //LogPath = instance.LogPath;
 
-            AuditForwardingQueueName = instance.AuditLogQueue;
-            AuditQueueName = instance.AuditQueue;
-            AuditForwarding = AuditForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardAuditMessages);
-            ErrorForwarding = ErrorForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardErrorMessages);
+            //AuditForwardingQueueName = instance.AuditLogQueue;
+            //AuditQueueName = instance.AuditQueue;
+            //AuditForwarding = AuditForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardAuditMessages);
+            //ErrorForwarding = ErrorForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardErrorMessages);
 
-            UpdateErrorRetention(instance.ErrorRetentionPeriod);
-            UpdateAuditRetention(instance.AuditRetentionPeriod);
+            //UpdateErrorRetention(instance.ErrorRetentionPeriod);
+            //UpdateAuditRetention(instance.AuditRetentionPeriod);
 
             ErrorQueueName = instance.ErrorQueue;
             ErrorForwardingQueueName = instance.ErrorLogQueue;
@@ -107,44 +108,44 @@
             }
         }
 
-        [AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
-        public TransportInfo SelectedTransport
-        {
-            get { return selectedTransport; }
-            set
-            {
-                ConnectionString = null;
-                selectedTransport = value;
-            }
-        }
+        //[AlsoNotifyFor("ConnectionString", "ErrorQueueName", "AuditQueueName", "ErrorForwardingQueueName", "AuditForwardingQueueName")]
+        //public TransportInfo SelectedTransport
+        //{
+        //    get { return selectedTransport; }
+        //    set
+        //    {
+        //        ConnectionString = null;
+        //        selectedTransport = value;
+        //    }
+        //}
 
-        public string TransportWarning => SelectedTransport?.Help;
+        //public string TransportWarning => SelectedTransport?.Help;
 
-        public string ConnectionString { get; set; }
+        //public string ConnectionString { get; set; }
 
-        // ReSharper disable once UnusedMember.Global
-        public string SampleConnectionString => SelectedTransport?.SampleConnectionString;
+        //// ReSharper disable once UnusedMember.Global
+        //public string SampleConnectionString => SelectedTransport?.SampleConnectionString;
 
-        // ReSharper disable once UnusedMember.Global
-        public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+        //// ReSharper disable once UnusedMember.Global
+        //public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
 
         public void UpdateInstanceFromViewModel(ServiceControlInstance instance)
         {
-            instance.HostName = HostName;
-            instance.Port = Convert.ToInt32(PortNumber);
-            instance.LogPath = LogPath;
-            instance.AuditLogQueue = AuditForwardingQueueName;
-            instance.AuditQueue = AuditQueueName;
-            instance.ErrorQueue = ErrorQueueName;
-            instance.ErrorLogQueue = ErrorForwardingQueueName;
-            instance.ConnectionString = ConnectionString;
+        //    instance.HostName = HostName;
+        //    instance.Port = Convert.ToInt32(PortNumber);
+        //    instance.LogPath = LogPath;
+        //    instance.AuditLogQueue = AuditForwardingQueueName;
+        //    instance.AuditQueue = AuditQueueName;
+        //    instance.ErrorQueue = ErrorQueueName;
+        //    instance.ErrorLogQueue = ErrorForwardingQueueName;
+        //    instance.ConnectionString = ConnectionString;
 
-            if (ServiceControlInstance.Version.Major >= 2)
-            {
-                instance.DatabaseMaintenancePort = Convert.ToInt32(DatabaseMaintenancePortNumber);
-            }
+        //    if (ServiceControlInstance.Version.Major >= 2)
+        //    {
+        //        instance.DatabaseMaintenancePort = Convert.ToInt32(DatabaseMaintenancePortNumber);
+        //    }
         }
 
-        TransportInfo selectedTransport;
+        //TransportInfo selectedTransport;
     }
 }

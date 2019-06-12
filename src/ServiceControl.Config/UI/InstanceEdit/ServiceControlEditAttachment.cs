@@ -1,6 +1,6 @@
 namespace ServiceControl.Config.UI.InstanceEdit
 {
-    using System;
+    //using System;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -58,13 +58,13 @@ namespace ServiceControl.Config.UI.InstanceEdit
             }
 
             viewModel.InProgress = true;
-            instance.LogPath = viewModel.LogPath;
-            instance.ServiceAccount = viewModel.ServiceAccount;
-            instance.ServiceAccountPwd = viewModel.Password;
-            instance.Description = viewModel.Description;
-            instance.HostName = viewModel.HostName;
-            instance.Port = Convert.ToInt32(viewModel.PortNumber);
-            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.DatabaseMaintenancePortNumber) : (int?)null;
+            //instance.LogPath = viewModel.LogPath;
+            //instance.ServiceAccount = viewModel.ServiceAccount;
+            //instance.ServiceAccountPwd = viewModel.Password;
+            //instance.Description = viewModel.Description;
+            //instance.HostName = viewModel.HostName;
+            //instance.Port = Convert.ToInt32(viewModel.PortNumber);
+            //instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.DatabaseMaintenancePortNumber) : (int?)null;
             instance.VirtualDirectory = null;
             instance.AuditLogQueue = viewModel.AuditForwardingQueueName;
             instance.AuditQueue = viewModel.AuditQueueName;
@@ -72,8 +72,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.ForwardErrorMessages = viewModel.ErrorForwarding.Value;
             instance.ErrorQueue = viewModel.ErrorQueueName;
             instance.ErrorLogQueue = viewModel.ErrorForwardingQueueName;
-            instance.AuditRetentionPeriod = viewModel.AuditRetentionPeriod;
-            instance.ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod;
+            //instance.AuditRetentionPeriod = viewModel.AuditRetentionPeriod;
+            //instance.ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod;
             instance.TransportPackage = viewModel.SelectedTransport;
             instance.ConnectionString = viewModel.ConnectionString;
 

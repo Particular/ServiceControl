@@ -13,10 +13,11 @@
 
     class ServiceControlAddAttachment : Attachment<ServiceControlAddViewModel>
     {
-        public ServiceControlAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
+        public ServiceControlAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller serviceControlinstaller, ServiceControlAuditInstanceInstaller serviceControlAuditInstaller)
         {
             this.windowManager = windowManager;
-            this.installer = installer;
+            this.serviceControlInstaller = serviceControlinstaller;
+            this.serviceControlAuditInstaller = serviceControlAuditInstaller;
             this.eventAggregator = eventAggregator;
         }
 
@@ -52,42 +53,59 @@
 
             viewModel.InProgress = true;
 
-            var instanceMetadata = new ServiceControlNewInstance
+            var serviceControlNewInstance = new ServiceControlNewInstance
             {
-                DisplayName = viewModel.InstanceName,
-                Name = viewModel.InstanceName.Replace(' ', '.'),
-                ServiceDescription = viewModel.Description,
-                DBPath = viewModel.DatabasePath,
-                LogPath = viewModel.LogPath,
-                InstallPath = viewModel.DestinationPath,
-                HostName = viewModel.HostName,
-                Port = Convert.ToInt32(viewModel.PortNumber),
-                DatabaseMaintenancePort = Convert.ToInt32(viewModel.DatabaseMaintenancePortNumber),
+                DisplayName = viewModel.ServiceControl.InstanceName,
+                Name = viewModel.ServiceControl.InstanceName.Replace(' ', '.'),
+                ServiceDescription = viewModel.ServiceControl.Description,
+                DBPath = viewModel.ServiceControl.DatabasePath,
+                LogPath = viewModel.ServiceControl.LogPath,
+                InstallPath = viewModel.ServiceControl.DestinationPath,
+                HostName = viewModel.ServiceControl.HostName,
+                Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber),
+                DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber),
                 VirtualDirectory = null, // TODO
-                AuditLogQueue = viewModel.AuditForwarding.Value ? viewModel.AuditForwardingQueueName : null,
-                AuditQueue = viewModel.AuditQueueName,
-                ForwardAuditMessages = viewModel.AuditForwarding.Value,
-                ErrorQueue = viewModel.ErrorQueueName,
-                ErrorLogQueue = viewModel.ErrorForwarding.Value ? viewModel.ErrorForwardingQueueName : null,
+                ErrorQueue = viewModel.ServiceControl.ErrorQueueName,
+                ErrorLogQueue = viewModel.ServiceControl.ErrorForwarding.Value ? viewModel.ServiceControl.ErrorForwardingQueueName : null,
                 TransportPackage = viewModel.SelectedTransport,
                 ConnectionString = viewModel.ConnectionString,
-                ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod,
-                AuditRetentionPeriod = viewModel.AuditRetentionPeriod,
-                ServiceAccount = viewModel.ServiceAccount,
-                ServiceAccountPwd = viewModel.Password
+                ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod,
+                ServiceAccount = viewModel.ServiceControl.ServiceAccount,
+                ServiceAccountPwd = viewModel.ServiceControl.Password
             };
 
-            using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
+            var auditNewInstance = new ServiceControlAuditNewInstance
             {
-                var reportCard = await Task.Run(() => installer.Add(instanceMetadata, progress, PromptToProceed));
+                DisplayName = viewModel.ServiceControlAudit.InstanceName,
+                Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.'),
+                ServiceDescription = viewModel.ServiceControlAudit.Description,
+                DBPath = viewModel.ServiceControlAudit.DatabasePath,
+                LogPath = viewModel.ServiceControlAudit.LogPath,
+                InstallPath = viewModel.ServiceControlAudit.DestinationPath,
+                HostName = viewModel.ServiceControlAudit.HostName,
+                Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber),
+                DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber),
+                VirtualDirectory = null, // TODO
+                AuditLogQueue = viewModel.ServiceControlAudit.AuditForwarding.Value ? viewModel.ServiceControlAudit.AuditForwardingQueueName : null,
+                AuditQueue = viewModel.ServiceControlAudit.AuditQueueName,
+                ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value,
+                TransportPackage = viewModel.SelectedTransport,
+                ConnectionString = viewModel.ConnectionString,
+                AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod,
+                ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
+                ServiceAccountPwd = viewModel.ServiceControlAudit.Password
+            };
 
-                if (reportCard.HasErrors || reportCard.HasWarnings)
+            using (var progress = viewModel.GetProgressObject("ADDING INSTANCE(S)"))
+            {
+                var installationCancelled = await InstallInstance(serviceControlNewInstance, progress);
+                if(installationCancelled)
                 {
-                    windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
                     return;
                 }
 
-                if (reportCard.CancelRequested)
+                installationCancelled = await InstallInstance(auditNewInstance, progress);
+                if (installationCancelled)
                 {
                     return;
                 }
@@ -96,6 +114,42 @@
             viewModel.TryClose(true);
 
             eventAggregator.PublishOnUIThread(new RefreshInstances());
+        }
+
+        async Task<bool> InstallInstance(ServiceControlNewInstance instanceData, IProgressObject progress)
+        {
+            var reportCard = await Task.Run(() => serviceControlInstaller.Add(instanceData, progress, PromptToProceed));
+
+            if (reportCard.HasErrors || reportCard.HasWarnings)
+            {
+                windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                return true;
+            }
+
+            if (reportCard.CancelRequested)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        async Task<bool> InstallInstance(ServiceControlAuditNewInstance instanceData, IProgressObject progress)
+        {
+            var reportCard = await Task.Run(() => serviceControlAuditInstaller.Add(instanceData, progress, PromptToProceed));
+
+            if (reportCard.HasErrors || reportCard.HasWarnings)
+            {
+                windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                return true;
+            }
+
+            if (reportCard.CancelRequested)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         bool PromptToProceed(PathInfo pathInfo)
@@ -109,6 +163,7 @@
 
         readonly IWindowManagerEx windowManager;
         readonly IEventAggregator eventAggregator;
-        readonly ServiceControlInstanceInstaller installer;
+        readonly ServiceControlInstanceInstaller serviceControlInstaller;
+        readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
     }
 }

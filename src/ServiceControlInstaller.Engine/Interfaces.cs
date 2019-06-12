@@ -17,7 +17,7 @@
         string ConnectionString { get; }
     }
 
-    public interface IServiceControlTransportConfig : ITransportConfig
+    public interface IServiceControlTransportConfig : ITransportConfig, IServiceInstance
     {
         string AuditQueue { get; }
         string ErrorLogQueue { get; }
@@ -73,13 +73,22 @@
     {
     }
 
-    public interface IServiceControlInstance : IServiceInstance, IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance, IURLInfo, IInstallable
+    public interface IDatabaseMaintenanceSupport : IVersionInfo
     {
         int? DatabaseMaintenancePort { get; }
+    }
+
+    public interface IServiceControlAuditInstance : IServiceInstance, IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance, IInstallable, IDatabaseMaintenanceSupport
+    {
         string VirtualDirectory { get; }
         bool ForwardAuditMessages { get; }
-        bool ForwardErrorMessages { get; }
         TimeSpan AuditRetentionPeriod { get; }
+    }
+
+    public interface IServiceControlInstance : IServiceInstance, IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance, IURLInfo, IInstallable, IDatabaseMaintenanceSupport
+    {
+        string VirtualDirectory { get; }
+        bool ForwardErrorMessages { get; }
         TimeSpan ErrorRetentionPeriod { get; }
         bool IsUpdatingDataStore { get; set; }
     }

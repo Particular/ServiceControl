@@ -12,16 +12,7 @@
             DetermineQueueNames(instance.AuditQueue, instance.ErrorQueue, instance.AuditLogQueue, instance.ErrorLogQueue, instance.ConnectionString);
         }
 
-        public static void Validate(ServiceControlNewInstance instance)
-        {
-            var validator = new ServiceControlQueueNameValidator(instance)
-            {
-                Instances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlTransportConfig>().ToList()
-            };
-            validator.RunValidation();
-        }
-
-        public static void Validate(ServiceControlInstance instance)
+        public static void Validate(IServiceControlTransportConfig instance)
         {
             var validator = new ServiceControlQueueNameValidator(instance)
             {

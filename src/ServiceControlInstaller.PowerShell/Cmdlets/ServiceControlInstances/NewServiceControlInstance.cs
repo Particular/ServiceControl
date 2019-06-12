@@ -172,7 +172,8 @@ namespace ServiceControlInstaller.PowerShell
                 ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue,
                 ForwardAuditMessages = ForwardAuditMessages.ToBool(),
                 ForwardErrorMessages = ForwardErrorMessages.ToBool(),
-                AuditRetentionPeriod = AuditRetentionPeriod,
+                //TODO: Fix
+                //AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),

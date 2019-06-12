@@ -3,6 +3,7 @@
 namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -19,12 +20,12 @@ namespace ServiceControlInstaller.Engine.Instances
     using UrlAcl;
     using Validation;
 
-    public class ServiceControlInstance : BaseService, IServiceControlInstance
+    public abstract class ServiceControlBaseService : BaseService
     {
-        public ServiceControlInstance(WindowsServiceController service)
+        protected ServiceControlBaseService(WindowsServiceController service)
         {
             Service = service;
-            AppConfig = new AppConfig(this);
+            AppConfig = CreateAppConfig();
             Reload();
         }
 
@@ -96,6 +97,9 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool IsUpdatingDataStore { get; set; }
         public bool SkipQueueCreation { get; set; }
 
+        protected abstract string BaseServiceName { get; }
+        public abstract void Reload();
+
         public string Url
         {
             get
@@ -137,7 +141,307 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public void Reload()
+        protected void UpdateDataMigrationMarker()
+        {
+            IsUpdatingDataStore = File.Exists(Path.Combine(LogPath, "datamigration.marker"));
+        }
+
+        public override void RefreshServiceProperties()
+        {
+            base.RefreshServiceProperties();
+            UpdateDataMigrationMarker();
+        }
+
+        protected string ReadConnectionString()
+        {
+            if (File.Exists(Service.ExePath))
+            {
+                var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
+                var namedConnectionString = configManager.ConnectionStrings.ConnectionStrings["NServiceBus/Transport"];
+                if (namedConnectionString != null)
+                {
+                    return namedConnectionString.ConnectionString;
+                }
+            }
+
+            return null;
+        }
+
+        protected TransportInfo DetermineTransportPackage()
+        {
+            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
+            var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
+            if (transport != null)
+            {
+                return transport;
+            }
+
+            return ServiceControlCoreTransports.All.First(p => p.Default);
+        }
+
+        protected void RecreateUrlAcl(ServiceControlBaseService oldSettings)
+        {
+            oldSettings.RemoveUrlAcl();
+            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            reservation.Create();
+
+            if (oldSettings.Version.Major < 2) //Maintenance port was introduced in Version 2
+            {
+                return;
+            }
+
+            var maintanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            maintanceReservation.Create();
+        }
+
+        protected string DefaultDBPath()
+        {
+            var host = HostName == "*" ? "%" : HostName;
+            var dbFolder = $"{host}-{Port}";
+            if (!string.IsNullOrEmpty(VirtualDirectory))
+            {
+                dbFolder += $"-{FileUtils.SanitizeFolderName(VirtualDirectory)}";
+            }
+
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", BaseServiceName, dbFolder);
+        }
+
+        protected string DefaultLogPath()
+        {
+            // The default Logging folder in ServiceControl uses the env vae"%LocalApplicationData%".  Since this is env user specific we'll determine it based on profile path instead.
+            // This only works for a user that has already logged in, which is fine for existing instances
+            var userAccountName = UserAccount.ParseAccountName(Service.Account);
+
+            var profilePath = userAccountName.RetrieveProfilePath();
+            if (profilePath == null)
+            {
+                return null;
+            }
+
+            return Path.Combine(profilePath, $@"AppData\Local\Particular\{BaseServiceName}\logs");
+        }
+
+        public void RemoveUrlAcl()
+        {
+            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) ||
+                                                                              p.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase)))
+            {
+                try
+                {
+                    urlReservation.Delete();
+                }
+                catch
+                {
+                    ReportCard.Warnings.Add($"Failed to remove the URLACL for {Url} - Please remove manually via Netsh.exe");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns false if a reboot is required to complete deletion
+        /// </summary>
+        /// <returns></returns>
+        public void RemoveBinFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(InstallPath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add($"Could not delete the installation directory '{InstallPath}'. Please remove manually");
+            }
+        }
+
+        public void RemoveLogsFolder()
+        {
+            try
+            {
+                FileUtils.DeleteDirectory(LogPath, true, false);
+            }
+            catch
+            {
+                ReportCard.Warnings.Add($"Could not delete the logs directory '{LogPath}'. Please remove manually");
+            }
+        }
+
+        public void RemoveDataBaseFolder()
+        {
+            //Order by length descending in case they are nested paths
+            var folders = GetDatabaseIndexes().ToList();
+
+            foreach (var folder in folders.OrderByDescending(p => p.Length))
+            {
+                try
+                {
+                    FileUtils.DeleteDirectory(folder, true, false);
+                }
+                catch
+                {
+                    ReportCard.Warnings.Add($"Could not delete the RavenDB directory '{folder}'. Please remove manually");
+                }
+            }
+        }
+
+        public double GetDatabaseSizeInGb()
+        {
+            var folders = GetDatabaseIndexes().ToList();
+
+            return folders.Sum(path => new DirectoryInfo(path).GetDirectorySize()) / (1024.0 * 1024 * 1024);
+        }
+
+        public void UpdateDatabase(Action<string> updateProgress)
+        {
+            try
+            {
+                RunDatabaseMigrations(updateProgress);
+            }
+            catch (DatabaseMigrationsException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+        }
+
+        protected virtual void RunDatabaseMigrations(Action<string> updateProgress)
+        {
+        }
+
+        public void RemoveDatabaseIndexes()
+        {
+            var folders = GetDatabaseIndexes();
+
+            foreach (var folder in folders.OrderByDescending(p => p.Length))
+            {
+                try
+                {
+                    FileUtils.DeleteDirectory(Path.Combine(folder, "Indexes"), true, false);
+                }
+                catch
+                {
+                    ReportCard.Warnings.Add($"Could not delete the RavenDB Indexes '{folder}'. This may cause problems in the data migration step. Please remove manually if errors occur.");
+                }
+            }
+        }
+        
+        protected abstract AppConfig CreateAppConfig();
+
+        public virtual void DisableMaintenanceMode()
+        {
+        }
+
+        public virtual void EnableMaintenanceMode()
+        {
+        }
+
+        protected virtual IEnumerable<string> GetDatabaseIndexes()
+        {
+            return Enumerable.Empty<string>();
+        }
+
+        protected virtual void SetMaintenanceMode(bool isEnabled)
+        {
+        }
+
+        protected virtual void ValidateConnectionString()
+        {
+        }
+
+        protected virtual void ValidatePaths()
+        {
+        }
+
+        protected virtual void ValidateQueueNames()
+        {
+        }
+
+        protected virtual void ValidateServiceAccount()
+        {
+            var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
+            var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
+            var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
+            if (passwordSet || accountChanged)
+            {
+                try
+                {
+                    ServiceAccountValidation.Validate(this);
+                }
+                catch (IdentityNotMappedException)
+                {
+                    ReportCard.Errors.Add("The service account specified does not exist");
+                    return;
+                }
+                catch (EngineValidationException ex)
+                {
+                    ReportCard.Errors.Add(ex.Message);
+                    return;
+                }
+            }
+        }
+
+        public void RestoreAppConfig(string sourcePath)
+        {
+            if (sourcePath == null)
+            {
+                return;
+            }
+
+            var configFile = $"{Service.ExePath}.config";
+            File.Copy(sourcePath, configFile, true);
+
+            // Populate the config with common settings even if they are defaults
+            // Will not clobber other settings in the config
+            AppConfig = CreateAppConfig();
+            AppConfig.Save();
+        }
+
+        public abstract void UpgradeFiles(string zipFilePath);
+
+        public abstract void RunQueueCreation();
+
+        public void SetupInstance()
+        {
+            try
+            {
+                RunQueueCreation();
+            }
+            catch (QueueCreationFailedException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+            catch (QueueCreationTimeoutException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+        }
+
+        public void ValidateChanges()
+        {
+            ValidatePaths();
+
+            ValidateQueueNames();
+
+            ValidateServiceAccount();
+
+            ValidateConnectionString();
+        }
+
+        public AppConfig AppConfig;
+    }
+
+    public class ServiceControlAuditInstance : ServiceControlBaseService, IServiceControlAuditInstance
+    {
+        protected override string BaseServiceName => "ServiceControl.Audit";
+
+        protected override AppConfig CreateAppConfig()
+        {
+            return new ServiceControlAuditAppConfig(this);
+        }
+
+        public ServiceControlAuditInstance(WindowsServiceController service) : base(service)
+        {
+        }
+
+        public override void Reload()
         {
             Service.Refresh();
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");
@@ -171,42 +475,126 @@ namespace ServiceControlInstaller.Engine.Instances
             UpdateDataMigrationMarker();
         }
 
-        private void UpdateDataMigrationMarker()
+        public override void RunQueueCreation()
         {
-            IsUpdatingDataStore = File.Exists(Path.Combine(LogPath, "datamigration.marker"));
+            QueueCreation.RunQueueCreation(this);
         }
 
-        public override void RefreshServiceProperties()
+        public override void EnableMaintenanceMode()
         {
-            base.RefreshServiceProperties();
+            base.AppConfig = CreateAppConfig();
+            AppConfig.EnableMaintenanceMode();
+            InMaintenanceMode = true;
+        }
+
+        public override void DisableMaintenanceMode()
+        {
+            base.AppConfig = CreateAppConfig();
+            AppConfig.DisableMaintenanceMode();
+            InMaintenanceMode = false;
+        }
+
+        public override void UpgradeFiles(string zipFilePath)
+        {
+            FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlAuditExe}.config");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, BaseServiceName);
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
+        }
+
+        protected override IEnumerable<string> GetDatabaseIndexes()
+        {
+            return AppConfig.RavenDataPaths();
+        }
+
+        new ServiceControlAuditAppConfig AppConfig => (ServiceControlAuditAppConfig)base.AppConfig;
+    }
+
+    public class ServiceControlInstance : ServiceControlBaseService, IServiceControlInstance
+    {
+        public ServiceControlInstance(WindowsServiceController service) : base(service)
+        {
+        }
+
+        protected override string BaseServiceName => "ServiceControl";
+
+        protected override AppConfig CreateAppConfig()
+        {
+            return new ServiceControlAppConfig(this);
+        }
+
+        public override void RunQueueCreation()
+        {
+            QueueCreation.RunQueueCreation(this);
+        }
+
+        protected override void ValidateQueueNames()
+        {
+            try
+            {
+                ServiceControlQueueNameValidator.Validate(this);
+            }
+            catch (EngineValidationException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+        }
+
+        protected override void ValidatePaths()
+        {
+            try
+            {
+                new PathsValidator(this).RunValidation(false);
+            }
+            catch (EngineValidationException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+        }
+
+        protected override void ValidateConnectionString()
+        {
+            try
+            {
+                ConnectionStringValidator.Validate(this);
+            }
+            catch (EngineValidationException ex)
+            {
+                ReportCard.Errors.Add(ex.Message);
+            }
+        }
+
+        public override void Reload()
+        {
+            Service.Refresh();
+            HostName = AppConfig.Read(SettingsList.HostName, "localhost");
+            Port = AppConfig.Read(SettingsList.Port, 33333);
+            DatabaseMaintenancePort = AppConfig.Read<int?>(SettingsList.DatabaseMaintenancePort, null);
+            VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
+            LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
+            DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
+            AuditQueue = AppConfig.Read(SettingsList.AuditQueue, "audit");
+            AuditLogQueue = AppConfig.Read(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
+            ForwardAuditMessages = AppConfig.Read(SettingsList.ForwardAuditMessages, false);
+            ForwardErrorMessages = AppConfig.Read(SettingsList.ForwardErrorMessages, false);
+            InMaintenanceMode = AppConfig.Read(SettingsList.MaintenanceMode, false);
+            ErrorQueue = AppConfig.Read(SettingsList.ErrorQueue, "error");
+            ErrorLogQueue = AppConfig.Read(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
+            TransportPackage = DetermineTransportPackage();
+            ConnectionString = ReadConnectionString();
+            Description = GetDescription();
+            ServiceAccount = Service.Account;
+
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
+            {
+                ErrorRetentionPeriod = errorRetentionPeriod;
+            }
+
+            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
+            {
+                AuditRetentionPeriod = auditRetentionPeriod;
+            }
+
             UpdateDataMigrationMarker();
-        }
-
-        string ReadConnectionString()
-        {
-            if (File.Exists(Service.ExePath))
-            {
-                var configManager = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
-                var namedConnectionString = configManager.ConnectionStrings.ConnectionStrings["NServiceBus/Transport"];
-                if (namedConnectionString != null)
-                {
-                    return namedConnectionString.ConnectionString;
-                }
-            }
-
-            return null;
-        }
-
-        TransportInfo DetermineTransportPackage()
-        {
-            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
-            var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
-            if (transport != null)
-            {
-                return transport;
-            }
-
-            return ServiceControlCoreTransports.All.First(p => p.Default);
         }
 
         public void ApplyConfigChange()
@@ -300,250 +688,39 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        private void RecreateUrlAcl(ServiceControlInstance oldSettings)
+        protected override void SetMaintenanceMode(bool isEnabled)
         {
-            oldSettings.RemoveUrlAcl();
-            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            reservation.Create();
+            base.AppConfig = CreateAppConfig();
 
-            if (oldSettings.Version.Major < 2) //Maintenance port was introduced in Version 2
+            if (isEnabled)
             {
-                return;
+                AppConfig.EnableMaintenanceMode();
+            }
+            else
+            {
+                AppConfig.DisableMaintenanceMode();
             }
 
-            var maintanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
-            maintanceReservation.Create();
+            InMaintenanceMode = isEnabled;
         }
 
-        string DefaultDBPath()
-        {
-            var host = HostName == "*" ? "%" : HostName;
-            var dbFolder = $"{host}-{Port}";
-            if (!string.IsNullOrEmpty(VirtualDirectory))
-            {
-                dbFolder += $"-{FileUtils.SanitizeFolderName(VirtualDirectory)}";
-            }
-
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
-        }
-
-        string DefaultLogPath()
-        {
-            // The default Logging folder in ServiceControl uses the env vae"%LocalApplicationData%".  Since this is env user specific we'll determine it based on profile path instead.
-            // This only works for a user that has already logged in, which is fine for existing instances
-            var userAccountName = UserAccount.ParseAccountName(Service.Account);
-
-            var profilePath = userAccountName.RetrieveProfilePath();
-            if (profilePath == null)
-            {
-                return null;
-            }
-
-            return Path.Combine(profilePath, @"AppData\Local\Particular\ServiceControl\logs");
-        }
-
-        public void RemoveUrlAcl()
-        {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) ||
-                                                                              p.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase)))
-            {
-                try
-                {
-                    urlReservation.Delete();
-                }
-                catch
-                {
-                    ReportCard.Warnings.Add($"Failed to remove the URLACL for {Url} - Please remove manually via Netsh.exe");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns false if a reboot is required to complete deletion
-        /// </summary>
-        /// <returns></returns>
-        public void RemoveBinFolder()
-        {
-            try
-            {
-                FileUtils.DeleteDirectory(InstallPath, true, false);
-            }
-            catch
-            {
-                ReportCard.Warnings.Add($"Could not delete the installation directory '{InstallPath}'. Please remove manually");
-            }
-        }
-
-        public void RemoveLogsFolder()
-        {
-            try
-            {
-                FileUtils.DeleteDirectory(LogPath, true, false);
-            }
-            catch
-            {
-                ReportCard.Warnings.Add($"Could not delete the logs directory '{LogPath}'. Please remove manually");
-            }
-        }
-
-        public void RemoveDataBaseFolder()
-        {
-            //Order by length descending in case they are nested paths
-            var folders = AppConfig.RavenDataPaths().ToList();
-
-            foreach (var folder in folders.OrderByDescending(p => p.Length))
-            {
-                try
-                {
-                    FileUtils.DeleteDirectory(folder, true, false);
-                }
-                catch
-                {
-                    ReportCard.Warnings.Add($"Could not delete the RavenDB directory '{folder}'. Please remove manually");
-                }
-            }
-        }
-
-        public double GetDatabaseSizeInGb()
-        {
-            var folders = AppConfig.RavenDataPaths().ToList();
-
-            return folders.Sum(path => new DirectoryInfo(path).GetDirectorySize()) / (1024.0 * 1024 * 1024);
-        }
-
-        public void RestoreAppConfig(string sourcePath)
-        {
-            if (sourcePath == null)
-            {
-                return;
-            }
-
-            var configFile = $"{Service.ExePath}.config";
-            File.Copy(sourcePath, configFile, true);
-
-            // Populate the config with common settings even if they are defaults
-            // Will not clobber other settings in the config
-            AppConfig = new AppConfig(this);
-            AppConfig.Save();
-        }
-
-        public void UpgradeFiles(string zipFilePath)
+        public override void UpgradeFiles(string zipFilePath)
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
-        public void SetupInstance()
+        protected override void RunDatabaseMigrations(Action<string> updateProgress)
         {
-            try
-            {
-                QueueCreation.RunQueueCreation(this);
-            }
-            catch (QueueCreationFailedException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-            catch (QueueCreationTimeoutException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
+            DatabaseMigrations.RunDatabaseMigrations(this, updateProgress);
         }
 
-        public void UpdateDatabase(Action<string> updateProgress)
+        protected override IEnumerable<string> GetDatabaseIndexes()
         {
-            try
-            {
-                DatabaseMigrations.RunDatabaseMigrations(this, updateProgress);
-            }
-            catch (DatabaseMigrationsException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
+            return AppConfig.RavenDataPaths();
         }
 
-        public void RemoveDatabaseIndexes()
-        {
-            var folders = AppConfig.RavenDataPaths().ToList();
-
-            foreach (var folder in folders.OrderByDescending(p => p.Length))
-            {
-                try
-                {
-                    FileUtils.DeleteDirectory(Path.Combine(folder, "Indexes"), true, false);
-                }
-                catch
-                {
-                    ReportCard.Warnings.Add($"Could not delete the RavenDB Indexes '{folder}'. This may cause problems in the data migration step. Please remove manually if errors occur.");
-                }
-            }
-        }
-
-        public void DisableMaintenanceMode()
-        {
-            AppConfig = new AppConfig(this);
-            AppConfig.DisableMaintenanceMode();
-            InMaintenanceMode = false;
-        }
-
-        public void EnableMaintenanceMode()
-        {
-            AppConfig = new AppConfig(this);
-            AppConfig.EnableMaintenanceMode();
-            InMaintenanceMode = true;
-        }
-
-        public void ValidateChanges()
-        {
-            try
-            {
-                new PathsValidator(this).RunValidation(false);
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-
-            try
-            {
-                ServiceControlQueueNameValidator.Validate(this);
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-
-            var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
-            var passwordSet = !string.IsNullOrWhiteSpace(ServiceAccountPwd);
-            var accountChanged = !string.Equals(oldSettings.ServiceAccount, ServiceAccount, StringComparison.OrdinalIgnoreCase);
-            if (passwordSet || accountChanged)
-            {
-                try
-                {
-                    ServiceAccountValidation.Validate(this);
-                }
-                catch (IdentityNotMappedException)
-                {
-                    ReportCard.Errors.Add("The service account specified does not exist");
-                    return;
-                }
-                catch (EngineValidationException ex)
-                {
-                    ReportCard.Errors.Add(ex.Message);
-                    return;
-                }
-            }
-
-            try
-            {
-                ConnectionStringValidator.Validate(this);
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-        }
-
-        public AppConfig AppConfig;
+        new ServiceControlAppConfig AppConfig => (ServiceControlAppConfig)base.AppConfig;
     }
 }

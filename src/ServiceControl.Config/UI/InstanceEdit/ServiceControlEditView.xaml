@@ -44,8 +44,6 @@
                                 Text="{Binding InstanceName}" />
                 </Grid>
 
-                <controls:FormTextBox Header="DESCRIPTION" Text="{Binding Description}" />
-
                 <GroupBox Header="USER ACCOUNT">
                     <StackPanel>
                         <RadioButton IsChecked="{Binding UseSystemAccount}">
