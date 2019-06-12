@@ -11,10 +11,6 @@
 
     class CheckRemotes : CustomCheck
     {
-        RemoteInstanceSetting[] remoteInstanceSetting;
-        readonly Func<HttpClient> httpClientFactory;
-        List<Task> remoteQueryTasks;
-
         public CheckRemotes(Settings settings, Func<HttpClient> httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
@@ -32,22 +28,6 @@
                 {
                     foreach (var remote in remoteInstanceSetting)
                     {
-                        async Task CheckSuccessStatusCode(HttpClient client, RemoteInstanceSetting remoteSettings, CancellationToken token)
-                        {
-                            try
-                            {
-                                var response = await client.GetAsync(remoteSettings.ApiUri, token).ConfigureAwait(false);
-                                response.EnsureSuccessStatusCode();
-                            }
-                            catch (HttpRequestException e)
-                            {
-                                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' doesn't seem to be available. Reason: {e.Message}", e);
-                            }
-                            catch (OperationCanceledException e)
-                            {
-                                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' did not respond within the allotted timespan.", e);
-                            }
-                        }
                         remoteQueryTasks.Add(CheckSuccessStatusCode(httpClient, remote, cancellationTokenSource.Token));
                     }
 
@@ -80,7 +60,27 @@
             {
                 remoteQueryTasks.Clear();
             }
-            
         }
+
+        static async Task CheckSuccessStatusCode(HttpClient client, RemoteInstanceSetting remoteSettings, CancellationToken token)
+        {
+            try
+            {
+                var response = await client.GetAsync(remoteSettings.ApiUri, token).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException e)
+            {
+                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' doesn't seem to be available. Reason: {e.Message}", e);
+            }
+            catch (OperationCanceledException e)
+            {
+                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' did not respond within the allotted timespan.", e);
+            }
+        }
+
+        readonly Func<HttpClient> httpClientFactory;
+        RemoteInstanceSetting[] remoteInstanceSetting;
+        List<Task> remoteQueryTasks;
     }
 }
