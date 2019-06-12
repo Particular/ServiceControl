@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -20,13 +19,10 @@
         [Test]
         public async Task Should_be_configurable()
         {
-            CustomAuditEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
-
             List<EndpointsView> response = null;
 
             await Define<MyContext>()
-                .WithEndpoint<Sender>(b => b.When(c => c.HasNativePubSubSupport || c.ServiceControlSubscribed,
-                    (bus, c) => bus.SendLocal(new MyMessage())))
+                .WithEndpoint<Sender>(b => b.When(session => session.SendLocal(new MyMessage())))
                 .Done(async c =>
                 {
                     var result = await this.TryGetMany<EndpointsView>("/api/endpoints/", instanceName: ServiceControlInstanceName);
@@ -58,17 +54,6 @@
             Assert.IsTrue(response.First().MonitorHeartbeat);
         }
 
-        void ConfigureWaitingForMasterToSubscribe(EndpointConfiguration config)
-        {
-            config.OnEndpointSubscribed<MyContext>((s, ctx) =>
-            {
-                if (s.SubscriberEndpoint.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    ctx.ServiceControlSubscribed = true;
-                }
-            });
-        }
-
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
@@ -96,7 +81,6 @@
         public class MyContext : ScenarioContext
         {
             public bool EndpointKnownOnMaster { get; set; }
-            public bool ServiceControlSubscribed { get; set; }
         }
     }
 }

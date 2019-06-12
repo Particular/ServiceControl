@@ -38,7 +38,7 @@
                     return;
                 }
 
-                context.AddForPublish(new MessageFailureResolvedByRetry
+                context.AddForSend(new MarkMessageFailureResolvedByRetry
                 {
                     FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
                     AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()

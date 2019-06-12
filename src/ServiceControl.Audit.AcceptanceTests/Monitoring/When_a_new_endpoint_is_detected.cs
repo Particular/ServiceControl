@@ -1,43 +1,26 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Monitoring
 {
-    using System;
+    using System.Linq;
     using System.Threading.Tasks;
-    using Contracts.EndpointControl;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_new_endpoint_is_detected : AcceptanceTest
     {
         [Test]
-        public async Task Should_raise_integration_event()
+        public async Task Should_notify_service_control()
         {
-            CustomConfiguration = config => config.Pipeline.Register(typeof(NewEndpointDetectedSpy), "Captures the event");
-
-            var context = await Define<MyContext>()
+            var context = await Define<InterceptedMessagesScenarioContext>()
                 .WithEndpoint<Receiver>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
-                .Done(c => c.EventRaised)
+                .Done(c => c.SentRegisterEndpointCommands.Any())
                 .Run();
 
-            Assert.True(context.EventRaised);
-        }
-
-        public class NewEndpointDetectedSpy : Behavior<IOutgoingPublishContext>
-        {
-            public MyContext TestContext { get; set; }
-
-            public override Task Invoke(IOutgoingPublishContext context, Func<Task> next)
-            {
-                if (context.Message.Instance is NewEndpointDetected)
-                {
-                    TestContext.EventRaised = true;
-                }
-
-                return next();
-            }
+            var command = context.SentRegisterEndpointCommands.Single();
+            Assert.AreEqual(Conventions.EndpointNamingConvention(typeof(Receiver)), command.Endpoint.Name);
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -58,11 +41,6 @@
 
         public class MyMessage : ICommand
         {
-        }
-
-        public class MyContext : ScenarioContext
-        {
-            public bool EventRaised { get; internal set; }
         }
     }
 }

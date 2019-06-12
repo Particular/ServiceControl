@@ -68,7 +68,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
     {
         public RemoteInstanceSetting() { }
         public string ApiUri { get; set; }
-        public string QueueAddress { get; set; }
     }
     public class Settings
     {
@@ -271,6 +270,12 @@ namespace ServiceControl.Contracts.EndpointControl
         public System.DateTime DetectedAt { get; set; }
         public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
     }
+    public class RegisterNewEndpoint : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public RegisterNewEndpoint() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+    }
 }
 namespace ServiceControl.Contracts.EventLog
 {
@@ -329,6 +334,12 @@ namespace ServiceControl.Contracts.MessageFailures
         public FailedMessagesUnArchived() { }
         public int MessagesCount { get; set; }
     }
+    public class MarkMessageFailureResolvedByRetry : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public MarkMessageFailureResolvedByRetry() { }
+        public string[] AlternativeFailedMessageIds { get; set; }
+        public string FailedMessageId { get; set; }
+    }
     public class MessageFailed : NServiceBus.IMessage, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageFailed() { }
@@ -337,7 +348,7 @@ namespace ServiceControl.Contracts.MessageFailures
         public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
         public bool RepeatedFailure { get; set; }
     }
-    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class MessageFailureResolvedByRetry : NServiceBus.IMessage, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }

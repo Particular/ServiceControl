@@ -4,11 +4,9 @@
     using System.Threading.Tasks;
     using Audit.Auditing.MessagesView;
     using Audit.Monitoring;
-    using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
 
@@ -17,17 +15,15 @@
         [Test]
         public async Task Should_set_status_to_resolved()
         {
-            CustomConfiguration = config => config.Pipeline.Register(typeof(DomainEventSpy), "Captures the event");
-
             MessagesView auditedMessage = null;
 
             var messageId = Guid.NewGuid().ToString();
-            await Define<MyContext>()
+            await Define<InterceptedMessagesScenarioContext>()
                 .WithEndpoint<Receiver>(b => b.When(s =>
                 {
                     var options = new SendOptions();
 
-                    options.SetHeader("ServiceControl.Retry.UniqueMessageId", Guid.NewGuid().ToString());
+                    options.SetHeader("ServiceControl.Retry.UniqueMessageId", "CAN BE ANYTHING");
                     options.RouteToThisEndpoint();
                     options.SetMessageId(messageId);
                     return s.Send(new MyMessage(), options);
@@ -43,21 +39,6 @@
                 .Run();
 
             Assert.AreEqual(MessageStatus.ResolvedSuccessfully, auditedMessage.Status);
-        }
-
-        public class DomainEventSpy : Behavior<IOutgoingPublishContext>
-        {
-            public MyContext TestContext { get; set; }
-
-            public override Task Invoke(IOutgoingPublishContext context, Func<Task> next)
-            {
-                if (context.Message.Instance is MessageFailureResolvedByRetry failureResolvedByRetry)
-                {
-                    TestContext.EventRaised = failureResolvedByRetry;
-                }
-
-                return next();
-            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -78,11 +59,6 @@
 
         public class MyMessage : ICommand
         {
-        }
-
-        public class MyContext : ScenarioContext
-        {
-            public MessageFailureResolvedByRetry EventRaised { get; internal set; }
         }
     }
 }

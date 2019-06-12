@@ -101,7 +101,6 @@ namespace ServiceBus.Management.AcceptanceTests
                     new RemoteInstanceSetting
                     {
                         ApiUri = $"http://localhost:{instancePort-2}/api", // evil assumption for now
-                        QueueAddress = $"{Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME}"
                     }
                 },
                 OnMessage = (id, headers, body, @continue) =>
@@ -223,7 +222,7 @@ namespace ServiceBus.Management.AcceptanceTests
             var instancePort = FindAvailablePort(startPort++);
             var maintenancePort = FindAvailablePort(startPort++);
 
-            ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
+            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
             var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
             {
@@ -235,6 +234,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,
                 OnMessage = (id, headers, body, @continue) =>
                 {
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();

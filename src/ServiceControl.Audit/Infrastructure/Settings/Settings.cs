@@ -41,6 +41,7 @@
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             DbPath = GetDbPath();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
+            ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
         }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
@@ -160,6 +161,8 @@
         public string TransportConnectionString { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
         public int DataSpaceRemainingThreshold { get; set; }
+
+        public string ServiceControlQueueAddress { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {
