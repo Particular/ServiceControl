@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
+namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
     using System.Collections.Generic;

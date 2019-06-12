@@ -277,8 +277,6 @@ namespace ServiceControlInstaller.Engine.Instances
             return folders.Sum(path => new DirectoryInfo(path).GetDirectorySize()) / (1024.0 * 1024 * 1024);
         }
 
-        public abstract void ApplyConfigChange();
-
         protected abstract AppConfig CreateAppConfig();
 
         public virtual void DisableMaintenanceMode()
@@ -288,10 +286,12 @@ namespace ServiceControlInstaller.Engine.Instances
         public virtual void EnableMaintenanceMode()
         {
         }
+
         protected virtual IEnumerable<string> GetDatabaseIndexes()
         {
             return Enumerable.Empty<string>();
         }
+
         protected virtual void SetMaintenanceMode(bool isEnabled)
         {
         }
@@ -379,23 +379,12 @@ namespace ServiceControlInstaller.Engine.Instances
             ValidateConnectionString();
         }
 
-        public bool VersionHasServiceControlAuditFeatures => Version >= AuditFeatureMinVersion;
-
-        static Version AuditFeatureMinVersion = new Version(3, 9);
-
         public AppConfig AppConfig;
     }
 
     public class ServiceControlAuditInstance : ServiceControlBaseService, IServiceControlAuditInstance
     {
         protected override string BaseServiceName => "ServiceControl.Audit";
-
-        public string ServiceControlQueueAddress { get; set; }
-
-        public override void ApplyConfigChange()
-        {
-            //TODO: Fix edit for SCA
-        }
 
         protected override AppConfig CreateAppConfig()
         {
@@ -460,6 +449,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             return AppConfig.RavenDataPaths();
         }
+
         new ServiceControlAuditAppConfig AppConfig => (ServiceControlAuditAppConfig)base.AppConfig;
     }
 
@@ -549,9 +539,8 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public override void ApplyConfigChange()
+        public void ApplyConfigChange()
         {
-            //TODO: Fix update/edit mode
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
 
@@ -668,6 +657,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             return AppConfig.RavenDataPaths();
         }
+
         new ServiceControlAppConfig AppConfig => (ServiceControlAppConfig)base.AppConfig;
     }
 }
