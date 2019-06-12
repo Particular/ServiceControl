@@ -105,7 +105,8 @@
 
             public class NopHandler : IHandleMessages<MessageReplyBySaga>,
                 IHandleMessages<MessageReplyToOriginatorBySaga>,
-                IHandleMessages<MessageSentBySaga>
+                IHandleMessages<MessageSentBySaga>, 
+                IHandleMessages<MessagePublishedBySaga>
             {
                 public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context) 
                     => Task.CompletedTask;
@@ -114,6 +115,9 @@
                     => Task.CompletedTask;
 
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
+                    => Task.CompletedTask;
+
+                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
                     => Task.CompletedTask;
             }
         }
