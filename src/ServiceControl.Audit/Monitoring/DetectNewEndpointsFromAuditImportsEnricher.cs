@@ -47,7 +47,7 @@
 
             if (monitoring.IsNewInstance(endpointDetails))
             {
-                context.AddForPublish(new NewEndpointDetected
+                context.AddForSend(new RegisterNewEndpoint
                 {
                     DetectedAt = DateTime.UtcNow,
                     Endpoint = endpointDetails

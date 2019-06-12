@@ -5,6 +5,8 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Threading.Tasks;
     using Auditing;
     using Autofac;
+    using Contracts.EndpointControl;
+    using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
@@ -24,7 +26,7 @@ namespace ServiceControl.Audit.Infrastructure
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
 
-            configuration.Pipeline.Register(typeof(PublishFullTypeNameOnlyBehavior), "Remove asm qualified name from the message type header");
+            configuration.Pipeline.Register(typeof(FullTypeNameOnlyBehavior), "Remove asm qualified name from the message type header");
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             configuration.GetSettings().Set(documentStore);
@@ -33,6 +35,10 @@ namespace ServiceControl.Audit.Infrastructure
             MapSettings(transportSettings, settings);
 
             transportCustomization.CustomizeEndpoint(configuration, transportSettings);
+
+            var routing = new RoutingSettings(configuration.GetSettings());
+            routing.RouteToEndpoint(typeof(RegisterNewEndpoint), settings.ServiceControlQueueAddress);
+            routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), settings.ServiceControlQueueAddress);
 
             configuration.GetSettings().Set(loggingSettings);
 
@@ -55,8 +61,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             if (!isRunningAcceptanceTests)
             {
-                // Sending the custom check to ourselves and then republish it to the primary
-                configuration.ReportCustomChecksTo(endpointName);
+                configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
             }
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));

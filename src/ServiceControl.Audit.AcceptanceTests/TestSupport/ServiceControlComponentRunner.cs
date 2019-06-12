@@ -71,7 +71,7 @@ namespace ServiceBus.Management.AcceptanceTests
             var instancePort = FindAvailablePort(33333);
             var maintenancePort = FindAvailablePort(instancePort + 1);
 
-            ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
+            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
             var settings = new Settings(instanceName)
             {
@@ -83,6 +83,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                ServiceControlQueueAddress = "SHOULDNOTBEUSED",
                 OnMessage = (id, headers, body, @continue) =>
                 {
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();
@@ -136,6 +137,7 @@ namespace ServiceBus.Management.AcceptanceTests
             configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
             configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
             configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
+            configuration.Pipeline.Register(new InterceptMessagesDestinedToServiceControl(context), "Intercepts messages destined to ServiceControl");
 
             configuration.AssemblyScanner().ExcludeAssemblies(typeof(ServiceControlComponentRunner).Assembly.GetName().Name);
 

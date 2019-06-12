@@ -43,9 +43,6 @@
             {
                 ConnectionString = connectionString
             };
-            transportSettings.Set("TransportSettings.RemoteInstances", Array.Empty<string>());
-            transportSettings.Set("TransportSettings.RemoteTypesToSubscribeTo", Array.Empty<Type>());
-            
             customization.CustomizeEndpoint(config, transportSettings);
 
             config.UsePersistence<InMemoryPersistence>();

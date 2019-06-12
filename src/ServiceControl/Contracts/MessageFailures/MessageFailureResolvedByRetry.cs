@@ -4,7 +4,8 @@
     using Infrastructure.SignalR;
     using NServiceBus;
 
-    public class MessageFailureResolvedByRetry : IDomainEvent, IEvent, IUserInterfaceEvent
+    // Comes from unconverted legacy instances
+    public class MessageFailureResolvedByRetry : IDomainEvent, IMessage, IUserInterfaceEvent
     {
         public string FailedMessageId { get; set; }
         public string[] AlternativeFailedMessageIds { get; set; }

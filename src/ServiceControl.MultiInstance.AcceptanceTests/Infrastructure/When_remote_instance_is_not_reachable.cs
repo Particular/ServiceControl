@@ -24,8 +24,7 @@
                     currentSetting,
                     new RemoteInstanceSetting
                     {
-                        ApiUri = "http://localhost:12121",
-                        QueueAddress = ServiceControlAuditInstanceName
+                        ApiUri = "http://localhost:12121"
                     }
                 };
             };

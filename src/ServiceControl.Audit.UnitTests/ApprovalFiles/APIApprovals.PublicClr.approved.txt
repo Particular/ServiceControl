@@ -157,6 +157,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string RootUrl { get; }
         public bool RunCleanupBundle { get; set; }
         public bool RunInMemory { get; set; }
+        public string ServiceControlQueueAddress { get; set; }
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
         public string StorageUrl { get; }
@@ -193,18 +194,18 @@ namespace ServiceControl.Audit.Recoverability
 }
 namespace ServiceControl.Contracts.EndpointControl
 {
-    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage
+    public class RegisterNewEndpoint : NServiceBus.ICommand, NServiceBus.IMessage
     {
-        public NewEndpointDetected() { }
+        public RegisterNewEndpoint() { }
         public System.DateTime DetectedAt { get; set; }
         public ServiceControl.Audit.Monitoring.EndpointDetails Endpoint { get; set; }
     }
 }
 namespace ServiceControl.Contracts.MessageFailures
 {
-    public class MessageFailureResolvedByRetry : NServiceBus.IEvent, NServiceBus.IMessage
+    public class MarkMessageFailureResolvedByRetry : NServiceBus.ICommand, NServiceBus.IMessage
     {
-        public MessageFailureResolvedByRetry() { }
+        public MarkMessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }
         public string FailedMessageId { get; set; }
     }

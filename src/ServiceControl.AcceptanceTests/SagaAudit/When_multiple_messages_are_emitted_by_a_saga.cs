@@ -12,7 +12,6 @@
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
-    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
     {
@@ -24,13 +23,6 @@
             var context = await Define<MyContext>()
                 .WithEndpoint<SagaEndpoint>(b => b.When(async (bus, c) =>
                 {
-                    await bus.Subscribe<MessagePublishedBySaga>();
-
-                    if (c.HasNativePubSubSupport == false)
-                    {
-                        await c.EventSubscribed.Task;
-                    }
-
                     await bus.SendLocal(new MessageInitiatingSaga {Id = "Id"});
                 }))
                 .Done(async c =>
@@ -42,7 +34,7 @@
 
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
                     sagaHistory = result;
-                    return c.Done && result;
+                    return result;
                 })
                 .Run();
 
@@ -64,7 +56,12 @@
             Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyBySaga).FullName], "MessageReplyBySaga was not present");
             Assert.AreEqual("Reply", outgoingIntents[typeof(MessageReplyToOriginatorBySaga).FullName], "MessageReplyToOriginatorBySaga was not present");
             Assert.AreEqual("Send", outgoingIntents[typeof(MessageSentBySaga).FullName], "MessageSentBySaga was not present");
-            Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName], "MessagePublishedBySaga was not present");
+
+            // SagaAuditPlugin does not capture outgoing events for message-driven pub-sub if there are no subscribers
+            if (context.HasNativePubSubSupport)
+            {
+                Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName], "MessagePublishedBySaga was not present");
+            }
         }
 
 
@@ -75,28 +72,24 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-                    c.OnEndpointSubscribed<MyContext>((s, ctx) =>
-                    {
-                        if (s.SubscriberReturnAddress.IndexOf(Conventions.EndpointNamingConvention(typeof(SagaEndpoint)), StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            ctx.EventSubscribed.TrySetResult(true);
-                        }
-                    });
-                }, metadata => { metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(SagaEndpoint)); });
+                });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
+                public MyContext TestContext { get; set; }
+
                 public async Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    await context.Reply(new MessageReplyBySaga { SagaId = Data.Id })
+                    await context.Reply(new MessageReplyBySaga())
                         .ConfigureAwait(false);
-                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga { SagaId = Data.Id })
+                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga())
                         .ConfigureAwait(false);
-                    await context.SendLocal(new MessageSentBySaga { SagaId = Data.Id })
+                    await context.SendLocal(new MessageSentBySaga())
                         .ConfigureAwait(false);
-                    await context.Publish(new MessagePublishedBySaga { SagaId = Data.Id })
+                    await context.Publish(new MessagePublishedBySaga())
                         .ConfigureAwait(false);
+                    TestContext.SagaId = Data.Id;
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -110,68 +103,22 @@
                 public string MessageId { get; set; }
             }
 
-            class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
+            public class NopHandler : IHandleMessages<MessageReplyBySaga>,
+                IHandleMessages<MessageReplyToOriginatorBySaga>,
+                IHandleMessages<MessageSentBySaga>, 
+                IHandleMessages<MessagePublishedBySaga>
             {
-                public MyContext Context { get; set; }
-
-                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
-                {
-                    if (!Context.SagaId.HasValue)
-                    {
-                        Context.SagaId = message.SagaId;
-                    }
-
-                    Context.Replied = true;
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessagePublishedBySagaHandler : IHandleMessages<MessagePublishedBySaga>
-            {
-                public MyContext Context { get; set; }
-
-                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
-                {
-                    if (!Context.SagaId.HasValue)
-                    {
-                        Context.SagaId = message.SagaId;
-                    }
-
-                    Context.Published = true;
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessageReplyToOriginatorBySagaHandler : IHandleMessages<MessageReplyToOriginatorBySaga>
-            {
-                public MyContext Context { get; set; }
+                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context) 
+                    => Task.CompletedTask;
 
                 public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
-                {
-                    if (!Context.SagaId.HasValue)
-                    {
-                        Context.SagaId = message.SagaId;
-                    }
-
-                    Context.RepliedToOriginator = true;
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
-            {
-                public MyContext Context { get; set; }
+                    => Task.CompletedTask;
 
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
-                {
-                    if (!Context.SagaId.HasValue)
-                    {
-                        Context.SagaId = message.SagaId;
-                    }
+                    => Task.CompletedTask;
 
-                    Context.Sent = true;
-                    return Task.FromResult(0);
-                }
+                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
+                    => Task.CompletedTask;
             }
         }
 
@@ -182,35 +129,24 @@
 
         public class MessageSentBySaga : ICommand
         {
-            public Guid SagaId { get; set; }
         }
 
         public class MessagePublishedBySaga : IEvent
         {
-            public Guid SagaId { get; set; }
         }
 
         public class MessageReplyBySaga : IMessage
         {
-            public Guid SagaId { get; set; }
         }
 
         public class MessageReplyToOriginatorBySaga : IMessage
         {
-            public Guid SagaId { get; set; }
         }
 
         public class MyContext : ScenarioContext
         {
-            public bool Sent { get; set; }
-            public bool Replied { get; set; }
-            public bool RepliedToOriginator { get; set; }
-            public bool Published { get; set; }
-
-            public bool Done => Sent && Replied && RepliedToOriginator && Published;
             public Guid? SagaId { get; set; }
 
-            public TaskCompletionSource<bool> EventSubscribed { get; set; } = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
     }
 }

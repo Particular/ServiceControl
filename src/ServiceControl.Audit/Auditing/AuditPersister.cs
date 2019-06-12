@@ -28,12 +28,12 @@
             var metadata = new ConcurrentDictionary<string, object>
             {
                 ["MessageId"] = messageId,
-                ["MessageIntent"] = context.Message.Headers.MessageIntent(),
+                ["MessageIntent"] = context.Message.Headers.MessageIntent()
             };
 
-            var eventsToEmit = new List<IEvent>();
-            var enricherContext = new AuditEnricherContext(context.Message.Headers, eventsToEmit, metadata);
-          
+            var commandsToEmit = new List<ICommand>();
+            var enricherContext = new AuditEnricherContext(context.Message.Headers, commandsToEmit, metadata);
+
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var enricher in enrichers)
             {
@@ -57,9 +57,9 @@
                     .ConfigureAwait(false);
             }
 
-            foreach (var eventToEmit in eventsToEmit)
+            foreach (var commandToEmit in commandsToEmit)
             {
-                await context.MessageSession.Publish(eventToEmit)
+                await context.MessageSession.Send(commandToEmit)
                     .ConfigureAwait(false);
             }
         }

@@ -18,13 +18,10 @@
         [Test]
         public async Task Should_mark_as_resolved()
         {
-            CustomAuditEndpointConfiguration = ConfigureWaitingForMasterToSubscribe;
-
             FailedMessage failure;
 
             await Define<MyContext>()
-                .WithEndpoint<Failing>(b => b.When(c => c.HasNativePubSubSupport || c.ServiceControlSubscribed,
-                    bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
+                .WithEndpoint<Failing>(b => b.When(session => session.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
                     var result = await GetFailedMessage(c);
@@ -43,17 +40,6 @@
                     return failure.Status == FailedMessageStatus.Resolved;
                 })
                 .Run(TimeSpan.FromMinutes(2));
-        }
-
-        static void ConfigureWaitingForMasterToSubscribe(EndpointConfiguration config)
-        {
-            config.OnEndpointSubscribed<MyContext>((s, ctx) =>
-            {
-                if (s.SubscriberEndpoint.IndexOf(ServiceControlInstanceName, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    ctx.ServiceControlSubscribed = true;
-                }
-            });
         }
 
         Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c)
@@ -120,7 +106,6 @@
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
             public string LocalAddress { get; set; }
             public bool RetryIssued { get; set; }
-            public bool ServiceControlSubscribed { get; set; }
         }
     }
 }

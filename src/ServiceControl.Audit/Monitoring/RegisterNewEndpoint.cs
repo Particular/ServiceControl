@@ -4,7 +4,7 @@
     using Audit.Monitoring;
     using NServiceBus;
 
-    public class NewEndpointDetected : IEvent
+    public class RegisterNewEndpoint : ICommand
     {
         public DateTime DetectedAt { get; set; }
         public EndpointDetails Endpoint { get; set; }
