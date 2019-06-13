@@ -1,13 +1,16 @@
 ﻿namespace ServiceControl.Config.UI.InstanceDetails
 {
     using System;
+    using System.Globalization;
     using System.Linq;
     using System.ServiceProcess;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
     using Commands;
     using Events;
+    using Extensions;
     using Framework;
     using Framework.Modules;
     using Framework.Rx;
@@ -110,6 +113,8 @@
             }
         }
 
+        public bool AllowEdit => Version >= AuditFeatureMinVersion;
+
         public bool HasBrowsableUrl => ServiceInstance is IURLInfo;
 
         public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
@@ -121,6 +126,13 @@
         public Version Version => ServiceInstance.Version;
 
         public InstanceType InstanceType { get; set; }
+
+        public string InstanceTypeDisplayName => InstanceType.GetDescription();
+
+        public string InstanceTypeIcon
+        {
+            get { return InstanceType == InstanceType.Monitoring ? "MonitoringInstanceIcon" : "ServiceControlInstanceIcon"; }
+        }
 
         public Version NewVersion { get; }
 
@@ -326,5 +338,7 @@
         public ServiceControlInstance ServiceControlInstance;
         public ServiceControlAuditInstance ServiceControlAuditInstance;
         public MonitoringInstance MonitoringInstance;
+
+        private static Version AuditFeatureMinVersion = new Version(3, 9);
     }
 }

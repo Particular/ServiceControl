@@ -47,30 +47,14 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0 0 0 10px">
             <ContentControl Margin="0,0,0,-3"
                             VerticalContentAlignment="Bottom"
-                            Template="{StaticResource ServiceControlInstanceIcon}" 
-                            Height="14px" 
-                            Visibility="{Binding IsServiceControlInstance,
-                                                 Converter={StaticResource boolToVis}}"/>
-            <ContentControl Margin="0,0,0,-3"
-                            VerticalContentAlignment="Bottom"
-                            Template="{StaticResource MonitoringInstanceIcon}" 
-                            Height="14px" 
-                            Visibility="{Binding IsMonitoringInstance,
-                                                 Converter={StaticResource boolToVis}}"/>
+                            Template="{Binding InstanceTypeIcon, Converter={StaticResource nameToResourceConverter}}" 
+                            Height="14px" />
             <TextBlock Margin="3,0,0,0"
                        VerticalAlignment="Center"
                        FontSize="13px"
                        Foreground="{StaticResource Gray40Brush}"
-                       Visibility="{Binding IsServiceControlInstance,
-                                                 Converter={StaticResource boolToVis}}"
-                Text="SERVICECONTROL INSTANCE" />
-            <TextBlock Margin="3,0,0,0"
-                       VerticalAlignment="Center"
-                       FontSize="13px"
-                       Foreground="{StaticResource Gray40Brush}"
-                       Visibility="{Binding IsMonitoringInstance,
-                                                 Converter={StaticResource boolToVis}}"
-                       Text="MONITORING INSTANCE" />
+                       Typography.Capitals="SmallCaps"
+                       Text="{Binding InstanceTypeDisplayName}" />
 
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.Column="1" Margin="0 0 0 10">
@@ -117,22 +101,24 @@
                     Margin="0,0,0,7"
                     HorizontalAlignment="Right"
                     Orientation="Horizontal">
-            <Button Margin="0,0"
+            <Button Margin="5,0"
                     Command="{Binding StopCommand}"
                     Style="{StaticResource StopButton}"
                     Visibility="{Binding AllowStop,
                                          Converter={StaticResource boolToVis}}" />
-            <Button Margin="0,0"
+            <Button Margin="5,0"
                     Command="{Binding StartCommand}"
                     Style="{StaticResource StartButton}"
                     Visibility="{Binding AllowStart,
                                          Converter={StaticResource boolToVis}}" />
-            <Button Margin="10,0"
+            <Button Margin="5,0"
                     Command="{Binding EditCommand}"
                     CommandParameter="{Binding DataContext,
                                                ElementName=root}"
-                    Style="{StaticResource ConfigurationButton}" />
-            <Button Margin="0,0"
+                    Style="{StaticResource ConfigurationButton}"
+                    Visibility="{Binding AllowEdit,
+                                         Converter={StaticResource boolToVis}}"/>
+            <Button Margin="5,0"
                     Command="{Binding AdvancedOptionsCommand}"
                     CommandParameter="{Binding DataContext,
                                                ElementName=root}"
