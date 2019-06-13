@@ -12,25 +12,25 @@ namespace ServiceControlInstaller.Engine.Unattended
     using ReportCard;
     using Validation;
 
-    public class UnattendMonitoringInstaller
+    public class UnattendAuditInstaller
     {
-        public UnattendMonitoringInstaller(ILogging loggingInstance)
+        public UnattendAuditInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
             var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables("."));
-            ZipInfo = MonitoringZipInfo.Find(sourceroot);
+            ZipInfo = ServiceControlAuditZipInfo.Find(sourceroot);
         }
 
-        public UnattendMonitoringInstaller(ILogging loggingInstance, string deploymentCachePath)
+        public UnattendAuditInstaller(ILogging loggingInstance, string deploymentCachePath)
         {
             logger = new Logging(loggingInstance);
             var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables(deploymentCachePath));
-            ZipInfo = MonitoringZipInfo.Find(sourceroot);
+            ZipInfo = ServiceControlAuditZipInfo.Find(sourceroot);
         }
 
         public PlatformZipInfo ZipInfo { get; }
 
-        public bool Add(MonitoringNewInstance details, Func<PathInfo, bool> promptToProceed)
+        public bool Add(ServiceControlAuditNewInstance details, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -43,6 +43,7 @@ namespace ServiceControlInstaller.Engine.Unattended
 
             var instanceInstaller = details;
             instanceInstaller.ReportCard = new ReportCard();
+            instanceInstaller.Version = ZipInfo.Version;
 
             //Validation
             instanceInstaller.Validate(promptToProceed);
@@ -85,7 +86,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             }
 
             //Post Installation
-            var instance = InstanceFinder.FindMonitoringInstance(instanceInstaller.Name);
+            var instance = InstanceFinder.FindServiceControlInstance(instanceInstaller.Name);
             if (!instance.TryStartService())
             {
                 logger.Warn("The service failed to start");
@@ -94,7 +95,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             return true;
         }
 
-        public bool Upgrade(MonitoringInstance instance)
+        public bool Upgrade(ServiceControlBaseService instance)
         {
             ZipInfo.ValidateZip();
 
@@ -152,58 +153,10 @@ namespace ServiceControlInstaller.Engine.Unattended
             return true;
         }
 
-        internal bool Update(MonitoringInstance instance, bool startService)
-        {
-            instance.ReportCard = new ReportCard();
-            instance.ValidateChanges();
-            if (instance.ReportCard.HasErrors)
-            {
-                foreach (var error in instance.ReportCard.Errors)
-                {
-                    logger.Error(error);
-                }
-
-                return false;
-            }
-
-            try
-            {
-                if (!instance.TryStopService())
-                {
-                    logger.Error("Service failed to stop");
-                    return false;
-                }
-
-                instance.ApplyConfigChange();
-                if (instance.ReportCard.HasErrors)
-                {
-                    foreach (var error in instance.ReportCard.Errors)
-                    {
-                        logger.Error(error);
-                    }
-
-                    return false;
-                }
-
-                if (startService && !instance.TryStartService())
-                {
-                    logger.Error("Service failed to start after changes - please check configuration for {0}", instance.Name);
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error("Update failed: {0}", ex.Message);
-                return false;
-            }
-
-            return true;
-        }
-
         // ReSharper disable once UnusedMethodReturnValue.Global
-        public bool Delete(string instanceName, bool removeLogs)
+        public bool Delete(string instanceName, bool removeDB, bool removeLogs)
         {
-            var instance = InstanceFinder.FindMonitoringInstance(instanceName);
+            var instance = InstanceFinder.FindServiceControlInstance(instanceName);
             instance.ReportCard = new ReportCard();
             if (!instance.TryStopService())
             {
@@ -221,6 +174,11 @@ namespace ServiceControlInstaller.Engine.Unattended
                 if (removeLogs)
                 {
                     instance.RemoveLogsFolder();
+                }
+
+                if (removeDB)
+                {
+                    instance.RemoveDataBaseFolder();
                 }
 
                 foreach (var warning in instance.ReportCard.Warnings)
@@ -264,7 +222,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {
-                    return new CheckLicenseResult(false, "License does not cover this release of Monitoring. Upgrade protection expired");
+                    return new CheckLicenseResult(false, "License does not cover this release of ServiceControl.Upgrade protection expired");
                 }
             }
             else
@@ -285,8 +243,8 @@ namespace ServiceControlInstaller.Engine.Unattended
                 Message = message;
             }
 
-            public bool Valid { get; private set; }
-            public string Message { get; private set; }
+            public bool Valid { get; }
+            public string Message { get; }
         }
     }
 }

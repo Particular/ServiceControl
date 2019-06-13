@@ -18,6 +18,16 @@
                 instance.SkipQueueCreation);
         }
 
+        public static void RunQueueCreation(IServiceControlAuditInstance instance)
+        {
+            var accountName = instance.ServiceAccount;
+            RunQueueCreation(instance.InstallPath,
+                Constants.ServiceControlAuditExe,
+                instance.Name,
+                accountName,
+                instance.SkipQueueCreation);
+        }
+
         public static void RunQueueCreation(IMonitoringInstance instance)
         {
             var accountName = instance.ServiceAccount;

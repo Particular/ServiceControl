@@ -8,6 +8,7 @@
     using Caliburn.Micro;
     using Commands;
     using Events;
+    using Extensions;
     using Framework;
     using Framework.Modules;
     using Framework.Rx;
@@ -18,13 +19,15 @@
     {
         public InstanceDetailsViewModel(
             BaseService instance,
-            EditServiceControlInstanceCommand showEditServiceControlScreenCommand,
+            //EditServiceControlAuditInstanceCommand showEditServiceControlEditScreenCommand,
+            //EditServiceControlInstanceCommand showEditServiceControlScreenCommand,
             EditMonitoringInstanceCommand showEditMonitoringScreenCommand,
             UpgradeServiceControlInstanceCommand upgradeServiceControlCommand,
             UpgradeMonitoringInstanceCommand upgradeMonitoringCommand,
             AdvancedMonitoringOptionsCommand advancedOptionsMonitoringCommand,
             AdvancedServiceControlOptionsCommand advancedOptionsServiceControlCommand,
             ServiceControlInstanceInstaller serviceControlinstaller,
+            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
             MonitoringInstanceInstaller monitoringinstaller)
         {
             OpenUrl = new OpenURLCommand();
@@ -34,11 +37,13 @@
 
             ServiceInstance = instance;
 
+            //TODO: Disable edit for old versions
+            //TOOD: Add new edit VMs
             if (instance.GetType() == typeof(ServiceControlInstance))
             {
                 ServiceControlInstance = (ServiceControlInstance)instance;
                 NewVersion = serviceControlinstaller.ZipInfo.Version;
-                EditCommand = showEditServiceControlScreenCommand;
+                //EditCommand = showEditServiceControlScreenCommand;
                 UpgradeToNewVersionCommand = upgradeServiceControlCommand;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
                 InstanceType = InstanceType.ServiceControl;
@@ -56,6 +61,17 @@
                 return;
             }
 
+            if (instance.GetType() == typeof(ServiceControlAuditInstance))
+            {
+                ServiceControlAuditInstance = (ServiceControlAuditInstance)instance;
+                NewVersion = serviceControlAuditInstaller.ZipInfo.Version;
+                //EditCommand = showEditServiceControlEditScreenCommand;
+                UpgradeToNewVersionCommand = null;
+                AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
+                InstanceType = InstanceType.ServiceControlAudit;
+                return;
+            }
+
             throw new Exception("Unknown instance type");
         }
 
@@ -65,12 +81,37 @@
 
         public bool IsServiceControlInstance => ServiceInstance?.GetType() == typeof(ServiceControlInstance);
         public bool IsMonitoringInstance => ServiceInstance?.GetType() == typeof(MonitoringInstance);
+        public bool IsServiceControlAudit => ServiceInstance?.GetType() == typeof(ServiceControlAuditInstance);
 
         public string Name => ServiceInstance.Name;
 
-        public string Host => ((IURLInfo)ServiceInstance).Url;
+        public string Host
+        {
+            get
+            {
+                if (ServiceInstance is IURLInfo info)
+                {
+                    return info?.Url;
+                }
 
-        public string BrowsableUrl => ((IURLInfo)ServiceInstance).BrowsableUrl;
+                return null;
+            }
+        }
+
+        public string BrowsableUrl
+        {
+            get
+            {
+                if (ServiceInstance is IURLInfo info)
+                {
+                    return info?.BrowsableUrl;
+                }
+
+                return null;
+            }
+        }
+
+        public bool HasBrowsableUrl => ServiceInstance is IURLInfo;
 
         public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
 
@@ -81,6 +122,13 @@
         public Version Version => ServiceInstance.Version;
 
         public InstanceType InstanceType { get; set; }
+
+        public string InstanceTypeDisplayName => InstanceType.GetDescription();
+
+        public string InstanceTypeIcon
+        {
+            get { return InstanceType == InstanceType.Monitoring ? "MonitoringInstanceIcon" : "ServiceControlInstanceIcon"; }
+        }
 
         public Version NewVersion { get; }
 
@@ -284,6 +332,7 @@
         }
 
         public ServiceControlInstance ServiceControlInstance;
+        public ServiceControlAuditInstance ServiceControlAuditInstance;
         public MonitoringInstance MonitoringInstance;
     }
 }

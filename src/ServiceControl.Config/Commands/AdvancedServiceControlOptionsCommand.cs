@@ -17,9 +17,21 @@ namespace ServiceControl.Config.Commands
 
         public override void Execute(InstanceDetailsViewModel viewModel)
         {
-            var screen = advancedOptionsModel(viewModel.ServiceControlInstance);
-
+            var screen = CreateAdvancedScreen(viewModel);
             windowManager.ShowInnerDialog(screen);
+        }
+
+        ServiceControlAdvancedViewModel CreateAdvancedScreen(InstanceDetailsViewModel viewModel)
+        {
+            switch (viewModel.InstanceType)
+            {
+                case InstanceType.ServiceControl:
+                    return advancedOptionsModel(viewModel.ServiceControlInstance);
+                case InstanceType.ServiceControlAudit:
+                    return advancedOptionsModel(viewModel.ServiceControlAuditInstance);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         readonly Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel;

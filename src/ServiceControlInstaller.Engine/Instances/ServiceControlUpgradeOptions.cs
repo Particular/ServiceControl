@@ -14,7 +14,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool ConfirmDatabaseHasBeenBackedUp { get; set; }
         public bool AllowLargeDatabaseUpdate { get; set; }
 
-        public void ApplyChangesToInstance(ServiceControlInstance instance)
+        public void ApplyChangesToInstance(ServiceControlBaseService instance)
         {
             if (OverrideEnableErrorForwarding.HasValue)
             {

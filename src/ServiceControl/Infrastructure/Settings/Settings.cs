@@ -30,12 +30,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 ErrorLogQueue = GetErrorLogQueue();
             }
 
-            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            TransportConnectionString = connectionStringSettings?.ConnectionString;
-
+            TransportConnectionString = GetConnectionString();
             TransportCustomizationType = GetTransportType();
-            ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
+            ForwardErrorMessages = GetForwardErrorMessages();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
@@ -48,7 +46,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
-            DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
         }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
@@ -219,7 +216,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 return settingsValue;
             }
-      
+
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             return connectionStringSettings?.ConnectionString;
         }
