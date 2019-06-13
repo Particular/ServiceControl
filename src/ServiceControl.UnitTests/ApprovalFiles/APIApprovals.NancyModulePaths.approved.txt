@@ -19,6 +19,7 @@
     "GET: /customchecks"
   ],
   "ServiceControl.MessageFailures.Api.EditFailedMessages": [
+    "GET: /edit/config",
     "POST: /edit/{messageid}"
   ],
   "ServiceControl.EventLog.EventLogApiModule": [

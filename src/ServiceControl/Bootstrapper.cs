@@ -202,7 +202,8 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.RetryHistoryDepth,
                     settings.RunInMemory,
                     settings.SkipQueueCreation,
-                    settings.TransportCustomizationType
+                    settings.TransportCustomizationType,
+                    settings.AllowMessageEditing
                 },
                 LoggingSettings = loggingSettings
             });

@@ -14,8 +14,14 @@
     {
         public EditFailedMessages()
         {
+            Get["/edit/config"] = _ => Negotiate.WithModel(GetEditConfiguration());
+
             Post["/edit/{messageid}", true] = async (parameters, token) =>
             {
+                if (!Settings.AllowMessageEditing)
+                {
+                    //TODO: what do we return when this capability is disabled?
+                }
                 string failedMessageId = parameters.MessageId;
 
                 if (string.IsNullOrEmpty(failedMessageId))
@@ -49,7 +55,24 @@
             };
         }
 
+        EditConfigurationModel GetEditConfiguration()
+        {
+            return new EditConfigurationModel
+            {
+                Enabled = Settings.AllowMessageEditing,
+                LockedHeaders = new[] { "NServiceBus.MessageId"},
+                SensitiveHeaders = new[] { "NServiceBus.ConversationId"}
+            };
+        }
+
         public IMessageSession Bus { get; set; }
+    }
+
+    class EditConfigurationModel
+    {
+        public bool Enabled { get; set; }
+        public string[] SensitiveHeaders { get; set; }
+        public string[] LockedHeaders { get; set; }
     }
 
     class EditMessageModel
