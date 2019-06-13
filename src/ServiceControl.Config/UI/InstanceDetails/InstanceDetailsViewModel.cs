@@ -19,7 +19,7 @@
     {
         public InstanceDetailsViewModel(
             BaseService instance,
-            //EditServiceControlAuditInstanceCommand showEditServiceControlEditScreenCommand,
+            EditServiceControlAuditInstanceCommand showEditServiceControlEditScreenCommand,
             EditServiceControlInstanceCommand showEditServiceControlScreenCommand,
             EditMonitoringInstanceCommand showEditMonitoringScreenCommand,
             UpgradeServiceControlInstanceCommand upgradeServiceControlCommand,
@@ -65,7 +65,11 @@
             {
                 ServiceControlAuditInstance = (ServiceControlAuditInstance)instance;
                 NewVersion = serviceControlAuditInstaller.ZipInfo.Version;
+<<<<<<< HEAD
                 //EditCommand = showEditServiceControlEditScreenCommand;
+=======
+                EditCommand = showEditServiceControlEditScreenCommand;
+>>>>>>> fixing advanced screen for SC/SCA
                 UpgradeToNewVersionCommand = null;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
                 InstanceType = InstanceType.ServiceControlAudit;

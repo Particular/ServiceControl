@@ -1,8 +1,5 @@
 namespace ServiceControl.Config.UI.InstanceEdit
 {
-    using System;
-    using System.Linq;
-    using Commands;
     using InstanceAdd;
     using PropertyChanged;
     using ServiceControlInstaller.Engine.Accounts;
@@ -14,6 +11,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
     [InjectValidation]
     public class ServiceControlEditViewModel : ServiceControlEditorViewModel
     {
+        //TODO: Fix edit screen
         public ServiceControlEditViewModel(ServiceControlInstance instance)
         {
             DisplayName = "EDIT SERVICECONTROL INSTANCE";
@@ -128,6 +126,10 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
         //// ReSharper disable once UnusedMember.Global
         //public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+
+        public void UpdateInstanceFromViewModel(ServiceControlAuditInstance instance)
+        {
+        }
 
         public void UpdateInstanceFromViewModel(ServiceControlInstance instance)
         {
