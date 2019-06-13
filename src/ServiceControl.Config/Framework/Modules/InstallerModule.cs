@@ -54,7 +54,7 @@ namespace ServiceControl.Config.Framework.Modules
     {
         public PlatformZipInfo ZipInfo { get; protected set; }
 
-        internal  ReportCard Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
+        internal ReportCard Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
