@@ -65,7 +65,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override void ValidateQueueNames()
         {
-            ServiceControlQueueNameValidator.Validate(this);
+            QueueNameValidator.Validate(this);
         }
 
         protected override void ValidateServiceAccount()
@@ -123,7 +123,7 @@ namespace ServiceControlInstaller.Engine.Instances
             appConfig.Save();
         }
 
-        public override string DirectoryName => "ServiceControlAudit";
+        public override string DirectoryName => "ServiceControl.Audit";
 
         [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan AuditRetentionPeriod { get; set; }
@@ -153,7 +153,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override void ValidateQueueNames()
         {
-            ServiceControlQueueNameValidator.Validate(this);
+            QueueNameValidator.Validate(this);
         }
 
         protected override void ValidateServiceAccount()
@@ -182,7 +182,7 @@ namespace ServiceControlInstaller.Engine.Instances
         }
     }
 
-    public abstract class ServiceControlInstallableBase : IHttpInstance, IServiceControlPaths, IServiceControlTransportConfig
+    public abstract class ServiceControlInstallableBase : IHttpInstance, IServiceControlPaths, ITransportConfig
     {
         public string ServiceDescription { get; set; }
 

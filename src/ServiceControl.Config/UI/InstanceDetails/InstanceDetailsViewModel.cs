@@ -25,6 +25,7 @@
             AdvancedMonitoringOptionsCommand advancedOptionsMonitoringCommand,
             AdvancedServiceControlOptionsCommand advancedOptionsServiceControlCommand,
             ServiceControlInstanceInstaller serviceControlinstaller,
+            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
             MonitoringInstanceInstaller monitoringinstaller)
         {
             OpenUrl = new OpenURLCommand();
@@ -34,6 +35,8 @@
 
             ServiceInstance = instance;
 
+            //TODO: Disable edit for old versions
+            //TOOD: Add new edit VMs
             if (instance.GetType() == typeof(ServiceControlInstance))
             {
                 ServiceControlInstance = (ServiceControlInstance)instance;
@@ -56,6 +59,17 @@
                 return;
             }
 
+            if (instance.GetType() == typeof(ServiceControlAuditInstance))
+            {
+                ServiceControlAuditInstance = (ServiceControlAuditInstance)instance;
+                NewVersion = serviceControlAuditInstaller.ZipInfo.Version;
+                EditCommand = showEditServiceControlScreenCommand;
+                UpgradeToNewVersionCommand = null;
+                AdvancedOptionsCommand = advancedOptionsMonitoringCommand;
+                InstanceType = InstanceType.ServiceControlAudit;
+                return;
+            }
+
             throw new Exception("Unknown instance type");
         }
 
@@ -65,12 +79,35 @@
 
         public bool IsServiceControlInstance => ServiceInstance?.GetType() == typeof(ServiceControlInstance);
         public bool IsMonitoringInstance => ServiceInstance?.GetType() == typeof(MonitoringInstance);
+        public bool IsServiceControlAudit => ServiceInstance?.GetType() == typeof(ServiceControlAuditInstance);
 
         public string Name => ServiceInstance.Name;
 
-        public string Host => ((IURLInfo)ServiceInstance).Url;
+        public string Host
+        {
+            get
+            {
+                if (ServiceInstance is IURLInfo info)
+                {
+                    return info?.Url;
+                }
 
-        public string BrowsableUrl => ((IURLInfo)ServiceInstance).BrowsableUrl;
+                return null;
+            }
+        }
+
+        public string BrowsableUrl
+        {
+            get
+            {
+                if (ServiceInstance is IURLInfo info)
+                {
+                    return info?.BrowsableUrl;
+                }
+
+                return null;
+            }
+        }
 
         public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
 
@@ -284,6 +321,7 @@
         }
 
         public ServiceControlInstance ServiceControlInstance;
+        public ServiceControlAuditInstance ServiceControlAuditInstance;
         public MonitoringInstance MonitoringInstance;
     }
 }

@@ -3,6 +3,7 @@
     public enum InstanceType
     {
         ServiceControl,
-        Monitoring
+        Monitoring,
+        ServiceControlAudit
     }
 }

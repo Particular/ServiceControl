@@ -322,7 +322,9 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
             }
         }
-        
+
+        public abstract void ApplyConfigChange();
+
         protected abstract AppConfig CreateAppConfig();
 
         public virtual void DisableMaintenanceMode()
@@ -432,6 +434,11 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         protected override string BaseServiceName => "ServiceControl.Audit";
 
+        public override void ApplyConfigChange()
+        {
+            //TODO: Fix edit for SCA
+        }
+
         protected override AppConfig CreateAppConfig()
         {
             return new ServiceControlAuditAppConfig(this);
@@ -531,7 +538,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                ServiceControlQueueNameValidator.Validate(this);
+                QueueNameValidator.Validate(this);
             }
             catch (EngineValidationException ex)
             {
@@ -597,8 +604,9 @@ namespace ServiceControlInstaller.Engine.Instances
             UpdateDataMigrationMarker();
         }
 
-        public void ApplyConfigChange()
+        public override void ApplyConfigChange()
         {
+            //TODO: Fix update/edit mode
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
 

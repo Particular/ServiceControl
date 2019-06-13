@@ -29,10 +29,8 @@
             settings.Set(SettingsList.DBPath, details.DBPath);
             settings.Set(SettingsList.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
             settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
-            settings.Set(SettingsList.AuditQueue, details.AuditQueue);
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
             settings.Set(SettingsList.ErrorLogQueue, details.ErrorLogQueue);
-            settings.Set(SettingsList.AuditLogQueue, details.AuditLogQueue);
             settings.Set(SettingsList.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
 
             // Add Settings for performance tuning
@@ -106,8 +104,6 @@
             settings.Set(SettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
             settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
             settings.Set(SettingsList.AuditQueue, details.AuditQueue);
-            settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
-            settings.Set(SettingsList.ErrorLogQueue, details.ErrorLogQueue);
             settings.Set(SettingsList.AuditLogQueue, details.AuditLogQueue);
             settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
 
