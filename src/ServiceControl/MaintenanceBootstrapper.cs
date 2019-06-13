@@ -1,7 +1,6 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.RavenDB;
     using Hosting;
     using Raven.Client.Embedded;
@@ -13,9 +12,8 @@ namespace Particular.ServiceControl
         {
             var settings = new Settings(args.ServiceName);
             var documentStore = new EmbeddableDocumentStore();
-            var markerFileService = new MarkerFileService(new LoggingSettings(settings.ServiceName).LogPath);
 
-            new RavenBootstrapper().StartRaven(documentStore, settings, markerFileService, true);
+            new RavenBootstrapper().StartRaven(documentStore, settings, true);
 
             if (Environment.UserInteractive)
             {

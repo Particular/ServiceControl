@@ -102,7 +102,7 @@
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
-            var totalSteps = 7 - (upgradeOptions.UpgradeInfo.DeleteIndexes ? 0 : 1) - (upgradeOptions.UpgradeInfo.DataBaseUpdate ? 0 : 1);
+            var totalSteps = 5;
             var currentStep = 0;
 
             progress.Report(currentStep++, totalSteps, "Stopping instance...");
@@ -129,19 +129,6 @@
             }
 
             UpgradeOptions(upgradeOptions, instance);
-
-            if (upgradeOptions.UpgradeInfo.DeleteIndexes)
-            {
-                progress.Report(currentStep++, totalSteps, "Removing database indexes...");
-                instance.RemoveDatabaseIndexes();
-            }
-
-            if (upgradeOptions.UpgradeInfo.DataBaseUpdate)
-            {
-                progress.Report(currentStep, totalSteps, "Updating Database...");
-                // ReSharper disable once AccessToModifiedClosure
-                instance.UpdateDatabase(msg => progress.Report(currentStep, totalSteps, $"Updating Database...{Environment.NewLine}{msg}"));
-            }
 
             progress.Report(++currentStep, totalSteps, "Running Queue Creation...");
             instance.SetupInstance();

@@ -85,14 +85,6 @@
                 </TextBlock>
 
             </StackPanel>
-
-            <TextBlock Margin="3,0,0,0"
-                       VerticalAlignment="Center"
-                       FontSize="13px"
-                       Foreground="{StaticResource Gray60Brush}"
-                       Text="• UPDATING DATA STORE" 
-                       Visibility="{Binding IsUpdatingDataStore, Converter={StaticResource boolToVis}}"
-                       />
         </StackPanel>
 
         <StackPanel Grid.Row="1"
