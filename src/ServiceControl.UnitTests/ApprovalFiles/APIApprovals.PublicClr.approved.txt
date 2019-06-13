@@ -46,6 +46,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public const string Disabled = "!disable";
         public Settings(string serviceName = null) { }
+        public bool AllowMessageEditing { get; set; }
         public string ApiUrl { get; }
         public System.Nullable<System.TimeSpan> AuditRetentionPeriod { get; }
         public int DatabaseMaintenancePort { get; set; }

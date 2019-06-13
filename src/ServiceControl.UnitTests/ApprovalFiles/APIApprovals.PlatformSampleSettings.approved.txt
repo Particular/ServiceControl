@@ -1,4 +1,5 @@
 {
+  "AllowMessageEditing": false,
   "OnMessage": {
     "Method": {
       "Name": "<.ctor>b__0_0",
