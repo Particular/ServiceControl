@@ -96,15 +96,18 @@
                 ServiceAccountPwd = viewModel.ServiceControlAudit.Password
             };
 
-            using (var progress = viewModel.GetProgressObject("ADDING INSTANCE(S)"))
+            using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
             {
                 var installationCancelled = await InstallInstance(serviceControlNewInstance, progress);
-                if(installationCancelled)
+                if (installationCancelled)
                 {
                     return;
                 }
+            }
 
-                installationCancelled = await InstallInstance(auditNewInstance, progress);
+            using (var progress = viewModel.GetProgressObject("ADDING AUDIT INSTANCE"))
+            {
+                var installationCancelled = await InstallInstance(auditNewInstance, progress);
                 if (installationCancelled)
                 {
                     return;

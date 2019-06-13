@@ -110,6 +110,8 @@
             }
         }
 
+        public bool HasBrowsableUrl => ServiceInstance is IURLInfo;
+
         public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
 
         public string DBPath => ServiceControlInstance?.DBPath;

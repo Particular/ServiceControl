@@ -160,6 +160,7 @@
 
         <GroupBox Grid.Row="4"
                   Grid.Column="1"
+                  Visibility="{Binding HasBrowsableUrl, Converter={StaticResource boolToVis}}"
                   Header="URL"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
             <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding BrowsableUrl}">
