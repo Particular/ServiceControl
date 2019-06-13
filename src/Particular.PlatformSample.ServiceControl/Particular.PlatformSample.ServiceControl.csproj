@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" PrivateAssets="All" />
   </ItemGroup>
 
@@ -21,6 +22,11 @@
   <ItemGroup>
     <Content Include="..\ServiceControl\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" Link="hidden" />
     <Content Include="..\ServiceControl.Transports.Learning\$(OutputPath)\ServiceControl.Transports.Learning.dll" PackagePath="platform\servicecontrol\servicecontrol-instance" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\ServiceControl.Audit\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" Visible="false" Link="hidden" />
+    <Content Include="..\ServiceControl.Transports.Learning\$(OutputPath)\ServiceControl.Transports.Learning.dll" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
