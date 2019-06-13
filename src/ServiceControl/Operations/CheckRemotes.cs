@@ -24,11 +24,12 @@
 
             try
             {
-                using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10)))
+                var queryTimeout = TimeSpan.FromSeconds(10);
+                using (var cancellationTokenSource = new CancellationTokenSource(queryTimeout))
                 {
                     foreach (var remote in remoteInstanceSetting)
                     {
-                        remoteQueryTasks.Add(CheckSuccessStatusCode(httpClient, remote, cancellationTokenSource.Token));
+                        remoteQueryTasks.Add(CheckSuccessStatusCode(httpClient, remote, queryTimeout, cancellationTokenSource.Token));
                     }
 
                     try
@@ -62,7 +63,7 @@
             }
         }
 
-        static async Task CheckSuccessStatusCode(HttpClient client, RemoteInstanceSetting remoteSettings, CancellationToken token)
+        static async Task CheckSuccessStatusCode(HttpClient client, RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken token)
         {
             try
             {
@@ -75,7 +76,7 @@
             }
             catch (OperationCanceledException e)
             {
-                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' did not respond within the allotted timespan.", e);
+                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' did not respond within the allotted timespan of '{queryTimeout}'.", e);
             }
         }
 
