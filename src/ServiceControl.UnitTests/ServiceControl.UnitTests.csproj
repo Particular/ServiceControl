@@ -7,7 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
-    <ProjectReference Include="..\DatabaseMigrationsTester\DatabaseMigrationsTester.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
   </ItemGroup>

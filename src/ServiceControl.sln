@@ -35,8 +35,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.Cus
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CustomTransportConfigurations", "CustomTransportConfigurations", "{A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseMigrationsTester", "DatabaseMigrationsTester\DatabaseMigrationsTester.csproj", "{276C38D4-734E-4C0B-9CDB-71B62550EDE7}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LoadTests", "LoadTests", "{B05ACC74-412F-470C-872F-D1ABD75885B5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LoadTests.Messages", "ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj", "{AECE0265-F6E3-49A7-9F45-8847D359F05D}"
@@ -129,10 +127,6 @@ Global
 		{20284C68-6381-4AE9-832C-F094E996D913}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20284C68-6381-4AE9-832C-F094E996D913}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20284C68-6381-4AE9-832C-F094E996D913}.Release|Any CPU.Build.0 = Release|Any CPU
-		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{276C38D4-734E-4C0B-9CDB-71B62550EDE7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AECE0265-F6E3-49A7-9F45-8847D359F05D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AECE0265-F6E3-49A7-9F45-8847D359F05D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AECE0265-F6E3-49A7-9F45-8847D359F05D}.Release|Any CPU.ActiveCfg = Release|Any CPU

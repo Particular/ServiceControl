@@ -246,7 +246,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public bool SkipQueueCreation { get; set; }
-        public bool IsUpdatingDataStore { get; set; }
 
 
         [XmlIgnore]

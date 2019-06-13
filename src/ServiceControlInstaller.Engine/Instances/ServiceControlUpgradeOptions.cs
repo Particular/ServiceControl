@@ -11,8 +11,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public int? MaintenancePort { get; set; }
         public bool SkipQueueCreation { get; set; }
         public UpgradeInfo UpgradeInfo { get; set; }
-        public bool ConfirmDatabaseHasBeenBackedUp { get; set; }
-        public bool AllowLargeDatabaseUpdate { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlBaseService instance)
         {
