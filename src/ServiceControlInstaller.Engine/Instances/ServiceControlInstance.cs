@@ -277,6 +277,8 @@ namespace ServiceControlInstaller.Engine.Instances
             return folders.Sum(path => new DirectoryInfo(path).GetDirectorySize()) / (1024.0 * 1024 * 1024);
         }
 
+        public abstract void ApplyConfigChange();
+
         protected abstract AppConfig CreateAppConfig();
 
         public virtual void DisableMaintenanceMode()
@@ -380,11 +382,20 @@ namespace ServiceControlInstaller.Engine.Instances
         }
 
         public AppConfig AppConfig;
+
+        public bool VersionHasServiceControlAuditFeatures => Version >= AuditFeatureMinVersion;
+
+        static Version AuditFeatureMinVersion = new Version(4, 0);
     }
 
     public class ServiceControlAuditInstance : ServiceControlBaseService, IServiceControlAuditInstance
     {
         protected override string BaseServiceName => "ServiceControl.Audit";
+
+        public override void ApplyConfigChange()
+        {
+            //TODO: Fix edit for SCA
+        }
 
         protected override AppConfig CreateAppConfig()
         {
@@ -539,8 +550,9 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public void ApplyConfigChange()
+        public override void ApplyConfigChange()
         {
+            //TODO: Fix update/edit mode
             var accountName = string.Equals(ServiceAccount, "LocalSystem", StringComparison.OrdinalIgnoreCase) ? "System" : ServiceAccount;
             var oldSettings = InstanceFinder.FindServiceControlInstance(Name);
 

@@ -7,31 +7,41 @@ namespace ServiceControlInstaller.Engine.Validation
 
     internal class QueueNameValidator
     {
-        internal QueueNameValidator(IServiceControlInstance instance)
+        QueueNameValidator()
+        {
+            SCInstances = new List<IServiceControlInstance>();
+            AuditInstances = new List<IServiceControlAuditInstance>();
+        }
+
+        internal QueueNameValidator(IServiceControlInstance instance) : this()
         {
             DetermineServiceControlQueueNames(instance.ErrorQueue, instance.ErrorLogQueue, instance.ConnectionString);
         }
 
-        internal QueueNameValidator(IServiceControlAuditInstance instance)
+        internal QueueNameValidator(IServiceControlAuditInstance instance) : this()
         {
             DetermineAuditQueueNames(instance.AuditQueue, instance.AuditLogQueue, instance.ConnectionString);
-        }
-
-        public static void Validate(IServiceControlAuditInstance instance)
-        {
-            var validator = new QueueNameValidator(instance)
-            {
-                AuditInstances = InstanceFinder.ServiceControlAuditInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlAuditInstance>().ToList()
-            };
-            validator.RunValidation();
         }
 
         public static void Validate(IServiceControlInstance instance)
         {
             var validator = new QueueNameValidator(instance)
             {
-                SCInstances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlInstance>().ToList()
+                SCInstances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlInstance>().ToList(),
+                AuditInstances = InstanceFinder.ServiceControlAuditInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlAuditInstance>().ToList(),
             };
+
+            validator.RunValidation();
+        }
+
+        public static void Validate(IServiceControlAuditInstance instance)
+        {
+            var validator = new QueueNameValidator(instance)
+            {
+                SCInstances = InstanceFinder.ServiceControlInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlInstance>().ToList(),
+                AuditInstances = InstanceFinder.ServiceControlAuditInstances().Where(p => p.Name != instance.Name & p.TransportPackage.Equals(instance.TransportPackage)).AsEnumerable<IServiceControlAuditInstance>().ToList(),
+            };
+
             validator.RunValidation();
         }
 
