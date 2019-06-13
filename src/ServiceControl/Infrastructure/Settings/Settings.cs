@@ -32,6 +32,7 @@
 
             TransportConnectionString = GetConnectionString();
             TransportCustomizationType = GetTransportType();
+            AuditRetentionPeriod = GetAuditRetentionPeriod();
             ForwardErrorMessages = GetForwardErrorMessages();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
