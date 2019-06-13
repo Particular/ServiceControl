@@ -20,34 +20,6 @@ public class GroupOperation
     public string Title { get; set; }
     public string Type { get; set; }
 }
-namespace Particular.ServiceControl
-{
-    public class DatabaseMigrationsBootstrapper
-    {
-        public DatabaseMigrationsBootstrapper() { }
-        public void Run(ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
-    }
-}
-namespace Particular.ServiceControl.Upgrade
-{
-    public class StaleIndexChecker
-    {
-        public StaleIndexChecker(Raven.Client.IDocumentStore store) { }
-        public virtual System.Threading.Tasks.Task<bool> IsReindexingInComplete(System.DateTime cutOffTime, System.Threading.CancellationToken cancellationToken) { }
-    }
-    public struct StaleIndexInfo
-    {
-        public bool InProgress;
-        public System.Nullable<System.DateTime> StartedAt;
-    }
-    public class StaleIndexInfoStore
-    {
-        public static readonly Particular.ServiceControl.Upgrade.StaleIndexInfo NotInProgress;
-        public StaleIndexInfoStore() { }
-        public Particular.ServiceControl.Upgrade.StaleIndexInfo Get() { }
-        public void Store(Particular.ServiceControl.Upgrade.StaleIndexInfo info) { }
-    }
-}
 namespace ServiceBus.Management.Infrastructure.Installers
 {
     public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething

@@ -136,8 +136,6 @@
 
         public TransportInfo Transport => ((ITransportConfig)ServiceInstance).TransportPackage;
 
-        public bool IsUpdatingDataStore => ServiceControlInstance?.IsUpdatingDataStore ?? false;
-
         public string Status
         {
             get
@@ -328,7 +326,6 @@
             NotifyOfPropertyChange("IsRunning");
             NotifyOfPropertyChange("IsStopped");
             NotifyOfPropertyChange("InMaintenanceMode");
-            NotifyOfPropertyChange("IsUpdatingDataStore");
         }
 
         public ServiceControlInstance ServiceControlInstance;

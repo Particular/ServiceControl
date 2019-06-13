@@ -12,7 +12,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using Accounts;
     using Configuration;
     using Configuration.ServiceControl;
-    using Database;
     using FileSystem;
     using Queues;
     using ReportCard;
@@ -94,7 +93,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public string ConnectionString { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan AuditRetentionPeriod { get; set; }
-        public bool IsUpdatingDataStore { get; set; }
         public bool SkipQueueCreation { get; set; }
 
         protected abstract string BaseServiceName { get; }
@@ -139,17 +137,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
                 return $"http://{host}:{Port}/{VirtualDirectory}{(VirtualDirectory.EndsWith("/") ? string.Empty : "/")}api/";
             }
-        }
-
-        protected void UpdateDataMigrationMarker()
-        {
-            IsUpdatingDataStore = File.Exists(Path.Combine(LogPath, "datamigration.marker"));
-        }
-
-        public override void RefreshServiceProperties()
-        {
-            base.RefreshServiceProperties();
-            UpdateDataMigrationMarker();
         }
 
         protected string ReadConnectionString()
@@ -290,39 +277,6 @@ namespace ServiceControlInstaller.Engine.Instances
             return folders.Sum(path => new DirectoryInfo(path).GetDirectorySize()) / (1024.0 * 1024 * 1024);
         }
 
-        public void UpdateDatabase(Action<string> updateProgress)
-        {
-            try
-            {
-                RunDatabaseMigrations(updateProgress);
-            }
-            catch (DatabaseMigrationsException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-        }
-
-        protected virtual void RunDatabaseMigrations(Action<string> updateProgress)
-        {
-        }
-
-        public void RemoveDatabaseIndexes()
-        {
-            var folders = GetDatabaseIndexes();
-
-            foreach (var folder in folders.OrderByDescending(p => p.Length))
-            {
-                try
-                {
-                    FileUtils.DeleteDirectory(Path.Combine(folder, "Indexes"), true, false);
-                }
-                catch
-                {
-                    ReportCard.Warnings.Add($"Could not delete the RavenDB Indexes '{folder}'. This may cause problems in the data migration step. Please remove manually if errors occur.");
-                }
-            }
-        }
-
         public abstract void ApplyConfigChange();
 
         protected abstract AppConfig CreateAppConfig();
@@ -334,12 +288,10 @@ namespace ServiceControlInstaller.Engine.Instances
         public virtual void EnableMaintenanceMode()
         {
         }
-
         protected virtual IEnumerable<string> GetDatabaseIndexes()
         {
             return Enumerable.Empty<string>();
         }
-
         protected virtual void SetMaintenanceMode(bool isEnabled)
         {
         }
@@ -482,8 +434,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
-
-            UpdateDataMigrationMarker();
         }
 
         public override void RunQueueCreation()
@@ -516,7 +466,6 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             return AppConfig.RavenDataPaths();
         }
-
         new ServiceControlAuditAppConfig AppConfig => (ServiceControlAuditAppConfig)base.AppConfig;
     }
 
@@ -604,8 +553,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
-
-            UpdateDataMigrationMarker();
         }
 
         public override void ApplyConfigChange()
@@ -723,16 +670,10 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
-        protected override void RunDatabaseMigrations(Action<string> updateProgress)
-        {
-            DatabaseMigrations.RunDatabaseMigrations(this, updateProgress);
-        }
-
         protected override IEnumerable<string> GetDatabaseIndexes()
         {
             return AppConfig.RavenDataPaths();
         }
-
         new ServiceControlAppConfig AppConfig => (ServiceControlAppConfig)base.AppConfig;
     }
 }
