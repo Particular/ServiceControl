@@ -8,7 +8,6 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using Raven.Client.Embedded;
-    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations;
     using ServiceControl.Transports;
@@ -34,7 +33,6 @@ namespace ServiceBus.Management.Infrastructure
 
             transportCustomization.CustomizeEndpoint(configuration, transportSettings);
 
-            configuration.GetSettings().Set("ServiceControl.MarkerFileService", new MarkerFileService(loggingSettings.LogPath));
             configuration.GetSettings().Set(loggingSettings);
 
             // Disable Auditing for the service control endpoint

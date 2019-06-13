@@ -102,8 +102,5 @@
   "ServiceControl.MessageFailures.Api.UnArchiveMessages": [
     "PATCH: /errors/{from}...{to}/unarchive",
     "PATCH: /errors/unarchive"
-  ],
-  "Particular.ServiceControl.Upgrade.UpgradeModuleApi": [
-    "GET: /upgrade"
   ]
 }

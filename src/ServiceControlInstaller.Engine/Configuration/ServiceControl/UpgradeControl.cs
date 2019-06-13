@@ -41,16 +41,6 @@
             set => recommendedUpgradeVersion = ConvertToCleanVersion(value);
         }
 
-        /// <summary>
-        /// Version requires a database upgrade
-        /// </summary>
-        public bool DataBaseUpdate { get; set; }
-
-        /// <summary>
-        /// Indicates indexes should be removed, prompting recreation, for this upgrade
-        /// </summary>
-        public bool DeleteIndexes { get; set; }
-
         static Version ConvertToCleanVersion(Version version)
         {
             return new Version(
@@ -72,9 +62,7 @@
         {
             return ConvertToCleanVersion(val.TargetMinimumVersion) == TargetMinimumVersion &&
                    ConvertToCleanVersion(val.CurrentMinimumVersion) == CurrentMinimumVersion &&
-                   ConvertToCleanVersion(val.RecommendedUpgradeVersion) == RecommendedUpgradeVersion &&
-                   val.DataBaseUpdate == DataBaseUpdate &&
-                   val.DeleteIndexes == DeleteIndexes;
+                   ConvertToCleanVersion(val.RecommendedUpgradeVersion) == RecommendedUpgradeVersion;
         }
 
         public override int GetHashCode()

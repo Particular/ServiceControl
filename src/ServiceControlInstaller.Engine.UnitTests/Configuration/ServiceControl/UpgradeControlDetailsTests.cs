@@ -40,8 +40,6 @@
             Assert.AreEqual(minimumVersion, upgradeInfo.CurrentMinimumVersion, "CurrentMinimumVersion mismatch");
             Assert.AreEqual(version2, upgradeInfo.TargetMinimumVersion, "TargetMinimumVersion mismatch");
             Assert.AreEqual(recommendedVersion, upgradeInfo.RecommendedUpgradeVersion, "RecommendedUpgradeVersion mismatch");
-            Assert.IsTrue(upgradeInfo.DataBaseUpdate, "DataBaseUpdate is false");
-            Assert.IsTrue(upgradeInfo.DeleteIndexes, "DeleteIndexes is false");
         }
     }
 }
