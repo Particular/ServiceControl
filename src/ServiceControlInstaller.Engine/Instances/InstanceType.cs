@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.Instances
+namespace ServiceControlInstaller.Engine.Instances
 {
     using System.ComponentModel;
 

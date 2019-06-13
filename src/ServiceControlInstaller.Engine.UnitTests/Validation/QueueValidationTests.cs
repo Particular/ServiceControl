@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.UnitTests.Validation
+namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -107,7 +107,7 @@
                 SCInstances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
 
             // null queues will default to default names
             p = new QueueNameValidator(new ServiceControlNewInstance())
@@ -116,7 +116,7 @@
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-            Assert.That(ex.Message, Does.Contain("The queue name for ErrorQueue is already assigned to another ServiceControl instance"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
         }
 
         [Test]
@@ -136,7 +136,7 @@
                 SCInstances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
 
             // null queues will default to default names
             p = new QueueNameValidator(new ServiceControlNewInstance())
@@ -145,7 +145,7 @@
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-            Assert.That(ex.Message, Does.Contain("The queue name for ErrorQueue is already assigned to another ServiceControl instance"));
+            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for"));
         }
 
         [Test]

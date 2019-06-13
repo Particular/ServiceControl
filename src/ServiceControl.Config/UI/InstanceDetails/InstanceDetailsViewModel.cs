@@ -20,7 +20,7 @@
         public InstanceDetailsViewModel(
             BaseService instance,
             //EditServiceControlAuditInstanceCommand showEditServiceControlEditScreenCommand,
-            //EditServiceControlInstanceCommand showEditServiceControlScreenCommand,
+            EditServiceControlInstanceCommand showEditServiceControlScreenCommand,
             EditMonitoringInstanceCommand showEditMonitoringScreenCommand,
             UpgradeServiceControlInstanceCommand upgradeServiceControlCommand,
             UpgradeMonitoringInstanceCommand upgradeMonitoringCommand,
@@ -43,7 +43,7 @@
             {
                 ServiceControlInstance = (ServiceControlInstance)instance;
                 NewVersion = serviceControlinstaller.ZipInfo.Version;
-                //EditCommand = showEditServiceControlScreenCommand;
+                EditCommand = showEditServiceControlScreenCommand;
                 UpgradeToNewVersionCommand = upgradeServiceControlCommand;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
                 InstanceType = InstanceType.ServiceControl;
