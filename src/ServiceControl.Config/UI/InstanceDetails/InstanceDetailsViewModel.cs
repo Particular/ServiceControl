@@ -1,10 +1,8 @@
 ﻿namespace ServiceControl.Config.UI.InstanceDetails
 {
     using System;
-    using System.Globalization;
     using System.Linq;
     using System.ServiceProcess;
-    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
@@ -112,8 +110,6 @@
                 return null;
             }
         }
-
-        public bool AllowEdit => Version >= AuditFeatureMinVersion;
 
         public bool HasBrowsableUrl => ServiceInstance is IURLInfo;
 
@@ -338,7 +334,5 @@
         public ServiceControlInstance ServiceControlInstance;
         public ServiceControlAuditInstance ServiceControlAuditInstance;
         public MonitoringInstance MonitoringInstance;
-
-        private static Version AuditFeatureMinVersion = new Version(3, 9);
     }
 }

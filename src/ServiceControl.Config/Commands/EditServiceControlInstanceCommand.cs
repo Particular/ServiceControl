@@ -11,11 +11,17 @@ namespace ServiceControl.Config.Commands
 
     class EditServiceControlAuditInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        public EditServiceControlAuditInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlAuditInstance, ServiceControlEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(null)
+        public EditServiceControlAuditInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlAuditInstance, ServiceControlEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(CanEditInstance)
         {
             this.windowManager = windowManager;
             this.editViewModel = editViewModel;
             this.eventAggregator = eventAggregator;
+        }
+
+        static bool CanEditInstance(InstanceDetailsViewModel viewModel)
+        {
+            var instance = (ServiceControlAuditInstance)viewModel.ServiceInstance;
+            return instance.VersionHasServiceControlAuditFeatures;
         }
 
         public override void Execute(InstanceDetailsViewModel viewModel)
@@ -36,11 +42,17 @@ namespace ServiceControl.Config.Commands
 
     class EditServiceControlInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        public EditServiceControlInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(null)
+        public EditServiceControlInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(CanEditInstance)
         {
             this.windowManager = windowManager;
             this.editViewModel = editViewModel;
             this.eventAggregator = eventAggregator;
+        }
+
+        static bool CanEditInstance(InstanceDetailsViewModel viewModel)
+        {
+            var instance = (ServiceControlInstance)viewModel.ServiceInstance;
+            return instance.VersionHasServiceControlAuditFeatures;
         }
 
         public override void Execute(InstanceDetailsViewModel viewModel)

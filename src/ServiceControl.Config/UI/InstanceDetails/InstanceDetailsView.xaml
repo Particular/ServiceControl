@@ -80,8 +80,7 @@
                 <TextBlock  Margin="3,0,0,0" 
                             VerticalAlignment="Center"  
                             FontSize="13px"
-                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}"
-                >
+                            Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}">
                     <Hyperlink Foreground="DarkOrange" Command="{Binding AdvancedOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
                 </TextBlock>
 
@@ -115,9 +114,7 @@
                     Command="{Binding EditCommand}"
                     CommandParameter="{Binding DataContext,
                                                ElementName=root}"
-                    Style="{StaticResource ConfigurationButton}"
-                    Visibility="{Binding AllowEdit,
-                                         Converter={StaticResource boolToVis}}"/>
+                    Style="{StaticResource ConfigurationButton}" />
             <Button Margin="5,0"
                     Command="{Binding AdvancedOptionsCommand}"
                     CommandParameter="{Binding DataContext,

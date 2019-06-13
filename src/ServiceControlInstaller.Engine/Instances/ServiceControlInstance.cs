@@ -427,6 +427,10 @@ namespace ServiceControlInstaller.Engine.Instances
             ValidateConnectionString();
         }
 
+        public bool VersionHasServiceControlAuditFeatures => Version >= AuditFeatureMinVersion;
+
+        static Version AuditFeatureMinVersion = new Version(3, 9);
+
         public AppConfig AppConfig;
     }
 
