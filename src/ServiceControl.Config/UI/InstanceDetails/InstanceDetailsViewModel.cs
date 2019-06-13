@@ -18,6 +18,7 @@
     {
         public InstanceDetailsViewModel(
             BaseService instance,
+            EditServiceControlAuditInstanceCommand showEditServiceControlEditScreenCommand,
             EditServiceControlInstanceCommand showEditServiceControlScreenCommand,
             EditMonitoringInstanceCommand showEditMonitoringScreenCommand,
             UpgradeServiceControlInstanceCommand upgradeServiceControlCommand,
@@ -63,9 +64,9 @@
             {
                 ServiceControlAuditInstance = (ServiceControlAuditInstance)instance;
                 NewVersion = serviceControlAuditInstaller.ZipInfo.Version;
-                EditCommand = showEditServiceControlScreenCommand;
+                EditCommand = showEditServiceControlEditScreenCommand;
                 UpgradeToNewVersionCommand = null;
-                AdvancedOptionsCommand = advancedOptionsMonitoringCommand;
+                AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
                 InstanceType = InstanceType.ServiceControlAudit;
                 return;
             }

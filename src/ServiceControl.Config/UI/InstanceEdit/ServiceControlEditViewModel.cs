@@ -14,6 +14,7 @@
     [InjectValidation]
     public class ServiceControlEditViewModel : ServiceControlEditorViewModel
     {
+        //TODO: Fix edit screen
         public ServiceControlEditViewModel(ServiceControlInstance instance)
         {
             DisplayName = "EDIT SERVICECONTROL INSTANCE";
@@ -128,6 +129,10 @@
 
         //// ReSharper disable once UnusedMember.Global
         //public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+
+        public void UpdateInstanceFromViewModel(ServiceControlAuditInstance instance)
+        {
+        }
 
         public void UpdateInstanceFromViewModel(ServiceControlInstance instance)
         {
