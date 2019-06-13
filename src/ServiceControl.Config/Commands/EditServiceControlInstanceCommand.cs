@@ -30,7 +30,7 @@ namespace ServiceControl.Config.Commands
 
             if (windowManager.ShowInnerDialog(editVM) ?? false)
             {
-                //editVM.UpdateInstanceFromViewModel((ServiceControlAuditInstance)viewModel.ServiceInstance);
+                editVM.UpdateInstanceFromViewModel((ServiceControlAuditInstance)viewModel.ServiceInstance);
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
         }
