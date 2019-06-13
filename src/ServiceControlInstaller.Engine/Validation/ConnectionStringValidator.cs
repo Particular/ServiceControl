@@ -15,6 +15,15 @@
             this.serviceAccount = serviceAccount;
         }
 
+        public static void Validate(IServiceControlAuditInstance instance)
+        {
+            var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
+            if (instance.TransportPackage.Name.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase))
+            {
+                validator.CheckMsSqlConnectionString();
+            }
+        }
+
         public static void Validate(IServiceControlInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);

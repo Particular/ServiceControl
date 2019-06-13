@@ -33,7 +33,7 @@
             return ActionResult.Success;
         }
 
-        static void UpgradeInstances(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
+        static void UpgradeInstances(Session session, PlatformZipInfo zipInfo, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
         {
             var options = new ServiceControlUpgradeOptions();
 
