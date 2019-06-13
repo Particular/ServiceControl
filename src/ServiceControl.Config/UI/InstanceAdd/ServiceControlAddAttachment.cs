@@ -100,7 +100,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
             {
                 var installationCancelled = await InstallInstance(serviceControlNewInstance, progress);
-                if(installationCancelled)
+                if (installationCancelled)
                 {
                     return;
                 }
