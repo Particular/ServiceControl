@@ -26,6 +26,10 @@ New-Alias -Value Get-MonitoringInstances -Name mon-instances
 New-Alias -Value Invoke-MonitoringinstanceUpgrade -Name  mon-upgrade 
 New-Alias -Value Remove-MonitoringInstance -Name  mon-delete 
 New-Alias -Value New-MonitoringInstance -Name  mon-add 
+New-Alias -Value Get-AuditInstances -Name audit-instances 
+New-Alias -Value Invoke-AuditInstanceUpgrade -Name  audit-upgrade 
+New-Alias -Value Remove-AuditInstance -Name  audit-delete 
+New-Alias -Value New-AuditInstance -Name  audit-add 
 New-Alias -Value Get-ServiceControlLicense -Name  sc-findlicense 
 New-Alias -Value Import-ServiceControlLicense -Name  sc-addlicense 
 New-Alias -Value Test-IfPortIsAvailable -Name  port-check

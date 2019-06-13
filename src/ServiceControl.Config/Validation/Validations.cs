@@ -39,7 +39,7 @@
 
         public static IRuleBuilderOptions<T, string> ValidPath<T>(this IRuleBuilder<T, string> rulebuilder)
         {
-            return rulebuilder.Must((t, path) => { return !path.Intersect(ILLEGAL_PATH_CHARS).Any(); })
+            return rulebuilder.Must((t, path) => { return path != null && !path.Intersect(ILLEGAL_PATH_CHARS).Any(); })
                 .WithMessage(MSG_ILLEGAL_PATH_CHAR, string.Join(" ", ILLEGAL_PATH_CHARS));
         }
 

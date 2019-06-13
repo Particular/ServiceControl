@@ -13,15 +13,7 @@
     public interface ITransportConfig
     {
         TransportInfo TransportPackage { get; }
-        string ErrorQueue { get; }
         string ConnectionString { get; }
-    }
-
-    public interface IServiceControlTransportConfig : ITransportConfig
-    {
-        string AuditQueue { get; }
-        string ErrorLogQueue { get; }
-        string AuditLogQueue { get; }
     }
 
     public interface IHttpInstance
@@ -71,15 +63,29 @@
 
     public interface IMonitoringInstance : IServiceInstance, IServicePaths, ITransportConfig, IHttpInstance, IURLInfo, IInstallable
     {
+        string ErrorQueue { get; }
     }
 
-    public interface IServiceControlInstance : IServiceInstance, IServiceControlPaths, IServiceControlTransportConfig, IHttpInstance, IURLInfo, IInstallable
+    public interface IDatabaseMaintenanceSupport : IVersionInfo
     {
         int? DatabaseMaintenancePort { get; }
+    }
+
+    public interface IServiceControlAuditInstance : IServiceInstance, IServiceControlPaths, IHttpInstance, IInstallable, IDatabaseMaintenanceSupport, ITransportConfig
+    {
+        string AuditQueue { get; }
+        string AuditLogQueue { get; }
         string VirtualDirectory { get; }
         bool ForwardAuditMessages { get; }
-        bool ForwardErrorMessages { get; }
         TimeSpan AuditRetentionPeriod { get; }
+    }
+
+    public interface IServiceControlInstance : IServiceInstance, IServiceControlPaths, IHttpInstance, IURLInfo, IInstallable, IDatabaseMaintenanceSupport, ITransportConfig
+    {
+        string ErrorQueue { get; }
+        string ErrorLogQueue { get; }
+        string VirtualDirectory { get; }
+        bool ForwardErrorMessages { get; }
         TimeSpan ErrorRetentionPeriod { get; }
         bool IsUpdatingDataStore { get; set; }
     }

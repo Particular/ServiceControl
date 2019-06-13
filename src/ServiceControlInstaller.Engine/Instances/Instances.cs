@@ -33,11 +33,31 @@
             return new ReadOnlyCollection<ServiceControlInstance>(services.Where(p => File.Exists(p.ExePath)).Select(p => new ServiceControlInstance(p)).ToList());
         }
 
-        public static ServiceControlInstance FindServiceControlInstance(string instanceName)
+        public static ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlAuditInstances()
+        {
+            var services = WindowsServiceController.FindInstancesByExe(Constants.ServiceControlAuditExe);
+            return new ReadOnlyCollection<ServiceControlAuditInstance>(services.Where(p => File.Exists(p.ExePath)).Select(p => new ServiceControlAuditInstance(p)).ToList());
+        }
+
+        public static T FindInstanceByName<T>(string instanceName) where T : ServiceControlBaseService
         {
             try
             {
-                return ServiceControlInstances().Single(p => p.Name.Equals(instanceName, StringComparison.OrdinalIgnoreCase));
+                var instances = ServiceControlInstances().Cast<ServiceControlBaseService>().Union(ServiceControlAuditInstances());
+                return (T)instances.Single(p => p.Name.Equals(instanceName, StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Instance does not exists", ex);
+            }
+        }
+
+        public static ServiceControlBaseService FindServiceControlInstance(string instanceName)
+        {
+            try
+            {
+                var instances = ServiceControlInstances().Cast<ServiceControlBaseService>().Union(ServiceControlAuditInstances());
+                return instances.Single(p => p.Name.Equals(instanceName, StringComparison.OrdinalIgnoreCase));
             }
             catch (Exception ex)
             {
@@ -49,6 +69,7 @@
         {
             var services = new List<BaseService>();
             services.AddRange(ServiceControlInstances());
+            services.AddRange(ServiceControlAuditInstances());
             services.AddRange(MonitoringInstances());
             return new ReadOnlyCollection<BaseService>(services.OrderBy(o => o.Name).ToList());
         }
