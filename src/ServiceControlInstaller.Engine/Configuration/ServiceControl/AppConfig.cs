@@ -111,6 +111,7 @@
             settings.Set(AuditInstanceSettingsList.AuditQueue, details.AuditQueue);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, details.AuditLogQueue);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
+            settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, details.ServiceControlQueueAddress);
 
             // Add Settings for performance tuning
             // See https://github.com/Particular/ServiceControl/issues/655

@@ -390,6 +390,8 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         protected override string BaseServiceName => "ServiceControl.Audit";
 
+        public string ServiceControlQueueAddress { get; set; }
+
         public override void ApplyConfigChange()
         {
             //TODO: Fix edit for SCA
@@ -416,6 +418,7 @@ namespace ServiceControlInstaller.Engine.Instances
             AuditLogQueue = AppConfig.Read(AuditInstanceSettingsList.AuditLogQueue, $"{AuditQueue}.log");
             ForwardAuditMessages = AppConfig.Read(AuditInstanceSettingsList.ForwardAuditMessages, false);
             InMaintenanceMode = AppConfig.Read(AuditInstanceSettingsList.MaintenanceMode, false);
+            ServiceControlQueueAddress = AppConfig.Read<string>(AuditInstanceSettingsList.ServiceControlQueueAddress, null);
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
