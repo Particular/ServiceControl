@@ -407,28 +407,19 @@ namespace ServiceControlInstaller.Engine.Instances
         public override void Reload()
         {
             Service.Refresh();
-            HostName = AppConfig.Read(SettingsList.HostName, "localhost");
-            Port = AppConfig.Read(SettingsList.Port, 33333);
-            DatabaseMaintenancePort = AppConfig.Read<int?>(SettingsList.DatabaseMaintenancePort, null);
-            VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
-            LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
-            DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
-            AuditQueue = AppConfig.Read(SettingsList.AuditQueue, "audit");
-            AuditLogQueue = AppConfig.Read(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
-            ForwardAuditMessages = AppConfig.Read(SettingsList.ForwardAuditMessages, false);
-            ForwardErrorMessages = AppConfig.Read(SettingsList.ForwardErrorMessages, false);
-            InMaintenanceMode = AppConfig.Read(SettingsList.MaintenanceMode, false);
-            ErrorQueue = AppConfig.Read(SettingsList.ErrorQueue, "error");
-            ErrorLogQueue = AppConfig.Read(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
+            HostName = AppConfig.Read(AuditInstanceSettingsList.HostName, "localhost");
+            Port = AppConfig.Read(AuditInstanceSettingsList.Port, 33333);
+            DatabaseMaintenancePort = AppConfig.Read<int?>(AuditInstanceSettingsList.DatabaseMaintenancePort, null);
+            LogPath = AppConfig.Read(AuditInstanceSettingsList.LogPath, DefaultLogPath());
+            DBPath = AppConfig.Read(AuditInstanceSettingsList.DBPath, DefaultDBPath());
+            AuditQueue = AppConfig.Read(AuditInstanceSettingsList.AuditQueue, "audit");
+            AuditLogQueue = AppConfig.Read(AuditInstanceSettingsList.AuditLogQueue, $"{AuditQueue}.log");
+            ForwardAuditMessages = AppConfig.Read(AuditInstanceSettingsList.ForwardAuditMessages, false);
+            InMaintenanceMode = AppConfig.Read(AuditInstanceSettingsList.MaintenanceMode, false);
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
             ServiceAccount = Service.Account;
-
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
-            {
-                ErrorRetentionPeriod = errorRetentionPeriod;
-            }
 
             if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
             {
