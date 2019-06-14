@@ -38,6 +38,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public override string DirectoryName => "ServiceControl";
 
         [XmlElement(typeof(XmlTimeSpan))]
+        public TimeSpan AuditRetentionPeriod { get; set; }
+        [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan ErrorRetentionPeriod { get; set; }
 
         internal override WindowsServiceDetails GetWindowsServiceDetails()
