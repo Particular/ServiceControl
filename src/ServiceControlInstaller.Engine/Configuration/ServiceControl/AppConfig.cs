@@ -95,17 +95,16 @@
             Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
             var settings = Config.AppSettings.Settings;
             var version = details.Version;
-            settings.Set(SettingsList.VirtualDirectory, details.VirtualDirectory);
-            settings.Set(SettingsList.Port, details.Port.ToString());
-            settings.Set(SettingsList.DatabaseMaintenancePort, details.DatabaseMaintenancePort.ToString(), version);
-            settings.Set(SettingsList.HostName, details.HostName);
-            settings.Set(SettingsList.LogPath, details.LogPath);
-            settings.Set(SettingsList.DBPath, details.DBPath);
-            settings.Set(SettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
-            settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
-            settings.Set(SettingsList.AuditQueue, details.AuditQueue);
-            settings.Set(SettingsList.AuditLogQueue, details.AuditLogQueue);
-            settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
+            settings.Set(AuditInstanceSettingsList.Port, details.Port.ToString());
+            settings.Set(AuditInstanceSettingsList.DatabaseMaintenancePort, details.DatabaseMaintenancePort.ToString(), version);
+            settings.Set(AuditInstanceSettingsList.HostName, details.HostName);
+            settings.Set(AuditInstanceSettingsList.LogPath, details.LogPath);
+            settings.Set(AuditInstanceSettingsList.DBPath, details.DBPath);
+            settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
+            settings.Set(AuditInstanceSettingsList.TransportType, details.TransportPackage.TypeName, version);
+            settings.Set(AuditInstanceSettingsList.AuditQueue, details.AuditQueue);
+            settings.Set(AuditInstanceSettingsList.AuditLogQueue, details.AuditLogQueue);
+            settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
 
             // Add Settings for performance tuning
             // See https://github.com/Particular/ServiceControl/issues/655
@@ -118,14 +117,14 @@
         public void EnableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
-            settings.Set(SettingsList.MaintenanceMode, Boolean.TrueString, details.Version);
+            settings.Set(AuditInstanceSettingsList.MaintenanceMode, Boolean.TrueString, details.Version);
             Config.Save();
         }
 
         public void DisableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
-            settings.Remove(SettingsList.MaintenanceMode.Name);
+            settings.Remove(AuditInstanceSettingsList.MaintenanceMode.Name);
             Config.Save();
         }
 
