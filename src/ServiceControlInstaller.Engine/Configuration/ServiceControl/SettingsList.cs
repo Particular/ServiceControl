@@ -16,7 +16,11 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static SettingInfo HostName = new SettingInfo {Name = "ServiceControl/HostName"};
         public static SettingInfo LogPath = new SettingInfo {Name = "ServiceControl/LogPath"};
         public static SettingInfo DBPath = new SettingInfo {Name = "ServiceControl/DBPath"};
-        public static SettingInfo ForwardAuditMessages = new SettingInfo {Name = "ServiceControl/ForwardAuditMessages"};
+        public static SettingInfo ForwardAuditMessages = new SettingInfo
+        {
+            Name = "ServiceControl/ForwardAuditMessages",
+            RemovedFrom = new Version(4, 0, 0)
+        };
 
         public static SettingInfo ForwardErrorMessages = new SettingInfo
         {
@@ -25,27 +29,37 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         };
 
         public static SettingInfo TransportType = new SettingInfo {Name = "ServiceControl/TransportType"};
-        public static SettingInfo AuditQueue = new SettingInfo {Name = "ServiceBus/AuditQueue"};
+        public static SettingInfo AuditQueue = new SettingInfo
+        {
+            Name = "ServiceBus/AuditQueue",
+            RemovedFrom = new Version(4, 0, 0)
+        };
         public static SettingInfo ErrorQueue = new SettingInfo {Name = "ServiceBus/ErrorQueue"};
         public static SettingInfo ErrorLogQueue = new SettingInfo {Name = "ServiceBus/ErrorLogQueue"};
-        public static SettingInfo AuditLogQueue = new SettingInfo {Name = "ServiceBus/AuditLogQueue"};
+
+        public static SettingInfo AuditLogQueue = new SettingInfo
+        {
+            Name = "ServiceBus/AuditLogQueue",
+            RemovedFrom = new Version(4, 0, 0)
+        };
 
         public static SettingInfo AuditRetentionPeriod = new SettingInfo
         {
             Name = "ServiceControl/AuditRetentionPeriod",
-            SupportedFrom = new Version(1, 12, 1)
-        };
-
-        public static SettingInfo ErrorRetentionPeriod = new SettingInfo
-        {
-            Name = "ServiceControl/ErrorRetentionPeriod",
-            SupportedFrom = new Version(1, 12, 1)
+            SupportedFrom = new Version(1, 12, 1),
+            RemovedFrom = new Version(4, 0, 0)
         };
 
         public static SettingInfo HoursToKeepMessagesBeforeExpiring = new SettingInfo
         {
             Name = "ServiceControl/HoursToKeepMessagesBeforeExpiring",
             RemovedFrom = new Version(1, 12, 1)
+        };
+
+        public static SettingInfo ErrorRetentionPeriod = new SettingInfo
+        {
+            Name = "ServiceControl/ErrorRetentionPeriod",
+            SupportedFrom = new Version(1, 12, 1)
         };
 
         public static SettingInfo MaintenanceMode = new SettingInfo
