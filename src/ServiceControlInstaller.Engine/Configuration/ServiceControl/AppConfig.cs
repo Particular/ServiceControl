@@ -34,6 +34,11 @@
             settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(SettingsList.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
 
+            // Retired settings
+            settings.RemoveIfRetired(SettingsList.AuditQueue, version);
+            settings.RemoveIfRetired(SettingsList.AuditLogQueue, version);
+            settings.RemoveIfRetired(SettingsList.ForwardAuditMessages, version);
+
             // Add Settings for performance tuning
             // See https://github.com/Particular/ServiceControl/issues/655
             if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))
