@@ -50,7 +50,7 @@
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
-            AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing", false);
+            AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing", true);
             RemoteInstances = GetRemoteInstances();
         }
 

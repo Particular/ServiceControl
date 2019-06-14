@@ -20,8 +20,9 @@
             {
                 if (!Settings.AllowMessageEditing)
                 {
-                    //TODO: what do we return when this capability is disabled?
+                    return HttpStatusCode.NotFound;
                 }
+
                 string failedMessageId = parameters.MessageId;
 
                 if (string.IsNullOrEmpty(failedMessageId))
