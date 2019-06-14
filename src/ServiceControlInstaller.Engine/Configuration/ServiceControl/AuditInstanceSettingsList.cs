@@ -13,5 +13,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static SettingInfo AuditLogQueue = new SettingInfo { Name = "ServiceBus/AuditLogQueue" };
         public static SettingInfo AuditRetentionPeriod = new SettingInfo { Name = "ServiceControl.Audit/AuditRetentionPeriod" };
         public static SettingInfo MaintenanceMode = new SettingInfo { Name = "ServiceControl.Audit/MaintenanceMode" };
+        public static SettingInfo ServiceControlQueueAddress = new SettingInfo { Name = "ServiceControl.Audit/ServiceControlQueueAddress" };
     }
 }
