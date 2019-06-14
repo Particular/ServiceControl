@@ -523,8 +523,8 @@ namespace ServiceControlInstaller.Engine.Instances
             VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
             LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
-            AuditQueue = AppConfig.Read(SettingsList.AuditQueue, "audit");
-            AuditLogQueue = AppConfig.Read(SettingsList.AuditLogQueue, $"{AuditQueue}.log");
+            AuditQueue = AppConfig.Read(SettingsList.AuditQueue, (string)null);
+            AuditLogQueue = AppConfig.Read(SettingsList.AuditLogQueue, (string)null);
             ForwardAuditMessages = AppConfig.Read(SettingsList.ForwardAuditMessages, false);
             ForwardErrorMessages = AppConfig.Read(SettingsList.ForwardErrorMessages, false);
             InMaintenanceMode = AppConfig.Read(SettingsList.MaintenanceMode, false);
@@ -581,14 +581,14 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(SettingsList.Port, Port.ToString());
             settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString(), version);
             settings.Set(SettingsList.LogPath, LogPath);
-            settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
+            settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString(), version);
             settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
             settings.Set(SettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), version);
             settings.Set(SettingsList.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), version);
 
             settings.RemoveIfRetired(SettingsList.HoursToKeepMessagesBeforeExpiring, version);
 
-            settings.Set(SettingsList.AuditQueue, AuditQueue);
+            settings.Set(SettingsList.AuditQueue, AuditQueue, version);
             settings.Set(SettingsList.ErrorQueue, ErrorQueue);
 
             if (Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
@@ -605,7 +605,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             settings.Set(SettingsList.ErrorLogQueue, ErrorLogQueue);
-            settings.Set(SettingsList.AuditLogQueue, AuditLogQueue);
+            settings.Set(SettingsList.AuditLogQueue, AuditLogQueue, version);
 
             configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", ConnectionString);
             configuration.Save();
