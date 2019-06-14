@@ -43,7 +43,7 @@
                 var result = await customCheck.PerformCheck();
 
                 Assert.IsTrue(result.HasFailed);
-                StringAssert.StartsWith("One or more audit messages have failed to import properly into ServiceControl and have been stored in the ServiceControl database.", result.FailureReason);
+                StringAssert.StartsWith("One or more audit messages have failed to import properly into ServiceControl.Audit and have been stored in the ServiceControl.Audit database.", result.FailureReason);
             }
         }
     }
