@@ -93,7 +93,8 @@
                 ConnectionString = viewModel.ConnectionString,
                 AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod,
                 ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
-                ServiceAccountPwd = viewModel.ServiceControlAudit.Password
+                ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
+                ServiceControlQueueAddress = serviceControlNewInstance.Name, //Wire the SCA instance to the SC instance
             };
 
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
