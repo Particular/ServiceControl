@@ -31,6 +31,7 @@
             settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
             settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
             settings.Set(SettingsList.ErrorLogQueue, details.ErrorLogQueue);
+            settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(SettingsList.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
 
             // Add Settings for performance tuning
