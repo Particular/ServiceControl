@@ -75,7 +75,6 @@
     {
         string AuditQueue { get; }
         string AuditLogQueue { get; }
-        string VirtualDirectory { get; }
         bool ForwardAuditMessages { get; }
         TimeSpan AuditRetentionPeriod { get; }
     }
