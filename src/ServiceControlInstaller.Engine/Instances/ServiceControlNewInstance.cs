@@ -119,6 +119,8 @@ namespace ServiceControlInstaller.Engine.Instances
             Version = zipInfo.Version;
         }
 
+        public string ServiceControlQueueAddress { get; set; }
+
         public override void WriteConfigurationFile()
         {
             var appConfig = new ServiceControlAuditAppConfig(this);
