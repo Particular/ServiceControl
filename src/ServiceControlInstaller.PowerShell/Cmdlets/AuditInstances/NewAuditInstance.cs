@@ -81,6 +81,10 @@
         [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
         public TimeSpan AuditRetentionPeriod { get; set; }
 
+        [Parameter(Mandatory = true, HelpMessage = "The name of the ServiceControl instance to connect to")]
+        [ValidateNotNull]
+        public string ServiceControlQueueAddress { get; set; }
+
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
@@ -130,6 +134,7 @@
                 ConnectionString = ConnectionString,
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
                 SkipQueueCreation = SkipQueueCreation, 
+                ServiceControlQueueAddress = ServiceControlQueueAddress
             };
 
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
