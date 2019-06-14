@@ -87,5 +87,6 @@
         string VirtualDirectory { get; }
         bool ForwardErrorMessages { get; }
         TimeSpan ErrorRetentionPeriod { get; }
+        TimeSpan AuditRetentionPeriod { get; set; }
     }
 }
