@@ -87,45 +87,6 @@
                 upgradeOptions.OverrideEnableErrorForwarding = !result.Value;
             }
 
-            //Grab old setting if it exists
-            if (!instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
-            {
-                if (instance.AppConfig.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
-                {
-                    var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
-                    if (i != -1)
-                    {
-                        upgradeOptions.AuditRetentionPeriod = TimeSpan.FromHours(i);
-                    }
-                }
-
-                // No setting to migrate so display dialog
-                if (!upgradeOptions.AuditRetentionPeriod.HasValue)
-                {
-                    var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",
-                        "Service Control periodically purges audit messages from the database.",
-                        "AUDIT RETENTION PERIOD",
-                        "Please specify the age at which these records should be removed",
-                        TimeSpanUnits.Hours,
-                        SettingConstants.AuditRetentionPeriodMinInHours,
-                        SettingConstants.AuditRetentionPeriodMaxInHours,
-                        1,
-                        24,
-                        SettingConstants.AuditRetentionPeriodDefaultInHoursForUI);
-
-                    if (windowManager.ShowSliderDialog(viewModel))
-                    {
-                        upgradeOptions.AuditRetentionPeriod = viewModel.Period;
-                    }
-                    else
-                    {
-                        //Dialog was cancelled
-                        eventAggregator.PublishOnUIThread(new RefreshInstances());
-                        return;
-                    }
-                }
-            }
-
             if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
             {
                 var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",

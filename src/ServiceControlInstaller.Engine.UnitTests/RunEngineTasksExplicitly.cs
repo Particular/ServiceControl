@@ -32,7 +32,6 @@
             {
                 installer.Upgrade(instance, new ServiceControlUpgradeOptions
                 {
-                    AuditRetentionPeriod = TimeSpan.FromDays(30),
                     ErrorRetentionPeriod = TimeSpan.FromDays(15),
                     OverrideEnableErrorForwarding = true
                 });

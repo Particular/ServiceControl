@@ -55,16 +55,6 @@
                 options.OverrideEnableErrorForwarding = null;
             }
 
-            var auditRetentionPeriodPropertyValue = session["AUDITRETENTIONPERIOD"];
-            try
-            {
-                options.AuditRetentionPeriod = TimeSpan.Parse(auditRetentionPeriodPropertyValue);
-            }
-            catch
-            {
-                options.AuditRetentionPeriod = null;
-            }
-
             var errorRetentionPeriodPropertyValue = session["ERRORRETENTIONPERIOD"];
             try
             {
@@ -100,27 +90,6 @@
                     {
                         logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{SettingsList.ForwardErrorMessages.Name}'");
                         continue;
-                    }
-
-                    if (!options.AuditRetentionPeriod.HasValue)
-                    {
-                        if (!instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
-                        {
-                            //Try migration first
-                            if (instance.AppConfig.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
-                            {
-                                var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
-                                if (i > 0)
-                                {
-                                    options.AuditRetentionPeriod = TimeSpan.FromHours(i);
-                                }
-                            }
-                            else
-                            {
-                                logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{SettingsList.AuditRetentionPeriod.Name}'");
-                                continue;
-                            }
-                        }
                     }
 
                     if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
