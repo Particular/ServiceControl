@@ -51,17 +51,9 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNullOrEmpty]
         public string ErrorQueue { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Specify AuditQueue name to consume messages from. Default is audit")]
-        [ValidateNotNullOrEmpty]
-        public string AuditQueue { get; set; }
-
         [Parameter(Mandatory = false, HelpMessage = "Specify Queue name to forward error messages to")]
         [ValidateNotNullOrEmpty]
         public string ErrorLogQueue { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify Queue name to forward audit messages to")]
-        [ValidateNotNullOrEmpty]
-        public string AuditLogQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
         [ValidateSet(TransportNames.AzureServiceBus, TransportNames.AzureServiceBusForwardingTopology, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopology, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
@@ -83,9 +75,6 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNullOrEmpty]
         public string Description { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
-        public SwitchParameter ForwardAuditMessages { get; set; }
-
         [Parameter(Mandatory = false, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
         public SwitchParameter ForwardErrorMessages { get; set; }
 
@@ -94,11 +83,6 @@ namespace ServiceControlInstaller.PowerShell
 
         [Parameter(HelpMessage = "The password for the ServiceAccount.  Do not use for builtin accounts or managed serviceaccount")]
         public string ServiceAccountPassword { get; set; }
-
-        [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Audit Data")]
-        [ValidateNotNull]
-        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
-        public TimeSpan AuditRetentionPeriod { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Error Data")]
         [ValidateNotNull]
@@ -119,12 +103,6 @@ namespace ServiceControlInstaller.PowerShell
                 HostName = "localhost";
             }
 
-            if (string.IsNullOrWhiteSpace(AuditQueue))
-            {
-                WriteWarning("AuditQueue set to default value 'audit'");
-                AuditQueue = "audit";
-            }
-
             if (string.IsNullOrWhiteSpace(ErrorQueue))
             {
                 WriteWarning("ErrorQueue set to default value 'error'");
@@ -135,12 +113,6 @@ namespace ServiceControlInstaller.PowerShell
             {
                 WriteWarning("ServiceAccount set to default value 'LocalSystem'");
                 ServiceAccount = "LocalSystem";
-            }
-
-            if (ForwardAuditMessages.ToBool() & string.IsNullOrWhiteSpace(AuditLogQueue))
-            {
-                WriteWarning("AuditLogQueue set to default value 'audit.log'");
-                ErrorLogQueue = "audit.log";
             }
 
             if (ForwardErrorMessages.ToBool() & string.IsNullOrWhiteSpace(ErrorLogQueue))
@@ -166,14 +138,9 @@ namespace ServiceControlInstaller.PowerShell
                 Port = Port,
                 DatabaseMaintenancePort = DatabaseMaintenancePort,
                 VirtualDirectory = VirtualDirectory,
-                AuditQueue = AuditQueue,
                 ErrorQueue = ErrorQueue,
-                AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue,
                 ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue,
-                ForwardAuditMessages = ForwardAuditMessages.ToBool(),
                 ForwardErrorMessages = ForwardErrorMessages.ToBool(),
-                //TODO: Fix
-                //AuditRetentionPeriod = AuditRetentionPeriod,
                 ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
@@ -189,7 +156,6 @@ namespace ServiceControlInstaller.PowerShell
                 logger.Info("Installing Service Control instance...");
                 if (installer.Add(details, PromptToProceed))
                 {
-                    //TODO: Should support installing SC Audit as well
                     var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(details.Name);
                     if (instance != null)
                     {
