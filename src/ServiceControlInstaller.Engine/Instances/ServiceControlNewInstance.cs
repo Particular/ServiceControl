@@ -38,7 +38,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public override string DirectoryName => "ServiceControl";
 
         [XmlElement(typeof(XmlTimeSpan))]
-        public TimeSpan AuditRetentionPeriod { get; set; }
+        public TimeSpan AuditRetentionPeriod { get; set; } = TimeSpan.FromHours(1);
         [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan ErrorRetentionPeriod { get; set; }
 
