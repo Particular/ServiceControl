@@ -78,6 +78,7 @@
         string VirtualDirectory { get; }
         bool ForwardAuditMessages { get; }
         TimeSpan AuditRetentionPeriod { get; }
+        string ServiceControlQueueAddress { get; set; }
     }
 
     public interface IServiceControlInstance : IServiceInstance, IServiceControlPaths, IHttpInstance, IURLInfo, IInstallable, IDatabaseMaintenanceSupport, ITransportConfig
