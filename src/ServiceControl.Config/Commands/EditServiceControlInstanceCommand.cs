@@ -11,7 +11,7 @@ namespace ServiceControl.Config.Commands
 
     class EditServiceControlAuditInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        public EditServiceControlAuditInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlAuditInstance, ServiceControlEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(CanEditInstance)
+        public EditServiceControlAuditInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlAuditInstance, ServiceControlAuditEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(CanEditInstance)
         {
             this.windowManager = windowManager;
             this.editViewModel = editViewModel;
@@ -35,7 +35,7 @@ namespace ServiceControl.Config.Commands
             }
         }
 
-        readonly Func<ServiceControlAuditInstance, ServiceControlEditViewModel> editViewModel;
+        readonly Func<ServiceControlAuditInstance, ServiceControlAuditEditViewModel> editViewModel;
         readonly IEventAggregator eventAggregator;
         readonly IWindowManagerEx windowManager;
     }

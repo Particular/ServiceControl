@@ -9,19 +9,17 @@ namespace ServiceControl.Config.UI.InstanceEdit
     using Validar;
 
     [InjectValidation]
-    public class ServiceControlEditViewModel : ServiceControlEditorViewModel
+    public class ServiceControlAuditEditViewModel : ServiceControlEditorViewModel
     {
-        public ServiceControlEditViewModel(ServiceControlInstance instance)
+        public ServiceControlAuditEditViewModel(ServiceControlAuditInstance instance)
         {
-            DisplayName = "EDIT SERVICECONTROL INSTANCE";
-
+            DisplayName = "EDIT SERVICECONTROL AUDIT INSTANCE";
             ServiceControlInstance = instance;
-            ServiceControl.UpdateFromInstance(instance);
+            ServiceControlAudit.UpdateFromInstance(instance);
             ErrorQueueName = instance.ErrorQueue;
             ErrorForwardingQueueName = instance.ErrorLogQueue;
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
-            ServiceControlInstance = instance;
             ErrorForwardingVisible = instance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
             RetentionPeriodsVisible = instance.Version >= SettingsList.ErrorRetentionPeriod.SupportedFrom;
         }
@@ -29,7 +27,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
         public bool ErrorForwardingVisible { get; set; }
         public bool RetentionPeriodsVisible { get; set; }
 
-        public ServiceControlInstance ServiceControlInstance { get; set; }
+        public ServiceControlAuditInstance ServiceControlInstance { get; set; }
 
         public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= SettingsList.DatabaseMaintenancePort.SupportedFrom;
 
@@ -79,15 +77,15 @@ namespace ServiceControl.Config.UI.InstanceEdit
         public override void OnSelectedTransportChanged()
         {
             base.OnSelectedTransportChanged();
-            NotifyOfPropertyChange(nameof(ErrorQueueName));
-            NotifyOfPropertyChange(nameof(ErrorForwardingQueueColumn));
+            NotifyOfPropertyChange(nameof(AuditQueueName));
+            NotifyOfPropertyChange(nameof(AuditForwardingQueueName));
         }
 
-        public void UpdateInstanceFromViewModel(ServiceControlInstance instance)
+        public void UpdateInstanceFromViewModel(ServiceControlAuditInstance instance)
         {
-            instance.HostName = ServiceControl.HostName;
-            instance.Port = Convert.ToInt32(ServiceControl.PortNumber);
-            instance.LogPath = ServiceControl.LogPath;
+            instance.HostName = ServiceControlAudit.HostName;
+            instance.Port = Convert.ToInt32(ServiceControlAudit.PortNumber);
+            instance.LogPath = ServiceControlAudit.LogPath;
             instance.AuditLogQueue = AuditForwardingQueueName;
             instance.AuditQueue = AuditQueueName;
             instance.ErrorQueue = ErrorQueueName;
@@ -96,7 +94,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             if (ServiceControlInstance.Version.Major >= 2)
             {
-                instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControl.DatabaseMaintenancePortNumber);
+                instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControlAudit.DatabaseMaintenancePortNumber);
             }
         }
     }

@@ -6,6 +6,7 @@
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
+    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
@@ -37,7 +38,6 @@
 
         public IEnumerable<TransportInfo> Transports { get; }
 
-        [AlsoNotifyFor("ConnectionString")]
         public TransportInfo SelectedTransport
         {
             get { return selectedTransport; }
@@ -64,10 +64,11 @@
             ServiceControlAudit.SubmitAttempted = SubmitAttempted;
         }
 
-        public void OnSelectedTransportChanged()
+        public virtual void OnSelectedTransportChanged()
         {
             ServiceControl?.OnSelectedTransportChanged();
             ServiceControlAudit?.OnSelectedTransportChanged();
+            NotifyOfPropertyChange(nameof(ConnectionString));
         }
 
         TransportInfo selectedTransport;
@@ -156,6 +157,28 @@
         {
             InstanceName = GetConventionalServiceName(conventionName);
         }
+
+        public void UpdateFromInstance(ServiceControlInstance instance)
+        {
+            var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
+            UseSystemAccount = userAccount.IsLocalSystem();
+            UseServiceAccount = userAccount.IsLocalService();
+            UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
+
+            if (UseProvidedAccount)
+            {
+                ServiceAccount = instance.ServiceAccount;
+            }
+
+            HostName = instance.HostName;
+            PortNumber = instance.Port.ToString();
+            DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
+            LogPath = instance.LogPath;
+            ErrorQueueName = instance.ErrorQueue;
+            ErrorForwarding = ErrorForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardErrorMessages);
+            ErrorForwardingQueueName = instance.ErrorLogQueue;
+            UpdateErrorRetention(instance.ErrorRetentionPeriod);
+        }
     }
 
     public class ServiceControlAuditInformation : SharedServiceControlEditorViewModel
@@ -230,6 +253,30 @@
             }
 
             InstanceName = serviceName;
+        }
+
+        public void UpdateFromInstance(ServiceControlAuditInstance instance)
+        {
+            var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
+            UseSystemAccount = userAccount.IsLocalSystem();
+            UseServiceAccount = userAccount.IsLocalService();
+            UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
+
+            if (UseProvidedAccount)
+            {
+                ServiceAccount = instance.ServiceAccount;
+            }
+
+            InstanceName = instance.Name;
+            Description = instance.Description;
+            HostName = instance.HostName;
+            PortNumber = instance.Port.ToString();
+            DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
+            LogPath = instance.LogPath;
+            AuditForwardingQueueName = instance.AuditLogQueue;
+            AuditQueueName = instance.AuditQueue;
+            AuditForwarding = AuditForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardAuditMessages);
+            UpdateAuditRetention(instance.AuditRetentionPeriod);
         }
     }
 }
