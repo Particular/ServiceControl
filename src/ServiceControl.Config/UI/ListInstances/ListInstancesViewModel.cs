@@ -20,7 +20,7 @@
 
             Instances = new BindableCollection<InstanceDetailsViewModel>();
 
-            RefreshInstances();
+            RefreshAllInstances();
         }
 
         public IList<InstanceDetailsViewModel> Instances { get; }
@@ -53,7 +53,7 @@
 
         public void Handle(RefreshInstances message)
         {
-            RefreshInstances();
+            RefreshAllInstances();
         }
 
         public void Handle(ResetInstances message)
@@ -65,9 +65,25 @@
             }
         }
 
-        void RefreshInstances()
+        void RefreshAllInstances()
         {
-            var missingInstances = InstanceFinder.AllInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
+            RefreshControlInstances();
+            RefreshAuditInstances();
+        }
+
+        void RefreshControlInstances()
+        {
+            var missingInstances = InstanceFinder.ServiceControlInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
+
+            foreach (var item in missingInstances)
+            {
+                Instances.Add(instanceDetailsFunc(item));
+            }
+        }
+
+        void RefreshAuditInstances()
+        {
+            var missingInstances = InstanceFinder.ServiceControlAuditInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
 
             foreach (var item in missingInstances)
             {
