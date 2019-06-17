@@ -61,8 +61,20 @@
             return new EditConfigurationModel
             {
                 Enabled = Settings.AllowMessageEditing,
-                LockedHeaders = new[] { "NServiceBus.MessageId"},
-                SensitiveHeaders = new[] { "NServiceBus.ConversationId"}
+                LockedHeaders = new[]
+                {
+                    "NServiceBus.MessageId",
+                    "NServiceBus.ExceptionInfo.ExceptionType",
+                    "NServiceBus.ExceptionInfo.HelpLink",
+                    "NServiceBus.ExceptionInfo.Message",
+                    "NServiceBus.ExceptionInfo.Source",
+                    "NServiceBus.ExceptionInfo.StackTrace"
+                },
+                SensitiveHeaders = new[]
+                {
+                    "NServiceBus.ConversationId",
+                    "NServiceBus.MessageIntent"
+                }
             };
         }
 
