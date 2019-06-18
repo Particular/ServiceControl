@@ -170,6 +170,7 @@
                 ServiceAccount = instance.ServiceAccount;
             }
 
+            InstanceName = instance.Name;
             HostName = instance.HostName;
             PortNumber = instance.Port.ToString();
             DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
