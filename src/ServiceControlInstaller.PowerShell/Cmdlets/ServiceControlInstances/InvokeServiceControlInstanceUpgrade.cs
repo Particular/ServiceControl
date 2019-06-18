@@ -50,12 +50,30 @@ namespace ServiceControlInstaller.PowerShell
                     SkipQueueCreation = SkipQueueCreation,
                     MaintenancePort = DatabaseMaintenancePort == 0 ? (int?)null : DatabaseMaintenancePort
                 };
-                var instance = InstanceFinder.FindServiceControlInstance(name);
+                var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(name);
                 if (instance == null)
                 {
                     WriteWarning($"No action taken. An instance called {name} was not found");
                     break;
                 }
+
+                var requiredUpgradeAction = instance.GetRequiredUpgradeAction(installer.ZipInfo.Version);
+                switch (requiredUpgradeAction)
+                {
+                    case RequiredUpgradeAction.Upgrade:
+                        // This is the correct action
+                        break;
+                    case RequiredUpgradeAction.ConvertToAudit:
+                        ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance must be converted to an audit instance. See Invoke-ServiceControlInstanceConvert."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
+                        break;
+                    case RequiredUpgradeAction.SplitOutAudit:
+                        ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance must have it's audit capabilities split out into to a new audit instance. See Invoke-ServiceControlInstanceSplit."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
+                        break;
+                    default:
+                        ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance cannot be upgraded."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
+                        break;
+                }
+
 
                 options.UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
 
@@ -101,7 +119,8 @@ namespace ServiceControlInstaller.PowerShell
             }
         }
 
-        [ValidateNotNullOrEmpty] [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
+        [ValidateNotNullOrEmpty]
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
         public string[] Name;
 
         [Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 1, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue. This setting if appsetting is not set, this occurs when upgrading versions 1.11.1 and below")]
