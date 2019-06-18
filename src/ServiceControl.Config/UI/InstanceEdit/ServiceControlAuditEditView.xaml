@@ -102,18 +102,12 @@
                                           SelectCommand="{Binding ServiceControlAudit.SelectLogPath}"
                                           Text="{Binding ServiceControlAudit.LogPath}" />
 
-
-
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
-                        BorderThickness="0,0,0,1"
-                        Visibility="{Binding ServiceControlAudit.RetentionPeriodsVisible,
-                                             Converter={StaticResource boolToVis}}">
+                        BorderThickness="0,0,0,1">
                     <TextBlock FontSize="13px"
                                FontWeight="Bold"
-                               Text="DATABASE RETENTION CONFIGURATION"
-                               Visibility="{Binding ServiceControlAudit.RetentionPeriodsVisible,
-                                                    Converter={StaticResource boolToVis}}" />
+                               Text="DATABASE RETENTION CONFIGURATION" />
                 </Border>
 
                 <controls:FormSlider Explanation="Audit Messages will be removed after this period"
@@ -123,20 +117,8 @@
                                      Minimum="{Binding ServiceControlAudit.MinimumAuditRetentionPeriod}"
                                      SmallChange="1"
                                      Units="{Binding ServiceControlAudit.AuditRetentionUnits}"
-                                     Visibility="{Binding ServiceControlAudit.RetentionPeriodsVisible,
-                                                          Converter={StaticResource boolToVis}}"
-                                     Value="{Binding ServiceControlAudit.AuditRetention}" />
 
-                <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"
-                                     Header="ERROR RETENTION PERIOD"
-                                     LargeChange="1"
-                                     Maximum="{Binding ServiceControlAudit.MaximumErrorRetentionPeriod}"
-                                     Minimum="{Binding ServiceControlAudit.MinimumErrorRetentionPeriod}"
-                                     SmallChange="1"
-                                     Units="{Binding ServiceControlAudit.ErrorRetentionUnits}"
-                                     Visibility="{Binding ServiceControlAudit.RetentionPeriodsVisible,
-                                                          Converter={StaticResource boolToVis}}"
-                                     Value="{Binding ServiceControlAudit.ErrorRetention}" />
+                                     Value="{Binding ServiceControlAudit.AuditRetention}" />
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
@@ -207,48 +189,15 @@
                         <RowDefinition />
                         <RowDefinition />
                         <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
                     </Grid.RowDefinitions>
-                    <controls:FormTextBox  Grid.Column="0" 
-                                           Grid.Row="0"
-                                           Grid.ColumnSpan="2"
-                                           Header="ERROR QUEUE NAME"
-                                           Text="{Binding ServiceControlAudit.ErrorQueueName}" />
-
-                    <controls:FormComboBox Grid.Column="0" 
-                                           Grid.Row="1"
-                                           HorizontalAlignment="Stretch"
-                                           VerticalAlignment="Top" 
-                                           DisplayMemberPath="Name"
-                                           Header="ERROR FORWARDING"
-                                           ItemsSource="{Binding ServiceControlAudit.ErrorForwardingOptions}"
-                                           SelectedValue="{Binding ServiceControlAudit.ErrorForwarding}"
-                                           Visibility="{Binding ServiceControlAudit.ShowErrorForwardingCombo, Converter={StaticResource boolToVis}}"
-                                           />
-
-                    <controls:FormTextBox Grid.Column="{Binding ServiceControlAudit.ErrorForwardingQueueColumn}" 
-                                          Grid.ColumnSpan="{Binding ServiceControlAudit.ErrorForwardingQueueColumnSpan}"
-                                          Grid.Row="1"
-                                          Header="ERROR FORWARDING LOG QUEUE NAME" 
-                                          Text="{Binding ServiceControlAudit.ErrorForwardingQueueName}" 
-                                          Visibility="{Binding ServiceControlAudit.ShowErrorForwardingQueue, Converter={StaticResource boolToVis}}"/>
-
-                    <controls:FormWarningTextBlock Grid.Column="0" 
-                                           Grid.ColumnSpan="2"
-                                           Grid.Row="2"
-                                           Text="{Binding ServiceControlAudit.ErrorForwardingWarning}" 
-                                           Visibility="{Binding Path=(cm:IDataErrorInfo.Error), Converter={StaticResource nullOrEmptyToVisInverted}}" />
-
                     <controls:FormTextBox Grid.Column="0" 
                                           Grid.ColumnSpan="2" 
-                                          Grid.Row="3"
+                                          Grid.Row="0"
                                           Header="AUDIT QUEUE NAME" 
                                           Text="{Binding ServiceControlAudit.AuditQueueName}" />
 
                     <controls:FormComboBox Grid.Column="0" 
-                                           Grid.Row="4"
+                                           Grid.Row="1"
                                            HorizontalAlignment="Stretch"
                                            VerticalAlignment="Top" 
                                            DisplayMemberPath="Name"
@@ -258,14 +207,14 @@
                                            />
 
                     <controls:FormTextBox Grid.Column="1" 
-                                          Grid.Row="4"
+                                          Grid.Row="1"
                                           Header="AUDIT FORWARDING LOG QUEUE NAME"
                                           Text="{Binding ServiceControlAudit.AuditForwardingQueueName}"
                                           Visibility="{Binding ServiceControlAudit.ShowAuditForwardingQueue, Converter={StaticResource boolToVis}}"/>
 
                     <controls:FormWarningTextBlock Grid.Column="0" 
                                            Grid.ColumnSpan="2"
-                                           Grid.Row="5"
+                                           Grid.Row="2"
                                            Text="{Binding ServiceControlAudit.AuditForwardingWarning}" 
                                            Visibility="{Binding Path=(cm:IDataErrorInfo.Error), Converter={StaticResource nullOrEmptyToVisInverted}}" />
                     </Grid>
