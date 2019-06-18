@@ -20,8 +20,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
             //ErrorForwardingQueueName = instance.ErrorLogQueue;
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
-            ErrorForwardingVisible = instance.Version >= AuditInstanceSettingsList.ForwardErrorMessages.SupportedFrom;
-            RetentionPeriodsVisible = instance.Version >= AuditInstanceSettingsList.ErrorRetentionPeriod.SupportedFrom;
+            ErrorForwardingVisible = true; //TODO: To remove
+            RetentionPeriodsVisible = true; //TODO: To remove
         }
 
         public bool ErrorForwardingVisible { get; set; }

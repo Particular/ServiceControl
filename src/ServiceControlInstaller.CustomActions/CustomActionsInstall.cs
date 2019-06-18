@@ -98,7 +98,7 @@
 
                     if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
                     {
-                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{AuditInstanceSettingsList.ForwardErrorMessages.Name}'");
+                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ForwardErrorMessages.Name}'");
                         continue;
                     }
 

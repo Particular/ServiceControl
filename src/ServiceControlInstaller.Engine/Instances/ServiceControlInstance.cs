@@ -433,7 +433,7 @@ namespace ServiceControlInstaller.Engine.Instances
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
+            if (TimeSpan.TryParse(AppConfig.Read(AuditInstanceSettingsList.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
