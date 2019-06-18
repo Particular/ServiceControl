@@ -34,7 +34,22 @@
                 .SelectMany(p => new[]
                 {
                     p.ErrorLogQueue,
-                    p.ErrorQueue,
+                    p.ErrorQueue
+                }).Where(queuename => string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
+                                      string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0)
+                .Distinct()
+                .ToList();
+        }
+
+        public static List<string> UsedQueueNames(this ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlInstances, TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
+        {
+            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
+                                                                          string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            return instancesByTransport
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
                     p.AuditQueue,
                     p.AuditLogQueue
                 }).Where(queuename => string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
@@ -45,6 +60,19 @@
 
         // We need this to ignore the instance that represents the edit screen
         public static List<string> UsedPorts(this ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances, string instanceName = null)
+        {
+            return ServiceControlInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
+                    p.Port.ToString(),
+                    p.DatabaseMaintenancePort.ToString()
+                })
+                .Distinct()
+                .ToList();
+        }
+
+        public static List<string> UsedPorts(this ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlInstances, string instanceName = null)
         {
             return ServiceControlInstances
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)

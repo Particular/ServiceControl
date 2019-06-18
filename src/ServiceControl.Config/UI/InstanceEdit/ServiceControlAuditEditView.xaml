@@ -87,8 +87,7 @@
                                       Warning="{Binding ServiceControlAudit.HostNameWarning}" />
                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ServiceControlAudit.PortNumber}" />
                 <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" 
-                                      Text="{Binding ServiceControlAudit.DatabaseMaintenancePortNumber}"
-                                      Visibility="{Binding ServiceControlAudit.DatabaseMaintenancePortNumberRequired, Converter={StaticResource boolToVis}}"/>
+                                      Text="{Binding ServiceControlAudit.DatabaseMaintenancePortNumber}"/>
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
@@ -117,7 +116,6 @@
                                      Minimum="{Binding ServiceControlAudit.MinimumAuditRetentionPeriod}"
                                      SmallChange="1"
                                      Units="{Binding ServiceControlAudit.AuditRetentionUnits}"
-
                                      Value="{Binding ServiceControlAudit.AuditRetention}" />
 
                 <Border Margin="0,40,0,20"

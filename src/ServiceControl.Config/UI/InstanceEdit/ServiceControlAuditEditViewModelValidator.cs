@@ -9,7 +9,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
     {
         public ServiceControlAuditEditViewModelValidator()
         {
-            var instances = InstanceFinder.ServiceControlInstances();
+            var instances = InstanceFinder.ServiceControlAuditInstances();
 
             RuleFor(x => x.ServiceControlAudit.ServiceAccount)
                 .NotEmpty()
@@ -18,20 +18,20 @@ namespace ServiceControl.Config.UI.InstanceEdit
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();
 
-            RuleFor(x => x.AuditForwarding)
+            RuleFor(x => x.ServiceControlAudit.AuditForwarding)
                 .NotNull().WithMessage(Validations.MSG_SELECTAUDITFORWARDING);
 
-            RuleFor(x => x.AuditQueueName)
+            RuleFor(x => x.ServiceControlAudit.AuditQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
+                .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
                 .MustNotBeIn(x => instances.UsedQueueNames(x.SelectedTransport, x.ServiceControlAudit.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted && x.AuditQueueName != "!disable");
+                .When(x => x.SubmitAttempted && x.ServiceControlAudit.AuditQueueName != "!disable");
 
-            RuleFor(x => x.AuditForwardingQueueName)
+            RuleFor(x => x.ServiceControlAudit.AuditForwardingQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
+                .NotEqual(x => x.ServiceControlAudit.AuditQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit")
                 .MustNotBeIn(x => instances.UsedQueueNames(x.SelectedTransport, x.ServiceControlAudit.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted && x.AuditForwarding.Value);
+                .When(x => x.SubmitAttempted && x.ServiceControlAudit.AuditForwarding?.Value == true);
 
             RuleFor(x => x.ConnectionString)
                 .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
@@ -43,7 +43,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .MustNotBeIn(x => instances.UsedPorts(x.ServiceControlAudit.InstanceName))
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
-                .When(x => x.DatabaseMaintenancePortNumberRequired && x.SubmitAttempted);
+                .When(x => x.SubmitAttempted);
         }
     }
 }

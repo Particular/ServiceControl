@@ -58,6 +58,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             }
 
             viewModel.InProgress = true;
+
             instance.LogPath = viewModel.ServiceControl.LogPath;
             instance.ServiceAccount = viewModel.ServiceControl.ServiceAccount;
             instance.ServiceAccountPwd = viewModel.ServiceControl.Password;
