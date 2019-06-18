@@ -50,14 +50,14 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public void EnableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
-            settings.Set(SettingsList.MaintenanceMode, Boolean.TrueString, details.Version);
+            settings.Set(ServiceControlSettings.MaintenanceMode, Boolean.TrueString, details.Version);
             Config.Save();
         }
 
         public void DisableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
-            settings.Remove(SettingsList.MaintenanceMode.Name);
+            settings.Remove(ServiceControlSettings.MaintenanceMode.Name);
             Config.Save();
         }
 
@@ -68,7 +68,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
                 "Raven/IndexStoragePath",
                 "Raven/CompiledIndexCacheDirectory",
                 "Raven/Esent/LogsPath",
-                SettingsList.DBPath.Name
+                ServiceControlSettings.DBPath.Name
             };
 
             var settings = Config.AppSettings.Settings;
@@ -142,7 +142,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
                 "Raven/IndexStoragePath",
                 "Raven/CompiledIndexCacheDirectory",
                 "Raven/Esent/LogsPath",
-                SettingsList.DBPath.Name
+                AuditInstanceSettingsList.DBPath.Name
             };
 
             var settings = Config.AppSettings.Settings;

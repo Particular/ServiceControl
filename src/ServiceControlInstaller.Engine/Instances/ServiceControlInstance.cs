@@ -154,9 +154,11 @@ namespace ServiceControlInstaller.Engine.Instances
             return null;
         }
 
+        protected abstract string GetTransportTypeSetting();
+
         protected TransportInfo DetermineTransportPackage()
         {
-            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
+            var transportAppSetting = GetTransportTypeSetting();
             var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
             if (transport != null)
             {
@@ -392,6 +394,8 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         protected override string BaseServiceName => "ServiceControl.Audit";
 
+        public string ServiceControlQueueAddress { get; set; }
+
         public override void ApplyConfigChange()
         {
             //TODO: Fix edit for SCA
@@ -400,6 +404,11 @@ namespace ServiceControlInstaller.Engine.Instances
         protected override AppConfig CreateAppConfig()
         {
             return new ServiceControlAuditAppConfig(this);
+        }
+
+        protected override string GetTransportTypeSetting()
+        {
+            return AppConfig.Read(AuditInstanceSettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
         }
 
         public ServiceControlAuditInstance(WindowsServiceController service) : base(service)
@@ -472,6 +481,11 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
+        protected override string GetTransportTypeSetting()
+        {
+            return AppConfig.Read(ServiceControlSettings.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
+        }
+
         protected override AppConfig CreateAppConfig()
         {
             return new ServiceControlAppConfig(this);
@@ -521,30 +535,30 @@ namespace ServiceControlInstaller.Engine.Instances
         public override void Reload()
         {
             Service.Refresh();
-            HostName = AppConfig.Read(SettingsList.HostName, "localhost");
-            Port = AppConfig.Read(SettingsList.Port, 33333);
-            DatabaseMaintenancePort = AppConfig.Read<int?>(SettingsList.DatabaseMaintenancePort, null);
-            VirtualDirectory = AppConfig.Read(SettingsList.VirtualDirectory, (string)null);
-            LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
-            DBPath = AppConfig.Read(SettingsList.DBPath, DefaultDBPath());
-            AuditQueue = AppConfig.Read(SettingsList.AuditQueue, (string)null);
-            AuditLogQueue = AppConfig.Read(SettingsList.AuditLogQueue, (string)null);
-            ForwardAuditMessages = AppConfig.Read(SettingsList.ForwardAuditMessages, false);
-            ForwardErrorMessages = AppConfig.Read(SettingsList.ForwardErrorMessages, false);
-            InMaintenanceMode = AppConfig.Read(SettingsList.MaintenanceMode, false);
-            ErrorQueue = AppConfig.Read(SettingsList.ErrorQueue, "error");
-            ErrorLogQueue = AppConfig.Read(SettingsList.ErrorLogQueue, $"{ErrorQueue}.log");
+            HostName = AppConfig.Read(ServiceControlSettings.HostName, "localhost");
+            Port = AppConfig.Read(ServiceControlSettings.Port, 33333);
+            DatabaseMaintenancePort = AppConfig.Read<int?>(ServiceControlSettings.DatabaseMaintenancePort, null);
+            VirtualDirectory = AppConfig.Read(ServiceControlSettings.VirtualDirectory, (string)null);
+            LogPath = AppConfig.Read(ServiceControlSettings.LogPath, DefaultLogPath());
+            DBPath = AppConfig.Read(ServiceControlSettings.DBPath, DefaultDBPath());
+            AuditQueue = AppConfig.Read(ServiceControlSettings.AuditQueue, "audit");
+            AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, $"{AuditQueue}.log");
+            ForwardAuditMessages = AppConfig.Read(ServiceControlSettings.ForwardAuditMessages, false);
+            ForwardErrorMessages = AppConfig.Read(ServiceControlSettings.ForwardErrorMessages, false);
+            InMaintenanceMode = AppConfig.Read(ServiceControlSettings.MaintenanceMode, false);
+            ErrorQueue = AppConfig.Read(ServiceControlSettings.ErrorQueue, "error");
+            ErrorLogQueue = AppConfig.Read(ServiceControlSettings.ErrorLogQueue, $"{ErrorQueue}.log");
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
+            if (TimeSpan.TryParse(AppConfig.Read(ServiceControlSettings.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
             {
                 ErrorRetentionPeriod = errorRetentionPeriod;
             }
 
-            if (TimeSpan.TryParse(AppConfig.Read(SettingsList.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
+            if (TimeSpan.TryParse(AppConfig.Read(ServiceControlSettings.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
@@ -581,19 +595,19 @@ namespace ServiceControlInstaller.Engine.Instances
             var configuration = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
             var settings = configuration.AppSettings.Settings;
             var version = Version;
-            settings.Set(SettingsList.HostName, HostName);
-            settings.Set(SettingsList.Port, Port.ToString());
-            settings.Set(SettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString(), version);
-            settings.Set(SettingsList.LogPath, LogPath);
-            settings.Set(SettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString(), version);
-            settings.Set(SettingsList.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
-            settings.Set(SettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), version);
-            settings.Set(SettingsList.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), version);
+            settings.Set(ServiceControlSettings.HostName, HostName);
+            settings.Set(ServiceControlSettings.Port, Port.ToString());
+            settings.Set(ServiceControlSettings.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString(), version);
+            settings.Set(ServiceControlSettings.LogPath, LogPath);
+            settings.Set(ServiceControlSettings.ForwardAuditMessages, ForwardAuditMessages.ToString());
+            settings.Set(ServiceControlSettings.ForwardErrorMessages, ForwardErrorMessages.ToString(), version);
+            settings.Set(ServiceControlSettings.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), version);
+            settings.Set(ServiceControlSettings.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), version);
 
-            settings.RemoveIfRetired(SettingsList.HoursToKeepMessagesBeforeExpiring, version);
+            settings.RemoveIfRetired(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring, version);
 
-            settings.Set(SettingsList.AuditQueue, AuditQueue, version);
-            settings.Set(SettingsList.ErrorQueue, ErrorQueue);
+            settings.Set(ServiceControlSettings.AuditQueue, AuditQueue);
+            settings.Set(ServiceControlSettings.ErrorQueue, ErrorQueue);
 
             if (Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
             {
@@ -608,8 +622,8 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
             }
 
-            settings.Set(SettingsList.ErrorLogQueue, ErrorLogQueue);
-            settings.Set(SettingsList.AuditLogQueue, AuditLogQueue, version);
+            settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue);
+            settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue);
 
             configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", ConnectionString);
             configuration.Save();

@@ -4,7 +4,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 
     // See Compatibility.cs for version switching that isn't related to Settings
 
-    public static class SettingsList
+    public static class ServiceControlSettings
     {
         public static SettingInfo VirtualDirectory = new SettingInfo {Name = "ServiceControl/VirtualDirectory"};
         public static SettingInfo Port = new SettingInfo {Name = "ServiceControl/Port"};
@@ -65,5 +65,57 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "ServiceControl/MaintenanceMode",
             SupportedFrom = new Version(1, 18, 1)
         };
+    }
+
+    public static class AuditInstanceSettingsList
+    {
+        public static SettingInfo VirtualDirectory = new SettingInfo { Name = "ServiceControl.Audit/VirtualDirectory" };
+        public static SettingInfo Port = new SettingInfo { Name = "ServiceControl.Audit/Port" };
+        public static SettingInfo DatabaseMaintenancePort = new SettingInfo
+        {
+            Name = "ServiceControl.Audit/DatabaseMaintenancePort",
+            SupportedFrom = new Version(2, 0, 0)
+        };
+        public static SettingInfo HostName = new SettingInfo { Name = "ServiceControl.Audit/HostName" };
+        public static SettingInfo LogPath = new SettingInfo { Name = "ServiceControl.Audit/LogPath" };
+        public static SettingInfo DBPath = new SettingInfo { Name = "ServiceControl.Audit/DBPath" };
+        public static SettingInfo ForwardAuditMessages = new SettingInfo { Name = "ServiceControl.Audit/ForwardAuditMessages" };
+
+        public static SettingInfo ForwardErrorMessages = new SettingInfo
+        {
+            Name = "ServiceControl/ForwardErrorMessages",
+            SupportedFrom = new Version(1, 11, 2)
+        };
+
+        public static SettingInfo TransportType = new SettingInfo { Name = "ServiceControl.Audit/TransportType" };
+        public static SettingInfo AuditQueue = new SettingInfo { Name = "ServiceBus/AuditQueue" };
+        public static SettingInfo ErrorQueue = new SettingInfo { Name = "ServiceBus/ErrorQueue" };
+        public static SettingInfo ErrorLogQueue = new SettingInfo { Name = "ServiceBus/ErrorLogQueue" };
+        public static SettingInfo AuditLogQueue = new SettingInfo { Name = "ServiceBus/AuditLogQueue" };
+
+        public static SettingInfo AuditRetentionPeriod = new SettingInfo
+        {
+            Name = "ServiceControl.Audit/AuditRetentionPeriod",
+            SupportedFrom = new Version(1, 12, 1)
+        };
+
+        public static SettingInfo ErrorRetentionPeriod = new SettingInfo
+        {
+            Name = "ServiceControl.Audit/ErrorRetentionPeriod",
+            SupportedFrom = new Version(1, 12, 1)
+        };
+
+        public static SettingInfo HoursToKeepMessagesBeforeExpiring = new SettingInfo
+        {
+            Name = "ServiceControl.Audit/HoursToKeepMessagesBeforeExpiring",
+            RemovedFrom = new Version(1, 12, 1)
+        };
+
+        public static SettingInfo MaintenanceMode = new SettingInfo
+        {
+            Name = "ServiceControl.Audit/MaintenanceMode",
+            SupportedFrom = new Version(1, 18, 1)
+        };
+        public static SettingInfo ServiceControlQueueAddress = new SettingInfo { Name = "ServiceControl.Audit/ServiceControlQueueAddress" };
     }
 }

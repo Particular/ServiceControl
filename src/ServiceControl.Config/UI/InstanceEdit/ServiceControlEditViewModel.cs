@@ -14,16 +14,14 @@ namespace ServiceControl.Config.UI.InstanceEdit
         public ServiceControlEditViewModel(ServiceControlInstance instance)
         {
             DisplayName = "EDIT SERVICECONTROL INSTANCE";
-
             ServiceControlInstance = instance;
             ServiceControl.UpdateFromInstance(instance);
             ErrorQueueName = instance.ErrorQueue;
             ErrorForwardingQueueName = instance.ErrorLogQueue;
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
-            ServiceControlInstance = instance;
-            ErrorForwardingVisible = instance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
-            RetentionPeriodsVisible = instance.Version >= SettingsList.ErrorRetentionPeriod.SupportedFrom;
+            ErrorForwardingVisible = instance.Version >= ServiceControlSettings.ForwardErrorMessages.SupportedFrom;
+            RetentionPeriodsVisible = instance.Version >= ServiceControlSettings.ErrorRetentionPeriod.SupportedFrom;
         }
 
         public bool ErrorForwardingVisible { get; set; }
@@ -31,7 +29,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
         public ServiceControlInstance ServiceControlInstance { get; set; }
 
-        public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= SettingsList.DatabaseMaintenancePort.SupportedFrom;
+        public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= ServiceControlSettings.DatabaseMaintenancePort.SupportedFrom;
 
         public string ErrorQueueName { get; set; }
         public string ErrorForwardingQueueName { get; set; }
@@ -46,34 +44,18 @@ namespace ServiceControl.Config.UI.InstanceEdit
         [AlsoNotifyFor("ErrorForwarding")]
         public string ErrorForwardingWarning => ErrorForwarding != null && ErrorForwarding.Value ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
 
-        public bool ShowErrorForwardingCombo => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
-        public int ErrorForwardingQueueColumn => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 0;
-        public int ErrorForwardingQueueColumnSpan => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 2;
+        public bool ShowErrorForwardingCombo => ServiceControlInstance.Version >= ServiceControlSettings.ForwardErrorMessages.SupportedFrom;
+        public int ErrorForwardingQueueColumn => ServiceControlInstance.Version >= ServiceControlSettings.ForwardErrorMessages.SupportedFrom ? 1 : 0;
+        public int ErrorForwardingQueueColumnSpan => ServiceControlInstance.Version >= ServiceControlSettings.ForwardErrorMessages.SupportedFrom ? 1 : 2;
 
-        public bool ShowAuditForwardingQueue
+        public bool ShowAuditForwardingQueue //TODO: To remove
         {
-            get
-            {
-                if (ServiceControlInstance.Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
-                {
-                    return AuditForwarding?.Value ?? false;
-                }
-
-                return true;
-            }
+            get { return true; }
         }
 
-        public bool ShowErrorForwardingQueue
+        public bool ShowErrorForwardingQueue //TODO: To remove
         {
-            get
-            {
-                if (ServiceControlInstance.Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
-                {
-                    return ErrorForwarding?.Value ?? false;
-                }
-
-                return true;
-            }
+            get { return true; }
         }
 
         public override void OnSelectedTransportChanged()
@@ -93,11 +75,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.ErrorQueue = ErrorQueueName;
             instance.ErrorLogQueue = ErrorForwardingQueueName;
             instance.ConnectionString = ConnectionString;
-
-            if (ServiceControlInstance.Version.Major >= 2)
-            {
-                instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControl.DatabaseMaintenancePortNumber);
-            }
+            instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControl.DatabaseMaintenancePortNumber);
         }
     }
 }

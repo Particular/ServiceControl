@@ -94,7 +94,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod,
                 ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
                 ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
-                ServiceControlQueueAddress = serviceControlNewInstance.Name, //Wire the SCA instance to the SC instance
+                ServiceControlQueueAddress = serviceControlNewInstance.Name
             };
 
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))

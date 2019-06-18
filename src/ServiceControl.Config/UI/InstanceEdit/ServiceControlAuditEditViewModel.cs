@@ -16,12 +16,12 @@ namespace ServiceControl.Config.UI.InstanceEdit
             DisplayName = "EDIT SERVICECONTROL AUDIT INSTANCE";
             ServiceControlInstance = instance;
             ServiceControlAudit.UpdateFromInstance(instance);
-            ErrorQueueName = instance.ErrorQueue;
-            ErrorForwardingQueueName = instance.ErrorLogQueue;
+            //ErrorQueueName = instance.ErrorQueue;
+            //ErrorForwardingQueueName = instance.ErrorLogQueue;
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
-            ErrorForwardingVisible = instance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
-            RetentionPeriodsVisible = instance.Version >= SettingsList.ErrorRetentionPeriod.SupportedFrom;
+            ErrorForwardingVisible = instance.Version >= AuditInstanceSettingsList.ForwardErrorMessages.SupportedFrom;
+            RetentionPeriodsVisible = instance.Version >= AuditInstanceSettingsList.ErrorRetentionPeriod.SupportedFrom;
         }
 
         public bool ErrorForwardingVisible { get; set; }
@@ -29,50 +29,29 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
         public ServiceControlAuditInstance ServiceControlInstance { get; set; }
 
-        public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= SettingsList.DatabaseMaintenancePort.SupportedFrom;
+        public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= AuditInstanceSettingsList.DatabaseMaintenancePort.SupportedFrom;
 
-        public string ErrorQueueName { get; set; }
-        public string ErrorForwardingQueueName { get; set; }
         public string AuditQueueName { get; set; }
         public string AuditForwardingQueueName { get; set; }
         public ForwardingOption AuditForwarding { get; set; }
-        public ForwardingOption ErrorForwarding { get; set; }
+        //public ForwardingOption ErrorForwarding { get; set; }
 
         [AlsoNotifyFor("AuditForwarding")]
         public string AuditForwardingWarning => AuditForwarding != null && AuditForwarding.Value ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
 
-        [AlsoNotifyFor("ErrorForwarding")]
-        public string ErrorForwardingWarning => ErrorForwarding != null && ErrorForwarding.Value ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
+        //[AlsoNotifyFor("ErrorForwarding")]
+        //public string ErrorForwardingWarning => ErrorForwarding != null && ErrorForwarding.Value ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
 
-        public bool ShowErrorForwardingCombo => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
-        public int ErrorForwardingQueueColumn => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 0;
-        public int ErrorForwardingQueueColumnSpan => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 2;
+        //public bool ShowErrorForwardingCombo => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
+        //public int ErrorForwardingQueueColumn => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 0;
+        //public int ErrorForwardingQueueColumnSpan => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 2;
 
         public bool ShowAuditForwardingQueue
         {
-            get
-            {
-                if (ServiceControlInstance.Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
-                {
-                    return AuditForwarding?.Value ?? false;
-                }
-
-                return true;
-            }
+            get { return AuditForwarding?.Value ?? false; }
         }
 
-        public bool ShowErrorForwardingQueue
-        {
-            get
-            {
-                if (ServiceControlInstance.Version >= Compatibility.ForwardingQueuesAreOptional.SupportedFrom)
-                {
-                    return ErrorForwarding?.Value ?? false;
-                }
-
-                return true;
-            }
-        }
+        public bool ShowErrorForwardingQueue => false;
 
         public override void OnSelectedTransportChanged()
         {
@@ -88,14 +67,10 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.LogPath = ServiceControlAudit.LogPath;
             instance.AuditLogQueue = AuditForwardingQueueName;
             instance.AuditQueue = AuditQueueName;
-            instance.ErrorQueue = ErrorQueueName;
-            instance.ErrorLogQueue = ErrorForwardingQueueName;
+            //instance.ErrorQueue = ErrorQueueName;
+            //instance.ErrorLogQueue = ErrorForwardingQueueName;
             instance.ConnectionString = ConnectionString;
-
-            if (ServiceControlInstance.Version.Major >= 2)
-            {
-                instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControlAudit.DatabaseMaintenancePortNumber);
-            }
+            instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControlAudit.DatabaseMaintenancePortNumber);
         }
     }
 }

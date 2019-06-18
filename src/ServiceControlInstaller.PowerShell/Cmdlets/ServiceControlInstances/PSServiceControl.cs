@@ -48,7 +48,8 @@ namespace ServiceControlInstaller.PowerShell
                 ErrorLogQueue = instance.ErrorLogQueue,
                 ServiceAccount = instance.ServiceAccount,
                 Version = instance.Version,
-                ForwardErrorMessages = instance.Version < SettingsList.ForwardErrorMessages.SupportedFrom || instance.ForwardErrorMessages
+                //TODO: Do we need the version check here?
+                ForwardErrorMessages = instance.Version < ServiceControlSettings.ForwardErrorMessages.SupportedFrom || instance.ForwardErrorMessages
             };
             return result;
         }
