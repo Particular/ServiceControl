@@ -37,8 +37,6 @@
 
             ServiceInstance = instance;
 
-            //TODO: Disable edit for old versions
-            //TOOD: Add new edit VMs
             if (instance.GetType() == typeof(ServiceControlInstance))
             {
                 ServiceControlInstance = (ServiceControlInstance)instance;

@@ -45,8 +45,7 @@ namespace ServiceControl.Config.Framework.Modules
 
         protected override void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
         {
-            //TODO: Do we need to upgrade? or leave blank.
-            //upgradeOptions.ApplyChangesToInstance((ServiceControlAuditInstance) instance);
+            //No op. We don't have anything to upgrade yet.
         }
     }
 

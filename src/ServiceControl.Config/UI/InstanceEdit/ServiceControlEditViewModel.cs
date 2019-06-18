@@ -24,8 +24,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
         public ServiceControlInstance ServiceControlInstance { get; set; }
 
-        public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= ServiceControlSettings.DatabaseMaintenancePort.SupportedFrom;
-
         public string ErrorQueueName { get; set; }
         public string ErrorForwardingQueueName { get; set; }
         public ForwardingOption ErrorForwarding { get; set; }

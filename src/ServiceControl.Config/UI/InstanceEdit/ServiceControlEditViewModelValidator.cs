@@ -43,7 +43,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .MustNotBeIn(x => instances.UsedPorts(x.ServiceControl.InstanceName))
                 .NotEqual(x => x.ServiceControl.PortNumber)
                 .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
-                .When(x => x.DatabaseMaintenancePortNumberRequired && x.SubmitAttempted);
+                .When(x => x.SubmitAttempted);
         }
     }
 }
