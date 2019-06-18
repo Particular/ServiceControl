@@ -9,9 +9,9 @@ namespace ServiceControl.Config.Commands
     using UI.InstanceDetails;
     using UI.InstanceEdit;
 
-    class EditServiceControlInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
+    class EditServiceControlAuditInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        public EditServiceControlInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(CanEditInstance)
+        public EditServiceControlAuditInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlAuditInstance, ServiceControlAuditEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(CanEditInstance)
         {
             this.windowManager = windowManager;
             this.editViewModel = editViewModel;
@@ -20,22 +20,22 @@ namespace ServiceControl.Config.Commands
 
         static bool CanEditInstance(InstanceDetailsViewModel viewModel)
         {
-            var instance = (ServiceControlInstance)viewModel.ServiceInstance;
+            var instance = (ServiceControlAuditInstance)viewModel.ServiceInstance;
             return instance.VersionHasServiceControlAuditFeatures;
         }
 
         public override void Execute(InstanceDetailsViewModel viewModel)
         {
-            var editVM = editViewModel((ServiceControlInstance)viewModel.ServiceInstance);
+            var editVM = editViewModel((ServiceControlAuditInstance)viewModel.ServiceInstance);
 
             if (windowManager.ShowInnerDialog(editVM) ?? false)
             {
-                editVM.UpdateInstanceFromViewModel((ServiceControlInstance)viewModel.ServiceInstance);
+                editVM.UpdateInstanceFromViewModel((ServiceControlAuditInstance)viewModel.ServiceInstance);
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
             }
         }
 
-        readonly Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel;
+        readonly Func<ServiceControlAuditInstance, ServiceControlAuditEditViewModel> editViewModel;
         readonly IEventAggregator eventAggregator;
         readonly IWindowManagerEx windowManager;
     }

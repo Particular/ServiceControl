@@ -141,7 +141,7 @@ namespace ServiceControl.Config.Framework.Modules
         {
         }
 
-        internal ReportCard Update(ServiceControlInstance instance, bool startService)
+        internal ReportCard Update(ServiceControlBaseService instance, bool startService)
         {
             try
             {
