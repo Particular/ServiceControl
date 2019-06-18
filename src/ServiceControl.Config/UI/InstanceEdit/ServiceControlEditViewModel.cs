@@ -3,7 +3,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
     using System;
     using InstanceAdd;
     using PropertyChanged;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
     using Validar;
