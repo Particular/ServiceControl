@@ -74,7 +74,7 @@
                 return;
             }
 
-            if (!instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.ForwardErrorMessages.Name))
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name))
             {
                 var result = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
                 if (!result.HasValue)
@@ -88,11 +88,11 @@
             }
 
             //Grab old setting if it exists
-            if (!instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.AuditRetentionPeriod.Name))
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.AuditRetentionPeriod.Name))
             {
-                if (instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.HoursToKeepMessagesBeforeExpiring.Name))
+                if (instance.AppConfig.AppSettingExists(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring.Name))
                 {
-                    var i = instance.AppConfig.Read(AuditInstanceSettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
+                    var i = instance.AppConfig.Read(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring.Name, -1);
                     if (i != -1)
                     {
                         upgradeOptions.AuditRetentionPeriod = TimeSpan.FromHours(i);
@@ -126,7 +126,7 @@
                 }
             }
 
-            if (!instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.ErrorRetentionPeriod.Name))
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ErrorRetentionPeriod.Name))
             {
                 var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",
                     "Service Control periodically purges resolved and archived error messages from the database.",
