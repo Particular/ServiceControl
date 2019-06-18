@@ -104,14 +104,10 @@
 
                 <Border Margin="0,40,0,20"
                         BorderBrush="{StaticResource Gray90Brush}"
-                        BorderThickness="0,0,0,1"
-                        Visibility="{Binding ServiceControl.RetentionPeriodsVisible,
-                                             Converter={StaticResource boolToVis}}">
+                        BorderThickness="0,0,0,1">
                     <TextBlock FontSize="13px"
                                FontWeight="Bold"
-                               Text="DATABASE RETENTION CONFIGURATION"
-                               Visibility="{Binding ServiceControl.RetentionPeriodsVisible,
-                                                    Converter={StaticResource boolToVis}}" />
+                               Text="DATABASE RETENTION CONFIGURATION"/>
                 </Border>
 
                 <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"
@@ -121,8 +117,6 @@
                                      Minimum="{Binding ServiceControl.MinimumErrorRetentionPeriod}"
                                      SmallChange="1"
                                      Units="{Binding ServiceControl.ErrorRetentionUnits}"
-                                     Visibility="{Binding ServiceControl.RetentionPeriodsVisible,
-                                                          Converter={StaticResource boolToVis}}"
                                      Value="{Binding ServiceControl.ErrorRetention}" />
 
                 <Border Margin="0,40,0,20"
@@ -208,17 +202,14 @@
                                            DisplayMemberPath="Name"
                                            Header="ERROR FORWARDING"
                                            ItemsSource="{Binding ServiceControl.ErrorForwardingOptions}"
-                                           SelectedValue="{Binding ServiceControl.ErrorForwarding}"
-                                           Visibility="{Binding ServiceControl.ShowErrorForwardingCombo, Converter={StaticResource boolToVis}}"
-                                           />
+                                           SelectedValue="{Binding ServiceControl.ErrorForwarding}" />
 
-                    <controls:FormTextBox Grid.Column="{Binding ServiceControl.ErrorForwardingQueueColumn}" 
-                                          Grid.ColumnSpan="{Binding ServiceControl.ErrorForwardingQueueColumnSpan}"
+                    <controls:FormTextBox Grid.Column="1" 
                                           Grid.Row="1"
                                           Header="ERROR FORWARDING LOG QUEUE NAME" 
-                                          Text="{Binding ServiceControl.ErrorForwardingQueueName}" 
-                                          Visibility="{Binding ServiceControl.ShowErrorForwardingQueue, Converter={StaticResource boolToVis}}"/>
-
+                                          Text="{Binding ServiceControl.ErrorForwardingQueueName}"
+                                          Visibility="{Binding ServiceControl.ShowErrorForwardingQueue, Converter={StaticResource boolToVis}}" />
+                                        
                     <controls:FormWarningTextBlock Grid.Column="0" 
                                            Grid.ColumnSpan="2"
                                            Grid.Row="2"

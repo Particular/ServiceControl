@@ -16,42 +16,24 @@ namespace ServiceControl.Config.UI.InstanceEdit
             DisplayName = "EDIT SERVICECONTROL AUDIT INSTANCE";
             ServiceControlInstance = instance;
             ServiceControlAudit.UpdateFromInstance(instance);
-            //ErrorQueueName = instance.ErrorQueue;
-            //ErrorForwardingQueueName = instance.ErrorLogQueue;
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
-            ErrorForwardingVisible = true; //TODO: To remove
-            RetentionPeriodsVisible = true; //TODO: To remove
         }
-
-        public bool ErrorForwardingVisible { get; set; }
-        public bool RetentionPeriodsVisible { get; set; }
 
         public ServiceControlAuditInstance ServiceControlInstance { get; set; }
 
         public bool DatabaseMaintenancePortNumberRequired => ServiceControlInstance.Version >= AuditInstanceSettingsList.DatabaseMaintenancePort.SupportedFrom;
 
         public string AuditQueueName { get; set; }
-        public string AuditForwardingQueueName { get; set; }
-        public ForwardingOption AuditForwarding { get; set; }
-        //public ForwardingOption ErrorForwarding { get; set; }
 
+        public string AuditForwardingQueueName { get; set; }
+
+        public ForwardingOption AuditForwarding { get; set; }
+        
         [AlsoNotifyFor("AuditForwarding")]
         public string AuditForwardingWarning => AuditForwarding != null && AuditForwarding.Value ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
 
-        //[AlsoNotifyFor("ErrorForwarding")]
-        //public string ErrorForwardingWarning => ErrorForwarding != null && ErrorForwarding.Value ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
-
-        //public bool ShowErrorForwardingCombo => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom;
-        //public int ErrorForwardingQueueColumn => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 0;
-        //public int ErrorForwardingQueueColumnSpan => ServiceControlInstance.Version >= SettingsList.ForwardErrorMessages.SupportedFrom ? 1 : 2;
-
-        public bool ShowAuditForwardingQueue
-        {
-            get { return AuditForwarding?.Value ?? false; }
-        }
-
-        public bool ShowErrorForwardingQueue => false;
+        public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
 
         public override void OnSelectedTransportChanged()
         {
@@ -67,8 +49,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.LogPath = ServiceControlAudit.LogPath;
             instance.AuditLogQueue = AuditForwardingQueueName;
             instance.AuditQueue = AuditQueueName;
-            //instance.ErrorQueue = ErrorQueueName;
-            //instance.ErrorLogQueue = ErrorForwardingQueueName;
             instance.ConnectionString = ConnectionString;
             instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControlAudit.DatabaseMaintenancePortNumber);
         }
