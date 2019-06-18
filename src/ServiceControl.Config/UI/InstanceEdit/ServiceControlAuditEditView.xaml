@@ -34,14 +34,14 @@
                                 Grid.Column="0"
                                 FontSize="13px"
                                 Foreground="{StaticResource Gray60Brush}"
-                                Text="NAME / WINDOWS SERVICE NAME" />
+                                Text="WINDOWS SERVICE NAME" />
 
                     <TextBlock Grid.Row="1"
                                 Grid.Column="0"
                                 Grid.ColumnSpan="2"
                                 VerticalAlignment="Center"
                                 FontSize="14px"
-                                Text="{Binding InstanceName}" />
+                                Text="{Binding ServiceControlAudit.InstanceName}" />
                 </Grid>
 
                 <GroupBox Header="USER ACCOUNT">

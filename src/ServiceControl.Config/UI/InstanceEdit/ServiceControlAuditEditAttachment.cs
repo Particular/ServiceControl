@@ -10,7 +10,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
     using ReactiveUI;
     using Validation;
 
-    class ServiceControlAuditEditAttachment : Attachment<ServiceControlEditViewModel>
+    class ServiceControlAuditEditAttachment : Attachment<ServiceControlAuditEditViewModel>
     {
         public ServiceControlAuditEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlAuditInstanceInstaller installer)
         {
@@ -70,9 +70,9 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.AuditLogQueue = viewModel.AuditForwardingQueueName;
             instance.AuditQueue = viewModel.AuditQueueName;
             instance.ForwardAuditMessages = viewModel.AuditForwarding.Value;
-            instance.ForwardErrorMessages = viewModel.ErrorForwarding.Value;
-            instance.ErrorQueue = viewModel.ErrorQueueName;
-            instance.ErrorLogQueue = viewModel.ErrorForwardingQueueName;
+            //instance.ForwardErrorMessages = viewModel.ErrorForwarding.Value;
+            //instance.ErrorQueue = viewModel.ErrorQueueName;
+            //instance.ErrorLogQueue = viewModel.ErrorForwardingQueueName;
             instance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
             instance.TransportPackage = viewModel.SelectedTransport;
             instance.ConnectionString = viewModel.ConnectionString;
