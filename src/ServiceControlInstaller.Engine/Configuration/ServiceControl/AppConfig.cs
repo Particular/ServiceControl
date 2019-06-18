@@ -21,23 +21,23 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
             var settings = Config.AppSettings.Settings;
             var version = details.Version;
-            settings.Set(SettingsList.VirtualDirectory, details.VirtualDirectory);
-            settings.Set(SettingsList.Port, details.Port.ToString());
-            settings.Set(SettingsList.DatabaseMaintenancePort, details.DatabaseMaintenancePort.ToString(), version);
-            settings.Set(SettingsList.HostName, details.HostName);
-            settings.Set(SettingsList.LogPath, details.LogPath);
-            settings.Set(SettingsList.DBPath, details.DBPath);
-            settings.Set(SettingsList.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
-            settings.Set(SettingsList.TransportType, details.TransportPackage.TypeName, version);
-            settings.Set(SettingsList.ErrorQueue, details.ErrorQueue);
-            settings.Set(SettingsList.ErrorLogQueue, details.ErrorLogQueue);
-            settings.Set(SettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
-            settings.Set(SettingsList.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
+            settings.Set(ServiceControlSettings.VirtualDirectory, details.VirtualDirectory);
+            settings.Set(ServiceControlSettings.Port, details.Port.ToString());
+            settings.Set(ServiceControlSettings.DatabaseMaintenancePort, details.DatabaseMaintenancePort.ToString(), version);
+            settings.Set(ServiceControlSettings.HostName, details.HostName);
+            settings.Set(ServiceControlSettings.LogPath, details.LogPath);
+            settings.Set(ServiceControlSettings.DBPath, details.DBPath);
+            settings.Set(ServiceControlSettings.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
+            settings.Set(ServiceControlSettings.TransportType, details.TransportPackage.TypeName, version);
+            settings.Set(ServiceControlSettings.ErrorQueue, details.ErrorQueue);
+            settings.Set(ServiceControlSettings.ErrorLogQueue, details.ErrorLogQueue);
+            settings.Set(ServiceControlSettings.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
+            settings.Set(ServiceControlSettings.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
 
             // Retired settings
-            settings.RemoveIfRetired(SettingsList.AuditQueue, version);
-            settings.RemoveIfRetired(SettingsList.AuditLogQueue, version);
-            settings.RemoveIfRetired(SettingsList.ForwardAuditMessages, version);
+            settings.RemoveIfRetired(ServiceControlSettings.AuditQueue, version);
+            settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
+            settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
 
             // Add Settings for performance tuning
             // See https://github.com/Particular/ServiceControl/issues/655
