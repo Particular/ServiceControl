@@ -11,7 +11,6 @@
     using Framework;
     using Framework.Rx;
     using ReactiveUI;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
     class ServiceControlAdvancedViewModel : RxProgressScreen, IHandle<RefreshInstances>
