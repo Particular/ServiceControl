@@ -45,7 +45,6 @@
 
   <ItemGroup>
     <None Remove="App.ico" />
-    <None Remove="UI\InstanceEdit\ServiceControlAuditEditView.xaml" />
     <Resource Include="App.ico" />
   </ItemGroup>
 
