@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.UnitTests.Validation
+namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -37,9 +37,7 @@
             var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                AuditLogQueue = "auditlog",
                 ErrorLogQueue = "errorlog",
-                AuditQueue = "audit",
                 ErrorQueue = "error"
             };
 
@@ -56,9 +54,7 @@
             var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                AuditLogQueue = "audit",
                 ErrorLogQueue = "error",
-                AuditQueue = "audit",
                 ErrorQueue = "error"
             };
 
@@ -77,9 +73,7 @@
             var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                AuditLogQueue = "auditlog2",
                 ErrorLogQueue = "errorlog2",
-                AuditQueue = "audit2",
                 ErrorQueue = "error2"
             };
 
@@ -93,12 +87,11 @@
         [Test]
         public void CheckQueueNamesAreNotTakenByAnotherInstance_ShouldThrow()
         {
+            var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
             var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                AuditLogQueue = "auditlog",
                 ErrorLogQueue = "errorlog",
-                AuditQueue = "audit",
                 ErrorQueue = "error"
             };
 
@@ -107,8 +100,9 @@
                 SCInstances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue"));
+            Assert.That(ex.Message, Does.Contain(expectedError));
 
+            expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
             // null queues will default to default names
             p = new QueueNameValidator(new ServiceControlNewInstance())
             {
@@ -116,18 +110,18 @@
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-            Assert.That(ex.Message, Does.Contain("The queue name for ErrorQueue is already assigned to another ServiceControl instance"));
+            Assert.That(ex.Message, Does.Contain(expectedError));
         }
 
         [Test]
         public void DuplicateQueueNamesAreAllowedOnDifferentTransports_ShouldNotThrow()
         {
+            var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
+
             var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology),
-                AuditLogQueue = "auditlog",
                 ErrorLogQueue = "errorlog",
-                AuditQueue = "audit",
                 ErrorQueue = "error"
             };
 
@@ -136,8 +130,9 @@
                 SCInstances = instances
             };
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-            Assert.That(ex.Message, Does.Contain("Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue"));
+            Assert.That(ex.Message, Does.Contain(expectedError));
 
+            expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
             // null queues will default to default names
             p = new QueueNameValidator(new ServiceControlNewInstance())
             {
@@ -145,7 +140,7 @@
             };
 
             ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-            Assert.That(ex.Message, Does.Contain("The queue name for ErrorQueue is already assigned to another ServiceControl instance"));
+            Assert.That(ex.Message, Does.Contain(expectedError));
         }
 
         [Test]
@@ -154,8 +149,6 @@
             var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology),
-                AuditQueue = "RMQaudit",
-                AuditLogQueue = "RMQauditlog",
                 ErrorQueue = "RMQerror",
                 ErrorLogQueue = "RMQerrorlog",
                 ConnectionString = "afakeconnectionstring"

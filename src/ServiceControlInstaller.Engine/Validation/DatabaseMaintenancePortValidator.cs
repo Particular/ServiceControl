@@ -1,17 +1,11 @@
 ﻿namespace ServiceControlInstaller.Engine.Validation
 {
-    using Configuration.ServiceControl;
     using Ports;
 
     public class DatabaseMaintenancePortValidator
     {
         public static void Validate(IDatabaseMaintenanceSupport instance)
         {
-            if (instance.Version < SettingsList.DatabaseMaintenancePort.SupportedFrom)
-            {
-                return;
-            }
-
             if (!instance.DatabaseMaintenancePort.HasValue)
             {
                 throw new EngineValidationException("Maintenance port number is not set");

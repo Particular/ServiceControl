@@ -10,9 +10,9 @@ namespace ServiceControl.Config.UI.InstanceEdit
     using ReactiveUI;
     using Validation;
 
-    class ServiceControlEditAttachment : Attachment<ServiceControlEditViewModel>
+    class ServiceControlAuditEditAttachment : Attachment<ServiceControlAuditEditViewModel>
     {
-        public ServiceControlEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
+        public ServiceControlAuditEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlAuditInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.installer = installer;
@@ -59,18 +59,17 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             viewModel.InProgress = true;
 
-            instance.LogPath = viewModel.ServiceControl.LogPath;
-            instance.ServiceAccount = viewModel.ServiceControl.ServiceAccount;
-            instance.ServiceAccountPwd = viewModel.ServiceControl.Password;
-            instance.Description = viewModel.ServiceControl.Description;
-            instance.HostName = viewModel.ServiceControl.HostName;
-            instance.Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber);
-            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.ServiceControl.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber) : (int?)null;
-            instance.VirtualDirectory = null;
-            instance.ForwardErrorMessages = viewModel.ErrorForwarding.Value;
-            instance.ErrorQueue = viewModel.ErrorQueueName;
-            instance.ErrorLogQueue = viewModel.ErrorForwardingQueueName;
-            instance.ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod;
+            instance.LogPath = viewModel.ServiceControlAudit.LogPath;
+            instance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
+            instance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
+            instance.Description = viewModel.ServiceControlAudit.Description;
+            instance.HostName = viewModel.ServiceControlAudit.HostName;
+            instance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
+            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber) : (int?)null;
+            instance.AuditLogQueue = viewModel.ServiceControlAudit.AuditForwardingQueueName;
+            instance.AuditQueue = viewModel.ServiceControlAudit.AuditQueueName;
+            instance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;
+            instance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
             instance.TransportPackage = viewModel.SelectedTransport;
             instance.ConnectionString = viewModel.ConnectionString;
 
@@ -98,6 +97,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
         readonly IWindowManagerEx windowManager;
         readonly IEventAggregator eventAggregator;
-        readonly ServiceControlInstanceInstaller installer;
+        readonly ServiceControlAuditInstanceInstaller installer;
     }
 }

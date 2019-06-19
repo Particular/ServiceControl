@@ -1,4 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace ServiceControlInstaller.Engine.Instances
 {
@@ -37,6 +37,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public override string DirectoryName => "ServiceControl";
 
+        [XmlElement(typeof(XmlTimeSpan))]
+        public TimeSpan AuditRetentionPeriod { get; set; } = TimeSpan.FromHours(1);
         [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan ErrorRetentionPeriod { get; set; }
 
@@ -116,6 +118,8 @@ namespace ServiceControlInstaller.Engine.Instances
             var zipInfo = ServiceControlZipInfo.Find(appDirectory);
             Version = zipInfo.Version;
         }
+
+        public string ServiceControlQueueAddress { get; set; }
 
         public override void WriteConfigurationFile()
         {

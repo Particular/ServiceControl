@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.Validation
+namespace ServiceControlInstaller.Engine.Validation
 {
     using System;
     using System.Collections.Generic;
@@ -20,7 +20,7 @@
 
         internal QueueNameValidator(IServiceControlAuditInstance instance) : this()
         {
-            DetermineServiceControlAuditQueueNames(instance.AuditQueue, instance.AuditLogQueue, instance.ConnectionString);
+            DetermineAuditQueueNames(instance.AuditQueue, instance.AuditLogQueue, instance.ConnectionString);
         }
 
         public static void Validate(IServiceControlInstance instance)
@@ -45,7 +45,7 @@
             validator.RunValidation();
         }
 
-        void DetermineServiceControlAuditQueueNames(string audit, string auditLog, string connectionString)
+        void DetermineAuditQueueNames(string audit, string auditLog, string connectionString)
         {
             var auditQueueInfo = new QueueInfo
             {

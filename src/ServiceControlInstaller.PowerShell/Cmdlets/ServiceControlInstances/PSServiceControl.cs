@@ -24,10 +24,6 @@ namespace ServiceControlInstaller.PowerShell
 
         public string ErrorQueue { get; set; }
         public string ErrorLogQueue { get; set; }
-
-        public string AuditQueue { get; set; }
-        public string AuditLogQueue { get; set; }
-        public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
 
         public string ServiceAccount { get; set; }
@@ -48,14 +44,12 @@ namespace ServiceControlInstaller.PowerShell
                 DBPath = instance.DBPath,
                 TransportPackageName = instance.TransportPackage.Name,
                 ConnectionString = instance.ConnectionString,
-                AuditQueue = instance.AuditQueue,
-                AuditLogQueue = instance.AuditLogQueue,
                 ErrorQueue = instance.ErrorQueue,
                 ErrorLogQueue = instance.ErrorLogQueue,
-                ForwardAuditMessages = instance.ForwardAuditMessages,
                 ServiceAccount = instance.ServiceAccount,
                 Version = instance.Version,
-                ForwardErrorMessages = instance.Version < SettingsList.ForwardErrorMessages.SupportedFrom || instance.ForwardErrorMessages
+                //TODO: Do we need the version check here?
+                ForwardErrorMessages = instance.Version < ServiceControlSettings.ForwardErrorMessages.SupportedFrom || instance.ForwardErrorMessages
             };
             return result;
         }

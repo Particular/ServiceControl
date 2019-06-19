@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.UI.InstanceAdd
+namespace ServiceControl.Config.UI.InstanceAdd
 {
     using System;
     using System.Threading.Tasks;
@@ -93,7 +93,8 @@
                 ConnectionString = viewModel.ConnectionString,
                 AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod,
                 ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
-                ServiceAccountPwd = viewModel.ServiceControlAudit.Password
+                ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
+                ServiceControlQueueAddress = serviceControlNewInstance.Name
             };
 
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))

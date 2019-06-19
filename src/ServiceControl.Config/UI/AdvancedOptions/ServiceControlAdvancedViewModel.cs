@@ -46,8 +46,8 @@
         public ICommand StartServiceInMaintenanceModeCommand { get; set; }
         public ICommand StopMaintenanceModeCommand { get; set; }
 
-        public bool MaintenanceModeSupported => ServiceControlInstance.Version >= SettingsList.MaintenanceMode.SupportedFrom;
-
+        public bool MaintenanceModeSupported => ServiceControlInstance.Version >= ServiceControlSettings.MaintenanceMode.SupportedFrom;
+        
         public ICommand DeleteCommand { get; set; }
 
         public ICommand Cancel { get; set; }

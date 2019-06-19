@@ -19,8 +19,8 @@
     {
         public InstanceDetailsViewModel(
             BaseService instance,
-            //EditServiceControlAuditInstanceCommand showEditServiceControlEditScreenCommand,
-            //EditServiceControlInstanceCommand showEditServiceControlScreenCommand,
+            EditServiceControlAuditInstanceCommand showAuditEditScreenCommand,
+            EditServiceControlInstanceCommand showServiceControlEditScreenCommand,
             EditMonitoringInstanceCommand showEditMonitoringScreenCommand,
             UpgradeServiceControlInstanceCommand upgradeServiceControlCommand,
             UpgradeMonitoringInstanceCommand upgradeMonitoringCommand,
@@ -37,13 +37,11 @@
 
             ServiceInstance = instance;
 
-            //TODO: Disable edit for old versions
-            //TOOD: Add new edit VMs
             if (instance.GetType() == typeof(ServiceControlInstance))
             {
                 ServiceControlInstance = (ServiceControlInstance)instance;
                 NewVersion = serviceControlinstaller.ZipInfo.Version;
-                //EditCommand = showEditServiceControlScreenCommand;
+                EditCommand = showServiceControlEditScreenCommand;
                 UpgradeToNewVersionCommand = upgradeServiceControlCommand;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
                 InstanceType = InstanceType.ServiceControl;
@@ -65,7 +63,7 @@
             {
                 ServiceControlAuditInstance = (ServiceControlAuditInstance)instance;
                 NewVersion = serviceControlAuditInstaller.ZipInfo.Version;
-                //EditCommand = showEditServiceControlEditScreenCommand;
+                EditCommand = showAuditEditScreenCommand;
                 UpgradeToNewVersionCommand = null;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
                 InstanceType = InstanceType.ServiceControlAudit;

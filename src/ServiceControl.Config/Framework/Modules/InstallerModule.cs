@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.Framework.Modules
+namespace ServiceControl.Config.Framework.Modules
 {
     using System;
     using System.IO;
@@ -45,8 +45,7 @@
 
         protected override void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
         {
-            //TODO: Do we need to upgrade? or leave blank.
-            //upgradeOptions.ApplyChangesToInstance((ServiceControlAuditInstance) instance);
+            //No op. We don't have anything to upgrade yet.
         }
     }
 
@@ -141,7 +140,7 @@
         {
         }
 
-        internal ReportCard Update(ServiceControlInstance instance, bool startService)
+        internal ReportCard Update(ServiceControlBaseService instance, bool startService)
         {
             try
             {

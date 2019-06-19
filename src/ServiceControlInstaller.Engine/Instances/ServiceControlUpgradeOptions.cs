@@ -35,8 +35,6 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             instance.SkipQueueCreation = SkipQueueCreation;
-
-            instance.ApplyConfigChange();
         }
     }
 }

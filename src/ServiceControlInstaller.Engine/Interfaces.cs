@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine
+namespace ServiceControlInstaller.Engine
 {
     using System;
     using Instances;
@@ -78,6 +78,7 @@
         string VirtualDirectory { get; }
         bool ForwardAuditMessages { get; }
         TimeSpan AuditRetentionPeriod { get; }
+        string ServiceControlQueueAddress { get; set; }
     }
 
     public interface IServiceControlInstance : IServiceInstance, IServiceControlPaths, IHttpInstance, IURLInfo, IInstallable, IDatabaseMaintenanceSupport, ITransportConfig
@@ -87,5 +88,6 @@
         string VirtualDirectory { get; }
         bool ForwardErrorMessages { get; }
         TimeSpan ErrorRetentionPeriod { get; }
+        TimeSpan AuditRetentionPeriod { get; set; }
     }
 }
