@@ -11,6 +11,8 @@
     using Framework;
     using Framework.Rx;
     using ReactiveUI;
+    using ServiceControlInstaller.Engine.Configuration.Monitoring;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
     class ServiceControlAdvancedViewModel : RxProgressScreen, IHandle<RefreshInstances>
@@ -45,8 +47,8 @@
         public ICommand StartServiceInMaintenanceModeCommand { get; set; }
         public ICommand StopMaintenanceModeCommand { get; set; }
 
-        public bool MaintenanceModeSupported => true;
-
+        public bool MaintenanceModeSupported => ServiceControlInstance.Version >= ServiceControlSettings.MaintenanceMode.SupportedFrom;
+        
         public ICommand DeleteCommand { get; set; }
 
         public ICommand Cancel { get; set; }
