@@ -151,7 +151,7 @@
                 }
             }
 
-            if (!instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.DatabaseMaintenancePort.Name))
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.DatabaseMaintenancePort.Name))
             {
                 var viewModel = new TextBoxDialogViewModel("INPUT REQUIRED - MAINTENANCE PORT",
                     "When Service Control is set to maintenance mode it requires a prereserved port on which it exposes the RavenDB database.",
