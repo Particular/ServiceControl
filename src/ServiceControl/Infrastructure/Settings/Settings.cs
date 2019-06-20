@@ -141,7 +141,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
         }
 
-        public TimeSpan AuditRetentionPeriod { get; }
+        public TimeSpan? AuditRetentionPeriod { get; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
 
@@ -390,15 +390,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return result;
         }
 
-        TimeSpan GetAuditRetentionPeriod()
+        TimeSpan? GetAuditRetentionPeriod()
         {
             string message;
             var valueRead = SettingsReader<string>.Read("AuditRetentionPeriod");
             if (valueRead == null)
             {
-                message = "AuditRetentionPeriod settings is missing, please make sure it is included.";
-                logger.Fatal(message);
-                throw new Exception(message);
+                return null;
             }
 
             if (TimeSpan.TryParse(valueRead, out var result))

@@ -35,7 +35,7 @@
   "IngestErrorMessages": true,
   "RunRetryProcessor": true,
   "ExpirationProcessTimerInSeconds": 600,
-  "AuditRetentionPeriod": "10.00:00:00",
+  "AuditRetentionPeriod": null,
   "ErrorRetentionPeriod": "10.00:00:00",
   "EventsRetentionPeriod": "14.00:00:00",
   "ExpirationProcessBatchSize": 65512,
