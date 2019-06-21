@@ -21,6 +21,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
+        public RemoteInstanceSetting[] RemoteInstances { get; set; }
+
         protected override string GetTransportTypeSetting()
         {
             return AppConfig.Read(ServiceControlSettings.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
@@ -102,6 +104,12 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
+
+            var remoteInstancesString = AppConfig.Read(ServiceControlSettings.RemoteInstances, default(string));
+            if (!string.IsNullOrWhiteSpace(remoteInstancesString))
+            {
+                RemoteInstances = RemoteInstanceConverter.FromJson(remoteInstancesString);
+            }
         }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
@@ -129,6 +137,20 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.ErrorQueue, ErrorQueue);
             settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
+
+            if (RemoteInstances != null)
+            {
+                if (Compatibility.RemoteInstancesDoNotNeedQueueAddress.SupportedFrom <= Version)
+                {
+
+                    foreach (var instance in RemoteInstances)
+                    {
+                        instance.QueueAddress = null;
+                    }
+                }
+
+                settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(RemoteInstances), Version);
+            }
         }
 
         protected override void SetMaintenanceMode(bool isEnabled)
