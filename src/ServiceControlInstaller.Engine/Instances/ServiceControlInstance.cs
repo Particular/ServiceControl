@@ -120,12 +120,15 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.Port, Port.ToString());
             settings.Set(ServiceControlSettings.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString(), Version);
             settings.Set(ServiceControlSettings.LogPath, LogPath);
-            settings.Set(ServiceControlSettings.ForwardAuditMessages, ForwardAuditMessages.ToString());
+            settings.Set(ServiceControlSettings.ForwardAuditMessages, ForwardAuditMessages.ToString(), Version);
             settings.Set(ServiceControlSettings.ForwardErrorMessages, ForwardErrorMessages.ToString(), Version);
-            settings.Set(ServiceControlSettings.AuditRetentionPeriod, TimeSpan.FromHours(1).ToString()); //TODO: Remove in future
+            settings.Set(ServiceControlSettings.AuditRetentionPeriod, TimeSpan.FromHours(1).ToString(), Version); //TODO: Remove in future
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), Version);
             settings.RemoveIfRetired(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring, Version);
+            settings.Set(ServiceControlSettings.AuditQueue, AuditQueue, Version);
             settings.Set(ServiceControlSettings.ErrorQueue, ErrorQueue);
+            settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
+            settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
         }
 
         protected override void SetMaintenanceMode(bool isEnabled)
