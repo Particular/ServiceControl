@@ -41,6 +41,9 @@ New-Alias -Value Add-UrlAcl -Name  urlacl-add
 New-Alias -Value Remove-UrlAcl -Name  urlacl-delete
 New-Alias -Value Get-ServiceControlTransportTypes -Name  sc-transportsinfo
 New-Alias -Value Get-ServiceControlMgmtCommands -Name  sc-help
+New-Alias -Value Get-ServiceControlRemotes -Name sc-remotes
+New-Alias -Value Add-ServiceControlRemote -Name sc-addremote
+New-Alias -Value Remove-ServiceControlRemote -Name sc-deleteremote
 
 Export-ModuleMember * -Alias * 
 
