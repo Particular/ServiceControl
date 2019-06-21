@@ -97,7 +97,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             return true;
         }
 
-        public bool Upgrade(ServiceControlBaseService instance, ServiceControlUpgradeOptions options)
+        public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
             if (instance.Version < options.UpgradeInfo.CurrentMinimumVersion)
             {
@@ -325,10 +325,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             {
                 foreach (var remoteInstanceAddress in remoteInstanceAddresses)
                 {
-                    instance.RemoteInstances.Add(new RemoteInstanceSetting
-                    {
-                        ApiUri = remoteInstanceAddress
-                    });
+                    instance.AddRemoteInstance(remoteInstanceAddress);
                 }
 
                 instance.ApplyConfigChange();

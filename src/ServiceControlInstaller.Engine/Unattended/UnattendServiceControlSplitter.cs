@@ -55,7 +55,8 @@
             log.Info($"Upgrading existing instance {instance.Name}...");
             var serviceControlUpgradeOptions = new ServiceControlUpgradeOptions
             {
-                UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version)
+                UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version), 
+                RemoteUrl = newAuditInstance.Url
             };
 
             if (!serviceControlInstaller.Upgrade(instance, serviceControlUpgradeOptions))
