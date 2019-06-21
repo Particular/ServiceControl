@@ -65,5 +65,11 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "ServiceControl/MaintenanceMode",
             SupportedFrom = new Version(1, 18, 1)
         };
+
+        public static SettingInfo RemoteInstances = new SettingInfo
+        {
+            Name = "ServiceControl/RemoteInstances",
+            SupportedFrom = new Version(1, 47, 0)
+        };
     }
 }
