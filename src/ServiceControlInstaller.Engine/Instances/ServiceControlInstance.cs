@@ -23,6 +23,17 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
 
+        public void AddRemoteInstance(string apiUri)
+        {
+            if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))
+            {
+                RemoteInstances.Add(new RemoteInstanceSetting
+                {
+                    ApiUri = apiUri
+                });
+            }
+        }
+
         protected override string GetTransportTypeSetting()
         {
             return AppConfig.Read(ServiceControlSettings.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();

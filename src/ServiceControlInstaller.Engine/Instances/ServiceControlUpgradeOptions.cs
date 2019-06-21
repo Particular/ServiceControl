@@ -11,8 +11,9 @@ namespace ServiceControlInstaller.Engine.Instances
         public int? MaintenancePort { get; set; }
         public bool SkipQueueCreation { get; set; }
         public UpgradeInfo UpgradeInfo { get; set; }
+        public string RemoteUrl { get; set; }
 
-        public void ApplyChangesToInstance(ServiceControlBaseService instance)
+        public void ApplyChangesToInstance(ServiceControlInstance instance)
         {
             if (OverrideEnableErrorForwarding.HasValue)
             {
@@ -32,6 +33,11 @@ namespace ServiceControlInstaller.Engine.Instances
             if (MaintenancePort.HasValue)
             {
                 instance.DatabaseMaintenancePort = MaintenancePort;
+            }
+
+            if (string.IsNullOrWhiteSpace(RemoteUrl) == false)
+            {
+                instance.AddRemoteInstance(RemoteUrl);
             }
 
             instance.SkipQueueCreation = SkipQueueCreation;
