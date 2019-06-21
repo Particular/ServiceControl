@@ -21,7 +21,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
-        public RemoteInstanceSetting[] RemoteInstances { get; set; }
+        public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
 
         protected override string GetTransportTypeSetting()
         {

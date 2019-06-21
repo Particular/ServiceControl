@@ -1,16 +1,17 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
+    using System.Collections.Generic;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
 
     public static class RemoteInstanceConverter
     {
-        public static RemoteInstanceSetting[] FromJson(string json)
+        public static List<RemoteInstanceSetting> FromJson(string json)
         {
-            return JsonConvert.DeserializeObject<RemoteInstanceSetting[]>(json, Settings);
+            return JsonConvert.DeserializeObject<List<RemoteInstanceSetting>>(json, Settings);
         }
 
-        public static string ToJson(RemoteInstanceSetting[] settings)
+        public static string ToJson(List<RemoteInstanceSetting> settings)
         {
             return JsonConvert.SerializeObject(settings, Settings);
         }
