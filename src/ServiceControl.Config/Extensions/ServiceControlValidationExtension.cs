@@ -23,6 +23,20 @@
                 .ToList();
         }
 
+        public static List<string> UsedPaths(this ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlAuditInstances, string instanceName = null)
+        {
+            return ServiceControlAuditInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
+                    p.DBPath,
+                    p.LogPath,
+                    p.InstallPath
+                })
+                .Distinct()
+                .ToList();
+        }
+
         // We need this to ignore the instance that represents the edit screen
         public static List<string> UsedQueueNames(this ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances, TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {

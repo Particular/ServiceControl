@@ -12,6 +12,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool SkipQueueCreation { get; set; }
         public UpgradeInfo UpgradeInfo { get; set; }
         public string RemoteUrl { get; set; }
+        public bool InstallNewAuditSidecar { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlInstance instance)
         {
