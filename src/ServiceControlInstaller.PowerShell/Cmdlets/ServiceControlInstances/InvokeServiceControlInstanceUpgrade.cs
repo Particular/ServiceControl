@@ -50,7 +50,7 @@ namespace ServiceControlInstaller.PowerShell
                     SkipQueueCreation = SkipQueueCreation,
                     MaintenancePort = DatabaseMaintenancePort == 0 ? (int?)null : DatabaseMaintenancePort
                 };
-                var instance = InstanceFinder.FindServiceControlInstance(name);
+                var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(name);
                 if (instance == null)
                 {
                     WriteWarning($"No action taken. An instance called {name} was not found");

@@ -156,6 +156,6 @@ namespace ServiceControlInstaller.Engine.Instances
             return AppConfig.RavenDataPaths();
         }
 
-        new ServiceControlAppConfig AppConfig => (ServiceControlAppConfig)base.AppConfig;
+        public new ServiceControlAppConfig AppConfig => (ServiceControlAppConfig)base.AppConfig;
     }
 }

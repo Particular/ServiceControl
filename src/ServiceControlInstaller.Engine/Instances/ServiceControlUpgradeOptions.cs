@@ -11,8 +11,9 @@ namespace ServiceControlInstaller.Engine.Instances
         public int? MaintenancePort { get; set; }
         public bool SkipQueueCreation { get; set; }
         public UpgradeInfo UpgradeInfo { get; set; }
+        public bool InstallNewAuditSidecar { get; set; }
 
-        public void ApplyChangesToInstance(ServiceControlBaseService instance)
+        public void ApplyChangesToInstance(ServiceControlInstance instance)
         {
             if (OverrideEnableErrorForwarding.HasValue)
             {
