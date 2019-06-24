@@ -17,7 +17,6 @@
             config.AppSettings.Settings.Add("ServiceControl/RemoteInstances", "[{'api_uri':'http://instance1'},{'api_uri':'http://instance2'}]'");
             // Various mandatory settings
             config.AppSettings.Settings.Add("ServiceControl/ForwardErrorMessages", "false");
-            config.AppSettings.Settings.Add("ServiceControl/AuditRetentionPeriod", 1.ToString());
             config.AppSettings.Settings.Add("ServiceControl/ErrorRetentionPeriod", 10.ToString());
             config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");

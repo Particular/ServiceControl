@@ -47,7 +47,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public const string Disabled = "!disable";
         public Settings(string serviceName = null) { }
         public string ApiUrl { get; }
-        public System.TimeSpan AuditRetentionPeriod { get; }
+        public System.Nullable<System.TimeSpan> AuditRetentionPeriod { get; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
         public int DataSpaceRemainingThreshold { get; set; }
