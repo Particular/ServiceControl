@@ -164,7 +164,7 @@ namespace Particular.ServiceControl
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Version:             {version}
-Audit Retention Period (optional):             {settings.AuditRetentionPeriod}
+Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
