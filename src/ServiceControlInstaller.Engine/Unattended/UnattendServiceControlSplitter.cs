@@ -138,7 +138,7 @@
                 HostName = source.HostName,
                 Name = $"{source.Name}.Audit",
                 ServiceAccount = source.Service.Account,
-                // NOTE: This should always be blank
+                // NOTE: The password should always be blank, as we don't read it back
                 ServiceAccountPwd = source.ServiceAccountPwd,
                 DisplayName = $"{source.Service.DisplayName}.Audit",
                 ServiceDescription = $"{source.Service.Description} (Audit)",
