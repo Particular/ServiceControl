@@ -21,6 +21,19 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
+        public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
+
+        public void AddRemoteInstance(string apiUri)
+        {
+            if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))
+            {
+                RemoteInstances.Add(new RemoteInstanceSetting
+                {
+                    ApiUri = apiUri
+                });
+            }
+        }
+
         protected override string GetTransportTypeSetting()
         {
             return AppConfig.Read(ServiceControlSettings.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
@@ -102,6 +115,12 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditRetentionPeriod = auditRetentionPeriod;
             }
+
+            var remoteInstancesString = AppConfig.Read(ServiceControlSettings.RemoteInstances, default(string));
+            if (!string.IsNullOrWhiteSpace(remoteInstancesString))
+            {
+                RemoteInstances = RemoteInstanceConverter.FromJson(remoteInstancesString);
+            }
         }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
@@ -120,12 +139,29 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.Port, Port.ToString());
             settings.Set(ServiceControlSettings.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString(), Version);
             settings.Set(ServiceControlSettings.LogPath, LogPath);
-            settings.Set(ServiceControlSettings.ForwardAuditMessages, ForwardAuditMessages.ToString());
+            settings.Set(ServiceControlSettings.ForwardAuditMessages, ForwardAuditMessages.ToString(), Version);
             settings.Set(ServiceControlSettings.ForwardErrorMessages, ForwardErrorMessages.ToString(), Version);
-            settings.Set(ServiceControlSettings.AuditRetentionPeriod, TimeSpan.FromHours(1).ToString()); //TODO: Remove in future
+            settings.Set(ServiceControlSettings.AuditRetentionPeriod, TimeSpan.FromHours(1).ToString(), Version); //TODO: Remove in future
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), Version);
             settings.RemoveIfRetired(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring, Version);
+            settings.Set(ServiceControlSettings.AuditQueue, AuditQueue, Version);
             settings.Set(ServiceControlSettings.ErrorQueue, ErrorQueue);
+            settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
+            settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
+
+            if (RemoteInstances != null)
+            {
+                if (Compatibility.RemoteInstancesDoNotNeedQueueAddress.SupportedFrom <= Version)
+                {
+
+                    foreach (var instance in RemoteInstances)
+                    {
+                        instance.QueueAddress = null;
+                    }
+                }
+
+                settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(RemoteInstances), Version);
+            }
         }
 
         protected override void SetMaintenanceMode(bool isEnabled)

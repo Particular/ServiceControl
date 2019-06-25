@@ -20,6 +20,8 @@ if (!$requiredDLL) {
 
 New-Alias -Value Get-ServiceControlInstances -Name sc-instances 
 New-Alias -Value Invoke-ServiceControlInstanceUpgrade -Name  sc-upgrade 
+New-Alias -Value Invoke-ServiceControlInstanceConvert -Name sc-convert
+New-Alias -Value Invoke-ServiceControlInstanceSplit -Name sc-split
 New-Alias -Value Remove-ServiceControlInstance -Name  sc-delete 
 New-Alias -Value New-ServiceControlInstance -Name  sc-add 
 New-Alias -Value Get-MonitoringInstances -Name mon-instances 
@@ -39,6 +41,9 @@ New-Alias -Value Add-UrlAcl -Name  urlacl-add
 New-Alias -Value Remove-UrlAcl -Name  urlacl-delete
 New-Alias -Value Get-ServiceControlTransportTypes -Name  sc-transportsinfo
 New-Alias -Value Get-ServiceControlMgmtCommands -Name  sc-help
+New-Alias -Value Get-ServiceControlRemotes -Name sc-remotes
+New-Alias -Value Add-ServiceControlRemote -Name sc-addremote
+New-Alias -Value Remove-ServiceControlRemote -Name sc-deleteremote
 
 Export-ModuleMember * -Alias * 
 
