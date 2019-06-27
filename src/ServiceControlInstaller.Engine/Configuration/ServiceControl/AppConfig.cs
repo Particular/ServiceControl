@@ -9,8 +9,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 
     public class ServiceControlAppConfig : AppConfig
     {
-        IServiceControlInstance details;
-
         public ServiceControlAppConfig(IServiceControlInstance instance) : base(Path.Combine(instance.InstallPath, $"{Constants.ServiceControlExe}.config"))
         {
             details = instance;
@@ -47,21 +45,22 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             }
         }
 
-        public void EnableMaintenanceMode()
+
+        public override void EnableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
             settings.Set(ServiceControlSettings.MaintenanceMode, Boolean.TrueString, details.Version);
             Config.Save();
         }
 
-        public void DisableMaintenanceMode()
+        public override void DisableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
             settings.Remove(ServiceControlSettings.MaintenanceMode.Name);
             Config.Save();
         }
 
-        public IEnumerable<string> RavenDataPaths()
+        public override IEnumerable<string> RavenDataPaths()
         {
             string[] keys =
             {
@@ -85,12 +84,12 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
                     : folderpath;
             }
         }
+
+        IServiceControlInstance details;
     }
 
     public class ServiceControlAuditAppConfig : AppConfig
     {
-        IServiceControlAuditInstance details;
-
         public ServiceControlAuditAppConfig(IServiceControlAuditInstance instance) : base(Path.Combine(instance.InstallPath, $"{Constants.ServiceControlAuditExe}.config"))
         {
             details = instance;
@@ -121,21 +120,22 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             }
         }
 
-        public void EnableMaintenanceMode()
+
+        public override void EnableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
-            settings.Set(AuditInstanceSettingsList.MaintenanceMode, Boolean.TrueString, details.Version);
+            settings.Set(AuditInstanceSettingsList.MaintenanceMode, bool.TrueString, details.Version);
             Config.Save();
         }
 
-        public void DisableMaintenanceMode()
+        public override void DisableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
             settings.Remove(AuditInstanceSettingsList.MaintenanceMode.Name);
             Config.Save();
         }
 
-        public IEnumerable<string> RavenDataPaths()
+        public override IEnumerable<string> RavenDataPaths()
         {
             string[] keys =
             {
@@ -159,6 +159,8 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
                     : folderpath;
             }
         }
+
+        IServiceControlAuditInstance details;
     }
 
     public abstract class AppConfig : AppConfigWrapper
@@ -175,6 +177,14 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 
             Config.Save();
         }
+
+
+        public abstract void EnableMaintenanceMode();
+
+        public abstract void DisableMaintenanceMode();
+
+        public abstract IEnumerable<string> RavenDataPaths();
+
 
         void UpdateRuntimeSection()
         {

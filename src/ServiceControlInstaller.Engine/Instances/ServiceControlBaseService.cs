@@ -330,21 +330,23 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected abstract AppConfig CreateAppConfig();
 
-        public virtual void DisableMaintenanceMode()
-        {
-        }
-
         public virtual void EnableMaintenanceMode()
         {
+            AppConfig = CreateAppConfig();
+            AppConfig.EnableMaintenanceMode();
+            InMaintenanceMode = true;
+        }
+
+        public virtual void DisableMaintenanceMode()
+        {
+            AppConfig = CreateAppConfig();
+            AppConfig.DisableMaintenanceMode();
+            InMaintenanceMode = false;
         }
 
         protected virtual IEnumerable<string> GetDatabaseIndexes()
         {
             return Enumerable.Empty<string>();
-        }
-
-        protected virtual void SetMaintenanceMode(bool isEnabled)
-        {
         }
 
         protected virtual void ValidateConnectionString()

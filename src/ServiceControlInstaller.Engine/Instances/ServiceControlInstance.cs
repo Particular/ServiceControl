@@ -163,23 +163,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(RemoteInstances), Version);
             }
         }
-
-        protected override void SetMaintenanceMode(bool isEnabled)
-        {
-            base.AppConfig = CreateAppConfig();
-
-            if (isEnabled)
-            {
-                AppConfig.EnableMaintenanceMode();
-            }
-            else
-            {
-                AppConfig.DisableMaintenanceMode();
-            }
-
-            InMaintenanceMode = isEnabled;
-        }
-
+        
         public override void UpgradeFiles(string zipFilePath)
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");
@@ -191,7 +175,5 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             return AppConfig.RavenDataPaths();
         }
-
-        new ServiceControlAppConfig AppConfig => (ServiceControlAppConfig)base.AppConfig;
     }
 }
