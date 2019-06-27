@@ -22,7 +22,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
-            if (!ConfigFileSettingsReader<string>.TryRead("ServiceControl", key, out var levelText))
+            if (!ConfigFileSettingsReader<string>.TryRead("ServiceControl.Audit", key, out var levelText))
             {
                 return defaultLevel;
             }
@@ -42,7 +42,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         {
             if (serviceName.Equals(Settings.DEFAULT_SERVICE_NAME, StringComparison.OrdinalIgnoreCase))
             {
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl\\logs");
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl.Audit\\logs");
             }
 
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"Particular\\{serviceName}\\logs");
