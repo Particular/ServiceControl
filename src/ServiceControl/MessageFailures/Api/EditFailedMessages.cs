@@ -32,7 +32,20 @@
 
                 var edit = this.Bind<EditMessageModel>();
 
-                //TODO: verify that locked headers are not edited
+                FailedMessage originalMessage;
+                var originalMessageId = edit.MessageHeaders.First(x => string.Compare(x.Key, "NServiceBus.MessageId", StringComparison.InvariantCulture) == 0);
+                
+                using (var session = Store.OpenAsyncSession())
+                {
+                    originalMessage = await session.LoadAsync<FailedMessage>(originalMessageId).ConfigureAwait(false);
+                }
+
+                if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToList(), originalMessage.ProcessingAttempts.Last().Headers))
+                {
+                    //TODO: log that edited locked headers were found?
+                    return HttpStatusCode.BadRequest;
+                }
+                
                 //TODO: should we verify here if the edit body is still a valid xml or json?
 
                 if (edit == null || string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
@@ -55,6 +68,8 @@
                 return HttpStatusCode.Accepted;
             };
         }
+
+        public LockedHeaderModificationValidator LockedHeaderModificationValidator { get; set; }
 
         EditConfigurationModel GetEditConfiguration()
         {
@@ -90,7 +105,7 @@
 
     class EditMessageModel
     {
-        public string MessageBody { get; set; }
+        public string MessageBody{ get; set; }
 
         // this way dictionary keys won't be converted to properties and renamed due to the UnderscoreMappingResolver
         public IEnumerable<KeyValuePair<string, string>> MessageHeaders { get; set; }
