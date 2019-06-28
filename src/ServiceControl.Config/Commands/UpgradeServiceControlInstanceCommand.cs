@@ -181,12 +181,15 @@
                 }
             }
 
+            var shouldInstallAudit = false;
+            var auditInstalled = false;
+
             if (!instance.VersionHasServiceControlAuditFeatures)
             {
                 auditViewModel = auditUpgradeViewModelFactory(instance.Name);
                 if (windowManager.ShowInnerDialog(auditViewModel) == true)
                 {
-                    upgradeOptions.InstallNewAuditSidecar = true;
+                    shouldInstallAudit = true;
                 }
                 else
                 {
@@ -205,13 +208,12 @@
                 return;
             }
 
-            var auditInstalled = false;
-            if (upgradeOptions.InstallNewAuditSidecar)
+            if (shouldInstallAudit)
             {
                 auditInstalled = await InstallServiceControlAudit(model, auditViewModel, instance);
             }
 
-            if (upgradeOptions.InstallNewAuditSidecar && auditInstalled)
+            if (shouldInstallAudit && auditInstalled)
             {
                 await UpgradeServiceControlInstance(model, instance, upgradeOptions);
             }

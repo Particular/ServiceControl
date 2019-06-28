@@ -57,7 +57,7 @@
             RuleFor(x => x.ServiceControlAudit.AuditQueueName)
                 .NotEmpty()
                 .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
-                .When(x => x.SubmitAttempted && x.ServiceControlAudit.AuditQueueName != "!disable");
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.AuditForwardingQueueName)
                 .NotEmpty()
