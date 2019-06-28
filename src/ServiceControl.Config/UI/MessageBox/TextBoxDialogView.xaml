@@ -29,7 +29,8 @@
                        FontSize="14"
                        FontWeight="Bold"
                        Foreground="{StaticResource Gray60Brush}"
-                       Text="{Binding Title}" />
+                       Text="{Binding Title}" 
+                       Typography.Capitals="SmallCaps" />
 
             <RichTextBox Grid.Row="2"
                          Margin="0,1.877,-10,28"
