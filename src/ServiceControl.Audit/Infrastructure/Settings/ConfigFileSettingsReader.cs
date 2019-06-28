@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
     {
         public static T Read(string name, T defaultValue = default)
         {
-            return Read("ServiceControl", name, defaultValue);
+            return Read("ServiceControl.Audit", name, defaultValue);
         }
 
         public static T Read(string root, string name, T defaultValue = default)

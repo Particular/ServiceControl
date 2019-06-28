@@ -79,21 +79,6 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             QueueCreation.RunQueueCreation(this);
         }
-
-        public override void EnableMaintenanceMode()
-        {
-            base.AppConfig = CreateAppConfig();
-            AppConfig.EnableMaintenanceMode();
-            InMaintenanceMode = true;
-        }
-
-        public override void DisableMaintenanceMode()
-        {
-            base.AppConfig = CreateAppConfig();
-            AppConfig.DisableMaintenanceMode();
-            InMaintenanceMode = false;
-        }
-
         public override void UpgradeFiles(string zipFilePath)
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlAuditExe}.config");
@@ -105,7 +90,5 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             return AppConfig.RavenDataPaths();
         }
-
-        new ServiceControlAuditAppConfig AppConfig => (ServiceControlAuditAppConfig)base.AppConfig;
     }
 }

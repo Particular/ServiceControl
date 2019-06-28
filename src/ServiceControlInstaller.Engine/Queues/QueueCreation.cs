@@ -6,7 +6,7 @@
     using Accounts;
     using Instances;
 
-    internal class QueueCreation
+    static class QueueCreation
     {
         public static void RunQueueCreation(IServiceControlInstance instance)
         {
