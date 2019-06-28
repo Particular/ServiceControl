@@ -11,7 +11,7 @@
             return JsonConvert.DeserializeObject<List<RemoteInstanceSetting>>(json, Settings);
         }
 
-        public static string ToJson(List<RemoteInstanceSetting> settings)
+        public static string ToJson(IList<RemoteInstanceSetting> settings)
         {
             return JsonConvert.SerializeObject(settings, Settings);
         }

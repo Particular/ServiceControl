@@ -85,7 +85,6 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 HostName = viewModel.ServiceControlAudit.HostName,
                 Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber),
                 DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber),
-                VirtualDirectory = null, // TODO
                 AuditLogQueue = viewModel.ServiceControlAudit.AuditForwarding.Value ? viewModel.ServiceControlAudit.AuditForwardingQueueName : null,
                 AuditQueue = viewModel.ServiceControlAudit.AuditQueueName,
                 ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value,
@@ -96,6 +95,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
                 ServiceControlQueueAddress = serviceControlNewInstance.Name
             };
+
+            serviceControlNewInstance.AddRemoteInstance(auditNewInstance.Url);
 
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
             {
