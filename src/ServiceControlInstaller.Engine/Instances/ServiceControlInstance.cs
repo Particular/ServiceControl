@@ -163,7 +163,7 @@ namespace ServiceControlInstaller.Engine.Instances
                 settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(RemoteInstances), Version);
             }
         }
-        
+
         public override void UpgradeFiles(string zipFilePath)
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");

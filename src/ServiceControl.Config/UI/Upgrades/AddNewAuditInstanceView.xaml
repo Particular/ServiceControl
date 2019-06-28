@@ -1,0 +1,209 @@
+﻿<UserControl x:Class="ServiceControl.Config.UI.Upgrades.AddNewAuditInstanceView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:ServiceControl.Config.UI.Upgrades"
+      xmlns:instanceAdd="clr-namespace:ServiceControl.Config.UI.InstanceAdd"
+      xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls"
+      xmlns:cm="clr-namespace:System.ComponentModel;assembly=System"
+      mc:Ignorable="d" 
+      d:DesignWidth="800" Margin="0,-10,0,100">
+
+    <Grid Background="{StaticResource Gray10Brush}">
+        <Grid Margin="0,30,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="60" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="36" />
+            </Grid.RowDefinitions>
+
+            <Border Margin="0,0"
+                    BorderBrush="{StaticResource Gray20Brush}"
+                    BorderThickness="0,0,0,1" />
+
+            <TextBlock Grid.Row="0"
+                       Margin="20,0,0,7"
+                       VerticalAlignment="Bottom"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource Gray60Brush}"
+                       Text="Input Required - Audit Instance Service"
+                       Typography.Capitals="SmallCaps"/>
+
+            <TextBlock Grid.Row="1"
+                       Margin="20,10,20,10"
+                       VerticalAlignment="Top"
+                       FontSize="14"
+                       Foreground="{StaticResource Gray90Brush}"
+                       TextWrapping="Wrap"
+                       Text="The Audit component of ServiceControl will be running as a separate service. The values are pre-populated based on your existing settings, please review or modify the settings below." />
+
+            <ScrollViewer Grid.Row="2" >
+                <StackPanel Margin="60,0,60,0">
+                    <Border Margin="0,40,0,20"
+                                BorderBrush="{StaticResource Gray70Brush}"
+                                BorderThickness="0,0,0,1">
+                        <TextBlock FontSize="13px"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource Gray70Brush}"
+                                   Text="GENERAL" />
+                    </Border>
+
+                    <controls:FormTextBox Header="WINDOWS SERVICE NAME"
+                                          Foreground="{StaticResource Gray70Brush}"
+                                          Text="{Binding ServiceControlAudit.InstanceName}" />
+
+                    <GroupBox Header="USER ACCOUNT" Foreground="{StaticResource Gray70Brush}">
+                        <StackPanel>
+                            <RadioButton IsChecked="{Binding ServiceControlAudit.UseSystemAccount}">
+                                <TextBlock Text="LOCAL SYSTEM" 
+                                           Foreground="{StaticResource Gray70Brush}" />
+                            </RadioButton>
+                            <RadioButton IsChecked="{Binding ServiceControlAudit.UseServiceAccount}">
+                                <TextBlock Text="LOCAL SERVICE" 
+                                           Foreground="{StaticResource Gray70Brush}"/>
+                            </RadioButton>
+                            <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding ServiceControlAudit.UseProvidedAccount}">
+                                <TextBlock Text="USER"
+                                           Foreground="{StaticResource Gray70Brush}"/>
+                            </RadioButton>
+                            <Grid Margin="15,0,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+                                <controls:FormTextBox Grid.Row="1"
+                                                      Header="SERVICE ACCOUNT"
+                                                      Foreground="{StaticResource Gray70Brush}"
+                                                      Text="{Binding ServiceControlAudit.ServiceAccount}"
+                                                      Visibility="{Binding ServiceControlAudit.UseProvidedAccount, Converter={StaticResource boolToVis}}" />
+
+                                <controls:FormPasswordBox Grid.Row="2"
+                                                          Header="PASSWORD"
+                                                          Foreground="{StaticResource Gray70Brush}"
+                                                          Text="{Binding ServiceControlAudit.Password}"
+                                                          Visibility="{Binding ServiceControlAudit.PasswordEnabled, Converter={StaticResource boolToVis}}" />
+                                <TextBlock Grid.Row="2"
+                                           Foreground="{StaticResource Gray70Brush}"
+                                           Text="No password is required for an AD Group Managed Service Account"
+                                           Visibility="{Binding ServiceControlAudit.ManagedAccount,
+                                                                Converter={StaticResource boolToVis}}" />
+                            </Grid>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <controls:FormTextBox Header="HOST NAME"
+                                          Foreground="{StaticResource Gray70Brush}"
+                                          Text="{Binding ServiceControlAudit.HostName}"
+                                          Warning="{Binding ServiceControlAudit.HostNameWarning}" />
+                    <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" 
+                                          Foreground="{StaticResource Gray70Brush}"
+                                          Text="{Binding ServiceControlAudit.PortNumber}" />
+                    <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" 
+                                          Foreground="{StaticResource Gray70Brush}"
+                                          Text="{Binding ServiceControlAudit.DatabaseMaintenancePortNumber}" />
+
+                    <Border Margin="0,40,0,20"
+                            BorderBrush="{StaticResource Gray90Brush}"
+                            BorderThickness="0,0,0,1">
+                        <TextBlock FontSize="13px"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource Gray70Brush}"
+                                   Text="PATHS" />
+                    </Border>
+
+                    <controls:FormPathTextBox Header="DESTINATION PATH"
+                                              Foreground="{StaticResource Gray70Brush}"
+                                              SelectCommand="{Binding ServiceControlAudit.SelectDestinationPath}"
+                                              Text="{Binding ServiceControlAudit.DestinationPath}" />
+
+                    <controls:FormPathTextBox Header="LOG PATH"
+                                              Foreground="{StaticResource Gray70Brush}"
+                                              SelectCommand="{Binding ServiceControlAudit.SelectLogPath}"
+                                              Text="{Binding ServiceControlAudit.LogPath}" />
+
+                    <controls:FormPathTextBox Header="DATABASE PATH"
+                                              Foreground="{StaticResource Gray70Brush}"
+                                              SelectCommand="{Binding ServiceControlAudit.SelectDatabasePath}"
+                                              Text="{Binding ServiceControlAudit.DatabasePath}" />
+                </StackPanel>
+            </ScrollViewer>
+
+            <ContentControl x:Name="errorDisplay"
+                            Grid.Row="3"
+                            MaxHeight="45"
+                            Margin="20,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Visibility="{Binding Path=ValidationTemplate.Error,
+                                                 Converter={StaticResource nullOrEmptyToVis}}">
+                <ContentControl.Content>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Control Foreground="{StaticResource ErrorBrush}" Template="{StaticResource WarningIcon}" />
+                        <TextBlock Grid.Column="1"
+                               Margin="5,0,0,0"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               Foreground="{StaticResource ErrorBrush}"
+                               Text="There are errors." />
+                    </Grid>
+                </ContentControl.Content>
+                <ContentControl.ToolTip>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Margin="0,0,0,5"
+                               FontSize="14"
+                               FontWeight="Bold">
+                        Validation Errors
+                        </TextBlock>
+                        <TextBlock Grid.Row="1"
+                               Foreground="{StaticResource ErrorBrush}"
+                               Text="{Binding Path=ValidationTemplate.Error}" />
+                    </Grid>
+                </ContentControl.ToolTip>
+            </ContentControl>
+
+            <StackPanel Grid.Row="3"
+                        Margin="20,5,20,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Orientation="Horizontal">
+
+                <Button Height="30"
+                        MinWidth="100"
+                        Margin="0"
+                        Command="{Binding Continue}"
+                        Content="Continue"
+                        FontSize="14"
+                        Padding="10,2,10,2"
+                        Style="{StaticResource HiliteButton}" />
+                
+                <Button Height="30"
+                        MinWidth="100"
+                        Margin="10,0,0,0"
+                        Command="{Binding Cancel}"
+                        Content="Cancel"
+                        FontSize="14"
+                        IsCancel="True"
+                        Padding="10,2,10,2"
+                        Background="{StaticResource Gray60Brush}"
+                        Style="{StaticResource BasicButton}"
+                        Visibility="{Binding ShowCancelButton,
+                                             Converter={StaticResource boolToVis}}" />
+
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
