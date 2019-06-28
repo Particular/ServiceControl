@@ -62,8 +62,12 @@
             instance.Service.Refresh();
 
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
-
             var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
+
+            
+            var upgradeAction = instance.GetRequiredUpgradeAction(serviceControlInstaller.ZipInfo.Version);
+            var shouldInstallAudit = upgradeAction == RequiredUpgradeAction.SplitOutAudit;
+
             AddNewAuditInstanceViewModel auditViewModel = null;
 
             if (instance.Version < upgradeInfo.CurrentMinimumVersion)
@@ -181,17 +185,10 @@
                 }
             }
 
-            var shouldInstallAudit = false;
-            var auditInstalled = false;
-
-            if (!instance.VersionHasServiceControlAuditFeatures)
+            if (shouldInstallAudit)
             {
                 auditViewModel = auditUpgradeViewModelFactory(instance.Name);
-                if (windowManager.ShowInnerDialog(auditViewModel) == true)
-                {
-                    shouldInstallAudit = true;
-                }
-                else
+                if (windowManager.ShowInnerDialog(auditViewModel) != true)
                 {
                     //Dialog was cancelled
                     eventAggregator.PublishOnUIThread(new RefreshInstances());
@@ -210,13 +207,16 @@
 
             if (shouldInstallAudit)
             {
-                auditInstalled = await InstallServiceControlAudit(model, auditViewModel, instance);
+                var auditInstalled = await InstallServiceControlAudit(model, auditViewModel, instance);
+                if (!auditInstalled)
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
             }
 
-            if (shouldInstallAudit && auditInstalled)
-            {
-                await UpgradeServiceControlInstance(model, instance, upgradeOptions);
-            }
+            await UpgradeServiceControlInstance(model, instance, upgradeOptions);
 
             eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
