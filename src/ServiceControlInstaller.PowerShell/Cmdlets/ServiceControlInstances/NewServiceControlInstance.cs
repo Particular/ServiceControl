@@ -20,32 +20,63 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNullOrEmpty]
         public string Name { get; set; }
 
+        [Parameter(Mandatory = true, HelpMessage = "Specify the name of the ServiceControl Audit Instance")]
+        [ValidateNotNullOrEmpty]
+        public string AuditName { get; set; }
+
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Instance")]
         [ValidateNotNullOrEmpty]
         [ValidatePath]
         public string InstallPath { get; set; }
+
+        [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Audit Instance")]
+        [ValidateNotNullOrEmpty]
+        [ValidatePath]
+        public string AuditInstallPath { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory that will contain the RavenDB database for this ServiceControl Instance")]
         [ValidateNotNullOrEmpty]
         [ValidatePath]
         public string DBPath { get; set; }
 
+        [Parameter(Mandatory = true, HelpMessage = "Specify the directory that will contain the RavenDB database for this ServiceControl Audit Instance")]
+        [ValidateNotNullOrEmpty]
+        [ValidatePath]
+        public string AuditDBPath { get; set; }
+
         [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Logs")]
         [ValidateNotNullOrEmpty]
         [ValidatePath]
         public string LogPath { get; set; }
 
+        [Parameter(Mandatory = true, HelpMessage = "Specify the directory to use for this ServiceControl Audit Logs")]
+        [ValidateNotNullOrEmpty]
+        [ValidatePath]
+        public string AuditLogPath { get; set; }
+
         [Parameter(Mandatory = false, HelpMessage = "Specify the hostname to use in the URLACL (defaults to localhost)")]
         [ValidateNotNullOrEmpty]
         public string HostName { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the hostname for the audit instance to use in the URLACL (defaults to localhost)")]
+        [ValidateNotNullOrEmpty]
+        public string AuditHostName { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the port number to listen on. If this is the only ServiceControl instance then 33333 is recommended")]
         [ValidateRange(1, 49151)]
         public int Port { get; set; }
 
+        [Parameter(Mandatory = true, HelpMessage = "Specify the port number to listen on. If this is the only ServiceControl Audit instance then 44444 is recommended")]
+        [ValidateRange(1, 49151)]
+        public int AuditPort { get; set; }
+
         [Parameter(Mandatory = true, HelpMessage = "Specify the database maintenance port number to listen on. If this is the only ServiceControl instance then 33334 is recommended")]
         [ValidateRange(1, 49151)]
         public int DatabaseMaintenancePort { get; set; }
+
+        [Parameter(Mandatory = true, HelpMessage = "Specify the database maintenance port number to listen on. If this is the only ServiceControl Audit instance then 44445 is recommended")]
+        [ValidateRange(1, 49151)]
+        public int AuditDatabaseMaintenancePort { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify ErrorQueue name to consume messages from. Default is error")]
         [ValidateNotNullOrEmpty]
@@ -55,6 +86,14 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNullOrEmpty]
         public string ErrorLogQueue { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Specify AuditQueue name to consume messages from. Default is audit")]
+        [ValidateNotNullOrEmpty]
+        public string AuditQueue { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify Queue name to forward audit messages to")]
+        [ValidateNotNullOrEmpty]
+        public string AuditLogQueue { get; set; }
+
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
         [ValidateSet(TransportNames.AzureServiceBus, TransportNames.AzureServiceBusForwardingTopology, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopology, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
         public string Transport { get; set; }
@@ -63,9 +102,17 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNullOrEmpty]
         public string DisplayName { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the audit instance name will be used")]
+        [ValidateNotNullOrEmpty]
+        public string AuditDisplayName { get; set; }
+
         [Parameter(Mandatory = false, HelpMessage = "Specify an alternate VirtualDirectory to use. This option is not recommended")]
         [ValidateNotNullOrEmpty]
         public string VirtualDirectory { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify an alternate VirtualDirectory for the Audit instance to use. This option is not recommended")]
+        [ValidateNotNullOrEmpty]
+        public string AuditVirtualDirectory { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the connection string to use to connect to the queuing system.  Can be left blank for MSMQ")]
         [ValidateNotNullOrEmpty]
@@ -75,19 +122,41 @@ namespace ServiceControlInstaller.PowerShell
         [ValidateNotNullOrEmpty]
         public string Description { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Specify the description to use on the Windows Service for this audit instance")]
+        [ValidateNotNullOrEmpty]
+        public string AuditDescription { get; set; }
+
         [Parameter(Mandatory = false, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue")]
         public SwitchParameter ForwardErrorMessages { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify if audit messages are forwarded to the queue specified by AuditLogQueue")]
+        public SwitchParameter ForwardAuditMessages { get; set; }
 
         [Parameter(HelpMessage = "The Account to run the Windows service. If not specified then LocalSystem is used")]
         public string ServiceAccount { get; set; }
 
+        [Parameter(HelpMessage = "The Account to run the Windows service. If not specified then LocalSystem is used")]
+        public string AuditServiceAccount { get; set; }
+
         [Parameter(HelpMessage = "The password for the ServiceAccount.  Do not use for builtin accounts or managed serviceaccount")]
         public string ServiceAccountPassword { get; set; }
+
+        [Parameter(HelpMessage = "The password for the ServiceAccount.  Do not use for builtin accounts or managed serviceaccount")]
+        public string AuditServiceAccountPassword { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Error Data")]
         [ValidateNotNull]
         [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
         public TimeSpan ErrorRetentionPeriod { get; set; }
+
+        [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Audit Data")]
+        [ValidateNotNull]
+        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
+        public TimeSpan AuditRetentionPeriod { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "The name of the ServiceControl instance to connect to")]
+        [ValidateNotNull]
+        public string ServiceControlQueueAddress { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
@@ -103,10 +172,22 @@ namespace ServiceControlInstaller.PowerShell
                 HostName = "localhost";
             }
 
+            if (string.IsNullOrWhiteSpace(AuditHostName))
+            {
+                WriteWarning("Audit HostName set to default value 'localhost'");
+                AuditHostName = "localhost";
+            }
+
             if (string.IsNullOrWhiteSpace(ErrorQueue))
             {
                 WriteWarning("ErrorQueue set to default value 'error'");
                 ErrorQueue = "error";
+            }
+
+            if (string.IsNullOrWhiteSpace(AuditQueue))
+            {
+                WriteWarning("AuditQueue set to default value 'audit'");
+                AuditQueue = "audit";
             }
 
             if (string.IsNullOrWhiteSpace(ServiceAccount))
@@ -115,16 +196,35 @@ namespace ServiceControlInstaller.PowerShell
                 ServiceAccount = "LocalSystem";
             }
 
+            if (string.IsNullOrWhiteSpace(ServiceControlQueueAddress))
+            {
+                WriteWarning($"ServiceControlQueueAddress set to default value '{Name}'");
+                ServiceControlQueueAddress = Name;
+            }
+
+            if (string.IsNullOrWhiteSpace(AuditServiceAccount))
+            {
+                WriteWarning("Audit ServiceAccount set to default value 'LocalSystem'");
+                ServiceAccount = "LocalSystem";
+            }
+
             if (ForwardErrorMessages.ToBool() & string.IsNullOrWhiteSpace(ErrorLogQueue))
             {
                 WriteWarning("ErrorLogQueue set to default value 'error.log'");
                 ErrorLogQueue = "error.log";
             }
+
+            if (ForwardAuditMessages.ToBool() & string.IsNullOrWhiteSpace(AuditLogQueue))
+            {
+                WriteWarning("AuditLogQueue set to default value 'audit.log'");
+                AuditLogQueue = "audit.log";
+            }
         }
 
         protected override void ProcessRecord()
         {
-            var details = new ServiceControlNewInstance
+            var transport = ServiceControlCoreTransports.All.First(t => t.Matches(Transport));
+            var serviceControlNewInstance = new ServiceControlNewInstance
             {
                 InstallPath = InstallPath,
                 LogPath = LogPath,
@@ -143,21 +243,46 @@ namespace ServiceControlInstaller.PowerShell
                 ForwardErrorMessages = ForwardErrorMessages.ToBool(),
                 ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
+                TransportPackage = transport,
                 SkipQueueCreation = SkipQueueCreation
             };
+
+            var auditNewInstance = new ServiceControlAuditNewInstance
+            {
+                DisplayName = string.IsNullOrWhiteSpace(AuditDisplayName) ? AuditName : AuditDisplayName,
+                Name = AuditName,
+                ServiceDescription = AuditDescription,
+                DBPath = AuditDBPath,
+                LogPath = AuditLogPath,
+                InstallPath = AuditInstallPath,
+                HostName = AuditHostName,
+                Port = AuditPort,
+                DatabaseMaintenancePort = AuditDatabaseMaintenancePort,
+                VirtualDirectory = AuditVirtualDirectory,
+                AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue,
+                AuditQueue = AuditQueue,
+                ForwardAuditMessages = ForwardAuditMessages.ToBool(),
+                TransportPackage = transport,
+                ConnectionString = ConnectionString,
+                AuditRetentionPeriod = AuditRetentionPeriod,
+                ServiceAccount = AuditServiceAccount,
+                ServiceAccountPwd = AuditServiceAccountPassword,
+                ServiceControlQueueAddress = ServiceControlQueueAddress,
+                SkipQueueCreation = SkipQueueCreation
+            };
+
+            serviceControlNewInstance.AddRemoteInstance(auditNewInstance.Url);
 
             var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var logger = new PSLogger(Host);
 
-            var installer = new UnattendServiceControlInstaller(logger, zipfolder);
             try
             {
+                var serviceControlInstaller = new UnattendServiceControlInstaller(logger, zipfolder);
                 logger.Info("Installing Service Control instance...");
-                if (installer.Add(details, PromptToProceed))
+                if (serviceControlInstaller.Add(serviceControlNewInstance, PromptToProceed))
                 {
-                    //TODO: Should support installing SC Audit as well
-                    var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(details.Name);
+                    var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(serviceControlNewInstance.Name);
                     if (instance != null)
                     {
                         WriteObject(PsServiceControl.FromInstance(instance));
@@ -165,6 +290,21 @@ namespace ServiceControlInstaller.PowerShell
                     else
                     {
                         throw new Exception("Unknown error creating instance");
+                    }
+                }
+
+                var serviceControlAuditInstaller = new UnattendAuditInstaller(logger, zipfolder);
+                logger.Info("Installing Service Control Audit instance...");
+                if (serviceControlAuditInstaller.Add(auditNewInstance, PromptToProceed))
+                {
+                    var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(auditNewInstance.Name);
+                    if (instance != null)
+                    {
+                        WriteObject(PsAuditInstance.FromInstance(instance));
+                    }
+                    else
+                    {
+                        throw new Exception("Unknown error creating audit instance");
                     }
                 }
             }
