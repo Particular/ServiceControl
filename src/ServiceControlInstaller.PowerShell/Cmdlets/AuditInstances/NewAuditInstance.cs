@@ -93,6 +93,11 @@
 
         protected override void BeginProcessing()
         {
+            if (Transport != TransportNames.MSMQ && string.IsNullOrEmpty(ConnectionString))
+            {
+                throw new Exception($"ConnectionString is mandatory for '{Transport}'");
+            }
+
             if (string.IsNullOrWhiteSpace(HostName))
             {
                 WriteWarning("HostName set to default value 'localhost'");
