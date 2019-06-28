@@ -37,8 +37,22 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public override string DirectoryName => "ServiceControl";
 
+        public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
+
+        public void AddRemoteInstance(string apiUri)
+        {
+            if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))
+            {
+                RemoteInstances.Add(new RemoteInstanceSetting
+                {
+                    ApiUri = apiUri
+                });
+            }
+        }
+
         [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan AuditRetentionPeriod { get; set; } = TimeSpan.FromHours(1);
+
         [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan ErrorRetentionPeriod { get; set; }
 

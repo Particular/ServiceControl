@@ -31,6 +31,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             settings.Set(ServiceControlSettings.ErrorLogQueue, details.ErrorLogQueue);
             settings.Set(ServiceControlSettings.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
+            settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(details.RemoteInstances), version);
 
             // Retired settings
             settings.RemoveIfRetired(ServiceControlSettings.AuditQueue, version);
@@ -45,11 +46,10 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             }
         }
 
-
         public override void EnableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
-            settings.Set(ServiceControlSettings.MaintenanceMode, Boolean.TrueString, details.Version);
+            settings.Set(ServiceControlSettings.MaintenanceMode, bool.TrueString, details.Version);
             Config.Save();
         }
 

@@ -1,6 +1,8 @@
 namespace ServiceControlInstaller.Engine
 {
     using System;
+    using System.Collections.Generic;
+    using Configuration.ServiceControl;
     using Instances;
 
     public interface ILogging
@@ -89,5 +91,6 @@ namespace ServiceControlInstaller.Engine
         bool ForwardErrorMessages { get; }
         TimeSpan ErrorRetentionPeriod { get; }
         TimeSpan AuditRetentionPeriod { get; set; }
+        List<RemoteInstanceSetting> RemoteInstances { get; }
     }
 }
