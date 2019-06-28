@@ -57,23 +57,7 @@ namespace ServiceControlInstaller.PowerShell
                     break;
                 }
 
-                var requiredUpgradeAction = instance.GetRequiredUpgradeAction(installer.ZipInfo.Version);
-                switch (requiredUpgradeAction)
-                {
-                    case RequiredUpgradeAction.Upgrade:
-                        // This is the correct action
-                        break;
-                    case RequiredUpgradeAction.ConvertToAudit:
-                        ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance must be converted to an audit instance. See Invoke-ServiceControlInstanceConvert."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
-                        break;
-                    case RequiredUpgradeAction.SplitOutAudit:
-                        ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance must have it's audit capabilities split out into to a new audit instance. See Invoke-ServiceControlInstanceSplit."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
-                        break;
-                    default:
-                        ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance cannot be upgraded."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
-                        break;
-                }
-
+                AssertUpgradeAllowed(instance, installer);
 
                 options.UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
 
@@ -116,6 +100,21 @@ namespace ServiceControlInstaller.PowerShell
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} failed"), "UpgradeFailure", ErrorCategory.InvalidResult, null));
                 }
+            }
+        }
+
+        void AssertUpgradeAllowed(ServiceControlInstance instance, UnattendServiceControlInstaller installer)
+        {
+            var requiredUpgradeAction = instance.GetRequiredUpgradeAction(installer.ZipInfo.Version);
+
+            if (requiredUpgradeAction != RequiredUpgradeAction.Upgrade)
+            {
+                if (requiredUpgradeAction == RequiredUpgradeAction.SplitOutAudit)
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance must have it's audit capabilities split out into to a new audit instance. See Invoke-ServiceControlInstanceSplit."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
+                }
+
+                ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance cannot be upgraded."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
             }
         }
 

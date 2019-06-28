@@ -79,7 +79,7 @@ namespace ServiceControlInstaller.PowerShell
 
             WriteObject(result.Succeeded);
 
-            if(!result.Succeeded)
+            if (!result.Succeeded)
             {
                 var errorMessage = GetErrorMessage(instance.Name, result);
 
@@ -105,15 +105,9 @@ namespace ServiceControlInstaller.PowerShell
 
         static string GetErrorMessage(string instanceName, UnattendServiceControlSplitter.Result result)
         {
-            if (result.RequiredUpgradeAction.HasValue)
+            if (result.RequiredUpgradeAction == RequiredUpgradeAction.Upgrade)
             {
-                switch (result.RequiredUpgradeAction.Value)
-                {
-                    case RequiredUpgradeAction.Upgrade:
-                        return $"Split of {instanceName} aborted. {result.FailureReason}. See Invoke-ServiceControlInstanceUpgrade.";
-                    case RequiredUpgradeAction.ConvertToAudit:
-                        return $"Split of {instanceName} aborted. {result.FailureReason}. See Invoke-ServiceControlInstanceConvert.";
-                }
+                return $"Split of {instanceName} aborted. {result.FailureReason}. See Invoke-ServiceControlInstanceUpgrade.";
             }
 
             return $"Split of {instanceName} aborted. {result.FailureReason}.";
