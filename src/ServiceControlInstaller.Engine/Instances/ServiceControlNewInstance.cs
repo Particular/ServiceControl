@@ -51,7 +51,7 @@ namespace ServiceControlInstaller.Engine.Instances
         }
 
         [XmlElement(typeof(XmlTimeSpan))]
-        public TimeSpan AuditRetentionPeriod { get; set; } = TimeSpan.FromHours(1);
+        public TimeSpan AuditRetentionPeriod { get; set; }
 
         [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan ErrorRetentionPeriod { get; set; }
