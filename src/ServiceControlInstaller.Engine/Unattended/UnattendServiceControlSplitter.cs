@@ -81,7 +81,7 @@
                 case RequiredUpgradeAction.Upgrade:
                     return Result.Failed("This instance cannot have an Audit instance split from it. Upgrade the instance instead", RequiredUpgradeAction.Upgrade);
                 case RequiredUpgradeAction.ConvertToAudit:
-                    return Result.Failed("This instance cannot have an Audit instance split from it. Convert the instance into an Audit instance instead", RequiredUpgradeAction.ConvertToAudit);
+                    return Result.Failed("This instance cannot have an Audit instance split from it as it has error ingestion disabled. Please contact support", RequiredUpgradeAction.ConvertToAudit);
                 case RequiredUpgradeAction.SplitOutAudit:
                     return Result.Success;
                 default:
