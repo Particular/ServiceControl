@@ -88,6 +88,15 @@
                 return;
             }
 
+            if (instance.IsErrorQueueDisabled())
+            {
+                windowManager.ShowMessage("UPGRADE INCOMPATIBLE",
+                    "You cannot upgrade the instance of ServiceControl with error ingestion disabled. Please contact support.",
+                    hideCancel: true);
+
+                return;
+            }
+
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name))
             {
                 var result = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
