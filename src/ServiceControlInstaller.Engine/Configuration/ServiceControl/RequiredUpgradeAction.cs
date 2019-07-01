@@ -25,13 +25,13 @@
             if (instance.Version < VersionWhereAuditInstanceWasIntroduced && target >= VersionWhereAuditInstanceWasIntroduced)
             {
                 // Introducing an Audit Instance
-                if (IsDisabled(instance.AuditQueue))
+                if (instance.IsAuditQueueDisabled())
                 {
                     // This may be a master instance or just a standalone with Audit disabled
                     return RequiredUpgradeAction.Upgrade;
                 }
 
-                if (IsDisabled(instance.ErrorQueue))
+                if (instance.IsErrorQueueDisabled())
                 {
                     // This is an audit ingestor
                     return RequiredUpgradeAction.ConvertToAudit;
@@ -45,7 +45,7 @@
             return RequiredUpgradeAction.Upgrade;
         }
 
-        private static bool IsDisabled(string queueName) => queueName == "!disable";
+        
 
         private static Version VersionWhereAuditInstanceWasIntroduced = new Version(4, 0, 0);
     }

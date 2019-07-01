@@ -49,6 +49,10 @@ namespace ServiceControlInstaller.Engine.Instances
             QueueCreation.RunQueueCreation(this);
         }
 
+        public bool IsAuditQueueDisabled() => IsQueueDisabled(AuditQueue);
+
+        public bool IsErrorQueueDisabled() => IsQueueDisabled(ErrorQueue);
+
         protected override void ValidateQueueNames()
         {
             try
