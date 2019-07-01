@@ -161,7 +161,6 @@ namespace ServiceControlInstaller.PowerShell
                 logger.Info("Installing Service Control instance...");
                 if (installer.Add(details, PromptToProceed))
                 {
-                    //TODO: Should support installing SC Audit as well
                     var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(details.Name);
                     if (instance != null)
                     {
