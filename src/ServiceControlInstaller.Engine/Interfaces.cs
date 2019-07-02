@@ -90,7 +90,7 @@ namespace ServiceControlInstaller.Engine
         string VirtualDirectory { get; }
         bool ForwardErrorMessages { get; }
         TimeSpan ErrorRetentionPeriod { get; }
-        TimeSpan AuditRetentionPeriod { get; set; }
+        TimeSpan? AuditRetentionPeriod { get; set; }
         List<RemoteInstanceSetting> RemoteInstances { get; }
     }
 }

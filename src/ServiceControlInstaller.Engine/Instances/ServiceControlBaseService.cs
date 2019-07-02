@@ -90,7 +90,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public TransportInfo TransportPackage { get; set; }
         public string ConnectionString { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
-        public TimeSpan AuditRetentionPeriod { get; set; }
         public bool SkipQueueCreation { get; set; }
 
         protected abstract string BaseServiceName { get; }

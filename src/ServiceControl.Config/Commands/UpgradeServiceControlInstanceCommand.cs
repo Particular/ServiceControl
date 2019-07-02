@@ -251,7 +251,8 @@
                 AuditLogQueue = instance.AuditLogQueue,
                 AuditQueue = instance.AuditQueue,
                 ForwardAuditMessages = instance.ForwardAuditMessages,
-                AuditRetentionPeriod = instance.AuditRetentionPeriod,
+                // ReSharper disable once PossibleInvalidOperationException
+                AuditRetentionPeriod = instance.AuditRetentionPeriod.Value,
                 TransportPackage = instance.TransportPackage,
                 ConnectionString = instance.ConnectionString,
                 ServiceControlQueueAddress = instance.Name

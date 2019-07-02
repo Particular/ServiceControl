@@ -14,6 +14,7 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         protected override string BaseServiceName => "ServiceControl.Audit";
 
+        public TimeSpan AuditRetentionPeriod { get; set; }
         public string ServiceControlQueueAddress { get; set; }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
@@ -62,17 +63,13 @@ namespace ServiceControlInstaller.Engine.Instances
             AuditQueue = AppConfig.Read(AuditInstanceSettingsList.AuditQueue, "audit");
             AuditLogQueue = AppConfig.Read(AuditInstanceSettingsList.AuditLogQueue, $"{AuditQueue}.log");
             ForwardAuditMessages = AppConfig.Read(AuditInstanceSettingsList.ForwardAuditMessages, false);
+            AuditRetentionPeriod = TimeSpan.Parse(AppConfig.Read(AuditInstanceSettingsList.AuditRetentionPeriod, "30.00:00:00"));
             InMaintenanceMode = AppConfig.Read(AuditInstanceSettingsList.MaintenanceMode, false);
             ServiceControlQueueAddress = AppConfig.Read<string>(AuditInstanceSettingsList.ServiceControlQueueAddress, null);
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
             ServiceAccount = Service.Account;
-
-            if (TimeSpan.TryParse(AppConfig.Read(AuditInstanceSettingsList.AuditRetentionPeriod, (string)null), out var auditRetentionPeriod))
-            {
-                AuditRetentionPeriod = auditRetentionPeriod;
-            }
         }
 
         public override void RunQueueCreation()

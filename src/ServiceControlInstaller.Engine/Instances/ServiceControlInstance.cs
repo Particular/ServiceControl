@@ -21,6 +21,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string BaseServiceName => "ServiceControl";
 
+        public TimeSpan? AuditRetentionPeriod { get; set; }
+
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
 
         public void AddRemoteInstance(string apiUri)

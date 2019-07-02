@@ -50,8 +50,8 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        [XmlElement(typeof(XmlTimeSpan))]
-        public TimeSpan AuditRetentionPeriod { get; set; }
+        [XmlElement(typeof(XmlNullableTimeSpan))]
+        public TimeSpan? AuditRetentionPeriod { get; set; }
 
         [XmlElement(typeof(XmlTimeSpan))]
         public TimeSpan ErrorRetentionPeriod { get; set; }
