@@ -16,8 +16,8 @@ namespace ServiceControlInstaller.PowerShell
     public class InvokeServiceControlInstanceUpgrade : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
-        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
-        public string[] Name;
+        [Parameter(Mandatory = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
+        public string Name;
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the directory to use for the new ServiceControl Audit Instance")]
         [ValidatePath]
@@ -60,29 +60,26 @@ namespace ServiceControlInstaller.PowerShell
             var zipFolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var installer = new UnattendServiceControlInstaller(logger, zipFolder);
 
-            foreach (var name in Name)
+            var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(Name);
+            if (instance == null)
             {
-                var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(name);
-                if (instance == null)
-                {
-                    WriteWarning($"No action taken. An instance called {name} was not found");
+                WriteWarning($"No action taken. An instance called {Name} was not found");
+                return;
+            }
+
+            var requiredUpgradeAction = instance.GetRequiredUpgradeAction(installer.ZipInfo.Version);
+
+            switch (requiredUpgradeAction)
+            {
+                case RequiredUpgradeAction.Upgrade:
+                    PerformUpgrade(instance, installer);
                     break;
-                }
-
-                var requiredUpgradeAction = instance.GetRequiredUpgradeAction(installer.ZipInfo.Version);
-
-                switch (requiredUpgradeAction)
-                {
-                    case RequiredUpgradeAction.Upgrade:
-                        PerformUpgrade(instance, installer);
-                        break;
-                    case RequiredUpgradeAction.SplitOutAudit:
-                        PerformSplit(instance, logger, zipFolder);
-                        break;
-                    default:
-                        ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance cannot be upgraded."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
-                        break;
-                }
+                case RequiredUpgradeAction.SplitOutAudit:
+                    PerformSplit(instance, logger, zipFolder);
+                    break;
+                default:
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance cannot be upgraded."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
+                    break;
             }
         }
 
