@@ -33,11 +33,10 @@
                 var edit = this.Bind<EditMessageModel>();
 
                 FailedMessage originalMessage;
-                var originalMessageId = edit.MessageHeaders.First(x => string.Compare(x.Key, "NServiceBus.MessageId", StringComparison.InvariantCulture) == 0);
                 
                 using (var session = Store.OpenAsyncSession())
                 {
-                    originalMessage = await session.LoadAsync<FailedMessage>(originalMessageId).ConfigureAwait(false);
+                    originalMessage = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
                 }
 
                 if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToList(), originalMessage.ProcessingAttempts.Last().Headers))
@@ -45,17 +44,12 @@
                     //TODO: log that edited locked headers were found?
                     return HttpStatusCode.BadRequest;
                 }
-                
-                //TODO: should we verify here if the edit body is still a valid xml or json?
 
-                if (edit == null || string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
+                if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
                 {
-                    //TODO: load original body if no new body provided?
-                    //TODO: load original headers if no new headers provided?
                     return HttpStatusCode.BadRequest;
                 }
 
-                //TODO: consider sending base64 encoded body from the client
                 // Encode the body in base64 so that the new body doesn't have to be escaped
                 var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(edit.MessageBody));
                 await Bus.SendLocal(new EditAndSend
