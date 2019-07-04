@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System;
-    using System.Linq;
     using Contracts.Operations;
     using Nancy;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
+    using System;
+    using System.Linq;
 
     class GetErrorById : BaseModule
     {
@@ -54,6 +54,7 @@
 
             var metadata = processingAttempt.MessageMetadata;
             var failureDetails = processingAttempt.FailureDetails;
+            var wasEdited = message.ProcessingAttempts.Last().Headers.ContainsKey("ServiceControl.EditOf");
 
             return new FailedMessageView
             {
@@ -69,7 +70,9 @@
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                 Status = message.Status,
                 TimeOfFailure = failureDetails.TimeOfFailure,
-                LastModified = session.Advanced.GetMetadataFor(message)["Last-Modified"].Value<DateTime>()
+                LastModified = session.Advanced.GetMetadataFor(message)["Last-Modified"].Value<DateTime>(),
+                Edited = wasEdited,
+                EditOf = wasEdited ? message.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"] : ""
             };
         }
     }
