@@ -32,7 +32,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControl.DatabaseMaintenancePortNumber)
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Ports")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.PortNumber)
@@ -44,7 +44,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
                 .NotEqual(x => x.ServiceControl.PortNumber)
                 .NotEqual(x => x.ServiceControl.DatabaseMaintenancePortNumber)
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Audit Instance Ports")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControl.DatabaseMaintenancePortNumber)
@@ -56,7 +56,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControl.PortNumber)
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Database Maintenance Ports")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
@@ -68,7 +68,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ServiceControl.PortNumber)
                 .NotEqual(x => x.ServiceControl.DatabaseMaintenancePortNumber)
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Audit Instance Ports")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControl.DestinationPath)
@@ -76,7 +76,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => serviceControlInstances.UsedPaths(x.ServiceControl.InstanceName))
                 .MustNotBeIn(x => serviceControlAuditInstances.UsedPaths(x.ServiceControl.InstanceName))
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Destination Paths")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DestinationPath)
@@ -84,7 +84,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => serviceControlInstances.UsedPaths(x.ServiceControlAudit.InstanceName))
                 .MustNotBeIn(x => serviceControlAuditInstances.UsedPaths(x.ServiceControlAudit.InstanceName))
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Destination Paths")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControl.DatabasePath)
@@ -92,7 +92,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => serviceControlInstances.UsedPaths(x.ServiceControl.InstanceName))
                 .MustNotBeIn(x => serviceControlAuditInstances.UsedPaths(x.ServiceControl.InstanceName))
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Database Paths")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DatabasePath)
@@ -100,7 +100,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => serviceControlInstances.UsedPaths(x.ServiceControlAudit.InstanceName))
                 .MustNotBeIn(x => serviceControlAuditInstances.UsedPaths(x.ServiceControlAudit.InstanceName))
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Database Paths")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.AuditForwarding)

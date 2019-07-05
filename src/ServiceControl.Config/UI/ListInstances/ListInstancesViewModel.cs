@@ -9,6 +9,7 @@
     using Events;
     using Framework.Rx;
     using InstanceDetails;
+    using PropertyChanging;
     using ServiceControlInstaller.Engine.Instances;
 
     class ListInstancesViewModel : RxScreen, IHandle<RefreshInstances>, IHandle<ResetInstances>, IHandle<LicenseUpdated>
@@ -20,10 +21,16 @@
 
             Instances = new BindableCollection<InstanceDetailsViewModel>();
 
-            RefreshAllInstances();
+            AddMissingInstances();
         }
 
-        public IList<InstanceDetailsViewModel> Instances { get; }
+        public BindableCollection<InstanceDetailsViewModel> OrderedInstances
+        {
+            get { return new BindableCollection<InstanceDetailsViewModel>(Instances.OrderBy(x => x.Name)); }
+        }
+
+        [AlsoNotifyFor(nameof(OrderedInstances))]
+        IList<InstanceDetailsViewModel> Instances { get; }
 
         public void Handle(LicenseUpdated licenseUpdatedEvent)
         {
@@ -31,6 +38,11 @@
             foreach (var instance in Instances)
             {
                 if (instance.Version <= new Version("1.23.0"))
+                {
+                    continue;
+                }
+
+                if (!instance.HasBrowsableUrl)
                 {
                     continue;
                 }
@@ -53,42 +65,29 @@
 
         public void Handle(RefreshInstances message)
         {
-            RefreshAllInstances();
+            AddMissingInstances();
         }
 
         public void Handle(ResetInstances message)
         {
             Instances.Clear();
-            foreach (var item in InstanceFinder.AllInstances())
+            foreach (var item in InstanceFinder.AllInstances().OrderBy(i => i.Name))
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
+            NotifyOfPropertyChange(nameof(OrderedInstances));
         }
 
-        void RefreshAllInstances()
+        void AddMissingInstances()
         {
-            RefreshControlInstances();
-            RefreshAuditInstances();
-        }
-
-        void RefreshControlInstances()
-        {
-            var missingInstances = InstanceFinder.ServiceControlInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
-
+            var missingInstances = InstanceFinder.AllInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
+            
             foreach (var item in missingInstances)
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
-        }
 
-        void RefreshAuditInstances()
-        {
-            var missingInstances = InstanceFinder.ServiceControlAuditInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
-
-            foreach (var item in missingInstances)
-            {
-                Instances.Add(instanceDetailsFunc(item));
-            }
+            NotifyOfPropertyChange(nameof(OrderedInstances));
         }
 
         readonly Func<BaseService, InstanceDetailsViewModel> instanceDetailsFunc;

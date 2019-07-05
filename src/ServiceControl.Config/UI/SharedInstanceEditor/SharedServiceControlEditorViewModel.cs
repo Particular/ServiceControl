@@ -141,7 +141,12 @@
 
             instanceName += !string.IsNullOrEmpty(suggestedName) ? titleCaseName : serviceBaseName;
 
-            return instanceName;
+            return RemoveIllegalCharacters(instanceName);
+        }
+
+        protected string RemoveIllegalCharacters(string name)
+        {
+            return name?.Replace(' ', '.');
         }
 
         protected int GetInstalledInstancesCount()

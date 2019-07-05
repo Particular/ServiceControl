@@ -28,7 +28,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.AuditQueue = ServiceControlAudit.AuditQueueName;
             instance.AuditRetentionPeriod = ServiceControlAudit.AuditRetentionPeriod;
             instance.ForwardAuditMessages = ServiceControlAudit.AuditForwarding.Value;
-            instance.LogPath = ServiceControlAudit.LogPath;
             instance.ConnectionString = ConnectionString;
             instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControlAudit.DatabaseMaintenancePortNumber);
         }
