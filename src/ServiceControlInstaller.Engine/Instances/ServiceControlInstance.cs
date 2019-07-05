@@ -152,6 +152,10 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 settings.Set(ServiceControlSettings.AuditRetentionPeriod, AuditRetentionPeriod.Value.ToString(), Version);    
             }
+            else
+            {
+                settings.RemoveIfRetired(ServiceControlSettings.AuditRetentionPeriod, Version);
+            }
             
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), Version);
             settings.RemoveIfRetired(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring, Version);
