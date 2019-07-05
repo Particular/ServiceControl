@@ -42,6 +42,11 @@
                     continue;
                 }
 
+                if (!instance.HasBrowsableUrl)
+                {
+                    continue;
+                }
+
                 Task.Run(() =>
                 {
                     try
