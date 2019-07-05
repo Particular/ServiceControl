@@ -18,20 +18,20 @@ namespace ServiceControl.Config.UI.InstanceEdit
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();
 
-            RuleFor(x => x.ErrorForwarding)
+            RuleFor(x => x.ServiceControl.ErrorForwarding)
                 .NotNull().WithMessage(Validations.MSG_SELECTERRORFORWARDING);
 
-            RuleFor(x => x.ErrorQueueName)
+            RuleFor(x => x.ServiceControl.ErrorQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
+                .NotEqual(x => x.ServiceControl.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
                 .MustNotBeIn(x => instances.UsedQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted && x.ErrorQueueName != "!disable");
+                .When(x => x.SubmitAttempted && x.ServiceControl.ErrorQueueName != "!disable");
 
-            RuleFor(x => x.ErrorForwardingQueueName)
+            RuleFor(x => x.ServiceControl.ErrorForwardingQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ErrorQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error")
+                .NotEqual(x => x.ServiceControl.ErrorQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error")
                 .MustNotBeIn(x => instances.UsedQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .When(x => x.SubmitAttempted && x.ErrorForwarding.Value);
+                .When(x => x.SubmitAttempted && x.ServiceControl.ErrorForwarding.Value);
 
             RuleFor(x => x.ConnectionString)
                 .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
