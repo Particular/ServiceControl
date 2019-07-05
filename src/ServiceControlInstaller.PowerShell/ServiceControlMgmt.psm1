@@ -23,7 +23,7 @@ New-Alias -Value Invoke-ServiceControlInstanceUpgrade -Name  sc-upgrade
 New-Alias -Value Remove-ServiceControlInstance -Name  sc-delete 
 New-Alias -Value New-ServiceControlInstance -Name  sc-add 
 New-Alias -Value Get-MonitoringInstances -Name mon-instances 
-New-Alias -Value Invoke-MonitoringinstanceUpgrade -Name  mon-upgrade 
+New-Alias -Value Invoke-MonitoringInstanceUpgrade -Name  mon-upgrade 
 New-Alias -Value Remove-MonitoringInstance -Name  mon-delete 
 New-Alias -Value New-MonitoringInstance -Name  mon-add 
 New-Alias -Value Get-ServiceControlAuditInstances -Name audit-instances 
