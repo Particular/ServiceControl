@@ -56,16 +56,11 @@
                     return HttpStatusCode.BadRequest;
                 }
 
-                //TODO: should we verify here if the edit body is still a valid xml or json?
-
-                if (edit == null || string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
+                if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
                 {
-                    //TODO: load original body if no new body provided?
-                    //TODO: load original headers if no new headers provided?
                     return HttpStatusCode.BadRequest;
                 }
 
-                //TODO: consider sending base64 encoded body from the client
                 // Encode the body in base64 so that the new body doesn't have to be escaped
                 var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(edit.MessageBody));
                 await Bus.SendLocal(new EditAndSend
