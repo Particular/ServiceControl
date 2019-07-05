@@ -9,8 +9,8 @@ namespace ServiceControlInstaller.PowerShell
     using Engine.Instances;
     using Engine.Unattended;
 
-    [Cmdlet(VerbsCommon.Remove, "AuditInstance")]
-    public class RemoveAuditInstance : PSCmdlet
+    [Cmdlet(VerbsCommon.Remove, "ServiceControlAuditInstance")]
+    public class RemoveServiceControlAuditInstance : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the ServiceControl Audit instance name to remove")]

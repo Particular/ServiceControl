@@ -9,8 +9,8 @@
     using Engine.Validation;
     using PathInfo = Engine.Validation.PathInfo;
 
-    [Cmdlet(VerbsCommon.New, "AuditInstance")]
-    public class NewAuditInstance : PSCmdlet
+    [Cmdlet(VerbsCommon.New, "ServiceControlAuditInstance")]
+    public class NewServiceControlAuditInstance : PSCmdlet
     {
         [Parameter(Mandatory = true, HelpMessage = "Specify the name of the Audit Instance")]
         [ValidateNotNullOrEmpty]
