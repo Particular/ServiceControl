@@ -16,14 +16,14 @@
         {
             Get["/edit/config"] = _ => Negotiate.WithModel(GetEditConfiguration());
 
-            Post["/edit/{messageid}", true] = async (parameters, token) =>
+            Post["/edit/{failedmessageid}", true] = async (parameters, token) =>
             {
                 if (!Settings.AllowMessageEditing)
                 {
                     return HttpStatusCode.NotFound;
                 }
 
-                string failedMessageId = parameters.MessageId;
+                string failedMessageId = parameters.FailedMessageId;
 
                 if (string.IsNullOrEmpty(failedMessageId))
                 {
@@ -32,20 +32,30 @@
 
                 var edit = this.Bind<EditMessageModel>();
 
-                FailedMessage originalMessage;
+                FailedMessage failedMessage;
                 var originalMessageId = edit.MessageHeaders.First(x => string.Compare(x.Key, "NServiceBus.MessageId", StringComparison.InvariantCulture) == 0);
-                
+
                 using (var session = Store.OpenAsyncSession())
                 {
-                    originalMessage = await session.LoadAsync<FailedMessage>(originalMessageId).ConfigureAwait(false);
+                    failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
                 }
 
-                if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToList(), originalMessage.ProcessingAttempts.Last().Headers))
+                //WARN
+                /*
+                 * failedMessage.ProcessingAttempts.Last() return the lat retry attempt.
+                 * In theory between teh time someone edits a failed message and retry it someone else
+                 * could have retried the same message without editing. If this is the case "Last()" is
+                 * not anymore the same message.
+                 * Instead of using Last() it's probably better to select the processing attempt by looking for
+                 * one with the same MessageID
+                 */
+
+                if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToList(), failedMessage.ProcessingAttempts.Last().Headers))
                 {
                     //TODO: log that edited locked headers were found?
                     return HttpStatusCode.BadRequest;
                 }
-                
+
                 //TODO: should we verify here if the edit body is still a valid xml or json?
 
                 if (edit == null || string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
@@ -105,7 +115,7 @@
 
     class EditMessageModel
     {
-        public string MessageBody{ get; set; }
+        public string MessageBody { get; set; }
 
         // this way dictionary keys won't be converted to properties and renamed due to the UnderscoreMappingResolver
         public IEnumerable<KeyValuePair<string, string>> MessageHeaders { get; set; }
