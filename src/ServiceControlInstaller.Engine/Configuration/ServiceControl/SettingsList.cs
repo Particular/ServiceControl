@@ -45,8 +45,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static SettingInfo AuditRetentionPeriod = new SettingInfo
         {
             Name = "ServiceControl/AuditRetentionPeriod",
-            SupportedFrom = new Version(1, 12, 1),
-            RemovedFrom = new Version(4, 0, 0)
+            SupportedFrom = new Version(1, 12, 1)
         };
 
         public static SettingInfo ErrorRetentionPeriod = new SettingInfo
