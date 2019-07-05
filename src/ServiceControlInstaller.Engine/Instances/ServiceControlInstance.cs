@@ -100,8 +100,8 @@ namespace ServiceControlInstaller.Engine.Instances
             VirtualDirectory = AppConfig.Read(ServiceControlSettings.VirtualDirectory, (string)null);
             LogPath = AppConfig.Read(ServiceControlSettings.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(ServiceControlSettings.DBPath, DefaultDBPath());
-            AuditQueue = AppConfig.Read(ServiceControlSettings.AuditQueue, "audit");
-            AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, $"{AuditQueue}.log");
+            AuditQueue = AppConfig.Read(ServiceControlSettings.AuditQueue, (string)null);
+            AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, (string)null);
             ForwardAuditMessages = AppConfig.Read(ServiceControlSettings.ForwardAuditMessages, false);
             ForwardErrorMessages = AppConfig.Read(ServiceControlSettings.ForwardErrorMessages, false);
             InMaintenanceMode = AppConfig.Read(ServiceControlSettings.MaintenanceMode, false);
