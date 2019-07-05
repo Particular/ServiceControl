@@ -4,8 +4,8 @@
     using System.Management.Automation;
     using Engine.Instances;
 
-    [Cmdlet(VerbsCommon.Get, "AuditInstances")]
-    public class GetAuditInstances : Cmdlet
+    [Cmdlet(VerbsCommon.Get, "ServiceControlAuditInstances")]
+    public class GetServiceControlAuditInstances : Cmdlet
     {
         protected override void ProcessRecord()
         {

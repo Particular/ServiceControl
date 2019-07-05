@@ -22,10 +22,13 @@
         public string AuditLogQueue { get; set; }
         public bool ForwardAuditMessages { get; set; }
 
+        public TimeSpan AuditRetentionPeriod { get; set; }
+
         public string ServiceAccount { get; set; }
 
         public Version Version { get; set; }
 
+        public string ServiceControlQueueAddress { get; set; }
 
         public static PsAuditInstance FromInstance(ServiceControlAuditInstance instance)
             => new PsAuditInstance
@@ -45,6 +48,8 @@
                 ForwardAuditMessages = instance.ForwardAuditMessages,
                 ServiceAccount = instance.ServiceAccount,
                 Version = instance.Version,
+                AuditRetentionPeriod = instance.AuditRetentionPeriod,
+                ServiceControlQueueAddress = instance.ServiceControlQueueAddress
             };
     }
 }

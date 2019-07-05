@@ -100,8 +100,8 @@ namespace ServiceControlInstaller.Engine.Instances
             VirtualDirectory = AppConfig.Read(ServiceControlSettings.VirtualDirectory, (string)null);
             LogPath = AppConfig.Read(ServiceControlSettings.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(ServiceControlSettings.DBPath, DefaultDBPath());
-            AuditQueue = AppConfig.Read(ServiceControlSettings.AuditQueue, "audit");
-            AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, $"{AuditQueue}.log");
+            AuditQueue = AppConfig.Read(ServiceControlSettings.AuditQueue, (string)null);
+            AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, string.IsNullOrEmpty(AuditQueue) ? null : $"{AuditQueue}.log");
             ForwardAuditMessages = AppConfig.Read(ServiceControlSettings.ForwardAuditMessages, false);
             ForwardErrorMessages = AppConfig.Read(ServiceControlSettings.ForwardErrorMessages, false);
             InMaintenanceMode = AppConfig.Read(ServiceControlSettings.MaintenanceMode, false);
@@ -147,7 +147,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.LogPath, LogPath);
             settings.Set(ServiceControlSettings.ForwardAuditMessages, ForwardAuditMessages.ToString(), Version);
             settings.Set(ServiceControlSettings.ForwardErrorMessages, ForwardErrorMessages.ToString(), Version);
-            settings.Set(ServiceControlSettings.AuditRetentionPeriod, TimeSpan.FromHours(1).ToString(), Version); //TODO: Remove in future
+            settings.Set(ServiceControlSettings.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), Version);
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, ErrorRetentionPeriod.ToString(), Version);
             settings.RemoveIfRetired(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring, Version);
             settings.Set(ServiceControlSettings.AuditQueue, AuditQueue, Version);

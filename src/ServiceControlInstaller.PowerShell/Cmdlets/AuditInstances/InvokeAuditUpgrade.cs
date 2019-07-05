@@ -9,8 +9,8 @@ namespace ServiceControlInstaller.PowerShell
     using Engine.Instances;
     using Engine.Unattended;
 
-    [Cmdlet(VerbsLifecycle.Invoke, "AuditInstanceUpgrade")]
-    public class InvokeAuditInstanceUpgrade : PSCmdlet
+    [Cmdlet(VerbsLifecycle.Invoke, "ServiceControlAuditInstanceUpgrade")]
+    public class InvokeServiceControlAuditInstanceUpgrade : PSCmdlet
     {
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
