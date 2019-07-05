@@ -2,45 +2,52 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Linq;
     using ServiceControlInstaller.Engine.Instances;
 
-    public static class ServiceControlValidationExtension
+    public static class Validations
     {
-        // We need this to ignore the instance that represents the edit screen
-        public static List<string> UsedPaths(this ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances, string instanceName = null)
+        public static List<string> UsedPaths(string instanceName = null)
         {
-            return ServiceControlInstances
+            var monitoringInstances = InstanceFinder.MonitoringInstances();
+            var serviceControlAuditInstances = InstanceFinder.ServiceControlAuditInstances();
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            var result = new List<string>();
+
+            result.AddRange(monitoringInstances
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
-                    p.DBPath,
                     p.LogPath,
                     p.InstallPath
-                })
-                .Distinct()
-                .ToList();
-        }
+                }));
 
-        public static List<string> UsedPaths(this ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlAuditInstances, string instanceName = null)
-        {
-            return ServiceControlAuditInstances
+            result.AddRange(serviceControlAuditInstances
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
-                    p.DBPath,
                     p.LogPath,
+                    p.DBPath,
                     p.InstallPath
-                })
-                .Distinct()
-                .ToList();
+                }));
+
+            result.AddRange(serviceControlInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
+                    p.LogPath,
+                    p.DBPath,
+                    p.InstallPath
+                }));
+
+            return result.Distinct().ToList();
         }
 
         // We need this to ignore the instance that represents the edit screen
-        public static List<string> UsedQueueNames(this ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances, TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
+        public static List<string> UsedErrorQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {
-            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            var instancesByTransport = serviceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
                                                                           string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
             return instancesByTransport
@@ -55,9 +62,10 @@
                 .ToList();
         }
 
-        public static List<string> UsedQueueNames(this ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlInstances, TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
+        public static List<string> UsedAuditQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {
-            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            var instancesByTransport = serviceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
                                                                           string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
             return instancesByTransport
@@ -72,31 +80,34 @@
                 .ToList();
         }
 
-        // We need this to ignore the instance that represents the edit screen
-        public static List<string> UsedPorts(this ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances, string instanceName = null)
+        public static List<string> UsedPorts(string instanceName = null)
         {
-            return ServiceControlInstances
-                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-                .SelectMany(p => new[]
-                {
-                    p.Port.ToString(),
-                    p.DatabaseMaintenancePort.ToString()
-                })
-                .Distinct()
-                .ToList();
-        }
+            var monitoringInstances = InstanceFinder.MonitoringInstances();
+            var serviceControlAuditInstances = InstanceFinder.ServiceControlAuditInstances();
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            var result = new List<string>();
 
-        public static List<string> UsedPorts(this ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlInstances, string instanceName = null)
-        {
-            return ServiceControlInstances
+            result.AddRange(monitoringInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .Select(p => p.Port.ToString()));
+
+            result.AddRange(serviceControlInstances
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
                     p.Port.ToString(),
                     p.DatabaseMaintenancePort.ToString()
-                })
-                .Distinct()
-                .ToList();
+                }));
+
+            result.AddRange(serviceControlAuditInstances
+                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                .SelectMany(p => new[]
+                {
+                    p.Port.ToString(),
+                    p.DatabaseMaintenancePort.ToString()
+                }));
+
+            return result.Distinct().ToList();
         }
     }
 }

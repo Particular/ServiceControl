@@ -28,7 +28,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             settings.Set(ServiceControlSettings.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
             settings.Set(ServiceControlSettings.TransportType, details.TransportPackage.TypeName, version);
             settings.Set(ServiceControlSettings.ErrorQueue, details.ErrorQueue);
-            settings.Set(ServiceControlSettings.ErrorLogQueue, details.ErrorLogQueue);
+            settings.Set(ServiceControlSettings.ErrorLogQueue, details.ForwardErrorMessages ? details.ErrorLogQueue : null);
             settings.Set(ServiceControlSettings.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
             settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(details.RemoteInstances), version);
@@ -108,7 +108,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
             settings.Set(AuditInstanceSettingsList.TransportType, details.TransportPackage.TypeName, version);
             settings.Set(AuditInstanceSettingsList.AuditQueue, details.AuditQueue);
-            settings.Set(AuditInstanceSettingsList.AuditLogQueue, details.AuditLogQueue);
+            settings.Set(AuditInstanceSettingsList.AuditLogQueue, details.ForwardAuditMessages ? details.AuditLogQueue : null);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, details.ServiceControlQueueAddress);
 

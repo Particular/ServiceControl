@@ -15,12 +15,12 @@ namespace ServiceControlInstaller.Engine.Validation
 
         internal QueueNameValidator(IServiceControlInstance instance) : this()
         {
-            DetermineServiceControlQueueNames(instance.ErrorQueue, instance.ErrorLogQueue, instance.ConnectionString);
+            DetermineServiceControlQueueNames(instance);
         }
 
         internal QueueNameValidator(IServiceControlAuditInstance instance) : this()
         {
-            DetermineAuditQueueNames(instance.AuditQueue, instance.AuditLogQueue, instance.ConnectionString);
+            DetermineAuditQueueNames(instance);
         }
 
         public static void Validate(IServiceControlInstance instance)
@@ -45,50 +45,54 @@ namespace ServiceControlInstaller.Engine.Validation
             validator.RunValidation();
         }
 
-        void DetermineAuditQueueNames(string audit, string auditLog, string connectionString)
+        void DetermineAuditQueueNames(IServiceControlAuditInstance instance)
         {
-            var auditQueueInfo = new QueueInfo
-            {
-                PropertyName = "AuditQueue",
-                ConnectionString = connectionString,
-                QueueName = string.IsNullOrWhiteSpace(audit) ? "audit" : audit
-            };
-
-            var auditLogQueueInfo = new QueueInfo
-            {
-                PropertyName = "AuditLogQueue",
-                ConnectionString = connectionString,
-                QueueName = string.IsNullOrWhiteSpace(auditLog) ? audit + ".log" : auditLog
-            };
-
             queues = new List<QueueInfo>
             {
-                auditLogQueueInfo,
-                auditQueueInfo,
+                new QueueInfo
+                {
+                    PropertyName = "AuditQueue",
+                    ConnectionString = instance.ConnectionString,
+                    QueueName = instance.AuditQueue,
+                    QueueType = QueueType.Audit
+                }
             };
+
+            if(instance.ForwardAuditMessages)
+            {
+                queues.Add(new QueueInfo
+                {
+                    PropertyName = "AuditLogQueue",
+                    ConnectionString = instance.ConnectionString,
+                    QueueName = instance.AuditLogQueue,
+                    QueueType = QueueType.AuditLog
+                });
+            }
         }
 
-        void DetermineServiceControlQueueNames(string error, string errorLog, string connectionString)
+        void DetermineServiceControlQueueNames(IServiceControlInstance instance)
         {
-            var errorQueueInfo = new QueueInfo
-            {
-                PropertyName = "ErrorQueue",
-                ConnectionString = connectionString,
-                QueueName = string.IsNullOrWhiteSpace(error) ? "error" : error
-            };
-
-            var errorLogQueueInfo = new QueueInfo
-            {
-                PropertyName = "ErrorLogQueue",
-                ConnectionString = connectionString,
-                QueueName = string.IsNullOrWhiteSpace(errorLog) ? error + ".log" : errorLog
-            };
-
             queues = new List<QueueInfo>
             {
-                errorLogQueueInfo,
-                errorQueueInfo
+                new QueueInfo
+                {
+                    PropertyName = "ErrorQueue",
+                    ConnectionString = instance.ConnectionString,
+                    QueueName = instance.ErrorQueue,
+                    QueueType = QueueType.Error
+                }
             };
+
+            if (instance.ForwardErrorMessages)
+            {
+                queues.Add(new QueueInfo
+                {
+                    PropertyName = "ErrorLogQueue",
+                    ConnectionString = instance.ConnectionString,
+                    QueueName = instance.ErrorLogQueue,
+                    QueueType = QueueType.ErrorLog
+                });
+            }
         }
 
         void RunValidation()
@@ -100,7 +104,9 @@ namespace ServiceControlInstaller.Engine.Validation
 
         internal void CheckQueueNamesAreUniqueWithinInstance()
         {
-            var duplicatedQueues = queues.ToLookup(x => x.QueueName.ToLower())
+            var duplicatedQueues = queues
+                .Where(x => x.QueueName != null)
+                .ToLookup(x => x.QueueName.ToLower())
                 .Where(x => x.Key != "!disable" && x.Key != "!disable.log" && x.Count() > 1);
 
             if (duplicatedQueues.Any())
@@ -112,17 +118,23 @@ namespace ServiceControlInstaller.Engine.Validation
         internal void CheckQueueNamesAreNotTakenByAnotherAuditInstance()
         {
             var allQueues = AuditInstances.SelectMany(instance => new QueueNameValidator(instance).queues);
-            CheckQueueNamesAreNotTaken(allQueues);
+            var duplicates = (
+                from queue in queues
+                where allQueues.Any(p =>
+                    p.QueueType != QueueType.Audit &&
+                    string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase) &&
+                    string.Compare("!disable", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0 &&
+                    string.Compare("!disable.log", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0)
+                select queue.PropertyName
+            ).ToList();
+
+            ThrowIfDuplicateFound(duplicates);
         }
 
         internal void CheckQueueNamesAreNotTakenByAnotherServiceControlInstance()
         {
             var allQueues = SCInstances.SelectMany(instance => new QueueNameValidator(instance).queues);
-            CheckQueueNamesAreNotTaken(allQueues);
-        }
-
-        void CheckQueueNamesAreNotTaken(IEnumerable<QueueInfo> allQueues)
-        {
             var duplicates = (
                 from queue in queues
                 where allQueues.Any(p =>
@@ -133,6 +145,11 @@ namespace ServiceControlInstaller.Engine.Validation
                 select queue.PropertyName
             ).ToList();
 
+            ThrowIfDuplicateFound(duplicates);
+        }
+
+        void ThrowIfDuplicateFound(IList<string> duplicates)
+        {
             if (duplicates.Count == 1)
             {
                 throw new EngineValidationException($"The queue name for {duplicates[0]} is already assigned to another ServiceControl instance");
@@ -153,6 +170,15 @@ namespace ServiceControlInstaller.Engine.Validation
             public string ConnectionString { get; set; }
             public string PropertyName { get; set; }
             public string QueueName { get; set; }
+            public QueueType QueueType { get; set; }
+        }
+
+        public enum QueueType
+        {
+            Audit,
+            AuditLog,
+            Error,
+            ErrorLog
         }
     }
 }

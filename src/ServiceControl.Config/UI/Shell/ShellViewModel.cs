@@ -91,7 +91,7 @@
             RefreshInstances();
         }
 
-        void RefreshInstances()
+        public void RefreshInstances()
         {
             if (ActiveItem != null && !(ActiveItem == listInstances || ActiveItem == noInstances))
             {

@@ -138,7 +138,7 @@
                             Margin="20,0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Visibility="{Binding Path=ValidationTemplate.Error,
+                            Visibility="{Binding Path=(cm:IDataErrorInfo.Error),
                                                  Converter={StaticResource nullOrEmptyToVis}}">
                 <ContentControl.Content>
                     <Grid>
@@ -165,12 +165,10 @@
                         </Grid.RowDefinitions>
                         <TextBlock Margin="0,0,0,5"
                                FontSize="14"
-                               FontWeight="Bold">
-                        Validation Errors
-                        </TextBlock>
+                               FontWeight="Bold">Validation Errors</TextBlock>
                         <TextBlock Grid.Row="1"
                                Foreground="{StaticResource ErrorBrush}"
-                               Text="{Binding Path=ValidationTemplate.Error}" />
+                               Text="{Binding Path=(cm:IDataErrorInfo.Error)}" />
                     </Grid>
                 </ContentControl.ToolTip>
             </ContentControl>
