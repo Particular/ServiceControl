@@ -9,6 +9,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using NServiceBus.Logging;
 
     class EditFailedMessages : BaseModule
     {
@@ -20,6 +21,7 @@
             {
                 if (!Settings.AllowMessageEditing)
                 {
+                    logging.Info("Message edit-retry has not been enabled.");
                     return HttpStatusCode.NotFound;
                 }
 
@@ -33,11 +35,16 @@
                 var edit = this.Bind<EditMessageModel>();
 
                 FailedMessage failedMessage;
-                var originalMessageId = edit.MessageHeaders.First(x => string.Compare(x.Key, "NServiceBus.MessageId", StringComparison.InvariantCulture) == 0);
-
+                
                 using (var session = Store.OpenAsyncSession())
                 {
                     failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                }
+
+                if (failedMessage == null)
+                {
+                    logging.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
+                    return HttpStatusCode.BadRequest;
                 }
 
                 //WARN
@@ -52,12 +59,13 @@
 
                 if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToList(), failedMessage.ProcessingAttempts.Last().Headers))
                 {
-                    //TODO: log that edited locked headers were found?
+                    logging.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
                     return HttpStatusCode.BadRequest;
                 }
 
                 if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
                 {
+                    logging.WarnFormat("There is no message body on the edit-retry for MessageID {0}.", failedMessageId);
                     return HttpStatusCode.BadRequest;
                 }
 
@@ -99,6 +107,8 @@
         }
 
         public IMessageSession Bus { get; set; }
+
+        ILog logging = LogManager.GetLogger(typeof(EditFailedMessages));
     }
 
     class EditConfigurationModel
