@@ -1,13 +1,10 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
-    using Extensions;
     using FluentValidation;
     using Framework;
     using Framework.Commands;

@@ -1,6 +1,5 @@
 namespace ServiceControl.Config.UI.InstanceAdd
 {
-    using Extensions;
     using FluentValidation;
     using Validation;
     using Validations = Extensions.Validations;

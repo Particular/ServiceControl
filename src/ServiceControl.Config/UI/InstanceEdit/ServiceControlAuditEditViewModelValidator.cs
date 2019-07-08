@@ -1,6 +1,5 @@
 namespace ServiceControl.Config.UI.InstanceEdit
 {
-    using Extensions;
     using FluentValidation;
     using Validation;
     using Validations = Extensions.Validations;

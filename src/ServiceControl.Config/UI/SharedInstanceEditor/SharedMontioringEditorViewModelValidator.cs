@@ -1,6 +1,5 @@
 namespace ServiceControl.Config.Validation
 {
-    using Extensions;
     using FluentValidation;
     using UI.SharedInstanceEditor;
 

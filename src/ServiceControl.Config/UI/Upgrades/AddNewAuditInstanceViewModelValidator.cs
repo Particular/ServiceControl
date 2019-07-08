@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.Upgrades
 {
     using FluentValidation;
-    using Extensions;
     using Validation;
     using Validations = Extensions.Validations;
 
