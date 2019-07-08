@@ -64,7 +64,7 @@
 
         public static List<string> UsedAuditQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {
-            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            var serviceControlInstances = InstanceFinder.ServiceControlAuditInstances();
             var instancesByTransport = serviceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
                                                                           string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
