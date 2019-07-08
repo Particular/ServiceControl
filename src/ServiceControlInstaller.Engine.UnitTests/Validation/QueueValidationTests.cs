@@ -60,7 +60,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             var newInstance = new ServiceControlAuditNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                AuditQueue = "audit",
+                AuditQueue = "audit"
             };
 
             var validator = new QueueNameValidator(newInstance)
@@ -132,7 +132,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             // with default names
             var defaultInstance = new ServiceControlNewInstance
             {
-                ErrorQueue = "Error",
+                ErrorQueue = "Error"
             };
 
             p = new QueueNameValidator(defaultInstance)
@@ -154,7 +154,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology),
                 ErrorLogQueue = "errorlog",
                 ErrorQueue = "error",
-                ForwardErrorMessages = true,
+                ForwardErrorMessages = true
             };
 
             var p = new QueueNameValidator(newInstance)
@@ -169,7 +169,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             // with default names
             var defaultInstance = new ServiceControlNewInstance
             {
-                ErrorQueue = "Error",
+                ErrorQueue = "Error"
             };
             p = new QueueNameValidator(defaultInstance)
             {
