@@ -61,8 +61,6 @@ namespace ServiceControlInstaller.Engine.Instances
             LogPath = AppConfig.Read(AuditInstanceSettingsList.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(AuditInstanceSettingsList.DBPath, DefaultDBPath());
             AuditQueue = AppConfig.Read(AuditInstanceSettingsList.AuditQueue, "audit");
-            AuditLogQueue = AppConfig.Read(AuditInstanceSettingsList.AuditLogQueue, $"{AuditQueue}.log");
-            ForwardAuditMessages = AppConfig.Read(AuditInstanceSettingsList.ForwardAuditMessages, false);
             AuditRetentionPeriod = TimeSpan.Parse(AppConfig.Read(AuditInstanceSettingsList.AuditRetentionPeriod, "30.00:00:00"));
             InMaintenanceMode = AppConfig.Read(AuditInstanceSettingsList.MaintenanceMode, false);
             ServiceControlQueueAddress = AppConfig.Read<string>(AuditInstanceSettingsList.ServiceControlQueueAddress, null);
@@ -70,6 +68,12 @@ namespace ServiceControlInstaller.Engine.Instances
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
             ServiceAccount = Service.Account;
+
+            ForwardAuditMessages = AppConfig.Read(ServiceControlSettings.ForwardAuditMessages, false);
+            if (ForwardAuditMessages)
+            {
+                AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, $"{AuditQueue}.log");
+            }
         }
 
         public override void RunQueueCreation()

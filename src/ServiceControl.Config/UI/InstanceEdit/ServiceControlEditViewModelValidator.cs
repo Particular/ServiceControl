@@ -1,16 +1,13 @@
 namespace ServiceControl.Config.UI.InstanceEdit
 {
-    using Extensions;
     using FluentValidation;
-    using ServiceControlInstaller.Engine.Instances;
     using Validation;
+    using Validations = Extensions.Validations;
 
     public class ServiceControlEditViewModelValidator : AbstractValidator<ServiceControlEditViewModel>
     {
         public ServiceControlEditViewModelValidator()
         {
-            var instances = InstanceFinder.ServiceControlInstances();
-
             RuleFor(x => x.ServiceControl.ServiceAccount)
                 .NotEmpty()
                 .When(x => x.SubmitAttempted);
@@ -19,30 +16,32 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .NotEmpty();
 
             RuleFor(x => x.ServiceControl.ErrorForwarding)
-                .NotNull().WithMessage(Validations.MSG_SELECTERRORFORWARDING);
+                .NotNull().WithMessage(Validation.Validations.MSG_SELECTERRORFORWARDING);
 
             RuleFor(x => x.ServiceControl.ErrorQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ServiceControl.ErrorForwardingQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
-                .MustNotBeIn(x => instances.UsedQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
+                .NotEqual(x => x.ServiceControl.ErrorForwardingQueueName).WithMessage(Validation.Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding")
+                .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
+                .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .When(x => x.SubmitAttempted && x.ServiceControl.ErrorQueueName != "!disable");
 
             RuleFor(x => x.ServiceControl.ErrorForwardingQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ServiceControl.ErrorQueueName).WithMessage(Validations.MSG_UNIQUEQUEUENAME, "Error")
-                .MustNotBeIn(x => instances.UsedQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validations.MSG_QUEUE_ALREADY_ASSIGNED)
+                .NotEqual(x => x.ServiceControl.ErrorQueueName).WithMessage(Validation.Validations.MSG_UNIQUEQUEUENAME, "Error")
+                .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
+                .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .When(x => x.SubmitAttempted && x.ServiceControl.ErrorForwarding.Value);
 
             RuleFor(x => x.ConnectionString)
-                .NotEmpty().WithMessage(Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
+                .NotEmpty().WithMessage(Validation.Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
                 .When(x => !string.IsNullOrWhiteSpace(x.SelectedTransport?.SampleConnectionString) && x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControl.DatabaseMaintenancePortNumber)
                 .NotEmpty()
                 .ValidPort()
-                .MustNotBeIn(x => instances.UsedPorts(x.ServiceControl.InstanceName))
+                .MustNotBeIn(x => Validations.UsedPorts(x.ServiceControl.InstanceName))
                 .NotEqual(x => x.ServiceControl.PortNumber)
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports")
                 .When(x => x.SubmitAttempted);
         }
     }

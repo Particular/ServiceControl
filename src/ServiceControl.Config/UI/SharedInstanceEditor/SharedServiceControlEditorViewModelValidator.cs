@@ -2,7 +2,6 @@ namespace ServiceControl.Config.Validation
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Linq;
     using FluentValidation;
     using ServiceControlInstaller.Engine.Instances;
@@ -12,8 +11,6 @@ namespace ServiceControl.Config.Validation
     {
         protected SharedServiceControlEditorViewModelValidator()
         {
-            ServiceControlInstances = InstanceFinder.ServiceControlInstances();
-
             RuleFor(x => x.InstanceName)
                 .NotEmpty()
                 .MustNotContainWhitespace()
@@ -41,7 +38,7 @@ namespace ServiceControl.Config.Validation
         // We need this to ignore the instance that represents the edit screen
         protected List<string> UsedPaths(string instanceName = null)
         {
-            return ServiceControlInstances
+            return InstanceFinder.ServiceControlInstances()
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
@@ -56,7 +53,7 @@ namespace ServiceControl.Config.Validation
         // We need this to ignore the instance that represents the edit screen
         protected List<string> UsedQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)
         {
-            var instancesByTransport = ServiceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
+            var instancesByTransport = InstanceFinder.ServiceControlInstances().Where(p => p.TransportPackage.Equals(transportInfo) &&
                                                                           string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
             return instancesByTransport
@@ -76,7 +73,7 @@ namespace ServiceControl.Config.Validation
         // We need this to ignore the instance that represents the edit screen
         protected List<string> UsedPorts(string instanceName = null)
         {
-            return ServiceControlInstances
+            return InstanceFinder.ServiceControlInstances()
                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
                 .SelectMany(p => new[]
                 {
@@ -86,7 +83,5 @@ namespace ServiceControl.Config.Validation
                 .Distinct()
                 .ToList();
         }
-
-        ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances;
     }
 }

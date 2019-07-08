@@ -1,9 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -21,6 +18,7 @@
     using UI.Upgrades;
     using Validation;
     using Xaml.Controls;
+    using Validations = Extensions.Validations;
 
     class UpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
@@ -349,41 +347,12 @@
         {
             public PortValidator()
             {
-                ServiceControlInstances = InstanceFinder.ServiceControlInstances();
-                ServiceControlAuditInstances = InstanceFinder.ServiceControlAuditInstances();
-
                 RuleFor(x => x.Value)
                     .NotEmpty()
                     .ValidPort()
-                    .MustNotBeIn(x => UsedPorts())
-                    .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports");
+                    .MustNotBeIn(x => Validations.UsedPorts())
+                    .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports");
             }
-
-            List<string> UsedPorts()
-            {
-                var serviceControlPorts = ServiceControlInstances
-                    .SelectMany(p => new[]
-                    {
-                        p.Port.ToString(),
-                        p.DatabaseMaintenancePort.ToString()
-                    })
-                    .ToList();
-
-                var auditPorts = ServiceControlAuditInstances
-                    .SelectMany(p => new[]
-                    {
-                        p.Port.ToString(),
-                        p.DatabaseMaintenancePort.ToString()
-                    })
-                    .ToList();
-
-                return auditPorts.Union(serviceControlPorts)
-                    .Distinct()
-                    .ToList();
-            }
-
-            ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances;
-            ReadOnlyCollection<ServiceControlAuditInstance> ServiceControlAuditInstances;
         }
     }
 }

@@ -101,16 +101,24 @@ namespace ServiceControlInstaller.Engine.Instances
             LogPath = AppConfig.Read(ServiceControlSettings.LogPath, DefaultLogPath());
             DBPath = AppConfig.Read(ServiceControlSettings.DBPath, DefaultDBPath());
             AuditQueue = AppConfig.Read(ServiceControlSettings.AuditQueue, (string)null);
-            AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, string.IsNullOrEmpty(AuditQueue) ? null : $"{AuditQueue}.log");
-            ForwardAuditMessages = AppConfig.Read(ServiceControlSettings.ForwardAuditMessages, false);
-            ForwardErrorMessages = AppConfig.Read(ServiceControlSettings.ForwardErrorMessages, false);
             InMaintenanceMode = AppConfig.Read(ServiceControlSettings.MaintenanceMode, false);
             ErrorQueue = AppConfig.Read(ServiceControlSettings.ErrorQueue, "error");
-            ErrorLogQueue = AppConfig.Read(ServiceControlSettings.ErrorLogQueue, $"{ErrorQueue}.log");
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
             ServiceAccount = Service.Account;
+
+            ForwardErrorMessages = AppConfig.Read(ServiceControlSettings.ForwardErrorMessages, false);
+            if (ForwardErrorMessages)
+            {
+                ErrorLogQueue = AppConfig.Read(ServiceControlSettings.ErrorLogQueue, $"{ErrorQueue}.log");
+            }
+
+            ForwardAuditMessages = AppConfig.Read(ServiceControlSettings.ForwardAuditMessages, false);
+            if (ForwardAuditMessages)
+            {
+                AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, string.IsNullOrEmpty(AuditQueue) ? null : $"{AuditQueue}.log");
+            }
 
             if (TimeSpan.TryParse(AppConfig.Read(ServiceControlSettings.ErrorRetentionPeriod, (string)null), out var errorRetentionPeriod))
             {
@@ -159,7 +167,6 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 if (Compatibility.RemoteInstancesDoNotNeedQueueAddress.SupportedFrom <= Version)
                 {
-
                     foreach (var instance in RemoteInstances)
                     {
                         instance.QueueAddress = null;

@@ -73,7 +73,16 @@ namespace ServiceControlInstaller.Engine
         int? DatabaseMaintenancePort { get; }
     }
 
-    public interface IServiceControlAuditInstance : IServiceInstance, IServiceControlPaths, IHttpInstance, IInstallable, IDatabaseMaintenanceSupport, ITransportConfig
+    public interface IServiceControlBaseInstance : IHttpInstance, 
+        IDatabaseMaintenanceSupport, 
+        IServiceInstance, 
+        IServiceControlPaths,
+        IInstallable,
+        ITransportConfig
+    {
+    }
+
+    public interface IServiceControlAuditInstance : IServiceControlBaseInstance
     {
         string AuditQueue { get; }
         string AuditLogQueue { get; }
@@ -83,7 +92,7 @@ namespace ServiceControlInstaller.Engine
         string ServiceControlQueueAddress { get; set; }
     }
 
-    public interface IServiceControlInstance : IServiceInstance, IServiceControlPaths, IHttpInstance, IURLInfo, IInstallable, IDatabaseMaintenanceSupport, ITransportConfig
+    public interface IServiceControlInstance : IServiceControlBaseInstance, IURLInfo
     {
         string ErrorQueue { get; }
         string ErrorLogQueue { get; }

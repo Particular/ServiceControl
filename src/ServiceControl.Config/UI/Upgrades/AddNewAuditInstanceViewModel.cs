@@ -3,8 +3,10 @@
     using System.Windows.Input;
     using Framework.Rx;
     using InstanceAdd;
+    using Validar;
     using Validation;
 
+    [InjectValidation]
     public class AddNewAuditInstanceViewModel : RxScreen
     {
         public AddNewAuditInstanceViewModel(string serviceControlName)
