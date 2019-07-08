@@ -17,11 +17,13 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             instanceA.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ));
             instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
+            instanceA.SetupGet(p => p.ForwardErrorMessages).Returns(true);
 
             var instanceB = new Mock<IServiceControlInstance>();
             instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology));
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
+            instanceB.SetupGet(p => p.ForwardErrorMessages).Returns(true);
             instanceB.SetupGet(p => p.ConnectionString).Returns(@"afakeconnectionstring");
 
             instances = new List<IServiceControlInstance>
@@ -49,13 +51,35 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         }
 
         [Test]
+        public void CheckChainingOfAuditQueues_ShouldSucceed()
+        {
+            var existingAudit = new Mock<IServiceControlAuditInstance>();
+            existingAudit.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ));
+            existingAudit.SetupGet(p => p.AuditQueue).Returns(@"audit");
+            
+            var newInstance = new ServiceControlAuditNewInstance
+            {
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
+                AuditQueue = "audit",
+            };
+
+            var validator = new QueueNameValidator(newInstance)
+            {
+                AuditInstances = new List<IServiceControlAuditInstance> { existingAudit.Object }
+            };
+
+            Assert.DoesNotThrow(() => validator.CheckQueueNamesAreNotTakenByAnotherAuditInstance());
+        }
+
+        [Test]
         public void CheckQueueNamesAreUniqueShouldThrow()
         {
             var newInstance = new ServiceControlNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
                 ErrorLogQueue = "error",
-                ErrorQueue = "error"
+                ErrorQueue = "error",
+                ForwardErrorMessages = true
             };
 
             var p = new QueueNameValidator(newInstance)
@@ -92,7 +116,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
                 ErrorLogQueue = "errorlog",
-                ErrorQueue = "error"
+                ErrorQueue = "error",
+                ForwardErrorMessages = true
             };
 
             var p = new QueueNameValidator(newInstance)
@@ -103,8 +128,14 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             Assert.That(ex.Message, Does.Contain(expectedError));
 
             expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
-            // null queues will default to default names
-            p = new QueueNameValidator(new ServiceControlNewInstance())
+            
+            // with default names
+            var defaultInstance = new ServiceControlNewInstance
+            {
+                ErrorQueue = "Error",
+            };
+
+            p = new QueueNameValidator(defaultInstance)
             {
                 SCInstances = instances
             };
@@ -122,7 +153,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology),
                 ErrorLogQueue = "errorlog",
-                ErrorQueue = "error"
+                ErrorQueue = "error",
+                ForwardErrorMessages = true,
             };
 
             var p = new QueueNameValidator(newInstance)
@@ -133,8 +165,13 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             Assert.That(ex.Message, Does.Contain(expectedError));
 
             expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
-            // null queues will default to default names
-            p = new QueueNameValidator(new ServiceControlNewInstance())
+            
+            // with default names
+            var defaultInstance = new ServiceControlNewInstance
+            {
+                ErrorQueue = "Error",
+            };
+            p = new QueueNameValidator(defaultInstance)
             {
                 SCInstances = instances
             };
@@ -151,7 +188,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology),
                 ErrorQueue = "RMQerror",
                 ErrorLogQueue = "RMQerrorlog",
-                ConnectionString = "afakeconnectionstring"
+                ConnectionString = "afakeconnectionstring",
+                ForwardErrorMessages = true
             };
 
             var p = new QueueNameValidator(newInstance)

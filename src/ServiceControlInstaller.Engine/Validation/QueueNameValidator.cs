@@ -157,7 +157,7 @@ namespace ServiceControlInstaller.Engine.Validation
 
             if (duplicates.Count > 1)
             {
-                throw new EngineValidationException($"Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {string.Join(", ", duplicates)}");
+                throw new EngineValidationException($"Some queue names specified are already assigned to another ServiceControl instance - Correct the values for {string.Join(", ", duplicates.OrderBy(x => x))}");
             }
         }
 
