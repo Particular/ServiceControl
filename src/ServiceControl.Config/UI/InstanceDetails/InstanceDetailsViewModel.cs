@@ -75,7 +75,9 @@
 
         public BaseService ServiceInstance { get; }
 
-        public bool InMaintenanceMode => ServiceControlInstance?.InMaintenanceMode ?? false;
+        public bool InMaintenanceMode =>
+            ServiceControlInstance?.InMaintenanceMode == true || 
+            ServiceControlAuditInstance?.InMaintenanceMode == true;
 
         public bool IsServiceControlInstance => ServiceInstance?.GetType() == typeof(ServiceControlInstance);
         public bool IsMonitoringInstance => ServiceInstance?.GetType() == typeof(MonitoringInstance);
