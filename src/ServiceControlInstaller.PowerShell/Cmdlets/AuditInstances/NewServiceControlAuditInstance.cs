@@ -48,7 +48,6 @@
         public string AuditQueue { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify Queue name to forward audit messages to")]
-        [ValidateNotNullOrEmpty]
         public string AuditLogQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
@@ -60,7 +59,6 @@
         public string DisplayName { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the connection string to use to connect to the queuing system.  Can be left blank for MSMQ")]
-        [ValidateNotNullOrEmpty]
         public string ConnectionString { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the description to use on the Windows Service for this instance")]
