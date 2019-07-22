@@ -539,6 +539,8 @@ namespace ServiceControl.MessageFailures.Api
     public class FailedMessageView
     {
         public FailedMessageView() { }
+        public bool Edited { get; set; }
+        public string EditOf { get; set; }
         public ServiceControl.Contracts.Operations.ExceptionDetails Exception { get; set; }
         public string Id { get; set; }
         public bool IsSystemMessage { get; set; }
@@ -557,6 +559,11 @@ namespace ServiceControl.MessageFailures.Api
     {
         public FailedMessageViewTransformer() { }
         public static string Name { get; }
+    }
+    public class LockedHeaderModificationValidator
+    {
+        public LockedHeaderModificationValidator() { }
+        public bool Check(string[] lockedHeaders, System.Collections.Generic.Dictionary<string, string> editedMessageHeaders, System.Collections.Generic.Dictionary<string, string> originalMessageHeaders) { }
     }
 }
 namespace ServiceControl.MessageFailures
