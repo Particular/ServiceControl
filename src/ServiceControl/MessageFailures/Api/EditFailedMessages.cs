@@ -57,7 +57,7 @@
                  * one with the same MessageID
                  */
 
-                if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToList(), failedMessage.ProcessingAttempts.Last().Headers))
+                if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToDictionary(x => x.Key, x=> x.Value), failedMessage.ProcessingAttempts.Last().Headers))
                 {
                     logging.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
                     return HttpStatusCode.BadRequest;
