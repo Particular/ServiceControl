@@ -2,28 +2,28 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     public class LockedHeaderModificationValidator
     {
-        public bool Check(string[] lockedHeaders, IList<KeyValuePair<string, string>> editedMessageHeaders, Dictionary<string, string> originalMessageHeaders)
+        public bool Check(string[] lockedHeaders, Dictionary<string, string> editedMessageHeaders, Dictionary<string, string> originalMessageHeaders)
         {
             foreach (var header in lockedHeaders)
             {
-                var originalHeader = originalMessageHeaders.FirstOrDefault(x => string.Compare(x.Key, header, StringComparison.InvariantCulture) == 0);
-                var editedHeader = editedMessageHeaders.FirstOrDefault(x => string.Compare(x.Key, header, StringComparison.InvariantCulture) == 0);
+                originalMessageHeaders.TryGetValue(header, out var originalHeader);
+                editedMessageHeaders.TryGetValue(header, out var editedHeader);
+                //var editedHeader = editedMessageHeaders.FirstOrDefault(x => string.Compare(x.Key, header, StringComparison.InvariantCulture) == 0);
 
-                if (string.IsNullOrEmpty(originalHeader.Key) && !string.IsNullOrEmpty(editedHeader.Key))
+                if (string.IsNullOrEmpty(originalHeader) && !string.IsNullOrEmpty(editedHeader))
                 {
                     continue;
                 }
 
-                if (string.IsNullOrEmpty(originalHeader.Key) && string.IsNullOrEmpty(editedHeader.Key))
+                if (string.IsNullOrEmpty(originalHeader) && string.IsNullOrEmpty(editedHeader))
                 {
                     continue;
                 }
 
-                if (string.Compare(originalHeader.Value, editedHeader.Value, StringComparison.InvariantCulture) != 0)
+                if (string.Compare(originalHeader, editedHeader, StringComparison.InvariantCulture) != 0)
                 {
                     return true;
                 }
