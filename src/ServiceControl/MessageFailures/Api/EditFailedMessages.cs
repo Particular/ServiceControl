@@ -91,7 +91,14 @@
                 Enabled = Settings.AllowMessageEditing,
                 LockedHeaders = new[]
                 {
-                    "NServiceBus.MessageId",
+                    Headers.MessageId,
+                    Headers.SagaId,
+                    Headers.CorrelationId,
+                    Headers.ControlMessageHeader,
+                    Headers.OriginatingSagaId,
+                    Headers.RelatedTo,
+                    Headers.ConversationId,
+                    Headers.MessageIntent,
                     "NServiceBus.ExceptionInfo.ExceptionType",
                     "NServiceBus.ExceptionInfo.HelpLink",
                     "NServiceBus.ExceptionInfo.Message",
@@ -100,8 +107,24 @@
                 },
                 SensitiveHeaders = new[]
                 {
-                    "NServiceBus.ConversationId",
-                    "NServiceBus.MessageIntent"
+                    Headers.RouteTo,
+                    Headers.DestinationSites,
+                    Headers.OriginatingSite,
+                    Headers.HttpTo,
+                    Headers.ReplyToAddress,
+                    Headers.NServiceBusVersion,
+                    Headers.ReturnMessageErrorCodeHeader,
+                    Headers.IsSagaTimeoutMessage,
+                    Headers.IsDeferredMessage,
+                    Headers.SagaType,
+                    Headers.OriginatingSagaType,
+                    Headers.DelayedRetries,
+                    Headers.DelayedRetriesTimestamp,
+                    Headers.ImmediateRetries,
+                    Headers.ProcessingStarted,
+                    Headers.ProcessingEnded,
+                    Headers.TimeSent,
+                    "Header"
                 }
             };
         }
