@@ -20,7 +20,7 @@
   ],
   "ServiceControl.MessageFailures.Api.EditFailedMessages": [
     "GET: /edit/config",
-    "POST: /edit/{messageid}"
+    "POST: /edit/{failedmessageid}"
   ],
   "ServiceControl.EventLog.EventLogApiModule": [
     "GET: /eventlogitems"
