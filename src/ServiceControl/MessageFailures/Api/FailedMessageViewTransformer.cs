@@ -10,6 +10,7 @@
         {
             TransformResults = failures => from failure in failures
                 let rec = failure.ProcessingAttempts.Last()
+                let edited = rec.Headers["ServiceControl.EditOf"] != null
                 select new
                 {
                     Id = failure.UniqueMessageId,
@@ -24,7 +25,9 @@
                     NumberOfProcessingAttempts = failure.ProcessingAttempts.Count,
                     failure.Status,
                     rec.FailureDetails.TimeOfFailure,
-                    LastModified = MetadataFor(failure)["Last-Modified"].Value<DateTime>()
+                    LastModified = MetadataFor(failure)["Last-Modified"].Value<DateTime>(),
+                    Edited = edited,
+                    EditOf = edited ? rec.Headers["ServiceControl.EditOf"] : "",
                 };
         }
 
