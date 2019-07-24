@@ -75,7 +75,7 @@
 
             var outgoingMessage = BuildMessage(message);
             // mark the new message with a link to the original message id
-            outgoingMessage.Headers.Add("ServiceControl.EditOf", attempt.MessageId);
+            outgoingMessage.Headers.Add("ServiceControl.EditOf", message.FailedMessageId);
             var address = ApplyRedirect(attempt.FailureDetails.AddressOfFailingEndpoint, redirects);
             await DispatchEditedMessage(outgoingMessage, address, context)
                 .ConfigureAwait(false);
