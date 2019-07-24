@@ -3,13 +3,13 @@
     using Nancy;
     using Nancy.ModelBinding;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using NServiceBus.Logging;
 
     class EditFailedMessages : BaseModule
     {
@@ -35,10 +35,10 @@
                 var edit = this.Bind<EditMessageModel>();
 
                 FailedMessage failedMessage;
-                
+
                 using (var session = Store.OpenAsyncSession())
                 {
-                    failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                    failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
                 }
 
                 if (failedMessage == null)
@@ -57,7 +57,7 @@
                  * one with the same MessageID
                  */
 
-                if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToDictionary(x => x.Key, x=> x.Value), failedMessage.ProcessingAttempts.Last().Headers))
+                if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToDictionary(x => x.Key, x => x.Value), failedMessage.ProcessingAttempts.Last().Headers))
                 {
                     logging.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
                     return HttpStatusCode.BadRequest;
