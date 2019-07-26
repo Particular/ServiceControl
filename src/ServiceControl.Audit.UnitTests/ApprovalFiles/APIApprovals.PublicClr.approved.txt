@@ -177,6 +177,13 @@ namespace ServiceControl.Audit.Monitoring
         public System.Guid HostId { get; set; }
         public string Name { get; set; }
     }
+    public class KnownEndpointsView
+    {
+        public KnownEndpointsView() { }
+        public ServiceControl.Audit.Monitoring.EndpointDetails EndpointDetails { get; set; }
+        public string HostDisplayName { get; set; }
+        public System.Guid Id { get; set; }
+    }
     public enum MessageStatus
     {
         Successful = 3,

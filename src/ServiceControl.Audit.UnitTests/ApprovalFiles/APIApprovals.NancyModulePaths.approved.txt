@@ -19,5 +19,8 @@
     "GET: /",
     "GET: /configuration",
     "GET: /instance-info"
+  ],
+  "ServiceControl.Audit.Monitoring.WebApi": [
+    "GET: /endpoints/known"
   ]
 }
