@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.Monitoring
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Auditing.MessagesView;
@@ -8,9 +9,9 @@ namespace ServiceControl.Audit.Monitoring
     using Nancy;
     using Raven.Client;
 
-    class GetKnownEndpointsApi : ApiBase<NoInput, KnownEndpointsView[]>
+    class GetKnownEndpointsApi : ApiBase<NoInput, IList<KnownEndpointsView>>
     {
-        public override async Task<QueryResult<KnownEndpointsView[]>> Query(Request request, NoInput input)
+        public override async Task<QueryResult<IList<KnownEndpointsView>>> Query(Request request, NoInput input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -26,9 +27,9 @@ namespace ServiceControl.Audit.Monitoring
                         EndpointDetails = x,
                         HostDisplayName = x.Host
                     })
-                    .ToArray();
+                    .ToList();
 
-                return new QueryResult<KnownEndpointsView[]>(knownEndpoints, stats.ToQueryStatsInfo());
+                return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, stats.ToQueryStatsInfo());
             }
         }
     }
