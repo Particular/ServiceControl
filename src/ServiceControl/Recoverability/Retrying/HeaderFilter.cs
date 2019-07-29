@@ -23,7 +23,8 @@
             "NServiceBus.ExceptionInfo.Source",
             "NServiceBus.ExceptionInfo.StackTrace",
             "NServiceBus.ExceptionInfo.HelpLink",
-            "NServiceBus.ExceptionInfo.Message"
+            "NServiceBus.ExceptionInfo.Message",
+            "ServiceControl.EditOf"
         };
     }
 }
