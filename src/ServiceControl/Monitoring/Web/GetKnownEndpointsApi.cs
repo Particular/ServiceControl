@@ -18,17 +18,19 @@
 
         public override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(Request request, NoInput input)
         {
+            var result = monitoring.GetKnownEndpoints();
+            
             return Task.FromResult(
                 new QueryResult<IList<KnownEndpointsView>>(
-                    monitoring.GetKnownEndpoints(), 
-                    QueryStatsInfo.Zero
+                    result, 
+                    new QueryStatsInfo(string.Empty, result.Count)
                 )
             );
         }
 
         protected override IList<KnownEndpointsView> ProcessResults(Request request, QueryResult<IList<KnownEndpointsView>>[] results)
         {
-            return results.SelectMany(x => x.Results).DistinctBy(x => x.Id).ToList();
+            return results.Where(p => p.Results != null).SelectMany(x => x.Results).DistinctBy(x => x.Id).ToList();
         }
     }
 }
