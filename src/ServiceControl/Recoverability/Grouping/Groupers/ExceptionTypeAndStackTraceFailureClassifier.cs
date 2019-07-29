@@ -20,7 +20,15 @@ namespace ServiceControl.Recoverability
                 return GetNonStandardClassification(exception.ExceptionType);
             }
 
-            var firstStackTraceFrame = StackTraceParser.Parse(exception.StackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
+            
+            var exceptionStackTrace = exception.StackTrace;
+            if (exception.Message != null)
+            {
+                //The StackTrace message header contains the result of ToString call on the exception object so it includes the message
+                //We need to remove the message in order to make sure the stack trace parser does not get into catastrophic backtracking mode.
+                exceptionStackTrace = exceptionStackTrace.Replace(exception.Message, "");
+            }
+            var firstStackTraceFrame = StackTraceParser.Parse(exceptionStackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
             {
                 Type = type,
                 Method = method,
