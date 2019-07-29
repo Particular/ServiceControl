@@ -20,7 +20,7 @@
         {
             return Task.FromResult(
                 new QueryResult<IList<KnownEndpointsView>>(
-                    monitoring.GetKnownEndpoints().ToList(), 
+                    monitoring.GetKnownEndpoints(), 
                     QueryStatsInfo.Zero
                 )
             );
