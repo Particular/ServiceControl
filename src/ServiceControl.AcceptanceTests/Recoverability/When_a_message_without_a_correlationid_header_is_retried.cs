@@ -1,15 +1,17 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability
+﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System;
     using System.Threading.Tasks;
-    using EndpointTemplates;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
+    [RunOnAllTransports]
     class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
     {
         [Test]
@@ -59,7 +61,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.RegisterComponents(components => components.ConfigureComponent<CorrelationIdRemover>(DependencyLifecycle.InstancePerCall));

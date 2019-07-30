@@ -6,13 +6,23 @@
     using Accounts;
     using Instances;
 
-    internal class QueueCreation
+    static class QueueCreation
     {
         public static void RunQueueCreation(IServiceControlInstance instance)
         {
             var accountName = instance.ServiceAccount;
             RunQueueCreation(instance.InstallPath,
                 Constants.ServiceControlExe,
+                instance.Name,
+                accountName,
+                instance.SkipQueueCreation);
+        }
+
+        public static void RunQueueCreation(IServiceControlAuditInstance instance)
+        {
+            var accountName = instance.ServiceAccount;
+            RunQueueCreation(instance.InstallPath,
+                Constants.ServiceControlAuditExe,
                 instance.Name,
                 accountName,
                 instance.SkipQueueCreation);

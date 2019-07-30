@@ -1,52 +1,31 @@
 ﻿namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
     using System;
-    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
     using System.Windows.Input;
+    using Commands;
     using Framework.Rx;
-    using PropertyChanged;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using Validation;
-    using Xaml.Controls;
-
-    public class SharedServiceControlEditorViewModel : RxProgressScreen
+    
+    public class SharedServiceControlEditorViewModel : RxScreen
     {
-        public SharedServiceControlEditorViewModel()
+        protected SharedServiceControlEditorViewModel()
         {
-            Transports = ServiceControlCoreTransports.All;
-            AuditForwardingOptions = new[]
-            {
-                new ForwardingOption
-                {
-                    Name = "On",
-                    Value = true
-                },
-                new ForwardingOption
-                {
-                    Name = "Off",
-                    Value = false
-                }
-            };
-            ErrorForwardingOptions = new[]
-            {
-                new ForwardingOption
-                {
-                    Name = "On",
-                    Value = true
-                },
-                new ForwardingOption
-                {
-                    Name = "Off",
-                    Value = false
-                }
-            };
+            SelectDestinationPath = new SelectPathCommand(p => DestinationPath = p, isFolderPicker: true, defaultPath: DestinationPath);
+            SelectDatabasePath = new SelectPathCommand(p => DatabasePath = p, isFolderPicker: true, defaultPath: DatabasePath);
+            SelectLogPath = new SelectPathCommand(p => LogPath = p, isFolderPicker: true, defaultPath: LogPath);
         }
 
+        public string DestinationPath { get; set; }
+        public ICommand SelectDestinationPath { get; }
 
-        [DoNotNotify]
-        public ValidationTemplate ValidationTemplate { get; set; }
+        public string DatabasePath { get; set; }
+        public ICommand SelectDatabasePath { get; }
 
+        public bool SubmitAttempted { get; set; }
         public string InstanceName { get; set; }
 
         public string HostName
@@ -138,45 +117,55 @@
             }
         }
 
-        public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
-        public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
-        public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
-        public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInHours;
-        public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInHours;
-        public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Hours;
-
-        public IEnumerable<ForwardingOption> AuditForwardingOptions { get; }
-        public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; }
-
-        public double AuditRetention { get; set; }
-        public TimeSpan AuditRetentionPeriod => AuditRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(AuditRetention) : TimeSpan.FromHours(AuditRetention);
-
-        public double ErrorRetention { get; set; }
-        public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
-
-        public IEnumerable<TransportInfo> Transports { get; }
-
         public string LogPath { get; set; }
         public ICommand SelectLogPath { get; set; }
 
-        public ICommand Save { get; set; }
-        public ICommand Cancel { get; set; }
-
-        public bool SubmitAttempted { get; set; }
-
-
-        protected void UpdateAuditRetention(TimeSpan value)
+        protected void OnInstanceNameChanged()
         {
-            AuditRetention = AuditRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
+            DestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", InstanceName);
+            DatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "DB");
+            LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "Logs");
         }
 
-        protected void UpdateErrorRetention(TimeSpan value)
+        protected string GetConventionalServiceName(string suggestedName)
         {
-            ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
+            var instanceName = string.Empty;
+            var instanceCount = GetInstalledInstancesCount();
+            var titleCaseName = CultureInfo.CurrentUICulture.TextInfo.ToTitleCase(suggestedName);
+            var serviceBaseName = instanceCount == 0 ? "ServiceControl" : "ServiceControl-" + instanceCount;
+             
+            if (!suggestedName.StartsWith("Particular.", StringComparison.InvariantCultureIgnoreCase))
+            {
+                instanceName += "Particular.";
+            }
+
+            instanceName += !string.IsNullOrEmpty(suggestedName) ? titleCaseName : serviceBaseName;
+
+            return RemoveIllegalCharacters(instanceName);
         }
 
-        protected virtual void OnInstanceNameChanged()
+        protected string RemoveIllegalCharacters(string name)
         {
+            return name?.Replace(' ', '.');
+        }
+
+        protected int GetInstalledInstancesCount()
+        {
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            if (!serviceControlInstances.Any())
+            {
+                return 0;
+            }
+
+            var i = 0;
+            while (true)
+            {
+                i++;
+                if (!serviceControlInstances.Any(p => p.Name.Equals(InstanceName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return i;
+                }
+            }
         }
 
         string hostName;

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
-    using CompositeViews.Endpoints;
     using CompositeViews.Messages;
     using Nancy;
     using Nancy.ModelBinding;
@@ -20,7 +19,7 @@
 
             Get["/endpoints"] = _ => Negotiate.WithModel(Monitoring.GetEndpoints());
 
-            Get["/endpoints/known", true] = (_, token) => KnownEndpointsApi.Execute(this);
+            Get["/endpoints/known", true] = (parameters, token) => GetKnownEndpointsApi.Execute(this, NoInput.Instance);
 
             Patch["/endpoints/{id}", true] = async (parameters, token) =>
             {
@@ -43,6 +42,6 @@
         }
 
         public EndpointInstanceMonitoring Monitoring { get; set; }
-        public GetKnownEndpointsApi KnownEndpointsApi { get; set; }
+        public GetKnownEndpointsApi GetKnownEndpointsApi { get; set; }
     }
 }

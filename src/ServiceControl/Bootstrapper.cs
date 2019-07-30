@@ -76,7 +76,10 @@ namespace Particular.ServiceControl
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
-            transportSettings = new TransportSettings();
+            transportSettings = new TransportSettings
+            {
+                RunCustomChecks = true
+            };
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
@@ -92,9 +95,8 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.Register(c => bus.Bus);
 
-            containerBuilder.RegisterType<DomainEventBusPublisher>().AsImplementedInterfaces().AsSelf().SingleInstance();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
-            containerBuilder.RegisterType<MonitoringDataPersister>().SingleInstance();
+            containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
 
             containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetSerializer>().As<ISerializer>();
             containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetBodyDeserializer>().As<IBodyDeserializer>();
@@ -162,12 +164,10 @@ namespace Particular.ServiceControl
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Version:             {version}
-Audit Retention Period:             {settings.AuditRetentionPeriod}
+Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
-Ingest Audit Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
-Forwarding Audit Messages:          {settings.ForwardAuditMessages}
 Database Size:                      {DataSize()} bytes
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
@@ -182,18 +182,14 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                 Settings = new
                 {
                     settings.ApiUrl,
-                    settings.AuditLogQueue,
-                    settings.AuditQueue,
                     settings.DatabaseMaintenancePort,
                     settings.ErrorLogQueue,
                     settings.DataSpaceRemainingThreshold,
                     settings.DisableRavenDBPerformanceCounters,
                     settings.DbPath,
                     settings.ErrorQueue,
-                    settings.ForwardAuditMessages,
                     settings.ForwardErrorMessages,
                     settings.HttpDefaultConnectionLimit,
-                    settings.IngestAuditMessages,
                     settings.IngestErrorMessages,
                     settings.MaxBodySizeToStore,
                     settings.MaximumConcurrencyLevel,

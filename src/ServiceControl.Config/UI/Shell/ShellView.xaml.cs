@@ -11,7 +11,11 @@
         {
             InitializeComponent();
 
-            Activated += (s, e) => IoC.Get<IEventAggregator>().PublishOnUIThread(new RefreshInstances());
+            Activated += (s, e) =>
+            {
+                //IoC.Get<IEventAggregator>().PublishOnUIThread(new RefreshInstances());
+                Model?.RefreshInstances();
+            };
 
             Loaded += (sender, args) =>
             {
@@ -28,6 +32,8 @@
                 window.GotKeyboardFocus += (s, e) => IoC.Get<IEventAggregator>().PublishOnUIThread(new FocusChanged { HasFocus = true });
             };
         }
+
+        ShellViewModel Model => DataContext as ShellViewModel;
 
         void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {

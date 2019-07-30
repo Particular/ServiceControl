@@ -52,7 +52,8 @@ namespace ServiceControlInstaller.PowerShell
                 logger.Info("Installing Service Control instance...");
                 if (installer.Add(details, PromptToProceed))
                 {
-                    var instance = InstanceFinder.FindServiceControlInstance(details.Name);
+                    //TODO: test SC unattended installed
+                    var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(details.Name);
                     if (instance != null)
                     {
                         WriteObject(PsServiceControl.FromInstance(instance));

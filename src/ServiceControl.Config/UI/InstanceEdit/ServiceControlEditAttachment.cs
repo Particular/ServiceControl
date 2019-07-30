@@ -58,22 +58,19 @@ namespace ServiceControl.Config.UI.InstanceEdit
             }
 
             viewModel.InProgress = true;
-            instance.LogPath = viewModel.LogPath;
-            instance.ServiceAccount = viewModel.ServiceAccount;
-            instance.ServiceAccountPwd = viewModel.Password;
-            instance.Description = viewModel.Description;
-            instance.HostName = viewModel.HostName;
-            instance.Port = Convert.ToInt32(viewModel.PortNumber);
-            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.DatabaseMaintenancePortNumber) : (int?)null;
+
+            instance.LogPath = viewModel.ServiceControl.LogPath;
+            instance.ServiceAccount = viewModel.ServiceControl.ServiceAccount;
+            instance.ServiceAccountPwd = viewModel.ServiceControl.Password;
+            instance.Description = viewModel.ServiceControl.Description;
+            instance.HostName = viewModel.ServiceControl.HostName;
+            instance.Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber);
+            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.ServiceControl.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber) : (int?)null;
             instance.VirtualDirectory = null;
-            instance.AuditLogQueue = viewModel.AuditForwardingQueueName;
-            instance.AuditQueue = viewModel.AuditQueueName;
-            instance.ForwardAuditMessages = viewModel.AuditForwarding.Value;
-            instance.ForwardErrorMessages = viewModel.ErrorForwarding.Value;
-            instance.ErrorQueue = viewModel.ErrorQueueName;
-            instance.ErrorLogQueue = viewModel.ErrorForwardingQueueName;
-            instance.AuditRetentionPeriod = viewModel.AuditRetentionPeriod;
-            instance.ErrorRetentionPeriod = viewModel.ErrorRetentionPeriod;
+            instance.ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value;
+            instance.ErrorQueue = viewModel.ServiceControl.ErrorQueueName;
+            instance.ErrorLogQueue = viewModel.ServiceControl.ErrorForwardingQueueName;
+            instance.ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod;
             instance.TransportPackage = viewModel.SelectedTransport;
             instance.ConnectionString = viewModel.ConnectionString;
 

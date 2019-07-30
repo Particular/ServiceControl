@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
+namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -28,19 +28,12 @@
                 // order matters
                 ErrorQueue = GetErrorQueue();
                 ErrorLogQueue = GetErrorLogQueue();
-
-                AuditQueue = GetAuditQueue();
-                AuditLogQueue = GetAuditLogQueue();
             }
 
-            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            TransportConnectionString = connectionStringSettings?.ConnectionString;
-
-            DbPath = GetDbPath();
+            TransportConnectionString = GetConnectionString();
             TransportCustomizationType = GetTransportType();
-            ForwardAuditMessages = GetForwardAuditMessages();
-            ForwardErrorMessages = GetForwardErrorMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
+            ForwardErrorMessages = GetForwardErrorMessages();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
@@ -52,6 +45,7 @@
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
+            DbPath = GetDbPath();
         }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
@@ -120,16 +114,12 @@
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
-        public string AuditQueue { get; set; }
 
-        public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
 
-        public bool IngestAuditMessages { get; set; } = true;
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
-        public string AuditLogQueue { get; set; }
 
         public int ExpirationProcessTimerInSeconds
         {
@@ -151,7 +141,7 @@
             }
         }
 
-        public TimeSpan AuditRetentionPeriod { get; }
+        public TimeSpan? AuditRetentionPeriod { get; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
 
@@ -218,43 +208,16 @@
             }
         }
 
-        private string GetAuditLogQueue()
+        public string GetConnectionString()
         {
-            if (AuditQueue == null)
+            var settingsValue = SettingsReader<string>.Read("ConnectionString");
+            if (settingsValue != null)
             {
-                return null;
-            }
-            
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
-            
-            if (value == null)
-            {
-                logger.Info("No settings found for audit log queue to import, default name will be used");
-                return Subscope(AuditQueue);
+                return settingsValue;
             }
 
-            return value;
-        }
-
-        private string GetAuditQueue()
-        {
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
-
-            if (value == null)
-            {
-                logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-                this.IngestAuditMessages = false;
-                return null;
-            }
-
-            if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Info("Audit ingestion disabled.");
-                this.IngestAuditMessages = false;
-                return null; // needs to be null to not create the queues
-            }
-
-            return value;
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
+            return connectionStringSettings?.ConnectionString;
         }
 
         private string GetErrorQueue()
@@ -325,17 +288,6 @@
             }
 
             throw new Exception("ForwardErrorMessages settings is missing, please make sure it is included.");
-        }
-
-        private static bool GetForwardAuditMessages()
-        {
-            var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
-            if (forwardAuditMessages.HasValue)
-            {
-                return forwardAuditMessages.Value;
-            }
-
-            throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
         }
 
         static string GetTransportType()
@@ -438,15 +390,13 @@
             return result;
         }
 
-        TimeSpan GetAuditRetentionPeriod()
+        TimeSpan? GetAuditRetentionPeriod()
         {
             string message;
             var valueRead = SettingsReader<string>.Read("AuditRetentionPeriod");
             if (valueRead == null)
             {
-                message = "AuditRetentionPeriod settings is missing, please make sure it is included.";
-                logger.Fatal(message);
-                throw new Exception(message);
+                return null;
             }
 
             if (TimeSpan.TryParse(valueRead, out var result))

@@ -1,4 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace ServiceControlInstaller.Engine.Instances
 {
@@ -20,7 +20,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using UrlAcl;
     using Validation;
 
-    public class ServiceControlNewInstance : IServiceControlInstance
+    public class ServiceControlNewInstance : ServiceControlInstallableBase, IServiceControlInstance
     {
         public ServiceControlNewInstance()
         {
@@ -29,7 +29,182 @@ namespace ServiceControlInstaller.Engine.Instances
             Version = zipInfo.Version;
         }
 
+        public override void WriteConfigurationFile()
+        {
+            var appConfig = new ServiceControlAppConfig(this);
+            appConfig.Save();
+        }
+
+        public override string DirectoryName => "ServiceControl";
+
+        public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
+
+        public void AddRemoteInstance(string apiUri)
+        {
+            if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))
+            {
+                RemoteInstances.Add(new RemoteInstanceSetting
+                {
+                    ApiUri = apiUri
+                });
+            }
+        }
+
+        [XmlElement(typeof(XmlNullableTimeSpan))]
+        public TimeSpan? AuditRetentionPeriod { get; set; }
+
+        [XmlElement(typeof(XmlTimeSpan))]
+        public TimeSpan ErrorRetentionPeriod { get; set; }
+
+        internal override WindowsServiceDetails GetWindowsServiceDetails()
+        {
+            return new WindowsServiceDetails
+            {
+                ServiceAccount = ServiceAccount,
+                ServiceAccountPwd = ServiceAccountPwd,
+                DisplayName = DisplayName,
+                Name = Name,
+                ImagePath = $"\"{Path.Combine(InstallPath, Constants.ServiceControlExe)}\" --serviceName={Name}",
+                ServiceDescription = ServiceDescription
+            };
+        }
+
+        protected override void RunQueueCreation()
+        {
+            QueueCreation.RunQueueCreation(this);
+        }
+
+        protected override void ValidateMaintenancePort()
+        {
+            DatabaseMaintenancePortValidator.Validate(this);
+        }
+
+        protected override void ValidateQueueNames()
+        {
+            QueueNameValidator.Validate(this);
+        }
+
+        protected override void ValidateServiceAccount()
+        {
+            ServiceAccountValidation.Validate(this);
+        }
+
+        protected override void ValidateConnectionString()
+        {
+            ConnectionStringValidator.Validate(this);
+        }
+
+        public static ServiceControlNewInstance Load(string path)
+        {
+            ServiceControlNewInstance instanceData;
+            var serializer = new XmlSerializer(typeof(ServiceControlNewInstance));
+            using (var stream = File.OpenRead(path))
+            {
+                instanceData = (ServiceControlNewInstance)serializer.Deserialize(stream);
+            }
+
+            var doc = new XmlDocument();
+            doc.Load(path);
+            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
+            {
+                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+            }
+
+            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
+            {
+                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+            }
+
+            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
+            {
+                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+            }
+
+            return instanceData;
+        }
+    }
+
+    public class ServiceControlAuditNewInstance : ServiceControlInstallableBase, IServiceControlAuditInstance
+    {
+        public ServiceControlAuditNewInstance()
+        {
+            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var zipInfo = ServiceControlZipInfo.Find(appDirectory);
+            Version = zipInfo.Version;
+        }
+
+        public string ServiceControlQueueAddress { get; set; }
+
+        public override void WriteConfigurationFile()
+        {
+            var appConfig = new ServiceControlAuditAppConfig(this);
+            appConfig.Save();
+        }
+
+        public override string DirectoryName => "ServiceControl.Audit";
+
+        [XmlElement(typeof(XmlTimeSpan))]
+        public TimeSpan AuditRetentionPeriod { get; set; }
+
+        internal override WindowsServiceDetails GetWindowsServiceDetails()
+        {
+            return new WindowsServiceDetails
+            {
+                ServiceAccount = ServiceAccount,
+                ServiceAccountPwd = ServiceAccountPwd,
+                DisplayName = DisplayName,
+                Name = Name,
+                ImagePath = $"\"{Path.Combine(InstallPath, Constants.ServiceControlAuditExe)}\" --serviceName={Name}",
+                ServiceDescription = ServiceDescription
+            };
+        }
+
+        protected override void RunQueueCreation()
+        {
+            QueueCreation.RunQueueCreation(this);
+        }
+
+        protected override void ValidateMaintenancePort()
+        {
+            DatabaseMaintenancePortValidator.Validate(this);
+        }
+
+        protected override void ValidateQueueNames()
+        {
+            QueueNameValidator.Validate(this);
+        }
+
+        protected override void ValidateServiceAccount()
+        {
+            ServiceAccountValidation.Validate(this);
+        }
+
+        protected override void ValidateConnectionString()
+        {
+            ConnectionStringValidator.Validate(this);
+        }
+
+        public static ServiceControlAuditNewInstance Load(string path)
+        {
+            ServiceControlAuditNewInstance instanceData;
+            var serializer = new XmlSerializer(typeof(ServiceControlAuditNewInstance));
+            using (var stream = File.OpenRead(path))
+            {
+                instanceData = (ServiceControlAuditNewInstance)serializer.Deserialize(stream);
+            }
+
+            var doc = new XmlDocument();
+            doc.Load(path);
+
+            return instanceData;
+        }
+    }
+
+    public abstract class ServiceControlInstallableBase : IHttpInstance, IServiceControlPaths, ITransportConfig
+    {
         public string ServiceDescription { get; set; }
+
+        public abstract string DirectoryName { get; }
 
         [XmlIgnore]
         public ReportCard ReportCard { get; set; }
@@ -74,13 +249,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public string LogPath { get; set; }
         public string DBPath { get; set; }
         public string HostName { get; set; }
-
-        [XmlElement(typeof(XmlTimeSpan))]
-        public TimeSpan AuditRetentionPeriod { get; set; }
-
-        [XmlElement(typeof(XmlTimeSpan))]
-        public TimeSpan ErrorRetentionPeriod { get; set; }
-
         public string InstallPath { get; set; }
         public int Port { get; set; }
         public int? DatabaseMaintenancePort { get; set; }
@@ -96,7 +264,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public bool SkipQueueCreation { get; set; }
-        public bool IsUpdatingDataStore { get; set; }
 
 
         [XmlIgnore]
@@ -154,38 +321,39 @@ namespace ServiceControlInstaller.Engine.Instances
             AddFlagFiles();
 
             // Copy the binaries from a zip
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, DirectoryName);
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
-        public void WriteConfigurationFile()
+        public virtual void WriteConfigurationFile()
         {
-            var appConfig = new AppConfig(this);
-            appConfig.Save();
         }
 
         public void RegisterService()
         {
-            var serviceDetails = new WindowsServiceDetails
-            {
-                ServiceAccount = ServiceAccount,
-                ServiceAccountPwd = ServiceAccountPwd,
-                DisplayName = DisplayName,
-                Name = Name,
-                ImagePath = $"\"{Path.Combine(InstallPath, Constants.ServiceControlExe)}\" --serviceName={Name}",
-                ServiceDescription = ServiceDescription
-            };
-            var dependencies = new List<string>();
-            if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
-            {
-                dependencies.Add("MSMQ");
-            }
+            var serviceDetails = GetWindowsServiceDetails();
+            var dependencies = GetServiceDependencies();
 
             WindowsServiceController.RegisterNewService(serviceDetails, dependencies.ToArray());
 
             // Service registered so pull out not configured flag files.
             RemoveFlagFiles();
         }
+
+        protected List<string> GetServiceDependencies()
+        {
+            var dependencies = new List<string>();
+            if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
+            {
+                dependencies.Add("MSMQ");
+            }
+
+            return dependencies;
+        }
+
+        internal abstract WindowsServiceDetails GetWindowsServiceDetails();
+
+        protected abstract void RunQueueCreation();
 
         public void RegisterUrlAcl()
         {
@@ -200,7 +368,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             try
             {
-                QueueCreation.RunQueueCreation(this);
+                RunQueueCreation();
             }
             catch (QueueCreationFailedException ex)
             {
@@ -221,98 +389,32 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public static ServiceControlNewInstance Load(string path)
-        {
-            ServiceControlNewInstance instanceData;
-            var serializer = new XmlSerializer(typeof(ServiceControlNewInstance));
-            using (var stream = File.OpenRead(path))
-            {
-                instanceData = (ServiceControlNewInstance)serializer.Deserialize(stream);
-            }
-
-            var doc = new XmlDocument();
-            doc.Load(path);
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-
-            if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
-            {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
-            }
-
-            return instanceData;
-        }
-
         public void Validate(Func<PathInfo, bool> promptToProceed)
         {
-            if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
-                    MsmqConfigValidator.Validate();
-                }
-                catch (EngineValidationException ex)
-                {
-                    ReportCard.Errors.Add(ex.Message);
-                }
-            }
+            RunValidation(ValidateTransport);
+            RunValidation(ValidatePort);
+            RunValidation(ValidateMaintenancePort);
 
             try
             {
-                PortValidator.Validate(this);
+                ReportCard.CancelRequested = ValidatePaths(promptToProceed);
             }
             catch (EngineValidationException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
             }
 
-            try
-            {
-                DatabaseMaintenancePortValidator.Validate(this);
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
+            RunValidation(ValidateQueueNames);
+            RunValidation(CheckForConflictingUrlAclReservations);
+            RunValidation(ValidateServiceAccount);
+            RunValidation(ValidateConnectionString);
+        }
 
+        public void RunValidation(Action action)
+        {
             try
             {
-                ReportCard.CancelRequested = new PathsValidator(this).RunValidation(true, promptToProceed);
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-
-            try
-            {
-                ServiceControlQueueNameValidator.Validate(this);
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-
-            try
-            {
-                CheckForConflictingUrlAclReservations();
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-
-            try
-            {
-                ServiceAccountValidation.Validate(this);
-                ConnectionStringValidator.Validate(this);
+                action();
             }
             catch (IdentityNotMappedException)
             {
@@ -321,6 +423,40 @@ namespace ServiceControlInstaller.Engine.Instances
             catch (EngineValidationException ex)
             {
                 ReportCard.Errors.Add(ex.Message);
+            }
+        }
+
+        protected virtual void ValidateConnectionString()
+        {
+        }
+
+        protected virtual void ValidateServiceAccount()
+        {
+        }
+
+        protected virtual void ValidateQueueNames()
+        {
+        }
+
+        protected virtual bool ValidatePaths(Func<PathInfo, bool> promptToProceed)
+        {
+            return new PathsValidator(this).RunValidation(true, promptToProceed);
+        }
+
+        protected virtual void ValidateMaintenancePort()
+        {
+        }
+
+        protected virtual void ValidatePort()
+        {
+            PortValidator.Validate(this);
+        }
+
+        protected virtual void ValidateTransport()
+        {
+            if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
+            {
+                MsmqConfigValidator.Validate();
             }
         }
 

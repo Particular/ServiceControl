@@ -9,24 +9,44 @@ namespace ServiceControlInstaller.PowerShell
     using Engine.Configuration.ServiceControl;
     using Engine.Instances;
     using Engine.Unattended;
+    using Engine.Validation;
+    using PathInfo = Engine.Validation.PathInfo;
 
     [Cmdlet(VerbsLifecycle.Invoke, "ServiceControlInstanceUpgrade")]
     public class InvokeServiceControlInstanceUpgrade : PSCmdlet
     {
-        [Parameter(HelpMessage = "Specify the timespan to keep Audit Data")]
-        [ValidateTimeSpanRange(MinimumHours = 1, MaximumHours = 8760)] //1 hour to 365 days
-        public TimeSpan? AuditRetentionPeriod { get; set; }
+        [ValidateNotNullOrEmpty]
+        [Parameter(Mandatory = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
+        public string Name;
 
-        [Parameter(HelpMessage = "Specify the timespan to keep Error Data")]
-        [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
-        public TimeSpan? ErrorRetentionPeriod { get; set; }
+        [Parameter(Mandatory = false, HelpMessage = "Specify the directory to use for the new ServiceControl Audit Instance")]
+        [ValidatePath]
+        public string InstallPath { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the directory that will contain the RavenDB database for the new ServiceControl Audit Instance")]
+        [ValidatePath]
+        public string DBPath { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the directory to use for the new ServiceControl Audit Logs")]
+        [ValidatePath]
+        public string LogPath { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the port number for the new ServiceControl Audit API to listen on")]
+        [ValidateRange(1, 49151)]
+        public int? Port { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Specify the database maintenance port number for the new ServiceControl Audit instance to listen on")]
+        [ValidateRange(1, 49151)]
+        public int? DatabaseMaintenancePort { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Service Account Password (if required)")]
+        public string ServiceAccountPassword { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
-        [Parameter(HelpMessage = "Specify the database maintenance port number to listen on. If this is the only ServiceControl instance then 33334 is recommended")]
-        [ValidateRange(1, 49151)]
-        public int DatabaseMaintenancePort { get; set; }
+        [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
+        public SwitchParameter Force { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -40,71 +60,112 @@ namespace ServiceControlInstaller.PowerShell
             var zipFolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var installer = new UnattendServiceControlInstaller(logger, zipFolder);
 
-            foreach (var name in Name)
+            var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(Name);
+            if (instance == null)
             {
-                var options = new ServiceControlUpgradeOptions
-                {
-                    AuditRetentionPeriod = AuditRetentionPeriod,
-                    ErrorRetentionPeriod = ErrorRetentionPeriod,
-                    OverrideEnableErrorForwarding = ForwardErrorMessages,
-                    SkipQueueCreation = SkipQueueCreation,
-                    MaintenancePort = DatabaseMaintenancePort == 0 ? (int?)null : DatabaseMaintenancePort
-                };
-                var instance = InstanceFinder.FindServiceControlInstance(name);
-                if (instance == null)
-                {
-                    WriteWarning($"No action taken. An instance called {name} was not found");
+                WriteWarning($"No action taken. An instance called {Name} was not found");
+                return;
+            }
+
+            var requiredUpgradeAction = instance.GetRequiredUpgradeAction(installer.ZipInfo.Version);
+
+            switch (requiredUpgradeAction)
+            {
+                case RequiredUpgradeAction.Upgrade:
+                    PerformUpgrade(instance, installer);
                     break;
-                }
-
-                options.UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
-
-                options.OverrideEnableErrorForwarding = ForwardErrorMessages;
-
-                // Migrate Value
-                if (!options.AuditRetentionPeriod.HasValue)
-                {
-                    if (instance.AppConfig.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
-                    {
-                        var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
-                        if (i != -1)
-                        {
-                            options.AuditRetentionPeriod = TimeSpan.FromHours(i);
-                        }
-                    }
-                }
-
-                if (!options.OverrideEnableErrorForwarding.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
-                {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ForwardErrorMessages parameter must be set to true or false because the configuration file has no setting for ForwardErrorMessages. This setting is mandatory as of version 1.12"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
-                }
-
-                if (!options.MaintenancePort.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.DatabaseMaintenancePort.Name))
-                {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. DatabaseMaintenancePort parameter must be set to a value between 1 and 49151 because the configuration file has no setting for DatabaseMaintenancePort. This setting is mandatory as of version 2.0.0. If this is the only instance of ServiceControl, 33334 is the recommended value."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
-                }
-
-                if (!options.ErrorRetentionPeriod.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
-                {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. ErrorRetentionPeriod parameter must be set to timespan because the configuration file has no setting for ErrorRetentionPeriod. This setting is mandatory as of version 1.13"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
-                }
-
-                if (!options.AuditRetentionPeriod.HasValue & !instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
-                {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. AuditRetentionPeriod parameter must be set to timespan because the configuration file has no setting for AuditRetentionPeriod. This setting is mandatory as of version 1.13"), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
-                }
-
-                if (!installer.Upgrade(instance, options))
-                {
-                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} failed"), "UpgradeFailure", ErrorCategory.InvalidResult, null));
-                }
+                case RequiredUpgradeAction.SplitOutAudit:
+                    PerformSplit(instance, logger, zipFolder);
+                    break;
+                default:
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance cannot be upgraded."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
+                    break;
             }
         }
 
-        [ValidateNotNullOrEmpty] [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
-        public string[] Name;
+        void PerformSplit(ServiceControlInstance instance, PSLogger logger, string zipFolder)
+        {
+            AssertValidForAuditSplit(instance.Name);
 
-        [Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 1, HelpMessage = "Specify if error messages are forwarded to the queue specified by ErrorLogQueue. This setting if appsetting is not set, this occurs when upgrading versions 1.11.1 and below")]
-        public bool? ForwardErrorMessages;
+            var serviceControlSplitter = new UnattendServiceControlSplitter(logger, zipFolder);
+
+            var options = new UnattendServiceControlSplitter.Options
+            {
+                InstallPath = InstallPath,
+                DBPath = DBPath,
+                LogPath = LogPath,
+                Port = Port.GetValueOrDefault(),
+                DatabaseMaintenancePort = DatabaseMaintenancePort.GetValueOrDefault(),
+                ServiceAccountPassword = ServiceAccountPassword
+            };
+
+            var result = serviceControlSplitter.Split(instance, options, PromptToProceed);
+
+            WriteObject(result.Succeeded);
+
+            if (!result.Succeeded)
+            {
+                var errorMessage = $"Upgrade of {instance.Name} aborted. {result.FailureReason}.";
+
+                ThrowTerminatingError(new ErrorRecord(new Exception(errorMessage), "UpgradeFailure", ErrorCategory.InvalidResult, null));
+            }
+        }
+
+        void AssertValidForAuditSplit(string instanceName)
+        {
+            AssertNotEmptyForAuditInstance(instanceName, InstallPath, nameof(InstallPath));
+            AssertNotEmptyForAuditInstance(instanceName, DBPath, nameof(DBPath));
+            AssertNotEmptyForAuditInstance(instanceName, LogPath, nameof(LogPath));
+            AssertNotNullForAuditInstance(instanceName, Port, nameof(Port));
+            AssertNotNullForAuditInstance(instanceName, DatabaseMaintenancePort, nameof(DatabaseMaintenancePort));
+            // ServiceAccountPassword can be null. If this is a problem, it will be caught later
+        }
+
+        void AssertNotEmptyForAuditInstance(string instanceName, string paramValue, string paramName)
+        {
+            if (string.IsNullOrWhiteSpace(paramValue))
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instanceName} aborted. {paramName} parameter must be set to create ServiceControl Audit instance."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+            }
+        }
+
+        void AssertNotNullForAuditInstance(string instanceName, int? paramValue, string paramName)
+        {
+            if (!paramValue.HasValue)
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instanceName} aborted. {paramName} parameter must be set to create ServiceControl Audit instance."), "UpgradeFailure", ErrorCategory.InvalidArgument, null));
+            }
+        }
+
+        void PerformUpgrade(ServiceControlInstance instance, UnattendServiceControlInstaller installer)
+        {
+            var options = new ServiceControlUpgradeOptions
+            {
+                SkipQueueCreation = SkipQueueCreation
+            };
+
+            options.UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
+
+            if (!installer.Upgrade(instance, options))
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} failed"), "UpgradeFailure", ErrorCategory.InvalidResult, null));
+            }
+        }
+
+        bool PromptToProceed(PathInfo pathInfo)
+        {
+            if (!pathInfo.CheckIfEmpty)
+            {
+                return false;
+            }
+
+            if (!Force.ToBool())
+            {
+                throw new EngineValidationException($"The directory specified for {pathInfo.Name} is not empty.  Use -Force if you are sure you want to use this path");
+            }
+
+            WriteWarning($"The directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");
+            return false;
+        }
     }
 }

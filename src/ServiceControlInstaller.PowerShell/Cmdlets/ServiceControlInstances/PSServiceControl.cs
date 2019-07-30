@@ -4,6 +4,7 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
+    using System.Linq;
     using Engine.Configuration.ServiceControl;
     using Engine.Instances;
 
@@ -24,15 +25,23 @@ namespace ServiceControlInstaller.PowerShell
 
         public string ErrorQueue { get; set; }
         public string ErrorLogQueue { get; set; }
+        public bool ForwardErrorMessages { get; set; }
+        
+        public TimeSpan ErrorRetentionPeriod { get; set; }
 
         public string AuditQueue { get; set; }
+        
         public string AuditLogQueue { get; set; }
+
         public bool ForwardAuditMessages { get; set; }
-        public bool ForwardErrorMessages { get; set; }
+        
+        public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public string ServiceAccount { get; set; }
 
         public Version Version { get; set; }
+
+        public object[] RemoteInstances { get; set; }
 
         public static PsServiceControl FromInstance(ServiceControlInstance instance)
         {
@@ -48,14 +57,25 @@ namespace ServiceControlInstaller.PowerShell
                 DBPath = instance.DBPath,
                 TransportPackageName = instance.TransportPackage.Name,
                 ConnectionString = instance.ConnectionString,
-                AuditQueue = instance.AuditQueue,
-                AuditLogQueue = instance.AuditLogQueue,
                 ErrorQueue = instance.ErrorQueue,
                 ErrorLogQueue = instance.ErrorLogQueue,
-                ForwardAuditMessages = instance.ForwardAuditMessages,
                 ServiceAccount = instance.ServiceAccount,
                 Version = instance.Version,
-                ForwardErrorMessages = instance.Version < SettingsList.ForwardErrorMessages.SupportedFrom || instance.ForwardErrorMessages
+                //TODO: Do we need the version check here?
+                ForwardErrorMessages = instance.Version < ServiceControlSettings.ForwardErrorMessages.SupportedFrom || instance.ForwardErrorMessages,
+                AuditQueue = instance.AuditQueue,
+                AuditLogQueue = instance.AuditLogQueue,
+                ForwardAuditMessages = instance.ForwardAuditMessages,
+                AuditRetentionPeriod = instance.AuditRetentionPeriod,
+                ErrorRetentionPeriod = instance.ErrorRetentionPeriod,
+                RemoteInstances = instance.RemoteInstances.Select<RemoteInstanceSetting, object>(i =>
+                {
+                    if (string.IsNullOrEmpty(i.QueueAddress))
+                    {
+                        return new { ApiUri = i.ApiUri };
+                    }
+                    return new { ApiUri = i.ApiUri, QueueAddress = i.QueueAddress};
+                }).ToArray()
             };
             return result;
         }

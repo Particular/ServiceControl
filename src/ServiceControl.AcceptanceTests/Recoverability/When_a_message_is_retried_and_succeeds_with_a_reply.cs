@@ -1,16 +1,18 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability
+﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System;
     using System.Threading.Tasks;
-    using EndpointTemplates;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
 
+    [RunOnAllTransports]
     class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest
     {
         [Test]
@@ -64,7 +66,7 @@
         {
             public Originator()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(OriginalMessage), typeof(Receiver));
@@ -87,7 +89,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
             }
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>

@@ -1,16 +1,16 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.SagaAudit
+﻿namespace ServiceControl.AcceptanceTests.SagaAudit
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using EndpointTemplates;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Features;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
@@ -21,7 +21,10 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When(async (bus, c) =>
+                {
+                    await bus.SendLocal(new MessageInitiatingSaga {Id = "Id"});
+                }))
                 .Done(async c =>
                 {
                     if (!c.SagaId.HasValue)
@@ -31,7 +34,7 @@
 
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
                     sagaHistory = result;
-                    return c.Done && result;
+                    return result;
                 })
                 .Run();
 
@@ -56,30 +59,32 @@
             Assert.AreEqual("Publish", outgoingIntents[typeof(MessagePublishedBySaga).FullName], "MessagePublishedBySaga was not present");
         }
 
+
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
             public SagaEndpoint()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
-                    // NOTE: The default template disables this feature but that means the event will not be subscribed to or published
-                    c.EnableFeature<AutoSubscribe>();
                     c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME);
-                }, metadata => { metadata.RegisterPublisherFor<MessagePublishedBySaga>(typeof(SagaEndpoint)); });
+                });
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
+                public MyContext TestContext { get; set; }
+
                 public async Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    await context.Reply(new MessageReplyBySaga { SagaId = Data.Id })
+                    await context.Reply(new MessageReplyBySaga())
                         .ConfigureAwait(false);
-                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga { SagaId = Data.Id })
+                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga())
                         .ConfigureAwait(false);
-                    await context.SendLocal(new MessageSentBySaga { SagaId = Data.Id })
+                    await context.SendLocal(new MessageSentBySaga())
                         .ConfigureAwait(false);
-                    await context.Publish(new MessagePublishedBySaga { SagaId = Data.Id })
+                    await context.Publish(new MessagePublishedBySaga())
                         .ConfigureAwait(false);
+                    TestContext.SagaId = Data.Id;
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -93,68 +98,22 @@
                 public string MessageId { get; set; }
             }
 
-            class MessageReplyBySagaHandler : IHandleMessages<MessageReplyBySaga>
+            public class NopHandler : IHandleMessages<MessageReplyBySaga>,
+                IHandleMessages<MessageReplyToOriginatorBySaga>,
+                IHandleMessages<MessageSentBySaga>, 
+                IHandleMessages<MessagePublishedBySaga>
             {
-                public MyContext Context { get; set; }
-
-                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
-                {
-                    if (!Context.SagaId.HasValue)
-                    {
-                        Context.SagaId = message.SagaId;
-                    }
-
-                    Context.Replied = true;
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessagePublishedBySagaHandler : IHandleMessages<MessagePublishedBySaga>
-            {
-                public MyContext Context { get; set; }
-
-                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
-                {
-                    if (!Context.SagaId.HasValue)
-                    {
-                        Context.SagaId = message.SagaId;
-                    }
-
-                    Context.Published = true;
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessageReplyToOriginatorBySagaHandler : IHandleMessages<MessageReplyToOriginatorBySaga>
-            {
-                public MyContext Context { get; set; }
+                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context) 
+                    => Task.CompletedTask;
 
                 public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
-                {
-                    if (!Context.SagaId.HasValue)
-                    {
-                        Context.SagaId = message.SagaId;
-                    }
-
-                    Context.RepliedToOriginator = true;
-                    return Task.FromResult(0);
-                }
-            }
-
-            class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
-            {
-                public MyContext Context { get; set; }
+                    => Task.CompletedTask;
 
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
-                {
-                    if (!Context.SagaId.HasValue)
-                    {
-                        Context.SagaId = message.SagaId;
-                    }
+                    => Task.CompletedTask;
 
-                    Context.Sent = true;
-                    return Task.FromResult(0);
-                }
+                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
+                    => Task.CompletedTask;
             }
         }
 
@@ -165,33 +124,24 @@
 
         public class MessageSentBySaga : ICommand
         {
-            public Guid SagaId { get; set; }
         }
 
         public class MessagePublishedBySaga : IEvent
         {
-            public Guid SagaId { get; set; }
         }
 
         public class MessageReplyBySaga : IMessage
         {
-            public Guid SagaId { get; set; }
         }
 
         public class MessageReplyToOriginatorBySaga : IMessage
         {
-            public Guid SagaId { get; set; }
         }
 
         public class MyContext : ScenarioContext
         {
-            public bool Sent { get; set; }
-            public bool Replied { get; set; }
-            public bool RepliedToOriginator { get; set; }
-            public bool Published { get; set; }
-
-            public bool Done => Sent && Replied && RepliedToOriginator && Published;
             public Guid? SagaId { get; set; }
+
         }
     }
 }

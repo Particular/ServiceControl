@@ -3,7 +3,7 @@
     using System.Linq;
     using Raven.Client.Indexes;
 
-    class FailedErrorImportIndex : AbstractIndexCreationTask<FailedErrorImport>
+    public class FailedErrorImportIndex : AbstractIndexCreationTask<FailedErrorImport>
     {
         public FailedErrorImportIndex()
         {

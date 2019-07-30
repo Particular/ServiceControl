@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.Framework.Modules
+namespace ServiceControl.Config.Framework.Modules
 {
     using System;
     using System.IO;
@@ -17,10 +17,11 @@
         {
             builder.RegisterType<ServiceControlInstanceInstaller>().SingleInstance();
             builder.RegisterType<MonitoringInstanceInstaller>().SingleInstance();
+            builder.RegisterType<ServiceControlAuditInstanceInstaller>().SingleInstance();
         }
     }
 
-    public class ServiceControlInstanceInstaller
+    public class ServiceControlInstanceInstaller : ServiceControlInstallerBase
     {
         public ServiceControlInstanceInstaller()
         {
@@ -28,9 +29,31 @@
             ZipInfo = ServiceControlZipInfo.Find(appDirectory);
         }
 
-        public ServiceControlZipInfo ZipInfo { get; }
+        protected override void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
+        {
+            upgradeOptions.ApplyChangesToInstance((ServiceControlInstance)instance);
+        }
+    }
 
-        internal ReportCard Add(ServiceControlNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
+    public class ServiceControlAuditInstanceInstaller : ServiceControlInstallerBase
+    {
+        public ServiceControlAuditInstanceInstaller()
+        {
+            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            ZipInfo = ServiceControlAuditZipInfo.Find(appDirectory);
+        }
+
+        protected override void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
+        {
+            //No op. We don't have anything to upgrade yet.
+        }
+    }
+
+    public class ServiceControlInstallerBase
+    {
+        public PlatformZipInfo ZipInfo { get; protected set; }
+
+        internal ReportCard Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -71,14 +94,14 @@
             return instanceInstaller.ReportCard;
         }
 
-        internal ReportCard Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
+        internal ReportCard Upgrade(ServiceControlBaseService instance, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
         {
             progress = progress ?? new Progress<ProgressDetails>();
 
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
 
-            var totalSteps = 7 - (upgradeOptions.UpgradeInfo.DeleteIndexes ? 0 : 1) - (upgradeOptions.UpgradeInfo.DataBaseUpdate ? 0 : 1);
+            var totalSteps = 5;
             var currentStep = 0;
 
             progress.Report(currentStep++, totalSteps, "Stopping instance...");
@@ -104,20 +127,7 @@
                 instance.RestoreAppConfig(backupFile);
             }
 
-            upgradeOptions.ApplyChangesToInstance(instance);
-
-            if (upgradeOptions.UpgradeInfo.DeleteIndexes)
-            {
-                progress.Report(currentStep++, totalSteps, "Removing database indexes...");
-                instance.RemoveDatabaseIndexes();
-            }
-
-            if (upgradeOptions.UpgradeInfo.DataBaseUpdate)
-            {
-                progress.Report(currentStep, totalSteps, "Updating Database...");
-                // ReSharper disable once AccessToModifiedClosure
-                instance.UpdateDatabase(msg => progress.Report(currentStep, totalSteps, $"Updating Database...{Environment.NewLine}{msg}"));
-            }
+            UpgradeOptions(upgradeOptions, instance);
 
             progress.Report(++currentStep, totalSteps, "Running Queue Creation...");
             instance.SetupInstance();
@@ -126,7 +136,11 @@
             return instance.ReportCard;
         }
 
-        internal ReportCard Update(ServiceControlInstance instance, bool startService)
+        protected virtual void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
+        {
+        }
+
+        internal ReportCard Update(ServiceControlBaseService instance, bool startService)
         {
             try
             {
@@ -224,7 +238,7 @@
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadServiceControlReleaseDate(out var releaseDate))
+            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {
@@ -260,7 +274,7 @@
             ZipInfo = MonitoringZipInfo.Find(appDirectory);
         }
 
-        public MonitoringZipInfo ZipInfo { get; }
+        public PlatformZipInfo ZipInfo { get; }
 
         internal ReportCard Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
         {
@@ -432,7 +446,7 @@
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadMonitoringReleaseDate(out var releaseDate))
+            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {

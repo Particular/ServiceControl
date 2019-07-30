@@ -1,11 +1,11 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.37-preview">
+﻿<Project Sdk="MSBuild.Sdk.Extras/2.0.24">
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <OutputType>WinExe</OutputType>
     <AssemblyName>ServiceControlConfig</AssemblyName>
     <ApplicationIcon>App.ico</ApplicationIcon>
-    <ExtrasEnableWpfProjectSetup>true</ExtrasEnableWpfProjectSetup>
+    <UseWpf>true</UseWpf>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,8 +13,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceProcess" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,18 +44,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\**\*.*" />
-    <Resource Include="Resources\**\*.*" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="App.ico" />
     <Resource Include="App.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Remove="Themes\Generic.xaml" />
-    <Page Include="Themes\Generic.xaml" />
+    <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:XamlIntelliSenseFileGenerator" Exclude="App.xaml" />
+    <None Update="App.xaml" Generator="MSBuild:Compile" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\**\*.*" />
+    <Resource Include="Resources\**\*.*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -66,9 +70,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="UI\Shell\LicensePopupView.xaml.cs">
-      <DependentUpon>LicensePopupView.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
 

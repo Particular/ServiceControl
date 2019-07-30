@@ -1,9 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -15,10 +12,13 @@
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
+    using ServiceControlInstaller.Engine.Validation;
     using UI.InstanceDetails;
     using UI.MessageBox;
+    using UI.Upgrades;
     using Validation;
     using Xaml.Controls;
+    using Validations = Extensions.Validations;
 
     class UpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
@@ -26,11 +26,18 @@
         {
         }
 
-        public UpgradeServiceControlInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
+        public UpgradeServiceControlInstanceCommand(
+            IWindowManagerEx windowManager, 
+            IEventAggregator eventAggregator, 
+            ServiceControlInstanceInstaller serviceControlInstaller, 
+            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
+            Func<string, AddNewAuditInstanceViewModel> auditUpgradeViewModelFactory)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
-            this.installer = installer;
+            this.serviceControlInstaller = serviceControlInstaller;
+            this.serviceControlAuditInstaller = serviceControlAuditInstaller;
+            this.auditUpgradeViewModelFactory = auditUpgradeViewModelFactory;
         }
 
         [FeatureToggle(Feature.LicenseChecks)]
@@ -40,7 +47,7 @@
         {
             if (LicenseChecks)
             {
-                var licenseCheckResult = installer.CheckLicenseIsValid();
+                var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
                 if (!licenseCheckResult.Valid)
                 {
                     windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
@@ -48,21 +55,26 @@
                 }
             }
 
-            var instance = InstanceFinder.FindServiceControlInstance(model.Name);
+            var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
 
             instance.Service.Refresh();
 
-            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
-
+            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
             var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
+
+            
+            var upgradeAction = instance.GetRequiredUpgradeAction(serviceControlInstaller.ZipInfo.Version);
+            var shouldInstallAudit = upgradeAction == RequiredUpgradeAction.SplitOutAudit;
+
+            AddNewAuditInstanceViewModel auditViewModel = null;
 
             if (instance.Version < upgradeInfo.CurrentMinimumVersion)
             {
                 windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
                     "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
-                    $"<Paragraph>You must upgrade to version {upgradeInfo.RecommendedUpgradeVersion} before upgrading to version {installer.ZipInfo.Version}:</Paragraph>\r\n" +
+                    $"<Paragraph>You must upgrade to version {upgradeInfo.RecommendedUpgradeVersion} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
                     "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
-                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Uninstall version {installer.ZipInfo.Version}.</Paragraph></ListItem>\r\n" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Uninstall version {serviceControlInstaller.ZipInfo.Version}.</Paragraph></ListItem>\r\n" +
                     $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {upgradeInfo.RecommendedUpgradeVersion} from https://github.com/Particular/ServiceControl/releases/tag/{upgradeInfo.RecommendedUpgradeVersion}</Paragraph></ListItem>" +
                     $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {upgradeInfo.RecommendedUpgradeVersion}.</Paragraph></ListItem>\r\n" +
                     "<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install the latest version from https://particular.net/start-servicecontrol-download</Paragraph></ListItem>\r\n" +
@@ -74,7 +86,16 @@
                 return;
             }
 
-            if (!instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name))
+            if (instance.IsErrorQueueDisabled())
+            {
+                windowManager.ShowMessage("UPGRADE INCOMPATIBLE",
+                    "You cannot upgrade the instance of ServiceControl with error ingestion disabled. Please contact support.",
+                    hideCancel: true);
+
+                return;
+            }
+
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name))
             {
                 var result = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
                 if (!result.HasValue)
@@ -88,11 +109,11 @@
             }
 
             //Grab old setting if it exists
-            if (!instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.AuditRetentionPeriod.Name))
             {
-                if (instance.AppConfig.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
+                if (instance.AppConfig.AppSettingExists(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring.Name))
                 {
-                    var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
+                    var i = instance.AppConfig.Read(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring.Name, -1);
                     if (i != -1)
                     {
                         upgradeOptions.AuditRetentionPeriod = TimeSpan.FromHours(i);
@@ -126,7 +147,7 @@
                 }
             }
 
-            if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name))
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ErrorRetentionPeriod.Name))
             {
                 var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",
                     "Service Control periodically purges resolved and archived error messages from the database.",
@@ -151,13 +172,13 @@
                 }
             }
 
-            if (!instance.AppConfig.AppSettingExists(SettingsList.DatabaseMaintenancePort.Name))
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.DatabaseMaintenancePort.Name))
             {
                 var viewModel = new TextBoxDialogViewModel("INPUT REQUIRED - MAINTENANCE PORT",
                     "When Service Control is set to maintenance mode it requires a prereserved port on which it exposes the RavenDB database.",
                     "MAINTENANCE PORT",
                     "Please specify an open port that will be used as the maintenance port",
-                    new MaintenancePortValidator());
+                    new PortValidator());
 
                 if (windowManager.ShowTextBoxDialog(viewModel))
                 {
@@ -171,41 +192,102 @@
                 }
             }
 
-            if (upgradeInfo.DataBaseUpdate) //Database is being updated -> recommend DB backup
+            if (shouldInstallAudit)
             {
-                if (!windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
-                    $"{model.Name} is going to be upgraded to version {installer.ZipInfo.Version} which uses a different storage format. Database migration will be conducted "
-                    + " as part of the upgrade. It is recommended that you back up the database before upgrading. To read more about the back up process "
-                    + " see https://docs.particular.net/servicecontrol/backup-sc-database.",
+                auditViewModel = auditUpgradeViewModelFactory(instance.Name);
+                if (windowManager.ShowInnerDialog(auditViewModel) != true)
+                {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    return;
+                }
+            }
+
+            if (instance.Service.Status != ServiceControllerStatus.Stopped &&
+                !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
+                    $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
                     "Do you want to proceed?",
-                    "Yes I backed up the database and I want to proceed", "No"))
-                {
-                    return;
-                }
-
-                var dbSize = instance.GetDatabaseSizeInGb();
-                if (dbSize >= 100) // 100GB
-                {
-                    if (!windowManager.ShowYesNoDialog("MIGRATE LARGE DATABASE", $"The database being upgraded is {dbSize.ToString("N0")} GB. Migrating this much data could take a long "
-                                                                                 + "time and ServiceControl will be stopped for that entire duration. It is recommended that you consider one of the other upgrade approaches instead.",
-                        "Are you sure you want to migrate this database?", "Yes", "No"))
-                    {
-                        return;
-                    }
-                }
-            }
-            else
+                    "Yes I want to proceed", "No"))
             {
-                if (instance.Service.Status != ServiceControllerStatus.Stopped &&
-                    !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
-                        $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.",
-                        "Do you want to proceed?",
-                        "Yes I want to proceed", "No"))
+                return;
+            }
+
+            if (shouldInstallAudit)
+            {
+                var auditInstalled = await InstallServiceControlAudit(model, auditViewModel, instance);
+                if (!auditInstalled)
                 {
+                    //Dialog was cancelled
+                    eventAggregator.PublishOnUIThread(new RefreshInstances());
                     return;
                 }
             }
 
+            await UpgradeServiceControlInstance(model, instance, upgradeOptions);
+
+            eventAggregator.PublishOnUIThread(new RefreshInstances());
+        }
+
+        async Task<bool> InstallServiceControlAudit(InstanceDetailsViewModel detailsViewModel, AddNewAuditInstanceViewModel viewModel, ServiceControlInstance instance)
+        {
+            var auditNewInstance = new ServiceControlAuditNewInstance
+            {
+                //Read from user configured values
+                DisplayName = viewModel.ServiceControlAudit.InstanceName,
+                Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.'),
+                ServiceDescription = viewModel.ServiceControlAudit.Description,
+                DBPath = viewModel.ServiceControlAudit.DatabasePath,
+                LogPath = viewModel.ServiceControlAudit.LogPath,
+                InstallPath = viewModel.ServiceControlAudit.DestinationPath,
+                HostName = viewModel.ServiceControlAudit.HostName,
+                Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber),
+                DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber),
+                ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
+                ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
+
+                //Copy from existing ServiceControl instance
+                AuditLogQueue = instance.AuditLogQueue,
+                AuditQueue = instance.AuditQueue,
+                ForwardAuditMessages = instance.ForwardAuditMessages,
+                // ReSharper disable once PossibleInvalidOperationException
+                AuditRetentionPeriod = instance.AuditRetentionPeriod.Value,
+                TransportPackage = instance.TransportPackage,
+                ConnectionString = instance.ConnectionString,
+                ServiceControlQueueAddress = instance.Name
+            };
+
+            using (var progress = detailsViewModel.GetProgressObject("ADDING AUDIT INSTANCE"))
+            {
+                var installationCancelled = await InstallInstance(auditNewInstance, progress);
+                if (installationCancelled)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        async Task<bool> InstallInstance(ServiceControlAuditNewInstance instanceData, IProgressObject progress)
+        {
+            var reportCard = await Task.Run(() => serviceControlAuditInstaller.Add(instanceData, progress, PromptToProceed));
+
+            if (reportCard.HasErrors || reportCard.HasWarnings)
+            {
+                windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                return true;
+            }
+
+            if (reportCard.CancelRequested)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        async Task UpgradeServiceControlInstance(InstanceDetailsViewModel model, ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions)
+        {
             using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
             {
                 var reportCard = new ReportCard();
@@ -224,7 +306,7 @@
                     return;
                 }
 
-                reportCard = await Task.Run(() => installer.Upgrade(instance, upgradeOptions, progress));
+                reportCard = await Task.Run(() => serviceControlInstaller.Upgrade(instance, upgradeOptions, progress));
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
@@ -243,40 +325,34 @@
                     }
                 }
             }
-
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
         }
 
-        readonly IEventAggregator eventAggregator;
-        readonly ServiceControlInstanceInstaller installer;
-        readonly IWindowManagerEx windowManager;
-
-        class MaintenancePortValidator : AbstractValidator<TextBoxDialogViewModel>
+        bool PromptToProceed(PathInfo pathInfo)
         {
-            public MaintenancePortValidator()
-            {
-                ServiceControlInstances = InstanceFinder.ServiceControlInstances();
+            var result = false;
 
+            Execute.OnUIThread(() => { result = windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
+
+            return result;
+        }
+
+
+        readonly IEventAggregator eventAggregator;
+        readonly IWindowManagerEx windowManager;
+        readonly ServiceControlInstanceInstaller serviceControlInstaller;
+        readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
+        readonly Func<string, AddNewAuditInstanceViewModel> auditUpgradeViewModelFactory;
+
+        class PortValidator : AbstractValidator<TextBoxDialogViewModel>
+        {
+            public PortValidator()
+            {
                 RuleFor(x => x.Value)
                     .NotEmpty()
                     .ValidPort()
-                    .MustNotBeIn(x => UsedPorts())
-                    .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports");
+                    .MustNotBeIn(x => Validations.UsedPorts())
+                    .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports");
             }
-
-            List<string> UsedPorts()
-            {
-                return ServiceControlInstances
-                    .SelectMany(p => new[]
-                    {
-                        p.Port.ToString(),
-                        p.DatabaseMaintenancePort.ToString()
-                    })
-                    .Distinct()
-                    .ToList();
-            }
-
-            ReadOnlyCollection<ServiceControlInstance> ServiceControlInstances;
         }
     }
 }

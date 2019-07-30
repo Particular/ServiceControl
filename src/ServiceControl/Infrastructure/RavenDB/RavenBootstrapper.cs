@@ -4,8 +4,8 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
-    using CompositeViews.Endpoints;
-    using EndpointControl;
+    using Audit.Monitoring;
+    using Monitoring;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -27,11 +27,10 @@
         {
             var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>();
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
-            var markerFileService = configuration.GetSettings().Get<MarkerFileService>("ServiceControl.MarkerFileService");
 
             Settings = settings;
 
-            StartRaven(documentStore, settings, markerFileService, false);
+            StartRaven(documentStore, settings, false);
 
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
@@ -45,7 +44,7 @@
             }
         }
 
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, MarkerFileService markerFileService, bool maintenanceMode)
+        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
         {
             Settings = settings;
 
@@ -97,10 +96,7 @@
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
 
-            using (markerFileService.CreateMarker("datamigration.marker"))
-            {
-                documentStore.Initialize();
-            }
+            documentStore.Initialize();
 
             Logger.Info("Index creation started");
 

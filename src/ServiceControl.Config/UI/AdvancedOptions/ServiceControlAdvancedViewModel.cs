@@ -18,7 +18,7 @@
     {
         public ServiceControlAdvancedViewModel(BaseService instance, IEventAggregator eventAggregator, StartServiceControlInMaintenanceModeCommand maintenanceModeCommand, DeleteServiceControlInstanceCommand deleteInstanceCommand)
         {
-            ServiceControlInstance = (ServiceControlInstance)instance;
+            ServiceControlInstance = (ServiceControlBaseService)instance;
             DisplayName = "ADVANCED OPTIONS";
 
             StartServiceInMaintenanceModeCommand = new ReactiveCommand().DoAsync(async _ =>
@@ -41,13 +41,13 @@
             }, () => !InProgress);
         }
 
-        public ServiceControlInstance ServiceControlInstance { get; }
+        public ServiceControlBaseService ServiceControlInstance { get; }
 
         public ICommand StartServiceInMaintenanceModeCommand { get; set; }
         public ICommand StopMaintenanceModeCommand { get; set; }
 
-        public bool MaintenanceModeSupported => ServiceControlInstance.Version >= SettingsList.MaintenanceMode.SupportedFrom;
-
+        public bool MaintenanceModeSupported => ServiceControlInstance.Version >= ServiceControlSettings.MaintenanceMode.SupportedFrom;
+        
         public ICommand DeleteCommand { get; set; }
 
         public ICommand Cancel { get; set; }

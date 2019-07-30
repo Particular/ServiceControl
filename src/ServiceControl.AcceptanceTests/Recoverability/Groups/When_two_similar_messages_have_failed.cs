@@ -1,15 +1,16 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability.Groups
+﻿namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using EndpointTemplates;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
@@ -95,7 +96,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
+                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>

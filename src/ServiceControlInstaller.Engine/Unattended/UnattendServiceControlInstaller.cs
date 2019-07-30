@@ -5,7 +5,9 @@ namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.ServiceProcess;
+    using Configuration.ServiceControl;
     using FileSystem;
     using Instances;
     using LicenseMgmt;
@@ -28,7 +30,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             ZipInfo = ServiceControlZipInfo.Find(sourceroot);
         }
 
-        public ServiceControlZipInfo ZipInfo { get; }
+        public PlatformZipInfo ZipInfo { get; }
 
         public bool Add(ServiceControlNewInstance details, Func<PathInfo, bool> promptToProceed)
         {
@@ -133,16 +135,6 @@ namespace ServiceControlInstaller.Engine.Unattended
                 }
 
                 options.ApplyChangesToInstance(instance);
-
-                if (options.UpgradeInfo.DeleteIndexes)
-                {
-                    instance.RemoveDatabaseIndexes();
-                }
-
-                if (options.UpgradeInfo.DataBaseUpdate)
-                {
-                    instance.UpdateDatabase(msg => { });
-                }
 
                 instance.SetupInstance();
 
@@ -284,7 +276,7 @@ namespace ServiceControlInstaller.Engine.Unattended
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadServiceControlReleaseDate(out var releaseDate))
+            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
             {
                 if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
                 {
@@ -311,6 +303,78 @@ namespace ServiceControlInstaller.Engine.Unattended
 
             public bool Valid { get; }
             public string Message { get; }
+        }
+
+        public bool AddRemoteInstance(ServiceControlInstance instance, string[] remoteInstanceAddresses, ILogging log)
+        {
+            if (Compatibility.RemoteInstancesDoNotNeedQueueAddress.SupportedFrom > instance.Version)
+            {
+                log.Error($"Cannot add remote instances to instances older than {Compatibility.RemoteInstancesDoNotNeedQueueAddress.SupportedFrom}");
+                return false;
+            }
+
+            instance.ReportCard = new ReportCard();
+
+            var restartService = instance.Service.Status == ServiceControllerStatus.Running;
+            if (!instance.TryStopService())
+            {
+                logger.Error("Service failed to stop or service stop timed out");
+            }
+
+            try
+            {
+                foreach (var remoteInstanceAddress in remoteInstanceAddresses)
+                {
+                    instance.AddRemoteInstance(remoteInstanceAddress);
+                }
+
+                instance.ApplyConfigChange();
+
+                if (restartService && !instance.TryStartService())
+                {
+                    logger.Error("Service failed to start after adding remote instances - please check configuration for {0}", instance.Name);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Adding remote instances Failed: {0}", ex.Message);
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool RemoveRemoteInstance(ServiceControlInstance instance, string[] remoteInstanceAddresses, ILogging log)
+        {
+            instance.ReportCard = new ReportCard();
+
+            var restartService = instance.Service.Status == ServiceControllerStatus.Running;
+            if (!instance.TryStopService())
+            {
+                logger.Error("Service failed to stop or service stop timed out");
+            }
+
+            try
+            {
+                instance.RemoteInstances.RemoveAll(x => remoteInstanceAddresses.Contains(x.ApiUri, StringComparer.InvariantCultureIgnoreCase));
+
+                instance.ApplyConfigChange();
+
+                if (restartService && !instance.TryStartService())
+                {
+                    logger.Error("Service failed to start after removing remote instances - please check configuration for {0}", instance.Name);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Removing remote instances Failed: {0}", ex.Message);
+                return false;
+            }
+
+            return true;
+
         }
     }
 }

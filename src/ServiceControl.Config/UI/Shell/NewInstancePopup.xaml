@@ -41,7 +41,7 @@
                                FontSize="13" 
                                FontWeight="SemiBold" 
                                VerticalAlignment="Center">
-                        <Hyperlink Command="{Binding AddInstance}"  Style="{StaticResource UnderlinedLink}">Add ServiceControl Instance...</Hyperlink>
+                        <Hyperlink Command="{Binding AddInstance}"  Style="{StaticResource UnderlinedLink}">Add ServiceControl and Audit Instances...</Hyperlink>
                     </TextBlock>
 
                 </Grid>

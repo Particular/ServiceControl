@@ -6,12 +6,19 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
+    using Transports;
 
     public class CheckDeadLetterQueue : CustomCheck
     {
-        public CheckDeadLetterQueue() :
+        public CheckDeadLetterQueue(TransportSettings settings) :
             base("Dead Letter Queue", "Transport", TimeSpan.FromHours(1))
         {
+            runCheck = settings.RunCustomChecks;
+            if (!runCheck)
+            {
+                return;
+            }
+
             Logger.Debug("MSMQ Dead Letter Queue custom check starting");
 
             categoryName = Read("Msmq/PerformanceCounterCategoryName", "MSMQ Queue");
@@ -30,6 +37,11 @@
 
         public override Task<CheckResult> PerformCheck()
         {
+            if (!runCheck)
+            {
+                return CheckResult.Pass;
+            }
+
             Logger.Debug("Checking Dead Letter Queue length");
             float currentValue;
             string result;
@@ -108,6 +120,7 @@
         private string categoryName;
         private string counterName;
         private string counterInstanceName;
+        bool runCheck;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
     }

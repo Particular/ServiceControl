@@ -22,9 +22,7 @@
         [SetUp]
         public void SetUp()
         {
-            ConfigurationManager.AppSettings["ServiceControl/ForwardAuditMessages"] = bool.FalseString;
             ConfigurationManager.AppSettings["ServiceControl/ForwardErrorMessages"] = bool.FalseString;
-            ConfigurationManager.AppSettings["ServiceControl/AuditRetentionPeriod"] = TimeSpan.FromHours(10).ToString();
             ConfigurationManager.AppSettings["ServiceControl/ErrorRetentionPeriod"] = TimeSpan.FromDays(10).ToString();
 
             testApi = new TestApi
@@ -37,7 +35,6 @@
                         new RemoteInstanceSetting
                         {
                             ApiUri = "http://localhost:33334/api",
-                            QueueAddress = "remote1"
                         }
                     }
                 }

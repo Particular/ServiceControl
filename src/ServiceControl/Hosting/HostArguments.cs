@@ -48,24 +48,6 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
-            // Not documented in help - Used by SC installer only
-
-            var databaseMigrationsOptions = new OptionSet
-            {
-                {
-                    "d|database",
-                    @"Internal use - for installer", s =>
-                    {
-                        Commands = new List<Type> {typeof(DatabaseMigrationsCommand)};
-                        executionMode = ExecutionMode.DatabaseMigrations;
-                    }
-                },
-                {
-                    "serviceName=",
-                    @"Specify the service name for the installed service.", s => { ServiceName = s; }
-                }
-            };
-
             var externalInstallerOptions = new OptionSet
             {
                 {
@@ -100,19 +82,6 @@ namespace Particular.ServiceControl.Hosting
                 }
             };
 
-            var reimportFailedAuditsOptions = new OptionSet
-            {
-                {
-                    "import-failed-audits",
-                    "Import failed audit messages",
-                    s =>
-                    {
-                        Commands = new List<Type> {typeof(ImportFailedAuditsCommand)};
-                        executionMode = ExecutionMode.ImportFailedAudits;
-                    }
-                }
-            };
-
             var reimportFailedErrorsOptions = new OptionSet
             {
                 {
@@ -134,20 +103,8 @@ namespace Particular.ServiceControl.Hosting
                     return;
                 }
 
-                databaseMigrationsOptions.Parse(args);
-                if (executionMode == ExecutionMode.DatabaseMigrations)
-                {
-                    return;
-                }
-
                 maintenanceOptions.Parse(args);
                 if (executionMode == ExecutionMode.Maintenance)
-                {
-                    return;
-                }
-
-                reimportFailedAuditsOptions.Parse(args);
-                if (executionMode == ExecutionMode.ImportFailedAudits)
                 {
                     return;
                 }
@@ -202,9 +159,7 @@ namespace Particular.ServiceControl.Hosting
     {
         RunInstallers,
         Run,
-        ImportFailedAudits,
         Maintenance,
-        DatabaseMigrations,
         ImportFailedErrors
     }
 }

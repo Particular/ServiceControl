@@ -33,7 +33,7 @@
             return ActionResult.Success;
         }
 
-        static void UpgradeInstances(Session session, ServiceControlZipInfo zipInfo, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
+        static void UpgradeInstances(Session session, PlatformZipInfo zipInfo, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
         {
             var options = new ServiceControlUpgradeOptions();
 
@@ -75,26 +75,6 @@
                 options.ErrorRetentionPeriod = null;
             }
 
-            var confirmDatabaseHasBeenBackedUpValue = session["CONFIRMDATABASEHASBEENBACKEDUP"];
-            try
-            {
-                options.ConfirmDatabaseHasBeenBackedUp = bool.Parse(confirmDatabaseHasBeenBackedUpValue);
-            }
-            catch
-            {
-                options.ConfirmDatabaseHasBeenBackedUp = false;
-            }
-
-            var allowLargeDatabaseUpgradeValue = session["ALLOWLARGEDATABASEUPGRADE"];
-            try
-            {
-                options.AllowLargeDatabaseUpdate = bool.Parse(allowLargeDatabaseUpgradeValue);
-            }
-            catch
-            {
-                options.ConfirmDatabaseHasBeenBackedUp = false;
-            }
-
             //determine what to upgrade
             var instancesToUpgrade = new List<ServiceControlInstance>();
             if (upgradeInstancesPropertyValue.Equals("*", StringComparison.OrdinalIgnoreCase) || upgradeInstancesPropertyValue.Equals("ALL", StringComparison.OrdinalIgnoreCase))
@@ -116,20 +96,20 @@
 
                     options.UpgradeInfo = upgradeInfo;
 
-                    if (!instance.AppConfig.AppSettingExists(SettingsList.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
+                    if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
                     {
-                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{SettingsList.ForwardErrorMessages.Name}'");
+                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ForwardErrorMessages.Name}'");
                         continue;
                     }
 
                     if (!options.AuditRetentionPeriod.HasValue)
                     {
-                        if (!instance.AppConfig.AppSettingExists(SettingsList.AuditRetentionPeriod.Name))
+                        if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.AuditRetentionPeriod.Name))
                         {
                             //Try migration first
-                            if (instance.AppConfig.AppSettingExists(SettingsList.HoursToKeepMessagesBeforeExpiring.Name))
+                            if (instance.AppConfig.AppSettingExists(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring.Name))
                             {
-                                var i = instance.AppConfig.Read(SettingsList.HoursToKeepMessagesBeforeExpiring.Name, -1);
+                                var i = instance.AppConfig.Read(ServiceControlSettings.HoursToKeepMessagesBeforeExpiring.Name, -1);
                                 if (i > 0)
                                 {
                                     options.AuditRetentionPeriod = TimeSpan.FromHours(i);
@@ -137,34 +117,16 @@
                             }
                             else
                             {
-                                logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{SettingsList.AuditRetentionPeriod.Name}'");
+                                logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.AuditRetentionPeriod.Name}'");
                                 continue;
                             }
                         }
                     }
 
-                    if (!instance.AppConfig.AppSettingExists(SettingsList.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
+                    if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
                     {
-                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{SettingsList.ErrorRetentionPeriod.Name}'");
+                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ErrorRetentionPeriod.Name}'");
                         continue;
-                    }
-
-                    if (upgradeInfo.DataBaseUpdate) //Database is being updated -> recommend DB backup
-                    {
-                        if (!options.ConfirmDatabaseHasBeenBackedUp)
-                        {
-                            logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. This upgrade requires a database update and the database should be backed up prior to updating. CONFIRMDATABASEHASBEENBACKEDUP MSI parameter was required to allow the database upgrade.'");
-                            continue;
-                        }
-
-                        var dbSize = instance.GetDatabaseSizeInGb();
-                        if (dbSize >= 100) // 100GB
-                        {
-                            logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. Upgrade requires a database update and the database being upgraded is {dbSize:N0} GB. " +
-                                        "Migrating this much data could take a long time and ServiceControl will be stopped for that entire duration. It is recommended that you consider one of the other upgrade approaches instead. " +
-                                        "ALLOWLARGEDATABASEUPGRADE MSI parameter can be used to allow an unattended database upgrade.'");
-                            continue;
-                        }
                     }
 
                     if (!unattendedInstaller.Upgrade(instance, options))
