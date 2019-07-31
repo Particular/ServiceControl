@@ -221,6 +221,9 @@
                     eventAggregator.PublishOnUIThread(new RefreshInstances());
                     return;
                 }
+
+                var auditInstance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(auditViewModel.ServiceControlAudit.InstanceName);
+                upgradeOptions.RemoteUrl = auditInstance.BrowsableUrl;
             }
 
             await UpgradeServiceControlInstance(model, instance, upgradeOptions);
