@@ -111,7 +111,9 @@
                     "NServiceBus.ExceptionInfo.HelpLink",
                     "NServiceBus.ExceptionInfo.Message",
                     "NServiceBus.ExceptionInfo.Source",
-                    "NServiceBus.ExceptionInfo.StackTrace"
+                    "NServiceBus.ExceptionInfo.StackTrace",
+                    "NServiceBus.TimeOfFailure",
+                    "NServiceBus.FailedQ"
                 },
                 SensitiveHeaders = new[]
                 {
