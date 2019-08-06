@@ -330,27 +330,6 @@ namespace ServiceControl.Recoverability
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
 
-<<<<<<< HEAD
-        static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
-        {
-            "NServiceBus.Retries",
-            "NServiceBus.FailedQ",
-            "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace",
-            "NServiceBus.ExceptionInfo.HelpLink",
-            "NServiceBus.ExceptionInfo.Message",
-            "NServiceBus.ExceptionInfo.InnerExceptionType",
-            "NServiceBus.ProcessingMachine",
-            "NServiceBus.ProcessingEndpoint",
-            "$.diagnostics.hostid",
-            "$.diagnostics.hostdisplayname"
-        };
-
-=======
->>>>>>> update outgoing headers
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
     }
 }

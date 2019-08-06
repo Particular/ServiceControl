@@ -13,8 +13,6 @@ namespace ServiceControl.Recoverability
         IHandleMessages<RetryMessage>,
         IHandleMessages<MessageFailed>,
         IHandleMessages<RetryMessagesByQueueAddress>
-        IHandleMessages<MessageFailedRepeatedly>,
-        IHandleMessages<RetryMessagesByQueueAddress>
     {
         public RetriesGateway Retries { get; set; }
         public RetryDocumentManager RetryDocumentManager { get; set; }

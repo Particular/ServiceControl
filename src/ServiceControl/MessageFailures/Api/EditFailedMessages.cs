@@ -62,11 +62,6 @@
                     logging.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
                     return HttpStatusCode.BadRequest;
                 }
-<<<<<<< HEAD
-=======
-
-                //TODO: should we verify here if the edit body is still a valid xml or json?
->>>>>>> use failed message id, and warming comment
 
                 if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
                 {

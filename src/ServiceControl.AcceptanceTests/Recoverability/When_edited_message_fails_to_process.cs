@@ -8,6 +8,7 @@
     using NUnit.Framework;
     using NServiceBus;
     using NServiceBus.Settings;
+    using ServiceControl.AcceptanceTests;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
@@ -91,7 +92,7 @@
         {
             public FailingEditedMessageReceiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                 });

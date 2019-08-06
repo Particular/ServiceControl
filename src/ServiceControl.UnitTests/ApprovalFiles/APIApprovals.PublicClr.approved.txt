@@ -611,6 +611,10 @@ namespace ServiceControl.MessageFailures.Api
         public LockedHeaderModificationValidator() { }
         public bool Check(string[] lockedHeaders, System.Collections.Generic.Dictionary<string, string> editedMessageHeaders, System.Collections.Generic.Dictionary<string, string> originalMessageHeaders) { }
     }
+    public class QueueAddressIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.MessageFailures.QueueAddress>
+    {
+        public QueueAddressIndex() { }
+    }
 }
 namespace ServiceControl.MessageFailures
 {

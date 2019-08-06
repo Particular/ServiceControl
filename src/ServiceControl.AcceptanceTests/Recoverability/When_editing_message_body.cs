@@ -10,6 +10,7 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using Raven.Abstractions.Extensions;
+    using ServiceControl.AcceptanceTests;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
@@ -72,7 +73,7 @@
         {
             public EditedMessageReceiver()
             {
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                 });

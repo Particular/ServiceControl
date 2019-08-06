@@ -13,7 +13,7 @@
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Tests.Helpers;
-    using ServiceControl.MessageFailures;
+    using MessageFailures;
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
