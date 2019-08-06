@@ -194,8 +194,8 @@
 
             var sentMessage = Dispatcher.DispatchedMessages.Single();
             Assert.AreEqual(
-                messageFailure.ProcessingAttempts.Last().MessageId, 
-                sentMessage.Item1.Message.Headers["ServiceControl.EditOf"]);
+                messageFailure.Id, 
+                "FailedMessages/" + sentMessage.Item1.Message.Headers["ServiceControl.EditOf"]);
         }
 
         [Test]
