@@ -71,11 +71,7 @@
         {
             public EditedMessageReceiver()
             {
-<<<<<<< HEAD
                 EndpointSetup<DefaultServer>(c =>
-=======
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
->>>>>>> 16d4934d90cab8d5596175d8dcb4208b017ff496
                 {
                     c.NoRetries();
                 });
