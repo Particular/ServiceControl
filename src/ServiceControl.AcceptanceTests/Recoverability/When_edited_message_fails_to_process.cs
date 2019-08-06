@@ -92,7 +92,11 @@
         {
             public FailingEditedMessageReceiver()
             {
+<<<<<<< HEAD
                 EndpointSetup<DefaultServer>(c =>
+=======
+                EndpointSetup<DefaultServerWithAudit>(c =>
+>>>>>>> 16d4934d90cab8d5596175d8dcb4208b017ff496
                 {
                     c.NoRetries();
                 });
