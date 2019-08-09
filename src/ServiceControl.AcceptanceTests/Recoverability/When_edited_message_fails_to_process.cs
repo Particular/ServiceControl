@@ -75,8 +75,8 @@
             Assert.AreEqual(FailedMessageStatus.Resolved, context.OriginalMessageFailure.Status);
             Assert.AreEqual(FailedMessageStatus.Unresolved, context.EditedMessageFailure.Status);
             Assert.AreEqual(
-                context.OriginalMessageFailure.ProcessingAttempts.Last().MessageId, 
-                context.EditedMessageFailure.ProcessingAttempts.Last().Headers["service_control.edit_of"]);
+                context.OriginalMessageFailure.Id, 
+                "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["service_control.edit_of"]);
         }
 
         class EditMessageFailureContext : ScenarioContext
