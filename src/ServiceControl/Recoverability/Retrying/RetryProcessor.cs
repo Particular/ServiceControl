@@ -1,7 +1,6 @@
 namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -296,8 +295,7 @@ namespace ServiceControl.Recoverability
 
             var attempt = message.ProcessingAttempts.Last();
 
-            var headersToRetryWith = attempt.Headers.Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
-                .ToDictionary(kv => kv.Key, kv => kv.Value);
+            var headersToRetryWith = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
 
             var addressOfFailingEndpoint = attempt.FailureDetails.AddressOfFailingEndpoint;
 
@@ -331,24 +329,6 @@ namespace ServiceControl.Recoverability
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
-
-        static readonly List<string> KeysToRemoveWhenRetryingAMessage = new List<string>
-        {
-            "NServiceBus.Retries",
-            "NServiceBus.FailedQ",
-            "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace",
-            "NServiceBus.ExceptionInfo.HelpLink",
-            "NServiceBus.ExceptionInfo.Message",
-            "NServiceBus.ExceptionInfo.InnerExceptionType",
-            "NServiceBus.ProcessingMachine",
-            "NServiceBus.ProcessingEndpoint",
-            "$.diagnostics.hostid",
-            "$.diagnostics.hostdisplayname"
-        };
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
     }

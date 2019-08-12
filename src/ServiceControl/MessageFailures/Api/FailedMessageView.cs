@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System;
     using Contracts.Operations;
+    using System;
 
     public class FailedMessageView
     {
@@ -18,5 +18,7 @@
         public string QueueAddress { get; set; }
         public DateTime TimeOfFailure { get; set; }
         public DateTime LastModified { get; set; }
+        public bool Edited { get; set; }
+        public string EditOf { get; set; }
     }
 }

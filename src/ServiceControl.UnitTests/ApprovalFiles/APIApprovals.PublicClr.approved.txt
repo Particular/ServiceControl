@@ -46,6 +46,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public const string Disabled = "!disable";
         public Settings(string serviceName = null) { }
+        public bool AllowMessageEditing { get; set; }
         public string ApiUrl { get; }
         public System.Nullable<System.TimeSpan> AuditRetentionPeriod { get; }
         public int DatabaseMaintenancePort { get; set; }
@@ -568,6 +569,8 @@ namespace ServiceControl.MessageFailures.Api
     public class FailedMessageView
     {
         public FailedMessageView() { }
+        public bool Edited { get; set; }
+        public string EditOf { get; set; }
         public ServiceControl.Contracts.Operations.ExceptionDetails Exception { get; set; }
         public string Id { get; set; }
         public bool IsSystemMessage { get; set; }
@@ -602,6 +605,11 @@ namespace ServiceControl.MessageFailures.Api
     {
         public FailedMessageViewTransformer() { }
         public static string Name { get; }
+    }
+    public class LockedHeaderModificationValidator
+    {
+        public LockedHeaderModificationValidator() { }
+        public bool Check(string[] lockedHeaders, System.Collections.Generic.Dictionary<string, string> editedMessageHeaders, System.Collections.Generic.Dictionary<string, string> originalMessageHeaders) { }
     }
     public class QueueAddressIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.MessageFailures.QueueAddress>
     {
@@ -813,6 +821,13 @@ namespace ServiceControl.Recoverability
         public ServiceControl.Contracts.Operations.FailureDetails Details { get; }
         public string MessageType { get; }
         public ServiceControl.MessageFailures.FailedMessage.ProcessingAttempt ProcessingAttempt { get; }
+    }
+    public class EditAndSend : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public EditAndSend() { }
+        public string FailedMessageId { get; set; }
+        public string NewBody { get; set; }
+        public System.Collections.Generic.Dictionary<string, string> NewHeaders { get; set; }
     }
     public class EndpointNameClassifier : ServiceControl.Recoverability.IFailureClassifier
     {
