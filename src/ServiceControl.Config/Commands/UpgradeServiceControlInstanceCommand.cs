@@ -9,6 +9,7 @@
     using Framework;
     using Framework.Commands;
     using Framework.Modules;
+    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
@@ -195,6 +196,8 @@
             if (shouldInstallAudit)
             {
                 auditViewModel = auditUpgradeViewModelFactory(instance.Name);
+                auditViewModel.ServiceControlAudit.SetupServiceAccount(instance);
+
                 if (windowManager.ShowInnerDialog(auditViewModel) != true)
                 {
                     //Dialog was cancelled
