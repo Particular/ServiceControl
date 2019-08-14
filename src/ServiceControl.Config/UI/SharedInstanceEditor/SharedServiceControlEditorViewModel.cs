@@ -7,6 +7,7 @@
     using System.Windows.Input;
     using Commands;
     using Framework.Rx;
+    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Instances;
     using Validation;
     
@@ -114,6 +115,19 @@
                 }
 
                 return managedAccount;
+            }
+        }
+
+        public void SetupServiceAccount(ServiceControlBaseService instance)
+        {
+            var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
+            UseSystemAccount = userAccount.IsLocalSystem();
+            UseServiceAccount = userAccount.IsLocalService();
+            UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
+
+            if (UseProvidedAccount)
+            {
+                ServiceAccount = instance.ServiceAccount;
             }
         }
 
