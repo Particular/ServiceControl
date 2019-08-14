@@ -6,7 +6,6 @@
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
-    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;

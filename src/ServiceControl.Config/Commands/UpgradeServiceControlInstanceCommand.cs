@@ -9,7 +9,6 @@
     using Framework;
     using Framework.Commands;
     using Framework.Modules;
-    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
