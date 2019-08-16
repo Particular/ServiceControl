@@ -6,7 +6,6 @@
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
-    using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
@@ -160,16 +159,7 @@
 
         public void UpdateFromInstance(ServiceControlInstance instance)
         {
-            var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
-            UseSystemAccount = userAccount.IsLocalSystem();
-            UseServiceAccount = userAccount.IsLocalService();
-            UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
-
-            if (UseProvidedAccount)
-            {
-                ServiceAccount = instance.ServiceAccount;
-            }
-
+            SetupServiceAccount(instance);
             InstanceName = instance.Name;
             HostName = instance.HostName;
             PortNumber = instance.Port.ToString();
@@ -258,16 +248,7 @@
 
         public void UpdateFromInstance(ServiceControlAuditInstance instance)
         {
-            var userAccount = UserAccount.ParseAccountName(instance.ServiceAccount);
-            UseSystemAccount = userAccount.IsLocalSystem();
-            UseServiceAccount = userAccount.IsLocalService();
-            UseProvidedAccount = !(UseServiceAccount || UseSystemAccount);
-
-            if (UseProvidedAccount)
-            {
-                ServiceAccount = instance.ServiceAccount;
-            }
-
+            SetupServiceAccount(instance);
             InstanceName = instance.Name;
             Description = instance.Description;
             HostName = instance.HostName;

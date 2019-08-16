@@ -77,6 +77,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.MultiInstanc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.UnitTests", "ServiceControl.Audit.UnitTests\ServiceControl.Audit.UnitTests.csproj", "{C9020438-FCBF-4323-88A2-2901B831D358}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControlInstaller.Packaging.UnitTests", "ServiceControlInstaller.Packaging.UnitTests\ServiceControlInstaller.Packaging.UnitTests.csproj", "{BA42A516-AC01-4B4E-9177-B62AB2CFC367}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -195,6 +197,10 @@ Global
 		{C9020438-FCBF-4323-88A2-2901B831D358}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9020438-FCBF-4323-88A2-2901B831D358}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9020438-FCBF-4323-88A2-2901B831D358}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA42A516-AC01-4B4E-9177-B62AB2CFC367}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA42A516-AC01-4B4E-9177-B62AB2CFC367}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA42A516-AC01-4B4E-9177-B62AB2CFC367}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA42A516-AC01-4B4E-9177-B62AB2CFC367}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -220,6 +226,7 @@ Global
 		{E1F20A07-DA6E-460C-ADC8-87BD1D1D8300} = {B05ACC74-412F-470C-872F-D1ABD75885B5}
 		{D3BA37DC-FB3C-4ACC-9A4D-4CBBB7BF6A99} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 		{DEDC8155-F9EF-4A8D-9476-B44610AABCA1} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{BA42A516-AC01-4B4E-9177-B62AB2CFC367} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}

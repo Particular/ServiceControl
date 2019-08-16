@@ -195,6 +195,8 @@
             if (shouldInstallAudit)
             {
                 auditViewModel = auditUpgradeViewModelFactory(instance.Name);
+                auditViewModel.ServiceControlAudit.SetupServiceAccount(instance);
+
                 if (windowManager.ShowInnerDialog(auditViewModel) != true)
                 {
                     //Dialog was cancelled
