@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Transports.LearningTransport\ServiceControl.Transports.LearningTransport.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LearningTransport\ServiceControl.Transports.LearningTransport.csproj" />
   </ItemGroup>
 
   <ItemGroup>

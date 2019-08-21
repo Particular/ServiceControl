@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Transports.AmazonSQS\ServiceControl.Transports.AmazonSQS.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AmazonSQS\ServiceControl.Transports.AmazonSQS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
