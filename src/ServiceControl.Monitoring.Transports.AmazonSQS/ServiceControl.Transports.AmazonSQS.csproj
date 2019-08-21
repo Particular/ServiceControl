@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.SQS" Version="3.3.3.42" />
+    <PackageReference Include="NServiceBus.AmazonSQS" Version="4.3.3" />
+  </ItemGroup>
+
+</Project>

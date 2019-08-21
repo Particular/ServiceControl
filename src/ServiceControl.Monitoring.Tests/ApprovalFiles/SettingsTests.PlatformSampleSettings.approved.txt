@@ -1,0 +1,17 @@
+{
+  "EndpointName": "Particular.Monitoring",
+  "ServiceName": "Particular.Monitoring",
+  "TransportType": "NServiceBus.ServiceControlLearningTransport, ServiceControl.Transports.LearningTransport",
+  "ErrorQueue": "error",
+  "LogPath": "C:\\Logs",
+  "LogLevel": {
+    "Name": "Warn",
+    "Ordinal": 3
+  },
+  "Username": null,
+  "EnableInstallers": false,
+  "HttpHostName": "localhost",
+  "HttpPort": "9999",
+  "EndpointUptimeGracePeriod": "00:00:40",
+  "SkipQueueCreation": false
+}

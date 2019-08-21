@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <Description>Contains ServiceControl.Monitoring zip for Particular Service Control Management to install</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.Transport.Msmq" version="1.0.1" PrivateAssets="All" />
+    <PackageReference Include="Particular.Packaging" Version="0.3.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <UsingTask AssemblyFile="..\..\buildsupport\DeploymentZipTask.Dll" TaskName="DeploymentZipTask.AddToZip" />
+
+  <Target Name="ZipTarget" AfterTargets="Build">
+    <PropertyGroup>
+      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
+      <ZipFile>$(ZipTargetFolder)Particular.ServiceControl.Monitoring-$(GitVersion_MajorMinorPatch).zip</ZipFile>
+    </PropertyGroup>
+    <!-- Ensure Folder Exists  -->
+    <MakeDir Directories="$(ZipTargetFolder)" />
+    <!-- Remove any existing files -->
+    <ItemGroup>
+      <OldZips Include="$(ZipTargetFolder)*.*" />
+    </ItemGroup>
+    <Delete Files="@(OldZips)" />
+    <!-- Package Transports -->
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\AmazonSQS" SourceFolder="..\ServiceControl.Transports.AmazonSQS\$(OutputPath)" ZipFileName="$(ZipFile)" />
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\AzureServiceBus" SourceFolder="..\ServiceControl.Transports.AzureServiceBus\$(OutputPath)" ZipFileName="$(ZipFile)" />
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\AzureStorageQueue" SourceFolder="..\ServiceControl.Transports.AzureStorageQueues\$(OutputPath)" ZipFileName="$(ZipFile)" />
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\LearningTransport" SourceFolder="..\ServiceControl.Transports.LearningTransport\$(OutputPath)" ZipFileName="$(ZipFile)" />
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\LegacyAzureServiceBus" SourceFolder="..\ServiceControl.Transports.LegacyAzureServiceBus\$(OutputPath)" ZipFileName="$(ZipFile)" />
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\RabbitMQ" SourceFolder="..\ServiceControl.Transports.RabbitMQ\$(OutputPath)" ZipFileName="$(ZipFile)" />
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\SQLServer" SourceFolder="..\ServiceControl.Transports.SQLServer\$(OutputPath)" ZipFileName="$(ZipFile)" />
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.xml" ZipFolder="Transports\MSMQ" SourceFolder="$(NuGetPackageRoot)NServiceBus.Transport.Msmq\%(PackageReference.Version)\lib\net452" ZipFileName="$(ZipFile)" Condition="'%(PackageReference.Identity)' == 'NServiceBus.Transport.Msmq'" />
+    <!-- ServiceControl.Monitoring  -->
+    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl.Monitoring" SourceFolder="..\ServiceControl.Monitoring\$(OutputPath)" ZipFileName="$(ZipFile)" />
+    <ItemGroup>
+      <Content Include="$(ZipFile)" PackagePath="tools" />
+    </ItemGroup>
+  </Target>
+
+</Project>
