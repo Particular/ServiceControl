@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
@@ -15,12 +15,10 @@
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" />
+
+    <ProjectReference Include="..\Packaging.ServiceControl.Monitoring\Packaging.ServiceControl.Monitoring.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.3.0" PrivateAssets="All" />
-  </ItemGroup>
-  
   <Target Name="CleanStaging" AfterTargets="Build">
     <PropertyGroup>
       <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
@@ -133,11 +131,8 @@
   </Target>
 
   <Target Name="CopyServiceControlMonitoringZip" AfterTargets="CreateServiceControlAuditZip">
-    <PropertyGroup>
-      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-    </PropertyGroup>
     <ItemGroup>
-      <Zips Include="$(NuGetPackageRoot)packaging.servicecontrol.monitoring\%(PackageReference.Version)\**\*monitoring*.zip" Condition="'%(PackageReference.Identity)' == 'Packaging.ServiceControl.Monitoring'" />
+      <Zips Include="..\..\zip\monitoring\*.zip"/>
     </ItemGroup>
     <Copy SourceFiles="@(Zips)" DestinationFolder="$(ZipTargetFolder)" />
   </Target>

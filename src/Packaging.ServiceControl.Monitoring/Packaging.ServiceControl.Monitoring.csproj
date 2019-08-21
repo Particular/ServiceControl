@@ -2,43 +2,73 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
-    <Description>Contains ServiceControl.Monitoring zip for Particular Service Control Management to install</Description>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.Transport.Msmq" version="1.0.1" PrivateAssets="All" />
-    <PackageReference Include="Particular.Packaging" Version="0.3.0" PrivateAssets="All" />
   </ItemGroup>
 
-  <UsingTask AssemblyFile="..\..\buildsupport\DeploymentZipTask.Dll" TaskName="DeploymentZipTask.AddToZip" />
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AmazonSQS\ServiceControl.Transports.AmazonSQS.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AzureServiceBus\ServiceControl.Transports.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AzureStorageQueues\ServiceControl.Transports.AzureStorageQueues.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LearningTransport\ServiceControl.Transports.LearningTransport.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LegacyAzureServiceBus\ServiceControl.Transports.LegacyAzureServiceBus.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.SQLServer\ServiceControl.Transports.SQLServer.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
+  </ItemGroup>
 
-  <Target Name="ZipTarget" AfterTargets="Build">
+  <Target Name="CleanStaging" AfterTargets="Build">
     <PropertyGroup>
-      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipFile>$(ZipTargetFolder)Particular.ServiceControl.Monitoring-$(GitVersion_MajorMinorPatch).zip</ZipFile>
+      <ZipTargetFolder>..\..\zip\monitoring\</ZipTargetFolder>
+      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Monitoring-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
+      <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
     </PropertyGroup>
     <!-- Ensure Folder Exists  -->
     <MakeDir Directories="$(ZipTargetFolder)" />
+    <RemoveDir Directories="$(StagingFolder)" />
+    <MakeDir Directories="$(StagingFolder)" />
     <!-- Remove any existing files -->
     <ItemGroup>
       <OldZips Include="$(ZipTargetFolder)*.*" />
     </ItemGroup>
     <Delete Files="@(OldZips)" />
-    <!-- Package Transports -->
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\AmazonSQS" SourceFolder="..\ServiceControl.Transports.AmazonSQS\$(OutputPath)" ZipFileName="$(ZipFile)" />
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\AzureServiceBus" SourceFolder="..\ServiceControl.Transports.AzureServiceBus\$(OutputPath)" ZipFileName="$(ZipFile)" />
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\AzureStorageQueue" SourceFolder="..\ServiceControl.Transports.AzureStorageQueues\$(OutputPath)" ZipFileName="$(ZipFile)" />
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\LearningTransport" SourceFolder="..\ServiceControl.Transports.LearningTransport\$(OutputPath)" ZipFileName="$(ZipFile)" />
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\LegacyAzureServiceBus" SourceFolder="..\ServiceControl.Transports.LegacyAzureServiceBus\$(OutputPath)" ZipFileName="$(ZipFile)" />
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\RabbitMQ" SourceFolder="..\ServiceControl.Transports.RabbitMQ\$(OutputPath)" ZipFileName="$(ZipFile)" />
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="Transports\SQLServer" SourceFolder="..\ServiceControl.Transports.SQLServer\$(OutputPath)" ZipFileName="$(ZipFile)" />
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.xml" ZipFolder="Transports\MSMQ" SourceFolder="$(NuGetPackageRoot)NServiceBus.Transport.Msmq\%(PackageReference.Version)\lib\net452" ZipFileName="$(ZipFile)" Condition="'%(PackageReference.Identity)' == 'NServiceBus.Transport.Msmq'" />
-    <!-- ServiceControl.Monitoring  -->
-    <AddToZip IncludeMask="*.*" ExcludeMask="*.config" ZipFolder="ServiceControl.Monitoring" SourceFolder="..\ServiceControl.Monitoring\$(OutputPath)" ZipFileName="$(ZipFile)" />
+  </Target>
+
+  <Target Name="CreateZip" AfterTargets="CleanStaging">
+    <PropertyGroup>
+      <ZipTargetFolder>..\..\zip\monitoring\</ZipTargetFolder>
+      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Monitoring-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
+      <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
+    </PropertyGroup>
+
     <ItemGroup>
-      <Content Include="$(ZipFile)" PackagePath="tools" />
+      <ServiceControlMonitoring Include="..\ServiceControl.Monitoring\$(OutputPath)*.*" Exclude="*.config" />
+
+      <SQSTransport Include="..\ServiceControl.Monitoring.Transports.AmazonSQS\$(OutputPath)*.*" Exclude="*.config" />
+      <ASBTransport Include="..\ServiceControl.Monitoring.Transports.AzureServiceBus\$(OutputPath)*.*" Exclude="*.config" />
+      <ASQTransport Include="..\ServiceControl.Monitoring.Transports.AzureStorageQueues\$(OutputPath)*.*" Exclude="*.config" />
+      <LearningTransport Include="..\ServiceControl.Monitoring.Transports.LearningTransport\$(OutputPath)*.*" Exclude="*.config" />
+      <ASBTransport Include="..\ServiceControl.Monitoring.Transports.LegacyAzureServiceBus\$(OutputPath)*.*" Exclude="*.config" />
+      <RabbitMQTransport Include="..\ServiceControl.Monitoring.Transports.RabbitMQ\$(OutputPath)*.*" Exclude="*.config" />
+      <SqlTransport Include="..\ServiceControl.Monitoring.Transports.SQLServer\$(OutputPath)*.*" Exclude="*.config" />
+      <MSMQTransport Include="$(NuGetPackageRoot)NServiceBus.Transport.Msmq\%(PackageReference.Version)\lib\net452\*.*" Exclude="*.xml" />
     </ItemGroup>
+
+    <Copy SourceFiles="@(ServiceControlMonitoring)" DestinationFolder="$(StagingFolder)ServiceControl.Monitoring\" />
+
+    <Copy SourceFiles="@(SQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
+    <Copy SourceFiles="@(ASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
+    <Copy SourceFiles="@(ASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
+    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
+    <Copy SourceFiles="@(ASBTransport)" DestinationFolder="$(StagingFolder)Transports\LegacyAzureServiceBus" />
+    <Copy SourceFiles="@(RabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
+    <Copy SourceFiles="@(SqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
+    <Copy SourceFiles="@(MSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
+
+    <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
+    <RemoveDir Directories="$(StagingFolder)" />
   </Target>
 
 </Project>
