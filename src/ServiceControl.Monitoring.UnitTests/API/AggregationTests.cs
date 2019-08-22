@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.Tests.API
+﻿namespace ServiceControl.Monitoring.UnitTests.API
 {
     using System;
     using System.Linq;
@@ -7,9 +7,9 @@
     using Http.Diagrams;
     using Messaging;
     using Monitoring.Infrastructure;
-    using QueueLength;
     using Nancy;
     using NUnit.Framework;
+    using QueueLength;
     using Timings;
 
     public class AggregationTests

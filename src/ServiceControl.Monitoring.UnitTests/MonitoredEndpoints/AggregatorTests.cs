@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.Tests.MonitoredEndpoints
+﻿namespace ServiceControl.Monitoring.UnitTests.MonitoredEndpoints
 {
     using System;
     using System.Collections.Generic;

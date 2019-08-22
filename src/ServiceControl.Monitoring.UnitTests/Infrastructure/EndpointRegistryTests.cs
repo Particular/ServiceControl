@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.Tests.Infrastructure
+﻿namespace ServiceControl.Monitoring.UnitTests.Infrastructure
 {
     using System.Linq;
     using Monitoring.Infrastructure;

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.Tests
+﻿namespace ServiceControl.Monitoring.UnitTests
 {
     using System;
     using System.Collections.Generic;
@@ -11,9 +11,9 @@
     using Http.Diagrams;
     using Messaging;
     using Monitoring.Infrastructure;
-    using QueueLength;
     using Nancy;
     using NUnit.Framework;
+    using QueueLength;
     using Timings;
 
     [Category("Performance")]

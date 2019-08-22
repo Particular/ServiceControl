@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.Tests.API
+﻿namespace ServiceControl.Monitoring.UnitTests.API
 {
     using System.Configuration;
     using NUnit.Framework;
