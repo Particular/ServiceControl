@@ -19,7 +19,7 @@
 
             builder.TypesToIncludeInScan(types);
 
-            var transportIntegration = TestSuiteConstraints.CreateTransportConfiguration();
+            var transportIntegration = NServiceBusAcceptanceTest.TransportIntegration;
 
             transportIntegration.Configure(endpointConfiguration.EndpointName, builder);
 
@@ -35,6 +35,8 @@
             builder.EnableInstallers();
 
             configurationBuilderCustomization(builder);
+
+            runDescriptor.OnTestCompleted(_ => transportIntegration.Cleanup());
 
             return Task.FromResult(builder);
         }

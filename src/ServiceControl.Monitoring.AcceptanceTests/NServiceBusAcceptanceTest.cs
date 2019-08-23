@@ -4,6 +4,7 @@ namespace NServiceBus.AcceptanceTests
     using System.Threading;
     using AcceptanceTesting.Customization;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.Monitoring;
 
     /// <summary>
@@ -33,19 +34,21 @@ namespace NServiceBus.AcceptanceTests
                 return testName + "." + endpointBuilder;
             };
 
-            var transportIntegration = TestSuiteConstraints.CreateTransportConfiguration();
+            TransportIntegration = TestSuiteConstraints.CreateTransportConfiguration();
 
-            ConnectionString = transportIntegration.ConnectionString;
+            ConnectionString = TransportIntegration.ConnectionString;
 
             Settings = new Settings
             {
-                TransportType = transportIntegration.MonitoringSeamTypeName,
+                TransportType = TransportIntegration.MonitoringSeamTypeName,
                 EnableInstallers = true, 
                 ErrorQueue = "error",
                 HttpHostName = "localhost",
                 HttpPort = "1234"
             };
         }
+
+        public static ITransportIntegration TransportIntegration { get; set; }
 
         public static Settings Settings { get; set; }
 
