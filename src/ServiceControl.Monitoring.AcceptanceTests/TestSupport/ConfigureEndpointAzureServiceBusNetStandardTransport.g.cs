@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿extern alias TransportASBS;
+using System.Threading.Tasks;
 using NServiceBus;
 using ServiceBus.Management.AcceptanceTests;
 
@@ -8,7 +9,7 @@ public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIn
     {
         configuration.UseSerialization<NewtonsoftSerializer>();
 
-        var transportConfig = configuration.UseTransport<ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport>();
+        var transportConfig = configuration.UseTransport<TransportASBS::NServiceBus.AzureServiceBusTransport>();
         
         transportConfig.ConnectionString(ConnectionString);
 

@@ -4,8 +4,22 @@
     <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
 
+  <!-- Workaround. See: https://github.com/NuGet/Home/issues/4989 -->
+  <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'NServiceBus.Transport.AzureServiceBus'">
+        <Aliases>TransportASBS</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AmazonSQS\ServiceControl.Transports.AmazonSQS.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AzureServiceBus\ServiceControl.Transports.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AzureStorageQueues\ServiceControl.Transports.AzureStorageQueues.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LearningTransport\ServiceControl.Transports.LearningTransport.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LegacyAzureServiceBus\ServiceControl.Transports.LegacyAzureServiceBus.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.SQLServer\ServiceControl.Transports.SQLServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
   </ItemGroup>

@@ -28,6 +28,7 @@
 
             builder.RegisterComponents(r => { RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, r); });
 
+            builder.UseSerialization<NewtonsoftSerializer>();
             builder.SendFailedMessagesTo("error");
             builder.UsePersistence<InMemoryPersistence>();
 
