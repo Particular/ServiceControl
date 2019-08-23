@@ -19,7 +19,9 @@
 
             builder.TypesToIncludeInScan(types);
 
-            builder.UseTransport<AcceptanceTestingTransport>();
+            var transportIntegration = TestSuiteConstraints.CreateTransportConfiguration();
+
+            transportIntegration.Configure(endpointConfiguration.EndpointName, builder);
 
             builder.Recoverability().Delayed(delayedRetries => delayedRetries.NumberOfRetries(0));
             builder.Recoverability().Immediate(immediateRetries => immediateRetries.NumberOfRetries(0));

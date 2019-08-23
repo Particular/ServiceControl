@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AzureServiceBus\ServiceControl.Transports.AzureServiceBus.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
   </ItemGroup>
 
@@ -13,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NServiceBus.Transport.Msmq" Version="1.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.1.6" />
     <PackageReference Include="NServiceBus.Metrics" Version="3.0.0" />

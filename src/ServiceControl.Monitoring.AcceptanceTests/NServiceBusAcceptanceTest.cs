@@ -33,9 +33,13 @@ namespace NServiceBus.AcceptanceTests
                 return testName + "." + endpointBuilder;
             };
 
+            var transportIntegration = TestSuiteConstraints.CreateTransportConfiguration();
+
+            ConnectionString = transportIntegration.ConnectionString;
+
             Settings = new Settings
             {
-                TransportType = typeof(AcceptanceTestingTransport).AssemblyQualifiedName,
+                TransportType = transportIntegration.TypeName,
                 EnableInstallers = true, 
                 ErrorQueue = "error",
                 HttpHostName = "localhost",
@@ -44,5 +48,7 @@ namespace NServiceBus.AcceptanceTests
         }
 
         public static Settings Settings { get; set; }
+
+        public static string ConnectionString { get; set; }
     }
 }

@@ -17,7 +17,7 @@
     {
         static string ReceiverEndpointName => Conventions.EndpointNamingConvention(typeof(Receiver));
         static int ReporterQueueLengthValue = 10;
-        
+
         [Test]
         public async Task When_sending_single_interval_data_Should_report_average_based_on_this_single_interval()
         {
@@ -87,7 +87,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    EndpointFactory.MakeMetricsReceiver(c, Settings);
+                    EndpointFactory.MakeMetricsReceiver(c, Settings, ConnectionString);
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });
             }
