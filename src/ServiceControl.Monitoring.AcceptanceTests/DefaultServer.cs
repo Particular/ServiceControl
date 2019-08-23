@@ -28,6 +28,11 @@
 
             builder.RegisterComponents(r => { RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, r); });
 
+            builder.SendFailedMessagesTo("error");
+            builder.UsePersistence<InMemoryPersistence>();
+
+            builder.EnableInstallers();
+
             configurationBuilderCustomization(builder);
 
             return Task.FromResult(builder);

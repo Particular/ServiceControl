@@ -4,7 +4,7 @@
 
     public interface ITransportIntegration : IConfigureEndpointTestExecution
     {
-        string TypeName { get; }
+        string MonitoringSeamTypeName { get; }
         string ConnectionString { get; set; }
     }
 }

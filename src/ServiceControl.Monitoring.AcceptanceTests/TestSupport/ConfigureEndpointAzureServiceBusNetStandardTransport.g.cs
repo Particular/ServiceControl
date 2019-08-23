@@ -20,6 +20,6 @@ public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIn
         return Task.FromResult(0);
     }
 
-    public string TypeName => typeof(ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport).AssemblyQualifiedName;
+    public string MonitoringSeamTypeName => typeof(ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport).AssemblyQualifiedName;
     public string ConnectionString { get; set; }
 }

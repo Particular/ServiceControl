@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AzureServiceBus\ServiceControl.Transports.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.SQLServer\ServiceControl.Transports.SQLServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
   </ItemGroup>
 
@@ -19,6 +20,7 @@
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.1.6" />
     <PackageReference Include="NServiceBus.Metrics" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Metrics.ServiceControl" Version="3.0.2" />
+    <PackageReference Include="NServiceBus.Metrics.ServiceControl.Msmq" Version="3.0.1" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
   </ItemGroup>

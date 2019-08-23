@@ -1,96 +1,89 @@
 ﻿namespace NServiceBus.Metrics.AcceptanceTests
 {
     using System;
-    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Customization;
-    using Features;
     using global::Newtonsoft.Json.Linq;
     using global::ServiceControl.Monitoring;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using ServiceControl;
 
     [Category("Integration")]
     public class When_querying_queue_length_data : ApiIntegrationTest
     {
-        static string ReceiverEndpointName => Conventions.EndpointNamingConvention(typeof(Receiver));
-        static int ReporterQueueLengthValue = 10;
+        static string MonitoringEndpointName => Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));
 
         [Test]
-        public async Task When_sending_single_interval_data_Should_report_average_based_on_this_single_interval()
+        public async Task Should_report_via_http()
         {
             JToken queueLength = null;
 
-            await Scenario.Define<Context>()
-                .WithEndpoint<MonitoredEndpoint>()
-                .WithEndpoint<Receiver>()
-                .Done(c => MetricReported("queueLength", out queueLength, c))
+            await Scenario.Define<QueueLengthContext>()
+                .WithEndpoint<SendingEndpoint>(c =>
+                {
+                    c.CustomConfig(ec => ec.LimitMessageProcessingConcurrencyTo(1));
+                    c.DoNotFailOnErrorMessages();
+                    c.When(async s =>
+                    {
+                        await s.SendLocal(new SampleMessage());
+                        await s.SendLocal(new SampleMessage());
+                        await s.SendLocal(new SampleMessage());
+                    });
+                })
+                .WithEndpoint<MonitoringEndpoint>()
+                .Done(c =>
+                {
+                    var done = MetricReported("queueLength", out queueLength, c);
+
+                    if (done) { c.CancelProcessingTokenSource.Cancel(); }
+
+                    return done;
+                })
                 .Run();
 
-            Assert.AreEqual(10, queueLength["average"].Value<int>());
-
-            var points = queueLength["points"].Values<int>().ToArray();
-
-            CollectionAssert.IsNotEmpty(points);
-
-            Assert.IsTrue(points.All(v => v == ReporterQueueLengthValue || v == 0));
-            Assert.IsTrue(points.Any(v => v == ReporterQueueLengthValue));
+            Assert.IsTrue(queueLength["average"].Value<double>() > 0);
+            Assert.AreEqual(60, queueLength["points"].Value<JArray>().Count);
         }
 
-        class MonitoredEndpoint : EndpointConfigurationBuilder
+        class SendingEndpoint : EndpointConfigurationBuilder
         {
-            public MonitoredEndpoint()
+            public SendingEndpoint()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableMetrics().SendMetricDataToServiceControl(ReceiverEndpointName, TimeSpan.FromSeconds(5));
-                    c.EnableFeature<QueueLengthReporting>();
+                    c.EnableMetrics().SendMetricDataToServiceControl(MonitoringEndpointName, TimeSpan.FromSeconds(1));
+                    c.LimitMessageProcessingConcurrencyTo(1);
                 });
             }
 
-            public class QueueLengthReporting : Feature
+            class Handler : IHandleMessages<SampleMessage>
             {
-                protected override void Setup(FeatureConfigurationContext context)
+                public QueueLengthContext Context { get; set; }
+
+                public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {
-                    context.RegisterStartupTask(b => new QueueLengthReportingTask(b.Build<IReportNativeQueueLength>()));
-                }
-            }
-
-            public class QueueLengthReportingTask : FeatureStartupTask
-            {
-                IReportNativeQueueLength reporter;
-
-                public QueueLengthReportingTask(IReportNativeQueueLength reporter)
-                {
-                    this.reporter = reporter;
-                }
-
-                protected override Task OnStart(IMessageSession session)
-                {
-                    reporter.ReportQueueLength(reporter.MonitoredQueues.First(), ReporterQueueLengthValue);
-
-                    return TaskEx.Completed;
-                }
-
-                protected override Task OnStop(IMessageSession session)
-                {
-                    return TaskEx.Completed;
+                    //Concurrency limit 1 and this should block any processing on input queue
+                    return Task.Delay(TimeSpan.FromDays(1), Context.CancelProcessingTokenSource.Token);
                 }
             }
         }
 
-        class Receiver : EndpointConfigurationBuilder
+        class MonitoringEndpoint : EndpointConfigurationBuilder
         {
-            public Receiver()
+            public MonitoringEndpoint()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
                     EndpointFactory.MakeMetricsReceiver(c, Settings, ConnectionString);
-                    c.LimitMessageProcessingConcurrencyTo(1);
                 });
             }
+        }
+
+        class QueueLengthContext : Context
+        {
+            public CancellationTokenSource CancelProcessingTokenSource = new CancellationTokenSource();
         }
     }
 }

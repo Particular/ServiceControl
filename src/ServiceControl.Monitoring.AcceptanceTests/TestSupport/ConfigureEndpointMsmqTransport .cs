@@ -18,11 +18,13 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
         var transportConfig = configuration.UseTransport<MsmqTransport>();
         transportConfig.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         transportConfig.DisableConnectionCachingForSends();
+
         settingsHolder.Set("NServiceBus.Transport.Msmq.MessageEnumeratorTimeout", TimeSpan.FromMilliseconds(10));
 
         return Task.FromResult(0);
     }
 
+    //TODO: call clean-up
     public Task Cleanup()
     {
         var allQueues = MessageQueue.GetPrivateQueuesByMachine("localhost");
@@ -66,8 +68,7 @@ public class ConfigureEndpointMsmqTransport : ITransportIntegration
         return Task.FromResult(0);
     }
 
-    public string Name => string.Empty;
-    public string TypeName => string.Empty;
+    public string MonitoringSeamTypeName => typeof(MsmqTransport).AssemblyQualifiedName;
     public string ConnectionString { get; set; }
 
     QueueBindings queueBindings;
