@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="1.1.1" />
+    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="1.2.1" />
   </ItemGroup>
 
 </Project>
