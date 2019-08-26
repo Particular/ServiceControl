@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.3.0" PrivateAssets="All" />
+    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.4.0" PrivateAssets="All" />
   </ItemGroup>
   
   <Target Name="CleanStaging" AfterTargets="Build">
