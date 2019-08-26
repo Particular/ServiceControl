@@ -23,7 +23,6 @@
             await Scenario.Define<QueueLengthContext>()
                 .WithEndpoint<SendingEndpoint>(c =>
                 {
-                    c.CustomConfig(ec => ec.LimitMessageProcessingConcurrencyTo(1));
                     c.DoNotFailOnErrorMessages();
                     c.When(async s =>
                     {
@@ -37,7 +36,10 @@
                 {
                     var done = MetricReported("queueLength", out queueLength, c);
 
-                    if (done) { c.CancelProcessingTokenSource.Cancel(); }
+                    if (done)
+                    {
+                        c.CancelProcessingTokenSource.Cancel();
+                    }
 
                     return done;
                 })
@@ -65,7 +67,7 @@
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {
                     //Concurrency limit 1 and this should block any processing on input queue
-                    return Task.Delay(TimeSpan.FromDays(1), Context.CancelProcessingTokenSource.Token);
+                    return Task.Delay(TimeSpan.FromSeconds(30), Context.CancelProcessingTokenSource.Token);
                 }
             }
         }
