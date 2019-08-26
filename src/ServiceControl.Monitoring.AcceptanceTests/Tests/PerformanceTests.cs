@@ -16,7 +16,6 @@
     using QueueLength;
     using Timings;
 
-    [Category("Performance")]
     public class PerformanceTests
     {
         EndpointRegistry endpointRegistry;
