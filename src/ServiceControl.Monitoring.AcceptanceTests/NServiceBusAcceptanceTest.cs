@@ -1,6 +1,7 @@
 namespace NServiceBus.AcceptanceTests
 {
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using AcceptanceTesting.Customization;
     using NUnit.Framework;
@@ -14,6 +15,15 @@ namespace NServiceBus.AcceptanceTests
     // ReSharper disable once PartialTypeWithSinglePart
     public abstract partial class NServiceBusAcceptanceTest
     {
+        protected NServiceBusAcceptanceTest()
+        {
+            ServicePointManager.DefaultConnectionLimit = int.MaxValue;
+            ServicePointManager.MaxServicePoints = int.MaxValue;
+            ServicePointManager.UseNagleAlgorithm = false; // Improvement for small tcp packets traffic, get buffered up to 1/2-second. If your storage communication is for small (less than ~1400 byte) payloads, this setting should help (especially when dealing with things like Azure Queues, which tend to have very small messages).
+            ServicePointManager.Expect100Continue = false; // This ensures tcp ports are free up quicker by the OS, prevents starvation of ports
+            ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
+        }
+
         [SetUp]
         public void SetUp()
         {
