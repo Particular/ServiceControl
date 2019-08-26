@@ -1,10 +1,10 @@
 namespace NServiceBus.AcceptanceTests
 {
+    using System;
     using System.Linq;
     using System.Net;
     using System.Threading;
     using AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.Monitoring;
@@ -45,7 +45,7 @@ namespace NServiceBus.AcceptanceTests
                 return testName + "." + endpointBuilder;
             };
 
-            TransportIntegration = TestSuiteConstraints.CreateTransportConfiguration();
+            TransportIntegration = new ConfigureEndpointLearningTransport();
 
             ConnectionString = TransportIntegration.ConnectionString;
 
@@ -58,11 +58,11 @@ namespace NServiceBus.AcceptanceTests
                 HttpPort = "1234"
             };
 
+            var transportCustomization = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.TransportCustomization");
 
-            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
-            if (!shouldBeRunOnAllTransports && !TransportIntegration.MonitoringSeamTypeName.Contains("Learning"))
+            if (transportCustomization != null && transportCustomization != typeof(ConfigureEndpointLearningTransport).Name)
             {
-                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.MonitoringSeamTypeName}'");
+                Assert.Inconclusive($"Only running Monitoring ATT's for th learning transport, therefore skipping this test with '{TransportIntegration.MonitoringSeamTypeName}'");
             }
         }
 

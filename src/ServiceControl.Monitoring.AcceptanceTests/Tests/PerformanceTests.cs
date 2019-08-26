@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.UnitTests
+﻿namespace ServiceControl.Monitoring.PerformanceTests
 {
     using System;
     using System.Collections.Generic;
@@ -12,11 +12,12 @@
     using Messaging;
     using Monitoring.Infrastructure;
     using Nancy;
+    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using QueueLength;
     using Timings;
 
-    public class PerformanceTests
+    public class PerformanceTests : NServiceBusAcceptanceTest
     {
         EndpointRegistry endpointRegistry;
         MessageTypeRegistry messageTypeRegistry;
