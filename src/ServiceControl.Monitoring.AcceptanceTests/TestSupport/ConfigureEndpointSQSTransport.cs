@@ -32,7 +32,7 @@ public class ConfigureEndpointSQSTransport : ITransportIntegration
     }
 
 
-    public string MonitoringSeamTypeName => $"{typeof(ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport).AssemblyQualifiedName}";
+    public string MonitoringSeamTypeName => $"{typeof(ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport).AssemblyQualifiedName}";
 
     public string ConnectionString { get; set; }
 
