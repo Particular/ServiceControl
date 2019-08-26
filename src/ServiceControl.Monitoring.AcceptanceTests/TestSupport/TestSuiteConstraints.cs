@@ -10,7 +10,7 @@
         public static ITransportIntegration CreateTransportConfiguration() => 
             GetTransportIntegrationFromConnectionFile()
             ?? GetTransportIntegrationFromEnvironmentVar()
-            ?? new ConfigureEndpointMsmqTransport();
+            ?? new ConfigureEndpointLearningTransport();
 
         static ITransportIntegration GetTransportIntegrationFromEnvironmentVar() => CreateTransportIntegration(
                 Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.TransportCustomization"),

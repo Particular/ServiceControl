@@ -10,7 +10,6 @@
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
 
-    [Category("Integration")]
     public class When_querying_queue_length_data : ApiIntegrationTest
     {
         static string MonitoringEndpointName => Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));

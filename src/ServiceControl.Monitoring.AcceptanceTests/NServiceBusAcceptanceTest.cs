@@ -4,6 +4,7 @@ namespace NServiceBus.AcceptanceTests
     using System.Net;
     using System.Threading;
     using AcceptanceTesting.Customization;
+    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.Monitoring;
@@ -56,6 +57,13 @@ namespace NServiceBus.AcceptanceTests
                 HttpHostName = "localhost",
                 HttpPort = "1234"
             };
+
+
+            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
+            if (!shouldBeRunOnAllTransports && !TransportIntegration.MonitoringSeamTypeName.Contains("Learning"))
+            {
+                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.MonitoringSeamTypeName}'");
+            }
         }
 
         public static ITransportIntegration TransportIntegration { get; set; }

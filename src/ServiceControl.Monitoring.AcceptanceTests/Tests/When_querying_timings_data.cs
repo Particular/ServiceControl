@@ -9,7 +9,6 @@
     using NUnit.Framework;
     using Conventions = AcceptanceTesting.Customization;
 
-    [Category("Integration")]
     public class When_querying_timings_data : ApiIntegrationTest
     {
         static string ReceiverEndpointName => Conventions.Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));

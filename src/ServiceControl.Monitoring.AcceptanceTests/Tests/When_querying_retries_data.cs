@@ -8,7 +8,6 @@
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
 
-    [Category("Integration")]
     public class When_querying_retries_data : ApiIntegrationTest
     {
         static string ReceiverEndpointName => AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));
