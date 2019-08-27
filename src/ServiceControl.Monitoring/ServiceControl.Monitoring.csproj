@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <DefineConstants>$(DefineConstants);REGISTRYLICENSESOURCE</DefineConstants>
+    <ApplicationIcon>Operations.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ServiceProcess" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.6.0" />
+    <PackageReference Include="GitVersionTask" Version="4.0.0" />
+    <PackageReference Include="Nancy" Version="1.4.3" />
+    <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="1.4.1" />
+    <PackageReference Include="Nancy.Hosting.Self" Version="1.4.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="NLog" Version="4.5.10" />
+    <PackageReference Include="NServiceBus" Version="7.1.6" />
+    <PackageReference Include="NServiceBus.Autofac" Version="7.0.0" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
+    <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
+    <PackageReference Include="Particular.Licensing.Sources" Version="2.0.1" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
