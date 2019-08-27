@@ -15,7 +15,6 @@
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" />
-
     <ProjectReference Include="..\Packaging.ServiceControl.Monitoring\Packaging.ServiceControl.Monitoring.csproj" />
   </ItemGroup>
 
