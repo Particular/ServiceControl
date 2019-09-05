@@ -71,7 +71,7 @@
                 !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
                     $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
                     "Do you want to proceed?",
-                    "Yes I want to proceed", "No"))
+                    "Yes, I want to proceed", "No"))
             {
                 return;
             }
