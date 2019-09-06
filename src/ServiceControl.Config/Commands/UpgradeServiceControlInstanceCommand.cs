@@ -27,9 +27,9 @@
         }
 
         public UpgradeServiceControlInstanceCommand(
-            IWindowManagerEx windowManager, 
-            IEventAggregator eventAggregator, 
-            ServiceControlInstanceInstaller serviceControlInstaller, 
+            IWindowManagerEx windowManager,
+            IEventAggregator eventAggregator,
+            ServiceControlInstanceInstaller serviceControlInstaller,
             ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
             Func<string, AddNewAuditInstanceViewModel> auditUpgradeViewModelFactory)
         {
@@ -62,7 +62,7 @@
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
             var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
 
-            
+
             var upgradeAction = instance.GetRequiredUpgradeAction(serviceControlInstaller.ZipInfo.Version);
             var shouldInstallAudit = upgradeAction == RequiredUpgradeAction.SplitOutAudit;
 
@@ -209,7 +209,7 @@
                 !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
                     $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
                     "Do you want to proceed?",
-                    "Yes I want to proceed", "No"))
+                    "Yes, I want to proceed", "No"))
             {
                 return;
             }
@@ -324,7 +324,7 @@
                         var serviceStarted = await model.StartService(progress);
                         if (!serviceStarted)
                         {
-                            reportCard.Errors.Add("The Service failed to start. Please consult the service control logs for this instance");
+                            reportCard.Errors.Add("The Service failed to start. Please consult the ServiceControl logs for this instance");
                             windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
                         }
                     }

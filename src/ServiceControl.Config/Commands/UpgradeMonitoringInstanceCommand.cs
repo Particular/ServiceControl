@@ -46,7 +46,7 @@
             instance.Service.Refresh();
 
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                          windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes I want to proceed", "No");
+                          windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes, I want to proceed", "No");
 
             if (confirm)
             {
