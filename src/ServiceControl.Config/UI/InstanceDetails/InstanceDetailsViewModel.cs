@@ -24,6 +24,7 @@
             EditMonitoringInstanceCommand showEditMonitoringScreenCommand,
             UpgradeServiceControlInstanceCommand upgradeServiceControlCommand,
             UpgradeMonitoringInstanceCommand upgradeMonitoringCommand,
+            UpgradeAuditInstanceCommand upgradeAuditCommand,
             AdvancedMonitoringOptionsCommand advancedOptionsMonitoringCommand,
             AdvancedServiceControlOptionsCommand advancedOptionsServiceControlCommand,
             ServiceControlInstanceInstaller serviceControlinstaller,
@@ -64,7 +65,7 @@
                 ServiceControlAuditInstance = (ServiceControlAuditInstance)instance;
                 NewVersion = serviceControlAuditInstaller.ZipInfo.Version;
                 EditCommand = showAuditEditScreenCommand;
-                UpgradeToNewVersionCommand = null;
+                UpgradeToNewVersionCommand = upgradeAuditCommand;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
                 InstanceType = InstanceType.ServiceControlAudit;
                 return;
