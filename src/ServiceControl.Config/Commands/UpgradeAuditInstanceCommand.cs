@@ -5,32 +5,16 @@
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
-    using FluentValidation;
     using Framework;
     using Framework.Commands;
     using Framework.Modules;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Validation;
     using UI.InstanceDetails;
-    using UI.MessageBox;
-    using UI.Upgrades;
-    using Validation;
-    using Xaml.Controls;
-    using Validations = Extensions.Validations;
 
     class UpgradeAuditInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
-        readonly IEventAggregator eventAggregator;
-        readonly IWindowManagerEx windowManager;
-        readonly ServiceControlInstanceInstaller serviceControlInstaller;
-        readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
-        readonly Func<string, AddNewAuditInstanceViewModel> auditUpgradeViewModelFactory;
-
-        [FeatureToggle(Feature.LicenseChecks)]
-        public bool LicenseChecks { get; set; }
-
         public UpgradeAuditInstanceCommand(Func<InstanceDetailsViewModel, bool> canExecuteMethod = null) : base(canExecuteMethod)
         {
         }
@@ -39,17 +23,18 @@
             IWindowManagerEx windowManager,
             IEventAggregator eventAggregator,
             ServiceControlInstanceInstaller serviceControlInstaller,
-            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
-            Func<string, AddNewAuditInstanceViewModel> auditUpgradeViewModelFactory)
+            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.serviceControlInstaller = serviceControlInstaller;
             this.serviceControlAuditInstaller = serviceControlAuditInstaller;
-            this.auditUpgradeViewModelFactory = auditUpgradeViewModelFactory;
         }
 
-        public async override Task ExecuteAsync(InstanceDetailsViewModel model)
+        [FeatureToggle(Feature.LicenseChecks)]
+        public bool LicenseChecks { get; set; }
+
+        public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
             if (LicenseChecks)
             {
@@ -65,7 +50,7 @@
             instance.Service.Refresh();
 
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
-            var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
+            var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
 
             if (instance.Service.Status != ServiceControllerStatus.Stopped &&
                 !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
@@ -75,7 +60,7 @@
             {
                 return;
             }
-            
+
             await UpgradeAuditInstance(model, instance, upgradeOptions);
 
             eventAggregator.PublishOnUIThread(new RefreshInstances());
@@ -121,5 +106,10 @@
                 }
             }
         }
+
+        readonly IEventAggregator eventAggregator;
+        readonly IWindowManagerEx windowManager;
+        readonly ServiceControlInstanceInstaller serviceControlInstaller;
+        readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
     }
 }

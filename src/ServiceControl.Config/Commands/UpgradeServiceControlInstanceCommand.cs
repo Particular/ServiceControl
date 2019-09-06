@@ -27,9 +27,9 @@
         }
 
         public UpgradeServiceControlInstanceCommand(
-            IWindowManagerEx windowManager, 
-            IEventAggregator eventAggregator, 
-            ServiceControlInstanceInstaller serviceControlInstaller, 
+            IWindowManagerEx windowManager,
+            IEventAggregator eventAggregator,
+            ServiceControlInstanceInstaller serviceControlInstaller,
             ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
             Func<string, AddNewAuditInstanceViewModel> auditUpgradeViewModelFactory)
         {
@@ -62,7 +62,7 @@
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
             var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
 
-            
+
             var upgradeAction = instance.GetRequiredUpgradeAction(serviceControlInstaller.ZipInfo.Version);
             var shouldInstallAudit = upgradeAction == RequiredUpgradeAction.SplitOutAudit;
 
