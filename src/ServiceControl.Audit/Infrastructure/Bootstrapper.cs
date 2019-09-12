@@ -49,7 +49,11 @@ namespace ServiceControl.Audit.Infrastructure
         {
             if (httpClient == null)
             {
-                httpClient = new HttpClient();
+                var handler = new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                };
+                httpClient = new HttpClient(handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             }
 
