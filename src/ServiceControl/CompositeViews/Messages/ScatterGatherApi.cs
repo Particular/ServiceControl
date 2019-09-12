@@ -113,6 +113,7 @@ namespace ServiceControl.CompositeViews.Messages
             var httpClient = HttpClientFactory();
             try
             {
+                // Assuming SendAsync returns uncompressed response and the AutomaticDecompression is enabled on the http client.
                 var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri)).ConfigureAwait(false);
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
