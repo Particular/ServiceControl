@@ -1,3 +1,5 @@
+# How queue length calculation works
+
 The queue length metric is calculated differently depending on whether the transport uses a centralized broker or is federated.
 
 In both cases, the endpoint plugin will collect some data and report to a transport specific queue length provider in the Monitoring Instance. The native queue length provider will write data to a queue length store which is queried by the api servicing ServicePulse.
