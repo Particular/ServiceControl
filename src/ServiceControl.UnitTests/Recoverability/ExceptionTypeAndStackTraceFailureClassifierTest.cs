@@ -47,6 +47,37 @@
         }
 
         [Test]
+        public void Null_message_should_group_by_exception_type()
+        {
+
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
+            var failureWithNullMessage = CreateFailureDetailsWithMessage(null);
+            var classification = classifier.ClassifyFailure(failureWithNullMessage);
+
+            Assert.AreEqual("exceptionType: 0", classification);
+        }
+
+        [Test]
+        public void Empty_message_should_group_by_exception_type()
+        {
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
+            var failureWithEmptyMessage = CreateFailureDetailsWithMessage(string.Empty);
+            var classification = classifier.ClassifyFailure(failureWithEmptyMessage);
+
+            Assert.AreEqual("exceptionType: 0", classification);
+        }
+
+        [Test]
+        public void Whitespace_message_should_group_by_exception_type()
+        {
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
+            var failureWithWhitespaceMessage = CreateFailureDetailsWithMessage("   ");
+            var classification = classifier.ClassifyFailure(failureWithWhitespaceMessage);
+
+            Assert.AreEqual("exceptionType: 0", classification);
+        }
+
+        [Test]
         public void Standard_stack_trace_format_should_group_by_exception_type_and_first_stack_frame()
         {
             const string stackTrace = @"at System.Environment.GetStackTrace(Exception e)
@@ -83,7 +114,7 @@ Cannot resolve parameter 'NHibernate.ISession session' of constructor 'Void .cto
 
         static ClassifiableMessageDetails CreateFailureDetailsWithStackTrace(string stackTrace)
         {
-            var failureWithEmptyStackTrace = new FailureDetails
+            var failure = new FailureDetails
             {
                 Exception = new ExceptionDetails
                 {
@@ -91,7 +122,21 @@ Cannot resolve parameter 'NHibernate.ISession session' of constructor 'Void .cto
                     ExceptionType = "exceptionType"
                 }
             };
-            return new ClassifiableMessageDetails(null, failureWithEmptyStackTrace, null);
+            return new ClassifiableMessageDetails(null, failure, null);
+        }
+
+        static ClassifiableMessageDetails CreateFailureDetailsWithMessage(string message)
+        {
+            var failure = new FailureDetails
+            {
+                Exception = new ExceptionDetails
+                {
+                    StackTrace = "Stack trace",
+                    ExceptionType = "exceptionType",
+                    Message = message
+                }
+            };
+            return new ClassifiableMessageDetails(null, failure, null);
         }
     }
 }

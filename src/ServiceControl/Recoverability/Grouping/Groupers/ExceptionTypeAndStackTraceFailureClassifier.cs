@@ -22,10 +22,10 @@ namespace ServiceControl.Recoverability
 
             
             var exceptionStackTrace = exception.StackTrace;
-            if (exception.Message != null)
+            if (!string.IsNullOrEmpty(exception.Message))
             {
-                //The StackTrace message header contains the result of ToString call on the exception object so it includes the message
-                //We need to remove the message in order to make sure the stack trace parser does not get into catastrophic backtracking mode.
+                // The StackTrace message header contains the result of ToString call on the exception object so it includes the message
+                // We need to remove the message in order to make sure the stack trace parser does not get into catastrophic backtracking mode.
                 exceptionStackTrace = exceptionStackTrace.Replace(exception.Message, string.Empty);
             }
             var firstStackTraceFrame = StackTraceParser.Parse(exceptionStackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
