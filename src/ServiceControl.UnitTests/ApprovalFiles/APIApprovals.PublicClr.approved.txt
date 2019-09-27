@@ -356,7 +356,7 @@ namespace ServiceControl.Contracts.MessageRedirects
         public string PreviousToPhysicalAddress { get; set; }
         public string ToPhysicalAddress { get; set; }
     }
-    public class MessageRedirectCreated
+    public class MessageRedirectCreated : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageRedirectCreated() { }
         public string FromPhysicalAddress { get; set; }
