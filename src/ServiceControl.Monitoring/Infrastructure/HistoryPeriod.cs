@@ -10,8 +10,8 @@
         {
             All = new List<HistoryPeriod>
             {
-                new HistoryPeriod(TimeSpan.FromMinutes(1),  numberOfIntervals: 60, delayedIntervals: 2),
-                new HistoryPeriod(TimeSpan.FromMinutes(5),  numberOfIntervals: 60, delayedIntervals: 1),
+                new HistoryPeriod(TimeSpan.FromMinutes(1), numberOfIntervals: 60, delayedIntervals: 2),
+                new HistoryPeriod(TimeSpan.FromMinutes(5), numberOfIntervals: 60, delayedIntervals: 1),
                 new HistoryPeriod(TimeSpan.FromMinutes(10), numberOfIntervals: 60, delayedIntervals: 1),
                 new HistoryPeriod(TimeSpan.FromMinutes(15), numberOfIntervals: 60, delayedIntervals: 1),
                 new HistoryPeriod(TimeSpan.FromMinutes(30), numberOfIntervals: 60, delayedIntervals: 1),
@@ -53,7 +53,7 @@
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
-            return Equals((HistoryPeriod) obj);
+            return Equals((HistoryPeriod)obj);
         }
 
         public override int GetHashCode()

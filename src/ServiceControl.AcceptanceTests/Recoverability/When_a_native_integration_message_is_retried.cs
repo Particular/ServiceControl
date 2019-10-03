@@ -48,7 +48,7 @@
             }
             else
             {
-                Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");    
+                Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");
             }
         }
 

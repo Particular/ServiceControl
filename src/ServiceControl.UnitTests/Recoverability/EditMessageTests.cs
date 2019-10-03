@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Contracts.Operations;
+    using MessageFailures;
     using MessageRedirects;
     using NServiceBus.Extensibility;
     using NServiceBus.Testing;
@@ -13,7 +14,6 @@
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Tests.Helpers;
-    using MessageFailures;
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
@@ -27,7 +27,7 @@
         [SetUp]
         public void Setup()
         {
-            Store = NewDocumentStore(runInMemory: true);
+            Store = NewDocumentStore();
             Dispatcher = new TestableUnicastDispatcher();
             Handler = new EditHandler(Store, Dispatcher);
         }
@@ -67,6 +67,7 @@
                 Assert.AreEqual(status, failedMessage.Status);
                 Assert.IsNull(editOperation);
             }
+
             Assert.IsEmpty(Dispatcher.DispatchedMessages);
         }
 
@@ -101,6 +102,7 @@
                 Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status);
                 Assert.AreEqual(previousEdit, editOperation.EditId);
             }
+
             Assert.IsEmpty(Dispatcher.DispatchedMessages);
         }
 
@@ -118,7 +120,7 @@
 
             var dispatchedMessage = Dispatcher.DispatchedMessages.Single();
             Assert.AreEqual(
-                failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint, 
+                failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
                 dispatchedMessage.Item1.Destination);
             Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body);
             Assert.AreEqual("someValue", dispatchedMessage.Item1.Message.Headers["someKey"]);
@@ -194,7 +196,7 @@
 
             var sentMessage = Dispatcher.DispatchedMessages.Single();
             Assert.AreEqual(
-                messageFailure.Id, 
+                messageFailure.Id,
                 "FailedMessages/" + sentMessage.Item1.Message.Headers["ServiceControl.EditOf"]);
         }
 

@@ -11,8 +11,6 @@
     [TestFixture]
     class EndpointNameEnforcementTests : NServiceBusAcceptanceTest
     {
-        const int endpointNameMaxLength = 60;
-
         [Test]
         public void EndpointName_should_not_exceed_maximum_length()
         {
@@ -27,6 +25,7 @@
         }
 
         static bool IsEndpointClass(Type t) => endpointConfigurationBuilderType.IsAssignableFrom(t);
+        const int endpointNameMaxLength = 60;
 
         static Type endpointConfigurationBuilderType = typeof(EndpointConfigurationBuilder);
     }

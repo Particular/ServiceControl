@@ -1,11 +1,18 @@
 namespace ServiceControl.CompositeViews.Messages
 {
+    using System;
     using System.Collections.Generic;
-    using Nancy;
+    using System.Net.Http;
+    using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     abstract class ScatterGatherApiMessageView<TInput> : ScatterGatherApi<TInput, IList<MessagesView>>
     {
-        protected override IList<MessagesView> ProcessResults(Request request, QueryResult<IList<MessagesView>>[] results)
+        protected ScatterGatherApiMessageView(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        {
+        }
+
+        protected override IList<MessagesView> ProcessResults(HttpRequestMessage request, QueryResult<IList<MessagesView>>[] results)
         {
             var combined = new List<MessagesView>();
             foreach (var queryResult in results)
@@ -36,6 +43,6 @@ namespace ServiceControl.CompositeViews.Messages
             return combined;
         }
 
-        private IComparer<MessagesView> FinalOrder(Request request) => MessageViewComparer.FromRequest(request);
+        private IComparer<MessagesView> FinalOrder(HttpRequestMessage request) => MessageViewComparer.FromRequest(request);
     }
 }

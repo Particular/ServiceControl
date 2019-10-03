@@ -16,6 +16,7 @@
             {
                 return LogAllIncomingCalls(this, context);
             }
+
             return Next.Invoke(context);
         }
 

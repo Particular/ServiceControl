@@ -6,8 +6,6 @@ namespace ServiceControl.Monitoring
 
     class CommandRunner
     {
-        List<Type> commands;
-
         public CommandRunner(List<Type> commands)
         {
             this.commands = commands;
@@ -21,5 +19,7 @@ namespace ServiceControl.Monitoring
                 await command.Execute(settings);
             }
         }
+
+        List<Type> commands;
     }
 }

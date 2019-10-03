@@ -6,8 +6,6 @@ namespace ServiceControl.Monitoring.QueueLength
 
     public class QueueLengthStore : IProvideBreakdownBy<EndpointInputQueue>
     {
-        VariableHistoryIntervalStore<EndpointInputQueue> byInputQueue = new VariableHistoryIntervalStore<EndpointInputQueue>();
-
         public IntervalsStore<EndpointInputQueue>.IntervalsBreakdown[] GetIntervals(HistoryPeriod period, DateTime now)
         {
             return byInputQueue.GetIntervals(period, now);
@@ -17,5 +15,7 @@ namespace ServiceControl.Monitoring.QueueLength
         {
             byInputQueue.Store(endpointInputQueue, entries);
         }
+
+        VariableHistoryIntervalStore<EndpointInputQueue> byInputQueue = new VariableHistoryIntervalStore<EndpointInputQueue>();
     }
 }

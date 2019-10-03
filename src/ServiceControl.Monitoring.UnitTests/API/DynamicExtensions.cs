@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Monitoring.UnitTests.API
 {
-    using Nancy;
     using System.Collections.Generic;
     using System.Dynamic;
 
@@ -15,6 +14,7 @@
                 var currentValue = propertyInfo.GetValue(obj);
                 expando.Add(propertyInfo.Name, currentValue);
             }
+
             return (ExpandoObject)expando;
         }
     }

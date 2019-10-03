@@ -23,7 +23,7 @@
             var context = await Define<EditMessageContext>()
                 .WithEndpoint<EditedMessageReceiver>(e => e
                     .DoNotFailOnErrorMessages()
-                    .When(c => c.SendLocal(new EditMessage {SomeProperty = "StarTrek rocks" })))
+                    .When(c => c.SendLocal(new EditMessage {SomeProperty = "StarTrek rocks"})))
                 .Done(async ctx =>
                 {
                     if (string.IsNullOrWhiteSpace(ctx.UniqueMessageId))
@@ -81,9 +81,6 @@
 
             class EditedMessageHandler : IHandleMessages<EditMessage>
             {
-                EditMessageContext testContext;
-                ReadOnlySettings settings;
-
                 public EditedMessageHandler(EditMessageContext testContext, ReadOnlySettings settings)
                 {
                     this.testContext = testContext;
@@ -105,6 +102,9 @@
                     testContext.EditedMessageHeaders = context.MessageHeaders.Keys.ToHashSet();
                     return Task.CompletedTask;
                 }
+
+                EditMessageContext testContext;
+                ReadOnlySettings settings;
             }
         }
 

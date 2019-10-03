@@ -78,6 +78,7 @@
                 {
                     logger.Debug($"Batching deletion of {s}-{e} saga history documents completed.");
                 }
+
                 return results.Count(x => x.Deleted == true);
             }, items, database, token);
 

@@ -100,19 +100,19 @@
 
             public class NopHandler : IHandleMessages<MessageReplyBySaga>,
                 IHandleMessages<MessageReplyToOriginatorBySaga>,
-                IHandleMessages<MessageSentBySaga>, 
+                IHandleMessages<MessageSentBySaga>,
                 IHandleMessages<MessagePublishedBySaga>
             {
-                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context) 
+                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
+                    => Task.CompletedTask;
+
+                public Task Handle(MessageReplyBySaga message, IMessageHandlerContext context)
                     => Task.CompletedTask;
 
                 public Task Handle(MessageReplyToOriginatorBySaga message, IMessageHandlerContext context)
                     => Task.CompletedTask;
 
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
-                    => Task.CompletedTask;
-
-                public Task Handle(MessagePublishedBySaga message, IMessageHandlerContext context)
                     => Task.CompletedTask;
             }
         }
@@ -141,7 +141,6 @@
         public class MyContext : ScenarioContext
         {
             public Guid? SagaId { get; set; }
-
         }
     }
 }

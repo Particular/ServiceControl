@@ -1,36 +1,48 @@
 ﻿namespace ServiceControl.Monitoring
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Nancy;
-    using Nancy.Extensions;
+    using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    class GetKnownEndpointsApi : ScatterGatherApi<NoInput, IList<KnownEndpointsView>>
+    class GetKnownEndpointsApi : ScatterGatherApi<EndpointInstanceMonitoring, IList<KnownEndpointsView>>
     {
-        EndpointInstanceMonitoring monitoring;
-
-        public GetKnownEndpointsApi(EndpointInstanceMonitoring monitoring)
+        public GetKnownEndpointsApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
-            this.monitoring = monitoring;
         }
 
-        public override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(Request request, NoInput input)
+        protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(HttpRequestMessage request, EndpointInstanceMonitoring input)
         {
-            var result = monitoring.GetKnownEndpoints();
-            
             return Task.FromResult(
                 new QueryResult<IList<KnownEndpointsView>>(
-                    result, 
-                    new QueryStatsInfo(string.Empty, result.Count)
+                    input.GetKnownEndpoints(),
+                    new QueryStatsInfo(string.Empty, input.GetKnownEndpoints().Count)
                 )
             );
         }
 
-        protected override IList<KnownEndpointsView> ProcessResults(Request request, QueryResult<IList<KnownEndpointsView>>[] results)
+        protected override IList<KnownEndpointsView> ProcessResults(HttpRequestMessage request, QueryResult<IList<KnownEndpointsView>>[] results)
         {
-            return results.Where(p => p.Results != null).SelectMany(x => x.Results).DistinctBy(x => x.Id).ToList();
+            return results.Where(p => p.Results != null).SelectMany(x => x.Results).Distinct(KnownEndpointsViewComparer.Instance).ToList();
+        }
+
+        class KnownEndpointsViewComparer : IEqualityComparer<KnownEndpointsView>
+        {
+            public bool Equals(KnownEndpointsView x, KnownEndpointsView y)
+            {
+                return y != null && (x != null && x.Id.Equals(y.Id));
+            }
+
+            public int GetHashCode(KnownEndpointsView obj)
+            {
+                return obj.Id.GetHashCode();
+            }
+
+            public static KnownEndpointsViewComparer Instance = new KnownEndpointsViewComparer();
         }
     }
 }

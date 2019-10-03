@@ -19,7 +19,7 @@
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
             var itemsAndAttachements = Tuple.Create(items, attachments);
-            
+
             try
             {
                 var query = new IndexQuery
@@ -78,6 +78,7 @@
                 {
                     logger.Debug($"Batching deletion of {s}-{e} error documents.");
                 }
+
                 var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
                 if (logger.IsDebugEnabled)
                 {
@@ -93,6 +94,7 @@
                 {
                     logger.Debug($"Batching deletion of {s}-{e} attachment error documents.");
                 }
+
                 db.TransactionalStorage.Batch(accessor =>
                 {
                     for (var idx = s; idx <= e; idx++)
@@ -107,6 +109,7 @@
                 {
                     logger.Debug($"Batching deletion of {s}-{e} attachment error documents completed.");
                 }
+
                 return 0;
             }, attachments, database, token);
 

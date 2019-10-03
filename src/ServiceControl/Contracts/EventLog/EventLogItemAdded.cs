@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Contracts.EventLog
 {
-    using ServiceControl.EventLog;
-    using Infrastructure.SignalR;
     using System;
     using System.Collections.Generic;
+    using Infrastructure.SignalR;
+    using ServiceControl.EventLog;
 
     public class EventLogItemAdded : IUserInterfaceEvent
     {

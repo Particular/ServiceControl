@@ -2,7 +2,9 @@
 {
     using System;
 
-    public interface IProvideBreakdown {  }
+    public interface IProvideBreakdown
+    {
+    }
 
     public interface IProvideBreakdownBy<T> : IProvideBreakdown
     {

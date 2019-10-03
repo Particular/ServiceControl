@@ -146,10 +146,11 @@ namespace ServiceControl.Recoverability
             {
                 if (!string.IsNullOrWhiteSpace(group.RequestId))
                 {
-                    if(log.IsDebugEnabled)
+                    if (log.IsDebugEnabled)
                     {
                         log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
                     }
+
                     await OperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last)
                         .ConfigureAwait(false);
                 }

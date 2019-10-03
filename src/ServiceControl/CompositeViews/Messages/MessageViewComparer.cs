@@ -2,20 +2,21 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
-    using Nancy;
+    using System.Linq;
+    using System.Net.Http;
 
     static class MessageViewComparer
     {
-        public static IComparer<MessagesView> FromRequest(Request request)
+        public static IComparer<MessagesView> FromRequest(HttpRequestMessage request)
         {
-            var queryString = (DynamicDictionary)request.Query;
+            var queryString = request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value);
             //Set the default sort to time_sent if not already set
-            string sortBy = queryString.ContainsKey("sort")
+            var sortBy = queryString.ContainsKey("sort")
                 ? queryString["sort"]
                 : "time_sent";
 
             //Set the default sort direction to `desc` if not already set
-            string sortOrder = queryString.ContainsKey("direction")
+            var sortOrder = queryString.ContainsKey("direction")
                 ? queryString["direction"]
                 : "desc";
 

@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using global::Newtonsoft.Json.Linq;
-    using global::ServiceControl.Monitoring;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
     using Conventions = AcceptanceTesting.Customization;
@@ -20,8 +19,20 @@
 
             await Scenario.Define<Context>()
                 .WithEndpoint<MonitoredEndpoint>(c => c.When(s => s.SendLocal(new SampleMessage())))
-                .WithEndpoint<MonitoringEndpoint>()
-                .Done(c => MetricReported("processingTime", out processingTime, c))
+                .WithEndpoint<MonitoringEndpoint>(c =>
+                {
+                    c.CustomConfig(conf =>
+                    {
+                        Bootstrapper.CreateReceiver(conf, ConnectionString);
+                        Bootstrapper.StartWebApi();
+
+                        conf.LimitMessageProcessingConcurrencyTo(1);
+                    });
+                })
+                .Done(c =>
+                {
+                    return MetricReported("processingTime", out processingTime, c);
+                })
                 .Run();
 
             Assert.IsTrue(processingTime["average"].Value<int>() > 0);
@@ -51,11 +62,7 @@
         {
             public MonitoringEndpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
-                {
-                    EndpointFactory.MakeMetricsReceiver(c, Settings, ConnectionString);
-                    c.LimitMessageProcessingConcurrencyTo(1);
-                });
+                EndpointSetup<DefaultServer>();
             }
         }
     }

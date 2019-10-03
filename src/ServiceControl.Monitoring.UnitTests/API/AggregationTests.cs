@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Monitoring.UnitTests.API
 {
     using System;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using System.Net.Http;
+    using System.Web.Http.Results;
     using Http.Diagrams;
     using Messaging;
     using Monitoring.Infrastructure;
-    using Nancy;
     using NUnit.Framework;
     using QueueLength;
     using Timings;
@@ -15,12 +13,12 @@
     public class AggregationTests
     {
         [Test]
-        public async Task MetricAggregationByInstanceIsScopedToLogicalEndpoint()
+        public void MetricAggregationByInstanceIsScopedToLogicalEndpoint()
         {
             var processingTimeStore = new ProcessingTimeStore();
             var endpointRegistry = new EndpointRegistry();
 
-            var queryAction = CreateQuery(processingTimeStore, endpointRegistry);
+            var apiController = CreateConroller(processingTimeStore, endpointRegistry);
 
             var instanceAId = new EndpointInstanceId("EndpointA", "instance");
             var instanceBId = new EndpointInstanceId("EndpointB", "instance");
@@ -28,27 +26,24 @@
             endpointRegistry.Record(instanceAId);
             endpointRegistry.Record(instanceBId);
 
-            var period = HistoryPeriod.FromMinutes(MonitoredEndpointsModule.DefaultHistory);
-            var now = DateTime.UtcNow.Subtract(new TimeSpan(period.IntervalSize.Ticks *  period.DelayedIntervals));
+            var period = HistoryPeriod.FromMinutes(DiagramApiController.DefaultHistory);
+            var now = DateTime.UtcNow.Subtract(new TimeSpan(period.IntervalSize.Ticks * period.DelayedIntervals));
 
-            var dataA = new RawMessage.Entry { DateTicks = now.Ticks, Value = 5 };
-            var dataB = new RawMessage.Entry { DateTicks = now.Ticks, Value = 10 };
+            var dataA = new RawMessage.Entry {DateTicks = now.Ticks, Value = 5};
+            var dataB = new RawMessage.Entry {DateTicks = now.Ticks, Value = 10};
 
-            processingTimeStore.Store(new[] { dataA }, instanceAId, EndpointMessageType.Unknown(instanceAId.EndpointName));
-            processingTimeStore.Store(new[] { dataB }, instanceBId, EndpointMessageType.Unknown(instanceBId.EndpointName));
+            processingTimeStore.Store(new[] {dataA}, instanceAId, EndpointMessageType.Unknown(instanceAId.EndpointName));
+            processingTimeStore.Store(new[] {dataB}, instanceBId, EndpointMessageType.Unknown(instanceBId.EndpointName));
 
-            var result = await queryAction(new
-            {
-                instanceAId.EndpointName
-            }.ToDynamic(), new CancellationToken());
+            var result = apiController.GetSingleEndpointMetrics(instanceAId.EndpointName);
 
-            var model = (MonitoredEndpointDetails)result.NegotiationContext.DefaultModel;
-
+            var contentResult = result as OkNegotiatedContentResult<MonitoredEndpointDetails>;
+            var model = contentResult.Content;
 
             Assert.AreEqual(5, model.Instances[0].Metrics["ProcessingTime"].Average);
         }
 
-        static Func<dynamic, CancellationToken, Task<dynamic>> CreateQuery(ProcessingTimeStore processingTimeStore, EndpointRegistry endpointRegistry)
+        static DiagramApiController CreateConroller(ProcessingTimeStore processingTimeStore, EndpointRegistry endpointRegistry)
         {
             var criticalTimeStore = new CriticalTimeStore();
             var retriesStore = new RetriesStore();
@@ -70,17 +65,12 @@
                 queueLengthStore
             };
 
-            var monitoredEndpointsModule = new MonitoredEndpointsModule(breakdownProviders, endpointRegistry, activityTracker, messageTypeRegistry)
+            var controller = new DiagramApiController(breakdownProviders, endpointRegistry, activityTracker, messageTypeRegistry)
             {
-                Context = new NancyContext()
-                {
-                    Request = new Request("Get", "/monitored-endpoints/{endpointName}", "HTTP")
-                }
+                Request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/monitored-endpoint")
             };
 
-            var queryAction = monitoredEndpointsModule.Routes.Single(r => r.Description.Path == "/monitored-endpoints/{endpointName}").Action;
-
-            return queryAction;
+            return controller;
         }
     }
 }

@@ -15,5 +15,4 @@
             context.Container.ConfigureComponent<DetectNewEndpointsFromAuditImportsEnricher>(DependencyLifecycle.SingleInstance);
         }
     }
-
 }

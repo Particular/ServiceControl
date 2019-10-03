@@ -5,11 +5,7 @@
 
     public class EndpointInstanceId
     {
-        public string EndpointName { get; }
-        public string InstanceId { get; }       
-        public string InstanceName { get; }
-
-        public EndpointInstanceId(string endpointName, string instanceId) 
+        public EndpointInstanceId(string endpointName, string instanceId)
             : this(endpointName, instanceId, instanceId)
         {
         }
@@ -20,6 +16,10 @@
             InstanceId = instanceId;
             InstanceName = instanceName;
         }
+
+        public string EndpointName { get; }
+        public string InstanceId { get; }
+        public string InstanceName { get; }
 
         public static EndpointInstanceId From(IReadOnlyDictionary<string, string> headers)
         {
@@ -38,7 +38,7 @@
 
         protected bool Equals(EndpointInstanceId other)
         {
-            return string.Equals(EndpointName, other.EndpointName) && 
+            return string.Equals(EndpointName, other.EndpointName) &&
                    string.Equals(InstanceId, other.InstanceId);
         }
 
@@ -48,7 +48,7 @@
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
 
-            return Equals((EndpointInstanceId) obj);
+            return Equals((EndpointInstanceId)obj);
         }
 
         public override int GetHashCode()

@@ -18,8 +18,6 @@ namespace ServiceControl.Recoverability
 
     class RetryProcessor
     {
-        protected internal const int MaxStagingAttempts = 5;
-
         public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
             this.store = store;
@@ -43,6 +41,7 @@ namespace ServiceControl.Recoverability
                 {
                     Log.Debug("Looking for batch to stage.");
                 }
+
                 isRecoveringFromPrematureShutdown = false;
 
                 var stagingBatch = await session.Query<RetryBatch>()
@@ -103,7 +102,7 @@ namespace ServiceControl.Recoverability
 
                 if (forwardingBatch != null)
                 {
-                    if(Log.IsDebugEnabled)
+                    if (Log.IsDebugEnabled)
                     {
                         Log.Info($"Forwarding batch {forwardingBatch.Id}.");
                     }
@@ -111,7 +110,7 @@ namespace ServiceControl.Recoverability
                     await Forward(forwardingBatch, session, cancellationToken)
                         .ConfigureAwait(false);
 
-                    if(Log.IsDebugEnabled)
+                    if (Log.IsDebugEnabled)
                     {
                         Log.DebugFormat("Retry batch {0} forwarded.", forwardingBatch.Id);
                     }
@@ -161,6 +160,7 @@ namespace ServiceControl.Recoverability
                     await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), cancellationToken, messageCount)
                         .ConfigureAwait(false);
                 }
+
                 await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount)
                     .ConfigureAwait(false);
             }
@@ -250,7 +250,6 @@ namespace ServiceControl.Recoverability
 
                     await IncrementAttemptCounter(failedMessageRetry)
                         .ConfigureAwait(false);
-
                 }
                 else
                 {
@@ -264,6 +263,7 @@ namespace ServiceControl.Recoverability
                         UniqueMessageId = message.UniqueMessageId
                     }).ConfigureAwait(false);
                 }
+
                 throw new RetryStagingException();
             }
         }
@@ -329,6 +329,7 @@ namespace ServiceControl.Recoverability
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
+        protected internal const int MaxStagingAttempts = 5;
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
     }

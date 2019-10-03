@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure
 {
     using System;
-    using Messaging;
     using System.Collections.Generic;
+    using Messaging;
 
     public class VariableHistoryIntervalStore<BreakdownT> : IProvideBreakdownBy<BreakdownT>
     {
-        Dictionary<HistoryPeriod, IntervalsStore<BreakdownT>> histories;
-
         public VariableHistoryIntervalStore()
         {
             histories = new Dictionary<HistoryPeriod, IntervalsStore<BreakdownT>>();
@@ -38,5 +36,6 @@
             }
         }
 
+        Dictionary<HistoryPeriod, IntervalsStore<BreakdownT>> histories;
     }
 }

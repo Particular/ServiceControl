@@ -5,13 +5,13 @@
     using System.Diagnostics;
     using System.Dynamic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using HdrHistogram;
     using Http.Diagrams;
+    using Infrastructure;
     using Messaging;
-    using Monitoring.Infrastructure;
-    using Nancy;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using QueueLength;
@@ -19,17 +19,6 @@
 
     public class PerformanceTests : NServiceBusAcceptanceTest
     {
-        EndpointRegistry endpointRegistry;
-        MessageTypeRegistry messageTypeRegistry;
-        CriticalTimeStore criticalTimeStore;
-        ProcessingTimeStore processingTimeStore;
-        RetriesStore retriesStore;
-        QueueLengthStore queueLengthStore;
-        DefaultQueueLengthProvider queueLengthProvider;
-        Func<Task> GetMonitoredEndpoints;
-        Func<string, Task> GetMonitoredSingleEndpoint;
-        EndpointInstanceActivityTracker activityTracker;
-
         [SetUp]
         public void Setup()
         {
@@ -41,7 +30,7 @@
             queueLengthStore = new QueueLengthStore();
             queueLengthProvider.Initialize(string.Empty, queueLengthStore);
 
-            var settings = new Settings { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
+            var settings = new Settings {EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5)};
             activityTracker = new EndpointInstanceActivityTracker(settings);
 
             messageTypeRegistry = new MessageTypeRegistry();
@@ -54,15 +43,13 @@
                 queueLengthStore
             };
 
-            var monitoredEndpointsModule = new MonitoredEndpointsModule(breakdownProviders, endpointRegistry, activityTracker, messageTypeRegistry)
+            var controller = new DiagramApiController(breakdownProviders, endpointRegistry, activityTracker, messageTypeRegistry)
             {
-                Context = new NancyContext() { Request = new Request("Get", "/monitored-endpoints", "HTTP") }
+                Request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/monitored-endpoint")
             };
 
-            var dictionary = monitoredEndpointsModule.Routes.ToDictionary(r => r.Description.Path, r => r.Action);
-
-            GetMonitoredEndpoints = () => dictionary["/monitored-endpoints"](new object(), new CancellationToken(false));
-            GetMonitoredSingleEndpoint = endpointName => dictionary["/monitored-endpoints/{endpointName}"](new { EndpointName = endpointName }.ToDynamic(), new CancellationToken());
+            GetMonitoredEndpoints = () => controller.GetAllEndpointsMetrics();
+            GetMonitoredSingleEndpoint = endpointName => controller.GetSingleEndpointMetrics(endpointName);
         }
 
         [TestCase(10, 10, 100, 1000, 100, 1000)]
@@ -82,7 +69,7 @@
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i, new TaggedLongValueOccurrence{Entries = e, TagValue = string.Empty}))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i, new TaggedLongValueOccurrence {Entries = e, TagValue = string.Empty}))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -90,7 +77,7 @@
             for (var i = 0; i < numberOfQueries; i++)
             {
                 var start = Stopwatch.GetTimestamp();
-                await GetMonitoredEndpoints().ConfigureAwait(false);
+                GetMonitoredEndpoints();
                 var elapsed = Stopwatch.GetTimestamp() - start;
                 histogram.RecordValue(elapsed);
 
@@ -139,7 +126,7 @@
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i, new TaggedLongValueOccurrence{Entries = e}))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i, new TaggedLongValueOccurrence {Entries = e}))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -147,7 +134,7 @@
             for (var i = 0; i < numberOfQueries; i++)
             {
                 var start = Stopwatch.GetTimestamp();
-                await GetMonitoredSingleEndpoint(endpointName).ConfigureAwait(false);
+                GetMonitoredSingleEndpoint(endpointName);
                 var elapsed = Stopwatch.GetTimestamp() - start;
                 histogram.RecordValue(elapsed);
 
@@ -209,6 +196,7 @@
                     instances.Add(new EndpointInstanceId(i.ToString(), j.ToString()));
                 }
             }
+
             return instances.ToArray();
         }
 
@@ -224,6 +212,7 @@
             {
                 result.Add(endpointReporter.Result);
             }
+
             return result;
         }
 
@@ -241,6 +230,17 @@
                 Assert.LessOrEqual(actualMean, max, $"The actual mean for {name} was '{actualMean}' and was bigger than maximum allowed mean '{max}'.");
             }
         }
+
+        EndpointRegistry endpointRegistry;
+        MessageTypeRegistry messageTypeRegistry;
+        CriticalTimeStore criticalTimeStore;
+        ProcessingTimeStore processingTimeStore;
+        RetriesStore retriesStore;
+        QueueLengthStore queueLengthStore;
+        DefaultQueueLengthProvider queueLengthProvider;
+        Action GetMonitoredEndpoints;
+        Action<string> GetMonitoredSingleEndpoint;
+        EndpointInstanceActivityTracker activityTracker;
     }
 
     public static class DynamicExtensions
@@ -254,7 +254,8 @@
                 var currentValue = propertyInfo.GetValue(obj);
                 expando.Add(propertyInfo.Name, currentValue);
             }
-            return (ExpandoObject) expando;
+
+            return (ExpandoObject)expando;
         }
     }
 }

@@ -24,14 +24,14 @@ namespace ServiceControl.Monitoring
 
         public async Task EnableMonitoring()
         {
-            await domainEvents.Raise(new MonitoringEnabledForEndpoint { Endpoint = Convert(Id) })
+            await domainEvents.Raise(new MonitoringEnabledForEndpoint {Endpoint = Convert(Id)})
                 .ConfigureAwait(false);
             Monitored = true;
         }
 
         public async Task DisableMonitoring()
         {
-            await domainEvents.Raise(new MonitoringDisabledForEndpoint { Endpoint = Convert(Id) })
+            await domainEvents.Raise(new MonitoringDisabledForEndpoint {Endpoint = Convert(Id)})
                 .ConfigureAwait(false);
             Monitored = false;
         }

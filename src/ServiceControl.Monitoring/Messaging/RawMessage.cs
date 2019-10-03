@@ -8,6 +8,8 @@
     {
         public int Length => Index;
 
+        public bool IsFull => Index == MaxEntries;
+
         void Clear()
         {
             Index = InitialIndex;
@@ -19,8 +21,6 @@
         protected int Index = InitialIndex;
         public const int MaxEntries = 512;
         protected const int InitialIndex = 0;
-
-        public bool IsFull => Index == MaxEntries;
 
         public struct Entry
         {

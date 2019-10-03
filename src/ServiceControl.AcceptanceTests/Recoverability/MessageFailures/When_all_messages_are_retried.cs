@@ -88,7 +88,8 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServer>(c => {
+                EndpointSetup<DefaultServer>(c =>
+                {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });

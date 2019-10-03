@@ -15,5 +15,7 @@
         /// Converts from a base64 encoded string value using UTF8
         /// </summary>
         public static string ToApiUrl(string instanceId) => Encoding.UTF8.GetString(Convert.FromBase64String(instanceId.Replace('-', '+').Replace('_', '/').Replace('.', '=')));
+
+        public static Uri ToApiUri(string instanceId) => new Uri(ToApiUrl(instanceId));
     }
 }

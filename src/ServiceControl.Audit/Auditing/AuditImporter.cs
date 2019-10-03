@@ -97,9 +97,6 @@
 
         class EnsureCanWriteToForwardingAddress : FeatureStartupTask
         {
-            readonly IForwardMessages messageForwarder;
-            readonly string forwardingAddress;
-
             public EnsureCanWriteToForwardingAddress(IForwardMessages messageForwarder, string forwardingAddress)
             {
                 this.messageForwarder = messageForwarder;
@@ -115,6 +112,9 @@
             {
                 return Task.CompletedTask;
             }
+
+            readonly IForwardMessages messageForwarder;
+            readonly string forwardingAddress;
         }
     }
 }

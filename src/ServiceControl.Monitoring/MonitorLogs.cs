@@ -9,23 +9,20 @@
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
+    using LogManager = NServiceBus.Logging.LogManager;
 
     static class MonitorLogs
     {
-        const long MegaByte = 1073741824;
-
-        const string LogLevelKey = "Monitoring/LogLevel";
-
         public static void Configure(Settings settings)
         {
-            NServiceBus.Logging.LogManager.Use<NLogFactory>();
+            LogManager.Use<NLogFactory>();
 
-            if (LogManager.Configuration != null)
+            if (NLog.LogManager.Configuration != null)
             {
                 return;
             }
 
-            var version = typeof(HostService).Assembly.GetName().Version;
+            var version = typeof(Host).Assembly.GetName().Version;
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
             var header = $@"-------------------------------------------------------------
@@ -56,9 +53,9 @@ Selected Transport:					{settings.TransportType}
             nlogConfig.AddTarget("console", consoleTarget);
             nlogConfig.AddTarget("debugger", fileTarget);
             nlogConfig.AddTarget("null", nullTarget);
-            
+
             //Suppress NSB license logging since this will have it's own
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.LicenseManager", LogLevel.Info, nullTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.LicenseManager", LogLevel.Info, nullTarget) {Final = true});
 
             // Always want to see license logging regardless of default logging level
             nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Monitoring.Licensing.*", LogLevel.Info, fileTarget));
@@ -66,7 +63,7 @@ Selected Transport:					{settings.TransportType}
             {
                 Final = true
             });
-            
+
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel < LogLevel.Info ? settings.LogLevel : LogLevel.Info, consoleTarget));
@@ -80,9 +77,9 @@ Selected Transport:					{settings.TransportType}
                 }
             }
 
-            LogManager.Configuration = nlogConfig;
+            NLog.LogManager.Configuration = nlogConfig;
 
-            var logger = NServiceBus.Logging.LogManager.GetLogger("LoggingConfiguration");
+            var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo
             {
                 TimeStamp = DateTime.Now
@@ -101,7 +98,12 @@ Selected Transport:					{settings.TransportType}
             {
                 InternalLogger.Warn($"Failed to parse {LogLevelKey} setting. Defaulting to Warn.");
             }
+
             return level;
         }
+
+        const long MegaByte = 1073741824;
+
+        const string LogLevelKey = "Monitoring/LogLevel";
     }
 }

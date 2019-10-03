@@ -7,8 +7,6 @@
 
     class HandleLegacyFailureResolvedByRetry : IHandleMessages<MessageFailureResolvedByRetry>
     {
-        readonly IDomainEvents domainEvents;
-
         public HandleLegacyFailureResolvedByRetry(IDomainEvents domainEvents)
         {
             this.domainEvents = domainEvents;
@@ -19,5 +17,7 @@
         {
             return domainEvents.Raise(message);
         }
+
+        readonly IDomainEvents domainEvents;
     }
 }

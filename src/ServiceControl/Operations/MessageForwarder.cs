@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using NServiceBus.Extensibility;
     using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 
@@ -47,17 +47,16 @@
             try
             {
                 var transportOperations = new TransportOperations(
-                        new TransportOperation(
-                            new OutgoingMessage(Guid.Empty.ToString("N"), 
-                                new Dictionary<string, string>(), 
-                                new byte[0]),
-                            new UnicastAddressTag(forwardingAddress)
-                        )
-                    );
+                    new TransportOperation(
+                        new OutgoingMessage(Guid.Empty.ToString("N"),
+                            new Dictionary<string, string>(),
+                            new byte[0]),
+                        new UnicastAddressTag(forwardingAddress)
+                    )
+                );
 
                 await messageDispatcher.Dispatch(transportOperations, new TransportTransaction(), new ContextBag())
                     .ConfigureAwait(false);
-
             }
             catch (Exception e)
             {

@@ -17,16 +17,17 @@ namespace ServiceControl.Monitoring
 
         Task RunNonBlocking(Settings settings)
         {
-            using (var service = new HostService { Settings = settings })
+            using (var service = new Host {Settings = settings})
             {
                 service.Run(false);
             }
+
             return Task.FromResult(0);
         }
 
         async Task RunAndWait(Settings settings)
         {
-            using (var service = new HostService { Settings = settings })
+            using (var service = new Host {Settings = settings})
             {
                 var tcs = new TaskCompletionSource<bool>();
 
@@ -50,8 +51,6 @@ namespace ServiceControl.Monitoring
 
         class OnConsoleCancel
         {
-            Action action;
-
             OnConsoleCancel(Action action)
             {
                 this.action = action;
@@ -69,6 +68,8 @@ namespace ServiceControl.Monitoring
                 e.Cancel = true;
                 Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
             }
+
+            Action action;
         }
     }
 }

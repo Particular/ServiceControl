@@ -3,9 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
-    using Nancy;
     using NUnit.Framework;
+    using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 
     abstract class MessageView_ScatterGatherTest
@@ -15,9 +17,9 @@
         [SetUp]
         public void SetUp()
         {
-            var api = new TestApi();
+            var api = new TestApi(null, null, null);
 
-            var request = new Request("GET", new Url($"http://doesnt/really/matter?{QueryString}"));
+            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesnt/really/matter?{QueryString}");
 
             Results = api.AggregateResults(request, GetData());
         }
@@ -68,7 +70,11 @@
 
         class TestApi : ScatterGatherApiMessageView<NoInput>
         {
-            public override Task<QueryResult<IList<MessagesView>>> LocalQuery(Request request, NoInput input)
+            public TestApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+            {
+            }
+
+            protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, NoInput input)
             {
                 throw new NotImplementedException();
             }

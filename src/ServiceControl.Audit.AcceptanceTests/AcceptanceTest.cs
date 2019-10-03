@@ -70,7 +70,7 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
             }
-            
+
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), s => CustomConfiguration(s));
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 

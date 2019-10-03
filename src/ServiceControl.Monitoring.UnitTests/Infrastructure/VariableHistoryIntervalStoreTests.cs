@@ -8,8 +8,6 @@
     [TestFixture]
     public class VariableHistoryIntervalStoreTests
     {
-        DateTime now;
-
         [SetUp]
         public void SetUp()
         {
@@ -39,5 +37,7 @@
                 Assert.AreEqual(1L, intervals[0].TotalMeasurements);
             }
         }
+
+        DateTime now;
     }
 }

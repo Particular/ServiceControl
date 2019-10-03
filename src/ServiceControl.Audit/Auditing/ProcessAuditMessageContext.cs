@@ -13,6 +13,6 @@
 
         public MessageContext Message { get; }
 
-        public IMessageSession MessageSession{ get; }
+        public IMessageSession MessageSession { get; }
     }
 }

@@ -3,14 +3,14 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.Customization;
     using global::Newtonsoft.Json.Linq;
-    using global::ServiceControl.Monitoring;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
 
     public class When_querying_retries_data : ApiIntegrationTest
     {
-        static string ReceiverEndpointName => AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));
+        static string ReceiverEndpointName => Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));
 
         [Test]
         public async Task Should_report_via_http()
@@ -24,7 +24,15 @@
                     c.CustomConfig(ec => ec.Recoverability().Immediate(i => i.NumberOfRetries(5)));
                     c.When(s => s.SendLocal(new SampleMessage()));
                 })
-                .WithEndpoint<MonitoringEndpoint>()
+                .WithEndpoint<MonitoringEndpoint>(c =>
+                {
+                    c.CustomConfig(conf =>
+                    {
+                        Bootstrapper.CreateReceiver(conf, ConnectionString);
+                        Bootstrapper.StartWebApi();
+                        conf.LimitMessageProcessingConcurrencyTo(1);
+                    });
+                })
                 .Done(c => MetricReported("retries", out retries, c))
                 .Run();
 
@@ -55,11 +63,7 @@
         {
             public MonitoringEndpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
-                {
-                    EndpointFactory.MakeMetricsReceiver(c, Settings, ConnectionString);
-                    c.LimitMessageProcessingConcurrencyTo(1);
-                });
+                EndpointSetup<DefaultServer>();
             }
         }
     }

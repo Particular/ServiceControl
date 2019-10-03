@@ -8,8 +8,6 @@
 
     public class QueueLengthReportHandler : IHandleMessages<EndpointMetadataReport>, IHandleMessages<TaggedLongValueOccurrence>
     {
-        IProvideQueueLength queueLengthProvider;
-
         public QueueLengthReportHandler(IProvideQueueLength queueLengthProvider)
         {
             this.queueLengthProvider = queueLengthProvider;
@@ -36,6 +34,8 @@
 
             return TaskEx.Completed;
         }
+
+        IProvideQueueLength queueLengthProvider;
 
         const string QueueLengthMessageType = "QueueLength";
     }

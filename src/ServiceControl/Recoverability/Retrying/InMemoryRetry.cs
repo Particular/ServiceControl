@@ -9,7 +9,7 @@
     {
         public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents)
         {
-            this.RequestId = requestId;
+            RequestId = requestId;
             this.retryType = retryType;
             this.domainEvents = domainEvents;
         }

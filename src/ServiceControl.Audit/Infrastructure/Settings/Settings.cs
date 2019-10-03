@@ -183,9 +183,9 @@
             {
                 return null;
             }
-            
+
             var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
-            
+
             if (value == null)
             {
                 logger.Info("No settings found for audit log queue to import, default name will be used");
@@ -202,14 +202,14 @@
             if (value == null)
             {
                 logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-                this.IngestAuditMessages = false;
+                IngestAuditMessages = false;
                 return null;
             }
 
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Audit ingestion disabled.");
-                this.IngestAuditMessages = false;
+                IngestAuditMessages = false;
                 return null; // needs to be null to not create the queues
             }
 

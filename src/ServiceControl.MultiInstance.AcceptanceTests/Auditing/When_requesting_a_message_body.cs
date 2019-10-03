@@ -6,7 +6,6 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using AcceptanceTests;
     using CompositeViews.Messages;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -59,13 +58,6 @@
                 .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual(context.MessageContentType, response.Content.Headers.ContentType.ToString(), "ContentType mismatch");
-            Assert.NotNull(response.Content.Headers.Expires, "Expires header missing");
-
-            Assert.GreaterOrEqual(response.Content.Headers.Expires.Value, DateTimeOffset.UtcNow.AddDays(360), "Unexpected Expires datetime year value");
-
-            Assert.NotNull(response.Content.Headers.ContentLength, "ContentLength not set");
-
-            Assert.AreEqual(context.MessageBody.Length, response.Content.Headers.ContentLength.Value, "ContentLength mismatch");
 
             var body = await response.Content.ReadAsByteArrayAsync();
 

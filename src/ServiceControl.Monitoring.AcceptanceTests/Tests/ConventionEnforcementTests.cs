@@ -29,9 +29,9 @@
             var missingBaseClass = testTypes
                 .Where(t => !t.IsPublic && !t.IsNestedPublic)
                 .Where(t =>
-                        typeof(ICommand).IsAssignableFrom(t) ||
-                        typeof(IMessage).IsAssignableFrom(t) ||
-                        typeof(IEvent).IsAssignableFrom(t)
+                    typeof(ICommand).IsAssignableFrom(t) ||
+                    typeof(IMessage).IsAssignableFrom(t) ||
+                    typeof(IEvent).IsAssignableFrom(t)
                 )
                 .ToList();
 

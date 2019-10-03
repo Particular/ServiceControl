@@ -16,24 +16,6 @@
 
     class When_a_message_is_retried : AcceptanceTest
     {
-        static readonly List<string> HeadersThatShouldBeRemoved = new List<string>
-        {
-            "NServiceBus.Retries",
-            "NServiceBus.FailedQ",
-            "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace",
-            "NServiceBus.ExceptionInfo.HelpLink",
-            "NServiceBus.ExceptionInfo.Message",
-            "NServiceBus.ExceptionInfo.InnerExceptionType",
-            "NServiceBus.ProcessingMachine",
-            "NServiceBus.ProcessingEndpoint",
-            "$.diagnostics.hostid",
-            "$.diagnostics.hostdisplayname"
-        };
-
         [Test]
         public async Task Should_clean_headers()
         {
@@ -53,6 +35,24 @@
 
             CollectionAssert.DoesNotContain(HeadersThatShouldBeRemoved, context.Headers.Keys);
         }
+
+        static readonly List<string> HeadersThatShouldBeRemoved = new List<string>
+        {
+            "NServiceBus.Retries",
+            "NServiceBus.FailedQ",
+            "NServiceBus.TimeOfFailure",
+            "NServiceBus.ExceptionInfo.ExceptionType",
+            "NServiceBus.ExceptionInfo.AuditMessage",
+            "NServiceBus.ExceptionInfo.Source",
+            "NServiceBus.ExceptionInfo.StackTrace",
+            "NServiceBus.ExceptionInfo.HelpLink",
+            "NServiceBus.ExceptionInfo.Message",
+            "NServiceBus.ExceptionInfo.InnerExceptionType",
+            "NServiceBus.ProcessingMachine",
+            "NServiceBus.ProcessingEndpoint",
+            "$.diagnostics.hostid",
+            "$.diagnostics.hostdisplayname"
+        };
 
         class TestContext : ScenarioContext
         {

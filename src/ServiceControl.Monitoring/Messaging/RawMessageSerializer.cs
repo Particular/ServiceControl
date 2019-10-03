@@ -6,8 +6,6 @@
 
     public abstract class RawMessageSerializer<T> where T : RawMessage, new()
     {
-        static readonly object[] NoMessages = new object[0];
-
         public void Serialize(object message, Stream stream)
         {
             throw new NotImplementedException();
@@ -57,5 +55,7 @@
 
             throw new Exception($"The message version number '{version}' cannot be handled properly.");
         }
+
+        static readonly object[] NoMessages = new object[0];
     }
 }

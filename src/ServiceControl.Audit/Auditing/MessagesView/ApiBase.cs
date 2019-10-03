@@ -1,13 +1,10 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
-    using System;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using System.Web.Http;
     using Autofac;
-    using Infrastructure.Extensions;
-    using Infrastructure.Nancy.Modules;
-    using Infrastructure.Settings;
-    using Nancy;
+    using Infrastructure.WebApi;
     using Raven.Client;
 
     interface IApi
@@ -29,19 +26,42 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     abstract class ApiBase<TIn, TOut> : IApi
         where TOut : class
     {
-        public IDocumentStore Store { get; set; }
-        public Settings Settings { get; set; }
-        public Func<HttpClient> HttpClientFactory { get; set; }
-
-        public async Task<dynamic> Execute(BaseModule module, TIn input)
+        protected ApiBase(IDocumentStore documentStore)
         {
-            var currentRequest = module.Request;
-
-            var response = await Query(currentRequest, input).ConfigureAwait(false);
-            var negotiate = module.Negotiate;
-            return negotiate.WithQueryResult(response, currentRequest);
+            Store = documentStore;
         }
 
-        public abstract Task<QueryResult<TOut>> Query(Request request, TIn input);
+        protected IDocumentStore Store { get; }
+
+        public async Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
+        {
+            var currentRequest = controller.Request;
+
+            var queryResult = await Query(currentRequest, input).ConfigureAwait(false);
+            return Negotiator.FromQueryResult(currentRequest, queryResult);
+        }
+
+        protected abstract Task<QueryResult<TOut>> Query(HttpRequestMessage request, TIn input);
+    }
+
+    abstract class ApiBaseNoInput<TOut> : ApiBase<NoInput, TOut>
+        where TOut : class
+    {
+        protected ApiBaseNoInput(IDocumentStore documentStore) : base(documentStore)
+        {
+        }
+
+
+        public Task<HttpResponseMessage> Execute(ApiController controller)
+        {
+            return Execute(controller, NoInput.Instance);
+        }
+
+        protected override Task<QueryResult<TOut>> Query(HttpRequestMessage request, NoInput input)
+        {
+            return Query(request);
+        }
+
+        protected abstract Task<QueryResult<TOut>> Query(HttpRequestMessage request);
     }
 }

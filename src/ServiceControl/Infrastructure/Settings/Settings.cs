@@ -7,10 +7,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Nancy;
     using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus.Logging;
+    using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Transports;
 
     public class Settings
@@ -43,7 +43,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
-            AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing", false);
+            AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing");
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
@@ -230,14 +230,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             if (value == null)
             {
                 logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
-                this.IngestErrorMessages = false;
+                IngestErrorMessages = false;
                 return null;
             }
 
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Error ingestion disabled.");
-                this.IngestErrorMessages = false;
+                IngestErrorMessages = false;
                 return null; // needs to be null to not create the queues
             }
 
@@ -245,14 +245,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
         private string GetErrorLogQueue()
-        {            
+        {
             if (ErrorQueue == null)
             {
                 return null;
             }
 
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
-            
+
             if (value == null)
             {
                 logger.Info("No settings found for error log queue to import, default name will be used");
@@ -433,7 +433,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             var valueRead = SettingsReader<string>.Read("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
             {
-                var jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+                var jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
                 using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
                 {
                     return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];

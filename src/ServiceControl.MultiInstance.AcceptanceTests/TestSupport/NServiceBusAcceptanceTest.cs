@@ -1,5 +1,6 @@
 ﻿namespace NServiceBus.AcceptanceTests
 {
+    using System.Configuration;
     using System.Linq;
     using System.Threading;
     using AcceptanceTesting.Customization;
@@ -18,7 +19,7 @@
 #if NETFRAMEWORK
             // Hack: prevents SerializationException ... Type 'x' in assembly 'y' is not marked as serializable.
             // https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/mitigation-deserialization-of-objects-across-app-domains
-            System.Configuration.ConfigurationManager.GetSection("X");
+            ConfigurationManager.GetSection("X");
 #endif
             Conventions.EndpointNamingConvention = t =>
             {

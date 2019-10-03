@@ -12,10 +12,11 @@
 
         public override Task Invoke(IOwinContext context)
         {
-            if(log.IsDebugEnabled)
+            if (log.IsDebugEnabled)
             {
                 return LogAllIncomingCalls(this, context);
             }
+
             return Next.Invoke(context);
         }
 

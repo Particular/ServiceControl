@@ -12,11 +12,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
+    <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
+    <PackageReference Include="Microsoft.Owin.Hosting" Version="3.0.1" />
+    <PackageReference Include="Microsoft.AspNet.Cors" Version="5.2.3" />
+    <PackageReference Include="Microsoft.Owin.Cors" Version="3.0.1" />
+    <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
     <PackageReference Include="Autofac" Version="4.6.0" />
     <PackageReference Include="GitVersionTask" Version="4.0.0" />
-    <PackageReference Include="Nancy" Version="1.4.3" />
-    <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="1.4.1" />
-    <PackageReference Include="Nancy.Hosting.Self" Version="1.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="NLog" Version="4.5.10" />
     <PackageReference Include="NServiceBus" Version="7.1.6" />

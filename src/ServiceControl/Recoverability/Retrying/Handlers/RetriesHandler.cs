@@ -18,7 +18,8 @@ namespace ServiceControl.Recoverability
         public RetryDocumentManager RetryDocumentManager { get; set; }
 
         /// <summary>
-        /// For handling leftover messages. MessageFailed are no longer published on the bus and the code is moved to <see cref="FailedMessageRetryCleaner"/>.
+        /// For handling leftover messages. MessageFailed are no longer published on the bus and the code is moved to
+        /// <see cref="FailedMessageRetryCleaner" />.
         /// </summary>
         public Task Handle(MessageFailed message, IMessageHandlerContext context)
         {

@@ -9,8 +9,6 @@
     [TestFixture]
     public class IntervalStoreTests
     {
-        DateTime now;
-
         [SetUp]
         public void SetUp()
         {
@@ -44,7 +42,7 @@
             var intervalLength = dateTimes[0] - dateTimes[1];
             for (var i = 1; i < dateTimes.Length; i++)
             {
-                var dateDiff = dateTimes[i-1] - dateTimes[i];
+                var dateDiff = dateTimes[i - 1] - dateTimes[i];
                 Assert.AreEqual(intervalLength, dateDiff);
             }
         }
@@ -78,7 +76,7 @@
             {
                 {now.Subtract(historySize), 3L}
             });
-            
+
             var store = new IntervalsStore<int>(intervalSize, numberOfIntervals, 0);
 
             store.Store(0, entries);
@@ -135,8 +133,8 @@
 
             Assert.AreEqual(3, nonEmptyIntervals.Length);
             Assert.AreEqual(4, timings[0].TotalMeasurements);
-            CollectionAssert.AreEqual(new double[] { 4, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalValue));
-            CollectionAssert.AreEqual(new double[] { 2, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalMeasurements));
+            CollectionAssert.AreEqual(new double[] {4, 1, 1}, nonEmptyIntervals.Select(i => i.TotalValue));
+            CollectionAssert.AreEqual(new double[] {2, 1, 1}, nonEmptyIntervals.Select(i => i.TotalMeasurements));
         }
 
         [Test]
@@ -156,7 +154,7 @@
             var timings = store.GetIntervals(now);
             var intervalStarts = timings[0].Intervals.Select(i => i.IntervalStart).ToArray();
 
-            Assert.IsTrue(intervalStarts[0]> intervalStarts[1]);
+            Assert.IsTrue(intervalStarts[0] > intervalStarts[1]);
             Assert.IsTrue(intervalStarts[1] > intervalStarts[2]);
         }
 
@@ -189,5 +187,7 @@
         {
             return new IntervalsStore<int>(TimeSpan.FromSeconds(5), 127, 0);
         }
+
+        DateTime now;
     }
 }

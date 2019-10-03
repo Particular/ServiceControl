@@ -20,7 +20,7 @@
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
             var itemsAndAttachements = Tuple.Create(items, attachments);
-            
+
             try
             {
                 var query = new IndexQuery
@@ -34,7 +34,7 @@
                     {
                         "__document_id",
                         "MessageMetadata.MessageId",
-                        "MessageMetadata.BodyNotStored",
+                        "MessageMetadata.BodyNotStored"
                     },
                     SortedFields = new[]
                     {
@@ -48,7 +48,7 @@
                 var indexName = new ExpiryProcessedMessageIndex().IndexName;
                 database.Query(indexName, query, token,
                     (doc, state) =>
-                    {                       
+                    {
                         var id = doc.Value<string>("__document_id");
                         if (string.IsNullOrEmpty(id))
                         {
@@ -84,6 +84,7 @@
                 {
                     logger.Debug($"Batching deletion of {s}-{e} audit documents.");
                 }
+
                 var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
                 if (logger.IsDebugEnabled)
                 {
@@ -99,6 +100,7 @@
                 {
                     logger.Debug($"Batching deletion of {s}-{e} attachment audit documents.");
                 }
+
                 db.TransactionalStorage.Batch(accessor =>
                 {
                     for (var idx = s; idx <= e; idx++)
@@ -113,6 +115,7 @@
                 {
                     logger.Debug($"Batching deletion of {s}-{e} attachment audit documents completed.");
                 }
+
                 return 0;
             }, attachments, database, token);
 

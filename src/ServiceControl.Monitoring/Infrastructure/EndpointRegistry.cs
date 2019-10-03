@@ -10,7 +10,7 @@
 
         protected override bool AddBreakdown(EndpointInstanceId newEndpointId, Dictionary<EndpointInstanceId, EndpointInstanceId> existingBreakdowns)
         {
-            if(existingBreakdowns.TryGetValue(newEndpointId, out var existingInstanceId))
+            if (existingBreakdowns.TryGetValue(newEndpointId, out var existingInstanceId))
             {
                 existingBreakdowns[newEndpointId] = newEndpointId;
 

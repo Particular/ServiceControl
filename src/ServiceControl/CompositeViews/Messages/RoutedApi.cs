@@ -1,14 +1,13 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using System.Web.Http;
     using Infrastructure.Settings;
-    using Nancy;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
 
     abstract class RoutedApi<TIn> : IApi
@@ -16,9 +15,9 @@ namespace ServiceControl.CompositeViews.Messages
         public Settings Settings { get; set; }
         public Func<HttpClient> HttpClientFactory { get; set; }
 
-        public Task<Response> Execute(BaseModule module, TIn input)
+        public Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
         {
-            var currentRequest = module.Request;
+            var currentRequest = controller.Request;
 
             var instanceId = GetInstance(currentRequest, input);
 
@@ -32,92 +31,43 @@ namespace ServiceControl.CompositeViews.Messages
             return LocalQuery(currentRequest, input, localInstanceId);
         }
 
-        protected virtual string GetInstance(Request currentRequest, TIn input)
+        protected virtual string GetInstance(HttpRequestMessage currentRequest, TIn input)
         {
-            return (string)currentRequest.Query.instance_id;
+            return currentRequest.GetQueryNameValuePairs().Where(x => x.Key == "instance_id")
+                .Select(x => x.Value).SingleOrDefault();
         }
 
-        protected abstract Task<Response> LocalQuery(Request request, TIn input, string instanceId);
+        protected abstract Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, TIn input, string instanceId);
 
-        private async Task<Response> RemoteCall(Request currentRequest, string instanceId)
+        private async Task<HttpResponseMessage> RemoteCall(HttpRequestMessage currentRequest, string instanceId)
         {
-            var remoteUri = InstanceIdGenerator.ToApiUrl(instanceId);
+            var remoteUri = InstanceIdGenerator.ToApiUri(instanceId);
 
             var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
 
             var httpClient = HttpClientFactory();
             try
             {
-                var method = new HttpMethod(currentRequest.Method);
-                var requestMessage = new HttpRequestMessage(method, instanceUri);
-                var streamContent = new StreamContent(currentRequest.Body);
-                foreach (var currentRequestHeader in currentRequest.Headers)
+                currentRequest.RequestUri = instanceUri;
+                if (currentRequest.Method == HttpMethod.Get)
                 {
-                    if (contentHeaders.Contains(currentRequestHeader.Key))
-                    {
-                        streamContent.Headers.Add(currentRequestHeader.Key, currentRequestHeader.Value);
-                    }
-                    else
-                    {
-                        requestMessage.Headers.Add(currentRequestHeader.Key, currentRequestHeader.Value);
-                    }
+                    currentRequest.Content = null;
                 }
 
-                if (method == HttpMethod.Post || method == HttpMethod.Put)
-                {
-                    requestMessage.Content = streamContent;
-                }
+                currentRequest.Headers.Host = remoteUri.Authority; //switch the host header to the new instance host
 
-                var rawResponse = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+                var rawResponse = await httpClient.SendAsync(currentRequest).ConfigureAwait(false);
 
-                var headers = rawResponse.Headers.Union(rawResponse.Content.Headers).ToDictionary(k => k.Key, v => v.Value.FirstOrDefault());
-                var httpStatusCode = (HttpStatusCode)Enum.Parse(typeof(System.Net.HttpStatusCode), rawResponse.StatusCode.ToString(), ignoreCase: true);
-
-                return new Response
-                {
-                    Contents = stream =>
-                    {
-                        if (httpStatusCode == HttpStatusCode.NotFound)
-                        {
-                            Response.NoBody(stream);
-                        }
-                        else
-                        {
-                            rawResponse.Content.CopyToAsync(stream).GetAwaiter().GetResult();
-                        }
-                    },
-                    Headers = headers,
-                    ContentType = rawResponse.Content.Headers.ContentType.ToString(),
-                    StatusCode = httpStatusCode
-                };
+                return rawResponse;
             }
             catch (Exception exception)
             {
                 logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
 
-                return new Response
-                {
-                    StatusCode = HttpStatusCode.InternalServerError
-                };
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
         }
 
         static ILog logger = LogManager.GetLogger(typeof(RoutedApi<TIn>));
-
-        // Comes from System.Net.Http.Headers.HttpContentHeaders
-        private static HashSet<string> contentHeaders = new HashSet<string>
-        {
-            "Allow",
-            "Content-Disposition",
-            "Content-Encoding",
-            "Content-Language",
-            "Content-Length",
-            "Content-Location",
-            "Content-MD5",
-            "Content-Range",
-            "Content-Type",
-            "Expires",
-            "Last-Modified"
-        };
     }
 }

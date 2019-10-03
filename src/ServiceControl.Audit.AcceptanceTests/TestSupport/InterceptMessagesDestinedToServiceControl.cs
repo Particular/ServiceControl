@@ -9,8 +9,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
     class InterceptMessagesDestinedToServiceControl : Behavior<IOutgoingLogicalMessageContext>
     {
-        readonly ScenarioContext scenarioContext;
-
         public InterceptMessagesDestinedToServiceControl(ScenarioContext context)
         {
             scenarioContext = context;
@@ -31,5 +29,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     return next();
             }
         }
+
+        readonly ScenarioContext scenarioContext;
     }
 }

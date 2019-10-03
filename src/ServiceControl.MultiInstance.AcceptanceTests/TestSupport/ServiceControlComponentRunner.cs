@@ -14,10 +14,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure.Nancy;
     using Infrastructure.Settings;
     using Microsoft.Owin.Builder;
-    using Nancy;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -25,7 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
-    using Audit = ServiceControl.Audit;
+    using ServiceControl.Infrastructure.WebApi;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -42,7 +40,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
 
         public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializer.CreateDefault();
+        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public Dictionary<string, dynamic> SettingsPerInstance { get; } = new Dictionary<string, dynamic>();
         public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
         public Dictionary<string, dynamic> Busses { get; } = new Dictionary<string, dynamic>();
@@ -50,7 +48,7 @@ namespace ServiceBus.Management.AcceptanceTests
         public async Task Initialize(RunDescriptor run)
         {
             SettingsPerInstance.Clear();
-            
+
             var startPort = 33333;
             startPort = await InitializeServiceControlAudit(run.ScenarioContext, startPort).ConfigureAwait(false);
             await InitializeServiceControl(run.ScenarioContext, startPort).ConfigureAwait(false);
@@ -100,7 +98,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 {
                     new RemoteInstanceSetting
                     {
-                        ApiUri = $"http://localhost:{instancePort-2}/api", // evil assumption for now
+                        ApiUri = $"http://localhost:{instancePort - 2}/api" // evil assumption for now
                     }
                 },
                 OnMessage = (id, headers, body, @continue) =>
@@ -140,7 +138,7 @@ namespace ServiceBus.Management.AcceptanceTests
             var configuration = new EndpointConfiguration(instanceName);
             configuration.EnableInstallers();
             var scanner = configuration.AssemblyScanner();
-            scanner.ExcludeAssemblies(Path.GetFileName(typeof(Audit.Infrastructure.Settings.Settings).Assembly.CodeBase));
+            scanner.ExcludeAssemblies(Path.GetFileName(typeof(ServiceControl.Audit.Infrastructure.Settings.Settings).Assembly.CodeBase));
             scanner.ExcludeAssemblies(typeof(ServiceControlComponentRunner).Assembly.GetName().Name);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
@@ -182,14 +180,13 @@ namespace ServiceBus.Management.AcceptanceTests
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => {});
+                }, settings, configuration, loggingSettings, builder => { });
                 bootstrappers[instanceName] = bootstrapper;
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
-                StaticConfiguration.DisableErrorTraces = false;
                 var app = new AppBuilder();
                 bootstrapper.Startup.Configuration(app);
                 var appFunc = app.Build();
@@ -216,7 +213,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         async Task<int> InitializeServiceControlAudit(ScenarioContext context, int startPort)
         {
-            var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
+            var instanceName = ServiceControl.Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
 
             var instancePort = FindAvailablePort(startPort++);
@@ -224,7 +221,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
-            var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
+            var settings = new ServiceControl.Audit.Infrastructure.Settings.Settings(instanceName)
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
@@ -296,14 +293,14 @@ namespace ServiceBus.Management.AcceptanceTests
 
             customAuditEndpointConfiguration(configuration);
 
-            Audit.Infrastructure.Bootstrapper bootstrapper;
+            ServiceControl.Audit.Infrastructure.Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
+                var loggingSettings = new ServiceControl.Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
+                bootstrapper = new ServiceControl.Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -321,7 +318,6 @@ namespace ServiceBus.Management.AcceptanceTests
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
-                StaticConfiguration.DisableErrorTraces = false;
                 var app = new AppBuilder();
                 bootstrapper.Startup.Configuration(app);
                 var appFunc = app.Build();
@@ -422,7 +418,7 @@ namespace ServiceBus.Management.AcceptanceTests
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
-        Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
 
         class ForwardingHandler : DelegatingHandler
@@ -432,12 +428,11 @@ namespace ServiceBus.Management.AcceptanceTests
                 this.portsToHttpMessageHandlers = portsToHttpMessageHandlers;
             }
 
-            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 var delegatingHandler = portsToHttpMessageHandlers[request.RequestUri.Port];
                 InnerHandler = delegatingHandler;
-                await Task.Yield();
-                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                return base.SendAsync(request, cancellationToken);
             }
 
             Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers;
