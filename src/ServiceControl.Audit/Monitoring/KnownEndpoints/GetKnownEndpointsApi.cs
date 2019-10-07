@@ -2,16 +2,20 @@ namespace ServiceControl.Audit.Monitoring
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Auditing.MessagesView;
     using Infrastructure;
     using Infrastructure.Extensions;
-    using Nancy;
     using Raven.Client;
 
-    class GetKnownEndpointsApi : ApiBase<NoInput, IList<KnownEndpointsView>>
+    class GetKnownEndpointsApi : ApiBaseNoInput<IList<KnownEndpointsView>>
     {
-        public override async Task<QueryResult<IList<KnownEndpointsView>>> Query(Request request, NoInput input)
+        public GetKnownEndpointsApi(IDocumentStore documentStore) : base(documentStore)
+        {
+        }
+
+        protected override async Task<QueryResult<IList<KnownEndpointsView>>> Query(HttpRequestMessage request)
         {
             using (var session = Store.OpenAsyncSession())
             {

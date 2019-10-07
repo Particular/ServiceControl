@@ -2,7 +2,6 @@ namespace NServiceBus.AcceptanceTests
 {
     using System;
     using System.Linq;
-    using System.Net;
     using System.Threading;
     using AcceptanceTesting.Customization;
     using NUnit.Framework;
@@ -15,6 +14,12 @@ namespace NServiceBus.AcceptanceTests
     [TestFixture]
     public class NServiceBusAcceptanceTest
     {
+        public static ITransportIntegration TransportIntegration { get; set; }
+
+        public static Settings Settings { get; set; }
+
+        public static string ConnectionString { get; set; }
+
         [SetUp]
         public void SetUp()
         {
@@ -42,7 +47,7 @@ namespace NServiceBus.AcceptanceTests
             Settings = new Settings
             {
                 TransportType = TransportIntegration.MonitoringSeamTypeName,
-                EnableInstallers = true, 
+                EnableInstallers = true,
                 ErrorQueue = "error",
                 HttpHostName = "localhost",
                 HttpPort = "1234"
@@ -52,14 +57,8 @@ namespace NServiceBus.AcceptanceTests
 
             if (transportCustomization != null && transportCustomization != typeof(ConfigureEndpointLearningTransport).Name)
             {
-                Assert.Inconclusive($"Only running Monitoring ATT's for th learning transport, therefore skipping this test with '{TransportIntegration.MonitoringSeamTypeName}'");
+                Assert.Inconclusive($"Only running Monitoring ATT's for the learning transport, therefore skipping this test with '{TransportIntegration.MonitoringSeamTypeName}'");
             }
         }
-
-        public static ITransportIntegration TransportIntegration { get; set; }
-
-        public static Settings Settings { get; set; }
-
-        public static string ConnectionString { get; set; }
     }
 }

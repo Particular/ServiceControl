@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
                 return GetNonStandardClassification(exception.ExceptionType);
             }
 
-            
+
             var exceptionStackTrace = exception.StackTrace;
             if (!string.IsNullOrEmpty(exception.Message))
             {
@@ -28,6 +28,7 @@ namespace ServiceControl.Recoverability
                 // We need to remove the message in order to make sure the stack trace parser does not get into catastrophic backtracking mode.
                 exceptionStackTrace = exceptionStackTrace.Replace(exception.Message, string.Empty);
             }
+
             var firstStackTraceFrame = StackTraceParser.Parse(exceptionStackTrace, (frame, type, method, parameterList, parameters, file, line) => new StackFrame
             {
                 Type = type,

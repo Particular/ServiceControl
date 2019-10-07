@@ -1,15 +1,20 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System.Collections.Generic;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
-    using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceControl.Infrastructure.Extensions;
 
     class SearchEndpointApi : ApiBase<SearchEndpointApi.Input, IList<MessagesView>>
     {
-        public override async Task<QueryResult<IList<MessagesView>>> Query(Request request, Input input)
+        public SearchEndpointApi(IDocumentStore documentStore) : base(documentStore)
+        {
+        }
+
+        protected override async Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, Input input)
         {
             using (var session = Store.OpenAsyncSession())
             {

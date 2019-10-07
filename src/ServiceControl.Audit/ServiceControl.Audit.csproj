@@ -17,9 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nancy" Version="1.4.5" />
-    <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="1.4.1" />
-    <PackageReference Include="Nancy.Owin" Version="1.4.1" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
+    <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
+    <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
     <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35283" />
     <PackageReference Include="NServiceBus" Version="7.1.6" />
     <PackageReference Include="NServiceBus.Autofac" Version="7.0.0" />
@@ -31,7 +31,6 @@
     <PackageReference Include="ServiceControl.Contracts" Version="1.2.0" />
     <PackageReference Include="Lucene.Net" Version="3.0.3" />
     <PackageReference Include="Rx-Linq" Version="2.2.5" />
-    <PackageReference Include="Microsoft.AspNet.Cors" Version="5.2.3" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="3.0.1" />
     <PackageReference Include="Owin.Metrics" Version="0.3.7" />
     <PackageReference Include="Particular.CodeRules" Version="0.2.1" PrivateAssets="All" />

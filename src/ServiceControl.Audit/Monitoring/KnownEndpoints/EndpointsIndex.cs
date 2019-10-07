@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Monitoring
             Map = messages => from message in messages
                 let sending = (EndpointDetails)message.MessageMetadata["SendingEndpoint"]
                 let receiving = (EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]
-                from endpoint in new[] { sending, receiving }
+                from endpoint in new[] {sending, receiving}
                 where endpoint != null
                 select new EndpointDetails
                 {

@@ -6,11 +6,13 @@
     using System.Threading.Tasks;
     using CompositeViews.Endpoints;
     using Contracts.EndpointControl;
+    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Monitoring;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
@@ -30,11 +32,11 @@
                     var options = new SendOptions();
 
                     options.DoNotEnforceBestPractices();
-                    options.SetDestination(ServiceBus.Management.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME);
+                    options.SetDestination(Settings.DEFAULT_SERVICE_NAME);
 
                     return bus.Send(new NewEndpointDetected
                     {
-                        Endpoint = new ServiceControl.Contracts.Operations.EndpointDetails
+                        Endpoint = new EndpointDetails
                         {
                             HostId = Guid.NewGuid(),
                             Host = "myhost",

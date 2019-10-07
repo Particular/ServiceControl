@@ -238,8 +238,9 @@ namespace ServiceBus.Management.AcceptanceTests
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                LogRequest(response.ReasonPhrase);
-                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase}");
+                var content = await response.Content.ReadAsStringAsync();
+                LogRequest(response.ReasonPhrase + content);
+                throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} {Environment.NewLine} {content}");
             }
 
             var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);

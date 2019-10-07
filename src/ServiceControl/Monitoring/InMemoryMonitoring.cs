@@ -27,6 +27,8 @@
             });
         }
 
+        static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
+
 
         class MonitorEndpointInstances : FeatureStartupTask
         {
@@ -41,19 +43,17 @@
             protected override async Task OnStart(IMessageSession session)
             {
                 await persistence.WarmupMonitoringFromPersistence().ConfigureAwait(false);
-                timer = new AsyncTimer(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e =>
-                {
-                    log.Error("Exception occurred when monitoring endpoint instances", e);
-                });
+                timer = new AsyncTimer(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e => { log.Error("Exception occurred when monitoring endpoint instances", e); });
             }
 
             async Task<TimerJobExecutionResult> CheckEndpoints()
             {
                 var inactivityThreshold = DateTime.UtcNow - GracePeriod;
-                if(log.IsDebugEnabled)
+                if (log.IsDebugEnabled)
                 {
                     log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
                 }
+
                 await monitor.CheckEndpoints(inactivityThreshold).ConfigureAwait(false);
                 return TimerJobExecutionResult.ScheduleNextExecution;
             }
@@ -67,7 +67,5 @@
             MonitoringDataPersister persistence;
             AsyncTimer timer;
         }
-
-        static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
     }
 }

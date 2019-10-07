@@ -69,9 +69,9 @@
                     var outgoingMessage2 = new OutgoingMessage(messageId, headers2, new byte[0]);
 
                     return new TransportOperations(
-                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error")), 
+                        new TransportOperation(outgoingMessage, new UnicastAddressTag("error")),
                         new TransportOperation(outgoingMessage2, new UnicastAddressTag("error"))
-                        );
+                    );
                 }
             }
         }

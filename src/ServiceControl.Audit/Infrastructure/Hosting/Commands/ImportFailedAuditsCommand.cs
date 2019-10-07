@@ -13,7 +13,7 @@
         {
             var settings = new Settings(args.ServiceName)
             {
-                IngestAuditMessages = false,
+                IngestAuditMessages = false
             };
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);

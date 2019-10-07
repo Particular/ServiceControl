@@ -8,15 +8,14 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
+    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
     using Autofac;
     using Infrastructure;
-    using Infrastructure.Nancy;
     using Infrastructure.Settings;
     using Microsoft.Owin.Builder;
-    using Nancy;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -25,6 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using ServiceControl.AcceptanceTests.Recoverability.MessageFailures;
+    using ServiceControl.Infrastructure.WebApi;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -39,7 +39,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
 
         public HttpClient HttpClient { get; set; }
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializer.CreateDefault();
+        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public Settings Settings { get; set; }
         public OwinHttpMessageHandler Handler { get; set; }
         public BusInstance Bus { get; set; }
@@ -161,15 +161,14 @@ namespace ServiceBus.Management.AcceptanceTests
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedErrorsModule>().As<INancyModule>(); });
+                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedErrorsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
-                StaticConfiguration.DisableErrorTraces = false;
                 var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app);
+                bootstrapper.Startup.Configuration(app, typeof(FailedErrorsController).Assembly);
                 var appFunc = app.Build();
 
                 Handler = new OwinHttpMessageHandler(appFunc)

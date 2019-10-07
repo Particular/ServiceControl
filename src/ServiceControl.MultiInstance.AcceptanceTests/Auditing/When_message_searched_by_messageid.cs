@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
 {
     using System.Threading.Tasks;
-    using AcceptanceTests;
     using CompositeViews.Messages;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;

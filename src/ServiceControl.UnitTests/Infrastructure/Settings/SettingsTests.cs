@@ -31,11 +31,11 @@
             {
                 new RemoteInstanceSetting
                 {
-                    ApiUri = "http://instance1",
+                    ApiUri = "http://instance1"
                 },
                 new RemoteInstanceSetting
                 {
-                    ApiUri = "http://instance2",
+                    ApiUri = "http://instance2"
                 }
             }, new RemoteInstanceSettingComparer());
         }

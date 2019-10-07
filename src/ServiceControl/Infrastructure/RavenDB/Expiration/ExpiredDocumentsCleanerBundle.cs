@@ -33,6 +33,7 @@
                 {
                     logger.Info("Expired documents cleanup process stopped.");
                 }
+
                 timer = null;
             }
         }
@@ -61,10 +62,7 @@
             }
 
             timer = new AsyncTimer(
-                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e =>
-            {
-                logger.ErrorException("Error when trying to find expired documents", e);
-            });
+                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.ErrorException("Error when trying to find expired documents", e); });
         }
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));

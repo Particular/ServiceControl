@@ -6,12 +6,6 @@ namespace ServiceControl.Monitoring.Infrastructure
 
     public abstract class BreakdownRegistry<BreakdownT>
     {
-        Dictionary<BreakdownT, BreakdownT> breakdowns = new Dictionary<BreakdownT, BreakdownT>();
-        volatile Dictionary<string, IEnumerable<BreakdownT>> lookup = new Dictionary<string, IEnumerable<BreakdownT>>();
-        object @lock = new object();
-
-        Func<BreakdownT, string> endpointNameExtractor;
-
         protected BreakdownRegistry(Func<BreakdownT, string> endpointNameExtractor)
         {
             this.endpointNameExtractor = endpointNameExtractor;
@@ -56,6 +50,12 @@ namespace ServiceControl.Monitoring.Infrastructure
 
             return emptyResult;
         }
+
+        Dictionary<BreakdownT, BreakdownT> breakdowns = new Dictionary<BreakdownT, BreakdownT>();
+        volatile Dictionary<string, IEnumerable<BreakdownT>> lookup = new Dictionary<string, IEnumerable<BreakdownT>>();
+        object @lock = new object();
+
+        Func<BreakdownT, string> endpointNameExtractor;
 
         static IEnumerable<BreakdownT> emptyResult = new BreakdownT[0];
     }

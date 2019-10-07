@@ -1,16 +1,12 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
-    using System;
-    using System.Linq;
+    using System.Net.Http;
+    using System.Web.Http.Controllers;
+    using System.Web.Http.Hosting;
+    using System.Web.Http.Routing;
     using Audit.Infrastructure;
-    using Audit.Infrastructure.Nancy.Modules;
     using Audit.Infrastructure.Settings;
-    using Audit.UnitTests.API;
-    using LightInject;
-    using Nancy;
-    using Nancy.Testing;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Audit.Infrastructure.WebApi;
     using NUnit.Framework;
     using Particular.Approvals;
     using PublicApiGenerator;
@@ -26,50 +22,19 @@
         }
 
         [Test]
-        public void NancyModulePaths()
-        {
-            var nancyModuleTypes = typeof(BaseModule).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BaseModule)));
-
-            StaticConfiguration.EnableHeadRouting = true;
-
-            var modules = nancyModuleTypes.Select(m =>
-            {
-                try
-                {
-                    return Activator.CreateInstance(m);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-            }).OrderBy(m => m.GetType().Name).Cast<INancyModule>().ToList();
-
-            var routes = JsonConvert.SerializeObject(modules.ToDictionary(m => m.GetType().FullName, m => m.Routes.Select(r => $"{r.Description.Method}: {r.Description.Path}").OrderBy(r => r)), Formatting.Indented);
-
-            Approver.Verify(routes);
-        }
-
-        [Test]
         public void RootPathValue()
         {
-            var container = new ServiceContainer();
-            container.Register<INancyModule, RootModule>(typeof(RootModule).FullName);
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
+            request.Properties.Add(HttpPropertyKeys.RequestContextKey, new HttpRequestContext {VirtualPathRoot = "/"});
 
-            var bootstrapper = new TestBootstrapper(container);
-
-            bootstrapper.Initialise();
-
-            var browser = new Browser(bootstrapper);
-
-            var result = browser.Get("/", with =>
+            var controller = new RootController(new LoggingSettings("testEndpoint"), new Settings())
             {
-                with.HostName("localhost");
-                with.HttpRequest();
-            });
+                Url = new UrlHelper(request)
+            };
 
-            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-            Approver.Verify(JToken.Parse(result.Body.AsString()).ToString(Formatting.Indented));
+            var result = controller.Urls();
+
+            Approver.Verify(result.Content);
         }
 
         [Test]

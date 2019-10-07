@@ -16,7 +16,7 @@
             Assert.AreEqual(1, message.Length);
             Assert.AreEqual(3, message.Entries[0].DateTicks);
             Assert.AreEqual(4, message.Entries[0].Value);
-            
+
             pool.Release(message);
             Assert.AreEqual(0, message.Length);
             Assert.AreEqual(0, message.Entries[0].DateTicks);

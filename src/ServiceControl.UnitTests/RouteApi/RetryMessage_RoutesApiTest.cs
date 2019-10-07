@@ -1,17 +1,15 @@
 ﻿namespace ServiceControl.UnitTests.RouteApi
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
-    using System.IO;
+    using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Nancy;
-    using Nancy.IO;
+    using System.Web.Http;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
@@ -34,7 +32,7 @@
                     {
                         new RemoteInstanceSetting
                         {
-                            ApiUri = "http://localhost:33334/api",
+                            ApiUri = "http://localhost:33334/api"
                         }
                     }
                 }
@@ -47,14 +45,8 @@
         [Test]
         public async Task LocalResponseReturnedWhenInstanceIdMatchesLocal()
         {
-            var localResponse = new Response();
-            var request = new Request("GET", "/doesntmatter", "http")
-            {
-                Query = new DynamicDictionary
-                {
-                    {"instance_id", localInstanceId}
-                }
-            };
+            var localResponse = new HttpResponseMessage();
+            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesntmatter?instance_id={localInstanceId}");
 
             var response = await testApi.Execute(request, _ => localResponse, _ => { throw new InvalidOperationException("should not be called"); });
 
@@ -65,16 +57,9 @@
         public async Task RemoteResponseReturnedWhenInstanceIdMatchesRemote()
         {
             HttpRequestMessage interceptedRequest = null;
-            var request = new Request("GET", "http://doesntmatter", headers: new Dictionary<string, IEnumerable<string>>
-            {
-                {"SomeRequestHeader", new[] {"SomeValue"}}
-            })
-            {
-                Query = new DynamicDictionary
-                {
-                    {"instance_id", remote1InstanceId}
-                }
-            };
+
+            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesntmatter?instance_id={remote1InstanceId}");
+            request.Headers.Add("SomeRequestHeader", "SomeValue");
 
             var response = await testApi.Execute(request, _ => { throw new InvalidOperationException("should not be called"); }, r =>
             {
@@ -95,29 +80,27 @@
                 };
             });
 
-            CollectionAssert.IsSubsetOf(new Dictionary<string, IEnumerable<string>>
+
+            CollectionAssert.IsSubsetOf(new[]
             {
-                {"SomeRequestHeader", new[] {"SomeValue"}}
-            }, interceptedRequest.Headers);
-            CollectionAssert.IsSubsetOf(new Dictionary<string, string>
+                "SomeValue"
+            }, interceptedRequest.Headers.GetValues("SomeRequestHeader"));
+            CollectionAssert.IsSubsetOf(new[]
             {
-                {"SomeHeader", "SomeValue"},
-                {"SomeContentHeader", "SomeContentValue"}
-            }, response.Headers);
+                "SomeValue"
+            }, response.Headers.GetValues("SomeHeader"));
+            CollectionAssert.IsSubsetOf(new[]
+            {
+                "SomeContentValue"
+            }, response.Content.Headers.GetValues("SomeContentHeader"));
         }
 
         [Test]
         public async Task RemoteThrowsReturnsEmptyResultWithServerError()
         {
-            var request = new Request("GET", "http://doesntmatter")
-            {
-                Query = new DynamicDictionary
-                {
-                    {"instance_id", remote1InstanceId}
-                }
-            };
+            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesntmatter?instance_id={remote1InstanceId}");
 
-            var response = await testApi.Execute(request, _ => new Response(), r => { throw new InvalidOperationException(""); });
+            var response = await testApi.Execute(request, _ => new HttpResponseMessage(), r => { throw new InvalidOperationException(""); });
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         }
@@ -128,14 +111,11 @@
         public async Task ContentForwardedToRemote(string method)
         {
             string interceptedStreamResult = null;
-            var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes("RequestContet"));
-            var request = new Request(method, "http://doesntmatter", body: new RequestStream(memoryStream, 0, true))
-            {
-                Query = new DynamicDictionary
-                {
-                    {"instance_id", remote1InstanceId}
-                }
-            };
+            var request = new HttpRequestMessage(new HttpMethod(method), $"http://doesntmatter?instance_id={remote1InstanceId}");
+
+            var binaryContent = new ByteArrayContent(Encoding.UTF8.GetBytes("RequestContet"));
+            binaryContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            request.Content = binaryContent;
 
             var response = await testApi.Execute(request, _ => { throw new InvalidOperationException("should not be called"); }, r =>
             {
@@ -146,13 +126,8 @@
                 };
             });
 
-            var responseStream = new MemoryStream();
-            response.Contents(responseStream);
-            responseStream.Position = 0;
-            var streamReader = new StreamReader(responseStream);
-
             Assert.AreEqual("RequestContet", interceptedStreamResult);
-            Assert.AreEqual("ResponseContent", await streamReader.ReadToEndAsync());
+            Assert.AreEqual("ResponseContent", await response.Content.ReadAsStringAsync());
         }
 
         private TestApi testApi;
@@ -177,24 +152,26 @@
 
         class TestApi : RoutedApi<NoInput>
         {
-            public Task<Response> Execute(Request request, Func<Request, Response> localResponse, Func<HttpRequestMessage, HttpResponseMessage> remoteResponse)
+            public Task<HttpResponseMessage> Execute(HttpRequestMessage request, Func<HttpRequestMessage, HttpResponseMessage> localResponse, Func<HttpRequestMessage, HttpResponseMessage> remoteResponse)
             {
                 this.localResponse = localResponse;
                 HttpClientFactory = () => new HttpClient(new InterceptingHandler(remoteResponse));
-                return Execute(new FakeModule {Request = request}, NoInput.Instance);
+                return Execute(new FakeController
+                {
+                    Request = request
+                }, NoInput.Instance);
             }
 
-            protected override Task<Response> LocalQuery(Request request, NoInput input, string instanceId)
+            protected override Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, NoInput input, string instanceId)
             {
                 return Task.FromResult(localResponse(request));
             }
 
-            private Func<Request, Response> localResponse;
+            private Func<HttpRequestMessage, HttpResponseMessage> localResponse;
         }
 
-        class FakeModule : BaseModule
+        class FakeController : ApiController
         {
-            public override Request Request { get; set; }
         }
     }
 }

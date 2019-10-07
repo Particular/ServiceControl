@@ -79,9 +79,6 @@
 
             class EditedMessageHandler : IHandleMessages<EditMessage>
             {
-                EditMessageContext testContext;
-                ReadOnlySettings settings;
-
                 public EditedMessageHandler(EditMessageContext testContext, ReadOnlySettings settings)
                 {
                     this.testContext = testContext;
@@ -102,6 +99,9 @@
                     testContext.EditedMessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
+
+                EditMessageContext testContext;
+                ReadOnlySettings settings;
             }
         }
 
@@ -119,6 +119,4 @@
         {
         }
     }
-
-
 }

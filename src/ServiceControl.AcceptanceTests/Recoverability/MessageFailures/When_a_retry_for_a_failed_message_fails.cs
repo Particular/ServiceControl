@@ -101,7 +101,8 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => {
+                EndpointSetup<DefaultServer>(c =>
+                {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
@@ -145,9 +146,9 @@
             public bool Succeed { get; set; }
 
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
-            public int Step { get; set; }
 
             public FailedMessage Result { get; set; }
+            public int Step { get; set; }
         }
     }
 }

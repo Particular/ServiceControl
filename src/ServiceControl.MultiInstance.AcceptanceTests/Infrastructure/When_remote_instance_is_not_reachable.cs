@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Infrastructure
 {
     using System.Threading.Tasks;
-    using AcceptanceTests;
     using CompositeViews.Messages;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -28,7 +27,7 @@
                     }
                 };
             };
-            
+
             //search for the message type
             var searchString = typeof(MyMessage).Name;
 
@@ -37,7 +36,7 @@
                 .Done(async c => await this.TryGetMany<MessagesView>("/api/messages/search/" + searchString, instanceName: ServiceControlInstanceName))
                 .Run();
         }
-        
+
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()

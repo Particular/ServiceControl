@@ -9,28 +9,25 @@
     [TestFixture]
     public class AggregatorTests
     {
-        DateTime now = DateTime.UtcNow;
-        static readonly IntervalsStore<BreakdownId>.TimeInterval[] EmptyIntervals = new IntervalsStore<BreakdownId>.TimeInterval[0];
-
         [Test]
         public void Timings_average_is_sum_of_total_values_by_total_measurements()
         {
             var intervals = new List<IntervalsStore<BreakdownId>.IntervalsBreakdown>
             {
-              new IntervalsStore<BreakdownId>.IntervalsBreakdown
-              {
-                  Id = new BreakdownId{Id = 0},
-                  TotalMeasurements = 2,
-                  TotalValue = 2,
-                  Intervals = EmptyIntervals
-              },
-              new IntervalsStore<BreakdownId>.IntervalsBreakdown
-              {
-                  Id = new BreakdownId{Id = 0},
-                  TotalMeasurements = 4,
-                  TotalValue = 1,
-                  Intervals = EmptyIntervals
-              }
+                new IntervalsStore<BreakdownId>.IntervalsBreakdown
+                {
+                    Id = new BreakdownId {Id = 0},
+                    TotalMeasurements = 2,
+                    TotalValue = 2,
+                    Intervals = EmptyIntervals
+                },
+                new IntervalsStore<BreakdownId>.IntervalsBreakdown
+                {
+                    Id = new BreakdownId {Id = 0},
+                    TotalMeasurements = 4,
+                    TotalValue = 1,
+                    Intervals = EmptyIntervals
+                }
             };
 
             var values = Aggregator.ToAverages(intervals, HistoryPeriod.FromMinutes(5));
@@ -45,18 +42,18 @@
             {
                 new IntervalsStore<BreakdownId>.IntervalsBreakdown
                 {
-                    Id = new BreakdownId{Id = 0},
-                    Intervals = new []
+                    Id = new BreakdownId {Id = 0},
+                    Intervals = new[]
                     {
-                        new IntervalsStore<BreakdownId>.TimeInterval{IntervalStart = now, TotalMeasurements = 1, TotalValue = 1}
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now, TotalMeasurements = 1, TotalValue = 1}
                     }
                 },
                 new IntervalsStore<BreakdownId>.IntervalsBreakdown
                 {
-                    Id = new BreakdownId{Id = 0},
-                    Intervals = new []
+                    Id = new BreakdownId {Id = 0},
+                    Intervals = new[]
                     {
-                        new IntervalsStore<BreakdownId>.TimeInterval{IntervalStart = now, TotalMeasurements = 2, TotalValue = 2}
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now, TotalMeasurements = 2, TotalValue = 2}
                     }
                 }
             };
@@ -65,7 +62,7 @@
 
             Assert.AreEqual(1, values.Points.Length);
             Assert.AreEqual(1.0d, values.Points[0]);
-        } 
+        }
 
         [Test]
         public void Total_measurements_per_second_are_merged_by_interval_start()
@@ -77,21 +74,21 @@
             {
                 new IntervalsStore<BreakdownId>.IntervalsBreakdown
                 {
-                    Id = new BreakdownId{Id = 0},
-                    Intervals = new []
+                    Id = new BreakdownId {Id = 0},
+                    Intervals = new[]
                     {
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now, TotalValue = ridiculouslyBigLong1, TotalMeasurements = 4},
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now.AddSeconds(2), TotalValue = ridiculouslyBigLong2, TotalMeasurements = 5}
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now, TotalValue = ridiculouslyBigLong1, TotalMeasurements = 4},
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now.AddSeconds(2), TotalValue = ridiculouslyBigLong2, TotalMeasurements = 5}
                     },
                     TotalMeasurements = 4 + 5
                 },
                 new IntervalsStore<BreakdownId>.IntervalsBreakdown
                 {
-                    Id = new BreakdownId{Id = 0},
-                    Intervals = new []
+                    Id = new BreakdownId {Id = 0},
+                    Intervals = new[]
                     {
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now, TotalValue = ridiculouslyBigLong1, TotalMeasurements = 6},
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now.AddSeconds(2), TotalValue = ridiculouslyBigLong2, TotalMeasurements = 7},
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now, TotalValue = ridiculouslyBigLong1, TotalMeasurements = 6},
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now.AddSeconds(2), TotalValue = ridiculouslyBigLong2, TotalMeasurements = 7}
                     },
                     TotalMeasurements = 6 + 7
                 }
@@ -114,21 +111,21 @@
             {
                 new IntervalsStore<BreakdownId>.IntervalsBreakdown
                 {
-                    Id = new BreakdownId{Id = 0},
-                    Intervals = new []
+                    Id = new BreakdownId {Id = 0},
+                    Intervals = new[]
                     {
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now, TotalMeasurements = 7},
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now.AddSeconds(1) }
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now, TotalMeasurements = 7},
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now.AddSeconds(1)}
                     }
                 },
                 new IntervalsStore<BreakdownId>.IntervalsBreakdown
                 {
-                    Id = new BreakdownId{Id = 0},
-                    Intervals = new []
+                    Id = new BreakdownId {Id = 0},
+                    Intervals = new[]
                     {
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now },
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now.AddSeconds(1), TotalMeasurements = 9},
-                        new IntervalsStore<BreakdownId>.TimeInterval { IntervalStart = now }
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now},
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now.AddSeconds(1), TotalMeasurements = 9},
+                        new IntervalsStore<BreakdownId>.TimeInterval {IntervalStart = now}
                     }
                 }
             };
@@ -140,6 +137,9 @@
 
             Assert.AreEqual((7d + 9d) / 2 / seconds, values.Average);
         }
+
+        DateTime now = DateTime.UtcNow;
+        static readonly IntervalsStore<BreakdownId>.TimeInterval[] EmptyIntervals = new IntervalsStore<BreakdownId>.TimeInterval[0];
 
         class BreakdownId
         {
@@ -154,8 +154,8 @@
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
-                return Equals((BreakdownId) obj);
+                if (obj.GetType() != GetType()) return false;
+                return Equals((BreakdownId)obj);
             }
 
             public override int GetHashCode()

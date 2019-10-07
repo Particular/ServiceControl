@@ -14,8 +14,6 @@
 
     public class QueueLengthProviderTask : FeatureStartupTask
     {
-        IProvideQueueLength queueLengthProvider;
-
         public QueueLengthProviderTask(IProvideQueueLength queueLengthProvider)
         {
             this.queueLengthProvider = queueLengthProvider;
@@ -30,5 +28,7 @@
         {
             return queueLengthProvider.Stop();
         }
+
+        IProvideQueueLength queueLengthProvider;
     }
 }

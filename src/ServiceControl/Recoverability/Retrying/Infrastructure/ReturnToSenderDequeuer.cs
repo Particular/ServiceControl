@@ -62,10 +62,11 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                if(Log.IsDebugEnabled)
+                if (Log.IsDebugEnabled)
                 {
                     Log.Debug("Resetting timer");
                 }
+
                 timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
             }
         }
@@ -126,9 +127,9 @@ namespace ServiceControl.Recoverability
                     {
                         Log.Debug("Running in timeout mode. Starting timer.");
                     }
+
                     timer.Change(TimeSpan.FromSeconds(45), Timeout.InfiniteTimeSpan);
                 }
-
             }
             finally
             {
@@ -168,6 +169,7 @@ namespace ServiceControl.Recoverability
             {
                 Log.Debug("Completing forwarding.");
             }
+
             await Task.Run(() => syncEvent?.TrySetResult(true)).ConfigureAwait(false);
             await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0)).ConfigureAwait(false);
             if (Log.IsDebugEnabled)

@@ -39,6 +39,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
     public class RemoteInstanceSetting
     {
         public RemoteInstanceSetting() { }
+        [Newtonsoft.Json.JsonIgnoreAttribute()]
+        public System.Uri ApiAsUri { get; }
         public string ApiUri { get; set; }
     }
     public class Settings
@@ -128,6 +130,36 @@ namespace ServiceControl.CompositeViews.Endpoints
 }
 namespace ServiceControl.CompositeViews.Messages
 {
+    public class GetMessagesByConversationController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("conversations/{conversationid}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Messages(string conversationId) { }
+    }
+    public class GetMessagesByQueryController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/search")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string q) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string endpoint, string q) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search/{keyword}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/search/{keyword}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyWord(string keyword) { }
+    }
+    public class GetMessagesController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Messages() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> MessagesForEndpoint(string endpoint) { }
+    }
     public class MessagesBodyTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewTransformer.Result>
     {
         public MessagesBodyTransformer() { }
@@ -430,6 +462,15 @@ namespace ServiceControl.CustomChecks
         public System.DateTime ReportedAt { get; set; }
         public ServiceControl.CustomChecks.Status Status { get; set; }
     }
+    public class CustomCheckController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("customchecks")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CustomChecks(string status = null) { }
+        [System.Web.Http.HttpDeleteAttribute()]
+        [System.Web.Http.RouteAttribute("customchecks/{id}")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Delete(System.Guid id) { }
+    }
     public class CustomCheckDeleted
     {
         public CustomCheckDeleted() { }
@@ -483,6 +524,12 @@ namespace ServiceControl
 }
 namespace ServiceControl.EventLog
 {
+    public class EventLogApiController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("eventlogitems")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Items() { }
+    }
     public class EventLogItem
     {
         public EventLogItem() { }
@@ -547,6 +594,58 @@ namespace ServiceControl.Infrastructure.SignalR
     }
     public interface IUserInterfaceEvent { }
 }
+namespace ServiceControl.Infrastructure.WebApi
+{
+    public class RootController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("configuration")]
+        [System.Web.Http.RouteAttribute("instance-info")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<object> Config() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.Infrastructure.WebApi.RootController.RootUrls> Urls() { }
+        public class RootUrls
+        {
+            public RootUrls() { }
+            public string Configuration { get; set; }
+            public string Description { get; set; }
+            public string EndpointsErrorUrl { get; set; }
+            public string EndpointsMessageSearchUrl { get; set; }
+            public string EndpointsMessagesUrl { get; set; }
+            public string EndpointsUrl { get; set; }
+            public string ErrorsUrl { get; set; }
+            public string KnownEndpointsUrl { get; set; }
+            public string LicenseDetails { get; set; }
+            public string LicenseStatus { get; set; }
+            public string MessageSearchUrl { get; set; }
+            public string Name { get; set; }
+            public string SagasUrl { get; set; }
+        }
+    }
+}
+namespace ServiceControl.Licensing
+{
+    public class LicenseController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("license")]
+        public System.Web.Http.IHttpActionResult License(System.Nullable<bool> refresh = null) { }
+        public class LicenseInfo
+        {
+            public LicenseInfo() { }
+            public string Edition { get; set; }
+            public string ExpirationDate { get; set; }
+            public string InstanceName { get; set; }
+            public string LicenseStatus { get; set; }
+            public string LicenseType { get; set; }
+            public string RegisteredTo { get; set; }
+            public string Status { get; set; }
+            public bool TrialLicense { get; set; }
+            public string UpgradeProtectionExpiration { get; set; }
+        }
+    }
+}
 namespace ServiceControl.MessageAuditing
 {
     public class ProcessedMessage
@@ -562,6 +661,40 @@ namespace ServiceControl.MessageAuditing
 }
 namespace ServiceControl.MessageFailures.Api
 {
+    public class ArchiveMessagesController : System.Web.Http.ApiController
+    {
+        public ArchiveMessagesController(NServiceBus.IMessageSession session) { }
+        [System.Web.Http.HttpPatchAttribute()]
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("errors/{messageid}/archive")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Archive(string messageId) { }
+        [System.Web.Http.HttpPatchAttribute()]
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("errors/archive")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ArchiveBatch(System.Collections.Generic.List<string> messageIds) { }
+    }
+    public class EditConfigurationModel
+    {
+        public EditConfigurationModel() { }
+        public bool Enabled { get; set; }
+        public string[] LockedHeaders { get; set; }
+        public string[] SensitiveHeaders { get; set; }
+    }
+    public class EditFailedMessagesController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("edit/config")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.MessageFailures.Api.EditConfigurationModel> Config() { }
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("edit/{failedmessageid}")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Edit(string failedMessageId, ServiceControl.MessageFailures.Api.EditMessageModel edit) { }
+    }
+    public class EditMessageModel
+    {
+        public EditMessageModel() { }
+        public string MessageBody { get; set; }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> MessageHeaders { get; set; }
+    }
     public class FailedMessageFacetsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
     {
         public FailedMessageFacetsIndex() { }
@@ -606,14 +739,102 @@ namespace ServiceControl.MessageFailures.Api
         public FailedMessageViewTransformer() { }
         public static string Name { get; }
     }
-    public class LockedHeaderModificationValidator
+    public class GetAllErrorsController : System.Web.Http.ApiController
     {
-        public LockedHeaderModificationValidator() { }
-        public bool Check(string[] lockedHeaders, System.Collections.Generic.Dictionary<string, string> editedMessageHeaders, System.Collections.Generic.Dictionary<string, string> originalMessageHeaders) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpointname}/errors")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ErrorsByEndpointName(string endpointName) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("errors")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ErrorsGet() { }
+        [System.Web.Http.HttpHeadAttribute()]
+        [System.Web.Http.RouteAttribute("errors")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ErrorsHead() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("errors/summary")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ErrorsSummary() { }
+    }
+    public class GetErrorByIdController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("errors/{failedmessageid:guid}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ErrorBy(System.Guid failedMessageId) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("errors/last/{failedmessageid:guid}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ErrorLastBy(System.Guid failedMessageId) { }
+    }
+    public class PendingRetryMessagesController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("pendingretries/retry")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> RetryBy(System.Collections.Generic.List<string> ids) { }
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("pendingretries/queues/retry")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> RetryBy(ServiceControl.MessageFailures.Api.PendingRetryMessagesController.PendingRetryRequest request) { }
+        public class PendingRetryRequest
+        {
+            public PendingRetryRequest() { }
+            public string from { get; set; }
+            public string queueaddress { get; set; }
+            public string to { get; set; }
+        }
+    }
+    public class QueueAddressController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("errors/queues/addresses")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAddresses() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("errors/queues/addresses/search/{search}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAddressesBySearchTerm(string search = null) { }
     }
     public class QueueAddressIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.MessageFailures.QueueAddress>
     {
         public QueueAddressIndex() { }
+    }
+    public class ResolveMessagesController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpPatchAttribute()]
+        [System.Web.Http.RouteAttribute("pendingretries/resolve")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ResolveBy(ServiceControl.MessageFailures.Api.ResolveMessagesController.ResolveRequest request) { }
+        [System.Web.Http.HttpPatchAttribute()]
+        [System.Web.Http.RouteAttribute("pendingretries/queues/resolve")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ResolveByQueue(ServiceControl.MessageFailures.Api.ResolveMessagesController.ResolveRequest request) { }
+        public class ResolveRequest
+        {
+            public ResolveRequest() { }
+            public string from { get; set; }
+            public string queueaddress { get; set; }
+            public string to { get; set; }
+            public System.Collections.Generic.List<string> uniquemessageids { get; set; }
+        }
+    }
+    public class RetryMessagesController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("errors/retry/all")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> RetryAll() { }
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("errors/retry")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> RetryAllBy(System.Collections.Generic.List<string> messageIds) { }
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("errors/queues/{queueaddress}/retry")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> RetryAllBy(string queueAddress) { }
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("errors/{endpointname}/retry/all")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> RetryAllByEndpoint(string endpointName) { }
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("errors/{failedmessageid}/retry")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> RetryMessageBy(string failedMessageId) { }
+    }
+    public class UnArchiveMessagesController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpPatchAttribute()]
+        [System.Web.Http.RouteAttribute("errors/unarchive")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Unarchive(System.Collections.Generic.List<string> ids) { }
+        [System.Web.Http.HttpPatchAttribute()]
+        [System.Web.Http.RouteAttribute("errors/{from}...{to}/unarchive")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Unarchive(string from, string to) { }
     }
 }
 namespace ServiceControl.MessageFailures
@@ -671,6 +892,34 @@ namespace ServiceControl.MessageFailures.InternalMessages
         public int NumberofMessageReclassified { get; set; }
     }
 }
+namespace ServiceControl.MessageRedirects.Api
+{
+    public class MessageRedirectsController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpHeadAttribute()]
+        [System.Web.Http.RouteAttribute("redirect")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CountRedirects() { }
+        [System.Web.Http.HttpDeleteAttribute()]
+        [System.Web.Http.RouteAttribute("redirects/{messageredirectid:guid}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> DeleteRedirect(System.Guid messageRedirectId) { }
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("redirects")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> NewRedirects(ServiceControl.MessageRedirects.Api.MessageRedirectsController.MessageRedirectRequest request) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("redirects")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Redirects() { }
+        [System.Web.Http.HttpPutAttribute()]
+        [System.Web.Http.RouteAttribute("redirects/{messageredirectid:guid}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> UpdateRedirect(System.Guid messageRedirectId, ServiceControl.MessageRedirects.Api.MessageRedirectsController.MessageRedirectRequest request) { }
+        public class MessageRedirectRequest
+        {
+            public MessageRedirectRequest() { }
+            public string fromphysicaladdress { get; set; }
+            public bool retryexisting { get; set; }
+            public string tophysicaladdress { get; set; }
+        }
+    }
+}
 namespace ServiceControl.Monitoring
 {
     public class EndpointInstanceId : System.IEquatable<ServiceControl.Monitoring.EndpointInstanceId>
@@ -691,6 +940,21 @@ namespace ServiceControl.Monitoring
         public int Failing { get; }
         public void RecordActive() { }
         public void RecordFailing() { }
+    }
+    public class EndpointsMonitoringController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.CompositeViews.Endpoints.EndpointsView[]> Endpoints() { }
+        [System.Web.Http.HttpPatchAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpointId}")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Foo(System.Guid endpointId, ServiceControl.Monitoring.EndpointUpdateModel data) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("heartbeats/stats")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.Monitoring.EndpointMonitoringStats> HeartbeatStats() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/known")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> KnownEndpoints() { }
     }
     public class EndpointUpdateModel
     {
@@ -718,6 +982,15 @@ namespace ServiceControl.Monitoring
         public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
         public string HostDisplayName { get; set; }
         public System.Guid Id { get; set; }
+    }
+}
+namespace ServiceControl.Operations.BodyStorage.Api
+{
+    public class GetBodyByIdController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{id}/body")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
     }
 }
 namespace ServiceControl.Operations
@@ -748,6 +1021,51 @@ namespace ServiceControl.Operations
         public byte[] Body { get; set; }
         public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
         public string Id { get; set; }
+    }
+}
+namespace ServiceControl.Recoverability.API
+{
+    public class FailureGroupsArchiveController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/groups/{groupId}/errors/archive")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ArchiveGroupErrors(string groupId) { }
+    }
+    public class FailureGroupsController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/groups/{classifier?}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAllGroups([System.Web.Http.FromUriAttribute()] string classifierFilter = null, string classifier = "Exception Type and Stack Trace") { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/groups/id/{groupId}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetGroup(string groupId) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/groups/{groupId}/errors")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetGroupErrors(string groupId) { }
+        [System.Web.Http.HttpHeadAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/groups/{groupId}/errors")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetGroupErrorsCount(string groupId) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/history")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetRetryHistory() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/classifiers")]
+        public System.Net.Http.HttpResponseMessage GetSupportedClassifiers() { }
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/groups/reclassify")]
+        public System.Threading.Tasks.Task<System.Web.Http.IHttpActionResult> ReclassifyErrors() { }
+    }
+    public class FailureGroupsRetryController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpPostAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/groups/{groupId}/errors/retry")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ArchiveGroupErrors(string groupId) { }
+    }
+    public class UnacknowledgedGroupsController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpDeleteAttribute()]
+        [System.Web.Http.RouteAttribute("recoverability/unacknowledgedgroups/{groupId}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> AcknowledgeOperation(string groupId) { }
     }
 }
 namespace ServiceControl.Recoverability
@@ -1230,6 +1548,12 @@ namespace ServiceControl.SagaAudit
             public string Uri;
             public Result() { }
         }
+    }
+    public class SagasController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("sagas/{id}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(System.Guid id) { }
     }
     public class SagaSnapshot
     {

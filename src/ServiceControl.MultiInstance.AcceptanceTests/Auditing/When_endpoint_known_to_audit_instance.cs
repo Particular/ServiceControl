@@ -39,7 +39,6 @@
 
         class SomeMessage : IMessage
         {
-
         }
 
         class Sender : EndpointConfigurationBuilder

@@ -1,20 +1,13 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System;
-    using Nancy;
+    using System.Net.Http;
 
     static class RequestExtensions
     {
-        public static Uri RedirectToRemoteUri(this Request request, string remoteUri)
+        public static Uri RedirectToRemoteUri(this HttpRequestMessage request, Uri remoteUri)
         {
-            var returnVal = $"{remoteUri}{request.Path}";
-
-            if (!string.IsNullOrWhiteSpace(request.Url.Query))
-            {
-                returnVal += $"?{request.Url.Query}";
-            }
-
-            return new Uri(returnVal);
+            return new Uri($"{remoteUri.GetLeftPart(UriPartial.Authority)}{request.RequestUri.PathAndQuery}");
         }
     }
 }

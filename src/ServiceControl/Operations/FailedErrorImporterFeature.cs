@@ -9,6 +9,7 @@
         {
             EnableByDefault();
         }
+
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<ImportFailedErrors>(DependencyLifecycle.SingleInstance);

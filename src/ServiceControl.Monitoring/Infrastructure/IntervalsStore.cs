@@ -8,7 +8,15 @@
 
     public class IntervalsStore<BreakdownT>
     {
-        ConcurrentDictionary<BreakdownT, Measurement> intervals = new ConcurrentDictionary<BreakdownT, Measurement>();
+        public IntervalsStore(TimeSpan intervalSize, int numberOfIntervals, int delayedIntervals)
+        {
+            IntervalSize = intervalSize;
+
+            this.numberOfIntervals = numberOfIntervals;
+            this.delayedIntervals = delayedIntervals;
+        }
+
+        public TimeSpan IntervalSize { get; }
 
         public void Store(BreakdownT breakdownId, RawMessage.Entry[] entries)
         {
@@ -39,16 +47,13 @@
             return result.ToArray();
         }
 
+        ConcurrentDictionary<BreakdownT, Measurement> intervals = new ConcurrentDictionary<BreakdownT, Measurement>();
+
+        int numberOfIntervals;
+        int delayedIntervals;
+
         class Measurement
         {
-            int size;
-            TimeSpan intervalSize;
-            int delayedIntervals;
-
-            MeasurementInterval[] intervals;
-
-            ReaderWriterLockSlim rwl = new ReaderWriterLockSlim();
-
             public Measurement(TimeSpan intervalSize, int numberOfIntervals, int delayedIntervals)
             {
                 this.intervalSize = intervalSize;
@@ -63,7 +68,7 @@
             public void ReportTimeIntervals(DateTime now, IntervalsBreakdown item)
             {
                 var currentEpoch = GetEpoch(now.Ticks);
-                
+
                 var intervalsToFill = item.Intervals;
                 var numberOfIntervalsToFill = intervalsToFill.Length;
 
@@ -74,15 +79,15 @@
                 try
                 {
                     var epoch = currentEpoch - delayedIntervals;
-                    
-                    for (var i = 0; i < numberOfIntervalsToFill ; i++)
+
+                    for (var i = 0; i < numberOfIntervalsToFill; i++)
                     {
                         var epochIndex = epoch % size;
                         var interval = intervals[epochIndex];
 
                         intervalsToFill[i] = new TimeInterval
                         {
-                            IntervalStart = GetDateTime(epoch),
+                            IntervalStart = GetDateTime(epoch)
                         };
 
                         // the interval might contain data from the right epoch, or epochs before that have the same index
@@ -147,18 +152,6 @@
                 }
             }
 
-            struct MeasurementInterval
-            {
-                public int TotalMeasurements;
-                public long Epoch;
-                public long TotalTime;
-
-                public override string ToString()
-                {
-                    return $"{nameof(TotalMeasurements)}: {TotalMeasurements}, {nameof(Epoch)}: {Epoch}, {nameof(TotalTime)}: {TotalTime}";
-                }
-            }
-
             long GetEpoch(ref RawMessage.Entry entry)
             {
                 return GetEpoch(entry.DateTicks);
@@ -173,9 +166,30 @@
             {
                 return new DateTime(epoch * intervalSize.Ticks, DateTimeKind.Utc);
             }
+
+            int size;
+            TimeSpan intervalSize;
+            int delayedIntervals;
+
+            MeasurementInterval[] intervals;
+
+            ReaderWriterLockSlim rwl = new ReaderWriterLockSlim();
+
+            struct MeasurementInterval
+            {
+                public int TotalMeasurements;
+                public long Epoch;
+                public long TotalTime;
+
+                public override string ToString()
+                {
+                    return $"{nameof(TotalMeasurements)}: {TotalMeasurements}, {nameof(Epoch)}: {Epoch}, {nameof(TotalTime)}: {TotalTime}";
+                }
+            }
         }
-        
-        public class IntervalsBreakdown { 
+
+        public class IntervalsBreakdown
+        {
             public BreakdownT Id { get; set; }
             public TimeInterval[] Intervals { get; set; }
             public long TotalValue { get; set; }
@@ -188,18 +202,5 @@
             public long TotalValue { get; set; }
             public long TotalMeasurements { get; set; }
         }
-
-        public IntervalsStore(TimeSpan intervalSize, int numberOfIntervals, int delayedIntervals)
-        {
-            IntervalSize = intervalSize;
-
-            this.numberOfIntervals = numberOfIntervals;
-            this.delayedIntervals = delayedIntervals;
-        }
-
-        int numberOfIntervals;
-        int delayedIntervals;
-
-        public TimeSpan IntervalSize { get; }
     }
 }

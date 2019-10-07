@@ -18,8 +18,6 @@
 
     class TaggedLongValueSerializer : IMessageSerializer
     {
-        static readonly object[] NoMessages = new object[0];
-
         public void Serialize(object message, Stream stream)
         {
             throw new NotImplementedException();
@@ -100,6 +98,8 @@
             throw new Exception($"The message version number '{version}' cannot be handled properly.");
         }
 
+        public string ContentType { get; } = "TaggedLongValueWriterOccurrence";
+
         static TaggedLongValueOccurrence CreateMessageForTag(string keyValue)
         {
             var message = RawMessage.Pool<TaggedLongValueOccurrence>.Default.Lease();
@@ -124,7 +124,7 @@
             return tagKeyToValue;
         }
 
-        public string ContentType { get; } = "TaggedLongValueWriterOccurrence";
+        static readonly object[] NoMessages = new object[0];
 
         private static UTF8Encoding TagDecoder = new UTF8Encoding(false);
     }

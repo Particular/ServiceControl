@@ -4,14 +4,14 @@
 
     public class EndpointInputQueue : IEquatable<EndpointInputQueue>
     {
-        public string EndpointName { get; }
-        public string InputQueue { get; }
-
         public EndpointInputQueue(string endpointName, string inputQueue)
         {
             EndpointName = endpointName;
             InputQueue = inputQueue;
         }
+
+        public string EndpointName { get; }
+        public string InputQueue { get; }
 
         public bool Equals(EndpointInputQueue other)
         {
@@ -24,8 +24,8 @@
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((EndpointInputQueue) obj);
+            if (obj.GetType() != GetType()) return false;
+            return Equals((EndpointInputQueue)obj);
         }
 
         public override int GetHashCode()

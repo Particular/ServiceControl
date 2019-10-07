@@ -12,8 +12,6 @@
 
     public class FailedMessageRetries : Feature
     {
-        static ILog log = LogManager.GetLogger<FailedMessageRetries>();
-
         public FailedMessageRetries()
         {
             Prerequisite(c =>
@@ -36,6 +34,8 @@
             context.RegisterStartupTask(b => b.Build<ProcessRetryBatches>());
         }
 
+        static ILog log = LogManager.GetLogger<FailedMessageRetries>();
+
         class BulkRetryBatchCreation : FeatureStartupTask
         {
             public BulkRetryBatchCreation(RetriesGateway retries)
@@ -47,11 +47,9 @@
             {
                 if (retries != null)
                 {
-                    timer = new AsyncTimer(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e =>
-                    {
-                        log.Error("Unhandled exception while processing bulk retry operations", e);
-                    });
+                    timer = new AsyncTimer(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e => { log.Error("Unhandled exception while processing bulk retry operations", e); });
                 }
+
                 return Task.FromResult(0);
             }
 
@@ -122,10 +120,7 @@
                 {
                     var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
                     return hasMoreWork ? TimerJobExecutionResult.ScheduleNextExecution : TimerJobExecutionResult.DoNotContinueExecuting;
-                }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e =>
-                {
-                    log.Error("Unhandled exception while trying to adopt orphaned batches", e);
-                });
+                }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e => { log.Error("Unhandled exception while trying to adopt orphaned batches", e); });
                 return Task.FromResult(0);
             }
 
@@ -151,10 +146,7 @@
 
             protected override Task OnStart(IMessageSession session)
             {
-                timer = new AsyncTimer(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e =>
-                {
-                    log.Error("Unhandled exception while processing retry batches", e);
-                });
+                timer = new AsyncTimer(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
                 return Task.FromResult(0);
             }
 

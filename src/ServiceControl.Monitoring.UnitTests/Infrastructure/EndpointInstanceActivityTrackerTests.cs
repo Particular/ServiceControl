@@ -6,13 +6,11 @@
 
     public class EndpointInstanceActivityTrackerTests
     {
-        EndpointInstanceActivityTracker tracker;
-        static readonly EndpointInstanceId A1 = new EndpointInstanceId("EndpointA", "instance1");
-
         [SetUp]
         public void Setup()
         {
-            var settings = new Settings() { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
+            var settings = new Settings
+                {EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5)};
             tracker = new EndpointInstanceActivityTracker(settings);
         }
 
@@ -53,5 +51,8 @@
             tracker.Record(A1, DateTime.UtcNow);
             Assert.IsFalse(tracker.IsStale(A1));
         }
+
+        EndpointInstanceActivityTracker tracker;
+        static readonly EndpointInstanceId A1 = new EndpointInstanceId("EndpointA", "instance1");
     }
 }

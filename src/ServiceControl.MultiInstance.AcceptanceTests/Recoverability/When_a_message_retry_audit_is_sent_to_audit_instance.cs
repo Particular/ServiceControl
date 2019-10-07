@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using AcceptanceTests;
     using MessageFailures;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;

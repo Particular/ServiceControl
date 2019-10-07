@@ -1,21 +1,18 @@
 namespace ServiceControl.Monitoring
 {
+    using System;
     using System.IO;
     using System.Reflection;
     using NLog;
-    using System;
 
     public class Settings
     {
-        const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
-
-        string endpointName;
-
         public string EndpointName
         {
             get { return endpointName ?? ServiceName; }
             set { endpointName = value; }
         }
+
         public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
         public string TransportType { get; set; }
         public string ErrorQueue { get; set; }
@@ -27,6 +24,7 @@ namespace ServiceControl.Monitoring
         public string HttpPort { get; set; }
         public TimeSpan EndpointUptimeGracePeriod { get; set; }
         public bool SkipQueueCreation { get; set; }
+        public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
 
         internal static Settings Load(SettingsReader reader)
         {
@@ -51,5 +49,8 @@ namespace ServiceControl.Monitoring
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
             return Path.GetDirectoryName(assemblyLocation);
         }
+
+        string endpointName;
+        const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
     }
 }

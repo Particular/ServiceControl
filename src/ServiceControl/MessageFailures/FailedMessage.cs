@@ -35,7 +35,7 @@
                 MessageMetadata = new Dictionary<string, object>();
                 Headers = new Dictionary<string, string>();
             }
-            
+
             public Dictionary<string, object> MessageMetadata { get; set; }
             public FailureDetails FailureDetails { get; set; }
             public DateTime AttemptedAt { get; set; }

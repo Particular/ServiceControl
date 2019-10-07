@@ -2,8 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Net.Http;
     using Contracts.Operations;
-    using Nancy;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
 
@@ -162,7 +162,7 @@
 
             var queryString = string.Join("&", queryStringParts);
 
-            var request = new Request("GET", new Url($"http://get/messages?{queryString}"));
+            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://get/messages?{queryString}");
             return MessageViewComparer.FromRequest(request);
         }
 

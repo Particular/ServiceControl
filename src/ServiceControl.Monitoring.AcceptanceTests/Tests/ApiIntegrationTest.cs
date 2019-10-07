@@ -2,13 +2,17 @@
 {
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading.Tasks;
     using AcceptanceTesting;
     using global::Newtonsoft.Json.Linq;
+    using global::ServiceControl.Monitoring;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
 
     public abstract class ApiIntegrationTest : NServiceBusAcceptanceTest
     {
+        protected Bootstrapper Bootstrapper { get; set; }
+
         [SetUp]
         public void Setup()
         {
@@ -17,12 +21,15 @@
             httpClient.DefaultRequestHeaders
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            Bootstrapper = new Bootstrapper(Settings);
         }
 
         [TearDown]
-        public void TearDown()
+        public async Task TearDown()
         {
             httpClient?.Dispose();
+            await Bootstrapper.Stop().ConfigureAwait(false);
         }
 
         protected bool MetricReported(string name, out JToken metric, Context context)
@@ -49,6 +56,7 @@
         {
             public string MetricsReport { get; set; }
         }
+
         public class SampleMessage : IMessage
         {
         }

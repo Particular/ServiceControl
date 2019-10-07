@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Infrastructure.SignalR
 {
     using Newtonsoft.Json;
-    using ServiceBus.Management.Infrastructure.Nancy;
+    using WebApi;
 
     static class SerializationSettingsFactoryForSignalR
     {
         public static JsonSerializerSettings CreateDefault()
         {
-            var s = JsonNetSerializer.CreateDefault();
+            var s = JsonNetSerializerSettings.CreateDefault();
             s.ContractResolver = new CustomSignalRContractResolverBecauseOfIssue500InSignalR();
             return s;
         }

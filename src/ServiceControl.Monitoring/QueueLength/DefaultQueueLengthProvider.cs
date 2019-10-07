@@ -7,8 +7,6 @@
 
     public class DefaultQueueLengthProvider : IProvideQueueLength
     {
-        QueueLengthStore queueLengthStore;
-
         public void Initialize(string connectionString, QueueLengthStore store)
         {
             queueLengthStore = store;
@@ -29,5 +27,6 @@
         public Task Start() => TaskEx.Completed;
 
         public Task Stop() => TaskEx.Completed;
+        QueueLengthStore queueLengthStore;
     }
 }

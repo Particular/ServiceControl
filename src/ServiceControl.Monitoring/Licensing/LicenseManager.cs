@@ -1,15 +1,14 @@
-﻿using System;
-
-namespace ServiceControl.Monitoring.Licensing
+﻿namespace ServiceControl.Monitoring.Licensing
 {
+    using System;
     using System.IO;
     using NServiceBus.Logging;
     using Particular.Licensing;
 
     public class LicenseManager
     {
-        internal static License Details { get; set; }
-        internal static bool IsValid { get; set; }
+        internal License Details { get; set; }
+        internal bool IsValid { get; set; }
 
         public void Refresh()
         {
@@ -25,6 +24,7 @@ namespace ServiceControl.Monitoring.Licensing
                 {
                     Logger.Info(report);
                 }
+
                 Logger.Warn("License has expired");
             }
 
@@ -34,5 +34,4 @@ namespace ServiceControl.Monitoring.Licensing
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(ActiveLicense));
     }
-    
 }

@@ -1,15 +1,15 @@
 {
-  "description": "testDescription",
-  "endpointsErrorUrl": "http://localhost/endpoints/{name}/errors/{?page,per_page,direction,sort}",
-  "knownEndpointsUrl": "/endpoints/known",
-  "endpointsMessageSearchUrl": "http://localhost/endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
-  "endpointsMessagesUrl": "http://localhost/endpoints/{name}/messages/{?page,per_page,direction,sort}",
-  "endpointsUrl": "http://localhost/endpoints",
-  "errorsUrl": "http://localhost/errors/{?page,per_page,direction,sort}",
-  "configuration": "http://localhost/configuration",
-  "messageSearchUrl": "http://localhost/messages/search/{keyword}/{?page,per_page,direction,sort}",
-  "licenseStatus": "valid",
-  "licenseDetails": "http://localhost/license",
-  "name": "testName",
-  "sagasUrl": "http://localhost/sagas"
+  "Description": "testDescription",
+  "EndpointsErrorUrl": "http://localhost/endpoints/{name}/errors/{?page,per_page,direction,sort}",
+  "KnownEndpointsUrl": "/endpoints/known",
+  "EndpointsMessageSearchUrl": "http://localhost/endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
+  "EndpointsMessagesUrl": "http://localhost/endpoints/{name}/messages/{?page,per_page,direction,sort}",
+  "EndpointsUrl": "http://localhost/endpoints",
+  "ErrorsUrl": "http://localhost/errors/{?page,per_page,direction,sort}",
+  "Configuration": "http://localhost/configuration",
+  "MessageSearchUrl": "http://localhost/messages/search/{keyword}/{?page,per_page,direction,sort}",
+  "LicenseStatus": "valid",
+  "LicenseDetails": "http://localhost/license",
+  "Name": "testName",
+  "SagasUrl": "http://localhost/sagas"
 }

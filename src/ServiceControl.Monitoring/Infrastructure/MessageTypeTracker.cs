@@ -6,8 +6,6 @@
 
     public class MessageTypeTracker : IHandleMessages<TaggedLongValueOccurrence>
     {
-        readonly MessageTypeRegistry registry;
-
         public MessageTypeTracker(MessageTypeRegistry registry)
         {
             this.registry = registry;
@@ -21,5 +19,7 @@
 
             return TaskEx.Completed;
         }
+
+        readonly MessageTypeRegistry registry;
     }
 }

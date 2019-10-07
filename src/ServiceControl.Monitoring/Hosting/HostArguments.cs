@@ -5,8 +5,6 @@
 
     class HostArguments
     {
-        public List<Type> Commands { get; } = new List<Type>();
-
         public HostArguments(string[] args)
         {
             var executionMode = ExecutionMode.Run;
@@ -21,10 +19,7 @@
                 {
                     "serviceName=",
                     "Specify the service name for the installed service.",
-                    s => overrides.Add(settings =>
-                    {
-                        settings.ServiceName = s;
-                    })
+                    s => overrides.Add(settings => { settings.ServiceName = s; })
                 },
                 {
                     "userName=",
@@ -50,6 +45,8 @@
                     break;
             }
         }
+
+        public List<Type> Commands { get; } = new List<Type>();
 
         public void ApplyOverridesTo(Settings settings)
         {

@@ -6,9 +6,6 @@
 
     public class RetriesStore : IProvideBreakdownBy<EndpointInstanceId>, IProvideBreakdownBy<EndpointMessageType>
     {
-        VariableHistoryIntervalStore<EndpointInstanceId> byInstance = new VariableHistoryIntervalStore<EndpointInstanceId>();
-        VariableHistoryIntervalStore<EndpointMessageType> byMessageType = new VariableHistoryIntervalStore<EndpointMessageType>();
-
         public IntervalsStore<EndpointInstanceId>.IntervalsBreakdown[] GetIntervals(HistoryPeriod period, DateTime now)
         {
             return byInstance.GetIntervals(period, now);
@@ -24,5 +21,8 @@
             byInstance.Store(instanceId, entries);
             byMessageType.Store(messageType, entries);
         }
+
+        VariableHistoryIntervalStore<EndpointInstanceId> byInstance = new VariableHistoryIntervalStore<EndpointInstanceId>();
+        VariableHistoryIntervalStore<EndpointMessageType> byMessageType = new VariableHistoryIntervalStore<EndpointMessageType>();
     }
 }

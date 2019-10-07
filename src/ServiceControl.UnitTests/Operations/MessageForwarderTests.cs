@@ -13,9 +13,6 @@
     [TestFixture]
     public class MessageForwarderTests
     {
-        FakeDispatcher dispatcher;
-        MessageForwarder forwarder;
-
         [SetUp]
         public void SetUp()
         {
@@ -28,14 +25,17 @@
         {
             var headers = new Dictionary<string, string>
             {
-                { Headers.TimeToBeReceived, TimeSpan.FromMinutes(12).ToString() }
+                {Headers.TimeToBeReceived, TimeSpan.FromMinutes(12).ToString()}
             };
-            
+
             var context = new MessageContext("messageId", headers, Array.Empty<byte>(), new TransportTransaction(), new CancellationTokenSource(), new ContextBag());
             await forwarder.Forward(context, "forwardingAddress");
-            
+
             Assert.IsFalse(dispatcher.TransportOperations.UnicastTransportOperations[0].Message.Headers.ContainsKey(Headers.TimeToBeReceived), "TimeToBeReceived header should be removed if present");
         }
+
+        FakeDispatcher dispatcher;
+        MessageForwarder forwarder;
 
         class FakeDispatcher : IDispatchMessages
         {

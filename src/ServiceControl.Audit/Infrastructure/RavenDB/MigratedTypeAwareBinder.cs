@@ -12,6 +12,7 @@
             {
                 return typeof(EndpointDetails);
             }
+
             return base.BindToType(assemblyName, typeName);
         }
     }

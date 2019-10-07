@@ -36,7 +36,7 @@
                 Logger.Debug($"Free space: {availableFreeSpace} | Total: {totalSpace} | Percent remaining {percentRemaining:P0}");
             }
 
-            return percentRemaining > percentageThreshold 
+            return percentRemaining > percentageThreshold
                 ? CheckResult.Pass
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }

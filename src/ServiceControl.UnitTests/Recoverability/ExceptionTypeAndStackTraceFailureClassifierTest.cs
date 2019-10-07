@@ -49,7 +49,6 @@
         [Test]
         public void Null_message_should_group_by_exception_type()
         {
-
             var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
             var failureWithNullMessage = CreateFailureDetailsWithMessage(null);
             var classification = classifier.ClassifyFailure(failureWithNullMessage);

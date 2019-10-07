@@ -159,6 +159,6 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
         RunInstallers,
         Run,
         ImportFailedAudits,
-        Maintenance,
+        Maintenance
     }
 }

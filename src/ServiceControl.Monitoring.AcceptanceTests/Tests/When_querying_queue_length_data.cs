@@ -6,7 +6,6 @@
     using AcceptanceTesting;
     using AcceptanceTesting.Customization;
     using global::Newtonsoft.Json.Linq;
-    using global::ServiceControl.Monitoring;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
 
@@ -30,7 +29,14 @@
                         await s.SendLocal(new SampleMessage());
                     });
                 })
-                .WithEndpoint<MonitoringEndpoint>()
+                .WithEndpoint<MonitoringEndpoint>(c =>
+                {
+                    c.CustomConfig(conf =>
+                    {
+                        Bootstrapper.CreateReceiver(conf, ConnectionString);
+                        Bootstrapper.StartWebApi();
+                    });
+                })
                 .Done(c =>
                 {
                     var done = MetricReported("queueLength", out queueLength, c);
@@ -75,10 +81,7 @@
         {
             public MonitoringEndpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
-                {
-                    EndpointFactory.MakeMetricsReceiver(c, Settings, ConnectionString);
-                });
+                EndpointSetup<DefaultServer>();
             }
         }
 

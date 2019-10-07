@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
-    using NServiceBus;
     using System.Collections.Generic;
+    using NServiceBus;
 
     class AuditEnricherContext
     {

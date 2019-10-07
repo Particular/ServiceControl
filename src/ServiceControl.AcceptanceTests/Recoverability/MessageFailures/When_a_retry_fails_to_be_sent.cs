@@ -67,7 +67,8 @@
         {
             public FailureEndpoint()
             {
-                EndpointSetup<DefaultServer>(c => {
+                EndpointSetup<DefaultServer>(c =>
+                {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });

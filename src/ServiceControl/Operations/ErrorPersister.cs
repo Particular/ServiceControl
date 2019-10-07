@@ -49,7 +49,7 @@
             var metadata = new ConcurrentDictionary<string, object>
             {
                 ["MessageId"] = messageId,
-                ["MessageIntent"] = message.Headers.MessageIntent(),
+                ["MessageIntent"] = message.Headers.MessageIntent()
             };
 
             var enricherTasks = new List<Task>(enrichers.Length);
@@ -69,7 +69,7 @@
 
             var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                 message.Headers,
-                new Dictionary<string, object>(metadata), 
+                new Dictionary<string, object>(metadata),
                 failureDetails);
 
             var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);

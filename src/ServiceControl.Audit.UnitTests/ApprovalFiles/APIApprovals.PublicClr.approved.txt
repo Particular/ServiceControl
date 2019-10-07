@@ -27,6 +27,12 @@ namespace ServiceControl.Audit.Auditing
         public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
         public string Id { get; set; }
     }
+    public class GetBodyByIdController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{id}/body")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
+    }
     public class ProcessedMessage
     {
         public ProcessedMessage() { }
@@ -40,6 +46,35 @@ namespace ServiceControl.Audit.Auditing
 }
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
+    public class GetMessagesByQueryController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/search")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string q) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string endpoint, string q) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search/{keyword}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/search/{keyword}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyWord(string keyword) { }
+    }
+    public class GetMessagesController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAllMessages() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetEndpointMessages(string endpoint) { }
+    }
+    public class MessagesConversationController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.RouteAttribute("conversations/{conversationid}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string conversationid) { }
+    }
     public class MessagesView
     {
         public MessagesView() { }
@@ -168,6 +203,30 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
     }
 }
+namespace ServiceControl.Audit.Infrastructure.WebApi
+{
+    public class RootController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("configuration")]
+        [System.Web.Http.RouteAttribute("instance-info")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<object> Config() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.Audit.Infrastructure.WebApi.RootController.RootUrls> Urls() { }
+        public class RootUrls
+        {
+            public RootUrls() { }
+            public string Configuration { get; set; }
+            public string Description { get; set; }
+            public string EndpointsMessageSearchUrl { get; set; }
+            public string EndpointsMessagesUrl { get; set; }
+            public string KnownEndpointsUrl { get; set; }
+            public string MessageSearchUrl { get; set; }
+            public string Name { get; set; }
+        }
+    }
+}
 namespace ServiceControl.Audit.Monitoring
 {
     public class EndpointDetails
@@ -176,6 +235,12 @@ namespace ServiceControl.Audit.Monitoring
         public string Host { get; set; }
         public System.Guid HostId { get; set; }
         public string Name { get; set; }
+    }
+    public class KnownEndpointsController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/known")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAll() { }
     }
     public class KnownEndpointsView
     {

@@ -23,7 +23,6 @@ namespace ServiceControl.Monitoring
                 var runner = new CommandRunner(arguments.Commands);
 
                 runner.Run(settings).GetAwaiter().GetResult();
-
             }
             catch (Exception exception)
             {

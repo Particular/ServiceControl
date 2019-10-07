@@ -9,9 +9,6 @@
     [TestFixture]
     public class QueueLengthAggregationTests
     {
-        DateTime now = DateTime.UtcNow;
-        static readonly IntervalsStore<EndpointInputQueue>.TimeInterval[] EmptyIntervals = new IntervalsStore<EndpointInputQueue>.TimeInterval[0];
-
         [Test]
         public void Point_value_is_sum_of_averages_per_input_queue()
         {
@@ -20,18 +17,18 @@
                 new IntervalsStore<EndpointInputQueue>.IntervalsBreakdown
                 {
                     Id = new EndpointInputQueue(endpointName: "", inputQueue: "queue-1"),
-                    Intervals = new []
+                    Intervals = new[]
                     {
-                        new IntervalsStore<EndpointInputQueue>.TimeInterval { IntervalStart = now, TotalValue = 3, TotalMeasurements = 4},
-                        new IntervalsStore<EndpointInputQueue>.TimeInterval { IntervalStart = now.AddSeconds(1), TotalValue = 2, TotalMeasurements = 3},
+                        new IntervalsStore<EndpointInputQueue>.TimeInterval {IntervalStart = now, TotalValue = 3, TotalMeasurements = 4},
+                        new IntervalsStore<EndpointInputQueue>.TimeInterval {IntervalStart = now.AddSeconds(1), TotalValue = 2, TotalMeasurements = 3}
                     }
                 },
                 new IntervalsStore<EndpointInputQueue>.IntervalsBreakdown
                 {
                     Id = new EndpointInputQueue(endpointName: "", inputQueue: "queue-2"),
-                    Intervals = new []
+                    Intervals = new[]
                     {
-                        new IntervalsStore<EndpointInputQueue>.TimeInterval { IntervalStart = now, TotalValue = 5, TotalMeasurements = 6},
+                        new IntervalsStore<EndpointInputQueue>.TimeInterval {IntervalStart = now, TotalValue = 5, TotalMeasurements = 6}
                     }
                 }
             };
@@ -76,20 +73,20 @@
                 new IntervalsStore<EndpointInputQueue>.IntervalsBreakdown
                 {
                     Id = new EndpointInputQueue(endpointName: "", inputQueue: "queue-1"),
-                    Intervals = new []
+                    Intervals = new[]
                     {
-                        new IntervalsStore<EndpointInputQueue>.TimeInterval { IntervalStart = now },
-                        new IntervalsStore<EndpointInputQueue>.TimeInterval { IntervalStart = now.AddSeconds(2) }
+                        new IntervalsStore<EndpointInputQueue>.TimeInterval {IntervalStart = now},
+                        new IntervalsStore<EndpointInputQueue>.TimeInterval {IntervalStart = now.AddSeconds(2)}
                     }
                 },
                 new IntervalsStore<EndpointInputQueue>.IntervalsBreakdown
                 {
                     Id = new EndpointInputQueue(endpointName: "", inputQueue: "queue-2"),
-                    Intervals = new []
+                    Intervals = new[]
                     {
-                        new IntervalsStore<EndpointInputQueue>.TimeInterval { IntervalStart = now },
-                        new IntervalsStore<EndpointInputQueue>.TimeInterval { IntervalStart = now.AddSeconds(2) },
-                        new IntervalsStore<EndpointInputQueue>.TimeInterval { IntervalStart = now.AddSeconds(3) },
+                        new IntervalsStore<EndpointInputQueue>.TimeInterval {IntervalStart = now},
+                        new IntervalsStore<EndpointInputQueue>.TimeInterval {IntervalStart = now.AddSeconds(2)},
+                        new IntervalsStore<EndpointInputQueue>.TimeInterval {IntervalStart = now.AddSeconds(3)}
                     }
                 }
             };
@@ -98,5 +95,8 @@
 
             Assert.AreEqual(3, values.Points.Length);
         }
+
+        DateTime now = DateTime.UtcNow;
+        static readonly IntervalsStore<EndpointInputQueue>.TimeInterval[] EmptyIntervals = new IntervalsStore<EndpointInputQueue>.TimeInterval[0];
     }
 }

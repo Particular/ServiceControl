@@ -127,7 +127,6 @@
 //
 
 
-
 #if LINQ
 using System.Linq;
 #endif
@@ -155,6 +154,42 @@ namespace ServiceControl.Monitoring
         {
             this.c = c;
         }
+
+        #region IEnumerable
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return values.GetEnumerator();
+        }
+
+        #endregion
+
+        #region IEnumerable<T>
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            return values.GetEnumerator();
+        }
+
+        #endregion
+
+        public List<string> ToList()
+        {
+            return new List<string>(values);
+        }
+
+        public string[] ToArray()
+        {
+            return values.ToArray();
+        }
+
+        public override string ToString()
+        {
+            return string.Join(", ", values.ToArray());
+        }
+
+        OptionContext c;
+        List<string> values = new List<string>();
 
         #region ICollection
 
@@ -198,24 +233,6 @@ namespace ServiceControl.Monitoring
         public bool Remove(string item)
         {
             return values.Remove(item);
-        }
-
-        #endregion
-
-        #region IEnumerable
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return values.GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable<T>
-
-        public IEnumerator<string> GetEnumerator()
-        {
-            return values.GetEnumerator();
         }
 
         #endregion
@@ -295,38 +312,22 @@ namespace ServiceControl.Monitoring
             {
                 throw new InvalidOperationException("OptionContext.Option is null.");
             }
+
             if (index >= c.Option.MaxValueCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
+
             if (c.Option.OptionValueType == OptionValueType.Required &&
                 index >= values.Count)
             {
                 throw new OptionException(string.Format(
-                    c.OptionSet.MessageLocalizer("Missing required value for option '{0}'."), c.OptionName),
+                        c.OptionSet.MessageLocalizer("Missing required value for option '{0}'."), c.OptionName),
                     c.OptionName);
             }
         }
 
         #endregion
-
-        public List<string> ToList()
-        {
-            return new List<string>(values);
-        }
-
-        public string[] ToArray()
-        {
-            return values.ToArray();
-        }
-
-        public override string ToString()
-        {
-            return string.Join(", ", values.ToArray());
-        }
-
-        OptionContext c;
-        List<string> values = new List<string>();
     }
 
     public class OptionContext
@@ -352,7 +353,7 @@ namespace ServiceControl.Monitoring
     {
         None,
         Optional,
-        Required,
+        Required
     }
 
     public abstract class Option
@@ -368,10 +369,12 @@ namespace ServiceControl.Monitoring
             {
                 throw new ArgumentNullException(nameof(prototype));
             }
+
             if (prototype.Length == 0)
             {
                 throw new ArgumentException("Cannot be the empty string.", nameof(prototype));
             }
+
             if (maxValueCount < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxValueCount));
@@ -390,12 +393,14 @@ namespace ServiceControl.Monitoring
                     "OptionValueType.Optional.",
                     nameof(maxValueCount));
             }
+
             if (OptionValueType == OptionValueType.None && maxValueCount > 1)
             {
                 throw new ArgumentException(
                     $"Cannot provide maxValueCount of {maxValueCount} for OptionValueType.None.",
                     nameof(maxValueCount));
             }
+
             if (Array.IndexOf(Names, "<>") >= 0 &&
                 ((Names.Length == 1 && OptionValueType != OptionValueType.None) ||
                  (Names.Length > 1 && MaxValueCount > 1)))
@@ -429,6 +434,7 @@ namespace ServiceControl.Monitoring
             {
                 return new string[0];
             }
+
             return (string[])ValueSeparators.Clone();
         }
 
@@ -451,6 +457,7 @@ namespace ServiceControl.Monitoring
                         value, typeof(T).Name, c.OptionName),
                     c.OptionName, e);
             }
+
             return t;
         }
 
@@ -471,6 +478,7 @@ namespace ServiceControl.Monitoring
                 {
                     continue;
                 }
+
                 Names[i] = name.Substring(0, end);
                 if (type == '\0' || type == name[end])
                 {
@@ -480,6 +488,7 @@ namespace ServiceControl.Monitoring
                 {
                     throw new Exception($"Conflicting option types: '{type}' vs. '{name[end]}'.");
                 }
+
                 AddSeparators(name, end, seps);
             }
 
@@ -492,6 +501,7 @@ namespace ServiceControl.Monitoring
             {
                 throw new Exception($"Cannot provide key/value separators for Options taking {MaxValueCount} value(s).");
             }
+
             if (MaxValueCount > 1)
             {
                 if (seps.Count == 0)
@@ -527,6 +537,7 @@ namespace ServiceControl.Monitoring
                         {
                             throw new Exception($"Ill-formed name/value separator found in \"{name}\".");
                         }
+
                         start = i + 1;
                         break;
                     case '}':
@@ -534,6 +545,7 @@ namespace ServiceControl.Monitoring
                         {
                             throw new Exception($"Ill-formed name/value separator found in \"{name}\".");
                         }
+
                         seps.Add(name.Substring(start, i - start));
                         start = -1;
                         break;
@@ -542,9 +554,11 @@ namespace ServiceControl.Monitoring
                         {
                             seps.Add(name[i].ToString());
                         }
+
                         break;
                 }
             }
+
             if (start != -1)
             {
                 throw new Exception($"Ill-formed name/value separator found in \"{name}\".");
@@ -613,7 +627,7 @@ namespace ServiceControl.Monitoring
     public class OptionSet : KeyedCollection<string, Option>
     {
         public OptionSet()
-            : this(delegate (string f) { return f; })
+            : this(delegate(string f) { return f; })
         {
         }
 
@@ -630,10 +644,12 @@ namespace ServiceControl.Monitoring
             {
                 throw new ArgumentNullException(nameof(item));
             }
+
             if (item.Names != null && item.Names.Length > 0)
             {
                 return item.Names[0];
             }
+
             // This should never happen, as it's invalid for Option to be
             // constructed w/o any names.
             throw new InvalidOperationException("Option has no names!");
@@ -646,6 +662,7 @@ namespace ServiceControl.Monitoring
             {
                 throw new ArgumentNullException(nameof(option));
             }
+
             try
             {
                 return base[option];
@@ -686,6 +703,7 @@ namespace ServiceControl.Monitoring
             {
                 throw new ArgumentNullException(nameof(option));
             }
+
             var added = new List<string>(option.Names.Length);
             try
             {
@@ -702,6 +720,7 @@ namespace ServiceControl.Monitoring
                 {
                     Dictionary.Remove(name);
                 }
+
                 throw;
             }
         }
@@ -721,6 +740,7 @@ namespace ServiceControl.Monitoring
                 {
                     throw new ArgumentNullException(nameof(action));
                 }
+
                 this.action = action;
             }
 
@@ -743,8 +763,9 @@ namespace ServiceControl.Monitoring
             {
                 throw new ArgumentNullException(nameof(action));
             }
+
             Option p = new ActionOption(prototype, description, 1,
-                delegate (OptionValueCollection v) { action(v[0]); });
+                delegate(OptionValueCollection v) { action(v[0]); });
             base.Add(p);
             return this;
         }
@@ -760,8 +781,9 @@ namespace ServiceControl.Monitoring
             {
                 throw new ArgumentNullException(nameof(action));
             }
+
             Option p = new ActionOption(prototype, description, 2,
-                delegate (OptionValueCollection v) { action(v[0], v[1]); });
+                delegate(OptionValueCollection v) { action(v[0], v[1]); });
             base.Add(p);
             return this;
         }
@@ -775,6 +797,7 @@ namespace ServiceControl.Monitoring
                 {
                     throw new ArgumentNullException(nameof(action));
                 }
+
                 this.action = action;
             }
 
@@ -795,6 +818,7 @@ namespace ServiceControl.Monitoring
                 {
                     throw new ArgumentNullException(nameof(action));
                 }
+
                 this.action = action;
             }
 
@@ -877,16 +901,19 @@ namespace ServiceControl.Monitoring
                     process = false;
                     continue;
                 }
+
                 if (!process)
                 {
                     Unprocessed(unprocessed, def, c, argument);
                     continue;
                 }
+
                 if (!Parse(argument, c))
                 {
                     Unprocessed(unprocessed, def, c, argument);
                 }
             }
+
             c.Option?.Invoke(c);
             return unprocessed;
         }
@@ -899,6 +926,7 @@ namespace ServiceControl.Monitoring
                 extra.Add(argument);
                 return false;
             }
+
             c.OptionValues.Add(argument);
             c.Option = def;
             c.Option.Invoke(c);
@@ -921,6 +949,7 @@ namespace ServiceControl.Monitoring
             {
                 return false;
             }
+
             flag = m.Groups["flag"].Value;
             name = m.Groups["name"].Value;
             if (m.Groups["sep"].Success && m.Groups["value"].Success)
@@ -928,6 +957,7 @@ namespace ServiceControl.Monitoring
                 sep = m.Groups["sep"].Value;
                 value = m.Groups["value"].Value;
             }
+
             return true;
         }
 
@@ -961,13 +991,16 @@ namespace ServiceControl.Monitoring
                         ParseValue(v, c);
                         break;
                 }
+
                 return true;
             }
+
             // no match; is it a bool option?
             if (ParseBool(argument, n, c))
             {
                 return true;
             }
+
             // is it a bundled option?
             if (ParseBundledValue(f, string.Concat(n + s + v), c))
             {
@@ -991,6 +1024,7 @@ namespace ServiceControl.Monitoring
                     c.OptionValues.Add(o);
                 }
             }
+
             if (c.OptionValues.Count == c.Option.MaxValueCount ||
                 c.Option.OptionValueType == OptionValueType.Optional)
             {
@@ -1017,6 +1051,7 @@ namespace ServiceControl.Monitoring
                 p.Invoke(c);
                 return true;
             }
+
             return false;
         }
 
@@ -1026,6 +1061,7 @@ namespace ServiceControl.Monitoring
             {
                 return false;
             }
+
             for (var i = 0; i < n.Length; ++i)
             {
                 var opt = f + n[i];
@@ -1036,9 +1072,11 @@ namespace ServiceControl.Monitoring
                     {
                         return false;
                     }
+
                     throw new OptionException(string.Format(MessageLocalizer(
                         "Cannot bundle unregistered option '{0}'."), opt), opt);
                 }
+
                 var p = this[rn];
                 switch (p.OptionValueType)
                 {
@@ -1047,17 +1085,18 @@ namespace ServiceControl.Monitoring
                         break;
                     case OptionValueType.Optional:
                     case OptionValueType.Required:
-                        {
-                            var v = n.Substring(i + 1);
-                            c.Option = p;
-                            c.OptionName = opt;
-                            ParseValue(v.Length != 0 ? v : null, c);
-                            return true;
-                        }
+                    {
+                        var v = n.Substring(i + 1);
+                        c.Option = p;
+                        c.OptionName = opt;
+                        ParseValue(v.Length != 0 ? v : null, c);
+                        return true;
+                    }
                     default:
                         throw new InvalidOperationException("Unknown OptionValueType: " + p.OptionValueType);
                 }
             }
+
             return true;
         }
 
@@ -1124,7 +1163,8 @@ namespace ServiceControl.Monitoring
             }
 
             for (i = GetNextOptionIndex(names, i + 1);
-                i < names.Length; i = GetNextOptionIndex(names, i + 1))
+                i < names.Length;
+                i = GetNextOptionIndex(names, i + 1))
             {
                 Write(o, ref written, ", ");
                 Write(o, ref written, names[i].Length == 1 ? "-" : "--");
@@ -1138,6 +1178,7 @@ namespace ServiceControl.Monitoring
                 {
                     Write(o, ref written, MessageLocalizer("["));
                 }
+
                 Write(o, ref written, MessageLocalizer("=" + GetArgumentName(0, p.MaxValueCount, p.Description)));
                 var sep = p.ValueSeparators != null && p.ValueSeparators.Length > 0
                     ? p.ValueSeparators[0]
@@ -1146,11 +1187,13 @@ namespace ServiceControl.Monitoring
                 {
                     Write(o, ref written, MessageLocalizer(sep + GetArgumentName(c, p.MaxValueCount, p.Description)));
                 }
+
                 if (p.OptionValueType == OptionValueType.Optional)
                 {
                     Write(o, ref written, MessageLocalizer("]"));
                 }
             }
+
             return true;
         }
 
@@ -1160,6 +1203,7 @@ namespace ServiceControl.Monitoring
             {
                 ++i;
             }
+
             return i;
         }
 
@@ -1175,6 +1219,7 @@ namespace ServiceControl.Monitoring
             {
                 return maxIndex == 1 ? "VALUE" : "VALUE" + (index + 1);
             }
+
             string[] nameStart;
             if (maxIndex == 1)
             {
@@ -1191,6 +1236,7 @@ namespace ServiceControl.Monitoring
                     "{" + index + ":"
                 };
             }
+
             for (var i = 0; i < nameStart.Length; ++i)
             {
                 int start, j = 0;
@@ -1198,17 +1244,21 @@ namespace ServiceControl.Monitoring
                 {
                     start = description.IndexOf(nameStart[i], j);
                 } while (start >= 0 && j != 0 && description[j++ - 1] == '{');
+
                 if (start == -1)
                 {
                     continue;
                 }
+
                 var end = description.IndexOf("}", start);
                 if (end == -1)
                 {
                     continue;
                 }
+
                 return description.Substring(start + nameStart[i].Length, end - start - nameStart[i].Length);
             }
+
             return maxIndex == 1 ? "VALUE" : "VALUE" + (index + 1);
         }
 
@@ -1218,6 +1268,7 @@ namespace ServiceControl.Monitoring
             {
                 return string.Empty;
             }
+
             var sb = new StringBuilder(description.Length);
             var start = -1;
             for (var i = 0; i < description.Length; ++i)
@@ -1234,6 +1285,7 @@ namespace ServiceControl.Monitoring
                         {
                             start = i + 1;
                         }
+
                         break;
                     case '}':
                         if (start < 0)
@@ -1242,6 +1294,7 @@ namespace ServiceControl.Monitoring
                             {
                                 throw new InvalidOperationException("Invalid option description: " + description);
                             }
+
                             ++i;
                             sb.Append("}");
                         }
@@ -1250,12 +1303,14 @@ namespace ServiceControl.Monitoring
                             sb.Append(description.Substring(start, i - start));
                             start = -1;
                         }
+
                         break;
                     case ':':
                         if (start < 0)
                         {
                             goto default;
                         }
+
                         start = i + 1;
                         break;
                     default:
@@ -1263,9 +1318,11 @@ namespace ServiceControl.Monitoring
                         {
                             sb.Append(description[i]);
                         }
+
                         break;
                 }
             }
+
             return sb.ToString();
         }
 
@@ -1277,6 +1334,7 @@ namespace ServiceControl.Monitoring
                 lines.Add(string.Empty);
                 return lines;
             }
+
             var length = 80 - OptionWidth - 2;
             int start = 0, end;
             do
@@ -1296,17 +1354,20 @@ namespace ServiceControl.Monitoring
                         --end;
                     }
                 }
+
                 lines.Add(description.Substring(start, end - start));
                 if (cont)
                 {
                     lines[lines.Count - 1] += "-";
                 }
+
                 start = end;
                 if (start < description.Length && description[start] == '\n')
                 {
                     ++start;
                 }
             } while (end < description.Length);
+
             return lines;
         }
 
@@ -1331,10 +1392,12 @@ namespace ServiceControl.Monitoring
                         return i;
                 }
             }
+
             if (sep == -1 || end == description.Length)
             {
                 return end;
             }
+
             return sep;
         }
     }

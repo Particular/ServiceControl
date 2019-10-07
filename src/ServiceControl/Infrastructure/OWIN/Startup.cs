@@ -2,17 +2,21 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Net.Http.Headers;
+    using System.Reflection;
+    using System.Web.Http;
+    using System.Web.Http.Dispatcher;
     using Autofac;
-    using global::Nancy.Owin;
+    using Autofac.Integration.WebApi;
     using Metrics;
     using Microsoft.AspNet.SignalR;
     using Microsoft.Owin.Cors;
-    using Nancy;
     using Newtonsoft.Json;
     using Owin;
     using Owin.Metrics;
     using ServiceControl.Infrastructure.OWIN;
     using ServiceControl.Infrastructure.SignalR;
+    using ServiceControl.Infrastructure.WebApi;
 
     class Startup
     {
@@ -21,26 +25,44 @@
             this.container = container;
         }
 
-        public void Configuration(IAppBuilder app)
+        public void Configuration(IAppBuilder app, Assembly additionalAssembly = null)
         {
             app.Map("/metrics", b =>
             {
                 Metric.Config
                     .WithOwin(middleware => b.Use(middleware), config => config
-                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(String.Empty)))
+                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(string.Empty)))
                     .WithAllCounters();
             });
 
             app.Map("/api", b =>
             {
+                b.Use<BodyUrlRouteFix>();
                 b.Use<LogApiCalls>();
+
+                b.UseCors(Cors.AuditCorsOptions);
 
                 ConfigureSignalR(b);
 
-                b.UseNancy(new NancyOptions
-                {
-                    Bootstrapper = new NServiceBusContainerBootstrapper(container)
-                });
+                var config = new HttpConfiguration();
+                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
+                config.MapHttpAttributeRoutes();
+
+                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
+
+                var jsonMediaTypeFormatter = config.Formatters.JsonFormatter;
+                jsonMediaTypeFormatter.SerializerSettings = JsonNetSerializerSettings.CreateDefault();
+                jsonMediaTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.particular.1+json"));
+                config.Formatters.Remove(config.Formatters.XmlFormatter);
+
+                config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
+
+                config.MessageHandlers.Add(new XParticularVersionHttpHandler());
+                config.MessageHandlers.Add(new CompressionEncodingHttpHandler());
+                config.MessageHandlers.Add(new CachingHttpHandler());
+                config.MessageHandlers.Add(new NotModifiedStatusHttpHandler());
+
+                b.UseWebApi(config);
             });
         }
 
@@ -66,6 +88,26 @@
         }
 
         private readonly IContainer container;
+    }
+
+    class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
+    {
+        public OnlyExecutingAssemblyResolver(Assembly additionalAssembly)
+        {
+            this.additionalAssembly = additionalAssembly;
+        }
+
+        public override ICollection<Assembly> GetAssemblies()
+        {
+            if (additionalAssembly != null)
+            {
+                return new[] {Assembly.GetExecutingAssembly(), additionalAssembly};
+            }
+
+            return new[] {Assembly.GetExecutingAssembly()};
+        }
+
+        readonly Assembly additionalAssembly;
     }
 
     class AutofacDependencyResolver : DefaultDependencyResolver

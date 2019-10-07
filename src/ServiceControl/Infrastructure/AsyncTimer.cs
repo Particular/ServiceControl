@@ -42,6 +42,7 @@
                             {
                                 await Task.Delay(interval, token).ConfigureAwait(false);
                             }
+
                             //Otherwise execute immediately
                         }
                         catch (OperationCanceledException)
@@ -58,7 +59,6 @@
                 {
                     // no-op
                 }
-
             }, CancellationToken.None);
         }
 

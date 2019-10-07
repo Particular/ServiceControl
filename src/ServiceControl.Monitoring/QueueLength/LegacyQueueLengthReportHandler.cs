@@ -11,8 +11,6 @@
 
     class LegacyQueueLengthReportHandler : IHandleMessages<MetricReport>
     {
-        LegacyQueueLengthEndpoints legacyEndpoints;
-
         public LegacyQueueLengthReportHandler(LegacyQueueLengthEndpoints legacyEndpoints)
         {
             this.legacyEndpoints = legacyEndpoints;
@@ -30,13 +28,12 @@
             return TaskEx.Completed;
         }
 
+        LegacyQueueLengthEndpoints legacyEndpoints;
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(LegacyQueueLengthReportHandler));
+
         public class LegacyQueueLengthEndpoints
         {
-            static long cleanIntervalTicks = TimeSpan.FromHours(1).Ticks;
-
-            ConcurrentDictionary<string, string> registeredInstances = new ConcurrentDictionary<string, string>();
-            long lastCleanTicks = DateTime.UtcNow.Ticks;
-
             public bool TryAdd(string id)
             {
                 var nowTicks = DateTime.UtcNow.Ticks;
@@ -44,14 +41,16 @@
                 if (Volatile.Read(ref lastCleanTicks) + cleanIntervalTicks < nowTicks)
                 {
                     Interlocked.Exchange(ref lastCleanTicks, nowTicks);
-                    
+
                     registeredInstances.Clear();
                 }
 
                 return registeredInstances.TryAdd(id, id);
             }
-        }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(LegacyQueueLengthReportHandler));
+            ConcurrentDictionary<string, string> registeredInstances = new ConcurrentDictionary<string, string>();
+            long lastCleanTicks = DateTime.UtcNow.Ticks;
+            static long cleanIntervalTicks = TimeSpan.FromHours(1).Ticks;
+        }
     }
 }

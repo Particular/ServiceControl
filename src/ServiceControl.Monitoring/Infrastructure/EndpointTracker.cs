@@ -14,7 +14,7 @@
             this.activityTracker = activityTracker;
         }
 
-        public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
+        public Task Handle(EndpointMetadataReport message, IMessageHandlerContext context)
         {
             return RecordEndpointInstanceId(context);
         }
@@ -24,7 +24,7 @@
             return RecordEndpointInstanceId(context);
         }
 
-        public Task Handle(EndpointMetadataReport message, IMessageHandlerContext context)
+        public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
             return RecordEndpointInstanceId(context);
         }
@@ -39,7 +39,8 @@
             return TaskEx.Completed;
         }
 
-        EndpointRegistry endpointRegistry;
         readonly EndpointInstanceActivityTracker activityTracker;
+
+        EndpointRegistry endpointRegistry;
     }
 }

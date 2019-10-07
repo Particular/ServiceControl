@@ -26,7 +26,7 @@ namespace ServiceControl.CompositeViews.Messages
                     CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
                     ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
                     DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
-                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
+                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] {string.Join(" ", message.Headers.Select(x => x.Value))}).ToArray(),
                     ConversationId = (string)message.MessageMetadata["ConversationId"]
                 });
 
@@ -49,7 +49,7 @@ namespace ServiceControl.CompositeViews.Messages
                     CriticalTime = (TimeSpan?)null,
                     ProcessingTime = (TimeSpan?)null,
                     DeliveryTime = (TimeSpan?)null,
-                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
+                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] {string.Join(" ", last.Headers.Select(x => x.Value))}).ToArray(),
                     ConversationId = (string)last.MessageMetadata["ConversationId"]
                 });
 

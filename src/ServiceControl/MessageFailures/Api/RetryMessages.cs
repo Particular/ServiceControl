@@ -2,84 +2,88 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using System.Web.Http;
     using InternalMessages;
-    using Nancy;
-    using Nancy.ModelBinding;
     using NServiceBus;
     using Recoverability;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
 
-    class RetryMessages : BaseModule
+    public class RetryMessagesController : ApiController
     {
-        public RetryMessages()
+        internal RetryMessagesController(RetryMessagesApi retryMessagesApi, IMessageSession messageSession)
         {
-            Post["/errors/{messageid}/retry", true] = async (parameters, token) =>
-            {
-                var failedMessageId = parameters.MessageId;
-
-                if (string.IsNullOrEmpty(failedMessageId))
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-
-                return await RetryMessagesApi.Execute(this, failedMessageId);
-            };
-
-            Post["/errors/retry", true] = async (_, token) =>
-            {
-                var ids = this.Bind<List<string>>();
-
-                if (ids.Any(string.IsNullOrEmpty))
-                {
-                    return HttpStatusCode.BadRequest;
-                }
-
-                await Bus.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = ids.ToArray())
-                    .ConfigureAwait(false);
-
-                return HttpStatusCode.Accepted;
-            };
-
-            Post["/errors/queues/{queueaddress}/retry", true] = async (parameters, token) =>
-            {
-                string queueAddress = parameters.queueaddress;
-
-                if (string.IsNullOrWhiteSpace(queueAddress))
-                {
-                    return Negotiate.WithReasonPhrase("queueaddress URL parameter must be provided").WithStatusCode(HttpStatusCode.BadRequest);
-                }
-
-                await Bus.SendLocal<RetryMessagesByQueueAddress>(m =>
-                {
-                    m.QueueAddress = queueAddress;
-                    m.Status = FailedMessageStatus.Unresolved;
-                }).ConfigureAwait(false);
-
-                return HttpStatusCode.Accepted;
-            };
-
-            Post["/errors/retry/all", true] = async (_, token) =>
-            {
-                var request = new RequestRetryAll();
-
-                await Bus.SendLocal(request)
-                    .ConfigureAwait(false);
-
-                return HttpStatusCode.Accepted;
-            };
-
-            Post["/errors/{name}/retry/all", true] = async (parameters, token) =>
-            {
-                var request = new RequestRetryAll {Endpoint = parameters.name};
-
-                await Bus.SendLocal(request).ConfigureAwait(false);
-
-                return HttpStatusCode.Accepted;
-            };
+            this.messageSession = messageSession;
+            this.retryMessagesApi = retryMessagesApi;
         }
 
-        public RetryMessagesApi RetryMessagesApi { get; set; }
+        [Route("errors/{failedmessageid}/retry")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RetryMessageBy(string failedMessageId)
+        {
+            if (string.IsNullOrEmpty(failedMessageId))
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
 
-        public IMessageSession Bus { get; set; }
+            return await retryMessagesApi.Execute(this, failedMessageId).ConfigureAwait(false);
+        }
+
+        [Route("errors/retry")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RetryAllBy(List<string> messageIds)
+        {
+            if (messageIds.Any(string.IsNullOrEmpty))
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+
+            await messageSession.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray())
+                .ConfigureAwait(false);
+
+            return Request.CreateResponse(HttpStatusCode.Accepted);
+        }
+
+        [Route("errors/queues/{queueaddress}/retry")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RetryAllBy(string queueAddress)
+        {
+            if (string.IsNullOrWhiteSpace(queueAddress))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "queueaddress URL parameter must be provided");
+            }
+
+            await messageSession.SendLocal<RetryMessagesByQueueAddress>(m =>
+            {
+                m.QueueAddress = queueAddress;
+                m.Status = FailedMessageStatus.Unresolved;
+            }).ConfigureAwait(false);
+
+            return Request.CreateResponse(HttpStatusCode.Accepted);
+        }
+
+        [Route("errors/retry/all")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RetryAll()
+        {
+            await messageSession.SendLocal(new RequestRetryAll())
+                .ConfigureAwait(false);
+
+            return Request.CreateResponse(HttpStatusCode.Accepted);
+        }
+
+        [Route("errors/{endpointname}/retry/all")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RetryAllByEndpoint(string endpointName)
+        {
+            await messageSession.SendLocal(new RequestRetryAll {Endpoint = endpointName})
+                .ConfigureAwait(false);
+
+            return Request.CreateResponse(HttpStatusCode.Accepted);
+        }
+
+        readonly RetryMessagesApi retryMessagesApi;
+        readonly IMessageSession messageSession;
     }
 }

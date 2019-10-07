@@ -13,7 +13,8 @@
         public bool SupportsNativePubSub => true;
         public bool SupportsNativeDeferral => true;
         public bool SupportsOutbox => false;
-        public IConfigureEndpointTestExecution CreateTransportConfiguration() => 
+
+        public IConfigureEndpointTestExecution CreateTransportConfiguration() =>
             GetTransportIntegrationFromConnectionFile()
             ?? GetTransportIntegrationFromEnvironmentVar()
             ?? new ConfigureEndpointMsmqTransport();
@@ -21,9 +22,9 @@
         public IConfigureEndpointTestExecution CreatePersistenceConfiguration() => new ConfigureEndpointInMemoryPersistence();
 
         static ITransportIntegration GetTransportIntegrationFromEnvironmentVar() => CreateTransportIntegration(
-                Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.TransportCustomization"),
-                Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString")
-            );
+            Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.TransportCustomization"),
+            Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString")
+        );
 
         static ITransportIntegration GetTransportIntegrationFromConnectionFile()
         {
@@ -32,14 +33,13 @@
             {
                 return null;
             }
-            
+
             var lines = File.ReadLines(connectionFile)
                 .Skip(1) // Name
                 .Take(2) // TransportCustomizationTypeName, ConnectionString
                 .ToArray();
 
             return CreateTransportIntegration(lines[0], lines[1]);
-
         }
 
         static string GetConnectionFile()

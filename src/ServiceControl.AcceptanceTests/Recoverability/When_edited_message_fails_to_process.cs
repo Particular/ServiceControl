@@ -4,15 +4,14 @@
     using System.Threading.Tasks;
     using EndpointTemplates;
     using Newtonsoft.Json;
-    using NServiceBus.AcceptanceTesting;
-    using NUnit.Framework;
     using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
+    using NUnit.Framework;
     using ServiceControl.AcceptanceTests;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using FailedMessage = ServiceControl.MessageFailures.FailedMessage;
 
     class When_edited_message_fails_to_process : AcceptanceTest
     {
@@ -75,7 +74,7 @@
             Assert.AreEqual(FailedMessageStatus.Resolved, context.OriginalMessageFailure.Status);
             Assert.AreEqual(FailedMessageStatus.Unresolved, context.EditedMessageFailure.Status);
             Assert.AreEqual(
-                context.OriginalMessageFailure.Id, 
+                context.OriginalMessageFailure.Id,
                 "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["service_control.edit_of"]);
         }
 
@@ -92,17 +91,11 @@
         {
             public FailingEditedMessageReceiver()
             {
-                EndpointSetup<DefaultServer>(c =>
-                {
-                    c.NoRetries();
-                });
+                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
             }
 
             class FailingMessageHandler : IHandleMessages<FailingMessage>
             {
-                EditMessageFailureContext testContext;
-                ReadOnlySettings settings;
-
                 public FailingMessageHandler(EditMessageFailureContext testContext, ReadOnlySettings settings)
                 {
                     this.testContext = testContext;
@@ -122,6 +115,9 @@
 
                     throw new SimulatedException();
                 }
+
+                EditMessageFailureContext testContext;
+                ReadOnlySettings settings;
             }
         }
 

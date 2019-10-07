@@ -4,19 +4,17 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using System.Web.Http;
     using Autofac;
     using Infrastructure.Settings;
-    using Nancy;
+    using Infrastructure.WebApi;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Extensions;
-    using ServiceBus.Management.Infrastructure.Nancy;
-    using ServiceBus.Management.Infrastructure.Nancy.Modules;
     using ServiceBus.Management.Infrastructure.Settings;
-    using HttpStatusCode = System.Net.HttpStatusCode;
 
     interface IApi
     {
@@ -34,23 +32,31 @@ namespace ServiceControl.CompositeViews.Messages
         }
     }
 
+
     // used to hoist the static jsonSerializer field across the generic instances
     abstract class ScatterGatherApiBase
     {
-        protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializer.CreateDefault());
+        protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
     }
 
     abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
-        public IDocumentStore Store { get; set; }
-        public Settings Settings { get; set; }
-        public Func<HttpClient> HttpClientFactory { get; set; }
+        protected ScatterGatherApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory)
+        {
+            Store = documentStore;
+            Settings = settings;
+            HttpClientFactory = httpClientFactory;
+        }
 
-        public async Task<dynamic> Execute(BaseModule module, TIn input)
+        protected IDocumentStore Store { get; }
+        protected Settings Settings { get; }
+        protected Func<HttpClient> HttpClientFactory { get; }
+
+        public async Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
         {
             var remotes = Settings.RemoteInstances;
-            var currentRequest = module.Request;
+            var currentRequest = controller.Request;
 
             var instanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
@@ -59,25 +65,24 @@ namespace ServiceControl.CompositeViews.Messages
             };
             foreach (var remote in remotes)
             {
-                tasks.Add(RemoteCall(currentRequest, remote.ApiUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
+                tasks.Add(RemoteCall(currentRequest, remote.ApiAsUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
             }
 
             var response = AggregateResults(currentRequest, await Task.WhenAll(tasks).ConfigureAwait(false));
 
-            var negotiate = module.Negotiate;
-            return negotiate.WithQueryResult(response, currentRequest);
+            return Negotiator.FromQueryResult(currentRequest, response);
         }
 
-        async Task<QueryResult<TOut>> LocalCall(Request request, TIn input, string instanceId)
+        async Task<QueryResult<TOut>> LocalCall(HttpRequestMessage request, TIn input, string instanceId)
         {
             var result = await LocalQuery(request, input).ConfigureAwait(false);
             result.InstanceId = instanceId;
             return result;
         }
 
-        public abstract Task<QueryResult<TOut>> LocalQuery(Request request, TIn input);
+        protected abstract Task<QueryResult<TOut>> LocalQuery(HttpRequestMessage request, TIn input);
 
-        internal QueryResult<TOut> AggregateResults(Request request, QueryResult<TOut>[] results)
+        internal QueryResult<TOut> AggregateResults(HttpRequestMessage request, QueryResult<TOut>[] results)
         {
             var combinedResults = ProcessResults(request, results);
 
@@ -87,7 +92,7 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        protected abstract TOut ProcessResults(Request request, QueryResult<TOut>[] results);
+        protected abstract TOut ProcessResults(HttpRequestMessage request, QueryResult<TOut>[] results);
 
         protected virtual QueryStatsInfo AggregateStats(IEnumerable<QueryResult<TOut>> results, TOut processedResults)
         {
@@ -100,14 +105,14 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        async Task<QueryResult<TOut>> RemoteCall(Request currentRequest, string remoteUri, string instanceId)
+        async Task<QueryResult<TOut>> RemoteCall(HttpRequestMessage currentRequest, Uri remoteUri, string instanceId)
         {
             var fetched = await FetchAndParse(currentRequest, remoteUri, instanceId).ConfigureAwait(false);
             fetched.InstanceId = instanceId;
             return fetched;
         }
 
-        async Task<QueryResult<TOut>> FetchAndParse(Request currentRequest, string remoteUri, string instanceId)
+        async Task<QueryResult<TOut>> FetchAndParse(HttpRequestMessage currentRequest, Uri remoteUri, string instanceId)
         {
             var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
             var httpClient = HttpClientFactory();
@@ -154,5 +159,25 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
+    }
+
+    abstract class ScatterGatherApiNoInput<TOut> : ScatterGatherApi<NoInput, TOut>
+        where TOut : class
+    {
+        protected ScatterGatherApiNoInput(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        {
+        }
+
+        public Task<HttpResponseMessage> Execute(ApiController controller)
+        {
+            return Execute(controller, NoInput.Instance);
+        }
+
+        protected override Task<QueryResult<TOut>> LocalQuery(HttpRequestMessage request, NoInput input)
+        {
+            return LocalQuery(request);
+        }
+
+        protected abstract Task<QueryResult<TOut>> LocalQuery(HttpRequestMessage request);
     }
 }

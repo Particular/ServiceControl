@@ -7,12 +7,17 @@ namespace ServiceControl.Monitoring
     {
         public override Task Execute(Settings settings)
         {
-            var endpointConfig = EndpointFactory.PrepareConfiguration(settings);
+            var endpointConfig = new EndpointConfiguration(settings.EndpointName);
+
+            new Bootstrapper(settings).CreateReceiver(endpointConfig);
+
             endpointConfig.EnableInstallers(settings.Username);
+
             if (settings.SkipQueueCreation)
             {
                 endpointConfig.DoNotCreateQueues();
             }
+
             return Endpoint.Create(endpointConfig);
         }
     }

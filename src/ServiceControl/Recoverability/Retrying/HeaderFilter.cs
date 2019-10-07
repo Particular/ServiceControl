@@ -14,7 +14,8 @@
             return headersToRetryWith;
         }
 
-        static readonly string[] KeysToRemoveWhenRetryingAMessage = {
+        static readonly string[] KeysToRemoveWhenRetryingAMessage =
+        {
             "NServiceBus.Retries",
             "NServiceBus.FailedQ",
             "NServiceBus.TimeOfFailure",

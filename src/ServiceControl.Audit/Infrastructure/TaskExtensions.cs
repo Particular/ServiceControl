@@ -10,6 +10,5 @@
         public static void Ignore(this Task task)
         {
         }
-
     }
 }

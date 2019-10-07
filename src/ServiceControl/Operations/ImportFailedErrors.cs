@@ -10,9 +10,6 @@
 
     class ImportFailedErrors
     {
-        IDocumentStore store;
-        ErrorIngestor errorIngestor;
-
         public ImportFailedErrors(IDocumentStore store, ErrorIngestor errorIngestor)
         {
             this.store = store;
@@ -68,6 +65,9 @@
                 Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.");
             }
         }
+
+        IDocumentStore store;
+        ErrorIngestor errorIngestor;
 
         static TransportTransaction EmptyTransaction = new TransportTransaction();
         static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();

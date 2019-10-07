@@ -5,8 +5,9 @@
     using System.IO;
     using System.Text;
     using System.Threading;
+    using Newtonsoft.Json;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure.Nancy;
+    using ServiceControl.Infrastructure.WebApi;
 
     [TestFixture]
     public class SerializationTests
@@ -18,11 +19,14 @@
 
             using (new DisposableCulture("tr-TR"))
             {
-                var serializer = new JsonNetSerializer();
+                var serializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
                 var stream = new MemoryStream();
                 var messages = CreateMessages();
 
-                serializer.Serialize("application/json", messages, stream);
+                using (var writer = new JsonTextWriter(new StreamWriter(stream)))
+                {
+                    serializer.Serialize(writer, messages);
+                }
 
                 Assert.AreEqual(expected, Encoding.Default.GetString(stream.ToArray()));
             }

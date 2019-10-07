@@ -13,5 +13,6 @@
   "HttpHostName": "localhost",
   "HttpPort": "9999",
   "EndpointUptimeGracePeriod": "00:00:40",
-  "SkipQueueCreation": false
+  "SkipQueueCreation": false,
+  "RootUrl": "http://localhost:9999/"
 }

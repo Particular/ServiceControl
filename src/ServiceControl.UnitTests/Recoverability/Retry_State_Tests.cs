@@ -190,11 +190,10 @@
                         //Continue trying until there is no exception -> poison message is removed from the batch
                         c = true;
                     }
-
                 } while (c);
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
-                
+
                 Assert.AreEqual(RetryState.Completed, status.RetryState);
                 Assert.AreEqual(3, status.NumberOfMessagesPrepared);
                 Assert.AreEqual(2, status.NumberOfMessagesForwarded);
@@ -346,6 +345,7 @@
             {
                 Callback(operation);
             }
+
             return Task.FromResult(0);
         }
     }

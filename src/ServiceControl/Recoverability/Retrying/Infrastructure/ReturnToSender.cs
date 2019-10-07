@@ -23,7 +23,7 @@ namespace ServiceControl.Recoverability
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
 
             var messageId = message.MessageId;
-            if(Log.IsDebugEnabled)
+            if (Log.IsDebugEnabled)
             {
                 Log.DebugFormat("{0}: Retrieving message body", messageId);
             }
@@ -39,7 +39,7 @@ namespace ServiceControl.Recoverability
                         body = ReadFully(result.Stream);
                     }
 
-                    if(Log.IsDebugEnabled)
+                    if (Log.IsDebugEnabled)
                     {
                         Log.DebugFormat("{0}: Body size: {1} bytes", messageId, body.LongLength);
                     }
@@ -59,7 +59,7 @@ namespace ServiceControl.Recoverability
             var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body);
 
             var destination = outgoingHeaders["ServiceControl.TargetEndpointAddress"];
-            if(Log.IsDebugEnabled)
+            if (Log.IsDebugEnabled)
             {
                 Log.DebugFormat("{0}: Forwarding message to {1}", messageId, destination);
             }
@@ -71,7 +71,7 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                if(Log.IsDebugEnabled)
+                if (Log.IsDebugEnabled)
                 {
                     Log.DebugFormat("{0}: Found ServiceControl.RetryTo header. Rerouting to {1}", messageId, retryTo);
                 }

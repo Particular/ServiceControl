@@ -1,32 +1,25 @@
 ﻿namespace ServiceControl.Monitoring.Licensing
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
-    using System;
-    using System.Threading.Tasks;
-    using System.Threading;
-    
+
     class LicenseCheckFeature : Feature
     {
-        public LicenseCheckFeature()
-        {
-            EnableByDefault();
-        }
-
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(new LicenseCheckFeatureStartup());
+            context.Container.ConfigureComponent<LicenseManager>(DependencyLifecycle.SingleInstance);
+            context.RegisterStartupTask(b => b.Build<LicenseCheckFeatureStartup>());
         }
     }
 
     class LicenseCheckFeatureStartup : FeatureStartupTask, IDisposable
     {
-        Timer checklicenseTimer;
-        LicenseManager licenseManager = new LicenseManager();
-
-        protected override Task OnStart(IMessageSession session)
+        public LicenseCheckFeatureStartup(LicenseManager licenseManager)
         {
-            return Task.Run(() => checklicenseTimer = new Timer( objectstate => { licenseManager.Refresh(); }, null, TimeSpan.Zero, TimeSpan.FromHours(8)));
+            this.licenseManager = licenseManager;
         }
 
         public void Dispose()
@@ -34,10 +27,17 @@
             checklicenseTimer?.Dispose();
         }
 
+        protected override Task OnStart(IMessageSession session)
+        {
+            return Task.Run(() => checklicenseTimer = new Timer(objectstate => { licenseManager.Refresh(); }, null, TimeSpan.Zero, TimeSpan.FromHours(8)));
+        }
+
         protected override Task OnStop(IMessageSession session)
         {
             return Task.FromResult(0);
         }
+
+        Timer checklicenseTimer;
+        LicenseManager licenseManager;
     }
 }
-

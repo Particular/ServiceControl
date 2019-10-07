@@ -27,7 +27,7 @@
                     rec.FailureDetails.TimeOfFailure,
                     LastModified = MetadataFor(failure)["Last-Modified"].Value<DateTime>(),
                     Edited = edited,
-                    EditOf = edited ? rec.Headers["ServiceControl.EditOf"] : "",
+                    EditOf = edited ? rec.Headers["ServiceControl.EditOf"] : ""
                 };
         }
 

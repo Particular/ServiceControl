@@ -1,15 +1,21 @@
 namespace ServiceControl.CompositeViews.Messages
 {
+    using System;
     using System.Collections.Generic;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
-    using Nancy;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class SearchEndpointApi : ScatterGatherApiMessageView<SearchEndpointApi.Input>
     {
-        public override async Task<QueryResult<IList<MessagesView>>> LocalQuery(Request request, Input input)
+        public SearchEndpointApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        {
+        }
+
+        protected override async Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, Input input)
         {
             using (var session = Store.OpenAsyncSession())
             {

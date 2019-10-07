@@ -1,18 +1,19 @@
 namespace ServiceControl.MessageRedirects.Api
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Nancy;
+    using System.Net.Http;
 
     static class MessageRedirectsCollectionExtensions
     {
-        public static IOrderedEnumerable<MessageRedirect> Sort(this MessageRedirectsCollection source, Request request, string defaultSortDirection = "desc")
+        public static IOrderedEnumerable<MessageRedirect> Sort(this MessageRedirectsCollection source, HttpRequestMessage request, string defaultSortDirection = "desc")
         {
-            var direction = defaultSortDirection;
+            var query = request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value);
 
-            if (request.Query.direction.HasValue)
+            if (!query.TryGetValue("direction", out var direction))
             {
-                direction = (string)request.Query.direction;
+                direction = defaultSortDirection;
             }
 
             if (direction != "asc" && direction != "desc")
@@ -20,20 +21,12 @@ namespace ServiceControl.MessageRedirects.Api
                 direction = defaultSortDirection;
             }
 
-            var sortOptions = new[]
+            if (!query.TryGetValue("sort", out var sort))
             {
-                "from_physical_address",
-                "to_physical_address"
-            };
-
-            var sort = "from_physical_address";
-
-            if (request.Query.sort.HasValue)
-            {
-                sort = (string)request.Query.sort;
+                sort = "from_physical_address";
             }
 
-            if (!sortOptions.Contains(sort))
+            if (!SortOptions.Contains(sort))
             {
                 sort = "from_physical_address";
             }
@@ -46,13 +39,15 @@ namespace ServiceControl.MessageRedirects.Api
             return direction == "asc" ? source.Redirects.OrderBy(r => r.FromPhysicalAddress) : source.Redirects.OrderByDescending(r => r.FromPhysicalAddress);
         }
 
-        public static IEnumerable<MessageRedirect> Paging(this IEnumerable<MessageRedirect> source, Request request)
+        public static IEnumerable<MessageRedirect> Paging(this IEnumerable<MessageRedirect> source, HttpRequestMessage request)
         {
+            var query = request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value);
+
             var maxResultsPerPage = 50;
 
-            if (request.Query.per_page.HasValue)
+            if (query.TryGetValue("per_page", out var query_per_page))
             {
-                maxResultsPerPage = request.Query.per_page;
+                maxResultsPerPage = Convert.ToInt32(query_per_page);
             }
 
             if (maxResultsPerPage < 1)
@@ -62,9 +57,9 @@ namespace ServiceControl.MessageRedirects.Api
 
             var page = 1;
 
-            if (request.Query.page.HasValue)
+            if (query.TryGetValue("page", out var query_page))
             {
-                page = request.Query.page;
+                page = Convert.ToInt32(query_page);
             }
 
             if (page < 1)
@@ -77,5 +72,11 @@ namespace ServiceControl.MessageRedirects.Api
             return source.Skip(skipResults)
                 .Take(maxResultsPerPage);
         }
+
+        static HashSet<string> SortOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "from_physical_address",
+            "to_physical_address"
+        };
     }
 }

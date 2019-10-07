@@ -4,7 +4,7 @@
     using Contracts.EndpointControl;
     using NServiceBus;
 
-    class RegisterNewEndpointHandler : 
+    class RegisterNewEndpointHandler :
         IHandleMessages<NewEndpointDetected>,
         IHandleMessages<RegisterNewEndpoint>
     {

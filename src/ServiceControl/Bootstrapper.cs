@@ -1,6 +1,7 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Collections.Concurrent;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -8,7 +9,9 @@ namespace Particular.ServiceControl
     using System.Net.Http.Headers;
     using System.Reflection;
     using System.Threading.Tasks;
+    using System.Web.Http.Controllers;
     using Autofac;
+    using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
@@ -19,8 +22,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
-    using Nancy;
-    using Nancy.ModelBinding;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -102,9 +103,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
             containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
 
-            containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetSerializer>().As<ISerializer>();
-            containerBuilder.RegisterType<ServiceBus.Management.Infrastructure.Nancy.JsonNetBodyDeserializer>().As<IBodyDeserializer>();
-            containerBuilder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly()).Where(t => t.IsAssignableTo<INancyModule>()).As<INancyModule>();
+            RegisterInternalWebApiControllers(containerBuilder);
 
             additionalRegistrationActions?.Invoke(containerBuilder);
 
@@ -112,6 +111,17 @@ namespace Particular.ServiceControl
             Startup = new Startup(container);
 
             domainEvents.SetContainer(container);
+        }
+
+        static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
+        {
+            var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
+                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
+
+            foreach (var controllerType in controllerTypes)
+            {
+                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
+            }
         }
 
         public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
@@ -211,9 +221,9 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         }
 
         public IDisposable WebApp;
+        readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
-        readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
@@ -223,5 +233,17 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         private TransportSettings transportSettings;
         TransportCustomization transportCustomization;
         private static HttpClient httpClient;
+
+        class AllConstructorFinder : IConstructorFinder
+        {
+            public ConstructorInfo[] FindConstructors(Type targetType)
+            {
+                var result = Cache.GetOrAdd(targetType, t => t.GetTypeInfo().DeclaredConstructors.ToArray());
+
+                return result.Length > 0 ? result : throw new Exception($"No constructor found for type {targetType.FullName}");
+            }
+
+            static readonly ConcurrentDictionary<Type, ConstructorInfo[]> Cache = new ConcurrentDictionary<Type, ConstructorInfo[]>();
+        }
     }
 }

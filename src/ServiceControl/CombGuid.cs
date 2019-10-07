@@ -4,8 +4,9 @@
 
     /// <summary>
     /// Generates a Guid using http://www.informit.com/articles/article.asp?p=25862
-    /// The Comb algorithm is designed to make the use of <see cref="Guid"/>s as Primary Keys, Foreign Keys, and Indexes nearly as efficient
-    /// as <see cref="int"/>.
+    /// The Comb algorithm is designed to make the use of <see cref="Guid" />s as Primary Keys, Foreign Keys, and Indexes
+    /// nearly as efficient
+    /// as <see cref="int" />.
     /// </summary>
     /// <remarks>Source: https://github.com/nhibernate/nhibernate-core/blob/4.0.4.GA/src/NHibernate/Id/GuidCombGenerator.cs</remarks>
     static class CombGuid

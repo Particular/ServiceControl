@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using Contracts.Operations;
     using System;
+    using Contracts.Operations;
 
     public class FailedMessageView
     {
