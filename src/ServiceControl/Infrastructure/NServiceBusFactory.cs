@@ -8,6 +8,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using Raven.Client.Embedded;
+    using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations;
     using ServiceControl.Transports;
@@ -54,7 +55,7 @@ namespace ServiceBus.Management.Infrastructure
 
             if (!isRunningAcceptanceTests)
             {
-                configuration.ReportCustomChecksTo(endpointName);
+                configuration.EnableFeature<InternalCustomChecks>();
             }
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
