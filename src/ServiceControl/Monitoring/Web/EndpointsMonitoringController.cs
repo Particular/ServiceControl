@@ -7,6 +7,7 @@
     using System.Web.Http;
     using System.Web.Http.Results;
     using CompositeViews.Endpoints;
+    using Raven.Client;
 
     public class EndpointUpdateModel
     {
@@ -15,8 +16,11 @@
 
     public class EndpointsMonitoringController : ApiController
     {
-        internal EndpointsMonitoringController(EndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi)
+        readonly IDocumentStore documentStore;
+
+        internal EndpointsMonitoringController(EndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi, IDocumentStore documentStore)
         {
+            this.documentStore = documentStore;
             this.getKnownEndpointsApi = getKnownEndpointsApi;
             endpointInstanceMonitoring = monitoring;
         }
@@ -29,10 +33,34 @@
         [HttpGet]
         public OkNegotiatedContentResult<EndpointsView[]> Endpoints() => Ok(endpointInstanceMonitoring.GetEndpoints());
 
+        [Route("endpoints/{endpointId}")]
+        [HttpDelete]
+        public async Task<StatusCodeResult> DeleteEndpoint(Guid endpointId)
+        {
+            var removedFromCache = endpointInstanceMonitoring.RemoveEndpoint(endpointId);
+            if (removedFromCache == null)
+            {
+                return StatusCode(HttpStatusCode.NotFound);
+            }
+
+            await DeletePersistedEndpoint(endpointId).ConfigureAwait(false);
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        async Task DeletePersistedEndpoint(Guid endpointId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                session.Delete<KnownEndpoint>(endpointId);
+                await session.SaveChangesAsync().ConfigureAwait(false);    
+            }
+        }
+
         [Route("endpoints/known")]
         [HttpGet]
         public Task<HttpResponseMessage> KnownEndpoints() => getKnownEndpointsApi.Execute(this, endpointInstanceMonitoring);
 
+        
         [Route("endpoints/{endpointId}")]
         [HttpPatch]
         public async Task<StatusCodeResult> Foo(Guid endpointId, EndpointUpdateModel data)

@@ -124,5 +124,14 @@ namespace ServiceControl.Monitoring
         ConcurrentDictionary<Guid, EndpointInstanceMonitor> endpoints = new ConcurrentDictionary<Guid, EndpointInstanceMonitor>();
         ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor> heartbeats = new ConcurrentDictionary<EndpointInstanceId, HeartbeatMonitor>();
         EndpointMonitoringStats previousStats;
+
+        public EndpointInstanceId RemoveEndpoint(Guid endpointId)
+        {
+            if(endpoints.TryRemove(endpointId, out var endpoint))
+            {
+                return endpoint.Id;
+            }
+            return null;
+        }
     }
 }
