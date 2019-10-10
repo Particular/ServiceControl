@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -32,6 +33,22 @@
         [Route("endpoints")]
         [HttpGet]
         public OkNegotiatedContentResult<EndpointsView[]> Endpoints() => Ok(endpointInstanceMonitoring.GetEndpoints());
+
+        //Added as a way for SP to check if the DELETE operation is supported by the SC API
+        [Route("endpoints")]
+        [HttpOptions]
+        public HttpResponseMessage GetSupportedOperations()
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.NoContent)
+            {
+                Content = new ByteArrayContent(new byte[] { }) //need to force empty content to avoid null reference when adding headers below :(
+            };
+            
+            response.Content.Headers.Allow.Add("GET");
+            response.Content.Headers.Allow.Add("DELETE");
+            response.Content.Headers.Allow.Add("PATCH");
+            return response;
+        } 
 
         [Route("endpoints/{endpointId}")]
         [HttpDelete]
