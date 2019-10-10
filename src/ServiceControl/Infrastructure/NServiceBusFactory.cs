@@ -60,11 +60,7 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
 
-            configuration.DefineCriticalErrorAction(criticalErrorContext =>
-            {
-                onCriticalError(criticalErrorContext);
-                return Task.FromResult(0);
-            });
+            configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
 
             if (Environment.UserInteractive && Debugger.IsAttached)
             {

@@ -161,7 +161,11 @@ namespace ServiceBus.Management.AcceptanceTests
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedErrorsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
+                }, settings, configuration, loggingSettings, builder =>
+                {
+                    builder.RegisterType<FailedErrorsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
+                    builder.RegisterType<CriticalErrorTriggerController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
+                });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 
