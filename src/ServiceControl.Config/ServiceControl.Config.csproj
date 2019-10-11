@@ -44,7 +44,7 @@
     <Resource Include="Resources\**\*.*" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
     <None Remove="App.ico" />
     <Resource Include="App.ico" />
   </ItemGroup>
@@ -54,14 +54,14 @@
     <Page Include="Themes\Generic.xaml" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
