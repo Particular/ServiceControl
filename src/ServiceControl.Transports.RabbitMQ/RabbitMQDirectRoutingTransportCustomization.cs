@@ -21,7 +21,8 @@
         {
             transport.UseDirectRoutingTopology(routingKeyConvention: type => type.FullName.Replace(".", "-"));
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
-            transport.ConnectionString(transportSettings.ConnectionString);
+
+            transport.ApplyConnectionString(transportSettings.ConnectionString);
         }
     }
 }
