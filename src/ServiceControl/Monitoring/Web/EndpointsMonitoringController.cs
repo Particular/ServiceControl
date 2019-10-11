@@ -47,6 +47,7 @@
             response.Content.Headers.Allow.Add("GET");
             response.Content.Headers.Allow.Add("DELETE");
             response.Content.Headers.Allow.Add("PATCH");
+            response.Content.Headers.Add("Access-Control-Expose-Headers", "Allow");
             return response;
         } 
 
