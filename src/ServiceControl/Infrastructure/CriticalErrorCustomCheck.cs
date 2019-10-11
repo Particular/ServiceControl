@@ -5,7 +5,7 @@ namespace ServiceControl.Operations
     using NServiceBus;
     using NServiceBus.CustomChecks;
 
-    public class CriticalErrorCustomCheck : CustomCheck
+    class CriticalErrorCustomCheck : CustomCheck
     {
         static volatile string recentFailure;
 
