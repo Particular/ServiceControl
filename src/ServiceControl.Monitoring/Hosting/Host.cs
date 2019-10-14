@@ -33,8 +33,6 @@
 
         protected override void OnStart(string[] args)
         {
-            ServiceName = Settings.ServiceName;
-
             bootstrapper = new Bootstrapper(Settings);
             bootstrapper.Start().GetAwaiter().GetResult();
         }

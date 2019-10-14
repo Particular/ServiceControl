@@ -17,7 +17,11 @@ namespace ServiceControl.Monitoring
 
         Task RunNonBlocking(Settings settings)
         {
-            using (var service = new Host {Settings = settings})
+            using (var service = new Host
+            {
+                Settings = settings,
+                ServiceName = settings.ServiceName
+            })
             {
                 service.Run(false);
             }
@@ -27,7 +31,11 @@ namespace ServiceControl.Monitoring
 
         async Task RunAndWait(Settings settings)
         {
-            using (var service = new Host {Settings = settings})
+            using (var service = new Host
+            {
+                Settings = settings,
+                ServiceName = settings.ServiceName
+            })
             {
                 var tcs = new TaskCompletionSource<bool>();
 
