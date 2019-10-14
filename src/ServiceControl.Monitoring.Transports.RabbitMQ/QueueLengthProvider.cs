@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
     using global::RabbitMQ.Client;
@@ -139,7 +140,12 @@
             public void Initialize()
             {
                 var connectionConfiguration = ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
-                connectionFactory = new ConnectionFactory(connectionConfiguration, null, false, false);
+
+                var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+                connectionFactory = new ConnectionFactory(connectionConfiguration,
+                    dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
+                    dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"));
             }
 
             public async Task Execute(Action<IModel> action, CancellationToken token)

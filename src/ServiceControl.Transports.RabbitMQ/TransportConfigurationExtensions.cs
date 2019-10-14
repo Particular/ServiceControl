@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Transports.RabbitMQ
 {
     using NServiceBus;
-    using NServiceBus.Logging;
+    using System;
     using System.Data.Common;
 
     static class TransportConfigurationExtensions
@@ -10,39 +10,32 @@
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
-            if (builder.TryGetValue("DisableRemoteCertificateValidation", out var disableRemoteCertificateValidationValue))
+            if (builder.GetBooleanValue("DisableRemoteCertificateValidation"))
             {
-                if (bool.TryParse(disableRemoteCertificateValidationValue.ToString(), out var disableRemoteCertificateValidation))
-                {
-                    if (disableRemoteCertificateValidation)
-                    {
-                        transport.DisableRemoteCertificateValidation();
-                    }
-                }
-                else
-                {
-                    Logger.Warn($"Can't parse DisableRemoteCertificateValidation={disableRemoteCertificateValidationValue} as a valid boolean flag.");
-                }
+                transport.DisableRemoteCertificateValidation();
             }
 
-            if (builder.TryGetValue("UseExternalAuthMechanism", out var useExternalAuthMechanismValue))
+            if (builder.GetBooleanValue("UseExternalAuthMechanism"))
             {
-                if (bool.TryParse(useExternalAuthMechanismValue.ToString(), out var useExternalAuthMechanism))
-                {
-                    if (useExternalAuthMechanism)
-                    {
-                        transport.UseExternalAuthMechanism();
-                    }
-                }
-                else
-                {
-                    Logger.Warn($"Can't parse UseExternalAuthMechanism={useExternalAuthMechanismValue} as a valid boolean flag.");
-                }
+                transport.UseExternalAuthMechanism();
             }
 
             transport.ConnectionString(connectionString);
         }
 
-        static ILog Logger = LogManager.GetLogger("RabbitMQTransportCustomization");
+        public static bool GetBooleanValue(this DbConnectionStringBuilder dbConnectionStringBuilder, string key)
+        {
+            if (!dbConnectionStringBuilder.TryGetValue(key, out var rawValue))
+            {
+                return false;
+            }
+
+            if (!bool.TryParse(rawValue.ToString(), out var value))
+            {
+                throw new Exception($"Can't parse {key}, `{rawValue}` is not valid as a valid boolean flag.");
+            }
+
+            return value;
+        }
     }
 }
