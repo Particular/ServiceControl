@@ -943,12 +943,18 @@ namespace ServiceControl.Monitoring
     }
     public class EndpointsMonitoringController : System.Web.Http.ApiController
     {
+        [System.Web.Http.HttpDeleteAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpointId}")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> DeleteEndpoint(System.Guid endpointId) { }
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("endpoints")]
         public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.CompositeViews.Endpoints.EndpointsView[]> Endpoints() { }
         [System.Web.Http.HttpPatchAttribute()]
         [System.Web.Http.RouteAttribute("endpoints/{endpointId}")]
         public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Foo(System.Guid endpointId, ServiceControl.Monitoring.EndpointUpdateModel data) { }
+        [System.Web.Http.HttpOptionsAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints")]
+        public System.Net.Http.HttpResponseMessage GetSupportedOperations() { }
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("heartbeats/stats")]
         public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.Monitoring.EndpointMonitoringStats> HeartbeatStats() { }
