@@ -32,7 +32,7 @@
 
             if (!bool.TryParse(rawValue.ToString(), out var value))
             {
-                throw new Exception($"Can't parse {key}, `{rawValue}` is not valid as a valid boolean flag.");
+                throw new Exception($"Can't parse {key}, `{rawValue}` is not a valid boolean flag.");
             }
 
             return value;
