@@ -8,20 +8,19 @@
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Installers;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class SatelliteImportFailuresHandler
     {
         IDocumentStore store;
         string logPath;
 
-        Func<FailedTransportMessage, object> messageBuilder;
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<FailedTransportMessage, object> messageBuilder, CriticalError criticalError)
+        public SatelliteImportFailuresHandler(IDocumentStore store, LoggingSettings loggingSettings, CriticalError criticalError)
         {
             this.store = store;
-            this.logPath = logPath;
-            this.messageBuilder = messageBuilder;
+            logPath = Path.Combine(loggingSettings.LogPath, @"FailedImports\Error");
 
             failureCircuitBreaker = new ImportFailureCircuitBreaker(criticalError);
 
@@ -30,17 +29,20 @@
 
         public Task Handle(ErrorContext errorContext)
         {
-            var failure = (dynamic)messageBuilder(new FailedTransportMessage
+            var failure = new FailedErrorImport
             {
-                Id = errorContext.Message.MessageId,
-                Headers = errorContext.Message.Headers,
-                Body = errorContext.Message.Body
-            });
+                Message = new FailedTransportMessage
+                {
+                    Id = errorContext.Message.MessageId,
+                    Headers = errorContext.Message.Headers,
+                    Body = errorContext.Message.Body
+                }
+            };
 
             return Handle(errorContext.Exception, failure);
         }
 
-        async Task Handle(Exception exception, dynamic failure)
+        async Task Handle(Exception exception, FailedErrorImport failure)
         {
             try
             {
@@ -53,7 +55,7 @@
             }
         }
 
-        async Task DoLogging(Exception exception, dynamic failure)
+        async Task DoLogging(Exception exception, FailedErrorImport failure)
         {
             var id = Guid.NewGuid();
 

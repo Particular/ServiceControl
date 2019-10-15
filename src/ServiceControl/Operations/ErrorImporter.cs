@@ -47,12 +47,7 @@
 
         static SatelliteImportFailuresHandler CreateFailureHandler(IBuilder b)
         {
-            var documentStore = b.Build<IDocumentStore>();
-            var logPath = Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Error");
-            return new SatelliteImportFailuresHandler(documentStore, logPath, msg => new FailedErrorImport
-            {
-                Message = msg
-            }, b.Build<CriticalError>());
+            return new SatelliteImportFailuresHandler(b.Build<IDocumentStore>(), b.Build<LoggingSettings>(), b.Build<CriticalError>());
         }
 
         Task OnMessage(MessageContext messageContext)
