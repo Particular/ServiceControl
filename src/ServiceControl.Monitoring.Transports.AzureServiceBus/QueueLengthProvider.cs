@@ -2,6 +2,8 @@ namespace ServiceControl.Transports.AzureServiceBus
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Data.Common;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace ServiceControl.Transports.AzureServiceBus
 
     public class QueueLengthProvider : IProvideQueueLength
     {
-        ConcurrentDictionary<EndpointInstanceId, string> endpointQueueMappings = new ConcurrentDictionary<EndpointInstanceId, string>();
+        ConcurrentDictionary<string, EndpointInstanceId> endpointQueueMappings = new ConcurrentDictionary<string, EndpointInstanceId>();
 
         QueueLengthStore queueLengthStore;
         ManagementClient managementClient;
@@ -25,6 +27,20 @@ namespace ServiceControl.Transports.AzureServiceBus
 
         public void Initialize(string connectionString, QueueLengthStore store)
         {
+            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+            if (builder.TryGetValue(QueueLengthQueryIntervalPartName, out var value) )
+            {
+                if (int.TryParse(value.ToString(), out var queryDelayInterval))
+                {
+                    QueryDelayInterval = TimeSpan.FromMilliseconds(queryDelayInterval);
+                }
+                else
+                {
+                    Logger.Warn($"Can't parse {value} as a valid query delay interval.");
+                }
+            }
+
             this.queueLengthStore = store;
             this.managementClient = new ManagementClient(connectionString);
         }
@@ -32,9 +48,9 @@ namespace ServiceControl.Transports.AzureServiceBus
         public void Process(EndpointInstanceId endpointInstanceId, EndpointMetadataReport metadataReport)
         {
             endpointQueueMappings.AddOrUpdate(
-                endpointInstanceId,
-                id => metadataReport.LocalAddress,
-                (id, old) => metadataReport.LocalAddress
+                metadataReport.LocalAddress,
+                id => endpointInstanceId,
+                (id, old) => endpointInstanceId
             );
         }
 
@@ -59,12 +75,13 @@ namespace ServiceControl.Transports.AzureServiceBus
 
                         Logger.DebugFormat("Querying management client.");
 
-                        var queues = await managementClient.GetQueuesAsync(cancellationToken: token).ConfigureAwait(false);
-                        var lookup = queues.ToLookup(x => x.Path, StringComparer.InvariantCultureIgnoreCase);
+                        var queues = await GetQueueList(token);
 
-                        Logger.DebugFormat("Retrieved details of {0} queues", lookup.Count);
+                        Logger.DebugFormat("Retrieved details of {0} queues", queues.Count);
 
-                        await UpdateQueueLengthStore(lookup, token);
+                        var queuesLookup = new ConcurrentDictionary<string, QueueDescription>(queues, StringComparer.InvariantCultureIgnoreCase);
+
+                        await UpdateAllQueueLengths(queuesLookup, token);
                     }
                     catch (OperationCanceledException)
                     {
@@ -80,28 +97,52 @@ namespace ServiceControl.Transports.AzureServiceBus
             return TaskEx.Completed;
         }
 
-        async Task UpdateQueueLengthStore(ILookup<string, QueueDescription> queueData, CancellationToken token)
+        async Task<Dictionary<string, QueueDescription>> GetQueueList(CancellationToken token)
         {
-            var timestamp = DateTime.UtcNow.Ticks;
-            foreach (var mapping in endpointQueueMappings)
+            var pageSize = 100; //This is the maximal page size for GetQueueAsync
+            var pageNo = 0;
+
+            var queues = new List<QueueDescription>();
+
+            while (true)
             {
-                var queue = queueData[mapping.Value].FirstOrDefault();
-                if (queue != null)
+                var page = await managementClient.GetQueuesAsync(count:pageSize, skip: pageNo*pageSize, cancellationToken: token).ConfigureAwait(false);
+                
+                queues.AddRange(page);
+
+                if (page.Count < pageSize)
                 {
-                    var entries = new[]
+                    break;
+                }
+
+                pageNo++;
+            }
+
+            return queues.ToDictionary(q => q.Path, q => q);
+        }
+
+        Task UpdateAllQueueLengths(ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token) => Task.WhenAll(endpointQueueMappings.Select(eq => UpdateQueueLength(eq, queues, token)));
+
+        async Task UpdateQueueLength(KeyValuePair<string, EndpointInstanceId> monitoredEndpoint, ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token)
+        {
+            var endpointInstanceId = monitoredEndpoint.Value;
+            var queueName = monitoredEndpoint.Key;
+
+            if (queues.TryGetValue(queueName, out _))
+            {
+                var entries = new[]
+                {
+                    new RawMessage.Entry
                     {
-                        new RawMessage.Entry
-                        {
-                            DateTicks = timestamp,
-                            Value = (await managementClient.GetQueueRuntimeInfoAsync(queue.Path, token).ConfigureAwait(false)).MessageCountDetails.ActiveMessageCount
-                        }
-                    };
-                    queueLengthStore.Store(entries, new EndpointInputQueue(mapping.Key.EndpointName, queue.Path));
-                }
-                else
-                {
-                    Logger.DebugFormat("Endpoint {0} ({1}): no queue length data found for queue {2}", mapping.Key.EndpointName, mapping.Key.InstanceName ?? mapping.Key.InstanceId, mapping.Value);
-                }
+                        DateTicks =  DateTime.UtcNow.Ticks,
+                        Value = (await managementClient.GetQueueRuntimeInfoAsync(queueName, token).ConfigureAwait(false)).MessageCountDetails.ActiveMessageCount
+                    }
+                };
+                queueLengthStore.Store(entries, new EndpointInputQueue(endpointInstanceId.EndpointName, queueName));
+            }
+            else
+            {
+                Logger.DebugFormat("Endpoint {0} ({1}): no queue length data found for queue {2}", endpointInstanceId.EndpointName, endpointInstanceId.InstanceName ?? endpointInstanceId.InstanceId, monitoredEndpoint.Key);
             }
         }
 
@@ -112,7 +153,8 @@ namespace ServiceControl.Transports.AzureServiceBus
             await managementClient.CloseAsync().ConfigureAwait(false);
         }
 
-        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(500);
+        static string QueueLengthQueryIntervalPartName = "QueueLengthQueryDelayInterval";
 
         static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
     }
