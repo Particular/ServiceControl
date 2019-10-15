@@ -1,12 +1,8 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System.IO;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
-    using NServiceBus.ObjectBuilder;
-    using NServiceBus.Transport;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ErrorImporter : Feature
@@ -29,15 +25,7 @@
             context.Container.ConfigureComponent<ErrorPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
 
-            context.AddSatelliteReceiver(
-                "Error Queue Ingestor",
-                context.Settings.ToTransportAddress(settings.ErrorQueue),
-                new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
-                OnError,
-                (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnMessage(messageContext))
-            );
-
-            context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<ErrorIngestor>(), this));
+            context.RegisterStartupTask(b => new StartupTask(b.Build<ErrorIngestion>()));
 
             if (settings.ForwardErrorMessages)
             {
@@ -45,47 +33,23 @@
             }
         }
 
-        static SatelliteImportFailuresHandler CreateFailureHandler(IBuilder b)
-        {
-            return new SatelliteImportFailuresHandler(b.Build<IDocumentStore>(), b.Build<LoggingSettings>(), b.Build<CriticalError>());
-        }
-
-        Task OnMessage(MessageContext messageContext)
-        {
-            return errorIngestor.Ingest(messageContext);
-        }
-
-        RecoverabilityAction OnError(RecoverabilityConfig config, ErrorContext errorContext)
-        {
-            var recoverabilityAction = DefaultRecoverabilityPolicy.Invoke(config, errorContext);
-
-            if (recoverabilityAction is MoveToError)
-            {
-                importFailuresHandler.Handle(errorContext).GetAwaiter().GetResult();
-            }
-
-            return recoverabilityAction;
-        }
-
-        SatelliteImportFailuresHandler importFailuresHandler;
-        ErrorIngestor errorIngestor;
-
         class StartupTask : FeatureStartupTask
         {
-            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, ErrorIngestor errorIngestor, ErrorImporter importer)
+            readonly ErrorIngestion errorIngestion;
+
+            public StartupTask(ErrorIngestion errorIngestion)
             {
-                importer.importFailuresHandler = importFailuresHandler;
-                importer.errorIngestor = errorIngestor;
+                this.errorIngestion = errorIngestion;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
-                return Task.FromResult(0);
+                return errorIngestion.Start();
             }
 
             protected override Task OnStop(IMessageSession session)
             {
-                return Task.FromResult(0);
+                return errorIngestion.Stop();
             }
         }
 
