@@ -144,6 +144,7 @@
                 var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
                 connectionFactory = new ConnectionFactory(connectionConfiguration,
+                    null, //providing certificates is not supported yet
                     dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
                     dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"));
             }
