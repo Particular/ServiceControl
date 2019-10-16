@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LegacyAzureServiceBus\ServiceControl.Transports.LegacyAzureServiceBus.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
   </ItemGroup>
 

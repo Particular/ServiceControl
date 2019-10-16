@@ -2,6 +2,7 @@ namespace ServiceControl.Transports.LegacyAzureServiceBus
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Data.Common;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -26,6 +27,23 @@ namespace ServiceControl.Transports.LegacyAzureServiceBus
 
         public void Initialize(string connectionString, QueueLengthStore store)
         {
+            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+            if (builder.TryGetValue(QueueLengthQueryIntervalPartName, out var value) )
+            {
+                if (int.TryParse(value.ToString(), out var queryDelayInterval))
+                {
+                    QueryDelayInterval = TimeSpan.FromMilliseconds(queryDelayInterval);
+                }
+                else
+                {
+                    Logger.Warn($"Can't parse {value} as a valid query delay interval.");
+                }
+
+                //If the custom part stays in the connection string and is at the end, the sdk will treat is as part of the SharedAccessKey
+                connectionString = ConnectionStringPartRemover.Remove(connectionString, QueueLengthQueryIntervalPartName);
+            }
+
             this.queueLengthStore = store;
             this.namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
         }
@@ -112,8 +130,9 @@ namespace ServiceControl.Transports.LegacyAzureServiceBus
             return poller;
         }
 
-        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-
+        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(500);
         static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+        
+        public static string QueueLengthQueryIntervalPartName = "QueueLengthQueryDelayInterval";
     }
 }
