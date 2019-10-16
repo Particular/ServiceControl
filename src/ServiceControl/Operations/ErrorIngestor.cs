@@ -8,18 +8,18 @@
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class ErrorIngestor
     {
-        public ErrorIngestor(ErrorPersister errorPersister, FailedMessageAnnouncer failedMessageAnnouncer, Settings settings)
+        public ErrorIngestor(ErrorPersister errorPersister, FailedMessageAnnouncer failedMessageAnnouncer, bool forwardErrorMessages, string errorLogQueue)
         {
             this.errorPersister = errorPersister;
             this.failedMessageAnnouncer = failedMessageAnnouncer;
-            this.settings = settings;
+            this.forwardErrorMessages = forwardErrorMessages;
+            this.errorLogQueue = errorLogQueue;
         }
 
-        public async Task Ingest(MessageContext message, IDispatchMessages dispatcher)
+        public async Task Ingest(MessageContext message)
         {
             if (log.IsDebugEnabled)
             {
@@ -33,14 +33,13 @@
             await failedMessageAnnouncer.Announce(message.Headers, failureDetails)
                 .ConfigureAwait(false);
 
-            if (settings.ForwardErrorMessages)
+            if (forwardErrorMessages)
             {
-                await Forward(message, settings.ErrorLogQueue, dispatcher)
-                    .ConfigureAwait(false);
+                await Forward(message).ConfigureAwait(false);
             }
         }
 
-        static Task Forward(MessageContext messageContext, string forwardingAddress, IDispatchMessages dispatcher)
+        Task Forward(MessageContext messageContext)
         {
             var outgoingMessage = new OutgoingMessage(
                 messageContext.MessageId,
@@ -51,7 +50,7 @@
             outgoingMessage.Headers.Remove(Headers.TimeToBeReceived);
 
             var transportOperations = new TransportOperations(
-                new TransportOperation(outgoingMessage, new UnicastAddressTag(forwardingAddress))
+                new TransportOperation(outgoingMessage, new UnicastAddressTag(errorLogQueue))
             );
 
             return dispatcher.Dispatch(
@@ -61,7 +60,16 @@
             );
         }
 
-        public async Task VerifyCanReachForwardingAddress(string forwardingAddress, IDispatchMessages dispatcher)
+        public async Task Initialize(IDispatchMessages dispatcher)
+        {
+            this.dispatcher = dispatcher;
+            if (forwardErrorMessages)
+            {
+                await VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
+            }
+        }
+
+        async Task VerifyCanReachForwardingAddress(IDispatchMessages dispatcher)
         {
             try
             {
@@ -70,7 +78,7 @@
                         new OutgoingMessage(Guid.Empty.ToString("N"),
                             new Dictionary<string, string>(),
                             new byte[0]),
-                        new UnicastAddressTag(forwardingAddress)
+                        new UnicastAddressTag(errorLogQueue)
                     )
                 );
 
@@ -79,11 +87,13 @@
             }
             catch (Exception e)
             {
-                throw new Exception($"Unable to write to forwarding queue {forwardingAddress}", e);
+                throw new Exception($"Unable to write to forwarding queue {errorLogQueue}", e);
             }
         }
 
-        Settings settings;
+        bool forwardErrorMessages;
+        IDispatchMessages dispatcher;
+        string errorLogQueue;
         FailedMessageAnnouncer failedMessageAnnouncer;
         ErrorPersister errorPersister;
         static ILog log = LogManager.GetLogger<ErrorIngestor>();

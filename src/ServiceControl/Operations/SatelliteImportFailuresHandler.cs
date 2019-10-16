@@ -4,7 +4,6 @@
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Installers;
@@ -17,12 +16,12 @@
 
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public SatelliteImportFailuresHandler(IDocumentStore store, LoggingSettings loggingSettings, CriticalError criticalError)
+        public SatelliteImportFailuresHandler(IDocumentStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError)
         {
             this.store = store;
             logPath = Path.Combine(loggingSettings.LogPath, @"FailedImports\Error");
 
-            failureCircuitBreaker = new ImportFailureCircuitBreaker(criticalError);
+            failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
 
             Directory.CreateDirectory(logPath);
         }
@@ -51,7 +50,7 @@
             }
             finally
             {
-                failureCircuitBreaker.Increment(exception);
+                await failureCircuitBreaker.Increment(exception).ConfigureAwait(false);
             }
         }
 

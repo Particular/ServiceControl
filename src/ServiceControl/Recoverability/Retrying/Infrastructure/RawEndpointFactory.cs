@@ -16,10 +16,18 @@ namespace ServiceControl.Recoverability
             this.transportCustomization = transportCustomization;
         }
 
-        public RawEndpointConfiguration CreateRawEndpointConfiguration(string name, Func<MessageContext, IDispatchMessages, Task> onMessage, TransportDefinition transportDefinition)
+        public RawEndpointConfiguration CreateRawEndpointConfiguration(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
         {
             var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
             config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
+
+            transportCustomization.CustomizeRawEndpoint(config, transportSettings);
+            return config;
+        }
+
+        public RawEndpointConfiguration CreateSendOnlyRawEndpointConfiguration(string name)
+        {
+            var config = RawEndpointConfiguration.CreateSendOnly(name);
 
             transportCustomization.CustomizeRawEndpoint(config, transportSettings);
             return config;
