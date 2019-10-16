@@ -46,6 +46,18 @@ namespace ServiceBus.Management.AcceptanceTests
             return httpClient.GetAsync(url);
         }
 
+        public static Task<HttpResponseMessage> Options(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        {
+            if (!url.StartsWith("http://"))
+            {
+                url = $"http://localhost:{provider.Settings.Port}{url}";
+            }
+
+            var httpClient = provider.HttpClient;
+            var request = new HttpRequestMessage(HttpMethod.Options, url);
+            return httpClient.SendAsync(request);
+        }
+
         public static async Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
             if (condition == null)
