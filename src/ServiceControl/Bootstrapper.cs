@@ -97,7 +97,6 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
-            containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.Register(c => bus.Bus);
 
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();

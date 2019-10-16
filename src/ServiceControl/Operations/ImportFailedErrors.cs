@@ -10,10 +10,11 @@
 
     class ImportFailedErrors
     {
-        public ImportFailedErrors(IDocumentStore store, ErrorIngestor errorIngestor)
+        public ImportFailedErrors(IDocumentStore store, ErrorIngestor errorIngestor, IDispatchMessages dispatcher)
         {
             this.store = store;
             this.errorIngestor = errorIngestor;
+            this.dispatcher = dispatcher;
         }
 
         public async Task Run(CancellationTokenSource tokenSource)
@@ -34,7 +35,7 @@
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                            await errorIngestor.Ingest(messageContext).ConfigureAwait(false);
+                            await errorIngestor.Ingest(messageContext, dispatcher).ConfigureAwait(false);
 
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
@@ -68,6 +69,7 @@
 
         IDocumentStore store;
         ErrorIngestor errorIngestor;
+        IDispatchMessages dispatcher;
 
         static TransportTransaction EmptyTransaction = new TransportTransaction();
         static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
