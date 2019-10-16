@@ -2,6 +2,7 @@ nugets
 deploy
 build32
 binaries
+zip
 *.vshost.*
 .nu
 _UpgradeReport.*

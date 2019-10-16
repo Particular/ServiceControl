@@ -9,7 +9,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.RabbitMQ" Version="5.1.1" />
+    <PackageReference Include="NServiceBus.RabbitMQ" Version="5.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Transports.RabbitMQ\TransportConfigurationExtensions.cs" />
   </ItemGroup>
 
 </Project>

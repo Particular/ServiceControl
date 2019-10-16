@@ -21,7 +21,7 @@
         {
             transport.UseConventionalRoutingTopology();
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
-            transport.ConnectionString(transportSettings.ConnectionString);
+            transport.ApplyConnectionString(transportSettings.ConnectionString);
         }
     }
 }

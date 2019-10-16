@@ -11,6 +11,7 @@
             var extensions = new TransportExtensions<RabbitMQTransport>(settings);
 
             extensions.UseDirectRoutingTopology();
+            extensions.ApplyConnectionString(connectionString);
 
             return base.Initialize(settings, connectionString);
         }
