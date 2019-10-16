@@ -118,6 +118,8 @@
 
         public string DBPath => ServiceControlInstance?.DBPath;
 
+        public bool HasBrowsableDBPath => !string.IsNullOrEmpty(DBPath);
+
         public string LogPath => ((IServicePaths)ServiceInstance).LogPath;
 
         public Version Version => ServiceInstance.Version;
