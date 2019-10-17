@@ -14,14 +14,17 @@
 
     class ErrorIngestionCustomCheck : CustomCheck
     {
-        public ErrorIngestionCustomCheck() 
+        readonly CriticalErrorHolder criticalErrorHolder;
+
+        public ErrorIngestionCustomCheck(CriticalErrorHolder criticalErrorHolder) 
             : base("Error Ingestion", "Health", TimeSpan.FromMinutes(1))
         {
+            this.criticalErrorHolder = criticalErrorHolder;
         }
 
         public override Task<CheckResult> PerformCheck()
         {
-            var failure = lastFailure;
+            var failure = criticalErrorHolder.GetLastFailureAndClear();
             if (failure == null)
             {
                 return Task.FromResult(CheckResult.Pass);
@@ -29,23 +32,25 @@
 
             return Task.FromResult(CheckResult.Failed(failure));
         }
+    }
 
-        public void Clear()
-        {
-            lastFailure = null;
-        }
-
-        public void ReportError(string failure)
-        {
-            lastFailure = failure;
-        }
-
+    class CriticalErrorHolder
+    {
         volatile string lastFailure;
+
+        public void Clear() => lastFailure = null;
+        public void ReportError(string failure) => lastFailure = failure;
+        public string GetLastFailureAndClear()
+        {
+            var failure = lastFailure;
+            lastFailure = null;
+            return failure;
+        }
     }
 
     class ErrorIngestionComponent
     {
-        ErrorIngestionCustomCheck ingestionCustomCheck;
+        CriticalErrorHolder criticalErrorHolder;
         ImportFailedErrors failedImporter;
         ErrorIngestion ingestion;
         object startStopLock = new object();
@@ -59,9 +64,11 @@
             BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, 
             IEnrichImportedErrorMessages[] enrichers, 
             IFailedMessageEnricher[] failedMessageEnrichers,
-            ErrorIngestionCustomCheck ingestionCustomCheck)
+            CriticalErrorHolder criticalErrorHolder
+
+            )
         {
-            this.ingestionCustomCheck = ingestionCustomCheck;
+            this.criticalErrorHolder = criticalErrorHolder;
             var announcer = new FailedMessageAnnouncer(domainEvents);
             var persister = new ErrorPersister(documentStore, bodyStorageEnricher, enrichers, failedMessageEnrichers);
             var ingestor = new ErrorIngestor(persister, announcer, settings.ForwardErrorMessages, settings.ErrorLogQueue);
@@ -74,7 +81,7 @@
             //Cannot deadlock because CriticalError used in NServiceBus.Raw  raises errors on a separate thread.
             //lock (startStopLock)
             {
-                ingestionCustomCheck.ReportError(failure);
+                criticalErrorHolder.ReportError(failure);
                 await ingestion.Stop().ConfigureAwait(false);
             }
         }
@@ -118,14 +125,14 @@
             context.Container.ConfigureComponent<ErrorIngestor>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<ErrorPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
-            context.RegisterStartupTask(b => new StartupTask(b.Build<ErrorIngestion>()));
+            context.RegisterStartupTask(b => new StartupTask(b.Build<ErrorIngestionComponent>()));
         }
 
         class StartupTask : FeatureStartupTask
         {
-            readonly ErrorIngestion errorIngestion;
+            readonly ErrorIngestionComponent errorIngestion;
 
-            public StartupTask(ErrorIngestion errorIngestion)
+            public StartupTask(ErrorIngestionComponent errorIngestion)
             {
                 this.errorIngestion = errorIngestion;
             }

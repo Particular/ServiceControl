@@ -28,13 +28,13 @@
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
             var instance = await bootstrapper.Start().ConfigureAwait(false);
-            var importer = instance.ImportFailedErrors;
+            var errorIngestion = instance.ErrorIngestion;
 
             Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
             try
             {
-                await importer.Run(tokenSource).ConfigureAwait(false);
+                await errorIngestion.ImportFailedErrors(tokenSource.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

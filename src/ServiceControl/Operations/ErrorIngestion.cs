@@ -33,7 +33,7 @@
 
             await errorIngestor.Initialize(startableRaw).ConfigureAwait(false);
 
-            ingestionEndpoint = await RawEndpoint.Start(rawConfiguration)
+            ingestionEndpoint = await startableRaw.Start()
                 .ConfigureAwait(false);
         }
 

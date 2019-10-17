@@ -83,7 +83,7 @@ namespace ServiceBus.Management.Infrastructure
                 .ConfigureAwait(false);
 
             var domainEvents = container.Resolve<IDomainEvents>();
-            var importFailedErrors = container.Resolve<ImportFailedErrors>();
+            var errorIngestion = container.Resolve<ErrorIngestionComponent>();
 
             var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
 
@@ -93,7 +93,7 @@ namespace ServiceBus.Management.Infrastructure
 
             builder.Update(container.ComponentRegistry);
 
-            return new BusInstance(endpointInstance, domainEvents, importFailedErrors);
+            return new BusInstance(endpointInstance, domainEvents, errorIngestion);
         }
 
         static bool IsExternalContract(Type t)

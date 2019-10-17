@@ -7,7 +7,7 @@ namespace ServiceControl.Recoverability
     using ServiceBus.Management.Infrastructure.Settings;
     using Transports;
 
-    public class RawEndpointFactory
+    class RawEndpointFactory
     {
         public RawEndpointFactory(Settings settings, TransportSettings transportSettings, TransportCustomization transportCustomization)
         {

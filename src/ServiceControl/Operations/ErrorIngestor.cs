@@ -65,11 +65,11 @@
             this.dispatcher = dispatcher;
             if (forwardErrorMessages)
             {
-                await VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
+                await VerifyCanReachForwardingAddress().ConfigureAwait(false);
             }
         }
 
-        async Task VerifyCanReachForwardingAddress(IDispatchMessages dispatcher)
+        async Task VerifyCanReachForwardingAddress()
         {
             try
             {
