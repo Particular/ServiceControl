@@ -29,7 +29,7 @@
                 Name = TransportNames.AzureServiceBusEndpointOrientedTopology,
                 ZipName = "LegacyAzureServiceBus",
                 TypeName = "ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus",
-                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliSeconds(Default=500ms)>",
+                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
                 Matches = name => name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopology, StringComparison.OrdinalIgnoreCase)
                           || name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyOld, StringComparison.OrdinalIgnoreCase)
                           || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
@@ -39,7 +39,7 @@
                 Name = TransportNames.AzureServiceBusForwardingTopology,
                 ZipName = "LegacyAzureServiceBus",
                 TypeName = "ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus",
-                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliSeconds(Default=500ms)>",
+                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
                 Matches = name => name.Equals(TransportNames.AzureServiceBusForwardingTopology, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals(TransportNames.AzureServiceBusForwardingTopologyOld, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
@@ -51,7 +51,7 @@
                 Name = TransportNames.AzureServiceBus,
                 ZipName = "AzureServiceBus",
                 TypeName = "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus",
-                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliSeconds(Default=500ms)>",
+                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
                 Matches = name => name.Equals(TransportNames.AzureServiceBus, StringComparison.OrdinalIgnoreCase)
                           || name.Equals("ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
