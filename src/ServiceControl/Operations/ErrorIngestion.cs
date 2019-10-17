@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
@@ -19,34 +20,67 @@
             importFailuresHandler = new SatelliteImportFailuresHandler(documentStore, loggingSettings, onCriticalError);
         }
 
-        public async Task Start()
+        public async Task EnsureStarted()
         {
-            var rawConfiguration = rawEndpointFactory.CreateRawEndpointConfiguration(
-                errorQueue,
-                (messageContext, dispatcher) => errorIngestor.Ingest(messageContext));
+            await startStopSemaphore.WaitAsync().ConfigureAwait(false);
 
-            rawConfiguration.Settings.Set("onCriticalErrorAction", (Func<ICriticalErrorContext, Task>)OnCriticalErrorAction);
+            try
+            {
+                if (ingestionEndpoint != null)
+                {
+                    return; //Already started
+                }
 
-            rawConfiguration.CustomErrorHandlingPolicy(new ErrorIngestionFaultPolicy(importFailuresHandler));
+                var rawConfiguration = rawEndpointFactory.CreateRawEndpointConfiguration(
+                    errorQueue,
+                    (messageContext, dispatcher) => errorIngestor.Ingest(messageContext));
 
-            var startableRaw = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
+                rawConfiguration.Settings.Set("onCriticalErrorAction", (Func<ICriticalErrorContext, Task>)OnCriticalErrorAction);
 
-            await errorIngestor.Initialize(startableRaw).ConfigureAwait(false);
+                rawConfiguration.CustomErrorHandlingPolicy(new ErrorIngestionFaultPolicy(importFailuresHandler));
 
-            ingestionEndpoint = await startableRaw.Start()
-                .ConfigureAwait(false);
+                var startableRaw = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
+
+                await errorIngestor.Initialize(startableRaw).ConfigureAwait(false);
+
+                ingestionEndpoint = await startableRaw.Start()
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                startStopSemaphore.Release();
+            }
         }
 
         Task OnCriticalErrorAction(ICriticalErrorContext ctx) => onCriticalError(ctx.Error, ctx.Exception);
 
-        public Task Stop() => ingestionEndpoint.Stop();
+        public async Task EnsureStopped()
+        {
+            await startStopSemaphore.WaitAsync().ConfigureAwait(false);
 
+            try
+            {
+                if (ingestionEndpoint == null)
+                {
+                    return; //Already stopped
+                }
+                var stoppable = ingestionEndpoint;
+                ingestionEndpoint = null;
+                await stoppable.Stop().ConfigureAwait(false);
+            }
+            finally
+            {
+                startStopSemaphore.Release();
+            }
+        }
+
+        SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         ErrorIngestor errorIngestor;
         string errorQueue;
         RawEndpointFactory rawEndpointFactory;
         Func<string, Exception, Task> onCriticalError;
         SatelliteImportFailuresHandler importFailuresHandler;
 
-        IReceivingRawEndpoint ingestionEndpoint;
+        volatile IReceivingRawEndpoint ingestionEndpoint;
     }
 }

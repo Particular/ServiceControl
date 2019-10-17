@@ -1,15 +1,10 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
-    using System.Threading;
     using System.Threading.Tasks;
-    using BodyStorage;
-    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
-    using Raven.Client;
-    using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ErrorIngestionCustomCheck : CustomCheck
@@ -45,66 +40,6 @@
             var failure = lastFailure;
             lastFailure = null;
             return failure;
-        }
-    }
-
-    class ErrorIngestionComponent
-    {
-        CriticalErrorHolder criticalErrorHolder;
-        ImportFailedErrors failedImporter;
-        ErrorIngestion ingestion;
-        object startStopLock = new object();
-
-        public ErrorIngestionComponent(
-            Settings settings,
-            IDocumentStore documentStore,
-            IDomainEvents domainEvents,
-            RawEndpointFactory rawEndpointFactory,
-            LoggingSettings loggingSettings,
-            BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, 
-            IEnrichImportedErrorMessages[] enrichers, 
-            IFailedMessageEnricher[] failedMessageEnrichers,
-            CriticalErrorHolder criticalErrorHolder
-
-            )
-        {
-            this.criticalErrorHolder = criticalErrorHolder;
-            var announcer = new FailedMessageAnnouncer(domainEvents);
-            var persister = new ErrorPersister(documentStore, bodyStorageEnricher, enrichers, failedMessageEnrichers);
-            var ingestor = new ErrorIngestor(persister, announcer, settings.ForwardErrorMessages, settings.ErrorLogQueue);
-            failedImporter = new ImportFailedErrors(documentStore, ingestor, rawEndpointFactory);
-            ingestion = new ErrorIngestion(ingestor, settings.ErrorQueue, rawEndpointFactory, documentStore, loggingSettings, OnCriticalError);
-        }
-
-        async Task OnCriticalError(string failure, Exception arg2)
-        {
-            //Cannot deadlock because CriticalError used in NServiceBus.Raw  raises errors on a separate thread.
-            //lock (startStopLock)
-            {
-                criticalErrorHolder.ReportError(failure);
-                await ingestion.Stop().ConfigureAwait(false);
-            }
-        }
-
-        public Task Start()
-        {
-            lock (startStopLock)
-            {
-                return ingestion.Start();
-            }
-        }
-
-        public Task Stop()
-        {
-            lock (startStopLock)
-            {
-                return ingestion.Stop();
-            }
-        }
-
-        public Task ImportFailedErrors(CancellationToken cancellationToken)
-        {
-            return failedImporter.Run(cancellationToken);
         }
     }
 
