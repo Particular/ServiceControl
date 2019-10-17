@@ -7,7 +7,6 @@
     using NServiceBus;
     using NServiceBus.Features;
     using RavenAttachments;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class BodyStorageFeature : Feature
     {
@@ -28,10 +27,9 @@
 
         public class BodyStorageEnricher
         {
-            public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
+            public BodyStorageEnricher(IBodyStorage bodyStorage)
             {
                 this.bodyStorage = bodyStorage;
-                this.settings = settings;
             }
 
             public async Task StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
@@ -46,12 +44,8 @@
                 var contentType = GetContentType(headers, "text/xml");
                 metadata.Add("ContentType", contentType);
 
-                var stored = await TryStoreBody(body, headers, metadata, bodySize, contentType)
+                await StoreBody(body, headers, metadata, bodySize, contentType)
                     .ConfigureAwait(false);
-                if (!stored)
-                {
-                    metadata.Add("BodyNotStored", true);
-                }
             }
 
             static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
@@ -64,30 +58,21 @@
                 return contentType;
             }
 
-            async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
+            async Task StoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
                 var bodyId = headers.MessageId();
-                var storedInBodyStorage = false;
-                var bodyUrl = $"/messages/{bodyId}/body";
                 var isBinary = contentType.Contains("binary");
-                var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-                if (isBelowMaxSize)
-                {
-                    bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                        .ConfigureAwait(false);
-                    storedInBodyStorage = true;
-                }
+                var bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
+                    .ConfigureAwait(false);
 
-                if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
+                if (avoidsLargeObjectHeap && !isBinary)
                 {
                     metadata.Add("Body", Encoding.UTF8.GetString(body));
                 }
 
                 metadata.Add("BodyUrl", bodyUrl);
-
-                return storedInBodyStorage;
             }
 
             async Task<string> StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
@@ -101,8 +86,6 @@
             }
 
             IBodyStorage bodyStorage;
-            Settings settings;
-
             static int LargeObjectHeapThreshold = 85 * 1024;
         }
     }

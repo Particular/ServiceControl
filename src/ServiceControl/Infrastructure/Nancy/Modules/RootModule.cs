@@ -57,7 +57,6 @@
                     },
                     PerformanceTunning = new
                     {
-                        Settings.MaxBodySizeToStore,
                         Settings.HttpDefaultConnectionLimit,
                         Settings.ExternalIntegrationsDispatchingBatchSize,
                         Settings.ExpirationProcessBatchSize,

@@ -170,21 +170,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
         }
 
-        public int MaxBodySizeToStore
-        {
-            get
-            {
-                if (maxBodySizeToStore <= 0)
-                {
-                    logger.Error($"MaxBodySizeToStore settings is invalid, {1} is the minimum value. Defaulting to {MaxBodySizeToStoreDefault}");
-                    return MaxBodySizeToStoreDefault;
-                }
-
-                return maxBodySizeToStore;
-            }
-            set { maxBodySizeToStore = value; }
-        }
-
         public string ServiceName { get; }
 
         public int HttpDefaultConnectionLimit { get; set; }
@@ -482,14 +467,12 @@ namespace ServiceBus.Management.Infrastructure.Settings
         ILog logger = LogManager.GetLogger(typeof(Settings));
         int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
         int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
-        int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public const string Disabled = "!disable";
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
         const int ExpirationProcessBatchSizeDefault = 65512;
         const int ExpirationProcessBatchSizeMinimum = 10240;
-        const int MaxBodySizeToStoreDefault = 102400; //100 kb
         const int DataSpaceRemainingThresholdDefault = 20;
     }
 }
