@@ -39,7 +39,7 @@
                 LicenseStatus = license.IsValid ? "valid" : "invalid",
                 LicenseDetails = baseUrl + "license",
                 Configuration = baseUrl + "configuration",
-                UpgradeStatus = baseUrl + "upgrade"
+                UpgradeUrl = baseUrl + "upgrade"
 
             };
 
@@ -112,7 +112,7 @@
             public string LicenseDetails { get; set; }
             public string Name { get; set; }
             public string SagasUrl { get; set; }
-            public string UpgradeStatus { get; set; }
+            public string UpgradeUrl { get; set; }
         }
     }
 }
