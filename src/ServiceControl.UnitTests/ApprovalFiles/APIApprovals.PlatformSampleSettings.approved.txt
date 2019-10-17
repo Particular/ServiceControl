@@ -40,7 +40,6 @@
   "ErrorRetentionPeriod": "10.00:00:00",
   "EventsRetentionPeriod": "14.00:00:00",
   "ExpirationProcessBatchSize": 65512,
-  "MaxBodySizeToStore": 102400,
   "ServiceName": "Particular.ServiceControl",
   "HttpDefaultConnectionLimit": 100,
   "TransportConnectionString": null,
