@@ -4,9 +4,14 @@
     using System.Net.Http;
     using System.Web.Http;
     using Infrastructure.WebApi;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class UpgradeController : ApiController
     {
+        internal UpgradeController(Settings settings)
+        {
+        }
+        
         [Route("upgrade")]
         [HttpGet]
         public HttpResponseMessage GetUpgradeStatus()
@@ -21,7 +26,7 @@
         };
 
     }
-    public struct StaleIndexInfo
+    public class StaleIndexInfo
     {
         // ReSharper disable once NotAccessedField.Global
         public DateTime? StartedAt;
