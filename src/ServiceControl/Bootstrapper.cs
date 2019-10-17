@@ -195,7 +195,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.ForwardErrorMessages,
                     settings.HttpDefaultConnectionLimit,
                     settings.IngestErrorMessages,
-                    settings.MaxBodySizeToStore,
                     settings.MaximumConcurrencyLevel,
                     settings.Port,
                     settings.ProcessRetryBatchesFrequency,
