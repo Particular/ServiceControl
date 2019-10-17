@@ -16,6 +16,8 @@
             {
                 ExceptionMessageBox.Attach();
             }
+
+            StandardPopup.ApplyDefaultAlignment();
         }
 
         [STAThread]
