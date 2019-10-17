@@ -6,7 +6,7 @@
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
     [TestFixture]
-    public class BodyStorageTests
+    public class RavenAttachmentsBodyStorageTests
     {
         [Test]
         public async Task Attachments_with_ids_that_contain_backslash_should_be_readable()
