@@ -14,12 +14,8 @@
     {
         static ILog log = LogManager.GetLogger<ErrorIngestionComponent>();
 
-        CriticalErrorHolder criticalErrorHolder;
         ImportFailedErrors failedImporter;
-        ErrorIngestion ingestion;
-        Task watchdog;
-        CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
-        TimeSpan timeToWaitBetweenStartupAttempts;
+        Watchdog watchdog;
 
         public ErrorIngestionComponent(
             Settings settings,
@@ -33,62 +29,30 @@
             CriticalErrorHolder criticalErrorHolder
         )
         {
-            this.criticalErrorHolder = criticalErrorHolder;
-            timeToWaitBetweenStartupAttempts = settings.TimeToRestartAfterCriticalFailure;
             var announcer = new FailedMessageAnnouncer(domainEvents);
             var persister = new ErrorPersister(documentStore, bodyStorageEnricher, enrichers, failedMessageEnrichers);
             var ingestor = new ErrorIngestor(persister, announcer, settings.ForwardErrorMessages, settings.ErrorLogQueue);
+            var ingestion = new ErrorIngestion(ingestor, settings.ErrorQueue, rawEndpointFactory, documentStore, loggingSettings, OnCriticalError);
+
             failedImporter = new ImportFailedErrors(documentStore, ingestor, rawEndpointFactory);
-            ingestion = new ErrorIngestion(ingestor, settings.ErrorQueue, rawEndpointFactory, documentStore, loggingSettings, OnCriticalError);
+
+            watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, criticalErrorHolder.ReportError,
+                criticalErrorHolder.Clear, settings.TimeToRestartAfterCriticalFailure, log, "failed message ingestion");
         }
 
-        async Task OnCriticalError(string failure, Exception arg2)
+        Task OnCriticalError(string failure, Exception arg2)
         {
-            criticalErrorHolder.ReportError(failure);
-            await ingestion.EnsureStopped().ConfigureAwait(false);
+            return watchdog.OnFailure(failure);
         }
 
         public Task Start()
         {
-            watchdog = Task.Run(async () =>
-            {
-                while (!shutdownTokenSource.IsCancellationRequested)
-                {
-                    try
-                    {
-                        await ingestion.EnsureStarted().ConfigureAwait(false);
-                        criticalErrorHolder.Clear();
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        //Do not Delay
-                        continue;
-                    }
-                    catch (Exception e)
-                    {
-                        log.Error($"Error while trying to start failed message ingestion. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
-                        criticalErrorHolder.ReportError(e.Message);
-                    }
-                    await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
-                }
-
-                try
-                {
-                    await ingestion.EnsureStopped().ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    log.Error("Error while trying to stop failed message ingestion", e);
-                    criticalErrorHolder.ReportError(e.Message);
-                }
-            });
-            return Task.CompletedTask;
+            return watchdog.Start();
         }
 
         public Task Stop()
         {
-            shutdownTokenSource.Cancel();
-            return watchdog;
+            return watchdog.Stop();
         }
 
         public Task ImportFailedErrors(CancellationToken cancellationToken)
