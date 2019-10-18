@@ -68,14 +68,13 @@
                         Thread.Sleep(100);
                     }
                 });
-                t.Wait(5000);
+
+                return t.Wait(5000);
             }
             catch (TimeoutException)
             {
                 return false;
             }
-
-            return true;
         }
 
         public bool TryStartService()

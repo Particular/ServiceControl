@@ -111,6 +111,7 @@ namespace ServiceControlInstaller.Engine.Unattended
             if (!instance.TryStopService())
             {
                 logger.Error("Service failed to stop or service stop timed out");
+                return false;
             }
 
             try
