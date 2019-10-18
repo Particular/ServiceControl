@@ -19,6 +19,7 @@
         ErrorIngestion ingestion;
         Task watchdog;
         CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
+        TimeSpan timeToWaitBetweenStartupAttempts;
 
         public ErrorIngestionComponent(
             Settings settings,
@@ -33,6 +34,7 @@
         )
         {
             this.criticalErrorHolder = criticalErrorHolder;
+            timeToWaitBetweenStartupAttempts = settings.TimeToRestartAfterCriticalFailure;
             var announcer = new FailedMessageAnnouncer(domainEvents);
             var persister = new ErrorPersister(documentStore, bodyStorageEnricher, enrichers, failedMessageEnrichers);
             var ingestor = new ErrorIngestor(persister, announcer, settings.ForwardErrorMessages, settings.ErrorLogQueue);
@@ -64,10 +66,10 @@
                     }
                     catch (Exception e)
                     {
-                        log.Error("Error while trying to start failed message ingestion. Starting will be retried in 60 seconds.", e);
+                        log.Error($"Error while trying to start failed message ingestion. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
                         criticalErrorHolder.ReportError(e.Message);
                     }
-                    await Task.Delay(TimeSpan.FromSeconds(60), shutdownTokenSource.Token).ConfigureAwait(false);
+                    await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
                 }
 
                 try

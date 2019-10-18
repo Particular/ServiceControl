@@ -91,6 +91,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
+                TimeToRestartAfterCriticalFailure = TimeSpan.FromSeconds(2),
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
