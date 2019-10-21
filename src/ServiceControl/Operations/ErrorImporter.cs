@@ -5,6 +5,7 @@
     using NServiceBus;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
+    using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ErrorIngestionCustomCheck : CustomCheck
@@ -12,14 +13,14 @@
         readonly CriticalErrorHolder criticalErrorHolder;
 
         public ErrorIngestionCustomCheck(CriticalErrorHolder criticalErrorHolder) 
-            : base("Error Ingestion", "Health", TimeSpan.FromMinutes(1))
+            : base("Failed message ingestion process", "ServiceControl", TimeSpan.FromSeconds(5))
         {
             this.criticalErrorHolder = criticalErrorHolder;
         }
 
         public override Task<CheckResult> PerformCheck()
         {
-            var failure = criticalErrorHolder.GetLastFailureAndClear();
+            var failure = criticalErrorHolder.GetLastFailure();
             if (failure == null)
             {
                 return Task.FromResult(CheckResult.Pass);
@@ -35,11 +36,9 @@
 
         public void Clear() => lastFailure = null;
         public void ReportError(string failure) => lastFailure = failure;
-        public string GetLastFailureAndClear()
+        public string GetLastFailure()
         {
-            var failure = lastFailure;
-            lastFailure = null;
-            return failure;
+            return lastFailure;
         }
     }
 
@@ -57,9 +56,15 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
+
+            var queueBindings = context.Settings.Get<QueueBindings>();
+            queueBindings.BindReceiving(settings.ErrorQueue);
+
             context.Container.ConfigureComponent<ErrorIngestor>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<ErrorPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<FailedMessageAnnouncer>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<CriticalErrorHolder>(DependencyLifecycle.SingleInstance);
             context.RegisterStartupTask(b => new StartupTask(b.Build<ErrorIngestionComponent>()));
         }
 
