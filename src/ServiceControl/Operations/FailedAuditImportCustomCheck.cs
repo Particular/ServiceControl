@@ -9,7 +9,7 @@
     class FailedAuditImportCustomCheck : CustomCheck
     {
         public FailedAuditImportCustomCheck(IDocumentStore store)
-            : base("Audit Message Ingestion", "ServiceControl Health", TimeSpan.FromHours(1))
+            : base("Audit message ingestion", "ServiceControl", TimeSpan.FromHours(1))
         {
             this.store = store;
         }

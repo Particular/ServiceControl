@@ -9,7 +9,7 @@
     class FailedErrorImportCustomCheck : CustomCheck
     {
         public FailedErrorImportCustomCheck(IDocumentStore store)
-            : base("Error Message Ingestion", "ServiceControl Health", TimeSpan.FromHours(1))
+            : base("Failed message ingestion", "ServiceControl", TimeSpan.FromHours(1))
         {
             this.store = store;
         }

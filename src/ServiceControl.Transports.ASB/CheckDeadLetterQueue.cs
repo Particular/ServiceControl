@@ -8,7 +8,8 @@
 
     public class CheckDeadLetterQueue : CustomCheck
     {
-        public CheckDeadLetterQueue(TransportSettings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
+        public CheckDeadLetterQueue(TransportSettings settings) 
+            : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
         {
             Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
 
