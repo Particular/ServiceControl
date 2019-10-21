@@ -61,15 +61,18 @@
             try
             {
                 Service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
+
                 var t = new Task(() =>
                 {
                     while (!HasUnderlyingProcessExited())
                     {
-                        Thread.Sleep(100);
+                        Thread.Sleep(250);
                     }
                 });
 
-                return t.Wait(5000);
+                t.Start();
+
+                return t.Wait(TimeSpan.FromSeconds(5));
             }
             catch (TimeoutException)
             {
@@ -111,7 +114,7 @@
             }
             catch
             {
-                //Service isn't accessible 
+                //Service isn't accessible
             }
 
             return true;
