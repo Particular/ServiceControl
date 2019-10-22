@@ -6,9 +6,9 @@
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading;
-    using System.Threading.Tasks;
     using FileSystem;
     using Services;
+    using Engine;
     using TimeoutException = System.ServiceProcess.TimeoutException;
 
     public abstract class BaseService : IServiceInstance
@@ -62,15 +62,13 @@
             {
                 Service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
 
-                var t = new Task(() =>
+                var t = TaskHelpers.Run(() =>
                 {
                     while (!HasUnderlyingProcessExited())
                     {
                         Thread.Sleep(250);
                     }
                 });
-
-                t.Start();
 
                 return t.Wait(TimeSpan.FromSeconds(5));
             }
