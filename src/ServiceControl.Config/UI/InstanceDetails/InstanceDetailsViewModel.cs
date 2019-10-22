@@ -116,7 +116,22 @@
 
         public string InstallPath => ((IServicePaths)ServiceInstance).InstallPath;
 
-        public string DBPath => ServiceControlInstance?.DBPath;
+        public string DBPath => GetDBPathIfAvailable();
+
+        string GetDBPathIfAvailable()
+        {
+            if (IsServiceControlInstance)
+            {
+                return ServiceControlInstance?.DBPath;
+            }
+
+            if (IsServiceControlAudit)
+            {
+                return ServiceControlAuditInstance?.DBPath;
+            }
+
+            return null;
+        }
 
         public bool HasBrowsableDBPath => !string.IsNullOrEmpty(DBPath);
 
