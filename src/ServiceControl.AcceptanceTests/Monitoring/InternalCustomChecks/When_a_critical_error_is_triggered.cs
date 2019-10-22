@@ -52,8 +52,10 @@
                 })
                 .Run();
 
-            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/Critical Error"));
-            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")));
+            
+
+            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/Primary instance health"), "Event log entry should be related to the Primary instance health Custom Check");
+            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")), "Event log entry should be related to the ServiceControl endpoint");
         }
 
         public class MyContext : ScenarioContext
