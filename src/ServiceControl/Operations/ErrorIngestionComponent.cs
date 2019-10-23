@@ -26,7 +26,7 @@
             BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher,
             IEnrichImportedErrorMessages[] enrichers,
             IFailedMessageEnricher[] failedMessageEnrichers,
-            CriticalErrorHolder criticalErrorHolder
+            ErrorIngestionCustomCheck.State ingestionState
         )
         {
             var announcer = new FailedMessageAnnouncer(domainEvents);
@@ -36,8 +36,8 @@
 
             failedImporter = new ImportFailedErrors(documentStore, ingestor, rawEndpointFactory);
 
-            watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, criticalErrorHolder.ReportError,
-                criticalErrorHolder.Clear, settings.TimeToRestartAfterCriticalFailure, log, "failed message ingestion");
+            watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, ingestionState.ReportError,
+                ingestionState.Clear, settings.TimeToRestartAfterCriticalFailure, log, "failed message ingestion");
         }
 
         Task OnCriticalError(string failure, Exception arg2)
