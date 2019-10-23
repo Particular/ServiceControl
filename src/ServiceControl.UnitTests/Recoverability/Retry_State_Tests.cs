@@ -325,7 +325,7 @@
     class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
         public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName)
-            : base(null /*TransportDefinition */, returnToSender, store, domainEvents, endpointName, null /* rawEndpointFactory */)
+            : base(returnToSender, store, domainEvents, endpointName, null /* rawEndpointFactory */)
         {
         }
 

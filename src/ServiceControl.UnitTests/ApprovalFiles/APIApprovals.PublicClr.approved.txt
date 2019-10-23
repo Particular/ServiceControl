@@ -1289,11 +1289,6 @@ namespace ServiceControl.Recoverability
         public static double CalculateProgress(int totalNumberOfMessages, int numberOfMessagesPrepared, int numberOfMessagesForwarded, int numberOfMessagesSkipped, ServiceControl.Recoverability.RetryState state) { }
         public static double CalculateProgress(int totalNumberOfMessages, int numberOfMessagesArchived, ServiceControl.Recoverability.ArchiveState state) { }
     }
-    public class RawEndpointFactory
-    {
-        public RawEndpointFactory(ServiceBus.Management.Infrastructure.Settings.Settings settings, ServiceControl.Transports.TransportSettings transportSettings, ServiceControl.Transports.TransportCustomization transportCustomization) { }
-        public NServiceBus.Raw.RawEndpointConfiguration CreateRawEndpointConfiguration(string name, System.Func<NServiceBus.Transport.MessageContext, NServiceBus.Transport.IDispatchMessages, System.Threading.Tasks.Task> onMessage, NServiceBus.Transport.TransportDefinition transportDefinition) { }
-    }
     public class Reclassifier { }
     public class ReclassifyErrorSettings
     {

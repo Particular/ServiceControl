@@ -7,16 +7,16 @@ namespace ServiceBus.Management.Infrastructure
 
     class BusInstance
     {
-        public BusInstance(IEndpointInstance bus, IDomainEvents domainEvents, ImportFailedErrors importFailedErrors)
+        public BusInstance(IEndpointInstance bus, IDomainEvents domainEvents, ErrorIngestionComponent errorIngestion)
         {
-            ImportFailedErrors = importFailedErrors;
+            ErrorIngestion = errorIngestion;
             Bus = bus;
             DomainEvents = domainEvents;
         }
 
         public IEndpointInstance Bus { get; }
         public IDomainEvents DomainEvents { get; }
-        public ImportFailedErrors ImportFailedErrors { get; }
+        public ErrorIngestionComponent ErrorIngestion { get; }
 
         public Task Stop()
         {

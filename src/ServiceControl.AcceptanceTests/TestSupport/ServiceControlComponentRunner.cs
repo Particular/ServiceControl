@@ -83,6 +83,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
+                TimeToRestartAfterCriticalFailure = TimeSpan.FromSeconds(2),
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
@@ -150,18 +151,11 @@ namespace ServiceBus.Management.AcceptanceTests
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(ctx =>
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder =>
                 {
-                    var logitem = new ScenarioContext.LogItem
-                    {
-                        Endpoint = settings.ServiceName,
-                        Level = LogLevel.Fatal,
-                        LoggerName = $"{settings.ServiceName}.CriticalError",
-                        Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
-                    };
-                    context.Logs.Enqueue(logitem);
-                    ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedErrorsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
+                    builder.RegisterType<FailedErrorsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
+                    builder.RegisterType<CriticalErrorTriggerController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
+                });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 

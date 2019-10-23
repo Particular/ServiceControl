@@ -2,20 +2,15 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Contracts.CustomChecks;
     using Contracts.Operations;
-    using Infrastructure;
-    using Infrastructure.DomainEvents;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
-    using Raven.Client;
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        public ReportCustomCheckResultHandler(IDocumentStore store, IDomainEvents domainEvents)
+        public ReportCustomCheckResultHandler(CustomChecksStorage customChecks)
         {
-            this.store = store;
-            this.domainEvents = domainEvents;
+            this.customChecks = customChecks;
         }
 
         public async Task Handle(ReportCustomCheckResult message, IMessageHandlerContext context)
@@ -35,76 +30,23 @@
                 throw new Exception("Received an custom check message without proper initialization of the HostId in the schema");
             }
 
-            var publish = false;
-            var id = DeterministicGuid.MakeId(message.EndpointName, message.HostId.ToString(), message.CustomCheckId);
-            CustomCheck customCheck;
-
-            using (var session = store.OpenAsyncSession())
+            var originatingEndpoint = new EndpointDetails
             {
-                customCheck = await session.LoadAsync<CustomCheck>(id)
-                    .ConfigureAwait(false);
+                Host = message.Host,
+                HostId = message.HostId,
+                Name = message.EndpointName
+            };
 
-                if (customCheck == null ||
-                    customCheck.Status == Status.Fail && !message.HasFailed ||
-                    customCheck.Status == Status.Pass && message.HasFailed)
-                {
-                    if (customCheck == null)
-                    {
-                        customCheck = new CustomCheck
-                        {
-                            Id = id
-                        };
-                    }
-
-                    publish = true;
-                }
-
-                customCheck.CustomCheckId = message.CustomCheckId;
-                customCheck.Category = message.Category;
-                customCheck.Status = message.HasFailed ? Status.Fail : Status.Pass;
-                customCheck.ReportedAt = message.ReportedAt;
-                customCheck.FailureReason = message.FailureReason;
-                customCheck.OriginatingEndpoint = new EndpointDetails
-                {
-                    Host = message.Host,
-                    HostId = message.HostId,
-                    Name = message.EndpointName
-                };
-                await session.StoreAsync(customCheck)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
-
-            if (publish)
-            {
-                if (message.HasFailed)
-                {
-                    await domainEvents.Raise(new CustomCheckFailed
-                    {
-                        Id = id,
-                        CustomCheckId = message.CustomCheckId,
-                        Category = message.Category,
-                        FailedAt = message.ReportedAt,
-                        FailureReason = message.FailureReason,
-                        OriginatingEndpoint = customCheck.OriginatingEndpoint
-                    }).ConfigureAwait(false);
-                }
-                else
-                {
-                    await domainEvents.Raise(new CustomCheckSucceeded
-                    {
-                        Id = id,
-                        CustomCheckId = message.CustomCheckId,
-                        Category = message.Category,
-                        SucceededAt = message.ReportedAt,
-                        OriginatingEndpoint = customCheck.OriginatingEndpoint
-                    }).ConfigureAwait(false);
-                }
-            }
+            await customChecks.UpdateCustomCheckStatus(
+                    originatingEndpoint,
+                    message.ReportedAt,
+                    message.CustomCheckId,
+                    message.Category,
+                    message.HasFailed,
+                    message.FailureReason
+                ).ConfigureAwait(false);
         }
 
-        IDocumentStore store;
-        IDomainEvents domainEvents;
+        CustomChecksStorage customChecks;
     }
 }

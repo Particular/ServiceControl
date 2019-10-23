@@ -13,14 +13,14 @@ namespace ServiceControl.Recoverability
 
     class ReturnToSenderDequeuer
     {
-        public ReturnToSenderDequeuer(TransportDefinition transportDefinition, ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string inputAddress, RawEndpointFactory rawEndpointFactory)
+        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string inputAddress, RawEndpointFactory rawEndpointFactory)
         {
             InputAddress = inputAddress;
             this.returnToSender = returnToSender;
 
             createEndpointConfiguration = () =>
             {
-                var config = rawEndpointFactory.CreateRawEndpointConfiguration(InputAddress, Handle, transportDefinition);
+                var config = rawEndpointFactory.CreateRawEndpointConfiguration(InputAddress, Handle);
 
                 config.CustomErrorHandlingPolicy(faultManager);
 

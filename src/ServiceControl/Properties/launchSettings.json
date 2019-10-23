@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ServiceControl": {
+      "commandName": "Project",
+      "commandLineArgs": "--import-failed-errors"
+    }
+  }
+}

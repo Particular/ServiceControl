@@ -18,7 +18,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Monitoring;
-    using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
@@ -34,14 +33,13 @@ namespace Particular.ServiceControl
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
             if (configuration == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            this.onCriticalError = onCriticalError;
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
             this.additionalRegistrationActions = additionalRegistrationActions;
@@ -97,7 +95,6 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
-            containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.Register(c => bus.Bus);
 
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
@@ -128,7 +125,7 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             if (!isRunningAcceptanceTests)
@@ -224,7 +221,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
         private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private IContainer container;
