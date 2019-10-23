@@ -49,7 +49,7 @@ namespace Particular.ServiceControl
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, null, documentStore, configuration, false)
+                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
         }

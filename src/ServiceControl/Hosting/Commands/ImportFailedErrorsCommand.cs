@@ -26,7 +26,7 @@
             var tokenSource = new CancellationTokenSource();
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
-            var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
+            var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
             var instance = await bootstrapper.Start().ConfigureAwait(false);
             var errorIngestion = instance.ErrorIngestion;
 
