@@ -39,6 +39,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             Port = SettingsReader<int>.Read("Port", 33333);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
+            TimeToRestartAfterCriticalFailure = TimeSpan.FromSeconds(60);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
@@ -175,6 +176,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int HttpDefaultConnectionLimit { get; set; }
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
+        internal TimeSpan TimeToRestartAfterCriticalFailure { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
 
         public int RetryHistoryDepth { get; set; }
