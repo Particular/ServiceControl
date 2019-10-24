@@ -9,8 +9,7 @@
 
     class CheckFreeDiskSpace : CustomCheck
     {
-        public CheckFreeDiskSpace(Settings settings) 
-            : base("Primary instance disk space", "ServiceControl", TimeSpan.FromMinutes(5))
+        public CheckFreeDiskSpace(Settings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
         {
             dataPath = settings.DbPath;
             percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;

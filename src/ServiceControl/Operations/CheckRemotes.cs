@@ -11,8 +11,7 @@
 
     class CheckRemotes : CustomCheck
     {
-        public CheckRemotes(Settings settings, Func<HttpClient> httpClientFactory) 
-            : base("Cluster connectivity", "ServiceControl", TimeSpan.FromSeconds(30))
+        public CheckRemotes(Settings settings, Func<HttpClient> httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
             remoteInstanceSetting = settings.RemoteInstances;
