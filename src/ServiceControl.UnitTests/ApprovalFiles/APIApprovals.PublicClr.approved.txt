@@ -82,6 +82,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
         public string StorageUrl { get; }
+        public System.TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
         public string TransportCustomizationType { get; set; }
         public bool ValidateConfiguration { get; }
