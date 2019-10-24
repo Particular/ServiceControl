@@ -39,7 +39,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             Port = SettingsReader<int>.Read("Port", 33333);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            TimeToRestartAfterCriticalFailure = TimeSpan.FromSeconds(60);
+            TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(60);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
@@ -48,6 +48,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
+            TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
         }
 
         public bool AllowMessageEditing { get; set; }
@@ -176,7 +177,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int HttpDefaultConnectionLimit { get; set; }
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
-        internal TimeSpan TimeToRestartAfterCriticalFailure { get; set; }
+        public TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
 
         public int RetryHistoryDepth { get; set; }
@@ -408,6 +409,41 @@ namespace ServiceBus.Management.Infrastructure.Settings
             else
             {
                 message = "AuditRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
+                InternalLogger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return result;
+        }
+
+        TimeSpan GetTimeToRestartErrorIngestionAfterFailure()
+        {
+            string message;
+            var valueRead = SettingsReader<string>.Read("TimeToRestartErrorIngestionAfterFailure");
+            if (valueRead == null)
+            {
+                return TimeSpan.FromSeconds(60);
+            }
+
+            if (TimeSpan.TryParse(valueRead, out var result))
+            {
+                if (ValidateConfiguration && result < TimeSpan.FromSeconds(5))
+                {
+                    message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, value should be minimum 5 seconds.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                if (ValidateConfiguration && result > TimeSpan.FromHours(1))
+                {
+                    message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, value should be maximum 1 hour.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+            }
+            else
+            {
+                message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, please make sure it is a TimeSpan.";
                 InternalLogger.Fatal(message);
                 throw new Exception(message);
             }

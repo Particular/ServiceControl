@@ -20,9 +20,9 @@
             importFailuresHandler = new SatelliteImportFailuresHandler(documentStore, loggingSettings, onCriticalError);
         }
 
-        public async Task EnsureStarted()
+        public async Task EnsureStarted(CancellationToken cancellationToken)
         {
-            await startStopSemaphore.WaitAsync().ConfigureAwait(false);
+            await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -54,9 +54,9 @@
 
         Task OnCriticalErrorAction(ICriticalErrorContext ctx) => onCriticalError(ctx.Error, ctx.Exception);
 
-        public async Task EnsureStopped()
+        public async Task EnsureStopped(CancellationToken cancellationToken)
         {
-            await startStopSemaphore.WaitAsync().ConfigureAwait(false);
+            await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -81,6 +81,6 @@
         Func<string, Exception, Task> onCriticalError;
         SatelliteImportFailuresHandler importFailuresHandler;
 
-        volatile IReceivingRawEndpoint ingestionEndpoint;
+        IReceivingRawEndpoint ingestionEndpoint;
     }
 }
