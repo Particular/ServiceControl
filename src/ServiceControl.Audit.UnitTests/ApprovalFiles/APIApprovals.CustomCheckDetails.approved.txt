@@ -1,0 +1,2 @@
+ServiceControl.Audit Health: Audit Message Ingestion
+Storage space: ServiceControl.Audit database
