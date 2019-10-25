@@ -44,6 +44,7 @@
   "HttpDefaultConnectionLimit": 100,
   "TransportConnectionString": null,
   "ProcessRetryBatchesFrequency": "00:00:30",
+  "TimeToRestartErrorIngestionAfterFailure": "00:01:00",
   "MaximumConcurrencyLevel": 10,
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],

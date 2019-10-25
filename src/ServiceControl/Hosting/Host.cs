@@ -41,7 +41,7 @@
             {
                 RunCleanupBundle = true
             };
-            bootstrapper = new Bootstrapper(ctx => Stop(), settings, busConfiguration, loggingSettings);
+            bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 

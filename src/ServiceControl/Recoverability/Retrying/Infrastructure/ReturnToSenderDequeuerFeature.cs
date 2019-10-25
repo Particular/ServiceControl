@@ -22,9 +22,7 @@ namespace ServiceControl.Recoverability
             queueBindings.BindReceiving(inputAddress);
 
             context.Container.ConfigureComponent(
-                b => new ReturnToSenderDequeuer(
-                    context.Settings.Get<TransportDefinition>(),
-                    b.Build<ReturnToSender>(),
+                b => new ReturnToSenderDequeuer(b.Build<ReturnToSender>(),
                     b.Build<IDocumentStore>(),
                     b.Build<IDomainEvents>(),
                     inputAddress,

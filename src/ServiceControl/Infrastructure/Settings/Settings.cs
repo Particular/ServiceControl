@@ -47,6 +47,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
+            TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
         }
 
         public bool AllowMessageEditing { get; set; }
@@ -175,6 +176,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int HttpDefaultConnectionLimit { get; set; }
         public string TransportConnectionString { get; set; }
         public TimeSpan ProcessRetryBatchesFrequency { get; set; }
+        public TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
 
         public int RetryHistoryDepth { get; set; }
@@ -406,6 +408,41 @@ namespace ServiceBus.Management.Infrastructure.Settings
             else
             {
                 message = "AuditRetentionPeriod settings is invalid, please make sure it is a TimeSpan.";
+                InternalLogger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return result;
+        }
+
+        TimeSpan GetTimeToRestartErrorIngestionAfterFailure()
+        {
+            string message;
+            var valueRead = SettingsReader<string>.Read("TimeToRestartErrorIngestionAfterFailure");
+            if (valueRead == null)
+            {
+                return TimeSpan.FromSeconds(60);
+            }
+
+            if (TimeSpan.TryParse(valueRead, out var result))
+            {
+                if (ValidateConfiguration && result < TimeSpan.FromSeconds(5))
+                {
+                    message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, value should be minimum 5 seconds.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                if (ValidateConfiguration && result > TimeSpan.FromHours(1))
+                {
+                    message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, value should be maximum 1 hour.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+            }
+            else
+            {
+                message = "TimeToRestartErrorIngestionAfterFailure setting is invalid, please make sure it is a TimeSpan.";
                 InternalLogger.Fatal(message);
                 throw new Exception(message);
             }
