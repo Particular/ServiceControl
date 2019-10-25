@@ -18,11 +18,11 @@
             var started = new TaskCompletionSource<bool>();
             var stopped = new TaskCompletionSource<bool>();
 
-            var dog = new Watchdog(() =>
+            var dog = new Watchdog(token =>
             {
                 started.SetResult(true);
                 return Task.CompletedTask;
-            }, () =>
+            }, token =>
             {
                 stopped.SetResult(true);
                 return Task.CompletedTask;
@@ -44,12 +44,12 @@
             var started = new TaskCompletionSource<bool>();
 
             var dog = new Watchdog(
-                () =>
+                token =>
                 {
                     started.SetResult(true);
                     return Task.CompletedTask;
                 }, 
-                () => throw new Exception("Simulated"), 
+                token => throw new Exception("Simulated"), 
                 x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
 
             await dog.Start();
@@ -71,7 +71,7 @@
             var restarted = new TaskCompletionSource<bool>();
 
             var dog = new Watchdog(
-                () =>
+                token =>
                 {
                     if (startAttempts == 0)
                     {
@@ -84,7 +84,7 @@
                     startAttempts++;
                     return Task.CompletedTask;
                 },
-                () =>
+                token =>
                 {
                     stopCalled = true;
                     return Task.CompletedTask;
@@ -110,7 +110,7 @@
             var started = new TaskCompletionSource<bool>();
 
             var dog = new Watchdog(
-                () =>
+                token =>
                 {
                     if (startAttempts > 1)
                     {
@@ -125,7 +125,7 @@
                     started.SetResult(true);
                     return Task.CompletedTask;
                 },
-                () => Task.CompletedTask, 
+                token => Task.CompletedTask, 
                 x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
 
             await dog.Start();

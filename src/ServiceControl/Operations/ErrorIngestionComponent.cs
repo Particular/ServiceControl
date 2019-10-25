@@ -37,7 +37,7 @@
             failedImporter = new ImportFailedErrors(documentStore, ingestor, rawEndpointFactory);
 
             watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, ingestionState.ReportError,
-                ingestionState.Clear, settings.TimeToRestartAfterCriticalFailure, log, "failed message ingestion");
+                ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log, "failed message ingestion");
         }
 
         Task OnCriticalError(string failure, Exception arg2)

@@ -1,0 +1,6 @@
+Health: ServiceControl Primary Instance
+Health: ServiceControl Remotes
+ServiceControl Health: Audit Message Ingestion
+ServiceControl Health: Error Message Ingestion
+ServiceControl Health: Error Message Ingestion Process
+Storage space: ServiceControl database
