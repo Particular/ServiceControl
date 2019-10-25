@@ -6,24 +6,22 @@
 
     class ErrorIngestionCustomCheck : CustomCheck
     {
-        readonly State criticalErrorHolder;
-
-        public ErrorIngestionCustomCheck(State criticalErrorHolder) 
-            : base("Failed message ingestion process", "ServiceControl", TimeSpan.FromSeconds(5))
+        public override Task<CheckResult> PerformCheck()
+        {
+            var failure = criticalErrorHolder.GetLastFailure();
+            return failure == null 
+                ? successResult 
+                : Task.FromResult(CheckResult.Failed(failure));
+        }
+        
+        public ErrorIngestionCustomCheck(State criticalErrorHolder)
+            : base("Error Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
             this.criticalErrorHolder = criticalErrorHolder;
         }
 
-        public override Task<CheckResult> PerformCheck()
-        {
-            var failure = criticalErrorHolder.GetLastFailure();
-            if (failure == null)
-            {
-                return Task.FromResult(CheckResult.Pass);
-            }
-
-            return Task.FromResult(CheckResult.Failed(failure));
-        }
+        readonly State criticalErrorHolder;
+        static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
 
         public class State
         {

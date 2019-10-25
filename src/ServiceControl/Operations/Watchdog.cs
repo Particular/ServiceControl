@@ -7,8 +7,8 @@
 
     class Watchdog
     {
-        Func<Task> ensureStopped;
-        Func<Task> ensureStarted;
+        Func<CancellationToken, Task> ensureStopped;
+        Func<CancellationToken, Task> ensureStarted;
         Action<string> reportFailure;
         Action clearFailure;
         Task watchdog;
@@ -17,7 +17,7 @@
         ILog log;
         string processName;
 
-        public Watchdog(Func<Task> ensureStarted, Func<Task> ensureStopped, Action<string> reportFailure, Action clearFailure, TimeSpan timeToWaitBetweenStartupAttempts, ILog log, string processName)
+        public Watchdog(Func<CancellationToken, Task> ensureStarted, Func<CancellationToken, Task> ensureStopped, Action<string> reportFailure, Action clearFailure, TimeSpan timeToWaitBetweenStartupAttempts, ILog log, string processName)
         {
             this.ensureStopped = ensureStopped;
             this.ensureStarted = ensureStarted;
@@ -31,7 +31,7 @@
         public Task OnFailure(string failure)
         {
             reportFailure(failure);
-            return ensureStopped();
+            return ensureStopped(shutdownTokenSource.Token);
         }
 
         public Task Start()
@@ -42,7 +42,7 @@
                 {
                     try
                     {
-                        await ensureStarted().ConfigureAwait(false);
+                        await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
                         clearFailure();
                     }
                     catch (OperationCanceledException)
@@ -66,7 +66,8 @@
                 }
                 try
                 {
-                    await ensureStopped().ConfigureAwait(false);
+                    //We don't pass the shutdown token here because it has already been cancelled and we want to ensure we stop the ingestion.
+                    await ensureStopped(CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
