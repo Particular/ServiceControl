@@ -22,10 +22,10 @@
 
         public async Task EnsureStarted(CancellationToken cancellationToken)
         {
-            await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
             try
             {
+                await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
                 if (ingestionEndpoint != null)
                 {
                     return; //Already started
@@ -56,10 +56,10 @@
 
         public async Task EnsureStopped(CancellationToken cancellationToken)
         {
-            await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
             try
             {
+                await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
                 if (ingestionEndpoint == null)
                 {
                     return; //Already stopped
