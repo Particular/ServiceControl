@@ -7,5 +7,6 @@
     {
         public abstract void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings);
         public abstract void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings);
+        public abstract IProvide CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings);
     }
 }

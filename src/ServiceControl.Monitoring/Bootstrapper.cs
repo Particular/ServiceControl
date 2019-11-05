@@ -21,6 +21,7 @@
     using NServiceBus.Pipeline;
     using QueueLength;
     using ServiceBus.Management.Infrastructure.OWIN;
+    using Transports;
     using Module = Autofac.Module;
 
     public class Bootstrapper
@@ -46,26 +47,25 @@
 
         public void CreateReceiver(EndpointConfiguration config, string explicitConnectionStringValue = null)
         {
-            var transportType = DetermineTransportType(settings);
+            //var transportCustomization = DetermineTransportType(settings);
+            var transportCustomization = settings.LoadTransportCustomization();
 
-            var buildQueueLengthProvider = QueueLengthProviderBuilder(explicitConnectionStringValue, transportType);
+            var connectionString = explicitConnectionStringValue ?? settings.ConnectionString;
+
+            var buildQueueLengthProvider = QueueLengthProviderBuilder(connectionString, transportCustomization);
 
             var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
 
-            var transport = config.UseTransport(transportType)
-                .Transactions(TransportTransactionMode.ReceiveOnly);
 
-            if (explicitConnectionStringValue != null)
+            var transportSettings = new TransportSettings
             {
-                transport.ConnectionString(explicitConnectionStringValue);
-            }
-            else
-            {
-#pragma warning disable 618
-                transport.ConnectionStringName("NServiceBus/Transport");
-#pragma warning restore 618
-            }
+                RunCustomChecks = false,
+                ConnectionString = connectionString,
+                EndpointName = settings.EndpointName
+            };
 
+            transportCustomization.CustomizeEndpoint(config, transportSettings); 
+            
             if (settings.EnableInstallers)
             {
                 config.EnableInstallers(settings.Username);
@@ -146,10 +146,10 @@
         }
 
         static Type DetermineTransportType(Settings settings)
-        {
-            var transportTypeName = legacyTransportTypeNames.ContainsKey(settings.TransportType)
-                ? legacyTransportTypeNames[settings.TransportType]
-                : settings.TransportType;
+        { 
+            var transportTypeName = legacyTransportTypeNames.ContainsKey(settings.TransportCustomizationType)
+                ? legacyTransportTypeNames[settings.TransportCustomizationType]
+                : settings.TransportCustomizationType;
 
             var transportType = Type.GetType(transportTypeName);
 
@@ -158,7 +158,7 @@
                 return transportType;
             }
 
-            var errorMsg = $"Configuration of transport failed. Could not resolve type `{settings.TransportType}`";
+            var errorMsg = $"Configuration of transport failed. Could not resolve type `{settings.TransportCustomizationType}`";
             Logger.Error(errorMsg);
             throw new Exception(errorMsg);
         }

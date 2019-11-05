@@ -27,7 +27,7 @@
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
             var header = $@"-------------------------------------------------------------
 ServiceControl Monitoring Version:				{version}
-Selected Transport:					{settings.TransportType}
+Selected Transport:					{settings.TransportCustomizationType}
 -------------------------------------------------------------";
 
             var fileTarget = new FileTarget

@@ -1,9 +1,11 @@
 namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Configuration;
     using System.IO;
     using System.Reflection;
     using NLog;
+    using Transports;
 
     public class Settings
     {
@@ -14,7 +16,8 @@ namespace ServiceControl.Monitoring
         }
 
         public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
-        public string TransportType { get; set; }
+        public string TransportCustomizationType { get; set; }
+        public string ConnectionString { get; set; }  
         public string ErrorQueue { get; set; }
         public string LogPath { get; set; }
         public LogLevel LogLevel { get; set; }
@@ -30,7 +33,8 @@ namespace ServiceControl.Monitoring
         {
             var settings = new Settings
             {
-                TransportType = reader.Read<string>("Monitoring/TransportType"),
+                TransportCustomizationType = reader.Read<string>("Monitoring/TransportType"),
+                ConnectionString = GetConnectionString(reader),
                 LogLevel = MonitorLogs.InitializeLevel(reader),
                 LogPath = reader.Read("Monitoring/LogPath", DefaultLogLocation()),
                 ErrorQueue = reader.Read("Monitoring/ErrorQueue", "error"),
@@ -48,6 +52,31 @@ namespace ServiceControl.Monitoring
         {
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
             return Path.GetDirectoryName(assemblyLocation);
+        }
+
+        public TransportCustomization LoadTransportCustomization()
+        {
+            try
+            {
+                var customizationType = Type.GetType(TransportCustomizationType, true);
+                return (TransportCustomization)Activator.CreateInstance(customizationType);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
+            }
+        }
+
+        static string GetConnectionString(SettingsReader reader)
+        {
+            var settingsValue = reader.Read<string>("ConnectionString");
+            if (settingsValue != null)
+            {
+                return settingsValue;
+            }
+
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
+            return connectionStringSettings?.ConnectionString;
         }
 
         string endpointName;

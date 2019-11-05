@@ -46,7 +46,7 @@ namespace NServiceBus.AcceptanceTests
 
             Settings = new Settings
             {
-                TransportType = TransportIntegration.MonitoringSeamTypeName,
+                TransportCustomizationType = TransportIntegration.MonitoringSeamTypeName,
                 EnableInstallers = true,
                 ErrorQueue = "error",
                 HttpHostName = "localhost",
