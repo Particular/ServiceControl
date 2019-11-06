@@ -3,18 +3,19 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
+    using Transports;
 
     public class QueueLength : Feature
     {
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(b => new QueueLengthProviderTask(b.Build<IProvideQueueLength>()));
+            context.RegisterStartupTask(b => new QueueLengthProviderTask(b.Build<IProvideQueueLengthNew>()));
         }
     }
 
     public class QueueLengthProviderTask : FeatureStartupTask
     {
-        public QueueLengthProviderTask(IProvideQueueLength queueLengthProvider)
+        public QueueLengthProviderTask(IProvideQueueLengthNew queueLengthProvider)
         {
             this.queueLengthProvider = queueLengthProvider;
         }
@@ -29,6 +30,6 @@
             return queueLengthProvider.Stop();
         }
 
-        IProvideQueueLength queueLengthProvider;
+        IProvideQueueLengthNew queueLengthProvider;
     }
 }

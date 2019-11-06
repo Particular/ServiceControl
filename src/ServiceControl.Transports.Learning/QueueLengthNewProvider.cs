@@ -22,7 +22,7 @@
 
         public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
         {
-            rootFolder = Path.Combine(connectionString, ".learningtransport");
+            rootFolder = connectionString;
             queueLengthStoreDto = storeDto;
         }
 

@@ -152,7 +152,7 @@
 
             containerBuilder.RegisterModule<ApplicationModule>();
             containerBuilder.RegisterInstance(settings).As<Settings>().SingleInstance();
-            containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
+            containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLengthNew>().SingleInstance();
 
             return containerBuilder;
         }
