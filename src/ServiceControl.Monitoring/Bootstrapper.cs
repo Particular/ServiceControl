@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -11,6 +10,7 @@
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
+    using Infrastructure;
     using Licensing;
     using Messaging;
     using Microsoft.Owin.Hosting;
@@ -52,7 +52,7 @@
 
             var connectionString = explicitConnectionStringValue ?? settings.ConnectionString;
 
-            var buildQueueLengthProvider = QueueLengthProviderBuilder(connectionString, transportCustomization);
+            var buildQueueLengthProvider = QueueLengthProviderBuilder(connectionString, transportCustomization.GetType());
 
             var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
 
@@ -115,26 +115,38 @@
             }
         }
 
-        static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string explicitConnectionStringValue, Type transportType)
+        static Func<QueueLengthStore, IProvideQueueLengthNew> QueueLengthProviderBuilder(string connectionString, Type transportType)
         {
             return qls =>
             {
-                var connectionString = explicitConnectionStringValue ?? ConfigurationManager.ConnectionStrings["NServiceBus/Transport"]?.ConnectionString;
-
+                //TODO: crate a factory method on TransportCustomization instead of reflection
+                //      should be TryGetQueueLengthProvider and fallback to the default one
                 var queueLengthProviderType = transportType.Assembly.GetTypes()
-                    .SingleOrDefault(p => typeof(IProvideQueueLength).IsAssignableFrom(p));
+                    .SingleOrDefault(p => typeof(IProvideQueueLengthNew).IsAssignableFrom(p));
 
                 var queueLengthProvider = queueLengthProviderType != null
-                    ? (IProvideQueueLength)Activator.CreateInstance(queueLengthProviderType)
+                    ? (IProvideQueueLengthNew)Activator.CreateInstance(queueLengthProviderType)
                     : new DefaultQueueLengthProvider();
 
-                queueLengthProvider.Initialize(connectionString, qls);
+                Action<EntryDto[], EndpointInputQueueDto> store = (es, q) => qls.Store(es.Select(e => ToEntry(e)).ToArray(), ToQueueId(q));
+
+                queueLengthProvider.Initialize(connectionString, new QueueLengthStoreDto(store));
 
                 return queueLengthProvider;
             };
         }
 
-        static ContainerBuilder CreateContainer(Settings settings, Func<QueueLengthStore, IProvideQueueLength> buildQueueLengthProvider)
+        static EndpointInputQueue ToQueueId(EndpointInputQueueDto endpointInputQueueDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        static RawMessage.Entry ToEntry(EntryDto entryDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        static ContainerBuilder CreateContainer(Settings settings, Func<QueueLengthStore, IProvideQueueLengthNew> buildQueueLengthProvider)
         {
             var containerBuilder = new ContainerBuilder();
 
