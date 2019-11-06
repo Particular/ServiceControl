@@ -138,12 +138,16 @@
 
         static EndpointInputQueue ToQueueId(EndpointInputQueueDto endpointInputQueueDto)
         {
-            throw new NotImplementedException();
+            return new EndpointInputQueue(endpointInputQueueDto.EndpointName, endpointInputQueueDto.InputQueue);
         }
 
         static RawMessage.Entry ToEntry(EntryDto entryDto)
         {
-            throw new NotImplementedException();
+            return new RawMessage.Entry
+            {
+                DateTicks = entryDto.DateTicks,
+                Value = entryDto.Value
+            };
         }
 
         static ContainerBuilder CreateContainer(Settings settings, Func<QueueLengthStore, IProvideQueueLengthNew> buildQueueLengthProvider)
