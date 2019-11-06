@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using NServiceBus;
 using NUnit.Framework;
 using ServiceBus.Management.AcceptanceTests;
+using ServiceControl.Transports.Learning;
 
 public class ConfigureEndpointLearningTransport : ITransportIntegration
 {
     public Task Configure(string endpointName, EndpointConfiguration configuration)
     {
-        var connectionString = Path.Combine(ConnectionString, ".learningtransport");
+        var connectionString = ConnectionString;
 
         Directory.CreateDirectory(connectionString);
 
@@ -30,6 +31,6 @@ public class ConfigureEndpointLearningTransport : ITransportIntegration
         return Task.FromResult(0);
     }
 
-    public string MonitoringSeamTypeName => $"{typeof(ServiceControlLearningTransport).AssemblyQualifiedName}";
+    public string MonitoringSeamTypeName => $"{typeof(LearningTransportCustomization).AssemblyQualifiedName}";
     public string ConnectionString { get; set; } = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..\..\..\");
 }

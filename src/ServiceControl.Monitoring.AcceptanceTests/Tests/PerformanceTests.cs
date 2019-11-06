@@ -16,6 +16,7 @@
     using NUnit.Framework;
     using QueueLength;
     using Timings;
+    using Transports;
 
     public class PerformanceTests : NServiceBusAcceptanceTest
     {
@@ -28,7 +29,8 @@
             retriesStore = new RetriesStore();
             queueLengthProvider = new DefaultQueueLengthProvider();
             queueLengthStore = new QueueLengthStore();
-            queueLengthProvider.Initialize(string.Empty, queueLengthStore);
+            queueLengthStoreDto = new QueueLengthStoreDto(((dtos, dto) => queueLengthStore.Store(null, null)));
+            queueLengthProvider.Initialize(string.Empty, queueLengthStoreDto);
 
             var settings = new Settings {EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5)};
             activityTracker = new EndpointInstanceActivityTracker(settings);
@@ -69,7 +71,7 @@
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i, new TaggedLongValueOccurrence {Entries = e, TagValue = string.Empty}))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(null, new TaggedLongValueOccurrenceDto(null, null)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -126,7 +128,7 @@
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i, new TaggedLongValueOccurrence {Entries = e}))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(null, new TaggedLongValueOccurrenceDto(null ,null)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -237,6 +239,7 @@
         ProcessingTimeStore processingTimeStore;
         RetriesStore retriesStore;
         QueueLengthStore queueLengthStore;
+        QueueLengthStoreDto queueLengthStoreDto;
         DefaultQueueLengthProvider queueLengthProvider;
         Action GetMonitoredEndpoints;
         Action<string> GetMonitoredSingleEndpoint;

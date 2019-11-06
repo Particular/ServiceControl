@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Transports
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     public interface IProvideQueueLengthNew
@@ -30,9 +29,9 @@
 
     public class EndpointMetadataReportDto
     {
-        public EndpointMetadataReportDto(string messageLocalAddress)
+        public EndpointMetadataReportDto(string localAddress)
         {
-            throw new NotImplementedException();
+            LocalAddress = localAddress;
         }
 
         public string LocalAddress { get; set; }
@@ -41,10 +40,27 @@
     public class EndpointInstanceIdDto
     {
         public string EndpointName { get; set; }
-
-        public static EndpointInstanceIdDto From(IReadOnlyDictionary<string, string> contextMessageHeaders)
+        protected bool Equals(EndpointInstanceIdDto other)
         {
-            throw new NotImplementedException();
+            return string.Equals(EndpointName, other.EndpointName);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+
+            return Equals((EndpointInstanceIdDto)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = (EndpointName != null ? EndpointName.GetHashCode() : 0);
+                return hashCode;
+            }
         }
     }
 

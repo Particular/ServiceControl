@@ -17,11 +17,11 @@
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AmazonSQS\ServiceControl.Transports.AmazonSQS.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AzureServiceBus\ServiceControl.Transports.AzureServiceBus.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.AzureStorageQueues\ServiceControl.Transports.AzureStorageQueues.csproj" />
-    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LearningTransport\ServiceControl.Transports.LearningTransport.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LegacyAzureServiceBus\ServiceControl.Transports.LegacyAzureServiceBus.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring.Transports.SQLServer\ServiceControl.Transports.SQLServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
   </ItemGroup>
 
   <ItemGroup>
