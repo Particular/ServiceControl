@@ -18,7 +18,7 @@
     using Timings;
     using Transports;
 
-    public class PerformanceTests : NServiceBusAcceptanceTest
+    public class PerformanceTests : NServiceBusAcceptanceTest2
     {
         [SetUp]
         public void Setup()

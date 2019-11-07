@@ -12,7 +12,7 @@ namespace NServiceBus.AcceptanceTests
     /// Base class for all the NSB test that sets up our conventions
     /// </summary>
     [TestFixture]
-    public class NServiceBusAcceptanceTest
+    public class NServiceBusAcceptanceTest2
     {
         public static ITransportIntegration TransportIntegration { get; set; }
 
@@ -46,7 +46,7 @@ namespace NServiceBus.AcceptanceTests
 
             Settings = new Settings
             {
-                TransportCustomizationType = TransportIntegration.MonitoringSeamTypeName,
+                TransportCustomizationType = TransportIntegration.TypeName,
                 EnableInstallers = true,
                 ErrorQueue = "error",
                 HttpHostName = "localhost",
@@ -57,7 +57,7 @@ namespace NServiceBus.AcceptanceTests
 
             if (transportCustomization != null && transportCustomization != typeof(ConfigureEndpointLearningTransport).Name)
             {
-                Assert.Inconclusive($"Only running Monitoring ATT's for the learning transport, therefore skipping this test with '{TransportIntegration.MonitoringSeamTypeName}'");
+                Assert.Inconclusive($"Only running Monitoring ATT's for the learning transport, therefore skipping this test with '{TransportIntegration.TypeName}'");
             }
         }
     }

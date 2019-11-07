@@ -1,15 +1,11 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
-    using System.Threading.Tasks;
-    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
 
-    public interface ITransportIntegration
+    public interface ITransportIntegration : IConfigureEndpointTestExecution
     {
-        string MonitoringSeamTypeName { get; }
+        string Name { get; }
+        string TypeName { get; }
         string ConnectionString { get; set; }
-
-        Task Configure(string endpointName, EndpointConfiguration configuration);
-
-        Task Cleanup();
     }
 }

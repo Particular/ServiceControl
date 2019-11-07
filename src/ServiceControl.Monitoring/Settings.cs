@@ -1,12 +1,15 @@
 namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Reflection;
+    using System.Threading.Tasks;
     using NLog;
     using Transports;
 
+    //TODO: align names with SC and SC.Audit
     public class Settings
     {
         public string EndpointName
@@ -78,8 +81,11 @@ namespace ServiceControl.Monitoring
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             return connectionStringSettings?.ConnectionString;
         }
-
+        
         string endpointName;
-        const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
+
+        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
+        
+        public const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
     }
 }

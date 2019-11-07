@@ -19,9 +19,9 @@
 
             builder.TypesToIncludeInScan(types);
 
-            var transportIntegration = NServiceBusAcceptanceTest.TransportIntegration;
+            var transportIntegration = NServiceBusAcceptanceTest2.TransportIntegration;
 
-            transportIntegration.Configure(endpointConfiguration.EndpointName, builder);
+            //transportIntegration.Configure(endpointConfiguration.EndpointName, builder);
 
             builder.Recoverability().Delayed(delayedRetries => delayedRetries.NumberOfRetries(0));
             builder.Recoverability().Immediate(immediateRetries => immediateRetries.NumberOfRetries(0));

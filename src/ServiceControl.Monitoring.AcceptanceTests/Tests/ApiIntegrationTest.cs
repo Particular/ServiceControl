@@ -9,7 +9,7 @@
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
 
-    public abstract class ApiIntegrationTest : NServiceBusAcceptanceTest
+    public abstract class ApiIntegrationTest : NServiceBusAcceptanceTest2
     {
         protected Bootstrapper Bootstrapper { get; set; }
 

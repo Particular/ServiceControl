@@ -170,13 +170,13 @@
             throw new Exception(errorMsg);
         }
 
-        public async Task<IEndpointInstance> Start()
+        public async Task<BusInstance> Start()
         {
             bus = await CreateAndStartReceiver();
 
             StartWebApi();
 
-            return bus;
+            return new BusInstance(bus);
         }
 
         public void StartWebApi()
