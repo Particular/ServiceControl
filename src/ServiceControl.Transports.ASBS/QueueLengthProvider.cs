@@ -12,14 +12,6 @@ namespace ServiceControl.Transports.ASBS
 
     public class QueueLengthProvider : IProvideQueueLengthNew
     {
-        ConcurrentDictionary<string, EndpointInstanceIdDto> endpointQueueMappings = new ConcurrentDictionary<string, EndpointInstanceIdDto>();
-
-        QueueLengthStoreDto queueLengthStore;
-        ManagementClient managementClient;
-
-        CancellationTokenSource stop = new CancellationTokenSource();
-        Task poller;
-
         public void Initialize(string connectionString, QueueLengthStoreDto store)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
@@ -147,9 +139,14 @@ namespace ServiceControl.Transports.ASBS
             await managementClient.CloseAsync().ConfigureAwait(false);
         }
 
+        ConcurrentDictionary<string, EndpointInstanceIdDto> endpointQueueMappings = new ConcurrentDictionary<string, EndpointInstanceIdDto>();
+        QueueLengthStoreDto queueLengthStore;
+        ManagementClient managementClient;
+        CancellationTokenSource stop = new CancellationTokenSource();
+        Task poller;
+
         static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(500);
         static string QueueLengthQueryIntervalPartName = "QueueLengthQueryDelayInterval";
-
         static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
     }
 }
