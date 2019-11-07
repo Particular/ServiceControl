@@ -48,11 +48,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         static string[] pluginMessages =
         {
-            "ServiceControl.Plugin.CustomChecks.Messages.ReportCustomCheckResult",
-            "ServiceControl.EndpointPlugin.Messages.SagaState.SagaChangeInitiator",
-            "ServiceControl.EndpointPlugin.Messages.SagaState.SagaUpdatedMessage",
-            "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat",
-            "ServiceControl.Plugin.Heartbeat.Messages.RegisterEndpointStartup"
+            "NServiceBus.Metrics.EndpointMetadataReport"
         };
     }
 }

@@ -79,7 +79,8 @@
 
             config.UseSerialization<NewtonsoftSerializer>();
             config.UsePersistence<InMemoryPersistence>();
-            config.SendFailedMessagesTo(settings.ErrorQueue);
+            //TODO: do we need errorQueue (likely not)
+            //config.SendFailedMessagesTo(settings.ErrorQueue);
             config.DisableFeature<AutoSubscribe>();
 
             config.AddDeserializer<TaggedLongValueWriterOccurrenceSerializerDefinition>();
@@ -173,6 +174,15 @@
         public async Task<BusInstance> Start()
         {
             bus = await CreateAndStartReceiver();
+
+            StartWebApi();
+
+            return new BusInstance(bus);
+        }
+
+        public async Task<BusInstance> StartForTests(EndpointConfiguration configuraiton)
+        {
+            bus = await Endpoint.Start(configuraiton);
 
             StartWebApi();
 

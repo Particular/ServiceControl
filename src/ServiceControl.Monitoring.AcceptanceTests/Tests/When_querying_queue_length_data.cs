@@ -4,21 +4,22 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using AcceptanceTesting.Customization;
-    using global::Newtonsoft.Json.Linq;
+    using global::ServiceControl.AcceptanceTests;
+    using global::ServiceControl.Monitoring.Http.Diagrams;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
+    using AcceptanceTest = ServiceBus.Management.AcceptanceTests.AcceptanceTest;
 
-    public class When_querying_queue_length_data : ApiIntegrationTest
+    [RunOnAllTransports]
+    class When_querying_queue_length_data : AcceptanceTest
     {
-        static string MonitoringEndpointName => Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));
-
         [Test]
         public async Task Should_report_via_http()
         {
-            JToken queueLength = null;
+            var metricReported = false;
 
-            await Scenario.Define<QueueLengthContext>()
+            await Define<QueueLengthContext>()
                 .WithEndpoint<SendingEndpoint>(c =>
                 {
                     c.DoNotFailOnErrorMessages();
@@ -29,29 +30,23 @@
                         await s.SendLocal(new SampleMessage());
                     });
                 })
-                .WithEndpoint<MonitoringEndpoint>(c =>
+                .Done(async c =>
                 {
-                    c.CustomConfig(conf =>
-                    {
-                        Bootstrapper.CreateReceiver(conf, ConnectionString);
-                        Bootstrapper.StartWebApi();
-                    });
-                })
-                .Done(c =>
-                {
-                    var done = MetricReported("queueLength", out queueLength, c);
+                    var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
 
-                    if (done)
+                    metricReported = result.Items[0].Metrics["queueLength"].Average > 0;
+
+                    if (metricReported)
                     {
                         c.CancelProcessingTokenSource.Cancel();
                     }
 
-                    return done;
+                    return metricReported;
                 })
                 .Run();
 
-            Assert.IsTrue(queueLength["average"].Value<double>() > 0);
-            Assert.AreEqual(60, queueLength["points"].Value<JArray>().Count);
+
+            Assert.IsTrue(metricReported);
         }
 
         class SendingEndpoint : EndpointConfigurationBuilder
@@ -60,7 +55,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableMetrics().SendMetricDataToServiceControl(MonitoringEndpointName, TimeSpan.FromSeconds(1));
+                    c.EnableMetrics().SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });
             }
@@ -77,15 +72,11 @@
             }
         }
 
-        class MonitoringEndpoint : EndpointConfigurationBuilder
+        public class SampleMessage : IMessage
         {
-            public MonitoringEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
         }
 
-        class QueueLengthContext : Context
+        public class QueueLengthContext : ScenarioContext
         {
             public CancellationTokenSource CancelProcessingTokenSource = new CancellationTokenSource();
         }

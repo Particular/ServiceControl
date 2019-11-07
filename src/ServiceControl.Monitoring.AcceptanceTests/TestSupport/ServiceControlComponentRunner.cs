@@ -77,6 +77,7 @@ namespace ServiceBus.Management.AcceptanceTests
                 HttpPort = instancePort.ToString(),
                 TransportCustomizationType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
+                HttpHostName = "localhost",
                 //MaximumConcurrencyLevel = 2,
                 //HttpDefaultConnectionLimit = int.MaxValue,
                 //RunInMemory = true,
@@ -159,7 +160,9 @@ namespace ServiceBus.Management.AcceptanceTests
                 }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); }); */
 
                 bootstrapper = new Bootstrapper(settings);
-
+                
+                bootstrapper.CreateReceiver(configuration);
+                
                 //bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 
@@ -181,7 +184,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
-                Bus = await bootstrapper.Start().ConfigureAwait(false);
+                Bus = await bootstrapper.StartForTests(configuration).ConfigureAwait(false);
             }
         }
 

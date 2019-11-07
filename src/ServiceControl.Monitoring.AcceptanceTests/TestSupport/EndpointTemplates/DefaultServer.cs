@@ -10,14 +10,14 @@
     using Features;
     using ServiceBus.Management.AcceptanceTests;
 
-    public class DefaultServerNew : IEndpointSetupTemplate
+    public class DefaultServer : IEndpointSetupTemplate
     {
-        public DefaultServerNew()
+        public DefaultServer()
         {
             typesToInclude = new List<Type>();
         }
 
-        public DefaultServerNew(List<Type> typesToInclude)
+        public DefaultServer(List<Type> typesToInclude)
         {
             this.typesToInclude = typesToInclude;
         }
