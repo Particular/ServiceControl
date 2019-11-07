@@ -32,5 +32,5 @@ public class ConfigureEndpointLearningTransport : ITransportIntegration
     }
 
     public string MonitoringSeamTypeName => $"{typeof(LearningTransportCustomization).AssemblyQualifiedName}";
-    public string ConnectionString { get; set; } = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..\..\..\");
+    public string ConnectionString { get; set; } = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..\..\..\.learningtransport");
 }

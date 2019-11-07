@@ -47,15 +47,13 @@
 
         public void CreateReceiver(EndpointConfiguration config, string explicitConnectionStringValue = null)
         {
-            //var transportCustomization = DetermineTransportType(settings);
             var transportCustomization = settings.LoadTransportCustomization();
 
             var connectionString = explicitConnectionStringValue ?? settings.ConnectionString;
 
-            var buildQueueLengthProvider = QueueLengthProviderBuilder(connectionString, transportCustomization.GetType());
+            var buildQueueLengthProvider = QueueLengthProviderBuilder(connectionString, transportCustomization);
 
             var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
-
 
             var transportSettings = new TransportSettings
             {
@@ -64,8 +62,8 @@
                 EndpointName = settings.EndpointName
             };
 
-            transportCustomization.CustomizeEndpoint(config, transportSettings); 
-            
+            transportCustomization.CustomizeEndpoint(config, transportSettings);
+
             if (settings.EnableInstallers)
             {
                 config.EnableInstallers(settings.Username);
@@ -115,18 +113,11 @@
             }
         }
 
-        static Func<QueueLengthStore, IProvideQueueLengthNew> QueueLengthProviderBuilder(string connectionString, Type transportType)
+        static Func<QueueLengthStore, IProvideQueueLengthNew> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
         {
             return qls =>
             {
-                //TODO: crate a factory method on TransportCustomization instead of reflection
-                //      should be TryGetQueueLengthProvider and fallback to the default one
-                var queueLengthProviderType = transportType.Assembly.GetTypes()
-                    .SingleOrDefault(p => typeof(IProvideQueueLengthNew).IsAssignableFrom(p));
-
-                var queueLengthProvider = queueLengthProviderType != null
-                    ? (IProvideQueueLengthNew)Activator.CreateInstance(queueLengthProviderType)
-                    : new DefaultQueueLengthProvider();
+                var queueLengthProvider = transportCustomization.CreateQueueLengthProvider();
 
                 Action<EntryDto[], EndpointInputQueueDto> store = (es, q) => qls.Store(es.Select(e => ToEntry(e)).ToArray(), ToQueueId(q));
 
@@ -162,7 +153,7 @@
         }
 
         static Type DetermineTransportType(Settings settings)
-        { 
+        {
             var transportTypeName = legacyTransportTypeNames.ContainsKey(settings.TransportCustomizationType)
                 ? legacyTransportTypeNames[settings.TransportCustomizationType]
                 : settings.TransportCustomizationType;

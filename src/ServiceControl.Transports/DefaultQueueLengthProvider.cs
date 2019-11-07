@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.QueueLength
+﻿namespace ServiceControl.Transports
 {
     using System.Threading.Tasks;
     using Transports;
@@ -22,9 +22,9 @@
             queueLengthStore.Store(metricsReport.Entries, endpointInputQueue);
         }
 
-        public Task Start() => TaskEx.Completed;
+        public Task Start() => Task.CompletedTask;
 
-        public Task Stop() => TaskEx.Completed;
+        public Task Stop() => Task.CompletedTask;
         QueueLengthStoreDto queueLengthStore;
     }
 }
