@@ -25,9 +25,10 @@
                     c.DoNotFailOnErrorMessages();
                     c.When(async s =>
                     {
-                        await s.SendLocal(new SampleMessage());
-                        await s.SendLocal(new SampleMessage());
-                        await s.SendLocal(new SampleMessage());
+                        for (var i = 0; i < 10; i++)
+                        {
+                            await s.SendLocal(new SampleMessage());
+                        }
                     });
                 })
                 .Done(async c =>
