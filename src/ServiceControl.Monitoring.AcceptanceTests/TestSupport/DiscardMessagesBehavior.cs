@@ -24,6 +24,13 @@ namespace ServiceBus.Management.AcceptanceTests
                 return next(context);
             }
 
+            //Do not filter out performance metrics metrics
+            if (context.Message.Headers.TryGetValue("NServiceBus.Metric.Type", out var metricType)
+                && metricTypes.Any(t => metricType.StartsWith(t)))
+            {
+                return next(context);
+            }
+
             //Do not filter out subscribe messages as they can't be stamped
             if (context.Message.Headers.TryGetValue(Headers.MessageIntent, out var intent)
                 && intent == MessageIntentEnum.Subscribe.ToString())
@@ -49,6 +56,12 @@ namespace ServiceBus.Management.AcceptanceTests
         static string[] pluginMessages =
         {
             "NServiceBus.Metrics.EndpointMetadataReport"
+        };
+
+        static string[] metricTypes =
+        {
+            "ProcessingTime",
+            "Retries"
         };
     }
 }

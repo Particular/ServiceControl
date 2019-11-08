@@ -3,50 +3,45 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using AcceptanceTesting.Customization;
-    using global::Newtonsoft.Json.Linq;
+    using global::ServiceControl.Monitoring.Http.Diagrams;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
 
-    public class When_querying_retries_data : ApiIntegrationTest
+    class When_querying_retries_data : AcceptanceTest
     {
-        static string ReceiverEndpointName => Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));
-
         [Test]
         public async Task Should_report_via_http()
         {
-            JToken retries = null;
+            var metricReported = false;
 
-            await Scenario.Define<Context>()
-                .WithEndpoint<MonitoredEndpoint>(c =>
+            await Define<Context>()
+                .WithEndpoint<EndpointWithRetries>(c =>
                 {
                     c.DoNotFailOnErrorMessages();
                     c.CustomConfig(ec => ec.Recoverability().Immediate(i => i.NumberOfRetries(5)));
                     c.When(s => s.SendLocal(new SampleMessage()));
                 })
-                .WithEndpoint<MonitoringEndpoint>(c =>
+                .Done(async c =>
                 {
-                    c.CustomConfig(conf =>
-                    {
-                        Bootstrapper.CreateReceiver(conf, ConnectionString);
-                        Bootstrapper.StartWebApi();
-                        conf.LimitMessageProcessingConcurrencyTo(1);
-                    });
+                    var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
+
+                    metricReported = result.Items[0].Metrics["retries"].Average > 0;
+
+                    return metricReported;
                 })
-                .Done(c => MetricReported("retries", out retries, c))
                 .Run();
 
-            Assert.IsTrue(retries["average"].Value<double>() > 0);
-            Assert.AreEqual(60, retries["points"].Value<JArray>().Count);
+            Assert.IsTrue(metricReported);
         }
 
-        class MonitoredEndpoint : EndpointConfigurationBuilder
+        class EndpointWithRetries : EndpointConfigurationBuilder
         {
-            public MonitoredEndpoint()
+            public EndpointWithRetries()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableMetrics().SendMetricDataToServiceControl(ReceiverEndpointName, TimeSpan.FromSeconds(5));
+                    c.EnableMetrics().SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                 });
             }
 
@@ -59,12 +54,13 @@
             }
         }
 
-        class MonitoringEndpoint : EndpointConfigurationBuilder
+        public class Context : ScenarioContext
         {
-            public MonitoringEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public string MetricsReport { get; set; }
+        }
+
+        public class SampleMessage : IMessage
+        {
         }
     }
 }

@@ -4,9 +4,10 @@
     using System.Linq;
     using System.Reflection;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
 
     [TestFixture]
-    public class ConventionEnforcementTests : NServiceBusAcceptanceTest2
+    class ConventionEnforcementTests : NServiceBusAcceptanceTest
     {
         [Test]
         public void Ensure_all_tests_derive_from_a_common_base_class()
@@ -15,7 +16,7 @@
                 .Where(HasTestMethod);
 
             var missingBaseClass = testTypes
-                .Where(t => t.BaseType == null || !typeof(NServiceBusAcceptanceTest2).IsAssignableFrom(t))
+                .Where(t => t.BaseType == null || !typeof(NServiceBusAcceptanceTest).IsAssignableFrom(t))
                 .ToList();
 
             CollectionAssert.IsEmpty(missingBaseClass, string.Join(",", missingBaseClass));
