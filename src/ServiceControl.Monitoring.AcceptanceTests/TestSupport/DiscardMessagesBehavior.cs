@@ -61,7 +61,8 @@ namespace ServiceBus.Management.AcceptanceTests
         static string[] metricTypes =
         {
             "ProcessingTime",
-            "Retries"
+            "Retries",
+            "QueueLength"
         };
     }
 }

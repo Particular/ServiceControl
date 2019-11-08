@@ -20,7 +20,8 @@
     {
         public TaggedLongValueOccurrenceDto(EntryDto[] messageEntries, string messageTagValue)
         {
-            throw new NotImplementedException();
+            Entries = messageEntries;
+            TagValue = messageTagValue;
         }
 
         public EntryDto[] Entries { get; set; }

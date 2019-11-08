@@ -40,9 +40,13 @@
             return TaskEx.Completed;
         }
 
-         EntryDto ToEntry(RawMessage.Entry entry)
+        EntryDto ToEntry(RawMessage.Entry entry)
         {
-            throw new System.NotImplementedException();
+            return new EntryDto
+            {
+                DateTicks = entry.DateTicks,
+                Value = entry.Value
+            };
         }
 
         IProvideQueueLengthNew queueLengthProvider;

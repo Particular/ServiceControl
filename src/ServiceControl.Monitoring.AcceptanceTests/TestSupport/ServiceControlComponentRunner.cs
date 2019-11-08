@@ -2,17 +2,12 @@ namespace ServiceBus.Management.AcceptanceTests
 {
     using System;
     using System.Configuration;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
-    using System.Reflection;
-    using System.Security.AccessControl;
-    using System.Security.Principal;
     using System.Threading.Tasks;
-    using Autofac;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -71,17 +66,16 @@ namespace ServiceBus.Management.AcceptanceTests
 
             ConfigurationManager.AppSettings.Set("Monitoring/TransportType", transportToUse.TypeName);
 
-            var settings = new Settings
-            {
-                EndpointName = instanceName,
-                HttpPort = instancePort.ToString(),
-                TransportType = transportToUse.TypeName,
-                ConnectionString = transportToUse.ConnectionString,
-                HttpHostName = "localhost",
-                //MaximumConcurrencyLevel = 2,
-                //HttpDefaultConnectionLimit = int.MaxValue,
-                //RunInMemory = true,
-                OnMessage = (id, headers, body, @continue) =>
+            var settings = Settings.Load(new SettingsReader(ConfigurationManager.AppSettings));
+            settings.EndpointName = instanceName;
+            settings.HttpPort = instancePort.ToString();
+            settings.TransportType = transportToUse.TypeName;
+            settings.ConnectionString = transportToUse.ConnectionString;
+            settings.HttpHostName = "localhost";
+            //MaximumConcurrencyLevel = 2,
+            //HttpDefaultConnectionLimit = int.MaxValue,
+            //RunInMemory = true,
+            settings.OnMessage = (id, headers, body, @continue) =>
                 {
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
@@ -109,8 +103,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     }
 
                     return @continue();
-                }
-            };
+                };
 
             setSettings(settings);
             Settings = settings;

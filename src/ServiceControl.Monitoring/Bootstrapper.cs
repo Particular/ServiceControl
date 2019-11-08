@@ -79,8 +79,7 @@
 
             config.UseSerialization<NewtonsoftSerializer>();
             config.UsePersistence<InMemoryPersistence>();
-            //TODO: do we need errorQueue (likely not)
-            //config.SendFailedMessagesTo(settings.ErrorQueue);
+            config.SendFailedMessagesTo(settings.ErrorQueue);
             config.DisableFeature<AutoSubscribe>();
 
             config.AddDeserializer<TaggedLongValueWriterOccurrenceSerializerDefinition>();
