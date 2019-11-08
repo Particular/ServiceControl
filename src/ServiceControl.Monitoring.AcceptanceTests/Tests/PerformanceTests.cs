@@ -12,16 +12,16 @@
     using Http.Diagrams;
     using Infrastructure;
     using Messaging;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using QueueLength;
+    using ServiceBus.Management.AcceptanceTests;
     using Timings;
     using Transports;
 
-    public class PerformanceTests : NServiceBusAcceptanceTest
+    class PerformanceTests : AcceptanceTest
     {
         [SetUp]
-        public void Setup()
+        public new void Setup()
         {
             endpointRegistry = new EndpointRegistry();
             criticalTimeStore = new CriticalTimeStore();
@@ -29,7 +29,7 @@
             retriesStore = new RetriesStore();
             queueLengthProvider = new DefaultQueueLengthProvider();
             queueLengthStore = new QueueLengthStore();
-            queueLengthStoreDto = new QueueLengthStoreDto(((dtos, dto) => queueLengthStore.Store(null, null)));
+            queueLengthStoreDto = new QueueLengthStoreDto(((entryDtos, dto) => queueLengthStore.Store(entryDtos.Select(e => ToEntry(e)).ToArray(), ToEndpointInputQueue(dto))));
             queueLengthProvider.Initialize(string.Empty, queueLengthStoreDto);
 
             var settings = new Settings {EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5)};
@@ -54,6 +54,20 @@
             GetMonitoredSingleEndpoint = endpointName => controller.GetSingleEndpointMetrics(endpointName);
         }
 
+        EndpointInputQueue ToEndpointInputQueue(EndpointInputQueueDto dto)
+        {
+            return new EndpointInputQueue(dto.EndpointName, dto.InputQueue);
+        }
+
+        RawMessage.Entry ToEntry(EntryDto entryDto)
+        {
+            return new RawMessage.Entry
+            {
+                DateTicks = entryDto.DateTicks,
+                Value = entryDto.Value
+            };
+        }
+
         [TestCase(10, 10, 100, 1000, 100, 1000)]
         public async Task GetMonitoredEndpointsQueryTest(int numberOfEndpoints, int numberOfInstances, int sendReportEvery, int numberOfEntriesInReport, int queryEveryInMilliseconds, int numberOfQueries)
         {
@@ -71,7 +85,7 @@
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(null, new TaggedLongValueOccurrenceDto(null, null)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(ToEndpointInstanceId(i), new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray(), string.Empty)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -93,6 +107,16 @@
 
             Report("Querying", histogram, TimeSpan.FromMilliseconds(150));
             Report("Reporters", reportFinalHistogram, TimeSpan.FromMilliseconds(20));
+        }
+
+        EntryDto ToEntryDto(RawMessage.Entry ei)
+        {
+            return new EntryDto {DateTicks = ei.DateTicks, Value = ei.Value};
+        }
+
+        EndpointInstanceIdDto ToEndpointInstanceId(EndpointInstanceId endpointInstanceId)
+        {
+            return new EndpointInstanceIdDto {EndpointName = endpointInstanceId.EndpointName};
         }
 
         [TestCase(10, 100, 100, 1000, 100, 1000)]
@@ -128,7 +152,7 @@
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(null, new TaggedLongValueOccurrenceDto(null ,null)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(ToEndpointInstanceId(i), new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray() ,string.Empty)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
