@@ -1,9 +1,66 @@
 [assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
 namespace ServiceControl.Transports
 {
+    public class DefaultQueueLengthProvider : ServiceControl.Transports.IProvideQueueLengthNew
+    {
+        public DefaultQueueLengthProvider() { }
+        public void Initialize(string connectionString, ServiceControl.Transports.QueueLengthStoreDto store) { }
+        public void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceId, ServiceControl.Transports.EndpointMetadataReportDto metadataReport) { }
+        public void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceId, ServiceControl.Transports.TaggedLongValueOccurrenceDto metricsReport) { }
+        public System.Threading.Tasks.Task Start() { }
+        public System.Threading.Tasks.Task Stop() { }
+    }
+    public class EndpointInputQueueDto
+    {
+        public EndpointInputQueueDto(string endpointName, string inputQueue) { }
+        public string EndpointName { get; set; }
+        public string InputQueue { get; set; }
+        public bool Equals(ServiceControl.Transports.EndpointInputQueueDto other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+    }
+    public class EndpointInstanceIdDto
+    {
+        public EndpointInstanceIdDto() { }
+        public string EndpointName { get; set; }
+        protected bool Equals(ServiceControl.Transports.EndpointInstanceIdDto other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+    }
+    public class EndpointMetadataReportDto
+    {
+        public EndpointMetadataReportDto(string localAddress) { }
+        public string LocalAddress { get; set; }
+    }
+    public class EntryDto
+    {
+        public EntryDto() { }
+        public long DateTicks { get; set; }
+        public long Value { get; set; }
+    }
+    public interface IProvideQueueLengthNew
+    {
+        void Initialize(string connectionString, ServiceControl.Transports.QueueLengthStoreDto storeDto);
+        void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceIdDto, ServiceControl.Transports.EndpointMetadataReportDto metadataReportDto);
+        void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceIdDto, ServiceControl.Transports.TaggedLongValueOccurrenceDto metricsReport);
+        System.Threading.Tasks.Task Start();
+        System.Threading.Tasks.Task Stop();
+    }
+    public class QueueLengthStoreDto
+    {
+        public QueueLengthStoreDto(System.Action<ServiceControl.Transports.EntryDto[], ServiceControl.Transports.EndpointInputQueueDto> store) { }
+        public void Store(ServiceControl.Transports.EntryDto[] entry, ServiceControl.Transports.EndpointInputQueueDto instance) { }
+    }
+    public class TaggedLongValueOccurrenceDto
+    {
+        public TaggedLongValueOccurrenceDto(ServiceControl.Transports.EntryDto[] messageEntries, string messageTagValue) { }
+        public ServiceControl.Transports.EntryDto[] Entries { get; set; }
+        public string TagValue { get; set; }
+    }
     public abstract class TransportCustomization
     {
         protected TransportCustomization() { }
+        public virtual ServiceControl.Transports.IProvideQueueLengthNew CreateQueueLengthProvider() { }
         public abstract void CustomizeEndpoint(NServiceBus.EndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
         public abstract void CustomizeRawEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
     }
