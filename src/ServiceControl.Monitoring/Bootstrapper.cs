@@ -155,9 +155,9 @@
 
         static Type DetermineTransportType(Settings settings)
         {
-            var transportTypeName = legacyTransportTypeNames.ContainsKey(settings.TransportCustomizationType)
-                ? legacyTransportTypeNames[settings.TransportCustomizationType]
-                : settings.TransportCustomizationType;
+            var transportTypeName = legacyTransportTypeNames.ContainsKey(settings.TransportType)
+                ? legacyTransportTypeNames[settings.TransportType]
+                : settings.TransportType;
 
             var transportType = Type.GetType(transportTypeName);
 
@@ -166,7 +166,7 @@
                 return transportType;
             }
 
-            var errorMsg = $"Configuration of transport failed. Could not resolve type `{settings.TransportCustomizationType}`";
+            var errorMsg = $"Configuration of transport failed. Could not resolve type `{settings.TransportType}`";
             Logger.Error(errorMsg);
             throw new Exception(errorMsg);
         }

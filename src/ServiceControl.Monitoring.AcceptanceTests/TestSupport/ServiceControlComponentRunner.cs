@@ -75,7 +75,7 @@ namespace ServiceBus.Management.AcceptanceTests
             {
                 EndpointName = instanceName,
                 HttpPort = instancePort.ToString(),
-                TransportCustomizationType = transportToUse.TypeName,
+                TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
                 //MaximumConcurrencyLevel = 2,

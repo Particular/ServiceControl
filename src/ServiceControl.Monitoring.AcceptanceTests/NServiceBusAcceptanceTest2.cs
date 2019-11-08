@@ -46,7 +46,7 @@ namespace NServiceBus.AcceptanceTests
 
             Settings = new Settings
             {
-                TransportCustomizationType = TransportIntegration.TypeName,
+                TransportType = TransportIntegration.TypeName,
                 EnableInstallers = true,
                 ErrorQueue = "error",
                 HttpHostName = "localhost",

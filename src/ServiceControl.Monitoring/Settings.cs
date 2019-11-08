@@ -19,7 +19,7 @@ namespace ServiceControl.Monitoring
         }
 
         public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
-        public string TransportCustomizationType { get; set; }
+        public string TransportType { get; set; }
         public string ConnectionString { get; set; }  
         public string ErrorQueue { get; set; }
         public string LogPath { get; set; }
@@ -36,7 +36,7 @@ namespace ServiceControl.Monitoring
         {
             var settings = new Settings
             {
-                TransportCustomizationType = reader.Read<string>("Monitoring/TransportType"),
+                TransportType = reader.Read<string>("Monitoring/TransportType"),
                 ConnectionString = GetConnectionString(reader),
                 LogLevel = MonitorLogs.InitializeLevel(reader),
                 LogPath = reader.Read("Monitoring/LogPath", DefaultLogLocation()),
@@ -61,12 +61,12 @@ namespace ServiceControl.Monitoring
         {
             try
             {
-                var customizationType = Type.GetType(TransportCustomizationType, true);
+                var customizationType = Type.GetType(TransportType, true);
                 return (TransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
+                throw new Exception($"Could not load transport customization type {TransportType}.", e);
             }
         }
 
