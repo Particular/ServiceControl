@@ -45,6 +45,11 @@
             transport.ConnectionString(builder.ConnectionString);
         }
 
+        public override IProvideQueueLengthNew CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
+        }
+
         const string queueSchemaName = "Queue Schema";
         static readonly ILog Logger = LogManager.GetLogger(typeof(SqlServerTransportCustomization));
     }
