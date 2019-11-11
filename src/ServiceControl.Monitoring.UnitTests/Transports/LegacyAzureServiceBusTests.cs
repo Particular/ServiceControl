@@ -7,7 +7,7 @@
     class LegacyAzureServiceBusTests
     {
         const string ConnectionString = "Endpoint=sb://unit-test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=N3d5f3bqQzZBKx";
-        
+
         [Test]
         public void QueueLengthQueryIntervalIsRemovedFromTheConnectionString()
         {
@@ -23,7 +23,7 @@
             foreach (var testCase in testCases)
             {
                 var connectionStringWithoutQlPart = ConnectionStringPartRemover.Remove(testCase, "QueueLengthQueryDelayInterval");
-                
+
                 Assert.AreEqual(ConnectionString, connectionStringWithoutQlPart);
             }
         }
