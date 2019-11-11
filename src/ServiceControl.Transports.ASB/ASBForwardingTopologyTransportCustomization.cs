@@ -23,5 +23,10 @@
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
             transport.ConfigureTransport(transportSettings);
         }
+
+        public override IProvideQueueLengthNew CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
+        }
     }
 }

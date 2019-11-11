@@ -23,5 +23,10 @@
 
             transport.ConfigureTransport(transportSettings);
         }
+
+        public override IProvideQueueLengthNew CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
+        }
     }
 }
