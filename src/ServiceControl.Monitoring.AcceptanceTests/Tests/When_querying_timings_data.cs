@@ -22,7 +22,7 @@
                 {
                     var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
 
-                    metricReported = result.Items[0].Metrics["processingTime"].Average > 0;
+                    metricReported = result.HasResult && result.Items[0].Metrics["processingTime"].Average > 0;
 
                     return metricReported;
                 })
