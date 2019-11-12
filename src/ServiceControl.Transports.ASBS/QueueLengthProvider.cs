@@ -10,7 +10,7 @@ namespace ServiceControl.Transports.ASBS
     using Microsoft.Azure.ServiceBus.Management;
     using NServiceBus.Logging;
 
-    public class QueueLengthProvider : IProvideQueueLengthNew
+    class QueueLengthProvider : IProvideQueueLengthNew
     {
         public void Initialize(string connectionString, QueueLengthStoreDto store)
         {

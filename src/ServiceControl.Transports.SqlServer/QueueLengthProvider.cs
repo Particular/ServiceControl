@@ -10,7 +10,7 @@ namespace ServiceControl.Transports.SqlServer
     using System.Threading;
     using NServiceBus.Logging;
 
-    public class QueueLengthProvider: IProvideQueueLengthNew
+    class QueueLengthProvider: IProvideQueueLengthNew
     {
         public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
         {
