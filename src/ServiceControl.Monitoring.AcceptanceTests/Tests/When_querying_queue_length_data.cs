@@ -18,7 +18,7 @@
         {
             var metricReported = false;
 
-            await Define<QueueLengthContext>()
+            await Define<TestContext>()
                 .WithEndpoint<SendingEndpoint>(c =>
                 {
                     c.DoNotFailOnErrorMessages();
@@ -62,24 +62,29 @@
 
             class Handler : IHandleMessages<SampleMessage>
             {
-                public QueueLengthContext Context { get; set; }
+                TestContext testContext;
+
+                public Handler(TestContext testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {
                     //Concurrency limit 1 and this should block any processing on input queue
                     return Task.WhenAny(
                         Task.Delay(TimeSpan.FromSeconds(30)), 
-                            Context.TestEnded.Task
+                            testContext.TestEnded.Task
                         );
                 }
             }
         }
 
-        public class SampleMessage : IMessage
+        class SampleMessage : IMessage
         {
         }
 
-        public class QueueLengthContext : ScenarioContext
+        class TestContext : ScenarioContext
         {
             public TaskCompletionSource<bool> TestEnded = new TaskCompletionSource<bool>();
         }

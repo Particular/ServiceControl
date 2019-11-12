@@ -58,12 +58,11 @@
             }
         }
 
-        public class Context : ScenarioContext
+        class Context : ScenarioContext
         {
-            public string MetricsReport { get; set; }
         }
 
-        public class SampleMessage : IMessage
+        class SampleMessage : IMessage
         {
         }
     }
