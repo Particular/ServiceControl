@@ -1,7 +1,6 @@
 ﻿namespace NServiceBus.Metrics.AcceptanceTests
 {
     using System;
-    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using global::ServiceControl.AcceptanceTests;
@@ -35,11 +34,11 @@
                 {
                     var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
 
-                    metricReported = result.Items[0].Metrics["queueLength"].Average > 0;
+                    metricReported = result.HasResult && result.Items[0].Metrics["queueLength"].Average > 0;
 
                     if (metricReported)
                     {
-                        c.CancelProcessingTokenSource.Cancel();
+                        c.TestEnded.SetResult(true);
                     }
 
                     return metricReported;
@@ -68,7 +67,10 @@
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {
                     //Concurrency limit 1 and this should block any processing on input queue
-                    return Task.Delay(TimeSpan.FromSeconds(30), Context.CancelProcessingTokenSource.Token);
+                    return Task.WhenAny(
+                        Task.Delay(TimeSpan.FromSeconds(30)), 
+                            Context.TestEnded.Task
+                        );
                 }
             }
         }
@@ -79,7 +81,7 @@
 
         public class QueueLengthContext : ScenarioContext
         {
-            public CancellationTokenSource CancelProcessingTokenSource = new CancellationTokenSource();
+            public TaskCompletionSource<bool> TestEnded = new TaskCompletionSource<bool>();
         }
     }
 }
