@@ -115,6 +115,11 @@
             throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
         }
 
+        public override IProvideQueueLengthNew CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
+        }
+
         static ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }
 }
