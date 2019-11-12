@@ -31,6 +31,7 @@ namespace ServiceControl.Monitoring
         public TimeSpan EndpointUptimeGracePeriod { get; set; }
         public bool SkipQueueCreation { get; set; }
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
+        public int MaximumConcurrencyLevel = 5;
 
         internal static Settings Load(SettingsReader reader)
         {
