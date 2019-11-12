@@ -1,5 +1,6 @@
 namespace ServiceControl.Monitoring
 {
+    using System;
     using System.Threading.Tasks;
     using NServiceBus;
 
@@ -9,7 +10,9 @@ namespace ServiceControl.Monitoring
         {
             var endpointConfig = new EndpointConfiguration(settings.EndpointName);
 
-            new Bootstrapper(settings).CreateReceiver(endpointConfig);
+            new Bootstrapper(
+                c => Environment.FailFast("NServiceBus Critical Error", c.Exception),
+                settings).CreateReceiver(endpointConfig);
 
             endpointConfig.EnableInstallers(settings.Username);
 

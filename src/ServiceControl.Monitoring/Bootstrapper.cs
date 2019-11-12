@@ -27,8 +27,9 @@
     public class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Settings settings)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings)
         {
+            this.onCriticalError = onCriticalError;
             this.settings = settings;
         }
 
@@ -72,7 +73,7 @@
 
             config.DefineCriticalErrorAction(c =>
             {
-                Environment.FailFast("NServiceBus Critical Error", c.Exception);
+                this.onCriticalError(c);
                 return TaskEx.Completed;
             });
 
@@ -208,6 +209,7 @@
         }
 
         public IDisposable WebApp;
+        readonly Action<ICriticalErrorContext> onCriticalError;
         private Settings settings;
         private IContainer container;
         private IEndpointInstance bus;

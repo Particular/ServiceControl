@@ -139,6 +139,9 @@ namespace ServiceBus.Management.AcceptanceTests
 
                 //TODO: move in the logging settings
                 /*var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+                
+                bootstrapper = new Bootstrapper(configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); }); */
+
                 bootstrapper = new Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -150,9 +153,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); }); */
-
-                bootstrapper = new Bootstrapper(settings);
+                }, settings);
                 
                 bootstrapper.CreateReceiver(configuration);
                 

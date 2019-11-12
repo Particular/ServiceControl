@@ -33,7 +33,10 @@
 
         protected override void OnStart(string[] args)
         {
-            bootstrapper = new Bootstrapper(Settings);
+            bootstrapper = new Bootstrapper(
+                    c => Environment.FailFast("NServiceBus Critical Error", c.Exception), 
+                    Settings);
+
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 
