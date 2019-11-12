@@ -21,7 +21,7 @@ namespace ServiceControl.Transports.ASQ
         public void Process(EndpointInstanceIdDto endpointInstanceIdDto, EndpointMetadataReportDto metadataReportDto)
         {
             var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, metadataReportDto.LocalAddress);
-            //TODO: Is this OK to use current Sanitizer because in Monitoring project QueueNameSanitizer is used
+            
             var queueName = BackwardsCompatibleQueueNameSanitizer.Sanitize(metadataReportDto.LocalAddress);
 
             var queueClient = CloudStorageAccount.Parse(connectionString).CreateCloudQueueClient();
