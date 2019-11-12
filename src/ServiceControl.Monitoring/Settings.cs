@@ -20,7 +20,7 @@ namespace ServiceControl.Monitoring
 
         public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
         public string TransportType { get; set; }
-        public string ConnectionString { get; set; }  
+        public string ConnectionString { get; set; }
         public string ErrorQueue { get; set; }
         public string LogPath { get; set; }
         public LogLevel LogLevel { get; set; }
@@ -31,7 +31,7 @@ namespace ServiceControl.Monitoring
         public TimeSpan EndpointUptimeGracePeriod { get; set; }
         public bool SkipQueueCreation { get; set; }
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
-        public int MaximumConcurrencyLevel = 5;
+        public int MaximumConcurrencyLevel { get; set; }
 
         internal static Settings Load(SettingsReader reader)
         {
@@ -45,7 +45,8 @@ namespace ServiceControl.Monitoring
                 HttpHostName = reader.Read<string>("Monitoring/HttpHostname"),
                 HttpPort = reader.Read<string>("Monitoring/HttpPort"),
                 EndpointName = reader.Read<string>("Monitoring/EndpointName"),
-                EndpointUptimeGracePeriod = TimeSpan.Parse(reader.Read("Monitoring/EndpointUptimeGracePeriod", "00:00:40"))
+                EndpointUptimeGracePeriod = TimeSpan.Parse(reader.Read("Monitoring/EndpointUptimeGracePeriod", "00:00:40")),
+                MaximumConcurrencyLevel = 10
             };
             return settings;
         }
@@ -82,11 +83,11 @@ namespace ServiceControl.Monitoring
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             return connectionStringSettings?.ConnectionString;
         }
-        
+
         string endpointName;
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
-        
+
         public const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
     }
 }
