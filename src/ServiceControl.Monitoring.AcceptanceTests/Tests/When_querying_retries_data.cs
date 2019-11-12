@@ -15,7 +15,7 @@
         {
             var metricReported = false;
 
-            await Define<Context>()
+            await Define<TestContext>()
                 .WithEndpoint<EndpointWithRetries>(c =>
                 {
                     c.DoNotFailOnErrorMessages();
@@ -27,6 +27,11 @@
                     var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
 
                     metricReported = result.HasResult && result.Items[0].Metrics["retries"].Average > 0;
+
+                    if (metricReported)
+                    {
+                        c.ShuttingDown = true;
+                    }
 
                     return metricReported;
                 })
@@ -47,19 +52,31 @@
 
             class Handler : IHandleMessages<SampleMessage>
             {
+                TestContext testContext;
+
+                public Handler(TestContext testContext)
+                {
+                    this.testContext = testContext;
+                }
+
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {
+                    if (testContext.ShuttingDown)
+                    {
+                        return Task.CompletedTask;
+                    }
+
                     throw new Exception("Boom!");
                 }
             }
         }
 
-        public class Context : ScenarioContext
+        class TestContext : ScenarioContext
         {
-            public string MetricsReport { get; set; }
+            public bool ShuttingDown { get; set; }
         }
 
-        public class SampleMessage : IMessage
+        class SampleMessage : IMessage
         {
         }
     }
