@@ -12,7 +12,8 @@ namespace ServiceControl.Monitoring
 
             new Bootstrapper(
                 c => Environment.FailFast("NServiceBus Critical Error", c.Exception),
-                settings).CreateReceiver(endpointConfig);
+                settings,
+                endpointConfig);
 
             endpointConfig.EnableInstallers(settings.Username);
 

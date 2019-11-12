@@ -153,9 +153,7 @@ namespace ServiceBus.Management.AcceptanceTests
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings);
-                
-                bootstrapper.CreateReceiver(configuration);
+                }, settings, configuration);
                 
                 //bootstrapper.HttpClientFactory = HttpClientFactory;
             }
@@ -178,7 +176,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
-                Bus = await bootstrapper.StartForTests(configuration).ConfigureAwait(false);
+                Bus = await bootstrapper.Start().ConfigureAwait(false);
             }
         }
 

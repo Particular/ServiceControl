@@ -3,6 +3,7 @@
     using System;
     using System.ComponentModel;
     using System.ServiceProcess;
+    using NServiceBus;
 
     [DesignerCategory("Code")]
     class Host : ServiceBase
@@ -33,9 +34,12 @@
 
         protected override void OnStart(string[] args)
         {
+            var configuration = new EndpointConfiguration(Settings.ServiceName);
+
             bootstrapper = new Bootstrapper(
                     c => Environment.FailFast("NServiceBus Critical Error", c.Exception), 
-                    Settings);
+                    Settings,
+                    configuration);
 
             bootstrapper.Start().GetAwaiter().GetResult();
         }
