@@ -1,8 +1,8 @@
-﻿namespace ServiceControl.Transports
+﻿namespace ServiceControl.Transports.Msmq
 {
     using System.Threading.Tasks;
 
-    public class DefaultQueueLengthProvider : IProvideQueueLength
+    class QueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, QueueLengthStoreDto store)
         {
