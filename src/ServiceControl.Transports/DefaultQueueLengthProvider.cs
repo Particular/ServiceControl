@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Transports
 {
     using System.Threading.Tasks;
-    using Transports;
 
     public class DefaultQueueLengthProvider : IProvideQueueLengthNew
     {
@@ -25,6 +24,7 @@
         public Task Start() => Task.CompletedTask;
 
         public Task Stop() => Task.CompletedTask;
+
         QueueLengthStoreDto queueLengthStore;
     }
 }
