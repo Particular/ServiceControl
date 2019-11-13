@@ -27,7 +27,7 @@
             criticalTimeStore = new CriticalTimeStore();
             processingTimeStore = new ProcessingTimeStore();
             retriesStore = new RetriesStore();
-            queueLengthProvider = new DefaultQueueLengthProvider();
+            queueLengthProvider = new FakeQueueLengthProvider();
             queueLengthStore = new QueueLengthStore();
             queueLengthStoreDto = new QueueLengthStoreDto(((entryDtos, dto) => queueLengthStore.Store(entryDtos.Select(e => ToEntry(e)).ToArray(), ToEndpointInputQueue(dto))));
             queueLengthProvider.Initialize(string.Empty, queueLengthStoreDto);
@@ -264,7 +264,7 @@
         RetriesStore retriesStore;
         QueueLengthStore queueLengthStore;
         QueueLengthStoreDto queueLengthStoreDto;
-        DefaultQueueLengthProvider queueLengthProvider;
+        IProvideQueueLength queueLengthProvider;
         Action GetMonitoredEndpoints;
         Action<string> GetMonitoredSingleEndpoint;
         EndpointInstanceActivityTracker activityTracker;
