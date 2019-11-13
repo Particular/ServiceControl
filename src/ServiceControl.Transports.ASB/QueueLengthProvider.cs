@@ -10,7 +10,7 @@ namespace ServiceControl.Transports.ASB
     using Microsoft.ServiceBus.Messaging;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider : IProvideQueueLengthNew
+    class QueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, QueueLengthStoreDto store)
         {
@@ -35,12 +35,12 @@ namespace ServiceControl.Transports.ASB
             this.namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, EndpointMetadataReportDto metadataReport)
+        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
         {
             endpointQueueMappings.AddOrUpdate(
                 endpointInstanceId,
-                id => metadataReport.LocalAddress,
-                (id, old) => metadataReport.LocalAddress
+                id => queueAddress,
+                (id, old) => queueAddress
             );
         }
 

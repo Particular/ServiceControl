@@ -16,5 +16,10 @@
             var transport = endpointConfig.UseTransport<MsmqTransport>();
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
+
+        public override IProvideQueueLength CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
+        }
     }
 }

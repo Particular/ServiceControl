@@ -8,7 +8,7 @@
     using global::RabbitMQ.Client;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider : IProvideQueueLengthNew
+    class QueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
         {
@@ -17,10 +17,10 @@
             queueLengthStoreDto = storeDto;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, EndpointMetadataReportDto metadataReportDto)
+        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
         {
-            var endpointInstanceQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, metadataReportDto.LocalAddress);
-            var queueName = metadataReportDto.LocalAddress;
+            var endpointInstanceQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
+            var queueName = queueAddress;
 
             endpointQueues.AddOrUpdate(endpointInstanceQueue, _ => queueName, (_, currentValue) =>
             {

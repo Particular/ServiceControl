@@ -9,26 +9,17 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
 
-
-    class QueueLengthNewProvider : IProvideQueueLengthNew
+    class QueueLengthProvider : IProvideQueueLength
     {
-        string rootFolder;
-        QueueLengthStoreDto queueLengthStoreDto;
-        ConcurrentDictionary<EndpointInputQueueDto, EndpointInputQueueDto> endpointsHash = new ConcurrentDictionary<EndpointInputQueueDto, EndpointInputQueueDto>();
-        CancellationTokenSource cancel;
-        Task task;
-
-        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-
         public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
         {
             rootFolder = connectionString;
             queueLengthStoreDto = storeDto;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, EndpointMetadataReportDto metadataReportDto)
+        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
         {
-            var key = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, metadataReportDto.LocalAddress);
+            var key = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
             endpointsHash.AddOrUpdate(key, key, (_, __) => key);
         }
 
@@ -114,6 +105,13 @@
             return task;
         }
 
-        static ILog Log = LogManager.GetLogger<QueueLengthNewProvider>();
+        string rootFolder;
+        QueueLengthStoreDto queueLengthStoreDto;
+        ConcurrentDictionary<EndpointInputQueueDto, EndpointInputQueueDto> endpointsHash = new ConcurrentDictionary<EndpointInputQueueDto, EndpointInputQueueDto>();
+        CancellationTokenSource cancel;
+        Task task;
+
+        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
+        static ILog Log = LogManager.GetLogger<QueueLengthProvider>();
     }
 }

@@ -115,7 +115,7 @@
             throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
         }
 
-        public override IProvideQueueLengthNew CreateQueueLengthProvider()
+        public override IProvideQueueLength CreateQueueLengthProvider()
         {
             return new QueueLengthProvider();
         }

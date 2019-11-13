@@ -9,10 +9,6 @@
 
         public abstract void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings);
 
-        //TODO: make abstract once all providers have been converted, or do we move default provide to MSMQ?
-        public virtual IProvideQueueLengthNew CreateQueueLengthProvider()
-        {
-            return new DefaultQueueLengthProvider();
-        }
+        public abstract IProvideQueueLength CreateQueueLengthProvider();
     }
 }

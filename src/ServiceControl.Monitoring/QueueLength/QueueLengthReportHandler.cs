@@ -10,7 +10,7 @@
 
     public class QueueLengthReportHandler : IHandleMessages<EndpointMetadataReport>, IHandleMessages<TaggedLongValueOccurrence>
     {
-        public QueueLengthReportHandler(IProvideQueueLengthNew queueLengthProvider)
+        public QueueLengthReportHandler(IProvideQueueLength queueLengthProvider)
         {
             this.queueLengthProvider = queueLengthProvider;
         }
@@ -20,7 +20,7 @@
             var instanceId = EndpointInstanceId.From(context.MessageHeaders);
             var instanceIdDto = new EndpointInstanceIdDto{EndpointName = instanceId.EndpointName};
 
-            queueLengthProvider.Process(instanceIdDto, new EndpointMetadataReportDto(message.LocalAddress));
+            queueLengthProvider.Process(instanceIdDto, message.LocalAddress);
 
             return TaskEx.Completed;
         }
@@ -49,7 +49,7 @@
             };
         }
 
-        IProvideQueueLengthNew queueLengthProvider;
+        IProvideQueueLength queueLengthProvider;
 
         const string QueueLengthMessageType = "QueueLength";
     }

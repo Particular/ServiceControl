@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace ServiceControl.Transports.SqlServer
+﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
     using System.Collections.Concurrent;
     using System.Data.SqlClient;
     using System.Threading;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider: IProvideQueueLengthNew
+    class QueueLengthProvider: IProvideQueueLength
     {
         public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
         {
@@ -21,12 +20,11 @@ namespace ServiceControl.Transports.SqlServer
             queueLengthStoreDto = storeDto;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, EndpointMetadataReportDto metadataReportDto)
+        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
         {
-            var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, metadataReportDto.LocalAddress);
-            var localAddress = metadataReportDto.LocalAddress;
+            var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
 
-            var sqlTable = SqlTable.Parse(localAddress, defaultSchema);
+            var sqlTable = SqlTable.Parse(queueAddress, defaultSchema);
 
             tableNames.AddOrUpdate(endpointInputQueue, _ => sqlTable, (_, currentSqlTable) =>
             {
@@ -100,7 +98,7 @@ namespace ServiceControl.Transports.SqlServer
 
             return poller;
         }
-        
+
         async Task QueryTableSizes(CancellationToken token)
         {
             var chunks = tableSizes

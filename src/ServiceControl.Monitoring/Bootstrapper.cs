@@ -114,7 +114,7 @@
             }
         }
 
-        static Func<QueueLengthStore, IProvideQueueLengthNew> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
+        static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
         {
             return qls =>
             {
@@ -142,13 +142,13 @@
             };
         }
 
-        static ContainerBuilder CreateContainer(Settings settings, Func<QueueLengthStore, IProvideQueueLengthNew> buildQueueLengthProvider)
+        static ContainerBuilder CreateContainer(Settings settings, Func<QueueLengthStore, IProvideQueueLength> buildQueueLengthProvider)
         {
             var containerBuilder = new ContainerBuilder();
 
             containerBuilder.RegisterModule<ApplicationModule>();
             containerBuilder.RegisterInstance(settings).As<Settings>().SingleInstance();
-            containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLengthNew>().SingleInstance();
+            containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
 
             return containerBuilder;
         }

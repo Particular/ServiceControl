@@ -10,7 +10,7 @@ namespace ServiceControl.Transports.ASBS
     using Microsoft.Azure.ServiceBus.Management;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider : IProvideQueueLengthNew
+    class QueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, QueueLengthStoreDto store)
         {
@@ -32,10 +32,10 @@ namespace ServiceControl.Transports.ASBS
             this.managementClient = new ManagementClient(connectionString);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, EndpointMetadataReportDto metadataReport)
+        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
         {
             endpointQueueMappings.AddOrUpdate(
-                metadataReport.LocalAddress,
+                queueAddress,
                 id => endpointInstanceId,
                 (id, old) => endpointInstanceId
             );
