@@ -63,7 +63,8 @@ namespace ServiceControl.Monitoring
         {
             try
             {
-                var customizationType = Type.GetType(TransportType, true);
+                var customizationType = LoadTransportCustomizationType(TransportType);
+
                 return (TransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
@@ -84,10 +85,32 @@ namespace ServiceControl.Monitoring
             return connectionStringSettings?.ConnectionString;
         }
 
+        static Type LoadTransportCustomizationType(string configuredTransportCustomizationName)
+        {
+            //HINT: We need to support old transport seam names for scenarios when a user upgrades from some old version
+            //      of the monitoring instance. In such case the app.config will hold old seam type name.
+            var transportTypeName = legacyTransportCustomizationNames.ContainsKey(configuredTransportCustomizationName)
+                ? legacyTransportCustomizationNames[configuredTransportCustomizationName]
+                : configuredTransportCustomizationName;
+
+            var transportType = Type.GetType(transportTypeName, true);
+
+            return transportType;
+        }
         string endpointName;
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
         public const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
+
+        static Dictionary<string, string> legacyTransportCustomizationNames = new Dictionary<string, string>
+        {
+            {"NServiceBus.SqsTransport, NServiceBus.AmazonSQS", "ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS"},
+            {"NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", "ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus"},
+            {"NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"},
+            {"NServiceBus.SqlServerTransport, NServiceBus.Transport.SQLServer", "ServiceControl.Transports.SQLServer.ServiceControlSQLServerTransport, ServiceControl.Transports.SQLServer"},
+            {"NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues", "ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport, ServiceControl.Transports.AzureStorageQueues"},
+            {"NServiceBus.MsmqTransport, NServiceBus.Transport.Msmq", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq"}
+        };
     }
 }

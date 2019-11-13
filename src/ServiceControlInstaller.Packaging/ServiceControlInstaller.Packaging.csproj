@@ -174,11 +174,4 @@
     <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
     <RemoveDir Directories="$(StagingFolder)" />
   </Target>
-  <!--<Target Name="CopyServiceControlMonitoringZip" AfterTargets="CreateServiceControlAuditZip">
-    <ItemGroup>
-      <Zips Include="..\..\zip\monitoring\*.zip"/>
-    </ItemGroup>
-    <Copy SourceFiles="@(Zips)" DestinationFolder="$(ZipTargetFolder)" />
-  </Target>-->
-
 </Project>
