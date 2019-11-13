@@ -123,8 +123,9 @@ namespace ServiceControl.Transports.ASB
         CancellationTokenSource stop = new CancellationTokenSource();
         Task poller;
 
+        public static string QueueLengthQueryIntervalPartName = "QueueLengthQueryDelayInterval";
+
         static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(500);
         static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
-        static string QueueLengthQueryIntervalPartName = "QueueLengthQueryDelayInterval";
     }
 }

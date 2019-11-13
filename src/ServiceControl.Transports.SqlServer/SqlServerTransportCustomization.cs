@@ -41,7 +41,7 @@
 
                 transport.DefaultSchema((string)customSchema);
             }
-            
+
             transport.ConnectionString(builder.ConnectionString);
         }
 

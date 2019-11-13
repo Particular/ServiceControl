@@ -1,7 +1,7 @@
-﻿namespace ServiceControl.Monitoring.UnitTests.Transports
+﻿namespace ServiceControl.Transports.UnitTests
 {
     using NUnit.Framework;
-    using ServiceControl.Transports.LegacyAzureServiceBus;
+    using ASB;
 
     [TestFixture]
     class LegacyAzureServiceBusTests

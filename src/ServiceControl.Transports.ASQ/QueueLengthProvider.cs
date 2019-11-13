@@ -10,7 +10,7 @@ namespace ServiceControl.Transports.ASQ
     using Microsoft.WindowsAzure.Storage.Queue;
     using NServiceBus.Logging;
 
-    public class QueueLengthProvider : IProvideQueueLengthNew
+    class QueueLengthProvider : IProvideQueueLengthNew
     {
         public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
         {
@@ -21,7 +21,7 @@ namespace ServiceControl.Transports.ASQ
         public void Process(EndpointInstanceIdDto endpointInstanceIdDto, EndpointMetadataReportDto metadataReportDto)
         {
             var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, metadataReportDto.LocalAddress);
-            
+
             var queueName = BackwardsCompatibleQueueNameSanitizer.Sanitize(metadataReportDto.LocalAddress);
 
             var queueClient = CloudStorageAccount.Parse(connectionString).CreateCloudQueueClient();

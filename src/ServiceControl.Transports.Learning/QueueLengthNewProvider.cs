@@ -10,7 +10,7 @@
     using NServiceBus.Logging;
 
 
-    public class QueueLengthNewProvider : IProvideQueueLengthNew
+    class QueueLengthNewProvider : IProvideQueueLengthNew
     {
         string rootFolder;
         QueueLengthStoreDto queueLengthStoreDto;
