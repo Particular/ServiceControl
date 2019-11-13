@@ -1,15 +1,6 @@
 [assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
 namespace ServiceControl.Transports
 {
-    public class DefaultQueueLengthProvider : ServiceControl.Transports.IProvideQueueLengthNew
-    {
-        public DefaultQueueLengthProvider() { }
-        public void Initialize(string connectionString, ServiceControl.Transports.QueueLengthStoreDto store) { }
-        public void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceId, ServiceControl.Transports.EndpointMetadataReportDto metadataReport) { }
-        public void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceId, ServiceControl.Transports.TaggedLongValueOccurrenceDto metricsReport) { }
-        public System.Threading.Tasks.Task Start() { }
-        public System.Threading.Tasks.Task Stop() { }
-    }
     public class EndpointInputQueueDto
     {
         public EndpointInputQueueDto(string endpointName, string inputQueue) { }
@@ -27,21 +18,16 @@ namespace ServiceControl.Transports
         public override bool Equals(object obj) { }
         public override int GetHashCode() { }
     }
-    public class EndpointMetadataReportDto
-    {
-        public EndpointMetadataReportDto(string localAddress) { }
-        public string LocalAddress { get; set; }
-    }
     public class EntryDto
     {
         public EntryDto() { }
         public long DateTicks { get; set; }
         public long Value { get; set; }
     }
-    public interface IProvideQueueLengthNew
+    public interface IProvideQueueLength
     {
         void Initialize(string connectionString, ServiceControl.Transports.QueueLengthStoreDto storeDto);
-        void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceIdDto, ServiceControl.Transports.EndpointMetadataReportDto metadataReportDto);
+        void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress);
         void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceIdDto, ServiceControl.Transports.TaggedLongValueOccurrenceDto metricsReport);
         System.Threading.Tasks.Task Start();
         System.Threading.Tasks.Task Stop();
@@ -60,7 +46,7 @@ namespace ServiceControl.Transports
     public abstract class TransportCustomization
     {
         protected TransportCustomization() { }
-        public virtual ServiceControl.Transports.IProvideQueueLengthNew CreateQueueLengthProvider() { }
+        public abstract ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
         public abstract void CustomizeEndpoint(NServiceBus.EndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
         public abstract void CustomizeRawEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
     }
