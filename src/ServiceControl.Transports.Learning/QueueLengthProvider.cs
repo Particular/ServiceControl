@@ -9,8 +9,7 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
 
-
-    class QueueLengthNewProvider : IProvideQueueLength
+    class QueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
         {
@@ -113,6 +112,6 @@
         Task task;
 
         static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
-        static ILog Log = LogManager.GetLogger<QueueLengthNewProvider>();
+        static ILog Log = LogManager.GetLogger<QueueLengthProvider>();
     }
 }

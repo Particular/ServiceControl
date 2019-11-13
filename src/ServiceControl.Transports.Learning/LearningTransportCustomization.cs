@@ -22,7 +22,7 @@
 
         public override IProvideQueueLength CreateQueueLengthProvider()
         {
-            return new QueueLengthNewProvider();
+            return new QueueLengthProvider();
         }
     }
 }
