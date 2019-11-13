@@ -112,7 +112,7 @@ namespace ServiceControlInstaller.PowerShell
                 Port = Port,
                 ErrorQueue = ErrorQueue,
                 ConnectionString = ConnectionString,
-                TransportPackage = MonitoringTransports.All.First(t => t.Matches(Transport)),
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
                 SkipQueueCreation = SkipQueueCreation
             };
 

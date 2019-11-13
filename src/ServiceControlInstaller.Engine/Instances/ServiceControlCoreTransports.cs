@@ -8,6 +8,11 @@
     {
         public static List<TransportInfo> All => new List<TransportInfo>
         {
+            //INFO: Those types are used in the SCMU and in PS scripts. In both cases Match predicate is used to find a transport info.
+            //      In the UI the matching is done based on the transport TypeName from app.config. In PS it's done based on human friendly names.
+            //      As a result the Match predicate should evaluate to true both for TypeName and human friendly name.
+            //      Matching separately on Name and TypeName would not be enough because we need to be backwards compatible.
+            //      As a result Match is comparing to old/current names, old/current types.
             new TransportInfo
             {
                 Name = TransportNames.AmazonSQS,
@@ -17,6 +22,8 @@
                 Help = "'Region' is mandatory. Specify 'AccessKeyId' and 'SecretAccessKey' values to set the AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY environment variables if not using IAM roles or EC2 metadata. Specify 'S3BucketForLargeMessages' and optionally 'S3KeyPrefix' if large message bodies are used.",
                 Matches = name => name.Equals(TransportNames.AmazonSQS, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.SqsTransport, NServiceBus.AmazonSQS", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -29,6 +36,7 @@
                                   || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -39,6 +47,9 @@
                 Matches = name => name.Equals(TransportNames.AzureServiceBusForwardingTopology, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals(TransportNames.AzureServiceBusForwardingTopologyOld, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -48,6 +59,7 @@
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
                 Matches = name => name.Equals(TransportNames.AzureServiceBus, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -58,6 +70,7 @@
                 Matches = name => name.Equals(TransportNames.AzureStorageQueue, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport, ServiceControl.Transports.AzureStorageQueues", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -69,6 +82,7 @@
                 Matches = name => name.Equals(TransportNames.MSMQ, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.MsmqTransport, NServiceBus.Core", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.MsmqTransport, NServiceBus.Transport.Msmq", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -80,6 +94,8 @@
                 Matches = name => name.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.SqlServerTransport, NServiceBus.Transports.SQLServer", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.SQLServer.ServiceControlSQLServerTransport, ServiceControl.Transports.SQLServer", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.SqlServerTransport, NServiceBus.Transport.SQLServer", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -91,6 +107,7 @@
                                   || name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
@@ -100,6 +117,7 @@
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
                 Matches = name => name.Equals(TransportNames.RabbitMQDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             }
         };
 

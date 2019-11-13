@@ -103,14 +103,14 @@
 
         TransportInfo DetermineTransportPackage()
         {
-            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, MonitoringTransports.All.Single(t => t.Default).TypeName).Trim();
-            var transport = MonitoringTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
+            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
+            var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
             if (transport != null)
             {
                 return transport;
             }
 
-            return MonitoringTransports.All.First(p => p.Default);
+            return ServiceControlCoreTransports.All.First(p => p.Default);
         }
 
         public void ValidateChanges()
