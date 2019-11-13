@@ -20,7 +20,7 @@
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
-        public override IProvideQueueLengthNew CreateQueueLengthProvider()
+        public override IProvideQueueLength CreateQueueLengthProvider()
         {
             return new QueueLengthNewProvider();
         }

@@ -28,7 +28,7 @@
             transport.MessageInvisibleTime(TimeSpan.FromMinutes(1));
         }
 
-        public override IProvideQueueLengthNew CreateQueueLengthProvider()
+        public override IProvideQueueLength CreateQueueLengthProvider()
         {
             return new QueueLengthProvider();
         }

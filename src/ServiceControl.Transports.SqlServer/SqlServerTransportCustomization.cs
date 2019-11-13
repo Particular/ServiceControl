@@ -45,7 +45,7 @@
             transport.ConnectionString(builder.ConnectionString);
         }
 
-        public override IProvideQueueLengthNew CreateQueueLengthProvider()
+        public override IProvideQueueLength CreateQueueLengthProvider()
         {
             return new QueueLengthProvider();
         }

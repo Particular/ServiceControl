@@ -14,7 +14,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Metrics;
 
-    public class QueueLengthProvider : IProvideQueueLength
+    public class QueueLengthProvider
     {
         ConcurrentDictionary<EndpointInputQueue, QueueLengthValue> queueLengths = new ConcurrentDictionary<EndpointInputQueue, QueueLengthValue>();
         ConcurrentDictionary<string, string> problematicQueuesNames = new ConcurrentDictionary<string, string>();

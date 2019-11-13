@@ -2,14 +2,14 @@
 {
     using System.Threading.Tasks;
 
-    public class DefaultQueueLengthProvider : IProvideQueueLengthNew
+    public class DefaultQueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, QueueLengthStoreDto store)
         {
             queueLengthStore = store;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, EndpointMetadataReportDto metadataReport)
+        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
         {
             // HINT: Not every queue length provider requires metadata reports
         }

@@ -15,7 +15,7 @@ namespace ServiceControl.Transports.LegacyAzureServiceBus
     using NServiceBus.Logging;
     using NServiceBus.Metrics;
 
-    public class QueueLengthProvider : IProvideQueueLength
+    public class QueueLengthProvider
     {
         ConcurrentDictionary<EndpointInstanceId, string> endpointQueueMappings = new ConcurrentDictionary<EndpointInstanceId, string>();
 

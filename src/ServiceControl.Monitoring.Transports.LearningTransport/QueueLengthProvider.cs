@@ -14,7 +14,7 @@
     using NServiceBus.Metrics;
 
 
-    public class QueueLengthProvider : IProvideQueueLength
+    public class QueueLengthProvider
     {
         string rootFolder;
         QueueLengthStore queueLengthStore;

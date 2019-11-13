@@ -1,17 +1,16 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Data.Common;
-
-namespace ServiceControl.Transports.SQS
+﻿namespace ServiceControl.Transports.SQS
 {
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Data.Common;
     using System.Collections.Concurrent;
     using System.Threading;
     using Amazon.Runtime;
     using Amazon.SQS;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider : IProvideQueueLengthNew
+    class QueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
         {
@@ -35,10 +34,10 @@ namespace ServiceControl.Transports.SQS
             store = storeDto;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, EndpointMetadataReportDto metadataReportDto)
+        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
         {
-            var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, metadataReportDto.LocalAddress);
-            var queue = QueueNameHelper.GetSqsQueueName(metadataReportDto.LocalAddress, queueNamePrefix);
+            var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
+            var queue = QueueNameHelper.GetSqsQueueName(queueAddress, queueNamePrefix);
 
             queues.AddOrUpdate(endpointInputQueue, _ => queue, (_, currentQueue) =>
             {

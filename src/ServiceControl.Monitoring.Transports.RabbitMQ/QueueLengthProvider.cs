@@ -13,7 +13,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Metrics;
 
-    public class QueueLengthProvider : IProvideQueueLength
+    public class QueueLengthProvider
     {
         public void Initialize(string connectionString, QueueLengthStore store)
         {

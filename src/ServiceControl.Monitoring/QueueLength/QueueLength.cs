@@ -9,13 +9,13 @@
     {
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(b => new QueueLengthProviderTask(b.Build<IProvideQueueLengthNew>()));
+            context.RegisterStartupTask(b => new QueueLengthProviderTask(b.Build<IProvideQueueLength>()));
         }
     }
 
     public class QueueLengthProviderTask : FeatureStartupTask
     {
-        public QueueLengthProviderTask(IProvideQueueLengthNew queueLengthProvider)
+        public QueueLengthProviderTask(IProvideQueueLength queueLengthProvider)
         {
             this.queueLengthProvider = queueLengthProvider;
         }
@@ -30,6 +30,6 @@
             return queueLengthProvider.Stop();
         }
 
-        IProvideQueueLengthNew queueLengthProvider;
+        IProvideQueueLength queueLengthProvider;
     }
 }
