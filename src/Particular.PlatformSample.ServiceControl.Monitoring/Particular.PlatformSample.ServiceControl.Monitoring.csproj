@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" PrivateAssets="All" />
-    <ProjectReference Include="..\ServiceControl.Monitoring.Transports.LearningTransport\ServiceControl.Transports.LearningTransport.csproj" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,7 +19,7 @@
 
   <ItemGroup>
     <Content Include="..\ServiceControl.Monitoring\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\monitoring-instance" Visible="false" Link="hidden" />
-    <Content Include="..\ServiceControl.Monitoring.Transports.LearningTransport\$(OutputPath)\ServiceControl.Transports.LearningTransport.dll" PackagePath="platform\servicecontrol\monitoring-instance" Visible="false" />
+    <Content Include="..\ServiceControl.Transports.Learning\$(OutputPath)\ServiceControl.Transports.Learning.dll" PackagePath="platform\servicecontrol\monitoring-instance" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
