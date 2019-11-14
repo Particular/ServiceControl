@@ -10,7 +10,8 @@
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\IConfigureEndpointTestExecution.cs" Link="TestSupport\EndpointTemplates\IConfigureEndpointTestExecution.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\Requires.cs" Link="TestSupport\EndpointTemplates\Requires.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\TestSuiteConstraints.cs" Link="TestSupport\EndpointTemplates\TestSuiteConstraints.cs" />
-    
+
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusEndpointTopologyTransport.g.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusEndpointTopologyTransport.g.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusForwardingTopologyTransport.g.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusForwardingTopologyTransport.g.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusNetStandardTransport.g.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusNetStandardTransport.g.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureStorageQueueTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureStorageQueueTransport.cs" />
@@ -22,6 +23,10 @@
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointSqlServerTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointSqlServerTransport.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointSQSTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointSQSTransport.cs" />
 
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\SelfVerification\EndpointNameEnforcementTests.cs" Link="TestSupport\SelfVerification\EndpointNameEnforcementTests.cs" />
+
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\DiagnosticTimer.cs" Link="TestSupport\DiagnosticTimer.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\DispatchRawMessages.cs" Link="TestSupport\DispatchRawMessages.cs" />
 
   </ItemGroup>
 
