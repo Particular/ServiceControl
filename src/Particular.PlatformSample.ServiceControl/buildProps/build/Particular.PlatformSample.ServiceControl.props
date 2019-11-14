@@ -12,4 +12,8 @@
     <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\servicecontrol-audit-instance\**\*" CopyToOutputDirectory="PreserveNewest" Link="platform\servicecontrol\servicecontrol-audit-instance\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\monitoring-instance\**\*" CopyToOutputDirectory="PreserveNewest" Link="platform\servicecontrol\monitoring-instance\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

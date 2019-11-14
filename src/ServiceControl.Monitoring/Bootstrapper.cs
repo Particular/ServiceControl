@@ -144,24 +144,6 @@
             return containerBuilder;
         }
 
-        static Type DetermineTransportType(Settings settings)
-        {
-            var transportTypeName = legacyTransportTypeNames.ContainsKey(settings.TransportType)
-                ? legacyTransportTypeNames[settings.TransportType]
-                : settings.TransportType;
-
-            var transportType = Type.GetType(transportTypeName);
-
-            if (transportType != null)
-            {
-                return transportType;
-            }
-
-            var errorMsg = $"Configuration of transport failed. Could not resolve type `{settings.TransportType}`";
-            Logger.Error(errorMsg);
-            throw new Exception(errorMsg);
-        }
-
         public async Task<BusInstance> Start()
         {
             bus = await Endpoint.Start(configuration);
@@ -195,15 +177,6 @@
         EndpointConfiguration configuration;
         IContainer container;
         IEndpointInstance bus;
-
-        static Dictionary<string, string> legacyTransportTypeNames = new Dictionary<string, string>
-        {
-            {"NServiceBus.SqsTransport, NServiceBus.AmazonSQS", "ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS"},
-            {"NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", "ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus"},
-            {"NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"},
-            {"NServiceBus.SqlServerTransport, NServiceBus.Transport.SQLServer", "ServiceControl.Transports.SQLServer.ServiceControlSQLServerTransport, ServiceControl.Transports.SQLServer"},
-            {"NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues", "ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport, ServiceControl.Transports.AzureStorageQueues"}
-        };
 
         static ILog Logger = LogManager.GetLogger<Bootstrapper>();
     }
