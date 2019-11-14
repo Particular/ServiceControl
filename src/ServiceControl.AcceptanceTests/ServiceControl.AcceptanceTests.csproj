@@ -11,6 +11,18 @@
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\Requires.cs" Link="TestSupport\EndpointTemplates\Requires.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\TestSuiteConstraints.cs" Link="TestSupport\EndpointTemplates\TestSuiteConstraints.cs" />
 
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusForwardingTopologyTransport.g.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusForwardingTopologyTransport.g.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusNetStandardTransport.g.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusNetStandardTransport.g.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureStorageQueueTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureStorageQueueTransport.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointInMemoryPersistence.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointInMemoryPersistence.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointLearningTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointLearningTransport.cs" />
+    
+    
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointRabbitMQConventionalRoutingTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointRabbitMQConventionalRoutingTransport.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointRabbitMQDirectRoutingTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointRabbitMQDirectRoutingTransport.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointSqlServerTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointSqlServerTransport.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointSQSTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointSQSTransport.cs" />
+
 
   </ItemGroup>
 
