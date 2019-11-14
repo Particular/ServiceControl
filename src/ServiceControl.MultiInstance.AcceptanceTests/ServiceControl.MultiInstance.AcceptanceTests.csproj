@@ -4,49 +4,9 @@
     <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\ConfigureExtensions.cs" Link="TestSupport\EndpointTemplates\ConfigureExtensions.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\EndpointConfigurationExtensions.cs" Link="TestSupport\EndpointTemplates\EndpointConfigurationExtensions.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\IConfigureEndpointTestExecution.cs" Link="TestSupport\EndpointTemplates\IConfigureEndpointTestExecution.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\Requires.cs" Link="TestSupport\EndpointTemplates\Requires.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\TestSuiteConstraints.cs" Link="TestSupport\EndpointTemplates\TestSuiteConstraints.cs" />
-
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusEndpointTopologyTransport.g.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusEndpointTopologyTransport.g.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusForwardingTopologyTransport.g.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusForwardingTopologyTransport.g.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusNetStandardTransport.g.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureServiceBusNetStandardTransport.g.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointAzureStorageQueueTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointAzureStorageQueueTransport.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointInMemoryPersistence.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointInMemoryPersistence.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointLearningTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointLearningTransport.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointMsmqTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointMsmqTransport.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointRabbitMQConventionalRoutingTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointRabbitMQConventionalRoutingTransport.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointRabbitMQDirectRoutingTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointRabbitMQDirectRoutingTransport.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointSqlServerTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointSqlServerTransport.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\InfrastructureConfig\ConfigureEndpointSQSTransport.cs" Link="TestSupport\InfrastructureConfig\ConfigureEndpointSQSTransport.cs" />
-
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\SelfVerification\EndpointNameEnforcementTests.cs" Link="TestSupport\SelfVerification\EndpointNameEnforcementTests.cs" />
-
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\DiagnosticTimer.cs" Link="TestSupport\DiagnosticTimer.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\DispatchRawMessages.cs" Link="TestSupport\DispatchRawMessages.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\HttpClientExtensions.cs" Link="TestSupport\HttpClientExtensions.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\IRequireConnectionString.cs" Link="TestSupport\IRequireConnectionString.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ISequenceContext.cs" Link="TestSupport\ISequenceContext.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ITransportIntegration.cs" Link="TestSupport\ITransportIntegration.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ManyResult.cs" Link="TestSupport\ManyResult.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\NLogLoggerFactory.cs" Link="TestSupport\NLogLoggerFactory.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\NServiceBusAcceptanceTest.cs" Link="TestSupport\NServiceBusAcceptanceTest.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\RunOnAllTransportsAttribute.cs" Link="TestSupport\RunOnAllTransportsAttribute.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ScenarioWithEndpointBehaviorExtensions.cs" Link="TestSupport\ScenarioWithEndpointBehaviorExtensions.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\Sequence.cs" Link="TestSupport\Sequence.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\SingleResult.cs" Link="TestSupport\SingleResult.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\StampDispatchBehavior.cs" Link="TestSupport\StampDispatchBehavior.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\StaticContextAppender.cs" Link="TestSupport\StaticContextAppender.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\StaticLoggerFactory.cs" Link="TestSupport\StaticLoggerFactory.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\TestSuiteConstraints.cs" Link="TestSupport\TestSuiteConstraints.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\TraceIncomingBehavior.cs" Link="TestSupport\TraceIncomingBehavior.cs" />
-    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\TraceOutgoingBehavior.cs" Link="TestSupport\TraceOutgoingBehavior.cs" />
-  </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
