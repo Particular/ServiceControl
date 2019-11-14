@@ -12,6 +12,10 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\ConfigureExtensions.cs" Link="TestSupport\EndpointTemplates\ConfigureExtensions.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\EndpointConfigurationExtensions.cs" Link="TestSupport\EndpointTemplates\EndpointConfigurationExtensions.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />

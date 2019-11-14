@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\ConfigureExtensions.cs" Link="TestSupport\EndpointTemplates\ConfigureExtensions.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\EndpointConfigurationExtensions.cs" Link="TestSupport\EndpointTemplates\EndpointConfigurationExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
