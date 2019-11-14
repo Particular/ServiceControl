@@ -2,8 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net;
+    using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -12,6 +12,7 @@
     using Configuration.AdvancedExtensibility;
     using Features;
     using ServiceBus.Management.AcceptanceTests;
+    using ServiceControl.Audit.Infrastructure;
 
     public class DefaultServerWithAudit : IEndpointSetupTemplate
     {
@@ -23,7 +24,7 @@
 
             var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
             builder.AuditProcessedMessagesTo("audit");
-            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass().Concat(new[]
+            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass<Bootstrapper>().Concat(new[]
             {
                 typeof(TraceIncomingBehavior),
                 typeof(TraceOutgoingBehavior)

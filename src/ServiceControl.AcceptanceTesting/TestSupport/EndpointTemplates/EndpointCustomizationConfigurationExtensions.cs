@@ -6,17 +6,16 @@
     using System.Reflection;
     using AcceptanceTesting.Support;
     using Hosting.Helpers;
-    using ServiceControl.Monitoring;
 
     public static class EndpointCustomizationConfigurationExtensions
     {
-        public static IEnumerable<Type> GetTypesScopedByTestClass(this EndpointCustomizationConfiguration endpointConfiguration)
+        public static IEnumerable<Type> GetTypesScopedByTestClass<TBootstrapper>(this EndpointCustomizationConfiguration endpointConfiguration)
         {
             var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
             var assembliesToScan = assemblies.Assemblies
                 //exclude acceptance tests by default
-                .Where(a => a != Assembly.GetExecutingAssembly() && a != typeof(Bootstrapper).Assembly)
+                .Where(a => a != Assembly.GetExecutingAssembly() && a != typeof(TBootstrapper).Assembly)
                 .Where(a => a.FullName.StartsWith("ServiceControl") == false)
                 .ToList();
             var types = assembliesToScan

@@ -13,6 +13,7 @@
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
+    using Particular.ServiceControl;
 
     public class DefaultServerWithAudit : IEndpointSetupTemplate
     {
@@ -24,7 +25,7 @@
 
             var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
             builder.AuditProcessedMessagesTo("audit");
-            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass().Concat(new[]
+            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass<Bootstrapper>().Concat(new[]
             {
                 typeof(TraceIncomingBehavior),
                 typeof(TraceOutgoingBehavior)

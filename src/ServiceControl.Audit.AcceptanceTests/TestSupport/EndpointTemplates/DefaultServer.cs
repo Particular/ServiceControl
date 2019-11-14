@@ -9,6 +9,7 @@
     using AcceptanceTesting.Support;
     using Features;
     using ServiceBus.Management.AcceptanceTests;
+    using ServiceControl.Audit.Infrastructure;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
@@ -24,7 +25,7 @@
 
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            var types = endpointConfiguration.GetTypesScopedByTestClass();
+            var types = endpointConfiguration.GetTypesScopedByTestClass<Bootstrapper>();
 
             typesToInclude.AddRange(types);
 

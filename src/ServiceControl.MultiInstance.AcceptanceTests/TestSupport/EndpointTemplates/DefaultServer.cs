@@ -8,6 +8,7 @@
     using AcceptanceTesting.Customization;
     using AcceptanceTesting.Support;
     using Features;
+    using Particular.ServiceControl;
     using ServiceBus.Management.AcceptanceTests;
 
     public class DefaultServer : IEndpointSetupTemplate
@@ -24,7 +25,7 @@
 
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            var types = endpointConfiguration.GetTypesScopedByTestClass();
+            var types = endpointConfiguration.GetTypesScopedByTestClass<Bootstrapper>();
 
             typesToInclude.AddRange(types);
 

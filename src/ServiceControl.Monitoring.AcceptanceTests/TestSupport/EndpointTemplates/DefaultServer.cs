@@ -13,6 +13,7 @@
     using Configuration.AdvancedExtensibility;
     using Features;
     using ServiceBus.Management.AcceptanceTests;
+    using ServiceControl.Monitoring;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
@@ -23,7 +24,7 @@
             var typesToInclude = new List<Type>();
 
             var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
-            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass().Concat(new[]
+            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass<Bootstrapper>().Concat(new[]
             {
                 typeof(TraceIncomingBehavior),
                 typeof(TraceOutgoingBehavior)
