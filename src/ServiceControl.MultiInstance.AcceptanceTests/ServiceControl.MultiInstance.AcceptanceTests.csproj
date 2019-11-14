@@ -7,6 +7,10 @@
   <ItemGroup>
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\ConfigureExtensions.cs" Link="TestSupport\EndpointTemplates\ConfigureExtensions.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\EndpointConfigurationExtensions.cs" Link="TestSupport\EndpointTemplates\EndpointConfigurationExtensions.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\IConfigureEndpointTestExecution.cs" Link="TestSupport\EndpointTemplates\IConfigureEndpointTestExecution.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\Requires.cs" Link="TestSupport\EndpointTemplates\Requires.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\EndpointTemplates\TestSuiteConstraints.cs" Link="TestSupport\EndpointTemplates\TestSuiteConstraints.cs" />
+
   </ItemGroup>
 
   <ItemGroup>
