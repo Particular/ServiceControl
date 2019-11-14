@@ -45,7 +45,13 @@
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\RunOnAllTransportsAttribute.cs" Link="TestSupport\RunOnAllTransportsAttribute.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ScenarioWithEndpointBehaviorExtensions.cs" Link="TestSupport\ScenarioWithEndpointBehaviorExtensions.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\Sequence.cs" Link="TestSupport\Sequence.cs" />
-
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\SingleResult.cs" Link="TestSupport\SingleResult.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\StampDispatchBehavior.cs" Link="TestSupport\StampDispatchBehavior.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\StaticContextAppender.cs" Link="TestSupport\StaticContextAppender.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\StaticLoggerFactory.cs" Link="TestSupport\StaticLoggerFactory.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\TestSuiteConstraints.cs" Link="TestSupport\TestSuiteConstraints.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\TraceIncomingBehavior.cs" Link="TestSupport\TraceIncomingBehavior.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\TraceOutgoingBehavior.cs" Link="TestSupport\TraceOutgoingBehavior.cs" />
   </ItemGroup>
 
   <ItemGroup>
