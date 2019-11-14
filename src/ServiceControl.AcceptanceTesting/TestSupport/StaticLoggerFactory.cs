@@ -4,7 +4,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Logging;
 
-    class StaticLoggerFactory : ILoggerFactory
+    public class StaticLoggerFactory : ILoggerFactory
     {
         public StaticLoggerFactory(ScenarioContext currentContext)
         {

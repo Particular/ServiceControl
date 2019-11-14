@@ -8,7 +8,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Pipeline;
     using NServiceBus.Settings;
 
-    class TraceIncomingBehavior : IBehavior<IIncomingLogicalMessageContext, IIncomingLogicalMessageContext>
+    public class TraceIncomingBehavior : IBehavior<IIncomingLogicalMessageContext, IIncomingLogicalMessageContext>
     {
         public TraceIncomingBehavior(ScenarioContext scenarioContext, ReadOnlySettings settings)
         {

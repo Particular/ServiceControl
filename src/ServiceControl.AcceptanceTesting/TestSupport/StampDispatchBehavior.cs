@@ -5,7 +5,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
 
-    class StampDispatchBehavior : IBehavior<IDispatchContext, IDispatchContext>
+    public class StampDispatchBehavior : IBehavior<IDispatchContext, IDispatchContext>
     {
         public StampDispatchBehavior(ScenarioContext scenarioContext)
         {
