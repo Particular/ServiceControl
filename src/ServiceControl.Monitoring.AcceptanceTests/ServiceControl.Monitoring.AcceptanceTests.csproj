@@ -35,7 +35,16 @@
     
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\DiagnosticTimer.cs" Link="TestSupport\DiagnosticTimer.cs" />
     <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\DispatchRawMessages.cs" Link="TestSupport\DispatchRawMessages.cs" />
-
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\HttpClientExtensions.cs" Link="TestSupport\HttpClientExtensions.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\IRequireConnectionString.cs" Link="TestSupport\IRequireConnectionString.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ISequenceContext.cs" Link="TestSupport\ISequenceContext.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ITransportIntegration.cs" Link="TestSupport\ITransportIntegration.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ManyResult.cs" Link="TestSupport\ManyResult.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\NLogLoggerFactory.cs" Link="TestSupport\NLogLoggerFactory.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\NServiceBusAcceptanceTest.cs" Link="TestSupport\NServiceBusAcceptanceTest.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\RunOnAllTransportsAttribute.cs" Link="TestSupport\RunOnAllTransportsAttribute.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\ScenarioWithEndpointBehaviorExtensions.cs" Link="TestSupport\ScenarioWithEndpointBehaviorExtensions.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTesting\TestSupport\Sequence.cs" Link="TestSupport\Sequence.cs" />
 
   </ItemGroup>
 
