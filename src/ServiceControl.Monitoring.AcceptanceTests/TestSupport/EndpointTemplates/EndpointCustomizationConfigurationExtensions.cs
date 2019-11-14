@@ -12,7 +12,6 @@
     {
         public static IEnumerable<Type> GetTypesScopedByTestClass(this EndpointCustomizationConfiguration endpointConfiguration)
         {
-            //TODO: This is where sc is loaded?
             var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
             var assembliesToScan = assemblies.Assemblies

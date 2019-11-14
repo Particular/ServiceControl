@@ -27,38 +27,29 @@
     public class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Settings settings)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration)
         {
+            this.onCriticalError = onCriticalError;
             this.settings = settings;
+            this.configuration = configuration;
+
+            Initialize(configuration);
         }
 
         internal Startup Startup { get; set; }
 
-        internal async Task<IEndpointInstance> CreateAndStartReceiver(EndpointConfiguration config = null, string explicitConnectionStringValue = null)
-        {
-            var endpointConfiguration = config ?? new EndpointConfiguration(settings.EndpointName);
-
-            CreateReceiver(endpointConfiguration, explicitConnectionStringValue);
-
-            bus = await Endpoint.Start(endpointConfiguration);
-
-            return bus;
-        }
-
-        public void CreateReceiver(EndpointConfiguration config, string explicitConnectionStringValue = null)
+        void Initialize(EndpointConfiguration config)
         {
             var transportCustomization = settings.LoadTransportCustomization();
 
-            var connectionString = explicitConnectionStringValue ?? settings.ConnectionString;
-
-            var buildQueueLengthProvider = QueueLengthProviderBuilder(connectionString, transportCustomization);
+            var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
 
             var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
 
             var transportSettings = new TransportSettings
             {
                 RunCustomChecks = false,
-                ConnectionString = connectionString,
+                ConnectionString = settings.ConnectionString,
                 EndpointName = settings.EndpointName,
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
@@ -72,7 +63,7 @@
 
             config.DefineCriticalErrorAction(c =>
             {
-                Environment.FailFast("NServiceBus Critical Error", c.Exception);
+                this.onCriticalError(c);
                 return TaskEx.Completed;
             });
 
@@ -173,23 +164,14 @@
 
         public async Task<BusInstance> Start()
         {
-            bus = await CreateAndStartReceiver();
+            bus = await Endpoint.Start(configuration);
 
             StartWebApi();
 
             return new BusInstance(bus);
         }
 
-        public async Task<BusInstance> StartForTests(EndpointConfiguration configuraiton)
-        {
-            bus = await Endpoint.Start(configuraiton);
-
-            StartWebApi();
-
-            return new BusInstance(bus);
-        }
-
-        public void StartWebApi()
+        void StartWebApi()
         {
             var startOptions = new StartOptions(settings.RootUrl);
 
@@ -208,9 +190,11 @@
         }
 
         public IDisposable WebApp;
-        private Settings settings;
-        private IContainer container;
-        private IEndpointInstance bus;
+        Action<ICriticalErrorContext> onCriticalError;
+        Settings settings;
+        EndpointConfiguration configuration;
+        IContainer container;
+        IEndpointInstance bus;
 
         static Dictionary<string, string> legacyTransportTypeNames = new Dictionary<string, string>
         {
