@@ -39,7 +39,7 @@
             tableSizes.TryAdd(sqlTable, 0);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport)
+        public void Process(string endpointNameDto, TaggedLongValueOccurrenceDto metricsReport)
         {
             //HINT: Sql server endpoints do not support endpoint level queue length monitoring
         }

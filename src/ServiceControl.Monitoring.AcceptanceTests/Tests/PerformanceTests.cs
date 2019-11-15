@@ -85,7 +85,7 @@
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(ToEndpointInstanceId(i), new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray(), string.Empty)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i.EndpointName, new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray(), string.Empty)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -112,11 +112,6 @@
         EntryDto ToEntryDto(RawMessage.Entry ei)
         {
             return new EntryDto {DateTicks = ei.DateTicks, Value = ei.Value};
-        }
-
-        EndpointInstanceIdDto ToEndpointInstanceId(EndpointInstanceId endpointInstanceId)
-        {
-            return new EndpointInstanceIdDto {EndpointName = endpointInstanceId.EndpointName};
         }
 
         [TestCase(10, 100, 100, 1000, 100, 1000)]
@@ -152,7 +147,7 @@
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(ToEndpointInstanceId(i), new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray() ,string.Empty)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i.EndpointName, new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray() ,string.Empty)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();

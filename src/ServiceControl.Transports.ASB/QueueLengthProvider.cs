@@ -44,7 +44,7 @@ namespace ServiceControl.Transports.ASB
             );
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, TaggedLongValueOccurrenceDto metricsReport)
+        public void Process(string endpointName, TaggedLongValueOccurrenceDto metricsReport)
         {
         }
 

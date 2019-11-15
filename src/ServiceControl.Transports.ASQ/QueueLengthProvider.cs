@@ -35,7 +35,7 @@
             queueLengths.AddOrUpdate(endpointInputQueue, _ => emptyQueueLength, (_, existingQueueLength) => existingQueueLength);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport)
+        public void Process(string endpointNameDto, TaggedLongValueOccurrenceDto metricsReport)
         {
             //HINT: ASQ  server endpoints do not support endpoint level queue length monitoring
         }

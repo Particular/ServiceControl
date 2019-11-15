@@ -26,14 +26,12 @@
 
         public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
-            var instanceId = EndpointInstanceId.From(context.MessageHeaders);
-            var instanceIdDto = new EndpointInstanceIdDto { EndpointName = instanceId.EndpointName };
-
+            var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
             var messageType = context.MessageHeaders[MetricHeaders.MetricType];
 
             if (messageType == QueueLengthMessageType)
             {
-                queueLengthProvider.Process(instanceIdDto, new TaggedLongValueOccurrenceDto(message.Entries.Select(e => ToEntry(e)).ToArray(), message.TagValue));
+                queueLengthProvider.Process(endpointName, new TaggedLongValueOccurrenceDto(message.Entries.Select(e => ToEntry(e)).ToArray(), message.TagValue));
             }
 
             return TaskEx.Completed;

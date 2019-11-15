@@ -23,7 +23,7 @@
             endpointsHash.AddOrUpdate(key, key, (_, __) => key);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport)
+        public void Process(string endpointNameDto, TaggedLongValueOccurrenceDto metricsReport)
         {
             // The endpoint should not be sending this data
         }

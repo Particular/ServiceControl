@@ -15,9 +15,9 @@
             // HINT: Not every queue length provider requires metadata reports
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, TaggedLongValueOccurrenceDto metricsReport)
+        public void Process(string endpointName, TaggedLongValueOccurrenceDto metricsReport)
         {
-            var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceId.EndpointName, metricsReport.TagValue);
+            var endpointInputQueue = new EndpointInputQueueDto(endpointName, metricsReport.TagValue);
 
             queueLengthStore.Store(metricsReport.Entries, endpointInputQueue);
         }

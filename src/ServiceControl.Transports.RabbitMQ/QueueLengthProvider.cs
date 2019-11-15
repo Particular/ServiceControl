@@ -30,7 +30,7 @@
             });
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport)
+        public void Process(string endpointNameDto, TaggedLongValueOccurrenceDto metricsReport)
         {
             //RabbitMQ does not support endpoint level queue length reports
         }

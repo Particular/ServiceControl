@@ -27,10 +27,10 @@ namespace ServiceControl.Transports
     public interface IProvideQueueLength
     {
         void Initialize(string connectionString, ServiceControl.Transports.QueueLengthStoreDto storeDto);
-        void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress);
-        void Process(ServiceControl.Transports.EndpointInstanceIdDto endpointInstanceIdDto, ServiceControl.Transports.TaggedLongValueOccurrenceDto metricsReport);
+        void Process(string endpointNameDto, ServiceControl.Transports.TaggedLongValueOccurrenceDto metricsReport);
         System.Threading.Tasks.Task Start();
         System.Threading.Tasks.Task Stop();
+        void TrackEndpointInputQueue(string endpointName, string queueAddress);
     }
     public class QueueLengthStoreDto
     {
