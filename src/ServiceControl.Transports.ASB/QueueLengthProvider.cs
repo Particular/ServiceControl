@@ -35,10 +35,10 @@ namespace ServiceControl.Transports.ASB
             this.namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
+        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
         {
             endpointQueueMappings.AddOrUpdate(
-                endpointInstanceId,
+                endpointName,
                 id => queueAddress,
                 (id, old) => queueAddress
             );
@@ -106,7 +106,7 @@ namespace ServiceControl.Transports.ASB
                         }
                     };
 
-                queueLengthStore.Store(entries, new EndpointInputQueueDto(mapping.Key.EndpointName, queue.Path));
+                queueLengthStore.Store(entries, new EndpointInputQueueDto(mapping.Key, queue.Path));
             }
         }
 
@@ -117,7 +117,7 @@ namespace ServiceControl.Transports.ASB
             return poller;
         }
 
-        ConcurrentDictionary<EndpointInstanceIdDto, string> endpointQueueMappings = new ConcurrentDictionary<EndpointInstanceIdDto, string>();
+        ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
         QueueLengthStoreDto queueLengthStore;
         NamespaceManager namespaceManager;
         CancellationTokenSource stop = new CancellationTokenSource();

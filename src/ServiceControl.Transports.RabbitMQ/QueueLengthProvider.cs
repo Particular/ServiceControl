@@ -17,19 +17,16 @@
             queueLengthStoreDto = storeDto;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
+        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
         {
-            var endpointInstanceQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
-            var queueName = queueAddress;
-
-            endpointQueues.AddOrUpdate(endpointInstanceQueue, _ => queueName, (_, currentValue) =>
+            endpointQueues.AddOrUpdate(endpointName, _ => queueAddress, (_, currentValue) =>
             {
-                if (currentValue != queueName)
+                if (currentValue != queueAddress)
                 {
                     sizes.TryRemove(currentValue, out var _);
                 }
 
-                return queueName;
+                return queueAddress;
             });
         }
 
@@ -86,7 +83,7 @@
                                 Value = size
                             }
                         },
-                        endpointQueuePair.Key);
+                        new EndpointInputQueueDto(endpointQueuePair.Key, endpointQueuePair.Value));
                 }
             }
         }
@@ -126,7 +123,7 @@
         QueryExecutor queryExecutor;
         static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 
-        ConcurrentDictionary<EndpointInputQueueDto, string> endpointQueues = new ConcurrentDictionary<EndpointInputQueueDto, string>();
+        ConcurrentDictionary<string, string> endpointQueues = new ConcurrentDictionary<string, string>();
         ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
 
         CancellationTokenSource stoppedTokenSource = new CancellationTokenSource();

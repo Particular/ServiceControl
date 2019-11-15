@@ -17,9 +17,9 @@
             queueLengthStoreDto = storeDto;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
+        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
         {
-            var key = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
+            var key = new EndpointInputQueueDto(endpointName, queueAddress);
             endpointsHash.AddOrUpdate(key, key, (_, __) => key);
         }
 

@@ -6,7 +6,7 @@
     {
         void Initialize(string connectionString, QueueLengthStoreDto storeDto);
 
-        void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress);
+        void TrackEndpointInputQueue(string endpointName, string queueAddress);
 
         void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport);
 

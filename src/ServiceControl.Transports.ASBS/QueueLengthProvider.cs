@@ -32,12 +32,12 @@ namespace ServiceControl.Transports.ASBS
             this.managementClient = new ManagementClient(connectionString);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
+        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
         {
             endpointQueueMappings.AddOrUpdate(
                 queueAddress,
-                id => endpointInstanceId,
-                (id, old) => endpointInstanceId
+                id => endpointName,
+                (id, old) => endpointName
             );
         }
 
@@ -110,9 +110,9 @@ namespace ServiceControl.Transports.ASBS
 
         Task UpdateAllQueueLengths(ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token) => Task.WhenAll(endpointQueueMappings.Select(eq => UpdateQueueLength(eq, queues, token)));
 
-        async Task UpdateQueueLength(KeyValuePair<string, EndpointInstanceIdDto> monitoredEndpoint, ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token)
+        async Task UpdateQueueLength(KeyValuePair<string, string> monitoredEndpoint, ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token)
         {
-            var endpointInstanceId = monitoredEndpoint.Value;
+            var endpointName = monitoredEndpoint.Value;
             var queueName = monitoredEndpoint.Key;
 
             if (!queues.TryGetValue(queueName, out _))
@@ -129,7 +129,7 @@ namespace ServiceControl.Transports.ASBS
                 }
             };
 
-            queueLengthStore.Store(entries, new EndpointInputQueueDto(endpointInstanceId.EndpointName, queueName));
+            queueLengthStore.Store(entries, new EndpointInputQueueDto(endpointName, queueName));
         }
 
         public async Task Stop()
@@ -139,7 +139,7 @@ namespace ServiceControl.Transports.ASBS
             await managementClient.CloseAsync().ConfigureAwait(false);
         }
 
-        ConcurrentDictionary<string, EndpointInstanceIdDto> endpointQueueMappings = new ConcurrentDictionary<string, EndpointInstanceIdDto>();
+        ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
         QueueLengthStoreDto queueLengthStore;
         ManagementClient managementClient;
         CancellationTokenSource stop = new CancellationTokenSource();

@@ -17,9 +17,9 @@
             store = storeDto;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
+        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
         {
-            var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
+            var endpointInputQueue = new EndpointInputQueueDto(endpointName, queueAddress);
 
             var queueName = BackwardsCompatibleQueueNameSanitizer.Sanitize(queueAddress);
 

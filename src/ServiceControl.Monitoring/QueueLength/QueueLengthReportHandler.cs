@@ -17,10 +17,9 @@
 
         public Task Handle(EndpointMetadataReport message, IMessageHandlerContext context)
         {
-            var instanceId = EndpointInstanceId.From(context.MessageHeaders);
-            var instanceIdDto = new EndpointInstanceIdDto{EndpointName = instanceId.EndpointName};
+            var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
 
-            queueLengthProvider.Process(instanceIdDto, message.LocalAddress);
+            queueLengthProvider.TrackEndpointInputQueue(endpointName, message.LocalAddress);
 
             return TaskEx.Completed;
         }
@@ -28,7 +27,7 @@
         public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
             var instanceId = EndpointInstanceId.From(context.MessageHeaders);
-            var instanceIdDto = new EndpointInstanceIdDto{EndpointName = instanceId.EndpointName};
+            var instanceIdDto = new EndpointInstanceIdDto { EndpointName = instanceId.EndpointName };
 
             var messageType = context.MessageHeaders[MetricHeaders.MetricType];
 

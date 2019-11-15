@@ -9,7 +9,7 @@
             queueLengthStore = store;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
+        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
         {
             // HINT: Not every queue length provider requires metadata reports
         }
