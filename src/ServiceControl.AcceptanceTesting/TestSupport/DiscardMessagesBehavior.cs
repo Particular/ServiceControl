@@ -8,7 +8,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
 
-    class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
+    public class DiscardMessagesBehavior : IBehavior<ITransportReceiveContext, ITransportReceiveContext>
     {
         public DiscardMessagesBehavior(ScenarioContext scenarioContext)
         {
@@ -20,6 +20,13 @@ namespace ServiceBus.Management.AcceptanceTests
             //Do not filter out CC and HB messages as they can't be stamped
             if (context.Message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
                 && pluginMessages.Any(t => messageTypes.StartsWith(t)))
+            {
+                return next(context);
+            }
+
+            //Do not filter out performance metrics metrics
+            if (context.Message.Headers.TryGetValue("NServiceBus.Metric.Type", out var metricType)
+                && metricTypes.Any(t => metricType.StartsWith(t)))
             {
                 return next(context);
             }
@@ -52,8 +59,16 @@ namespace ServiceBus.Management.AcceptanceTests
             "ServiceControl.Plugin.CustomChecks.Messages.ReportCustomCheckResult",
             "ServiceControl.EndpointPlugin.Messages.SagaState.SagaChangeInitiator",
             "ServiceControl.EndpointPlugin.Messages.SagaState.SagaUpdatedMessage",
+            "NServiceBus.Metrics.EndpointMetadataReport",
             "ServiceControl.Plugin.Heartbeat.Messages.EndpointHeartbeat",
             "ServiceControl.Plugin.Heartbeat.Messages.RegisterEndpointStartup"
+        };
+
+        static string[] metricTypes =
+        {
+            "ProcessingTime",
+            "Retries",
+            "QueueLength"
         };
     }
 }
