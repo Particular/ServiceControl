@@ -13,6 +13,7 @@
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
+    using TestSupport;
 
     class When_a_retry_for_a_failed_message_is_successful : AcceptanceTest
     {

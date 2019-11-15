@@ -11,9 +11,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using Raven.Client;
+    using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.ExternalIntegrations;
     using ServiceBus.Management.Infrastructure.Settings;
 

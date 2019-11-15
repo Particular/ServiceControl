@@ -25,6 +25,7 @@
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using TestSupport;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class When_a_message_has_failed : AcceptanceTest

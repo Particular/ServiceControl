@@ -16,6 +16,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
+    using TestSupport;
 
     class When_a_retry_fails_to_be_sent : AcceptanceTest
     {

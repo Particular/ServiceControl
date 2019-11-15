@@ -6,8 +6,8 @@
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
+    using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.AcceptanceTests.ExternalIntegrations;
     using ServiceBus.Management.Infrastructure.Settings;

@@ -1,6 +1,7 @@
 ﻿namespace ServiceBus.Management.AcceptanceTests
 {
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
 
     public static class EndpointConfigurationExtensions
@@ -24,6 +25,11 @@
         public static void NoOutbox(this EndpointConfiguration configuration)
         {
             configuration.DisableFeature<Outbox>();
+        }
+
+        public static TransportExtensions ConfigureTransport(this EndpointConfiguration endpointConfiguration)
+        {
+            return new TransportExtensions(endpointConfiguration.GetSettings());
         }
     }
 }

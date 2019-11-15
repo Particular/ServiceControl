@@ -10,6 +10,7 @@
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
+    using TestSupport;
 
     class When_all_messages_are_retried : AcceptanceTest
     {
