@@ -84,7 +84,7 @@
                          return false;
                      }
 
-                     if (!monitoredEndpointDetails.Digest.Metrics.ContainsKey("queueLength") )
+                     if (monitoredEndpointDetails.Digest.Metrics["queueLength"].Average == 0.0)
                      {
                          return false;
                      }
@@ -94,8 +94,6 @@
                      return true;
                  })
                  .Run();
-
-            Assert.Greater(monitoredEndpointDetails.Digest.Metrics["queueLength"].Average, 0.0);
         }
 
         class SendingEndpoint : EndpointConfigurationBuilder
