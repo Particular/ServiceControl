@@ -12,7 +12,6 @@
 
         public void TrackEndpointInputQueue(string endpointName, string queueAddress)
         {
-            // HINT: Not every queue length provider requires metadata reports
         }
 
         public Task Start() => Task.CompletedTask;
