@@ -9,54 +9,54 @@ namespace ServiceBus.Management.AcceptanceTests
 
     static class HttpExtensionsMultiInstance
     {
-        static IAcceptanceTestInfrastructureProviderSingle ToHttpExtension(this IAcceptanceTestInfrastructureProvider provider, string instanceName)
+        static IAcceptanceTestInfrastructureProvider ToHttpExtension(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string instanceName)
         {
-            return new AcceptanceTestInfrastructureProviderSingle
+            return new AcceptanceTestInfrastructureProvider
             {
-                HttpClient = provider.HttpClients[instanceName],
-                SerializerSettings = provider.SerializerSettings,
-                Port = provider.SettingsPerInstance[instanceName].Port.ToString()
+                HttpClient = providerMultiInstance.HttpClients[instanceName],
+                SerializerSettings = providerMultiInstance.SerializerSettings,
+                Port = providerMultiInstance.SettingsPerInstance[instanceName].Port.ToString()
             };
         }
 
-        public static Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static Task Put<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
-            return provider.ToHttpExtension(instanceName).Put(url, payload, requestHasFailed);
+            return providerMultiInstance.ToHttpExtension(instanceName).Put(url, payload, requestHasFailed);
         }
 
-        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
-            return provider.ToHttpExtension(instanceName).GetRaw(url);
+            return providerMultiInstance.ToHttpExtension(instanceName).GetRaw(url);
         }
 
-        public static Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
-            return provider.ToHttpExtension(instanceName).TryGetMany(url, condition);
+            return providerMultiInstance.ToHttpExtension(instanceName).TryGetMany(url, condition);
         }
 
-        public static Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
-            return provider.ToHttpExtension(instanceName).Patch(url, payload);
+            return providerMultiInstance.ToHttpExtension(instanceName).Patch(url, payload);
         }
 
-        public static  Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
-            return provider.ToHttpExtension(instanceName).TryGet(url, condition);
+            return providerMultiInstance.ToHttpExtension(instanceName).TryGet(url, condition);
         }
 
-        public static Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
-            return provider.ToHttpExtension(instanceName).TryGetSingle(url, condition);
+            return providerMultiInstance.ToHttpExtension(instanceName).TryGetSingle(url, condition);
         }
 
-        public static Task Post<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static Task Post<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
-            return provider.ToHttpExtension(instanceName).Post(url, payload, requestHasFailed);
+            return providerMultiInstance.ToHttpExtension(instanceName).Post(url, payload, requestHasFailed);
         }
 
     }
 
-    class AcceptanceTestInfrastructureProviderSingle : IAcceptanceTestInfrastructureProviderSingle
+    class AcceptanceTestInfrastructureProvider : IAcceptanceTestInfrastructureProvider
     {
         public JsonSerializerSettings SerializerSettings { get; set; }
         public HttpClient HttpClient { get; set; }

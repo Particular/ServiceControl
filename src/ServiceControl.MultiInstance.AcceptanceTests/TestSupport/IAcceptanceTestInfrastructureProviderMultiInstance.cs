@@ -4,7 +4,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Net.Http;
     using Newtonsoft.Json;
 
-    interface IAcceptanceTestInfrastructureProvider
+    interface IAcceptanceTestInfrastructureProviderMultiInstance
     {
         Dictionary<string, HttpClient> HttpClients { get; }
 

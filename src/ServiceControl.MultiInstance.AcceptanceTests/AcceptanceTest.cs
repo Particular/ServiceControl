@@ -21,7 +21,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using ServiceControl.AcceptanceTests;
 
     [TestFixture]
-    abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider
+    abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProviderMultiInstance
     {
         protected AcceptanceTest()
         {

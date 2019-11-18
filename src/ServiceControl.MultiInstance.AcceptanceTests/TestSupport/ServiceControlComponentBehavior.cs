@@ -9,7 +9,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
 
-    class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
+    class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProviderMultiInstance
     {
         public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {
