@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting.Support;
     using Features;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Audit.Infrastructure;
 
 

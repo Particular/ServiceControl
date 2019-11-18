@@ -7,6 +7,7 @@
     using Configuration.AdvancedExtensibility;
     using Features;
     using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Monitoring;
 
     public class DefaultServer : IEndpointSetupTemplate
