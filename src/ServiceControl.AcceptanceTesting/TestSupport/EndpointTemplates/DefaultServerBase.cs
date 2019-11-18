@@ -11,6 +11,8 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Features;
 
     public class DefaultServerBase<TBootstrapper> : IEndpointSetupTemplate
     {
@@ -41,9 +43,28 @@
 
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
 
+            builder.UseSerialization<NewtonsoftSerializer>();
+
+            builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
+            builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
+
+            builder.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
+            
+            builder.RegisterComponents(r => { builder.GetSettings().Set("SC.ConfigureComponent", r); });
+
+            builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
+
+            builder.DisableFeature<AutoSubscribe>();
+
             configurationBuilderCustomization(builder);
 
             return builder;
+        }
+
+        static bool IsExternalContract(Type t)
+        {
+            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts")
+                                       && t.Assembly.GetName().Name == "ServiceControl.Contracts";
         }
     }
 }

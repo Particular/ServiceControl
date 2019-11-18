@@ -12,6 +12,7 @@
             return new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, b =>
             {
                 b.DisableFeature<Audit>();
+
                 configurationBuilderCustomization(b);
             });
         }
