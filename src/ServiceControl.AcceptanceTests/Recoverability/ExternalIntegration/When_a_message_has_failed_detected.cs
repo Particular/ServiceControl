@@ -9,7 +9,6 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceBus.Management.AcceptanceTests.ExternalIntegrations;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [RunOnAllTransports]
@@ -69,7 +68,7 @@
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JsonServer>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
