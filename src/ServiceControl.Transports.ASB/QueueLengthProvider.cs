@@ -44,10 +44,6 @@ namespace ServiceControl.Transports.ASB
             );
         }
 
-        public void Process(string endpointName, TaggedLongValueOccurrenceDto metricsReport)
-        {
-        }
-
         public Task Start()
         {
             stop = new CancellationTokenSource();

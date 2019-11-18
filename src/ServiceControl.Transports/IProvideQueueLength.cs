@@ -8,8 +8,6 @@
 
         void TrackEndpointInputQueue(string endpointName, string queueAddress);
 
-        void Process(string endpointNameDto, TaggedLongValueOccurrenceDto metricsReport);
-
         Task Start();
 
         Task Stop();

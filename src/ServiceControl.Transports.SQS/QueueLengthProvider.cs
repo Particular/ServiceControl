@@ -52,11 +52,6 @@
             sizes.TryAdd(queue, 0);
         }
 
-        public void Process(string endpointNameDto, TaggedLongValueOccurrenceDto metricsReport)
-        {
-            //HINT: ASQ  server endpoints do not support endpoint level queue length monitoring
-        }
-
         public Task Start()
         {
             stop = new CancellationTokenSource();

@@ -10,14 +10,6 @@ namespace ServiceControl.Transports
         public override bool Equals(object obj) { }
         public override int GetHashCode() { }
     }
-    public class EndpointInstanceIdDto
-    {
-        public EndpointInstanceIdDto() { }
-        public string EndpointName { get; set; }
-        protected bool Equals(ServiceControl.Transports.EndpointInstanceIdDto other) { }
-        public override bool Equals(object obj) { }
-        public override int GetHashCode() { }
-    }
     public class EntryDto
     {
         public EntryDto() { }
@@ -27,7 +19,6 @@ namespace ServiceControl.Transports
     public interface IProvideQueueLength
     {
         void Initialize(string connectionString, ServiceControl.Transports.QueueLengthStoreDto storeDto);
-        void Process(string endpointNameDto, ServiceControl.Transports.TaggedLongValueOccurrenceDto metricsReport);
         System.Threading.Tasks.Task Start();
         System.Threading.Tasks.Task Stop();
         void TrackEndpointInputQueue(string endpointName, string queueAddress);

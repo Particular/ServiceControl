@@ -84,8 +84,7 @@
                 {
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i.EndpointName, new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray(), string.Empty)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -146,8 +145,7 @@
                 {
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(i.EndpointName, new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray() ,string.Empty)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter()))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();

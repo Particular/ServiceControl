@@ -23,11 +23,6 @@
             endpointsHash.AddOrUpdate(key, key, (_, __) => key);
         }
 
-        public void Process(string endpointNameDto, TaggedLongValueOccurrenceDto metricsReport)
-        {
-            // The endpoint should not be sending this data
-        }
-
         public Task Start()
         {
             cancel = new CancellationTokenSource();
