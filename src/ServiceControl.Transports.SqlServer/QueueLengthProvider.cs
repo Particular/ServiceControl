@@ -11,22 +11,20 @@
 
     class QueueLengthProvider: IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             this.connectionString = connectionString.RemoveCustomSchemaPart(out var customSchema);
 
             defaultSchema = customSchema ?? "dbo";
 
-            queueLengthStoreDto = storeDto;
+            this.store = store;
         }
 
-        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            var endpointInputQueue = new EndpointInputQueueDto(endpointName, queueAddress);
+            var sqlTable = SqlTable.Parse(queueToTrack.InputQueue, defaultSchema);
 
-            var sqlTable = SqlTable.Parse(queueAddress, defaultSchema);
-
-            tableNames.AddOrUpdate(endpointInputQueue, _ => sqlTable, (_, currentSqlTable) =>
+            tableNames.AddOrUpdate(queueToTrack, _ => sqlTable, (_, currentSqlTable) =>
             {
                 if (currentSqlTable.Equals(sqlTable) == false)
                 {
@@ -77,8 +75,8 @@
 
             foreach (var tableNamePair in tableNames)
             {
-                queueLengthStoreDto.Store(
-                    new[]{ new EntryDto
+                store(
+                    new[]{ new QueueLengthEntry
                     {
                         DateTicks = nowTicks,
                         Value = tableSizes.TryGetValue(tableNamePair.Value, out var size) ? size : 0
@@ -162,9 +160,9 @@
                         SELECT -1;";
         }
 
-        QueueLengthStoreDto queueLengthStoreDto;
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
 
-        ConcurrentDictionary<EndpointInputQueueDto, SqlTable> tableNames = new ConcurrentDictionary<EndpointInputQueueDto, SqlTable>();
+        ConcurrentDictionary<EndpointToQueueMapping, SqlTable> tableNames = new ConcurrentDictionary<EndpointToQueueMapping, SqlTable>();
         ConcurrentDictionary<SqlTable, int> tableSizes = new ConcurrentDictionary<SqlTable, int>();
 
         string connectionString;

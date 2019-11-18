@@ -10,23 +10,23 @@
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             queryExecutor = new QueryExecutor(connectionString);
 
-            queueLengthStoreDto = storeDto;
+            this.store = store;
         }
 
-        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            endpointQueues.AddOrUpdate(endpointName, _ => queueAddress, (_, currentValue) =>
+            endpointQueues.AddOrUpdate(queueToTrack.EndpointName, _ => queueToTrack.InputQueue, (_, currentValue) =>
             {
-                if (currentValue != queueAddress)
+                if (currentValue != queueToTrack.InputQueue)
                 {
                     sizes.TryRemove(currentValue, out var _);
                 }
 
-                return queueAddress;
+                return queueToTrack.InputQueue;
             });
         }
 
@@ -69,16 +69,16 @@
             {
                 if (sizes.TryGetValue(endpointQueuePair.Value, out var size))
                 {
-                    queueLengthStoreDto.Store(
+                    store(
                         new[]
                         {
-                            new EntryDto
+                            new QueueLengthEntry
                             {
                                 DateTicks = nowTicks,
                                 Value = size
                             }
                         },
-                        new EndpointInputQueueDto(endpointQueuePair.Key, endpointQueuePair.Value));
+                        new EndpointToQueueMapping(endpointQueuePair.Key, endpointQueuePair.Value));
                 }
             }
         }
@@ -114,7 +114,7 @@
             queryExecutor.Dispose();
         }
 
-        QueueLengthStoreDto queueLengthStoreDto;
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
         QueryExecutor queryExecutor;
         static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 

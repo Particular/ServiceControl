@@ -1,14 +1,15 @@
 ﻿namespace ServiceControl.Transports.Msmq
 {
+    using System;
     using System.Threading.Tasks;
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto store)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
         }
 
-        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
             //This is a no op for MSMQ since the endpoints report their queue lenght to SC using custom messages
         }

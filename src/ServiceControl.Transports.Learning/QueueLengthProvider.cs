@@ -11,16 +11,15 @@
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             rootFolder = connectionString;
-            queueLengthStoreDto = storeDto;
+            this.store = store;
         }
 
-        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            var key = new EndpointInputQueueDto(endpointName, queueAddress);
-            endpointsHash.AddOrUpdate(key, key, (_, __) => key);
+            endpointsHash.AddOrUpdate(queueToTrack, queueToTrack, (_, __) => queueToTrack);
         }
 
         public Task Start()
@@ -60,9 +59,9 @@
                 var queueLength = queueLengths[instance.InputQueue].FirstOrDefault();
                 if (queueLength.HasValue)
                 {
-                    queueLengthStoreDto.Store(new[]
+                    store(new[]
                     {
-                        new EntryDto
+                        new QueueLengthEntry
                         {
                             DateTicks = now,
                             Value = queueLength.Value
@@ -101,8 +100,8 @@
         }
 
         string rootFolder;
-        QueueLengthStoreDto queueLengthStoreDto;
-        ConcurrentDictionary<EndpointInputQueueDto, EndpointInputQueueDto> endpointsHash = new ConcurrentDictionary<EndpointInputQueueDto, EndpointInputQueueDto>();
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
+        ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping> endpointsHash = new ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping>();
         CancellationTokenSource cancel;
         Task task;
 

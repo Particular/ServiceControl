@@ -12,7 +12,7 @@ namespace ServiceControl.Transports.ASBS
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto store)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
@@ -28,16 +28,16 @@ namespace ServiceControl.Transports.ASBS
                 }
             }
 
-            this.queueLengthStore = store;
+            this.store = store;
             this.managementClient = new ManagementClient(connectionString);
         }
 
-        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
             endpointQueueMappings.AddOrUpdate(
-                queueAddress,
-                id => endpointName,
-                (id, old) => endpointName
+                queueToTrack.InputQueue,
+                id => queueToTrack.EndpointName,
+                (id, old) => queueToTrack.EndpointName
             );
         }
 
@@ -118,14 +118,14 @@ namespace ServiceControl.Transports.ASBS
 
             var entries = new[]
             {
-                new EntryDto
+                new QueueLengthEntry
                 {
                     DateTicks =  DateTime.UtcNow.Ticks,
                     Value = (await managementClient.GetQueueRuntimeInfoAsync(queueName, token).ConfigureAwait(false)).MessageCountDetails.ActiveMessageCount
                 }
             };
 
-            queueLengthStore.Store(entries, new EndpointInputQueueDto(endpointName, queueName));
+            store(entries, new EndpointToQueueMapping(endpointName, queueName));
         }
 
         public async Task Stop()
@@ -136,7 +136,7 @@ namespace ServiceControl.Transports.ASBS
         }
 
         ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
-        QueueLengthStoreDto queueLengthStore;
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
         ManagementClient managementClient;
         CancellationTokenSource stop = new CancellationTokenSource();
         Task poller;

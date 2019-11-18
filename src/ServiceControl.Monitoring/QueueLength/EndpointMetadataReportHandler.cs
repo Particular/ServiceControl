@@ -16,7 +16,7 @@
         {
             var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
 
-            queueLengthProvider.TrackEndpointInputQueue(endpointName, message.LocalAddress);
+            queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(endpointName, message.LocalAddress));
 
             return TaskEx.Completed;
         }

@@ -12,7 +12,7 @@
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> storeDto)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
             if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
@@ -34,12 +34,11 @@
             store = storeDto;
         }
 
-        public void TrackEndpointInputQueue(string endpointName, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            var endpointInputQueue = new EndpointInputQueueDto(endpointName, queueAddress);
-            var queue = QueueNameHelper.GetSqsQueueName(queueAddress, queueNamePrefix);
+            var queue = QueueNameHelper.GetSqsQueueName(queueToTrack.InputQueue, queueNamePrefix);
 
-            queues.AddOrUpdate(endpointInputQueue, _ => queue, (_, currentQueue) =>
+            queues.AddOrUpdate(queueToTrack, _ => queue, (_, currentQueue) =>
             {
                 if (currentQueue != queue)
                 {
@@ -101,8 +100,8 @@
 
             foreach (var tableNamePair in queues)
             {
-                store.Store(
-                    new[]{ new EntryDto
+                store(
+                    new[]{ new QueueLengthEntry
                     {
                         DateTicks = nowTicks,
                         Value = sizes.TryGetValue(tableNamePair.Value, out var size) ? size : 0
@@ -133,11 +132,11 @@
 
         static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 
-        QueueLengthStoreDto store;
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
         CancellationTokenSource stop = new CancellationTokenSource();
         Task poller;
 
-        ConcurrentDictionary<EndpointInputQueueDto, string> queues = new ConcurrentDictionary<EndpointInputQueueDto, string>();
+        ConcurrentDictionary<EndpointToQueueMapping, string> queues = new ConcurrentDictionary<EndpointToQueueMapping, string>();
         ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
 
         string queueNamePrefix;

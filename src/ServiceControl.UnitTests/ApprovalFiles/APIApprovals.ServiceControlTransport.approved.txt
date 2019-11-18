@@ -1,32 +1,27 @@
 [assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
 namespace ServiceControl.Transports
 {
-    public class EndpointInputQueueDto
+    public class EndpointToQueueMapping
     {
-        public EndpointInputQueueDto(string endpointName, string inputQueue) { }
+        public EndpointToQueueMapping(string endpointName, string inputQueue) { }
         public string EndpointName { get; set; }
         public string InputQueue { get; set; }
-        public bool Equals(ServiceControl.Transports.EndpointInputQueueDto other) { }
+        public bool Equals(ServiceControl.Transports.EndpointToQueueMapping other) { }
         public override bool Equals(object obj) { }
         public override int GetHashCode() { }
     }
-    public class EntryDto
-    {
-        public EntryDto() { }
-        public long DateTicks { get; set; }
-        public long Value { get; set; }
-    }
     public interface IProvideQueueLength
     {
-        void Initialize(string connectionString, ServiceControl.Transports.QueueLengthStoreDto storeDto);
+        void Initialize(string connectionString, System.Action<ServiceControl.Transports.QueueLengthEntry[], ServiceControl.Transports.EndpointToQueueMapping> store);
         System.Threading.Tasks.Task Start();
         System.Threading.Tasks.Task Stop();
-        void TrackEndpointInputQueue(string endpointName, string queueAddress);
+        void TrackEndpointInputQueue(ServiceControl.Transports.EndpointToQueueMapping queueToTrack);
     }
-    public class QueueLengthStoreDto
+    public class QueueLengthEntry
     {
-        public QueueLengthStoreDto(System.Action<ServiceControl.Transports.EntryDto[], ServiceControl.Transports.EndpointInputQueueDto> store) { }
-        public void Store(ServiceControl.Transports.EntryDto[] entry, ServiceControl.Transports.EndpointInputQueueDto instance) { }
+        public QueueLengthEntry() { }
+        public long DateTicks { get; set; }
+        public long Value { get; set; }
     }
     public abstract class TransportCustomization
     {
