@@ -1,14 +1,8 @@
 ﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net;
-    using System.Reflection;
     using System.Threading.Tasks;
     using NServiceBus;
-    using AcceptanceTesting;
-    using AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using Configuration.AdvancedExtensibility;
     using Features;
@@ -17,50 +11,25 @@
 
     public class DefaultServer : IEndpointSetupTemplate
     {
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            ServicePointManager.DefaultConnectionLimit = 100;
-
-            var typesToInclude = new List<Type>();
-
-            var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
-            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass<Bootstrapper>().Concat(new[]
+            return new DefaultServerBase<Bootstrapper>().GetConfiguration(runDescriptor, endpointConfiguration, b =>
             {
-                typeof(TraceIncomingBehavior),
-                typeof(TraceOutgoingBehavior)
-            }));
+                b.DisableFeature<Audit>();
 
-            builder.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
-            builder.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
-
-            builder.SendFailedMessagesTo("error");
-
-            builder.TypesToIncludeInScan(typesToInclude);
-            builder.EnableInstallers();
-
-            await builder.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
-            builder.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
-            await builder.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
-
-            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
-
+                // will work on all the cloud transports
+                b.UseSerialization<NewtonsoftSerializer>();
+                b.DisableFeature<AutoSubscribe>();
+                b.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
             
-            builder.DisableFeature<Audit>();
+                b.RegisterComponents(r => { b.GetSettings().Set("SC.ConfigureComponent", r); });
+                b.Pipeline.Register<TraceIncomingBehavior.Registration>();
+                b.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
-            // will work on all the cloud transports
-            builder.UseSerialization<NewtonsoftSerializer>();
-            builder.DisableFeature<AutoSubscribe>();
-            builder.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-            
-            builder.RegisterComponents(r => { builder.GetSettings().Set("SC.ConfigureComponent", r); });
-            builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
-            builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
+                b.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
 
-            builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
-
-            configurationBuilderCustomization(builder);
-
-            return builder;
+                configurationBuilderCustomization(b);
+            });
         }
 
         static bool IsExternalContract(Type t)
