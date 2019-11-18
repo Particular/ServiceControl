@@ -35,14 +35,33 @@
                 ConnectionString = transportSettings.ConnectionString
             };
 
+            var subscriptions = transport.SubscriptionSettings();
+
             if (builder.TryGetValue(queueSchemaName, out var customSchema))
             {
                 builder.Remove(queueSchemaName);
 
                 transport.DefaultSchema((string)customSchema);
+
+                subscriptions.SubscriptionTableName(defaultSubscriptionTableName, schemaName: (string)customSchema);
+            }
+
+            if (builder.TryGetValue(subscriptionsTableName, out var subscriptionsTableSetting))
+            {
+                builder.Remove(subscriptionsTableName);
+
+                var subscriptionsAddress = QueueAddress.Parse((string)subscriptionsTableSetting);
+
+                subscriptions.SubscriptionTableName(
+                    tableName: subscriptionsAddress.Table,
+                    schemaName:subscriptionsAddress.Schema ?? (string)customSchema,
+                    catalogName:subscriptionsAddress.Catalog
+                );
             }
 
             transport.ConnectionString(builder.ConnectionString);
+
+            transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
         public override IProvideQueueLength CreateQueueLengthProvider()
@@ -51,6 +70,8 @@
         }
 
         const string queueSchemaName = "Queue Schema";
+        const string defaultSubscriptionTableName = "SubscriptionRouting";
+        const string subscriptionsTableName = "Subscriptions Table";
         static readonly ILog Logger = LogManager.GetLogger(typeof(SqlServerTransportCustomization));
     }
 }

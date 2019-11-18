@@ -3,6 +3,8 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Settings;
+    using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Client.Document;
     using Raven.Client.Embedded;
@@ -11,7 +13,12 @@
     {
         SubscriptionStorage()
         {
-            DependsOn<MessageDrivenSubscriptions>();
+            Prerequisite(c => c.Settings.Get<TransportInfrastructure>().OutboundRoutingPolicy.Publishes == OutboundRoutingType.Unicast || IsMigrationModeEnabled(c.Settings), "The transport supports native pub sub");
+        }
+
+        static bool IsMigrationModeEnabled(ReadOnlySettings settings)
+        {
+            return settings.TryGet("NServiceBus.Subscriptions.EnableMigrationMode", out bool enabled) && enabled;
         }
 
         protected override void Setup(FeatureConfigurationContext context)
