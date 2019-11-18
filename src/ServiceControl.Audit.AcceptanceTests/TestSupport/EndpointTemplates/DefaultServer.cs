@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
     using System.Reflection;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -11,50 +13,47 @@
     using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.Audit.Infrastructure;
 
+   
+    
     public class DefaultServer : IEndpointSetupTemplate
     {
-        public DefaultServer()
-        {
-            typesToInclude = new List<Type>();
-        }
-
-        public DefaultServer(List<Type> typesToInclude)
-        {
-            this.typesToInclude = typesToInclude;
-        }
-
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            var types = endpointConfiguration.GetTypesScopedByTestClass<Bootstrapper>();
+            ServicePointManager.DefaultConnectionLimit = 100;
 
-            typesToInclude.AddRange(types);
+            typesToInclude = new List<Type>();
 
-            var configuration = new EndpointConfiguration(endpointConfiguration.EndpointName);
+            var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
 
-            configuration.TypesToIncludeInScan(typesToInclude);
-            configuration.EnableInstallers();
+            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass<Bootstrapper>().Concat(new[]
+            {
+                typeof(TraceIncomingBehavior),
+                typeof(TraceOutgoingBehavior)
+            }));
 
-            configuration.DisableFeature<TimeoutManager>();
+            builder.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
+            builder.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
 
-            configuration.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
-            configuration.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
+            builder.SendFailedMessagesTo("error");
 
-            var recoverability = configuration.Recoverability();
-            recoverability.Delayed(delayed => delayed.NumberOfRetries(0));
-            recoverability.Immediate(immediate => immediate.NumberOfRetries(0));
-            configuration.SendFailedMessagesTo("error");
-
-            await configuration.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
-
-            configuration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
-
-            await configuration.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
+            builder.TypesToIncludeInScan(typesToInclude);
+            builder.EnableInstallers();
+            
+            await builder.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
+            builder.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
+            await builder.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
 
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
 
-            configurationBuilderCustomization(configuration);
+            builder.DisableFeature<TimeoutManager>();
 
-            return configuration;
+            var recoverability = builder.Recoverability();
+            recoverability.Delayed(delayed => delayed.NumberOfRetries(0));
+            recoverability.Immediate(immediate => immediate.NumberOfRetries(0));
+           
+            configurationBuilderCustomization(builder);
+
+            return builder;
         }
 
         List<Type> typesToInclude;
