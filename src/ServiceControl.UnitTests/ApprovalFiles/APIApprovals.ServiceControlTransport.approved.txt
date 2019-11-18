@@ -28,12 +28,6 @@ namespace ServiceControl.Transports
         public QueueLengthStoreDto(System.Action<ServiceControl.Transports.EntryDto[], ServiceControl.Transports.EndpointInputQueueDto> store) { }
         public void Store(ServiceControl.Transports.EntryDto[] entry, ServiceControl.Transports.EndpointInputQueueDto instance) { }
     }
-    public class TaggedLongValueOccurrenceDto
-    {
-        public TaggedLongValueOccurrenceDto(ServiceControl.Transports.EntryDto[] messageEntries, string messageTagValue) { }
-        public ServiceControl.Transports.EntryDto[] Entries { get; set; }
-        public string TagValue { get; set; }
-    }
     public abstract class TransportCustomization
     {
         protected TransportCustomization() { }
