@@ -32,6 +32,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
+        public string Port => serviceControlRunnerBehavior.Port;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
         public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
         public BusInstance Bus => serviceControlRunnerBehavior.Bus;

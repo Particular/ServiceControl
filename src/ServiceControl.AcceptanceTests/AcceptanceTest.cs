@@ -38,6 +38,7 @@ namespace ServiceControl.AcceptanceTests
         public Settings Settings => serviceControlRunnerBehavior.Settings;
         public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
         public BusInstance Bus => serviceControlRunnerBehavior.Bus;
+        public string Port => serviceControlRunnerBehavior.Port;
 
         [OneTimeSetUp]
         public void OneTimeSetup()

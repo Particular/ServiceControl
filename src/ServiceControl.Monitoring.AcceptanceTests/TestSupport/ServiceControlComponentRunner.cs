@@ -33,6 +33,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
+        public string Port => Settings.HttpPort;
         public Settings Settings { get; set; }
         public OwinHttpMessageHandler Handler { get; set; }
         public BusInstance Bus { get; set; }

@@ -7,15 +7,14 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Net.Http;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
-    using ServiceControl.Audit.Infrastructure.Settings;
 
     static class HttpExtensions
     {
-        public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Settings.Port}{url}";
+                url = $"http://localhost:{provider.Port}{url}";
             }
 
             if (requestHasFailed == null)
@@ -35,25 +34,25 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Settings.Port}{url}";
+                url = $"http://localhost:{provider.Port}{url}";
             }
 
             var httpClient = provider.HttpClient;
             return httpClient.GetAsync(url);
         }
 
-        public static async Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            var response = await provider.GetInternal<List<T>>(url, instanceName).ConfigureAwait(false);
+            var response = await provider.GetInternal<List<T>>(url).ConfigureAwait(false);
 
             if (response == null || !response.Any(m => condition(m)))
             {
@@ -63,11 +62,11 @@ namespace ServiceBus.Management.AcceptanceTests
             return ManyResult<T>.New(true, response);
         }
 
-        public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null) where T : class
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Settings.Port}{url}";
+                url = $"http://localhost:{provider.Port}{url}";
             }
 
             var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
@@ -85,14 +84,14 @@ namespace ServiceBus.Management.AcceptanceTests
             return response.StatusCode;
         }
 
-        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            var response = await provider.GetInternal<T>(url, instanceName).ConfigureAwait(false);
+            var response = await provider.GetInternal<T>(url).ConfigureAwait(false);
 
             if (response == null || !condition(response))
             {
@@ -102,9 +101,9 @@ namespace ServiceBus.Management.AcceptanceTests
             return SingleResult<T>.New(response);
         }
 
-        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Func<T, Task<bool>> condition, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Func<T, Task<bool>> condition) where T : class
         {
-            var response = await provider.GetInternal<T>(url, instanceName).ConfigureAwait(false);
+            var response = await provider.GetInternal<T>(url).ConfigureAwait(false);
 
             if (response == null || !await condition(response).ConfigureAwait(false))
             {
@@ -114,14 +113,14 @@ namespace ServiceBus.Management.AcceptanceTests
             return SingleResult<T>.New(response);
         }
 
-        public static async Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
             if (condition == null)
             {
                 condition = _ => true;
             }
 
-            var response = await provider.GetInternal<List<T>>(url, instanceName);
+            var response = await provider.GetInternal<List<T>>(url);
             T item = null;
             if (response != null)
             {
@@ -143,11 +142,11 @@ namespace ServiceBus.Management.AcceptanceTests
             return SingleResult<T>.Empty;
         }
 
-        public static async Task<HttpStatusCode> Get(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        public static async Task<HttpStatusCode> Get(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Settings.Port}{url}";
+                url = $"http://localhost:{provider.Port}{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -158,11 +157,11 @@ namespace ServiceBus.Management.AcceptanceTests
             return response.StatusCode;
         }
 
-        public static async Task Post<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        public static async Task Post<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Settings.Port}{url}";
+                url = $"http://localhost:{provider.Port}{url}";
             }
 
             var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
@@ -188,11 +187,11 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        public static async Task Delete(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        public static async Task Delete(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Settings.Port}{url}";
+                url = $"http://localhost:{provider.Port}{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -207,11 +206,11 @@ namespace ServiceBus.Management.AcceptanceTests
             }
         }
 
-        public static async Task<byte[]> DownloadData(this IAcceptanceTestInfrastructureProvider provider, string url, HttpStatusCode successCode = HttpStatusCode.OK, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        public static async Task<byte[]> DownloadData(this IAcceptanceTestInfrastructureProvider provider, string url, HttpStatusCode successCode = HttpStatusCode.OK)
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Settings.Port}/api{url}";
+                url = $"http://localhost:{provider.Port}/api{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -225,9 +224,9 @@ namespace ServiceBus.Management.AcceptanceTests
             return await response.Content.ReadAsByteArrayAsync();
         }
 
-        static async Task<T> GetInternal<T>(this IAcceptanceTestInfrastructureProvider provider, string url, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
+        static async Task<T> GetInternal<T>(this IAcceptanceTestInfrastructureProvider provider, string url) where T : class
         {
-            var response = await provider.GetRaw(url, instanceName).ConfigureAwait(false);
+            var response = await provider.GetRaw(url).ConfigureAwait(false);
 
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)

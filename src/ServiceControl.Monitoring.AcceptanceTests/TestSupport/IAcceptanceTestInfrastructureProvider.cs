@@ -2,7 +2,6 @@ namespace ServiceBus.Management.AcceptanceTests
 {
     using System.Net.Http;
     using Newtonsoft.Json;
-    using ServiceControl.Monitoring;
     using ServiceControl.Monitoring.Infrastructure;
 
     interface IAcceptanceTestInfrastructureProvider
@@ -11,7 +10,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         JsonSerializerSettings SerializerSettings { get; }
 
-        Settings Settings { get; }
+        string Port { get;  }
 
         OwinHttpMessageHandler Handler { get; }
         

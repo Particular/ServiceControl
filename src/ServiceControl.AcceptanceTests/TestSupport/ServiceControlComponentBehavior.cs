@@ -23,6 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests
         public Settings Settings => runner.Settings;
         public OwinHttpMessageHandler Handler => runner.Handler;
         public BusInstance Bus => runner.Bus;
+        public string Port => runner.Port;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
