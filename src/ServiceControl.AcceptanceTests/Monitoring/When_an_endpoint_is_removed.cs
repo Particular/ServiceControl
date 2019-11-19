@@ -4,6 +4,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;

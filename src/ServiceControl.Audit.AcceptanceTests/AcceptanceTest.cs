@@ -11,9 +11,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceControl.AcceptanceTests;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Infrastructure.Settings;
 
@@ -32,6 +31,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
+        public string Port => serviceControlRunnerBehavior.Port;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
         public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
         public BusInstance Bus => serviceControlRunnerBehavior.Bus;

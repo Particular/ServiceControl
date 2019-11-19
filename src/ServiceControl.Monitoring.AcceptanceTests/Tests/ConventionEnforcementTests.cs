@@ -5,6 +5,7 @@
     using System.Reflection;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
+    using ServiceControl.AcceptanceTesting;
 
     [TestFixture]
     class ConventionEnforcementTests : AcceptanceTest

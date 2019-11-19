@@ -4,6 +4,7 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure.SignalR;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;

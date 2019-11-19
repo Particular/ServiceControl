@@ -5,6 +5,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using System.Linq;
     using System.Threading.Tasks;
     using System.Web;
+    using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;

@@ -8,6 +8,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControl.AcceptanceTesting;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
@@ -23,6 +24,7 @@ namespace ServiceBus.Management.AcceptanceTests
         public Settings Settings => runner.Settings;
         public OwinHttpMessageHandler Handler => runner.Handler;
         public BusInstance Bus => runner.Bus;
+        public string Port => runner.Port;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {

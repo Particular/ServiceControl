@@ -14,6 +14,7 @@
   </Target>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" />

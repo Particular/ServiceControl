@@ -20,6 +20,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.Audit.AcceptanceTests.Auditing;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Infrastructure.Settings;
@@ -39,6 +40,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
+        public string Port => Settings.Port.ToString();
         public Settings Settings { get; set; }
         public OwinHttpMessageHandler Handler { get; set; }
         public BusInstance Bus { get; set; }

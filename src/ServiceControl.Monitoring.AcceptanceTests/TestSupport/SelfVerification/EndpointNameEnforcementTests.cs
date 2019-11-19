@@ -7,6 +7,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
+    using ServiceControl.AcceptanceTesting;
 
     [TestFixture]
     class EndpointNameEnforcementTests : NServiceBusAcceptanceTest

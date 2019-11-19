@@ -8,8 +8,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControl.AcceptanceTesting;
 
-    class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
+    class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProviderMultiInstance
     {
         public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {

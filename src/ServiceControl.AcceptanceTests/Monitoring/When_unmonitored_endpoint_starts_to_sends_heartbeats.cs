@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Endpoints;
     using Contracts.EndpointControl;
     using Contracts.Operations;

@@ -4,6 +4,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
@@ -11,10 +12,10 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceBus.Management.AcceptanceTests.ExternalIntegrations;
+    using ServiceBus.Management.AcceptanceTests;
+    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
 
     /// <summary>
@@ -103,7 +104,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JsonServer>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);

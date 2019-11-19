@@ -86,6 +86,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Monitoring.U
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.UnitTests", "ServiceControl.Transports.UnitTests\ServiceControl.Transports.UnitTests.csproj", "{45AC011D-6837-47E2-A428-E156A421E4C2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.AcceptanceTesting", "ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj", "{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -224,6 +226,10 @@ Global
 		{45AC011D-6837-47E2-A428-E156A421E4C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45AC011D-6837-47E2-A428-E156A421E4C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45AC011D-6837-47E2-A428-E156A421E4C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

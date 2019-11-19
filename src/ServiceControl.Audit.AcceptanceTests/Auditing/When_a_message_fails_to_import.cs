@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
@@ -10,7 +11,6 @@
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
-    using ServiceControl.AcceptanceTests;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [RunOnAllTransports]

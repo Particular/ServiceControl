@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -16,6 +17,7 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
+    using TestSupport;
 
     class When_a_retry_fails_to_be_sent : AcceptanceTest
     {

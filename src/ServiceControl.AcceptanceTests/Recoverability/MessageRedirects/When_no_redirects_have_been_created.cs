@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;

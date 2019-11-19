@@ -23,6 +23,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.AcceptanceTests.Recoverability.MessageFailures;
     using ServiceControl.Infrastructure.WebApi;
 
@@ -43,6 +44,7 @@ namespace ServiceBus.Management.AcceptanceTests
         public Settings Settings { get; set; }
         public OwinHttpMessageHandler Handler { get; set; }
         public BusInstance Bus { get; set; }
+        public string Port => Settings.Port.ToString();
 
         public Task Initialize(RunDescriptor run)
         {

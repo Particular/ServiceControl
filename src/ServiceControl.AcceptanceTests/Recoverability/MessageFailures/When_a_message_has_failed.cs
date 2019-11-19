@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Messages;
     using Contracts.MessageFailures;
     using Contracts.Operations;
@@ -16,7 +17,6 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTests;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Settings;
@@ -25,6 +25,7 @@
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using TestSupport;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class When_a_message_has_failed : AcceptanceTest

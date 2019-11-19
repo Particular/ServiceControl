@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Audit.Auditing.MessagesView;
     using Audit.Monitoring;
     using Newtonsoft.Json;
@@ -15,7 +16,6 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
-    using ServiceControl.AcceptanceTests;
 
     [RunOnAllTransports]
     class When_processed_message_is_imported : AcceptanceTest

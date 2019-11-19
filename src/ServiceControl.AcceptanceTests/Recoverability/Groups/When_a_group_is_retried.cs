@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -10,6 +11,7 @@
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
+    using TestSupport;
 
     class When_a_group_is_retried : AcceptanceTest
     {
