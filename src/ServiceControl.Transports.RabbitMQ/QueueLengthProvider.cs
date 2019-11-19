@@ -10,32 +10,24 @@
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             queryExecutor = new QueryExecutor(connectionString);
 
-            queueLengthStoreDto = storeDto;
+            this.store = store;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            var endpointInstanceQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
-            var queueName = queueAddress;
-
-            endpointQueues.AddOrUpdate(endpointInstanceQueue, _ => queueName, (_, currentValue) =>
+            endpointQueues.AddOrUpdate(queueToTrack.EndpointName, _ => queueToTrack.InputQueue, (_, currentValue) =>
             {
-                if (currentValue != queueName)
+                if (currentValue != queueToTrack.InputQueue)
                 {
                     sizes.TryRemove(currentValue, out var _);
                 }
 
-                return queueName;
+                return queueToTrack.InputQueue;
             });
-        }
-
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport)
-        {
-            //RabbitMQ does not support endpoint level queue length reports
         }
 
         public Task Start()
@@ -77,16 +69,16 @@
             {
                 if (sizes.TryGetValue(endpointQueuePair.Value, out var size))
                 {
-                    queueLengthStoreDto.Store(
+                    store(
                         new[]
                         {
-                            new EntryDto
+                            new QueueLengthEntry
                             {
                                 DateTicks = nowTicks,
                                 Value = size
                             }
                         },
-                        endpointQueuePair.Key);
+                        new EndpointToQueueMapping(endpointQueuePair.Key, endpointQueuePair.Value));
                 }
             }
         }
@@ -122,11 +114,11 @@
             queryExecutor.Dispose();
         }
 
-        QueueLengthStoreDto queueLengthStoreDto;
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
         QueryExecutor queryExecutor;
         static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(200);
 
-        ConcurrentDictionary<EndpointInputQueueDto, string> endpointQueues = new ConcurrentDictionary<EndpointInputQueueDto, string>();
+        ConcurrentDictionary<string, string> endpointQueues = new ConcurrentDictionary<string, string>();
         ConcurrentDictionary<string, int> sizes = new ConcurrentDictionary<string, int>();
 
         CancellationTokenSource stoppedTokenSource = new CancellationTokenSource();

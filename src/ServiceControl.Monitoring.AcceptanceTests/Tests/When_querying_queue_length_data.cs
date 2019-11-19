@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.Metrics.AcceptanceTests
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using global::ServiceControl.AcceptanceTests;
@@ -16,37 +17,83 @@
         [Test]
         public async Task Should_report_via_http()
         {
-            var metricReported = false;
+            var endpointName = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(SendingEndpoint));
+            var instanceId = Guid.NewGuid();
+            var metricsInstanceId = Guid.NewGuid();
+
+            MonitoredEndpointDetails monitoredEndpointDetails = null;
+            MonitoredEndpointInstance instance1 = null;
+            MonitoredEndpointInstance instance2 = null;
+
 
             await Define<TestContext>()
-                .WithEndpoint<SendingEndpoint>(c =>
-                {
-                    c.DoNotFailOnErrorMessages();
-                    c.When(async s =>
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            await s.SendLocal(new SampleMessage());
-                        }
-                    });
-                })
-                .Done(async c =>
-                {
-                    var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
+                 .WithEndpoint<SendingEndpoint>(c =>
+                 {
+                     c.CustomConfig(ec =>
+                     {
+                         ec.MakeInstanceUniquelyAddressable("1");
+                         ec.UniquelyIdentifyRunningInstance()
+                             .UsingCustomIdentifier(instanceId);
+                         ec.EnableMetrics()
+                             .SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
+                     });
+                     c.DoNotFailOnErrorMessages();
+                     c.When(async s =>
+                     {
+                         for (var i = 0; i < 10; i++)
+                         {
+                             await s.SendLocal(new SampleMessage());
+                         }
+                     });
+                 })
+                 .WithEndpoint<SendingEndpoint>(c =>
+                 {
+                     c.CustomConfig(ec =>
+                     {
+                         ec.MakeInstanceUniquelyAddressable("2");
+                         ec.EnableMetrics()
+                             .SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME,
+                             TimeSpan.FromSeconds(1),
+                             metricsInstanceId.ToString("N"));
+                     });
+                     c.DoNotFailOnErrorMessages();
+                     c.When(async s =>
+                     {
+                         for (var i = 0; i < 10; i++)
+                         {
+                             await s.SendLocal(new SampleMessage());
+                         }
+                     });
+                 })
+                 .Done(async c =>
+                 {
+                     var result = await this.TryGet<MonitoredEndpointDetails>($"/monitored-endpoints/{endpointName}");
 
-                    metricReported = result.HasResult && result.Items[0].Metrics["queueLength"].Average > 0;
+                     if (!result.HasResult)
+                     {
+                         return false;
+                     }
 
-                    if (metricReported)
-                    {
-                        c.TestEnded.SetResult(true);
-                    }
+                     monitoredEndpointDetails = result.Item;
 
-                    return metricReported;
-                })
-                .Run();
+                     instance1 = monitoredEndpointDetails.Instances.SingleOrDefault(instance => instance.Id == instanceId.ToString("N"));
+                     instance2 = monitoredEndpointDetails.Instances.SingleOrDefault(instance => instance.Id == metricsInstanceId.ToString("N"));
 
+                     if (instance1 == null || instance2 == null)
+                     {
+                         return false;
+                     }
 
-            Assert.IsTrue(metricReported);
+                     if (monitoredEndpointDetails.Digest.Metrics["queueLength"].Average == 0.0)
+                     {
+                         return false;
+                     }
+
+                     c.TestEnded.SetResult(true);
+
+                     return true;
+                 })
+                 .Run();
         }
 
         class SendingEndpoint : EndpointConfigurationBuilder
@@ -55,7 +102,6 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableMetrics().SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });
             }
@@ -73,7 +119,7 @@
                 {
                     //Concurrency limit 1 and this should block any processing on input queue
                     return Task.WhenAny(
-                        Task.Delay(TimeSpan.FromSeconds(30)), 
+                        Task.Delay(TimeSpan.FromSeconds(30)),
                             testContext.TestEnded.Task
                         );
                 }

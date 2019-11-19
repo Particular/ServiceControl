@@ -12,7 +12,7 @@ namespace ServiceControl.Transports.ASB
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto store)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
@@ -31,21 +31,17 @@ namespace ServiceControl.Transports.ASB
                 connectionString = ConnectionStringPartRemover.Remove(connectionString, QueueLengthQueryIntervalPartName);
             }
 
-            this.queueLengthStore = store;
+            this.store = store;
             this.namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
             endpointQueueMappings.AddOrUpdate(
-                endpointInstanceId,
-                id => queueAddress,
-                (id, old) => queueAddress
+                queueToTrack.EndpointName,
+                id => queueToTrack.InputQueue,
+                (id, old) => queueToTrack.InputQueue
             );
-        }
-
-        public void Process(EndpointInstanceIdDto endpointInstanceId, TaggedLongValueOccurrenceDto metricsReport)
-        {
         }
 
         public Task Start()
@@ -99,14 +95,14 @@ namespace ServiceControl.Transports.ASB
 
                 var entries = new[]
                 {
-                        new EntryDto
+                        new QueueLengthEntry
                         {
                             DateTicks = timestamp,
                             Value = queue.MessageCountDetails.ActiveMessageCount
                         }
                     };
 
-                queueLengthStore.Store(entries, new EndpointInputQueueDto(mapping.Key.EndpointName, queue.Path));
+                store(entries, new EndpointToQueueMapping(mapping.Key, queue.Path));
             }
         }
 
@@ -117,8 +113,8 @@ namespace ServiceControl.Transports.ASB
             return poller;
         }
 
-        ConcurrentDictionary<EndpointInstanceIdDto, string> endpointQueueMappings = new ConcurrentDictionary<EndpointInstanceIdDto, string>();
-        QueueLengthStoreDto queueLengthStore;
+        ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
         NamespaceManager namespaceManager;
         CancellationTokenSource stop = new CancellationTokenSource();
         Task poller;

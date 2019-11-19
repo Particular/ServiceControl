@@ -1,55 +1,32 @@
 ﻿namespace ServiceControl.Monitoring.QueueLength
 {
-    using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure;
     using Messaging;
     using NServiceBus;
-    using NServiceBus.Metrics;
-    using Transports;
 
-    public class QueueLengthReportHandler : IHandleMessages<EndpointMetadataReport>, IHandleMessages<TaggedLongValueOccurrence>
+    public class QueueLengthReportHandler : IHandleMessages<TaggedLongValueOccurrence>
     {
-        public QueueLengthReportHandler(IProvideQueueLength queueLengthProvider)
+        public QueueLengthReportHandler(QueueLengthStore queueLengthStore)
         {
-            this.queueLengthProvider = queueLengthProvider;
-        }
-
-        public Task Handle(EndpointMetadataReport message, IMessageHandlerContext context)
-        {
-            var instanceId = EndpointInstanceId.From(context.MessageHeaders);
-            var instanceIdDto = new EndpointInstanceIdDto{EndpointName = instanceId.EndpointName};
-
-            queueLengthProvider.Process(instanceIdDto, message.LocalAddress);
-
-            return TaskEx.Completed;
+            this.queueLengthStore = queueLengthStore;
         }
 
         public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
-            var instanceId = EndpointInstanceId.From(context.MessageHeaders);
-            var instanceIdDto = new EndpointInstanceIdDto{EndpointName = instanceId.EndpointName};
-
+            var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
             var messageType = context.MessageHeaders[MetricHeaders.MetricType];
 
             if (messageType == QueueLengthMessageType)
             {
-                queueLengthProvider.Process(instanceIdDto, new TaggedLongValueOccurrenceDto(message.Entries.Select(e => ToEntry(e)).ToArray(), message.TagValue));
+                queueLengthStore.Store(message.Entries, new EndpointInputQueue(endpointName, message.TagValue));
             }
 
             return TaskEx.Completed;
         }
 
-        EntryDto ToEntry(RawMessage.Entry entry)
-        {
-            return new EntryDto
-            {
-                DateTicks = entry.DateTicks,
-                Value = entry.Value
-            };
-        }
 
-        IProvideQueueLength queueLengthProvider;
+        QueueLengthStore queueLengthStore;
 
         const string QueueLengthMessageType = "QueueLength";
     }

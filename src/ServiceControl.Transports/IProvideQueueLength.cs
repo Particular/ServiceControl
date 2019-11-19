@@ -1,14 +1,13 @@
 ﻿namespace ServiceControl.Transports
 {
+    using System;
     using System.Threading.Tasks;
 
     public interface IProvideQueueLength
     {
-        void Initialize(string connectionString, QueueLengthStoreDto storeDto);
+        void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store);
 
-        void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress);
-
-        void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport);
+        void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack);
 
         Task Start();
 

@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Transports
 {
-    public class EndpointInputQueueDto
+    public class EndpointToQueueMapping
     {
-        public EndpointInputQueueDto(string endpointName, string inputQueue)
+        public EndpointToQueueMapping(string endpointName, string inputQueue)
         {
             EndpointName = endpointName;
             InputQueue = inputQueue;
@@ -12,7 +12,7 @@
 
         public string EndpointName { get; set; }
 
-        public bool Equals(EndpointInputQueueDto other)
+        public bool Equals(EndpointToQueueMapping other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -24,7 +24,7 @@
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
-            return Equals((EndpointInputQueueDto)obj);
+            return Equals((EndpointToQueueMapping)obj);
         }
 
         public override int GetHashCode()

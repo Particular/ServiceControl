@@ -11,17 +11,15 @@
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> storeDto)
         {
             this.connectionString = connectionString;
             store = storeDto;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
-
-            var queueName = BackwardsCompatibleQueueNameSanitizer.Sanitize(queueAddress);
+            var queueName = BackwardsCompatibleQueueNameSanitizer.Sanitize(queueToTrack.InputQueue);
 
             var queueClient = CloudStorageAccount.Parse(connectionString).CreateCloudQueueClient();
 
@@ -32,12 +30,7 @@
                 QueueReference = queueClient.GetQueueReference(queueName)
             };
 
-            queueLengths.AddOrUpdate(endpointInputQueue, _ => emptyQueueLength, (_, existingQueueLength) => existingQueueLength);
-        }
-
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport)
-        {
-            //HINT: ASQ  server endpoints do not support endpoint level queue length monitoring
+            queueLengths.AddOrUpdate(queueToTrack, _ => emptyQueueLength, (_, existingQueueLength) => existingQueueLength);
         }
 
         public Task Start()
@@ -112,23 +105,23 @@
 
             foreach (var endpointQueueLengthPair in queueLengths)
             {
-                var queueLengthEntry = new EntryDto
+                var queueLengthEntry = new QueueLengthEntry
                 {
                     DateTicks = nowTicks,
                     Value = endpointQueueLengthPair.Value.Length
                 };
 
-                store.Store(new[] { queueLengthEntry }, endpointQueueLengthPair.Key);
+                store(new[] { queueLengthEntry }, endpointQueueLengthPair.Key);
             }
         }
 
         string connectionString;
-        QueueLengthStoreDto store;
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
 
         CancellationTokenSource stop = new CancellationTokenSource();
         Task poller;
 
-        ConcurrentDictionary<EndpointInputQueueDto, QueueLengthValue> queueLengths = new ConcurrentDictionary<EndpointInputQueueDto, QueueLengthValue>();
+        ConcurrentDictionary<EndpointToQueueMapping, QueueLengthValue> queueLengths = new ConcurrentDictionary<EndpointToQueueMapping, QueueLengthValue>();
         ConcurrentDictionary<string, string> problematicQueuesNames = new ConcurrentDictionary<string, string>();
 
         static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();

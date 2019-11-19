@@ -12,7 +12,7 @@ namespace ServiceControl.Transports.ASBS
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto store)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
@@ -28,21 +28,17 @@ namespace ServiceControl.Transports.ASBS
                 }
             }
 
-            this.queueLengthStore = store;
+            this.store = store;
             this.managementClient = new ManagementClient(connectionString);
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
             endpointQueueMappings.AddOrUpdate(
-                queueAddress,
-                id => endpointInstanceId,
-                (id, old) => endpointInstanceId
+                queueToTrack.InputQueue,
+                id => queueToTrack.EndpointName,
+                (id, old) => queueToTrack.EndpointName
             );
-        }
-
-        public void Process(EndpointInstanceIdDto endpointInstanceId, TaggedLongValueOccurrenceDto metricsReport)
-        {
         }
 
         public Task Start()
@@ -110,9 +106,9 @@ namespace ServiceControl.Transports.ASBS
 
         Task UpdateAllQueueLengths(ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token) => Task.WhenAll(endpointQueueMappings.Select(eq => UpdateQueueLength(eq, queues, token)));
 
-        async Task UpdateQueueLength(KeyValuePair<string, EndpointInstanceIdDto> monitoredEndpoint, ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token)
+        async Task UpdateQueueLength(KeyValuePair<string, string> monitoredEndpoint, ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token)
         {
-            var endpointInstanceId = monitoredEndpoint.Value;
+            var endpointName = monitoredEndpoint.Value;
             var queueName = monitoredEndpoint.Key;
 
             if (!queues.TryGetValue(queueName, out _))
@@ -122,14 +118,14 @@ namespace ServiceControl.Transports.ASBS
 
             var entries = new[]
             {
-                new EntryDto
+                new QueueLengthEntry
                 {
                     DateTicks =  DateTime.UtcNow.Ticks,
                     Value = (await managementClient.GetQueueRuntimeInfoAsync(queueName, token).ConfigureAwait(false)).MessageCountDetails.ActiveMessageCount
                 }
             };
 
-            queueLengthStore.Store(entries, new EndpointInputQueueDto(endpointInstanceId.EndpointName, queueName));
+            store(entries, new EndpointToQueueMapping(endpointName, queueName));
         }
 
         public async Task Stop()
@@ -139,8 +135,8 @@ namespace ServiceControl.Transports.ASBS
             await managementClient.CloseAsync().ConfigureAwait(false);
         }
 
-        ConcurrentDictionary<string, EndpointInstanceIdDto> endpointQueueMappings = new ConcurrentDictionary<string, EndpointInstanceIdDto>();
-        QueueLengthStoreDto queueLengthStore;
+        ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
         ManagementClient managementClient;
         CancellationTokenSource stop = new CancellationTokenSource();
         Task poller;

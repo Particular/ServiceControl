@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -111,20 +110,20 @@
             {
                 var queueLengthProvider = transportCustomization.CreateQueueLengthProvider();
 
-                Action<EntryDto[], EndpointInputQueueDto> store = (es, q) => qls.Store(es.Select(e => ToEntry(e)).ToArray(), ToQueueId(q));
+                Action<QueueLengthEntry[], EndpointToQueueMapping> store = (es, q) => qls.Store(es.Select(e => ToEntry(e)).ToArray(), ToQueueId(q));
 
-                queueLengthProvider.Initialize(connectionString, new QueueLengthStoreDto(store));
+                queueLengthProvider.Initialize(connectionString, store);
 
                 return queueLengthProvider;
             };
         }
 
-        static EndpointInputQueue ToQueueId(EndpointInputQueueDto endpointInputQueueDto)
+        static EndpointInputQueue ToQueueId(EndpointToQueueMapping endpointInputQueueDto)
         {
             return new EndpointInputQueue(endpointInputQueueDto.EndpointName, endpointInputQueueDto.InputQueue);
         }
 
-        static RawMessage.Entry ToEntry(EntryDto entryDto)
+        static RawMessage.Entry ToEntry(QueueLengthEntry entryDto)
         {
             return new RawMessage.Entry
             {

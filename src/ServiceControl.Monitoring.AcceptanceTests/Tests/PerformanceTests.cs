@@ -29,8 +29,7 @@
             retriesStore = new RetriesStore();
             queueLengthProvider = new FakeQueueLengthProvider();
             queueLengthStore = new QueueLengthStore();
-            queueLengthStoreDto = new QueueLengthStoreDto(((entryDtos, dto) => queueLengthStore.Store(entryDtos.Select(e => ToEntry(e)).ToArray(), ToEndpointInputQueue(dto))));
-            queueLengthProvider.Initialize(string.Empty, queueLengthStoreDto);
+            queueLengthProvider.Initialize(string.Empty, (entryDtos, dto) => queueLengthStore.Store(entryDtos.Select(e => ToEntry(e)).ToArray(), ToEndpointInputQueue(dto)));
 
             var settings = new Settings {EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5)};
             activityTracker = new EndpointInstanceActivityTracker(settings);
@@ -54,12 +53,12 @@
             GetMonitoredSingleEndpoint = endpointName => controller.GetSingleEndpointMetrics(endpointName);
         }
 
-        EndpointInputQueue ToEndpointInputQueue(EndpointInputQueueDto dto)
+        EndpointInputQueue ToEndpointInputQueue(EndpointToQueueMapping dto)
         {
             return new EndpointInputQueue(dto.EndpointName, dto.InputQueue);
         }
 
-        RawMessage.Entry ToEntry(EntryDto entryDto)
+        RawMessage.Entry ToEntry(QueueLengthEntry entryDto)
         {
             return new RawMessage.Entry
             {
@@ -84,8 +83,7 @@
                 {
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName))),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(ToEndpointInstanceId(i), new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray(), string.Empty)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, EndpointMessageType.Unknown(i.EndpointName)))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -109,14 +107,9 @@
             Report("Reporters", reportFinalHistogram, TimeSpan.FromMilliseconds(20));
         }
 
-        EntryDto ToEntryDto(RawMessage.Entry ei)
+        QueueLengthEntry ToEntryDto(RawMessage.Entry ei)
         {
-            return new EntryDto {DateTicks = ei.DateTicks, Value = ei.Value};
-        }
-
-        EndpointInstanceIdDto ToEndpointInstanceId(EndpointInstanceId endpointInstanceId)
-        {
-            return new EndpointInstanceIdDto {EndpointName = endpointInstanceId.EndpointName};
+            return new QueueLengthEntry {DateTicks = ei.DateTicks, Value = ei.Value};
         }
 
         [TestCase(10, 100, 100, 1000, 100, 1000)]
@@ -151,8 +144,7 @@
                 {
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => criticalTimeStore.Store(e, i, getter())),
                     BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => processingTimeStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter())),
-                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => queueLengthProvider.Process(ToEndpointInstanceId(i), new TaggedLongValueOccurrenceDto(e.Select(ei => ToEntryDto(ei)).ToArray() ,string.Empty)))
+                    BuildReporters(sendReportEvery, numberOfEntriesInReport, instances, source, (e, i) => retriesStore.Store(e, i, getter()))
                 }.SelectMany(i => i).ToArray();
 
             var histogram = CreateTimeHistogram();
@@ -263,7 +255,6 @@
         ProcessingTimeStore processingTimeStore;
         RetriesStore retriesStore;
         QueueLengthStore queueLengthStore;
-        QueueLengthStoreDto queueLengthStoreDto;
         IProvideQueueLength queueLengthProvider;
         Action GetMonitoredEndpoints;
         Action<string> GetMonitoredSingleEndpoint;

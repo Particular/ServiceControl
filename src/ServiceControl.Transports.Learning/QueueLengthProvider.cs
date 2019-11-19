@@ -11,21 +11,15 @@
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto storeDto)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             rootFolder = connectionString;
-            queueLengthStoreDto = storeDto;
+            this.store = store;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            var key = new EndpointInputQueueDto(endpointInstanceIdDto.EndpointName, queueAddress);
-            endpointsHash.AddOrUpdate(key, key, (_, __) => key);
-        }
-
-        public void Process(EndpointInstanceIdDto endpointInstanceIdDto, TaggedLongValueOccurrenceDto metricsReport)
-        {
-            // The endpoint should not be sending this data
+            endpointsHash.AddOrUpdate(queueToTrack, queueToTrack, (_, __) => queueToTrack);
         }
 
         public Task Start()
@@ -65,9 +59,9 @@
                 var queueLength = queueLengths[instance.InputQueue].FirstOrDefault();
                 if (queueLength.HasValue)
                 {
-                    queueLengthStoreDto.Store(new[]
+                    store(new[]
                     {
-                        new EntryDto
+                        new QueueLengthEntry
                         {
                             DateTicks = now,
                             Value = queueLength.Value
@@ -106,8 +100,8 @@
         }
 
         string rootFolder;
-        QueueLengthStoreDto queueLengthStoreDto;
-        ConcurrentDictionary<EndpointInputQueueDto, EndpointInputQueueDto> endpointsHash = new ConcurrentDictionary<EndpointInputQueueDto, EndpointInputQueueDto>();
+        Action<QueueLengthEntry[], EndpointToQueueMapping> store;
+        ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping> endpointsHash = new ConcurrentDictionary<EndpointToQueueMapping, EndpointToQueueMapping>();
         CancellationTokenSource cancel;
         Task task;
 

@@ -1,30 +1,21 @@
 ﻿namespace ServiceControl.Transports.Msmq
 {
+    using System;
     using System.Threading.Tasks;
 
     class QueueLengthProvider : IProvideQueueLength
     {
-        public void Initialize(string connectionString, QueueLengthStoreDto store)
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
-            queueLengthStore = store;
         }
 
-        public void Process(EndpointInstanceIdDto endpointInstanceId, string queueAddress)
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
-            // HINT: Not every queue length provider requires metadata reports
-        }
-
-        public void Process(EndpointInstanceIdDto endpointInstanceId, TaggedLongValueOccurrenceDto metricsReport)
-        {
-            var endpointInputQueue = new EndpointInputQueueDto(endpointInstanceId.EndpointName, metricsReport.TagValue);
-
-            queueLengthStore.Store(metricsReport.Entries, endpointInputQueue);
+            //This is a no op for MSMQ since the endpoints report their queue lenght to SC using custom messages
         }
 
         public Task Start() => Task.CompletedTask;
 
         public Task Stop() => Task.CompletedTask;
-
-        QueueLengthStoreDto queueLengthStore;
     }
 }
