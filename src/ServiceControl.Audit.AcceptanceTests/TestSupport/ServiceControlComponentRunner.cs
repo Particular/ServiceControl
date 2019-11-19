@@ -20,6 +20,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.Audit.AcceptanceTests.Auditing;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Infrastructure.Settings;

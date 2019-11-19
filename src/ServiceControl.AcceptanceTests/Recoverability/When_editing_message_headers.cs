@@ -9,6 +9,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.AcceptanceTests;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;

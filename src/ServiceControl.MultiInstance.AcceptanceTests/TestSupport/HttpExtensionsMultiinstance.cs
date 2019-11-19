@@ -6,6 +6,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Threading.Tasks;
     using Infrastructure.Settings;
     using Newtonsoft.Json;
+    using ServiceControl.AcceptanceTesting;
 
     static class HttpExtensionsMultiInstance
     {

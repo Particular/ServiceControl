@@ -15,6 +15,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.Monitoring;
     using ServiceControl.Monitoring.Infrastructure;
     using ServiceControl.Monitoring.Infrastructure.WebApi;

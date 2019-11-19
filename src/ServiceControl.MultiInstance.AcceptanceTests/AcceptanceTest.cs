@@ -10,15 +10,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.AcceptanceTests;
 
     [TestFixture]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProviderMultiInstance

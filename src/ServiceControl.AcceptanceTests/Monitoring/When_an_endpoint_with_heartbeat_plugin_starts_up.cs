@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring
 {
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts;
     using Newtonsoft.Json;
     using NServiceBus;

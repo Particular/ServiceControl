@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Audit.Auditing.MessagesView;
     using Audit.Monitoring;
     using NServiceBus;

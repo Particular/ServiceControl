@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using global::ServiceControl.AcceptanceTesting;
     using global::ServiceControl.Monitoring.Http.Diagrams;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;

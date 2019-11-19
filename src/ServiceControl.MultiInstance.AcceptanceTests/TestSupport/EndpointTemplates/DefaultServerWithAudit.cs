@@ -5,6 +5,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using Particular.ServiceControl;
+    using ServiceControl.AcceptanceTesting.EndpointTemplates;
 
     public class DefaultServerWithAudit : IEndpointSetupTemplate
     {

@@ -2,6 +2,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;

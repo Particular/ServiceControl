@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using MessageFailures;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -9,7 +10,6 @@
     using NUnit.Framework;
     using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceControl.AcceptanceTests;
     using ServiceControl.Infrastructure;
 
     [RunOnAllTransports]

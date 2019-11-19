@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting.Support;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.AcceptanceTesting.EndpointTemplates;
     using ServiceControl.Audit.Infrastructure;
 
     public class DefaultServerWithAudit : IEndpointSetupTemplate

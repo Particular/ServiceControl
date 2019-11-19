@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts.CustomChecks;
     using EventLog;
     using Infrastructure.SignalR;

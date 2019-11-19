@@ -6,6 +6,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.Monitoring;
     using ServiceControl.Monitoring.Infrastructure;
 

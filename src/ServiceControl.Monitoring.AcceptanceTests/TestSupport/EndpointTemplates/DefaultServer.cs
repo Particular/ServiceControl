@@ -5,7 +5,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using Features;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using ServiceControl.AcceptanceTesting.EndpointTemplates;
     using ServiceControl.Monitoring;
 
     public class DefaultServer : IEndpointSetupTemplate

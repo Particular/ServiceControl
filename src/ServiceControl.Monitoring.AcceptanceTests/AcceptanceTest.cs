@@ -11,9 +11,8 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceControl.AcceptanceTests;
+    using ServiceControl.AcceptanceTesting;
     using ServiceControl.Monitoring;
     using ServiceControl.Monitoring.Infrastructure;
 
