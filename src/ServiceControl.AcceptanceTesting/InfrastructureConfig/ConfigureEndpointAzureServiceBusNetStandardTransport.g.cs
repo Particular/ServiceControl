@@ -6,31 +6,34 @@ using ServiceControl.AcceptanceTesting;
 using ServiceControl.Transports.ASBS;
 using ServiceControlInstaller.Engine.Instances;
 
-public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIntegration
+namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
-    public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
+    public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIntegration
     {
-        configuration.UseSerialization<NewtonsoftSerializer>();
+        public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
+        {
+            configuration.UseSerialization<NewtonsoftSerializer>();
 
-        // Relies on extern alias at the top of the file to disambiguate AzureServiceBusTransport
-        // from NServiceBus.Azure.Transports.WindowsAzureServiceBus. If we need to add extension method calls,
-        // include:
-        //      using TransportASBS::NServiceBus;
-        // in the using statements at the top.
-        var transportConfig = configuration.UseTransport<TransportASBS::NServiceBus.AzureServiceBusTransport>();
-        transportConfig.ConfigureNameShorteners();
+            // Relies on extern alias at the top of the file to disambiguate AzureServiceBusTransport
+            // from NServiceBus.Azure.Transports.WindowsAzureServiceBus. If we need to add extension method calls,
+            // include:
+            //      using TransportASBS::NServiceBus;
+            // in the using statements at the top.
+            var transportConfig = configuration.UseTransport<TransportASBS::NServiceBus.AzureServiceBusTransport>();
+            transportConfig.ConfigureNameShorteners();
 
-        transportConfig.ConnectionString(ConnectionString);
+            transportConfig.ConnectionString(ConnectionString);
 
-        return Task.FromResult(0);
+            return Task.FromResult(0);
+        }
+
+        public Task Cleanup()
+        {
+            return Task.FromResult(0);
+        }
+
+        public string Name => TransportNames.AzureServiceBus;
+        public string TypeName => $"{typeof(ServiceControl.Transports.ASBS.ASBSTransportCustomization).AssemblyQualifiedName}";
+        public string ConnectionString { get; set; }
     }
-
-    public Task Cleanup()
-    {
-        return Task.FromResult(0);
-    }
-
-    public string Name => TransportNames.AzureServiceBus;
-    public string TypeName => $"{typeof(ServiceControl.Transports.ASBS.ASBSTransportCustomization).AssemblyQualifiedName}";
-    public string ConnectionString { get; set; }
 }

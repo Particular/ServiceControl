@@ -4,36 +4,39 @@ using NServiceBus.AcceptanceTesting.Support;
 using ServiceControl.AcceptanceTesting;
 using ServiceControlInstaller.Engine.Instances;
 
-public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransportIntegration
+namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
-    public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
+    public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransportIntegration
     {
-        configuration.UseSerialization<NewtonsoftSerializer>();
-
-        var transportConfig = configuration.UseTransport<AzureServiceBusTransport>();
-
-        transportConfig.ConnectionString(ConnectionString);
-
-        var endpointOrientedTopology = transportConfig.UseEndpointOrientedTopology();
-        foreach (var publisher in publisherMetadata.Publishers)
+        public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
-            foreach (var eventType in publisher.Events)
+            configuration.UseSerialization<NewtonsoftSerializer>();
+
+            var transportConfig = configuration.UseTransport<AzureServiceBusTransport>();
+
+            transportConfig.ConnectionString(ConnectionString);
+
+            var endpointOrientedTopology = transportConfig.UseEndpointOrientedTopology();
+            foreach (var publisher in publisherMetadata.Publishers)
             {
-                endpointOrientedTopology.RegisterPublisher(eventType, publisher.PublisherName);
+                foreach (var eventType in publisher.Events)
+                {
+                    endpointOrientedTopology.RegisterPublisher(eventType, publisher.PublisherName);
+                }
             }
+
+            transportConfig.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
+
+            return Task.FromResult(0);
         }
 
-        transportConfig.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
+        public Task Cleanup()
+        {
+            return Task.FromResult(0);
+        }
 
-        return Task.FromResult(0);
+        public string Name => TransportNames.AzureServiceBusEndpointOrientedTopology;
+        public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization).AssemblyQualifiedName}";
+        public string ConnectionString { get; set; }
     }
-
-    public Task Cleanup()
-    {
-        return Task.FromResult(0);
-    }
-
-    public string Name => TransportNames.AzureServiceBusEndpointOrientedTopology;
-    public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization).AssemblyQualifiedName}";
-    public string ConnectionString { get; set; }
 }
