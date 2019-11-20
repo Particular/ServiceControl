@@ -44,7 +44,7 @@
 
         void CheckMsSqlConnectionString()
         {
-            string[] customKeys = {"Queue Schema"};
+            string[] customKeys = {"Queue Schema", "Subscriptions Table"};
 
             try
             {
