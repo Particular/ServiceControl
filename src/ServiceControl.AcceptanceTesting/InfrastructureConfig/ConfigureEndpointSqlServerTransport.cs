@@ -24,16 +24,6 @@ namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
             transportConfig.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
 #endif
 
-            var routingConfig = transportConfig.Routing();
-
-            foreach (var publisher in publisherMetadata.Publishers)
-            {
-                foreach (var eventType in publisher.Events)
-                {
-                    routingConfig.RegisterPublisher(eventType, publisher.PublisherName);
-                }
-            }
-
             return Task.FromResult(0);
         }
 
