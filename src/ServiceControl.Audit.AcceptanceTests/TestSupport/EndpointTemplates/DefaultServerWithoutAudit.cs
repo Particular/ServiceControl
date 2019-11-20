@@ -1,9 +1,10 @@
-﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
+﻿namespace ServiceControl.Audit.AcceptanceTests.TestSupport.EndpointTemplates
 {
     using System;
     using System.Threading.Tasks;
-    using AcceptanceTesting.Support;
-    using Features;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.Features;
 
     public class DefaultServerWithoutAudit : IEndpointSetupTemplate
     {

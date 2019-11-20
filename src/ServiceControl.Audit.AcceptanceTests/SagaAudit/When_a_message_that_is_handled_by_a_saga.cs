@@ -9,9 +9,8 @@
     using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
     class When_a_message_that_is_handled_by_a_saga : AcceptanceTest

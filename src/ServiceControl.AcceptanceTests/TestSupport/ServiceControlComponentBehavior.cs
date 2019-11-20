@@ -1,14 +1,14 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure;
-    using Infrastructure.Settings;
+    using AcceptanceTesting;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using ServiceControl.AcceptanceTesting;
+    using ServiceBus.Management.Infrastructure;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {

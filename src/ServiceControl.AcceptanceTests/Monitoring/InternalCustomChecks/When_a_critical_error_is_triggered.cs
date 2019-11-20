@@ -13,7 +13,6 @@
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Operations;
-    using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.CustomChecks;
 
     [TestFixture]

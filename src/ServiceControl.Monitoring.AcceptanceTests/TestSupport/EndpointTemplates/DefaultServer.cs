@@ -1,12 +1,12 @@
-﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
+﻿namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport.EndpointTemplates
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting.EndpointTemplates;
+    using Monitoring;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using Features;
-    using ServiceControl.AcceptanceTesting.EndpointTemplates;
-    using ServiceControl.Monitoring;
+    using NServiceBus.Features;
 
     public class DefaultServer : IEndpointSetupTemplate
     {

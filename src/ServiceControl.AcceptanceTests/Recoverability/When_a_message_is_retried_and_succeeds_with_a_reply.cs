@@ -9,8 +9,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
     class When_a_message_is_retried_and_succeeds_with_a_reply : AcceptanceTest

@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability
+﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System.Collections.Generic;
     using System.Linq;

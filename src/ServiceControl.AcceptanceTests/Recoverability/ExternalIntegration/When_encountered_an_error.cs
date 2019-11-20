@@ -14,9 +14,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
 
     /// <summary>
     /// The test simulates the heartbeat subsystem by publishing EndpointFailedToHeartbeat event.

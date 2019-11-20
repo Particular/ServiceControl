@@ -8,10 +8,9 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     class When_a_retry_for_a_failed_message_fails : AcceptanceTest
     {

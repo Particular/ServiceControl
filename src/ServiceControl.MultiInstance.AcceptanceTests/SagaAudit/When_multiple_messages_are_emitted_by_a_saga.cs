@@ -8,9 +8,9 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.SagaAudit;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
     class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest

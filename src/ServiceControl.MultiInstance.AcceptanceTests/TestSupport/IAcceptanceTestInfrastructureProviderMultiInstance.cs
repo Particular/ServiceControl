@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 {
     using System.Collections.Generic;
     using System.Net.Http;

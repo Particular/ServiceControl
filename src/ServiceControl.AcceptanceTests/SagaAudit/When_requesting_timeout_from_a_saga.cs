@@ -7,10 +7,9 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
+    using TestSupport.EndpointTemplates;
 
     class When_requesting_timeout_from_a_saga : AcceptanceTest
     {

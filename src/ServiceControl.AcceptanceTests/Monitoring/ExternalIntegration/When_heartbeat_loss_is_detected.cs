@@ -9,9 +9,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
 
     /// <summary>
     /// The test simulates the heartbeat subsystem by publishing EndpointFailedToHeartbeat event.

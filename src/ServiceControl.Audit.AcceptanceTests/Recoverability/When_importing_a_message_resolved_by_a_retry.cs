@@ -7,9 +7,9 @@
     using Audit.Monitoring;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     class When_importing_a_message_resolved_by_a_retry : AcceptanceTest
     {

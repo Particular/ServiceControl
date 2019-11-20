@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
     using System.Configuration;
@@ -7,14 +7,15 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using AcceptanceTesting;
+    using Infrastructure;
+    using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
-    using ServiceControl.AcceptanceTesting;
-    using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using TestSupport;
 
     [TestFixture]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider

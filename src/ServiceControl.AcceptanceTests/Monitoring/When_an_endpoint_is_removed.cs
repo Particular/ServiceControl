@@ -9,9 +9,8 @@ namespace ServiceControl.AcceptanceTests.Monitoring
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
 
     class When_an_endpoint_is_removed : AcceptanceTest
     {

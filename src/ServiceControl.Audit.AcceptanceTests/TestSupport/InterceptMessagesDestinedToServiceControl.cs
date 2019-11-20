@@ -1,11 +1,11 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
     using System.Threading.Tasks;
+    using Contracts.EndpointControl;
+    using Contracts.MessageFailures;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
-    using ServiceControl.Contracts.EndpointControl;
-    using ServiceControl.Contracts.MessageFailures;
 
     class InterceptMessagesDestinedToServiceControl : Behavior<IOutgoingLogicalMessageContext>
     {

@@ -1,11 +1,11 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
     using System.Threading.Tasks;
-    using Infrastructure.Settings;
+    using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Pipeline;
-    using ServiceControl.Contracts.MessageFailures;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class ReportSuccessfulRetryToServiceControl : IBehavior<IIncomingPhysicalMessageContext, IIncomingPhysicalMessageContext>
     {

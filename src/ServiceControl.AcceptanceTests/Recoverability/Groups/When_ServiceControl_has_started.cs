@@ -5,7 +5,6 @@
     using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.Recoverability;
 
     class When_ServiceControl_has_started : AcceptanceTest

@@ -1,11 +1,11 @@
-﻿namespace NServiceBus.AcceptanceTests
+﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
     using System.Linq;
     using System.Reflection;
+    using AcceptanceTesting;
+    using NServiceBus;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceControl.AcceptanceTesting;
 
     [TestFixture]
     class ConventionEnforcementTests : AcceptanceTest

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.PerformanceTests
+﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +14,6 @@
     using Messaging;
     using NUnit.Framework;
     using QueueLength;
-    using ServiceBus.Management.AcceptanceTests;
     using Timings;
     using Transports;
 

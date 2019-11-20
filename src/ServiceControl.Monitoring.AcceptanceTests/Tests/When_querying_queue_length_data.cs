@@ -1,23 +1,22 @@
-﻿namespace NServiceBus.Metrics.AcceptanceTests
+﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using global::ServiceControl.AcceptanceTesting;
-    using global::ServiceControl.Monitoring.Http.Diagrams;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using Http.Diagrams;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using AcceptanceTest = ServiceBus.Management.AcceptanceTests.AcceptanceTest;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
-    class When_querying_queue_length_data : AcceptanceTest
+    class When_querying_queue_length_data : AcceptanceTests.AcceptanceTest
     {
         [Test]
         public async Task Should_report_via_http()
         {
-            var endpointName = AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(SendingEndpoint));
+            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(SendingEndpoint));
             var instanceId = Guid.NewGuid();
             var metricsInstanceId = Guid.NewGuid();
 

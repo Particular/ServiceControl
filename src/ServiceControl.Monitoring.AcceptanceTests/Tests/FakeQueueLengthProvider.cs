@@ -1,8 +1,8 @@
-﻿namespace ServiceControl.Monitoring.PerformanceTests
+﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
-    using ServiceControl.Transports;
     using System;
     using System.Threading.Tasks;
+    using Transports;
 
     class FakeQueueLengthProvider : IProvideQueueLength
     {

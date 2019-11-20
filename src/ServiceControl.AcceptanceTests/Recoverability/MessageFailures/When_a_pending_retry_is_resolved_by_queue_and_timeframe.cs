@@ -9,9 +9,8 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
+    using TestSupport.EndpointTemplates;
 
     class When_a_pending_retry_is_resolved_by_queue_and_timeframe : AcceptanceTest
     {

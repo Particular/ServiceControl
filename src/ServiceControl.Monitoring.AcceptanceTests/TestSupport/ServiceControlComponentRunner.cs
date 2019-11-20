@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 {
     using System;
     using System.Configuration;
@@ -8,17 +8,17 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
+    using Infrastructure;
+    using Infrastructure.WebApi;
     using Microsoft.Owin.Builder;
+    using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using ServiceControl.AcceptanceTesting;
-    using ServiceControl.Monitoring;
-    using ServiceControl.Monitoring.Infrastructure;
-    using ServiceControl.Monitoring.Infrastructure.WebApi;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {

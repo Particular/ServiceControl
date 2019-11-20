@@ -10,9 +10,9 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure.Settings;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
     class When_message_searched_by_messages : AcceptanceTest

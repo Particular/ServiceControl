@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.AcceptanceTests.TestSupport
 {
-    using ServiceBus.Management.AcceptanceTests;
     using NServiceBus;
 
     public static class EndpointConfigurationExtensions

@@ -11,10 +11,9 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
+    using TestSupport.EndpointTemplates;
 
     class When_messages_have_failed : AcceptanceTest
     {

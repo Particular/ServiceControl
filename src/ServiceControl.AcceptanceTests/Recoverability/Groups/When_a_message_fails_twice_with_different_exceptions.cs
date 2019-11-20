@@ -11,10 +11,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
+    using TestSupport.EndpointTemplates;
 
     class When_a_message_fails_twice_with_different_exceptions : AcceptanceTest
     {

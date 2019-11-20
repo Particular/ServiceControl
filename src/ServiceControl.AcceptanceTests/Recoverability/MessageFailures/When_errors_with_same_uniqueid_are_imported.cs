@@ -13,9 +13,8 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Operations;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
+    using TestSupport.EndpointTemplates;
 
     class When_errors_with_same_uniqueid_are_imported : AcceptanceTest
     {

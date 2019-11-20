@@ -7,9 +7,9 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     class When_remote_instance_is_not_reachable : AcceptanceTest
     {

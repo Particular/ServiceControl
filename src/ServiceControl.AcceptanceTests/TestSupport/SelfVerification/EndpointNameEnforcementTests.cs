@@ -1,12 +1,12 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.SelfVerification
+﻿namespace ServiceControl.AcceptanceTests.TestSupport.SelfVerification
 {
     using System;
     using System.Linq;
     using System.Reflection;
+    using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
-    using ServiceControl.AcceptanceTesting;
 
     [TestFixture]
     class EndpointNameEnforcementTests : NServiceBusAcceptanceTest

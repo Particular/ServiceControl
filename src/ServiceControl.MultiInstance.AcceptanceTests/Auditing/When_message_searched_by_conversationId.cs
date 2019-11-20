@@ -8,8 +8,8 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     class When_message_searched_by_conversationId : AcceptanceTest
     {

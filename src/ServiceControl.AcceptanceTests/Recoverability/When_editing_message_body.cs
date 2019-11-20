@@ -1,20 +1,20 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.Recoverability
+﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using EndpointTemplates;
+    using AcceptanceTesting;
+    using AcceptanceTests;
+    using Infrastructure;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using Raven.Abstractions.Extensions;
-    using ServiceControl.AcceptanceTesting;
-    using ServiceControl.AcceptanceTests;
-    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using TestSupport.EndpointTemplates;
 
     class When_editing_message_body : AcceptanceTest
     {

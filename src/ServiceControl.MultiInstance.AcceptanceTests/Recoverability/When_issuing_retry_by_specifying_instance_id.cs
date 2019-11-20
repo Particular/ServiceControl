@@ -8,10 +8,10 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Settings;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     // Tests https://docs.particular.net/servicecontrol/servicecontrol-instances/distributed-instances#advanced-scenarios-multi-region-deployments
     class When_issuing_retry_by_specifying_instance_id : AcceptanceTest

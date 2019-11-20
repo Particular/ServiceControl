@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
     using System.Configuration;
@@ -12,10 +12,11 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Autofac;
-    using Infrastructure;
-    using Infrastructure.Settings;
+    using Infrastructure.WebApi;
     using Microsoft.Owin.Builder;
+    using Monitoring.InternalCustomChecks;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -23,9 +24,9 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
-    using ServiceControl.AcceptanceTesting;
-    using ServiceControl.AcceptanceTests.Recoverability.MessageFailures;
-    using ServiceControl.Infrastructure.WebApi;
+    using Recoverability.MessageFailures;
+    using ServiceBus.Management.Infrastructure;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {

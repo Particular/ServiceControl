@@ -6,7 +6,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
     using Infrastructure;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
 
     class When_a_redirect_is_removed : AcceptanceTest
     {

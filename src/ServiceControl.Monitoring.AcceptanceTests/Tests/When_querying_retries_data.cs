@@ -1,13 +1,13 @@
-﻿namespace NServiceBus.Metrics.AcceptanceTests
+﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using global::ServiceControl.AcceptanceTesting;
-    using global::ServiceControl.Monitoring.Http.Diagrams;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using Http.Diagrams;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
+    using TestSupport.EndpointTemplates;
 
     class When_querying_retries_data : AcceptanceTest
     {
