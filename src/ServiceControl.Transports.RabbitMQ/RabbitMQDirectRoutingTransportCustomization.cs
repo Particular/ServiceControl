@@ -23,5 +23,10 @@
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ApplyConnectionString(transportSettings.ConnectionString);
         }
+
+        public override IProvideQueueLength CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
+        }
     }
 }

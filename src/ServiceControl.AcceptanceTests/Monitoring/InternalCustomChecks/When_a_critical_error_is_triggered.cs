@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts.CustomChecks;
     using EventLog;
     using NServiceBus;
@@ -12,7 +13,6 @@
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Operations;
-    using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.CustomChecks;
 
     [TestFixture]

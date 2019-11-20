@@ -1,70 +1,84 @@
-﻿namespace NServiceBus.Metrics.AcceptanceTests
+﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using AcceptanceTesting.Customization;
-    using global::Newtonsoft.Json.Linq;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using Http.Diagrams;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using TestSupport.EndpointTemplates;
 
-    public class When_querying_retries_data : ApiIntegrationTest
+    class When_querying_retries_data : AcceptanceTest
     {
-        static string ReceiverEndpointName => Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));
-
         [Test]
         public async Task Should_report_via_http()
         {
-            JToken retries = null;
+            var metricReported = false;
 
-            await Scenario.Define<Context>()
-                .WithEndpoint<MonitoredEndpoint>(c =>
+            await Define<TestContext>()
+                .WithEndpoint<EndpointWithRetries>(c =>
                 {
                     c.DoNotFailOnErrorMessages();
                     c.CustomConfig(ec => ec.Recoverability().Immediate(i => i.NumberOfRetries(5)));
                     c.When(s => s.SendLocal(new SampleMessage()));
                 })
-                .WithEndpoint<MonitoringEndpoint>(c =>
+                .Done(async c =>
                 {
-                    c.CustomConfig(conf =>
+                    var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
+
+                    metricReported = result.HasResult && result.Items[0].Metrics["retries"].Average > 0;
+
+                    if (metricReported)
                     {
-                        Bootstrapper.CreateReceiver(conf, ConnectionString);
-                        Bootstrapper.StartWebApi();
-                        conf.LimitMessageProcessingConcurrencyTo(1);
-                    });
+                        c.ShuttingDown = true;
+                    }
+
+                    return metricReported;
                 })
-                .Done(c => MetricReported("retries", out retries, c))
                 .Run();
 
-            Assert.IsTrue(retries["average"].Value<double>() > 0);
-            Assert.AreEqual(60, retries["points"].Value<JArray>().Count);
+            Assert.IsTrue(metricReported);
         }
 
-        class MonitoredEndpoint : EndpointConfigurationBuilder
+        class EndpointWithRetries : EndpointConfigurationBuilder
         {
-            public MonitoredEndpoint()
+            public EndpointWithRetries()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableMetrics().SendMetricDataToServiceControl(ReceiverEndpointName, TimeSpan.FromSeconds(5));
+                    c.EnableMetrics().SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                 });
             }
 
             class Handler : IHandleMessages<SampleMessage>
             {
+                TestContext testContext;
+
+                public Handler(TestContext testContext)
+                {
+                    this.testContext = testContext;
+                }
+
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {
+                    if (testContext.ShuttingDown)
+                    {
+                        return Task.CompletedTask;
+                    }
+
                     throw new Exception("Boom!");
                 }
             }
         }
 
-        class MonitoringEndpoint : EndpointConfigurationBuilder
+        class TestContext : ScenarioContext
         {
-            public MonitoringEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public bool ShuttingDown { get; set; }
+        }
+
+        class SampleMessage : IMessage
+        {
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
+﻿namespace ServiceControl.AcceptanceTests.Monitoring.InternalCustomChecks
 {
     using System;
     using System.Net;

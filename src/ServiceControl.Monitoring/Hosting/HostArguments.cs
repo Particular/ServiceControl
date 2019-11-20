@@ -28,7 +28,7 @@
                 },
                 {
                     "skip-queue-creation",
-                    @"Skip queue creation during install/update",
+                    "Skip queue creation during install/update",
                     s => overrides.Add(settings => settings.SkipQueueCreation = true)
                 }
             };

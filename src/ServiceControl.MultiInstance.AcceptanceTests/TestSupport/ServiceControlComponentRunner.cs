@@ -1,4 +1,4 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace ServiceBus.Management.AcceptanceTests
     using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure.Settings;
+    using AcceptanceTesting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -23,9 +23,10 @@ namespace ServiceBus.Management.AcceptanceTests
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
 
-    class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
+    class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
         public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {

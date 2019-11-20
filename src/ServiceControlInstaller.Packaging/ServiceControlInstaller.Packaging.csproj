@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
@@ -15,7 +16,6 @@
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" />
-    <ProjectReference Include="..\Packaging.ServiceControl.Monitoring\Packaging.ServiceControl.Monitoring.csproj" />
   </ItemGroup>
 
   <Target Name="CleanStaging" AfterTargets="Build">
@@ -129,11 +129,50 @@
     <RemoveDir Directories="$(StagingFolder)" />
   </Target>
 
-  <Target Name="CopyServiceControlMonitoringZip" AfterTargets="CreateServiceControlAuditZip">
-    <ItemGroup>
-      <Zips Include="..\..\zip\monitoring\*.zip"/>
-    </ItemGroup>
-    <Copy SourceFiles="@(Zips)" DestinationFolder="$(ZipTargetFolder)" />
-  </Target>
+    <Target Name="CreateServiceControlMonitoringZip" AfterTargets="CreateServiceControlAuditZip">
+    <PropertyGroup>
+      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
+      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Monitoring-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
+      <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
+    </PropertyGroup>
 
+    <PropertyGroup>
+      <ServiceControlMonitoringFolder>..\ServiceControl.Monitoring\$(OutputPath)\</ServiceControlMonitoringFolder>
+      <SqlTransportFolder>..\ServiceControl.Transports.SqlServer\$(OutputPath)\</SqlTransportFolder>
+      <ASQTransportFolder>..\ServiceControl.Transports.ASQ\$(OutputPath)\</ASQTransportFolder>
+      <ASBTransportFolder>..\ServiceControl.Transports.ASB\$(OutputPath)\</ASBTransportFolder>
+      <ASBSTransportFolder>..\ServiceControl.Transports.ASBS\$(OutputPath)\</ASBSTransportFolder>
+      <RabbitMQTransportFolder>..\ServiceControl.Transports.RabbitMQ\$(OutputPath)\</RabbitMQTransportFolder>
+      <MSMQTransportFolder>..\ServiceControl.Transports.Msmq\$(OutputPath)\</MSMQTransportFolder>
+      <SQSTransportFolder>..\ServiceControl.Transports.SQS\$(OutputPath)\</SQSTransportFolder>
+      <LearningTransportFolder>..\ServiceControl.Transports.Learning\$(OutputPath)\</LearningTransportFolder>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
+
+      <ServiceControlMonitoring Include="$(ServiceControlMonitoringFolder)*.*" Exclude="$(ServiceControlMonitoringFolder)*.config" />
+      <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
+      <ASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
+      <ASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
+      <ASBSTransport Include="$(ASBSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBSTransportFolder)%(identity)')" />
+      <RabbitMQTransport Include="$(RabbitMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(RabbitMQTransportFolder)%(identity)')" />
+      <MSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
+      <SQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
+      <LearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ServiceControlMonitoring)" DestinationFolder="$(StagingFolder)ServiceControl.Monitoring\" />
+    <Copy SourceFiles="@(SqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
+    <Copy SourceFiles="@(ASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
+    <Copy SourceFiles="@(ASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
+    <Copy SourceFiles="@(ASBSTransport)" DestinationFolder="$(StagingFolder)Transports\NetStandardAzureServiceBus" />
+    <Copy SourceFiles="@(RabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
+    <Copy SourceFiles="@(MSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
+    <Copy SourceFiles="@(SQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
+    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
+
+    <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
+    <RemoveDir Directories="$(StagingFolder)" />
+  </Target>
 </Project>

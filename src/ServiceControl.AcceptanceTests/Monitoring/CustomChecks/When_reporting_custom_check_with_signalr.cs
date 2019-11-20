@@ -4,6 +4,7 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure.SignalR;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
@@ -12,9 +13,8 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]

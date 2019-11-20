@@ -12,7 +12,7 @@
     {
         public SharedMonitoringEditorViewModel()
         {
-            Transports = MonitoringTransports.All;
+            Transports = ServiceControlCoreTransports.All;
         }
 
         [DoNotNotify]

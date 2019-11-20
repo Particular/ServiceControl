@@ -1,9 +1,32 @@
 [assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
 namespace ServiceControl.Transports
 {
+    public class EndpointToQueueMapping
+    {
+        public EndpointToQueueMapping(string endpointName, string inputQueue) { }
+        public string EndpointName { get; set; }
+        public string InputQueue { get; set; }
+        public bool Equals(ServiceControl.Transports.EndpointToQueueMapping other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+    }
+    public interface IProvideQueueLength
+    {
+        void Initialize(string connectionString, System.Action<ServiceControl.Transports.QueueLengthEntry[], ServiceControl.Transports.EndpointToQueueMapping> store);
+        System.Threading.Tasks.Task Start();
+        System.Threading.Tasks.Task Stop();
+        void TrackEndpointInputQueue(ServiceControl.Transports.EndpointToQueueMapping queueToTrack);
+    }
+    public class QueueLengthEntry
+    {
+        public QueueLengthEntry() { }
+        public long DateTicks { get; set; }
+        public long Value { get; set; }
+    }
     public abstract class TransportCustomization
     {
         protected TransportCustomization() { }
+        public abstract ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
         public abstract void CustomizeEndpoint(NServiceBus.EndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
         public abstract void CustomizeRawEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
     }

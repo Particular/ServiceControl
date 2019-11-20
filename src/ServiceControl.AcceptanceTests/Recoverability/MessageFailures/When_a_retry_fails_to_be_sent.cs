@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -11,11 +12,11 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Operations.BodyStorage;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     class When_a_retry_fails_to_be_sent : AcceptanceTest
     {

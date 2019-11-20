@@ -1,15 +1,14 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
+    using TestSupport.EndpointTemplates;
 
     class When_processed_message_searched_by_debugsession : AcceptanceTest
     {

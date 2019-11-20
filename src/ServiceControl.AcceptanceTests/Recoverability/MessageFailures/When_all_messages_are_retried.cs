@@ -2,14 +2,15 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     class When_all_messages_are_retried : AcceptanceTest
     {

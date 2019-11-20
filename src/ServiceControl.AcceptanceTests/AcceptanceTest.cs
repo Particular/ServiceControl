@@ -9,16 +9,16 @@ namespace ServiceControl.AcceptanceTests
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure.DomainEvents;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport;
 
     [TestFixture]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider
@@ -38,6 +38,7 @@ namespace ServiceControl.AcceptanceTests
         public Settings Settings => serviceControlRunnerBehavior.Settings;
         public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
         public BusInstance Bus => serviceControlRunnerBehavior.Bus;
+        public string Port => serviceControlRunnerBehavior.Port;
 
         [OneTimeSetUp]
         public void OneTimeSetup()
