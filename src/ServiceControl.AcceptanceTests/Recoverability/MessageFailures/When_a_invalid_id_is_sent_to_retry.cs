@@ -2,13 +2,13 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using TestSupport.EndpointTemplates;
 
     class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
     {

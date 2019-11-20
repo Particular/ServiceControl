@@ -1,9 +1,9 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System.Collections.Concurrent;
+    using Contracts.EndpointControl;
+    using Contracts.MessageFailures;
     using NServiceBus.AcceptanceTesting;
-    using ServiceControl.Contracts.EndpointControl;
-    using ServiceControl.Contracts.MessageFailures;
 
     public class InterceptedMessagesScenarioContext : ScenarioContext
     {

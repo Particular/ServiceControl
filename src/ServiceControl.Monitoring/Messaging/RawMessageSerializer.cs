@@ -6,10 +6,7 @@
 
     public abstract class RawMessageSerializer<T> where T : RawMessage, new()
     {
-        public void Serialize(object message, Stream stream)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract void Serialize(object message, Stream stream);
 
         protected abstract bool Store(long timestamp, BinaryReader reader, T message);
 

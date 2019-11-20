@@ -4,7 +4,9 @@
     <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
 
+
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />

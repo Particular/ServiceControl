@@ -2,14 +2,14 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.ExternalIntegrations;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
 
     [TestFixture]
     class When_a_custom_check_succeeds : AcceptanceTest
@@ -62,7 +62,7 @@
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JsonServer>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);

@@ -1,3 +1,4 @@
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.AcceptanceTesting")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.MultiInstance.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.UnitTests")]

@@ -3,13 +3,13 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Audit.Auditing.MessagesView;
     using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
+    using TestSupport.EndpointTemplates;
 
     class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
     {

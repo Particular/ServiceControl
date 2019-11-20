@@ -2,14 +2,14 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
     class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest

@@ -4,10 +4,10 @@
     using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
 
     class When_a_redirect_is_created : AcceptanceTest
     {

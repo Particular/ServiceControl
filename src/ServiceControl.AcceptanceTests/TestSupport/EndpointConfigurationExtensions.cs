@@ -1,31 +1,9 @@
-﻿namespace ServiceBus.Management.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using NServiceBus;
-    using NServiceBus.Features;
 
     public static class EndpointConfigurationExtensions
     {
-        public static void NoImmediateRetries(this EndpointConfiguration configuration)
-        {
-            configuration.Recoverability().Immediate(x => x.NumberOfRetries(0));
-        }
-
-        public static void NoDelayedRetries(this EndpointConfiguration configuration)
-        {
-            configuration.Recoverability().Delayed(x => x.NumberOfRetries(0));
-        }
-
-        public static void NoRetries(this EndpointConfiguration configuration)
-        {
-            configuration.NoDelayedRetries();
-            configuration.NoImmediateRetries();
-        }
-
-        public static void NoOutbox(this EndpointConfiguration configuration)
-        {
-            configuration.DisableFeature<Outbox>();
-        }
-
         public static void ReportSuccessfulRetriesToServiceControl(this EndpointConfiguration configuration)
         {
             configuration.Pipeline.Register(typeof(ReportSuccessfulRetryToServiceControl), "Simulate that the audit instance detects and reports successfull retries");

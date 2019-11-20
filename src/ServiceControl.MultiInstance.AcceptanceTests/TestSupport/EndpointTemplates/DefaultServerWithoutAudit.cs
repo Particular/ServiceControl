@@ -1,4 +1,4 @@
-﻿namespace ServiceBus.Management.AcceptanceTests.EndpointTemplates
+﻿namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport.EndpointTemplates
 {
     using System;
     using System.Threading.Tasks;

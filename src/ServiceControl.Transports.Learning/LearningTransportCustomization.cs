@@ -2,6 +2,7 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
+    using ServiceControl.Transports.LearningTransport;
 
     public class LearningTransportCustomization : TransportCustomization
     {
@@ -17,6 +18,11 @@
             var transport = endpointConfig.UseTransport<LearningTransport>();
             transport.StorageDirectory(transportSettings.ConnectionString);
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
+        }
+
+        public override IProvideQueueLength CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
         }
     }
 }

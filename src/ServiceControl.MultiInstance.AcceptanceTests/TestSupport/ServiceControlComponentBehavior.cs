@@ -1,15 +1,16 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 {
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure.Settings;
+    using AcceptanceTesting;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
+    class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProviderMultiInstance
     {
         public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {

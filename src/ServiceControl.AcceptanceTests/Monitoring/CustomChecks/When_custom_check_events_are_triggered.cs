@@ -4,15 +4,15 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts.CustomChecks;
     using EventLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
 
     [TestFixture]
     class When_custom_check_events_are_triggered : AcceptanceTest

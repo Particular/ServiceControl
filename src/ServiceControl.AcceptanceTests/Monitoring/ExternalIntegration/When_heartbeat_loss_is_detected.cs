@@ -2,15 +2,15 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests.ExternalIntegrations;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
 
     /// <summary>
     /// The test simulates the heartbeat subsystem by publishing EndpointFailedToHeartbeat event.
@@ -64,7 +64,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
         {
             public ExternalProcessor()
             {
-                EndpointSetup<JsonServer>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);

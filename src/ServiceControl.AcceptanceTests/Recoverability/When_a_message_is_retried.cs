@@ -3,15 +3,15 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures.Api;
+    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_is_retried : AcceptanceTest

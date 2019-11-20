@@ -4,16 +4,16 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Infrastructure;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
+    using TestSupport.EndpointTemplates;
 
     class When_messages_have_failed : AcceptanceTest
     {
