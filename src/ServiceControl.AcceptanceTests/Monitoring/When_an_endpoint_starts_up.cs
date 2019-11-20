@@ -3,15 +3,15 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts.EndpointControl;
     using EventLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
 
     class When_an_endpoint_starts_up : AcceptanceTest
     {

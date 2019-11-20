@@ -1,13 +1,14 @@
-namespace ServiceBus.Management.AcceptanceTests
+namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
+    using Infrastructure;
+    using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
@@ -20,6 +21,7 @@ namespace ServiceBus.Management.AcceptanceTests
 
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
+        public string Port => runner.Port;
         public Settings Settings => runner.Settings;
         public OwinHttpMessageHandler Handler => runner.Handler;
         public BusInstance Bus => runner.Bus;

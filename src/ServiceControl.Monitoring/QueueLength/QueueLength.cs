@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
+    using Transports;
 
     public class QueueLength : Feature
     {

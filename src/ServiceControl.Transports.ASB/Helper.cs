@@ -17,9 +17,11 @@
 
         public static void ConfigureTransport(this TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
-            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
-            transport.ConnectionString(transportSettings.ConnectionString);
+            //If the custom part stays in the connection string and is at the end, the sdk will treat is as part of the SharedAccessKey
+            var connectionString = ConnectionStringPartRemover.Remove(transportSettings.ConnectionString, QueueLengthProvider.QueueLengthQueryIntervalPartName);
 
+            transport.ConnectionString(connectionString);
+            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
             transport.MessageReceivers().PrefetchCount(0);
             transport.Queues().LockDuration(TimeSpan.FromMinutes(5));
             transport.Subscriptions().LockDuration(TimeSpan.FromMinutes(5));

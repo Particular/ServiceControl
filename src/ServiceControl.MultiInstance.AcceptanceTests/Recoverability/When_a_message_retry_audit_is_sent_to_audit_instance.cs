@@ -2,15 +2,15 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using MessageFailures;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceControl.AcceptanceTests;
     using ServiceControl.Infrastructure;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
     class When_a_message_retry_audit_is_sent_to_audit_instance : AcceptanceTest

@@ -4,16 +4,16 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Endpoints;
     using Contracts.EndpointControl;
     using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Monitoring;
+    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_an_unmonitored_endpoint_is_marked_as_monitored : AcceptanceTest

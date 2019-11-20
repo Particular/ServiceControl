@@ -1,16 +1,14 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTests;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceControl.AcceptanceTests;
+    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [RunOnAllTransports]

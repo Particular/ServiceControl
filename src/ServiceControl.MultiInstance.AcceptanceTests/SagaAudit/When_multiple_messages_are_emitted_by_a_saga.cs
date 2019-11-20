@@ -4,13 +4,13 @@
     using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceControl.AcceptanceTests;
     using ServiceControl.SagaAudit;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
     class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest

@@ -29,4 +29,8 @@
     <PackageReference Include="Particular.Licensing.Sources" Version="2.0.1" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+  </ItemGroup>
+
 </Project>

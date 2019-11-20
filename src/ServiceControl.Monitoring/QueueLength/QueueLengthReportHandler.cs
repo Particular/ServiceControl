@@ -4,38 +4,29 @@
     using Infrastructure;
     using Messaging;
     using NServiceBus;
-    using NServiceBus.Metrics;
 
-    public class QueueLengthReportHandler : IHandleMessages<EndpointMetadataReport>, IHandleMessages<TaggedLongValueOccurrence>
+    public class QueueLengthReportHandler : IHandleMessages<TaggedLongValueOccurrence>
     {
-        public QueueLengthReportHandler(IProvideQueueLength queueLengthProvider)
+        public QueueLengthReportHandler(QueueLengthStore queueLengthStore)
         {
-            this.queueLengthProvider = queueLengthProvider;
-        }
-
-        public Task Handle(EndpointMetadataReport message, IMessageHandlerContext context)
-        {
-            var instanceId = EndpointInstanceId.From(context.MessageHeaders);
-
-            queueLengthProvider.Process(instanceId, message);
-
-            return TaskEx.Completed;
+            this.queueLengthStore = queueLengthStore;
         }
 
         public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
-            var instanceId = EndpointInstanceId.From(context.MessageHeaders);
+            var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
             var messageType = context.MessageHeaders[MetricHeaders.MetricType];
 
             if (messageType == QueueLengthMessageType)
             {
-                queueLengthProvider.Process(instanceId, message);
+                queueLengthStore.Store(message.Entries, new EndpointInputQueue(endpointName, message.TagValue));
             }
 
             return TaskEx.Completed;
         }
 
-        IProvideQueueLength queueLengthProvider;
+
+        QueueLengthStore queueLengthStore;
 
         const string QueueLengthMessageType = "QueueLength";
     }

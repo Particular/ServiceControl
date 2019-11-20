@@ -1,14 +1,14 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Monitoring
 {
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTests;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_is_imported_twice : AcceptanceTest

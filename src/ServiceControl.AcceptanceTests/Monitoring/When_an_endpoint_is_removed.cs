@@ -4,13 +4,13 @@ namespace ServiceControl.AcceptanceTests.Monitoring
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using TestSupport.EndpointTemplates;
 
     class When_an_endpoint_is_removed : AcceptanceTest
     {

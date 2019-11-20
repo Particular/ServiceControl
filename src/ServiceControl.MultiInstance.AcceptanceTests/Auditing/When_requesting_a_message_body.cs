@@ -6,14 +6,15 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Messages;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
     using ServiceControl.Infrastructure.Settings;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     class When_requesting_a_message_body : AcceptanceTest
     {

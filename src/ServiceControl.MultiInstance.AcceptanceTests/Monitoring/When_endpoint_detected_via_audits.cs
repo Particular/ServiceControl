@@ -3,15 +3,15 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
-    using ServiceBus.Management.AcceptanceTests.EndpointTemplates;
-    using ServiceControl.AcceptanceTests;
     using ServiceControl.Monitoring;
+    using TestSupport;
+    using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
     class When_endpoint_detected_via_audits : AcceptanceTest

@@ -2,6 +2,7 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Contracts.CustomChecks;
     using EventLog;
     using NServiceBus;
@@ -9,7 +10,6 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
     using ServiceControl.CustomChecks;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 

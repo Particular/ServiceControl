@@ -2,9 +2,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageRedirects
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceBus.Management.AcceptanceTests;
 
     class When_no_redirects_have_been_created : AcceptanceTest
     {

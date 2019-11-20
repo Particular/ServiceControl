@@ -41,8 +41,13 @@
 
                 transport.DefaultSchema((string)customSchema);
             }
-            
+
             transport.ConnectionString(builder.ConnectionString);
+        }
+
+        public override IProvideQueueLength CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
         }
 
         const string queueSchemaName = "Queue Schema";

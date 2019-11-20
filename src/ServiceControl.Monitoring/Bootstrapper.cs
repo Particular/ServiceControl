@@ -2,8 +2,6 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Configuration;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -11,6 +9,7 @@
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
+    using Infrastructure;
     using Licensing;
     using Messaging;
     using Microsoft.Owin.Hosting;
@@ -21,50 +20,40 @@
     using NServiceBus.Pipeline;
     using QueueLength;
     using ServiceBus.Management.Infrastructure.OWIN;
+    using Transports;
     using Module = Autofac.Module;
 
     public class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Settings settings)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration)
         {
+            this.onCriticalError = onCriticalError;
             this.settings = settings;
+            this.configuration = configuration;
+
+            Initialize(configuration);
         }
 
         internal Startup Startup { get; set; }
 
-        internal async Task<IEndpointInstance> CreateAndStartReceiver(EndpointConfiguration config = null, string explicitConnectionStringValue = null)
+        void Initialize(EndpointConfiguration config)
         {
-            var endpointConfiguration = config ?? new EndpointConfiguration(settings.EndpointName);
+            var transportCustomization = settings.LoadTransportCustomization();
 
-            CreateReceiver(endpointConfiguration, explicitConnectionStringValue);
-
-            bus = await Endpoint.Start(endpointConfiguration);
-
-            return bus;
-        }
-
-        public void CreateReceiver(EndpointConfiguration config, string explicitConnectionStringValue = null)
-        {
-            var transportType = DetermineTransportType(settings);
-
-            var buildQueueLengthProvider = QueueLengthProviderBuilder(explicitConnectionStringValue, transportType);
+            var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
 
             var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
 
-            var transport = config.UseTransport(transportType)
-                .Transactions(TransportTransactionMode.ReceiveOnly);
+            var transportSettings = new TransportSettings
+            {
+                RunCustomChecks = false,
+                ConnectionString = settings.ConnectionString,
+                EndpointName = settings.EndpointName,
+                MaxConcurrency = settings.MaximumConcurrencyLevel
+            };
 
-            if (explicitConnectionStringValue != null)
-            {
-                transport.ConnectionString(explicitConnectionStringValue);
-            }
-            else
-            {
-#pragma warning disable 618
-                transport.ConnectionStringName("NServiceBus/Transport");
-#pragma warning restore 618
-            }
+            transportCustomization.CustomizeEndpoint(config, transportSettings);
 
             if (settings.EnableInstallers)
             {
@@ -73,7 +62,7 @@
 
             config.DefineCriticalErrorAction(c =>
             {
-                Environment.FailFast("NServiceBus Critical Error", c.Exception);
+                this.onCriticalError(c);
                 return TaskEx.Completed;
             });
 
@@ -115,22 +104,31 @@
             }
         }
 
-        static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string explicitConnectionStringValue, Type transportType)
+        static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
         {
             return qls =>
             {
-                var connectionString = explicitConnectionStringValue ?? ConfigurationManager.ConnectionStrings["NServiceBus/Transport"]?.ConnectionString;
+                var queueLengthProvider = transportCustomization.CreateQueueLengthProvider();
 
-                var queueLengthProviderType = transportType.Assembly.GetTypes()
-                    .SingleOrDefault(p => typeof(IProvideQueueLength).IsAssignableFrom(p));
+                Action<QueueLengthEntry[], EndpointToQueueMapping> store = (es, q) => qls.Store(es.Select(e => ToEntry(e)).ToArray(), ToQueueId(q));
 
-                var queueLengthProvider = queueLengthProviderType != null
-                    ? (IProvideQueueLength)Activator.CreateInstance(queueLengthProviderType)
-                    : new DefaultQueueLengthProvider();
-
-                queueLengthProvider.Initialize(connectionString, qls);
+                queueLengthProvider.Initialize(connectionString, store);
 
                 return queueLengthProvider;
+            };
+        }
+
+        static EndpointInputQueue ToQueueId(EndpointToQueueMapping endpointInputQueueDto)
+        {
+            return new EndpointInputQueue(endpointInputQueueDto.EndpointName, endpointInputQueueDto.InputQueue);
+        }
+
+        static RawMessage.Entry ToEntry(QueueLengthEntry entryDto)
+        {
+            return new RawMessage.Entry
+            {
+                DateTicks = entryDto.DateTicks,
+                Value = entryDto.Value
             };
         }
 
@@ -145,34 +143,16 @@
             return containerBuilder;
         }
 
-        static Type DetermineTransportType(Settings settings)
+        public async Task<BusInstance> Start()
         {
-            var transportTypeName = legacyTransportTypeNames.ContainsKey(settings.TransportType)
-                ? legacyTransportTypeNames[settings.TransportType]
-                : settings.TransportType;
-
-            var transportType = Type.GetType(transportTypeName);
-
-            if (transportType != null)
-            {
-                return transportType;
-            }
-
-            var errorMsg = $"Configuration of transport failed. Could not resolve type `{settings.TransportType}`";
-            Logger.Error(errorMsg);
-            throw new Exception(errorMsg);
-        }
-
-        public async Task<IEndpointInstance> Start()
-        {
-            bus = await CreateAndStartReceiver();
+            bus = await Endpoint.Start(configuration);
 
             StartWebApi();
 
-            return bus;
+            return new BusInstance(bus);
         }
 
-        public void StartWebApi()
+        void StartWebApi()
         {
             var startOptions = new StartOptions(settings.RootUrl);
 
@@ -191,18 +171,11 @@
         }
 
         public IDisposable WebApp;
-        private Settings settings;
-        private IContainer container;
-        private IEndpointInstance bus;
-
-        static Dictionary<string, string> legacyTransportTypeNames = new Dictionary<string, string>
-        {
-            {"NServiceBus.SqsTransport, NServiceBus.AmazonSQS", "ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS"},
-            {"NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", "ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus"},
-            {"NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"},
-            {"NServiceBus.SqlServerTransport, NServiceBus.Transport.SQLServer", "ServiceControl.Transports.SQLServer.ServiceControlSQLServerTransport, ServiceControl.Transports.SQLServer"},
-            {"NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues", "ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport, ServiceControl.Transports.AzureStorageQueues"}
-        };
+        Action<ICriticalErrorContext> onCriticalError;
+        Settings settings;
+        EndpointConfiguration configuration;
+        IContainer container;
+        IEndpointInstance bus;
 
         static ILog Logger = LogManager.GetLogger<Bootstrapper>();
     }

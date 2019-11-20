@@ -1,51 +1,44 @@
-﻿namespace NServiceBus.Metrics.AcceptanceTests
+﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using global::Newtonsoft.Json.Linq;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using Http.Diagrams;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Conventions = AcceptanceTesting.Customization;
+    using TestSupport.EndpointTemplates;
 
-    public class When_querying_timings_data : ApiIntegrationTest
+    class When_querying_timings_data : AcceptanceTest
     {
-        static string ReceiverEndpointName => Conventions.Conventions.EndpointNamingConvention(typeof(MonitoringEndpoint));
 
         [Test]
         public async Task Should_report_via_http()
         {
-            JToken processingTime = null;
+            var metricReported = false;
 
-            await Scenario.Define<Context>()
-                .WithEndpoint<MonitoredEndpoint>(c => c.When(s => s.SendLocal(new SampleMessage())))
-                .WithEndpoint<MonitoringEndpoint>(c =>
+            await Define<Context>()
+                .WithEndpoint<EndpointWithTimings>(c => c.When(s => s.SendLocal(new SampleMessage())))
+                .Done(async c =>
                 {
-                    c.CustomConfig(conf =>
-                    {
-                        Bootstrapper.CreateReceiver(conf, ConnectionString);
-                        Bootstrapper.StartWebApi();
+                    var result = await this.TryGetMany<MonitoredEndpoint>("/monitored-endpoints?history=1");
 
-                        conf.LimitMessageProcessingConcurrencyTo(1);
-                    });
-                })
-                .Done(c =>
-                {
-                    return MetricReported("processingTime", out processingTime, c);
+                    metricReported = result.HasResult && result.Items[0].Metrics["processingTime"].Average > 0;
+
+                    return metricReported;
                 })
                 .Run();
 
-            Assert.IsTrue(processingTime["average"].Value<int>() > 0);
-            Assert.AreEqual(60, processingTime["points"].Value<JArray>().Count);
+            Assert.IsTrue(metricReported);
         }
 
-        class MonitoredEndpoint : EndpointConfigurationBuilder
+        class EndpointWithTimings : EndpointConfigurationBuilder
         {
-            public MonitoredEndpoint()
+            public EndpointWithTimings()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableMetrics().SendMetricDataToServiceControl(ReceiverEndpointName, TimeSpan.FromSeconds(5));
+                    c.EnableMetrics().SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                 });
             }
 
@@ -64,6 +57,14 @@
             {
                 EndpointSetup<DefaultServer>();
             }
+        }
+
+        class Context : ScenarioContext
+        {
+        }
+
+        class SampleMessage : IMessage
+        {
         }
     }
 }
