@@ -20,7 +20,11 @@
             }
 
             endpointConfig.GetSettings().Set("SqlServer.DisableDelayedDelivery", true);
-            transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
+            var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
+            if (!sendOnlyEndpoint)
+            {
+                transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
+            }
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
@@ -30,7 +34,11 @@
             ConfigureConnection(transport, transportSettings);
             endpointConfig.Settings.Set("SqlServer.DisableDelayedDelivery", true);
 
-            transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
+            var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
+            if (!sendOnlyEndpoint)
+            {
+                transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
+            }
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
