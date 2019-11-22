@@ -13,7 +13,8 @@
     {
         public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
-            this.connectionString = connectionString.RemoveCustomSchemaPart(out var customSchema);
+            this.connectionString = connectionString
+                .RemoveCustomConnectionStringParts(out var customSchema, out _);
 
             defaultSchema = customSchema ?? "dbo";
 

@@ -2,6 +2,7 @@
 {
     using System.Data.Common;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport.SQLServer;
@@ -18,6 +19,12 @@
                 Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
             }
 
+            endpointConfig.GetSettings().Set("SqlServer.DisableDelayedDelivery", true);
+            var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
+            if (!sendOnlyEndpoint)
+            {
+                transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
+            }
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
@@ -25,41 +32,41 @@
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             ConfigureConnection(transport, transportSettings);
+            endpointConfig.Settings.Set("SqlServer.DisableDelayedDelivery", true);
+
+            var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
+            if (!sendOnlyEndpoint)
+            {
+                transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
+            }
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
         static void ConfigureConnection(TransportExtensions<SqlServerTransport> transport, TransportSettings transportSettings)
         {
-            var builder = new DbConnectionStringBuilder
-            {
-                ConnectionString = transportSettings.ConnectionString
-            };
+            var connectionString = transportSettings.ConnectionString
+                .RemoveCustomConnectionStringParts(out var customSchema, out var subscriptionsTableSetting);
 
             var subscriptions = transport.SubscriptionSettings();
 
-            if (builder.TryGetValue(queueSchemaName, out var customSchema))
+            if (customSchema != null)
             {
-                builder.Remove(queueSchemaName);
-
-                transport.DefaultSchema((string)customSchema);
-
-                subscriptions.SubscriptionTableName(defaultSubscriptionTableName, schemaName: (string)customSchema);
+                transport.DefaultSchema(customSchema);
+                subscriptions.SubscriptionTableName(defaultSubscriptionTableName, customSchema);
             }
 
-            if (builder.TryGetValue(subscriptionsTableName, out var subscriptionsTableSetting))
+            if (subscriptionsTableSetting != null)
             {
-                builder.Remove(subscriptionsTableName);
-
-                var subscriptionsAddress = QueueAddress.Parse((string)subscriptionsTableSetting);
+                var subscriptionsAddress = QueueAddress.Parse(subscriptionsTableSetting);
 
                 subscriptions.SubscriptionTableName(
                     tableName: subscriptionsAddress.Table,
-                    schemaName:subscriptionsAddress.Schema ?? (string)customSchema,
+                    schemaName:subscriptionsAddress.Schema ?? customSchema,
                     catalogName:subscriptionsAddress.Catalog
                 );
             }
 
-            transport.ConnectionString(builder.ConnectionString);
+            transport.ConnectionString(connectionString);
 
             transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
@@ -69,9 +76,7 @@
             return new QueueLengthProvider();
         }
 
-        const string queueSchemaName = "Queue Schema";
         const string defaultSubscriptionTableName = "SubscriptionRouting";
-        const string subscriptionsTableName = "Subscriptions Table";
         static readonly ILog Logger = LogManager.GetLogger(typeof(SqlServerTransportCustomization));
     }
 }
