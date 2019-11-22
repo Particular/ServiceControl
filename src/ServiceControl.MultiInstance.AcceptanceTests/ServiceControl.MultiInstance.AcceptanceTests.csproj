@@ -37,10 +37,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.SignalR.Client" Version="2.2.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.1.6" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.3.0-beta0059" />
     <PackageReference Include="NServiceBus.Heartbeat" Version="3.0.0" />
     <PackageReference Include="NServiceBus.SagaAudit" Version="3.0.0" />
-    <PackageReference Include="NUnit" Version="3.11.0" />
+    <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
     <PackageReference Include="OwinHttpMessageHandler" Version="2.0.2" />
   </ItemGroup>
