@@ -2,6 +2,7 @@
 {
     using System.Data.Common;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport.SQLServer;
@@ -18,6 +19,8 @@
                 Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
             }
 
+            endpointConfig.GetSettings().Set("SqlServer.DisableDelayedDelivery", true);
+            transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
@@ -25,6 +28,9 @@
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             ConfigureConnection(transport, transportSettings);
+            endpointConfig.Settings.Set("SqlServer.DisableDelayedDelivery", true);
+
+            transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
