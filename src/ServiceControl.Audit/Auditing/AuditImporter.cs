@@ -1,6 +1,10 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
@@ -28,6 +32,8 @@
 
             context.Container.ConfigureComponent<AuditPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
+
+            batcher = new MultiProducerConcurrentCompletion<ProcessAuditMessageContext>(settings.MaximumConcurrencyLevel, TimeSpan.FromMilliseconds(settings.MaximumConcurrencyLevel * 200), 5, 1);
 
             context.AddSatelliteReceiver(
                 "Audit Import",
@@ -58,8 +64,13 @@
 
         Task OnAuditMessage(ProcessAuditMessageContext context)
         {
-            return auditIngestor.Ingest(context);
+            //var slotNumber = (int)Interlocked.Increment(ref increment) % 2;
+            var slotNumber = 0;
+            batcher.Push(context, slotNumber);
+            return context.Completed.Task;
         }
+
+        //static long increment;
 
         RecoverabilityAction OnAuditError(RecoverabilityConfig config, ErrorContext errorContext)
         {
@@ -75,23 +86,33 @@
 
         SatelliteImportFailuresHandler importFailuresHandler;
         AuditIngestor auditIngestor;
+        MultiProducerConcurrentCompletion<ProcessAuditMessageContext> batcher;
 
         class StartupTask : FeatureStartupTask
         {
+            readonly AuditImporter auditImporter;
+
             public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditIngestor auditIngestor, AuditImporter importer)
             {
+                auditImporter = importer;
                 importer.importFailuresHandler = importFailuresHandler;
                 importer.auditIngestor = auditIngestor;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
+                auditImporter.batcher.Start(Process);
                 return Task.FromResult(0);
             }
 
-            protected override Task OnStop(IMessageSession session)
+            Task Process(List<ProcessAuditMessageContext> arg1, int arg2, object arg3, CancellationToken arg4)
             {
-                return Task.FromResult(0);
+                return auditImporter.auditIngestor.Ingest(arg1);
+            }
+
+            protected override async Task OnStop(IMessageSession session)
+            {
+                await auditImporter.batcher.Complete(true).ConfigureAwait(false);
             }
         }
 

@@ -219,7 +219,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
-                MaximumConcurrencyLevel = 2,
+                /*MaximumConcurrencyLevel = 2,*/
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
                 ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,

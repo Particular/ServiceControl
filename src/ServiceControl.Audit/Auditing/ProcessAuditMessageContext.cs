@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Transport;
 
@@ -14,5 +15,7 @@
         public MessageContext Message { get; }
 
         public IMessageSession MessageSession { get; }
+
+        public TaskCompletionSource<bool> Completed { get; } = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 }
