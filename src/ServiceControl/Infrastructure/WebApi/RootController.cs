@@ -38,7 +38,8 @@
                 Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
                 LicenseStatus = license.IsValid ? "valid" : "invalid",
                 LicenseDetails = baseUrl + "license",
-                Configuration = baseUrl + "configuration"
+                Configuration = baseUrl + "configuration",
+                EventLogItems = baseUrl + "eventlogitems"
             };
 
             return Ok(model);
@@ -110,6 +111,7 @@
             public string LicenseDetails { get; set; }
             public string Name { get; set; }
             public string SagasUrl { get; set; }
+            public string EventLogItems { get; set; }
         }
     }
 }

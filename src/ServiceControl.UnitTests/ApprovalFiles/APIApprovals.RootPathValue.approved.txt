@@ -11,5 +11,6 @@
   "LicenseStatus": "valid",
   "LicenseDetails": "http://localhost/license",
   "Name": "testName",
-  "SagasUrl": "http://localhost/sagas"
+  "SagasUrl": "http://localhost/sagas",
+  "EventLogItems": "http://localhost/eventlogitems"
 }
