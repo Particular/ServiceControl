@@ -11,6 +11,7 @@
     using Metrics;
     using Microsoft.AspNet.SignalR;
     using Microsoft.Owin.Cors;
+    using Microsoft.Owin.StaticFiles;
     using Newtonsoft.Json;
     using Owin;
     using Owin.Metrics;
@@ -64,6 +65,27 @@
 
                 b.UseWebApi(config);
             });
+
+            app.Map("/web", b =>
+            {
+                var uiFileSystem = new ZipFileSystem(@"C:\Code\Particular\ServicePulse-1.22.0.zip");
+
+                b.UseDefaultFiles(new DefaultFilesOptions
+                {
+                    FileSystem = uiFileSystem,
+                    DefaultFileNames = new List<string>{ "index.html" }
+                });
+
+                var options = new StaticFileOptions
+                {
+                    FileSystem = uiFileSystem,
+                    ServeUnknownFileTypes = true
+                };
+
+                b.UseStaticFiles(options);
+            });
+
+            app.RedirectRootTo("web");
         }
 
         private void ConfigureSignalR(IAppBuilder app)
