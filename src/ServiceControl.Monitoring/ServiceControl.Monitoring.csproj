@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.6.0" />
-    <PackageReference Include="GitVersionTask" Version="4.0.0" />
     <PackageReference Include="Nancy" Version="1.4.3" />
     <PackageReference Include="Nancy.Bootstrappers.Autofac" Version="1.4.1" />
     <PackageReference Include="Nancy.Hosting.Self" Version="1.4.1" />
