@@ -106,13 +106,25 @@
             Assert.Contains("<?per_page=100&page=1>; rel=\"first\"", pagingHeaders);
         }
 
+        [Test]
+        public void WithPagingLinks_WhenRouteHasTokens_TokenIsReplacedInLinks()
+        {
+            var pagingHeaders = GetLinks(totalResults: 300, currentPage: 3, path: "endpoint/foo/messages", template: "api/{endpointName}/messages");
+
+            Assert.Contains("<endpoint/foo/messages?page=4>; rel=\"next\"", pagingHeaders);
+            Assert.Contains("<endpoint/foo/messages?page=6>; rel=\"last\"", pagingHeaders);
+            Assert.Contains("<endpoint/foo/messages?page=2>; rel=\"prev\"", pagingHeaders);
+            Assert.Contains("<endpoint/foo/messages?page=1>; rel=\"first\"", pagingHeaders);
+        }
+
         static string[] GetLinks(
             int totalResults,
             int? highestTotalCountOfAllInstances = null,
             int? currentPage = null,
             int? resultsPerPage = null,
             string path = null,
-            string queryParams = null)
+            string queryParams = null, 
+            string template = null)
         {
             var queryString = "?";
 
@@ -128,7 +140,7 @@
 
             queryString += queryParams;
             var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://name.tld:99/api/{path ?? string.Empty}{queryString.TrimEnd('&')}");
-            request.SetRequestContext(new HttpRequestContext {RouteData = new HttpRouteData(new HttpRoute(path))});
+            request.SetRequestContext(new HttpRequestContext {RouteData = new HttpRouteData(new HttpRoute(template ?? path))});
 
             var response = request.CreateResponse().WithPagingLinks(totalResults, highestTotalCountOfAllInstances ?? totalResults, request);
 
