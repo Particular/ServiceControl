@@ -10,9 +10,20 @@
     public class NegotiatorExtensionsTests
     {
         [Test]
-        public void WithPagingLinks_ReturnsLinksWithRelativeUriButWithoutApiPrefix()
+        public void WithPagingLinks_ReturnsLinksWithRelativeUri()
         {
             var pagingHeaders = GetLinks(totalResults: 200, currentPage: 3, path: "test1/test2");
+
+            Assert.Contains("<test1/test2?page=4>; rel=\"next\"", pagingHeaders);
+            Assert.Contains("<test1/test2?page=4>; rel=\"last\"", pagingHeaders);
+            Assert.Contains("<test1/test2?page=2>; rel=\"prev\"", pagingHeaders);
+            Assert.Contains("<test1/test2?page=1>; rel=\"first\"", pagingHeaders);
+        }
+
+        [Test]
+        public void WithPagingLinks_ReturnsLinksWithRelativeUriButWithoutApiPrefix()
+        {
+            var pagingHeaders = GetLinks(totalResults: 200, currentPage: 3, path: "api/test1/test2");
 
             Assert.Contains("<test1/test2?page=4>; rel=\"next\"", pagingHeaders);
             Assert.Contains("<test1/test2?page=4>; rel=\"last\"", pagingHeaders);
@@ -125,7 +136,7 @@
             }
 
             queryString += queryParams;
-            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://name.tld:99/api/{path ?? string.Empty}{queryString.TrimEnd('&')}");
+            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://name.tld:99/{path ?? string.Empty}{queryString.TrimEnd('&')}");
 
             var response = request.CreateResponse().WithPagingLinks(totalResults, highestTotalCountOfAllInstances ?? totalResults, request);
 

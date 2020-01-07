@@ -105,7 +105,9 @@ namespace ServiceControl.Infrastructure.WebApi
                 return response;
             }
 
-            var path = request.RequestUri.AbsolutePath.Substring(5); // NOTE: Strips off the /api/ for backwards compat
+            var path = request.RequestUri.AbsolutePath.StartsWith("/api/", StringComparison.OrdinalIgnoreCase) 
+                ? request.RequestUri.AbsolutePath.Substring(5) // NOTE: Strips off the /api/ for backwards compat
+                : request.RequestUri.AbsolutePath.TrimStart('/'); 
             var query = new StringBuilder();
 
             query.Append("?");
