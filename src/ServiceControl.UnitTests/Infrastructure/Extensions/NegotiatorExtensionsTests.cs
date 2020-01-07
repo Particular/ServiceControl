@@ -3,8 +3,6 @@
     using System;
     using System.Linq;
     using System.Net.Http;
-    using System.Web.Http.Controllers;
-    using System.Web.Http.Routing;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.WebApi;
 
@@ -128,7 +126,6 @@
 
             queryString += queryParams;
             var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://name.tld:99/api/{path ?? string.Empty}{queryString.TrimEnd('&')}");
-            request.SetRequestContext(new HttpRequestContext {RouteData = new HttpRouteData(new HttpRoute(path))});
 
             var response = request.CreateResponse().WithPagingLinks(totalResults, highestTotalCountOfAllInstances ?? totalResults, request);
 
