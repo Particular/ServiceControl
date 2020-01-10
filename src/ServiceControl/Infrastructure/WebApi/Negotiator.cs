@@ -105,7 +105,7 @@ namespace ServiceControl.Infrastructure.WebApi
                 return response;
             }
 
-            var path = request.GetRouteData().Route.RouteTemplate; //should ideally be request.RequestUri.AbsolutePath, but using route instead to keep it backwards compatible
+            var path = request.RequestUri.AbsolutePath.Substring(5); // NOTE: Strips off the /api/ for backwards compat
             var query = new StringBuilder();
 
             query.Append("?");
