@@ -8,6 +8,10 @@
     {
         public AddNewAuditInstanceViewModelValidator()
         {
+            RuleFor(x => x.ServiceControlAudit.InstanceName)
+                .NotEmpty()
+                .When(x => x.SubmitAttempted);
+
             RuleFor(x => x.ServiceControlAudit.ServiceAccount)
                 .NotEmpty()
                 .When(x => x.SubmitAttempted);

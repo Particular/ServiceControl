@@ -4,10 +4,16 @@ namespace ServiceControl.Config.UI.InstanceAdd
     using Validation;
     using Validations = Extensions.Validations;
 
-    public class ServiceControlAddViewModelValidator : AbstractValidator<ServiceControlEditorViewModel>
+    public class ServiceControlAddViewModelValidator : AbstractValidator<ServiceControlAddViewModel>
     {
         public ServiceControlAddViewModelValidator()
         {
+            RuleFor(x => x.ConventionName)
+                .NotEmpty()
+                .When(x => x.SubmitAttempted && 
+                           !x.IsServiceControlAuditExpanded &&
+                           !x.IsServiceControlExpanded);
+
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();
 
