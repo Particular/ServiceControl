@@ -88,6 +88,9 @@
             ServiceControl.ApplyConventionalServiceName(ConventionName);
             ServiceControlAudit.ApplyConventionalServiceName(ConventionName);
         }
+
+        public bool IsServiceControlExpanded { get; set; }
+        public bool IsServiceControlAuditExpanded { get; set; }
     }
 
     public class ServiceControlInformation : SharedServiceControlEditorViewModel
