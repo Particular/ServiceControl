@@ -49,11 +49,6 @@
     <Resource Include="App.ico" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Resource Remove="Themes\Generic.xaml" />
-    <Page Include="Themes\Generic.xaml" />
-  </ItemGroup>
-
   <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
