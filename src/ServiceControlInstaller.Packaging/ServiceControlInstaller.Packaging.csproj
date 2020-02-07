@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.3.0" PrivateAssets="All" />
+    <PackageReference Include="Packaging.ServiceControl.Monitoring" Version="2.3.1" PrivateAssets="All" />
   </ItemGroup>
 
   <Target Name="CreateServiceControlZip" AfterTargets="Build">

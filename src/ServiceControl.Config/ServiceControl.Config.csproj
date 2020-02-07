@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.37-preview">
+﻿<Project Sdk="MSBuild.Sdk.Extras/2.0.54">
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
@@ -44,24 +44,19 @@
     <Resource Include="Resources\**\*.*" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
     <None Remove="App.ico" />
     <Resource Include="App.ico" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Resource Remove="Themes\Generic.xaml" />
-    <Page Include="Themes\Generic.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
+  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
