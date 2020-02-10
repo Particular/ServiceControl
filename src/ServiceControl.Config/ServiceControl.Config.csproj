@@ -28,7 +28,7 @@
     <PackageReference Include="Fody" Version="6.1.0" />
     <PackageReference Include="Mindscape.Raygun4Net" Version="5.4.1" />
     <PackageReference Include="PropertyChanged.Fody" Version="2.6.0" />
-    <PackageReference Include="PropertyChanging.Fody" Version="1.29.3" />
+    <PackageReference Include="PropertyChanging.Fody" Version="1.30.0" />
     <PackageReference Include="reactiveui" Version="5.5.1" />
     <PackageReference Include="Validar.Fody" Version="1.7.4" />
     <PackageReference Include="Windows7APICodePack-Shell" Version="1.1.0" />
