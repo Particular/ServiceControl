@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
-    using System.Data.Common;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using NServiceBus.Transport.SQLServer;
 
     public class SqlServerTransportCustomization : TransportCustomization
     {
@@ -20,11 +18,6 @@
             }
 
             endpointConfig.GetSettings().Set("SqlServer.DisableDelayedDelivery", true);
-            var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
-            if (!sendOnlyEndpoint)
-            {
-                transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
-            }
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
@@ -33,12 +26,6 @@
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             ConfigureConnection(transport, transportSettings);
             endpointConfig.Settings.Set("SqlServer.DisableDelayedDelivery", true);
-
-            var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
-            if (!sendOnlyEndpoint)
-            {
-                transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
-            }
             transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
         }
 
