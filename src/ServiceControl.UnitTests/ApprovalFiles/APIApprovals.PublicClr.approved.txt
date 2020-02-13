@@ -52,9 +52,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool AllowMessageEditing { get; set; }
         public string ApiUrl { get; }
         public System.Nullable<System.TimeSpan> AuditRetentionPeriod { get; }
+        public int DataSpaceRemainingThreshold { get; set; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
-        public int DataSpaceRemainingThreshold { get; set; }
         public string DbPath { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public string ErrorLogQueue { get; set; }
@@ -118,8 +118,8 @@ namespace ServiceControl.CompositeViews.Endpoints
         public string HostDisplayName { get; set; }
         public System.Guid Id { get; set; }
         public bool IsSendingHeartbeats { get; set; }
-        public bool Monitored { get; set; }
         public bool MonitorHeartbeat { get; set; }
+        public bool Monitored { get; set; }
         public string Name { get; set; }
     }
     public class HeartbeatInformation
@@ -146,11 +146,11 @@ namespace ServiceControl.CompositeViews.Messages
         [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string endpoint, string q) { }
         [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search/{keyword}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) { }
-        [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("messages/search/{keyword}")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyWord(string keyword) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search/{keyword}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) { }
     }
     public class GetMessagesController : System.Web.Http.ApiController
     {
@@ -311,12 +311,6 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
         public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
         public System.DateTime RestoredAt { get; set; }
     }
-    public class HeartbeatingEndpointDetected
-    {
-        public HeartbeatingEndpointDetected() { }
-        public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
-    }
     public class HeartbeatMonitoringDisabled
     {
         public HeartbeatMonitoringDisabled() { }
@@ -326,6 +320,12 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
     {
         public HeartbeatMonitoringEnabled() { }
         public System.Guid EndpointInstanceId { get; set; }
+    }
+    public class HeartbeatingEndpointDetected
+    {
+        public HeartbeatingEndpointDetected() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
     }
 }
 namespace ServiceControl.Contracts.MessageFailures
@@ -704,8 +704,8 @@ namespace ServiceControl.MessageFailures.Api
     public class FailedMessageView
     {
         public FailedMessageView() { }
-        public bool Edited { get; set; }
         public string EditOf { get; set; }
+        public bool Edited { get; set; }
         public ServiceControl.Contracts.Operations.ExceptionDetails Exception { get; set; }
         public string Id { get; set; }
         public bool IsSystemMessage { get; set; }
@@ -943,6 +943,11 @@ namespace ServiceControl.Monitoring
         public void RecordActive() { }
         public void RecordFailing() { }
     }
+    public class EndpointUpdateModel
+    {
+        public EndpointUpdateModel() { }
+        public bool MonitorHeartbeat { get; set; }
+    }
     public class EndpointsMonitoringController : System.Web.Http.ApiController
     {
         [System.Web.Http.HttpDeleteAttribute()]
@@ -963,11 +968,6 @@ namespace ServiceControl.Monitoring
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("endpoints/known")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> KnownEndpoints() { }
-    }
-    public class EndpointUpdateModel
-    {
-        public EndpointUpdateModel() { }
-        public bool MonitorHeartbeat { get; set; }
     }
     public enum HeartbeatStatus
     {
@@ -1227,10 +1227,6 @@ namespace ServiceControl.Recoverability
         public System.DateTime TimeOfFailure { get; set; }
         public System.DateTime TimeSent { get; set; }
     }
-    public class FailureGroupsViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupView>
-    {
-        public FailureGroupsViewIndex() { }
-    }
     public class FailureGroupView
     {
         public FailureGroupView() { }
@@ -1240,6 +1236,10 @@ namespace ServiceControl.Recoverability
         public System.DateTime Last { get; set; }
         public string Title { get; set; }
         public string Type { get; set; }
+    }
+    public class FailureGroupsViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupView>
+    {
+        public FailureGroupsViewIndex() { }
     }
     public class HistoricRetryOperation
     {
@@ -1266,6 +1266,13 @@ namespace ServiceControl.Recoverability
         public MessageFailedInStaging() { }
         public string UniqueMessageId { get; set; }
     }
+    public class MessageTypeFailureClassifier : ServiceControl.Recoverability.IFailureClassifier
+    {
+        public const string Id = "Message Type";
+        public MessageTypeFailureClassifier() { }
+        public string Name { get; }
+        public string ClassifyFailure(ServiceControl.Recoverability.ClassifiableMessageDetails failureDetails) { }
+    }
     public class MessagesSubmittedForRetry
     {
         public MessagesSubmittedForRetry() { }
@@ -1279,13 +1286,6 @@ namespace ServiceControl.Recoverability
         public string Destination { get; set; }
         public string FailedMessageId { get; set; }
         public string Reason { get; set; }
-    }
-    public class MessageTypeFailureClassifier : ServiceControl.Recoverability.IFailureClassifier
-    {
-        public const string Id = "Message Type";
-        public MessageTypeFailureClassifier() { }
-        public string Name { get; }
-        public string ClassifyFailure(ServiceControl.Recoverability.ClassifiableMessageDetails failureDetails) { }
     }
     public class static OperationProgressCalculator
     {
@@ -1324,14 +1324,6 @@ namespace ServiceControl.Recoverability
         public ServiceControl.Recoverability.RetryBatchStatus Status { get; set; }
         public static string MakeDocumentId(string messageUniqueId) { }
     }
-    public class RetryBatches_ByStatus_ReduceInitialBatchSize : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch, ServiceControl.Recoverability.RetryBatchGroup>
-    {
-        public RetryBatches_ByStatus_ReduceInitialBatchSize() { }
-    }
-    public class RetryBatches_ByStatusAndSession : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch>
-    {
-        public RetryBatches_ByStatusAndSession() { }
-    }
     public class RetryBatchGroup
     {
         public RetryBatchGroup() { }
@@ -1358,6 +1350,14 @@ namespace ServiceControl.Recoverability
         Staging = 2,
         Forwarding = 3,
     }
+    public class RetryBatches_ByStatusAndSession : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch>
+    {
+        public RetryBatches_ByStatusAndSession() { }
+    }
+    public class RetryBatches_ByStatus_ReduceInitialBatchSize : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch, ServiceControl.Recoverability.RetryBatchGroup>
+    {
+        public RetryBatches_ByStatus_ReduceInitialBatchSize() { }
+    }
     public class RetryHistory
     {
         public RetryHistory() { }
@@ -1371,11 +1371,6 @@ namespace ServiceControl.Recoverability
         public string GetHistoryOperationsUniqueIdentifier() { }
         public ServiceControl.Recoverability.UnacknowledgedRetryOperation[] GetUnacknowledgedByClassifier(string classifier) { }
         public static string MakeId() { }
-    }
-    public class RetryingFeature : NServiceBus.Features.Feature
-    {
-        public RetryingFeature() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
     }
     public class RetryMessagesById : NServiceBus.ICommand, NServiceBus.IMessage
     {
@@ -1466,6 +1461,11 @@ namespace ServiceControl.Recoverability
         All = 5,
         ByQueueAddress = 6,
     }
+    public class RetryingFeature : NServiceBus.Features.Feature
+    {
+        public RetryingFeature() { }
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
     public class ReturnToSenderDequeuerFeature : NServiceBus.Features.Feature
     {
         public ReturnToSenderDequeuerFeature() { }
@@ -1552,12 +1552,6 @@ namespace ServiceControl.SagaAudit
             public Result() { }
         }
     }
-    public class SagasController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("sagas/{id}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(System.Guid id) { }
-    }
     public class SagaSnapshot
     {
         public SagaSnapshot() { }
@@ -1589,5 +1583,11 @@ namespace ServiceControl.SagaAudit
         New = 0,
         Updated = 1,
         Completed = 2,
+    }
+    public class SagasController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("sagas/{id}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(System.Guid id) { }
     }
 }
