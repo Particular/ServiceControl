@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.1.0" />
     <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
     <PackageReference Include="Autofac" Version="4.6.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="NLog" Version="4.5.10" />
     <PackageReference Include="NServiceBus" Version="7.2.2" />
     <PackageReference Include="NServiceBus.Autofac" Version="7.0.0" />
