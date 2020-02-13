@@ -31,7 +31,7 @@
             {
                 Metric.Config
                     .WithOwin(middleware => b.Use(middleware), config => config
-                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(string.Empty)))
+                        .WithMetricsEndpoint(c => {}, string.Empty))
                     .WithAllCounters();
             });
 
