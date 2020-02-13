@@ -50,7 +50,7 @@
             {
                 Metric.Config
                     .WithOwin(middleware => appBuilder.Use(middleware), owinConfig => owinConfig
-                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(String.Empty)))
+                        .WithMetricsEndpoint(c => {}, string.Empty))
                     .WithAllCounters();
             });
         }
