@@ -8,12 +8,10 @@
     using System.Web.Http.Dispatcher;
     using Autofac;
     using Autofac.Integration.WebApi;
-    using Metrics;
     using Microsoft.AspNet.SignalR;
     using Microsoft.Owin.Cors;
     using Newtonsoft.Json;
     using Owin;
-    using Owin.Metrics;
     using ServiceControl.Infrastructure.OWIN;
     using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.Infrastructure.WebApi;
@@ -27,14 +25,6 @@
 
         public void Configuration(IAppBuilder app, Assembly additionalAssembly = null)
         {
-            app.Map("/metrics", b =>
-            {
-                Metric.Config
-                    .WithOwin(middleware => b.Use(middleware), config => config
-                        .WithMetricsEndpoint(c => {}, string.Empty))
-                    .WithAllCounters();
-            });
-
             app.Map("/api", b =>
             {
                 b.Use<BodyUrlRouteFix>();

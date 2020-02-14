@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.OWIN
 {
-    using System;
     using System.Collections.Generic;
     using System.Net.Http.Headers;
     using System.Reflection;
@@ -8,9 +7,7 @@
     using System.Web.Http.Dispatcher;
     using Autofac;
     using Autofac.Integration.WebApi;
-    using Metrics;
     using Owin;
-    using Owin.Metrics;
     using WebApi;
 
     class Startup
@@ -44,14 +41,6 @@
                 config.MessageHandlers.Add(new NotModifiedStatusHttpHandler());
 
                 map.UseWebApi(config);
-            });
-
-            appBuilder.Map("/metrics", b =>
-            {
-                Metric.Config
-                    .WithOwin(middleware => appBuilder.Use(middleware), owinConfig => owinConfig
-                        .WithMetricsEndpoint(c => {}, string.Empty))
-                    .WithAllCounters();
             });
         }
 
