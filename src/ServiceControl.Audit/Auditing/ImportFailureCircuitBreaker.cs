@@ -2,13 +2,14 @@
 {
     using System;
     using System.Threading;
-    using NServiceBus;
+    using System.Threading.Tasks;
 
     class ImportFailureCircuitBreaker : IDisposable
     {
-        public ImportFailureCircuitBreaker(CriticalError criticalError)
+
+        public ImportFailureCircuitBreaker(Func<string, Exception, Task> onCriticalError)
         {
-            this.criticalError = criticalError;
+            this.onCriticalError = onCriticalError;
             timer = new Timer(_ => FlushHistory(), null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(20));
         }
 
@@ -22,16 +23,16 @@
             Interlocked.Exchange(ref failureCount, 0);
         }
 
-        public void Increment(Exception lastException)
+        public async Task Increment(Exception lastException)
         {
             var result = Interlocked.Increment(ref failureCount);
             if (result > 50)
             {
-                criticalError.Raise("Failed to import too many times", lastException);
+                await onCriticalError("Failed to import too many times", lastException).ConfigureAwait(false);
             }
         }
 
-        readonly CriticalError criticalError;
+        Func<string, Exception, Task> onCriticalError;
         Timer timer;
         long failureCount;
     }

@@ -1,12 +1,9 @@
 namespace ServiceControl.Audit.Infrastructure
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Autofac;
-    using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Client;
-    using Raven.Client.Embedded;
-    using Settings;
+    using NServiceBus.Raw;
     using Transports;
 
     class SetupBootstrapper
@@ -18,35 +15,42 @@ namespace ServiceControl.Audit.Infrastructure
 
         public async Task Run(string username)
         {
-            var configuration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = configuration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+            var transportSettings = MapSettings(settings);
+            var transportCustomization = settings.LoadTransportCustomization();
+            var factory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
 
-            configuration.EnableInstallers(username);
+            var config = factory.CreateRawEndpointConfiguration(settings.AuditQueue, (context, dispatcher) => Task.CompletedTask);
 
             if (settings.SkipQueueCreation)
             {
                 log.Info("Skipping queue creation");
-                configuration.DoNotCreateQueues();
             }
-
-            var containerBuilder = new ContainerBuilder();
-
-            var transportSettings = new TransportSettings();
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
-            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = new EmbeddableDocumentStore();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings).SingleInstance();
-
-            using (documentStore)
-            using (var container = containerBuilder.Build())
+            else
             {
-                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, null, documentStore, configuration, false)
-                    .ConfigureAwait(false);
+                var additionalQueues = new List<string>
+                {
+                    $"{settings.ServiceName}.Errors"
+                };
+                if (settings.ForwardAuditMessages && settings.AuditLogQueue != null)
+                {
+                    additionalQueues.Add(settings.AuditLogQueue);
+                }
+                config.AutoCreateQueues(additionalQueues.ToArray(), username);
             }
+
+            //No need to start the raw endpoint to create queues
+            await RawEndpoint.Create(config).ConfigureAwait(false);
+        }
+
+        static TransportSettings MapSettings(Settings.Settings settings)
+        {
+            var transportSettings = new TransportSettings
+            {
+                EndpointName = settings.ServiceName,
+                ConnectionString = settings.TransportConnectionString,
+                MaxConcurrency = settings.MaximumConcurrencyLevel
+            };
+            return transportSettings;
         }
 
         private readonly Settings.Settings settings;

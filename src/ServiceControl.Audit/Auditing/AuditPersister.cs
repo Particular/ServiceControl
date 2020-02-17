@@ -7,6 +7,7 @@
     using BodyStorage;
     using Infrastructure;
     using NServiceBus;
+    using NServiceBus.Transport;
     using Raven.Client;
 
     class AuditPersister
@@ -18,21 +19,26 @@
             this.enrichers = enrichers;
         }
 
-        public async Task Persist(ProcessAuditMessageContext context)
+        public void Initialize(IMessageSession messageSession)
         {
-            if (!context.Message.Headers.TryGetValue(Headers.MessageId, out var messageId))
+            this.messageSession = messageSession;
+        }
+
+        public async Task Persist(MessageContext message)
+        {
+            if (!message.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
-                messageId = DeterministicGuid.MakeId(context.Message.MessageId).ToString();
+                messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
             }
 
             var metadata = new ConcurrentDictionary<string, object>
             {
                 ["MessageId"] = messageId,
-                ["MessageIntent"] = context.Message.Headers.MessageIntent()
+                ["MessageIntent"] = message.Headers.MessageIntent()
             };
 
             var commandsToEmit = new List<ICommand>();
-            var enricherContext = new AuditEnricherContext(context.Message.Headers, commandsToEmit, metadata);
+            var enricherContext = new AuditEnricherContext(message.Headers, commandsToEmit, metadata);
 
             // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var enricher in enrichers)
@@ -40,10 +46,10 @@
                 enricher.Enrich(enricherContext);
             }
 
-            await bodyStorageEnricher.StoreAuditMessageBody(context.Message.Body, context.Message.Headers, metadata)
+            await bodyStorageEnricher.StoreAuditMessageBody(message.Body, message.Headers, metadata)
                 .ConfigureAwait(false);
 
-            var auditMessage = new ProcessedMessage(context.Message.Headers, new Dictionary<string, object>(metadata))
+            var auditMessage = new ProcessedMessage(message.Headers, new Dictionary<string, object>(metadata))
             {
                 // We do this so Raven does not spend time assigning a hilo key
                 Id = $"ProcessedMessages/{Guid.NewGuid()}"
@@ -59,7 +65,7 @@
 
             foreach (var commandToEmit in commandsToEmit)
             {
-                await context.MessageSession.Send(commandToEmit)
+                await messageSession.Send(commandToEmit)
                     .ConfigureAwait(false);
             }
         }
@@ -67,5 +73,6 @@
         readonly IEnrichImportedAuditMessages[] enrichers;
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        IMessageSession messageSession;
     }
 }

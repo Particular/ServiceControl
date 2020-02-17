@@ -10,7 +10,6 @@
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using Settings;
-    using Subscriptions;
 
     class RavenBootstrapper : INeedInitialization
     {
@@ -26,8 +25,6 @@
             Settings = settings;
 
             StartRaven(documentStore, settings, false);
-
-            configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
         public static string ReadLicense()
@@ -44,8 +41,6 @@
             Settings = settings;
 
             Directory.CreateDirectory(settings.DbPath);
-
-            documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
 
             if (settings.RunInMemory)
             {

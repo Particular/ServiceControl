@@ -1,15 +1,11 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
-    using System.IO;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.Features;
-    using NServiceBus.ObjectBuilder;
     using NServiceBus.Transport;
-    using Raven.Client;
-
+    
     class AuditImporter : Feature
     {
         public AuditImporter()
@@ -26,95 +22,31 @@
         {
             var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
 
-            context.Container.ConfigureComponent<AuditPersister>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<AuditIngestor>(DependencyLifecycle.SingleInstance);
+            var queueBindings = context.Settings.Get<QueueBindings>();
+            queueBindings.BindReceiving(settings.AuditQueue);
 
-            context.AddSatelliteReceiver(
-                "Audit Import",
-                context.Settings.ToTransportAddress(settings.AuditQueue),
-                new PushRuntimeSettings(settings.MaximumConcurrencyLevel),
-                OnAuditError,
-                (builder, messageContext) => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => OnAuditMessage(new ProcessAuditMessageContext(messageContext, builder.Build<IMessageSession>())))
-            );
-
-            context.RegisterStartupTask(b => new StartupTask(CreateFailureHandler(b), b.Build<AuditIngestor>(), this));
-
-            if (settings.ForwardAuditMessages)
-            {
-                context.RegisterStartupTask(b => new EnsureCanWriteToForwardingAddress(b.Build<IForwardMessages>(), settings.AuditLogQueue));
-            }
+            context.Container.ConfigureComponent<AuditIngestionCustomCheck.State>(DependencyLifecycle.SingleInstance);
+            context.RegisterStartupTask(b => new StartupTask(b.Build<AuditIngestionComponent>()));
         }
-
-        static SatelliteImportFailuresHandler CreateFailureHandler(IBuilder b)
-        {
-            var documentStore = b.Build<IDocumentStore>();
-            var logPath = Path.Combine(b.Build<LoggingSettings>().LogPath, @"FailedImports\Audit");
-
-            return new SatelliteImportFailuresHandler(documentStore, logPath, msg => new FailedAuditImport
-            {
-                Message = msg
-            }, b.Build<CriticalError>());
-        }
-
-        Task OnAuditMessage(ProcessAuditMessageContext context)
-        {
-            return auditIngestor.Ingest(context);
-        }
-
-        RecoverabilityAction OnAuditError(RecoverabilityConfig config, ErrorContext errorContext)
-        {
-            var recoverabilityAction = DefaultRecoverabilityPolicy.Invoke(config, errorContext);
-
-            if (recoverabilityAction is MoveToError)
-            {
-                importFailuresHandler.Handle(errorContext).GetAwaiter().GetResult();
-            }
-
-            return recoverabilityAction;
-        }
-
-        SatelliteImportFailuresHandler importFailuresHandler;
-        AuditIngestor auditIngestor;
 
         class StartupTask : FeatureStartupTask
         {
-            public StartupTask(SatelliteImportFailuresHandler importFailuresHandler, AuditIngestor auditIngestor, AuditImporter importer)
+            readonly AuditIngestionComponent auditIngestion;
+
+            public StartupTask(AuditIngestionComponent auditIngestion)
             {
-                importer.importFailuresHandler = importFailuresHandler;
-                importer.auditIngestor = auditIngestor;
+                this.auditIngestion = auditIngestion;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
-                return Task.FromResult(0);
+                return auditIngestion.Start(session);
             }
 
             protected override Task OnStop(IMessageSession session)
             {
-                return Task.FromResult(0);
+                return auditIngestion.Stop();
             }
-        }
-
-        class EnsureCanWriteToForwardingAddress : FeatureStartupTask
-        {
-            public EnsureCanWriteToForwardingAddress(IForwardMessages messageForwarder, string forwardingAddress)
-            {
-                this.messageForwarder = messageForwarder;
-                this.forwardingAddress = forwardingAddress;
-            }
-
-            protected override Task OnStart(IMessageSession session)
-            {
-                return messageForwarder.VerifyCanReachForwardingAddress(forwardingAddress);
-            }
-
-            protected override Task OnStop(IMessageSession session)
-            {
-                return Task.CompletedTask;
-            }
-
-            readonly IForwardMessages messageForwarder;
-            readonly string forwardingAddress;
         }
     }
 }

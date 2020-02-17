@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
-    using System.Data.Common;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
