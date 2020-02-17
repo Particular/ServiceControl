@@ -5,30 +5,45 @@
     using System.IO;
     using System.Threading.Tasks;
     using Infrastructure.Installers;
-    using NServiceBus;
+    using Infrastructure.Settings;
+    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Raven.Client;
 
-    class SatelliteImportFailuresHandler
+    class AuditIngestionFaultPolicy : IErrorHandlingPolicy
     {
         IDocumentStore store;
         string logPath;
-
         Func<FailedTransportMessage, object> messageBuilder;
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public SatelliteImportFailuresHandler(IDocumentStore store, string logPath, Func<FailedTransportMessage, object> messageBuilder, CriticalError criticalError)
+        public AuditIngestionFaultPolicy(IDocumentStore store, LoggingSettings settings, Func<FailedTransportMessage, object> messageBuilder, Func<string, Exception, Task> onCriticalError)
         {
             this.store = store;
-            this.logPath = logPath;
+            this.logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
             this.messageBuilder = messageBuilder;
 
-            failureCircuitBreaker = new ImportFailureCircuitBreaker(criticalError);
+            failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
 
             Directory.CreateDirectory(logPath);
         }
 
-        public Task Handle(ErrorContext errorContext)
+        public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+        {
+            //Same as recoverability policy in NServiceBusFactory
+            if (handlingContext.Error.ImmediateProcessingFailures < 3)
+            {
+                return ErrorHandleResult.RetryRequired;
+            }
+
+            await StoreFailedMessageDocument(handlingContext.Error)
+                .ConfigureAwait(false);
+            await handlingContext.MoveToErrorQueue(handlingContext.FailedQueue, false)
+                .ConfigureAwait(false);
+            return ErrorHandleResult.Handled;
+        }
+
+        Task StoreFailedMessageDocument(ErrorContext errorContext)
         {
             var failure = (dynamic)messageBuilder(new FailedTransportMessage
             {
@@ -49,7 +64,7 @@
             }
             finally
             {
-                failureCircuitBreaker.Increment(exception);
+                await failureCircuitBreaker.Increment(exception).ConfigureAwait(false);
             }
         }
 

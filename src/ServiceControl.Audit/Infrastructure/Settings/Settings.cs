@@ -42,6 +42,7 @@
             DbPath = GetDbPath();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
+            TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
         }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
@@ -164,6 +165,8 @@
 
         public string ServiceControlQueueAddress { get; set; }
 
+        public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
+        
         public TransportCustomization LoadTransportCustomization()
         {
             try
@@ -175,6 +178,41 @@
             {
                 throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
             }
+        }
+        
+        TimeSpan GetTimeToRestartAuditIngestionAfterFailure()
+        {
+            string message;
+            var valueRead = SettingsReader<string>.Read("TimeToRestartAuditIngestionAfterFailure");
+            if (valueRead == null)
+            {
+                return TimeSpan.FromSeconds(60);
+            }
+
+            if (TimeSpan.TryParse(valueRead, out var result))
+            {
+                if (ValidateConfiguration && result < TimeSpan.FromSeconds(5))
+                {
+                    message = $"{nameof(TimeToRestartAuditIngestionAfterFailure)} setting is invalid, value should be minimum 5 seconds.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                if (ValidateConfiguration && result > TimeSpan.FromHours(1))
+                {
+                    message = $"{nameof(TimeToRestartAuditIngestionAfterFailure)} setting is invalid, value should be maximum 1 hour.";
+                    InternalLogger.Fatal(message);
+                    throw new Exception(message);
+                }
+            }
+            else
+            {
+                message = $"{nameof(TimeToRestartAuditIngestionAfterFailure)} setting is invalid, please make sure it is a TimeSpan.";
+                InternalLogger.Fatal(message);
+                throw new Exception(message);
+            }
+
+            return result;
         }
 
         private string GetAuditLogQueue()
