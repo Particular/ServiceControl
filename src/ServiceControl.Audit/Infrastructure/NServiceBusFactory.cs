@@ -64,7 +64,9 @@ namespace ServiceControl.Audit.Infrastructure
                 configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
             }
 
+#pragma warning disable CS0618 // Type or member is obsolete
             configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
+#pragma warning restore CS0618 // Type or member is obsolete
 
             configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {

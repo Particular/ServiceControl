@@ -86,7 +86,9 @@
 
             container = containerBuilder.Build();
 
+#pragma warning disable CS0618 // Type or member is obsolete
             config.UseContainer<AutofacBuilder>(
+#pragma warning restore CS0618 // Type or member is obsolete
                 c => c.ExistingLifetimeScope(container)
             );
 
