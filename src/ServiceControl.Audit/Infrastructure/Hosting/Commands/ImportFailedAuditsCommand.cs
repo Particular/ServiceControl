@@ -31,7 +31,7 @@
 
                 try
                 {
-                    await importer.Run(tokenSource).ConfigureAwait(false);
+                    await importer.Run(tokenSource.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

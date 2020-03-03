@@ -9,7 +9,6 @@ namespace ServiceControl.Audit.Infrastructure
     using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Features;
     using Raven.Client.Embedded;
     using Settings;
     using Transports;
@@ -32,9 +31,11 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.GetSettings().Set(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
-            MapSettings(transportSettings, settings);
+            configuration.SendOnly();
 
             transportCustomization.CustomizeEndpoint(configuration, transportSettings);
+            //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
+            configuration.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
 
             var routing = new RoutingSettings(configuration.GetSettings());
             routing.RouteToEndpoint(typeof(RegisterNewEndpoint), settings.ServiceControlQueueAddress);
@@ -42,20 +43,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.GetSettings().Set(loggingSettings);
 
-            // Disable Auditing for the service control endpoint
-            configuration.DisableFeature<Audit>();
-            configuration.DisableFeature<AutoSubscribe>();
-            configuration.DisableFeature<TimeoutManager>();
-            configuration.DisableFeature<Outbox>();
-
-            var recoverability = configuration.Recoverability();
-            recoverability.Immediate(c => c.NumberOfRetries(3));
-            recoverability.Delayed(c => c.NumberOfRetries(0));
-            configuration.SendFailedMessagesTo($"{endpointName}.Errors");
-
             configuration.UseSerialization<NewtonsoftSerializer>();
-
-            configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
@@ -80,13 +68,6 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             return Endpoint.Create(configuration);
-        }
-
-        private static void MapSettings(TransportSettings transportSettings, Settings.Settings settings)
-        {
-            transportSettings.EndpointName = settings.ServiceName;
-            transportSettings.ConnectionString = settings.TransportConnectionString;
-            transportSettings.MaxConcurrency = settings.MaximumConcurrencyLevel;
         }
 
         public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)

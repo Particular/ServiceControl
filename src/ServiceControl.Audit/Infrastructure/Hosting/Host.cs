@@ -41,7 +41,9 @@
             {
                 RunCleanupBundle = true
             };
-            bootstrapper = new Bootstrapper(ctx => Stop(), settings, busConfiguration, loggingSettings);
+            bootstrapper = new Bootstrapper(
+                ctx => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
+                settings, busConfiguration, loggingSettings);
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 

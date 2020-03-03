@@ -42,7 +42,7 @@
         public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken token)
         {
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-            await importFailedAudits.Value.Run(tokenSource);
+            await importFailedAudits.Value.Run(tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 

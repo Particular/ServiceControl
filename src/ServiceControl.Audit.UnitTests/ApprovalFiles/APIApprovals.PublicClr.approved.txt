@@ -135,11 +135,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 }
 namespace ServiceControl.Audit.Infrastructure.Installers
 {
-    public class AuditLoqQueue : NServiceBus.Features.Feature
-    {
-        public AuditLoqQueue() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
     public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething
     {
         public const string SourceName = "ServiceControl.Audit";
@@ -196,6 +191,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
         public string StorageUrl { get; }
+        public System.TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
         public string TransportCustomizationType { get; set; }
         public bool ValidateConfiguration { get; }

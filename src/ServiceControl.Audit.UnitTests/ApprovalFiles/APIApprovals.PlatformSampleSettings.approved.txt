@@ -40,5 +40,6 @@
   "TransportConnectionString": null,
   "MaximumConcurrencyLevel": 10,
   "DataSpaceRemainingThreshold": 20,
-  "ServiceControlQueueAddress": "Particular.ServiceControl"
+  "ServiceControlQueueAddress": "Particular.ServiceControl",
+  "TimeToRestartAuditIngestionAfterFailure": "00:01:00"
 }
