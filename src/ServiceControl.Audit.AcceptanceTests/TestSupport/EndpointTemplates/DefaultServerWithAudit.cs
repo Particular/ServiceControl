@@ -14,6 +14,7 @@
             return new DefaultServerBase<Bootstrapper>().GetConfiguration(runDescriptor, endpointConfiguration, builder =>
             {
                 builder.AuditProcessedMessagesTo("audit");
+                builder.EnableInstallers();
 
                 configurationBuilderCustomization(builder);
             });
