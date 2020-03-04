@@ -20,14 +20,14 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPort()
                 .PortAvailable()
                 .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName))
-                .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Monitoring Port")
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Monitoring Port"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
-                .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Path")
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Path"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ErrorQueueName)

@@ -20,7 +20,7 @@ namespace ServiceControl.Config.Validation
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => Extensions.Validations.UsedPaths(x.InstanceName))
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .WithMessage(string.Format(Validations.MSG_MUST_BE_UNIQUE, "Paths"))
                 .When(x => x.SubmitAttempted);
         }
     }

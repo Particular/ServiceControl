@@ -22,7 +22,7 @@
                 .PortAvailable()
                 .MustNotBeIn(x => Validations.UsedPorts(x.ServiceControlAudit.InstanceName))
                 .NotEqual(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
-                .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
@@ -31,21 +31,21 @@
                 .PortAvailable()
                 .MustNotBeIn(x => Validations.UsedPorts(x.ServiceControlAudit.InstanceName))
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)
-                .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DestinationPath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.ServiceControlAudit.InstanceName))
-                .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Paths"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DatabasePath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.ServiceControlAudit.InstanceName))
-                .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Paths"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.AuditForwarding)
@@ -53,12 +53,12 @@
 
             RuleFor(x => x.ServiceControlAudit.AuditQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
+                .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.AuditForwardingQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ServiceControlAudit.AuditQueueName).WithMessage(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit")
+                .NotEqual(x => x.ServiceControlAudit.AuditQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit"))
                 .When(x => x.SubmitAttempted && (x.ServiceControlAudit.AuditForwarding?.Value ?? false));
         }
     }

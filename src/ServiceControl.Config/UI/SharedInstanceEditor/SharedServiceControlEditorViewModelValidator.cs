@@ -24,14 +24,14 @@ namespace ServiceControl.Config.Validation
                 .ValidPort()
                 .MustNotBeIn(x => UsedPorts(x.InstanceName))
                 .NotEqual(x => x.DatabaseMaintenancePortNumber)
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(string.Format(Validations.MSG_MUST_BE_UNIQUE, "Ports"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.LogPath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => UsedPaths(x.InstanceName))
-                .WithMessage(Validations.MSG_MUST_BE_UNIQUE, "Paths")
+                .WithMessage(string.Format(Validations.MSG_MUST_BE_UNIQUE, "Paths"))
                 .When(x => x.SubmitAttempted);
         }
 

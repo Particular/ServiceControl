@@ -20,13 +20,13 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             RuleFor(x => x.ServiceControlAudit.AuditQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding")
+                .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.ServiceControlAudit.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .When(x => x.SubmitAttempted && x.ServiceControlAudit.AuditQueueName != "!disable");
 
             RuleFor(x => x.ServiceControlAudit.AuditForwardingQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ServiceControlAudit.AuditQueueName).WithMessage(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit")
+                .NotEqual(x => x.ServiceControlAudit.AuditQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit"))
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.ServiceControlAudit.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.ServiceControlAudit.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .When(x => x.SubmitAttempted && x.ServiceControlAudit.AuditForwarding.Value);
@@ -40,7 +40,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .ValidPort()
                 .MustNotBeIn(x => Validations.UsedPorts(x.ServiceControlAudit.InstanceName))
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)
-                .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports")
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports"))
                 .When(x => x.SubmitAttempted);
         }
     }
