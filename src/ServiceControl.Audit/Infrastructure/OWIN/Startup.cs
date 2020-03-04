@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.OWIN
 {
-    using System;
     using System.Collections.Generic;
     using System.Net.Http.Headers;
     using System.Reflection;
@@ -50,7 +49,7 @@
             {
                 Metric.Config
                     .WithOwin(middleware => appBuilder.Use(middleware), owinConfig => owinConfig
-                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(String.Empty)))
+                        .WithMetricsEndpoint(endpointConfig => endpointConfig.MetricsEndpoint(string.Empty)))
                     .WithAllCounters();
             });
         }

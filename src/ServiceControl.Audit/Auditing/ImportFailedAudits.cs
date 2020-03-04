@@ -3,30 +3,36 @@ namespace ServiceControl.Audit.Auditing
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus;
+    using Infrastructure;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Raven.Client;
     using Raven.Client.Indexes;
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor, IMessageSession messageSession)
+        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor, RawEndpointFactory rawEndpointFactory)
         {
             this.store = store;
             this.auditIngestor = auditIngestor;
-            this.messageSession = messageSession;
+            this.rawEndpointFactory = rawEndpointFactory;
         }
 
-        public Task Run(CancellationTokenSource tokenSource)
+        public Task Run(CancellationToken tokenSource)
         {
             source = tokenSource;
-            return Task.Run(() => Run<FailedAuditImport, FailedAuditImportIndex>(source.Token));
+            return Task.Run(() => Run<FailedAuditImport, FailedAuditImportIndex>(source));
         }
 
         async Task Run<T, I>(CancellationToken token) where I : AbstractIndexCreationTask, new()
         {
+            var config = rawEndpointFactory.CreateSendOnlyRawEndpointConfiguration("ImportFailedErrors");
+            var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
+
+            await auditIngestor.Initialize(endpoint).ConfigureAwait(false);
+                
             var succeeded = 0;
             var failed = 0;
             using (var session = store.OpenAsyncSession())
@@ -42,7 +48,7 @@ namespace ServiceControl.Audit.Auditing
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                            await auditIngestor.Ingest(new ProcessAuditMessageContext(messageContext, messageSession)).ConfigureAwait(false);
+                            await auditIngestor.Ingest(messageContext).ConfigureAwait(false);
 
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
@@ -75,8 +81,8 @@ namespace ServiceControl.Audit.Auditing
 
         IDocumentStore store;
         AuditIngestor auditIngestor;
-        IMessageSession messageSession;
-        CancellationTokenSource source;
+        RawEndpointFactory rawEndpointFactory;
+        CancellationToken source;
 
         static TransportTransaction EmptyTransaction = new TransportTransaction();
         static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();

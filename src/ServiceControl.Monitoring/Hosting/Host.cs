@@ -37,7 +37,7 @@
             var configuration = new EndpointConfiguration(Settings.ServiceName);
 
             bootstrapper = new Bootstrapper(
-                    c => Environment.FailFast("NServiceBus Critical Error", c.Exception), 
+                    c => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages 
                     Settings,
                     configuration);
 

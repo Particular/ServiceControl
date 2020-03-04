@@ -5,11 +5,12 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.Auditing.MessagesView;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using TestSupport.EndpointTemplates;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_hitting_a_saga_is_audited : AcceptanceTest
     {
@@ -19,6 +20,7 @@
             MessagesView auditedMessage = null;
 
             var context = await Define<MyContext>()
+                .WithEndpoint<SagaAuditProcessorFake>()
                 .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
@@ -41,12 +43,28 @@
             Assert.AreEqual("New", auditedMessage.InvokedSagas.First().ChangeStatus);
         }
 
+        public class SagaAuditProcessorFake : EndpointConfigurationBuilder
+        {
+            public SagaAuditProcessorFake()
+            {
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.Pipeline.Register(new IgnoreAllBehavior(), "Ignore all messages"));
+            }
+
+            class IgnoreAllBehavior : Behavior<ITransportReceiveContext>
+            {
+                public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
+                {
+                    return Task.CompletedTask;
+                }
+            }
+        }
+
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
             public SagaEndpoint()
             {
-                //we need to enable the plugin for it to enrich the audited messages, state changes will go to our input queue and just be discarded
-                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
+                //we need to enable the plugin for it to enrich the audited messages, state changes will go to input queue and just be discarded
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Conventions.EndpointNamingConvention(typeof(SagaAuditProcessorFake))));
             }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>

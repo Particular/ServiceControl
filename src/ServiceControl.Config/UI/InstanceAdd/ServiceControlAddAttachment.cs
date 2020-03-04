@@ -67,6 +67,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 VirtualDirectory = null, // TODO
                 ErrorQueue = viewModel.ServiceControl.ErrorQueueName,
                 ErrorLogQueue = viewModel.ServiceControl.ErrorForwarding.Value ? viewModel.ServiceControl.ErrorForwardingQueueName : null,
+                ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value,
                 TransportPackage = viewModel.SelectedTransport,
                 ConnectionString = viewModel.ConnectionString,
                 ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod,

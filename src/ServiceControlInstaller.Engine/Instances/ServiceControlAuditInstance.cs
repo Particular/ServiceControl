@@ -33,9 +33,10 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.Port, Port.ToString());
             settings.Set(AuditInstanceSettingsList.DatabaseMaintenancePort, DatabaseMaintenancePort.ToString(), Version);
             settings.Set(AuditInstanceSettingsList.LogPath, LogPath);
-            settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString());
+            settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, ForwardAuditMessages.ToString(), Version);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), Version);
-            settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue);
+            settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue, Version);
+            settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
         }
 
         protected override AppConfig CreateAppConfig()
@@ -69,10 +70,10 @@ namespace ServiceControlInstaller.Engine.Instances
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
-            ForwardAuditMessages = AppConfig.Read(ServiceControlSettings.ForwardAuditMessages, false);
+            ForwardAuditMessages = AppConfig.Read(AuditInstanceSettingsList.ForwardAuditMessages, false);
             if (ForwardAuditMessages)
             {
-                AuditLogQueue = AppConfig.Read(ServiceControlSettings.AuditLogQueue, $"{AuditQueue}.log");
+                AuditLogQueue = AppConfig.Read(AuditInstanceSettingsList.AuditLogQueue, $"{AuditQueue}.log");
             }
         }
 

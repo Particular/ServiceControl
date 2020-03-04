@@ -9,8 +9,10 @@
     using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using TestSupport.EndpointTemplates;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [RunOnAllTransports]
     class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
@@ -21,6 +23,7 @@
             var messages = new List<MessagesView>();
 
             var context = await Define<MyContext>()
+                .WithEndpoint<SagaAuditProcessorFake>()
                 .WithEndpoint<SagasEndpoint>(b => b.When((bus, c) => bus.SendLocal(new InitiateSaga
                 {
                     Saga1Id = Guid.NewGuid(),
@@ -70,12 +73,28 @@
             Assert.AreEqual($"{sagaId}:{stateChange}", m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value);
         }
 
+        public class SagaAuditProcessorFake : EndpointConfigurationBuilder
+        {
+            public SagaAuditProcessorFake()
+            {
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.Pipeline.Register(new IgnoreAllBehavior(), "Ignore all messages"));
+            }
+
+            class IgnoreAllBehavior : Behavior<ITransportReceiveContext>
+            {
+                public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
+                {
+                    return Task.CompletedTask;
+                }
+            }
+        }
+
         public class SagasEndpoint : EndpointConfigurationBuilder
         {
             public SagasEndpoint()
             {
-                //we need to enable the plugin for it to enrich the audited messages, state changes will go to our input queue and just be discarded
-                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Settings.DEFAULT_SERVICE_NAME));
+                //we need to enable the plugin for it to enrich the audited messages, state changes will go to input queue and just be discarded
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Conventions.EndpointNamingConvention(typeof(SagaAuditProcessorFake))));
             }
 
             public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>

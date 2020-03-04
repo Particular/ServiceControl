@@ -72,8 +72,12 @@ namespace ServiceControl.Audit.Infrastructure
 
             containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
 
-            transportSettings = new TransportSettings();
+            transportSettings = MapSettings(settings);
+
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+
+            var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+            containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
@@ -81,7 +85,6 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
-            containerBuilder.RegisterType<MessageForwarder>().AsImplementedInterfaces().SingleInstance();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
 
             RegisterInternalWebApiControllers(containerBuilder);
@@ -90,6 +93,17 @@ namespace ServiceControl.Audit.Infrastructure
 
             container = containerBuilder.Build();
             Startup = new Startup(container);
+        }
+
+        static TransportSettings MapSettings(Settings.Settings settings)
+        {
+            var transportSettings = new TransportSettings
+            {
+                EndpointName = settings.ServiceName,
+                ConnectionString = settings.TransportConnectionString,
+                MaxConcurrency = settings.MaximumConcurrencyLevel
+            };
+            return transportSettings;
         }
 
         static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)

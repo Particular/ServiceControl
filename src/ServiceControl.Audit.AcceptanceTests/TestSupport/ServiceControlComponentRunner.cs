@@ -120,7 +120,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             setSettings(settings);
             Settings = settings;
             var configuration = new EndpointConfiguration(instanceName);
-            configuration.EnableInstallers();
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
@@ -180,6 +179,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 var httpClient = new HttpClient(Handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClient = httpClient;
+            }
+
+            using (new DiagnosticTimer($"Creating queues for {instanceName}"))
+            {
+                var setupBootstrapper = new SetupBootstrapper(settings);
+                await setupBootstrapper.Run(null);
             }
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
