@@ -356,7 +356,7 @@
                     .NotEmpty()
                     .ValidPort()
                     .MustNotBeIn(x => Validations.UsedPorts())
-                    .WithMessage(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports");
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Ports"));
             }
         }
     }
