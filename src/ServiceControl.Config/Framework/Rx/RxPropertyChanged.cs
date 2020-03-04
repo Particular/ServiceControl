@@ -18,12 +18,12 @@
 
         public void NotifyOfPropertyChange(string propertyName)
         {
-            raisePropertyChanged(propertyName);
+            this.RaisePropertyChanged(propertyName);
         }
 
         void INotifyPropertyChangedEx.Refresh()
         {
-            raisePropertyChanged(string.Empty);
+            this.RaisePropertyChanged(string.Empty);
         }
     }
 }

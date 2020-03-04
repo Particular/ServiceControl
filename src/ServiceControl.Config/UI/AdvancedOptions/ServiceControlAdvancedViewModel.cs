@@ -21,7 +21,7 @@
             ServiceControlInstance = (ServiceControlBaseService)instance;
             DisplayName = "ADVANCED OPTIONS";
 
-            StartServiceInMaintenanceModeCommand = new ReactiveCommand().DoAsync(async _ =>
+            StartServiceInMaintenanceModeCommand = ReactiveCommand.CreateFromTask(async _ =>
             {
                 await maintenanceModeCommand.ExecuteAsync(this);
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
@@ -29,7 +29,7 @@
             DeleteCommand = deleteInstanceCommand;
             OpenUrl = new OpenURLCommand();
             CopyToClipboard = new CopyToClipboardCommand();
-            StopMaintenanceModeCommand = new ReactiveCommand().DoAsync(async _ =>
+            StopMaintenanceModeCommand = ReactiveCommand.CreateFromTask(async _ =>
             {
                 await StopService();
                 eventAggregator.PublishOnUIThread(new RefreshInstances());
