@@ -21,7 +21,7 @@
             var connectionString = ConnectionStringPartRemover.Remove(transportSettings.ConnectionString, QueueLengthProvider.QueueLengthQueryIntervalPartName);
 
             transport.ConnectionString(connectionString);
-            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
+            transport.Transactions(transportSettings.PreferredTransactionMode);
             transport.MessageReceivers().PrefetchCount(0);
             transport.Queues().LockDuration(TimeSpan.FromMinutes(5));
             transport.Subscriptions().LockDuration(TimeSpan.FromMinutes(5));
