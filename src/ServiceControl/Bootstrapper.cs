@@ -79,10 +79,8 @@ namespace Particular.ServiceControl
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
 
-            transportSettings = new TransportSettings
-            {
-                RunCustomChecks = true
-            };
+            transportSettings = MapSettings(settings);
+
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
@@ -151,6 +149,20 @@ namespace Particular.ServiceControl
             documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
+        }
+
+        private TransportSettings MapSettings(Settings settings)
+        {
+            var transportSettings = new TransportSettings
+            {
+                EndpointName = settings.ServiceName,
+                ConnectionString = settings.TransportConnectionString,
+                MaxConcurrency = settings.MaximumConcurrencyLevel,
+                RunCustomChecks = true,
+                PreferredTransactionMode = TransportTransactionMode.SendsAtomicWithReceive
+            };
+
+            return transportSettings;
         }
 
         private long DataSize()

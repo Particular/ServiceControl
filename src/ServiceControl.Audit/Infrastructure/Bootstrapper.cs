@@ -101,7 +101,8 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 EndpointName = settings.ServiceName,
                 ConnectionString = settings.TransportConnectionString,
-                MaxConcurrency = settings.MaximumConcurrencyLevel
+                MaxConcurrency = settings.MaximumConcurrencyLevel,
+                PreferredTransactionMode = TransportTransactionMode.ReceiveOnly
             };
             return transportSettings;
         }

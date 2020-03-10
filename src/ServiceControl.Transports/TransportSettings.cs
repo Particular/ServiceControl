@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports
 {
+    using NServiceBus;
     using NServiceBus.Settings;
 
     public class TransportSettings : SettingsHolder
@@ -11,5 +12,7 @@
         public int MaxConcurrency { get; set; }
 
         public bool RunCustomChecks { get; set; }
+
+        public TransportTransactionMode PreferredTransactionMode { get; set; }
     }
 }

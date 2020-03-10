@@ -50,7 +50,8 @@
                 RunCustomChecks = false,
                 ConnectionString = settings.ConnectionString,
                 EndpointName = settings.EndpointName,
-                MaxConcurrency = settings.MaximumConcurrencyLevel
+                MaxConcurrency = settings.MaximumConcurrencyLevel,
+                TransactionMode = TransportTransactionMode.ReceiveOnly
             };
 
             transportCustomization.CustomizeEndpoint(config, transportSettings);
