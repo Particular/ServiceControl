@@ -15,20 +15,20 @@
             this.transportCustomization = transportCustomization;
         }
 
-        public RawEndpointConfiguration CreateRawEndpointConfiguration(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
+        public RawEndpointConfiguration CreateAuditIngestor(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
         {
             var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
             config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
-            transportCustomization.CustomizeRawEndpoint(config, transportSettings);
+            transportCustomization.CustomizeForAuditIngestion(config, transportSettings);
             return config;
         }
 
-        public RawEndpointConfiguration CreateSendOnlyRawEndpointConfiguration(string name)
+        public RawEndpointConfiguration CreateFailedAuditsSender(string name)
         {
             var config = RawEndpointConfiguration.CreateSendOnly(name);
 
-            transportCustomization.CustomizeRawEndpoint(config, transportSettings);
+            transportCustomization.CustomizeRawSendOnlyEndpoint(config, transportSettings);
             return config;
         }
 

@@ -3,7 +3,7 @@
     using NServiceBus;
     using NServiceBus.Raw;
 
-    public class ASBSTransportCustomization : TransportCustomization
+    public class ASBSTransportCustomization : TransportCustomizationBase
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {

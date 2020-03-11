@@ -4,7 +4,7 @@
     using NServiceBus.Raw;
     using System;
 
-    public class ASQTransportCustomization : TransportCustomization
+    public class ASQTransportCustomization : TransportCustomizationBase
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {

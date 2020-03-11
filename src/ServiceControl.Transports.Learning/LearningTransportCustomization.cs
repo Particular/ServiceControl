@@ -2,9 +2,9 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
-    using ServiceControl.Transports.LearningTransport;
+    using LearningTransport;
 
-    public class LearningTransportCustomization : TransportCustomization
+    public class LearningTransportCustomization : TransportCustomizationBase
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {

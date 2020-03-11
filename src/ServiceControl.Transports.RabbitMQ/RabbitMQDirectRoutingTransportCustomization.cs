@@ -3,7 +3,7 @@
     using NServiceBus;
     using NServiceBus.Raw;
 
-    public class RabbitMQDirectRoutingTransportCustomization : TransportCustomization
+    public class RabbitMQDirectRoutingTransportCustomization : TransportCustomizationBase
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {

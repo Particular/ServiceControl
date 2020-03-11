@@ -6,7 +6,7 @@
     using NServiceBus.Raw;
     using NServiceBus.Transport.SQLServer;
 
-    public class SqlServerTransportCustomization : TransportCustomization
+    public class SqlServerTransportCustomization : TransportCustomizationBase
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {

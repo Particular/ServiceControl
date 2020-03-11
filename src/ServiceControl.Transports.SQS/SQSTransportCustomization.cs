@@ -13,7 +13,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Raw;
 
-    public class SQSTransportCustomization : TransportCustomization
+    public class SQSTransportCustomization : TransportCustomizationBase
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {

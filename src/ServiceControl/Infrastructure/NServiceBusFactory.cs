@@ -30,7 +30,7 @@ namespace ServiceBus.Management.Infrastructure
             configuration.GetSettings().Set(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
-            transportCustomization.CustomizeEndpoint(configuration, transportSettings);
+            transportCustomization.CustomizeServiceControlEndpoint(configuration, transportSettings);
 
             configuration.GetSettings().Set(loggingSettings);
 

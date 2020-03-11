@@ -3,7 +3,7 @@
     using NServiceBus;
     using NServiceBus.Raw;
 
-    public class MsmqTransportCustomization : TransportCustomization
+    public class MsmqTransportCustomization : TransportCustomizationBase
     {
         public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {

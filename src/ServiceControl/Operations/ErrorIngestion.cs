@@ -31,7 +31,7 @@
                     return; //Already started
                 }
 
-                var rawConfiguration = rawEndpointFactory.CreateRawEndpointConfiguration(
+                var rawConfiguration = rawEndpointFactory.CreateErrorIngestor(
                     errorQueue,
                     (messageContext, dispatcher) => errorIngestor.Ingest(messageContext));
 

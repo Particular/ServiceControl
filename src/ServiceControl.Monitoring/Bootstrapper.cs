@@ -54,7 +54,7 @@
                 PreferredTransactionMode = TransportTransactionMode.ReceiveOnly
             };
 
-            transportCustomization.CustomizeEndpoint(config, transportSettings);
+            transportCustomization.CustomizeForMonitoringIngestion(config, transportSettings);
 
             if (settings.EnableInstallers)
             {
