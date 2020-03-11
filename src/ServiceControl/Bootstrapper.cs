@@ -158,8 +158,7 @@ namespace Particular.ServiceControl
                 EndpointName = settings.ServiceName,
                 ConnectionString = settings.TransportConnectionString,
                 MaxConcurrency = settings.MaximumConcurrencyLevel,
-                RunCustomChecks = true,
-                PreferredTransactionMode = TransportTransactionMode.SendsAtomicWithReceive
+                RunCustomChecks = true
             };
 
             return transportSettings;
