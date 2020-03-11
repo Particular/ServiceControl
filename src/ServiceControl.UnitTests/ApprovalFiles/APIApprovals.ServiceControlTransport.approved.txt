@@ -27,8 +27,13 @@ namespace ServiceControl.Transports
     {
         protected TransportCustomization() { }
         public abstract ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
-        public abstract void CustomizeEndpoint(NServiceBus.EndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
-        public abstract void CustomizeRawEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfig, ServiceControl.Transports.TransportSettings transportSettings);
+        public abstract void CustomizeForAuditIngestion(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        public abstract void CustomizeForErrorIngestion(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        public abstract void CustomizeForMonitoringIngestion(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        public abstract void CustomizeForReturnToSenderIngestion(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        public abstract void CustomizeRawSendOnlyEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        public abstract void CustomizeSendOnlyEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        public abstract void CustomizeServiceControlEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
     }
     public class TransportSettings : NServiceBus.Settings.SettingsHolder
     {
@@ -36,7 +41,6 @@ namespace ServiceControl.Transports
         public string ConnectionString { get; set; }
         public string EndpointName { get; set; }
         public int MaxConcurrency { get; set; }
-        public NServiceBus.TransportTransactionMode PreferredTransactionMode { get; set; }
         public bool RunCustomChecks { get; set; }
     }
 }
