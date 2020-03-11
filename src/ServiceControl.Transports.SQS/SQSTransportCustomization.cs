@@ -13,16 +13,56 @@
     using NServiceBus.Logging;
     using NServiceBus.Raw;
 
-    public class SQSTransportCustomization : TransportCustomizationBase
+    public class SQSTransportCustomization : TransportCustomization
     {
-        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
+        public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeEndpoint(endpointConfiguration, transportSettings);
+        }
+
+        public override void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeEndpoint(endpointConfiguration, transportSettings);
+        }
+
+        public override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
+        }
+
+        public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
+        }
+
+        public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
+        }
+
+        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeEndpoint(endpointConfiguration, transportSettings);
+        }
+
+        public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
+        }
+
+        public override IProvideQueueLength CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
+        }
+
+        static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<SqsTransport>();
 
             ConfigureTransport(transport, transportSettings);
         }
 
-        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
+        static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<SqsTransport>();
 
@@ -31,7 +71,7 @@
 
         static void ConfigureTransport(TransportExtensions<SqsTransport> transport, TransportSettings transportSettings)
         {
-            var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
+            var builder = new DbConnectionStringBuilder {ConnectionString = transportSettings.ConnectionString};
 
             var alwaysLoadFromEnvironmentVariable = false;
             if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
@@ -113,11 +153,6 @@
             }
 
             throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
-        }
-
-        public override IProvideQueueLength CreateQueueLengthProvider()
-        {
-            return new QueueLengthProvider();
         }
 
         static ILog log = LogManager.GetLogger<SQSTransportCustomization>();

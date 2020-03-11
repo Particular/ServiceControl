@@ -1,21 +1,10 @@
 ﻿namespace ServiceControl.Transports.ASB
 {
-    using System;
     using NServiceBus;
     using NServiceBus.Raw;
 
-    public class ASBForwardingTopologyTransportCustomization : TransportCustomizationBase
+    public class ASBForwardingTopologyTransportCustomization : TransportCustomization
     {
-        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
-        {
-            throw new NotImplementedException();
-        }
-
         public override IProvideQueueLength CreateQueueLengthProvider()
         {
             return new QueueLengthProvider();
