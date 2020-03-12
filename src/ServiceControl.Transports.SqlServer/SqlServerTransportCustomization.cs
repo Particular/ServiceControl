@@ -8,7 +8,47 @@
 
     public class SqlServerTransportCustomization : TransportCustomization
     {
-        public override void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
+        public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+        }
+
+        public override void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
+        }
+
+        public override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+        }
+
+        public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+        }
+
+        public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+        }
+
+        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+        }
+
+        public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
+        }
+
+        public override IProvideQueueLength CreateQueueLengthProvider()
+        {
+            return new QueueLengthProvider();
+        }
+
+        static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             ConfigureConnection(transport, transportSettings);
@@ -24,10 +64,11 @@
             {
                 transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
             }
-            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
+
+            transport.Transactions(transportTransactionMode);
         }
 
-        public override void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
+        static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             ConfigureConnection(transport, transportSettings);
@@ -38,7 +79,8 @@
             {
                 transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
             }
-            transport.Transactions(TransportTransactionMode.SendsAtomicWithReceive);
+
+            transport.Transactions(transportTransactionMode);
         }
 
         static void ConfigureConnection(TransportExtensions<SqlServerTransport> transport, TransportSettings transportSettings)
@@ -60,8 +102,8 @@
 
                 subscriptions.SubscriptionTableName(
                     tableName: subscriptionsAddress.Table,
-                    schemaName:subscriptionsAddress.Schema ?? customSchema,
-                    catalogName:subscriptionsAddress.Catalog
+                    schemaName: subscriptionsAddress.Schema ?? customSchema,
+                    catalogName: subscriptionsAddress.Catalog
                 );
             }
 
@@ -70,12 +112,8 @@
             transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        public override IProvideQueueLength CreateQueueLengthProvider()
-        {
-            return new QueueLengthProvider();
-        }
-
         const string defaultSubscriptionTableName = "SubscriptionRouting";
+
         static readonly ILog Logger = LogManager.GetLogger(typeof(SqlServerTransportCustomization));
     }
 }

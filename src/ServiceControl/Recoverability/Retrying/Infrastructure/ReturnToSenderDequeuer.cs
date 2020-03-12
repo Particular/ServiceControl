@@ -20,7 +20,7 @@ namespace ServiceControl.Recoverability
 
             createEndpointConfiguration = () =>
             {
-                var config = rawEndpointFactory.CreateRawEndpointConfiguration(InputAddress, Handle);
+                var config = rawEndpointFactory.CreateReturnToSenderDequeuer(InputAddress, Handle);
 
                 config.CustomErrorHandlingPolicy(faultManager);
 
