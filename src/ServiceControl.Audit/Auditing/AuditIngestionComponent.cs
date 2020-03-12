@@ -9,7 +9,8 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client;
-    
+    using Transports;
+
     class AuditIngestionComponent
     {
         static ILog log = LogManager.GetLogger<AuditIngestionComponent>();
@@ -22,6 +23,8 @@
             Settings settings,
             IDocumentStore documentStore,
             RawEndpointFactory rawEndpointFactory,
+            TransportCustomization transportCustomization,
+            TransportSettings transportSettings,
             LoggingSettings loggingSettings,
             BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher,
             IEnrichImportedAuditMessages[] enrichers,
@@ -34,9 +37,10 @@
             var ingestor = new AuditIngestor(auditPersister, settings);
 
             var ingestion = new AuditIngestion(
-                (messageContext, dispatcher) => ingestor.Ingest(messageContext), 
+                (messageContext, dispatcher) => ingestor.Ingest(messageContext),
+                batchMessages => ingestor.Ingest(batchMessages),
                 dispatcher => ingestor.Initialize(dispatcher),
-                settings.AuditQueue, rawEndpointFactory, errorHandlingPolicy, OnCriticalError);
+                settings.AuditQueue, rawEndpointFactory, transportCustomization, transportSettings, errorHandlingPolicy, OnCriticalError);
 
             failedImporter = new ImportFailedAudits(documentStore, ingestor, rawEndpointFactory);
 

@@ -8,6 +8,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
+    using Transports;
 
     class AuditIngestor
     {
@@ -15,6 +16,25 @@
         {
             this.auditPersister = auditPersister;
             this.settings = settings;
+        }
+
+        public async Task Ingest(IReadOnlyCollection<BatchMessage> contexts)
+        {
+            //if (log.IsDebugEnabled)
+            //{
+            //    log.DebugFormat("Ingesting audit message {0}", context.Message.MessageId);
+            //}
+
+            await auditPersister.Persist(contexts).ConfigureAwait(false);
+
+            // foreach (var context in contexts)
+            // {
+            //     if (settings.ForwardAuditMessages)
+            //     {
+            //         await Forward(message, settings.AuditLogQueue)
+            //             .ConfigureAwait(false);
+            //     }
+            // }
         }
 
         public async Task Ingest(MessageContext message)
@@ -32,7 +52,7 @@
                     .ConfigureAwait(false);
             }
         }
-        
+
         public async Task Initialize(IDispatchMessages dispatcher)
         {
             this.dispatcher = dispatcher;

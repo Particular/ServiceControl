@@ -1,23 +1,31 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
+    using Transports;
 
     class AuditIngestion
     {
         public AuditIngestion(
-            Func<MessageContext, IDispatchMessages, Task> onMessage, 
+            Func<MessageContext, IDispatchMessages, Task> onMessage,
+            Func<IReadOnlyCollection<BatchMessage>, Task> onBatches,
             Func<IDispatchMessages, Task> initialize,
-            string inputEndpoint, 
+            string inputEndpoint,
             RawEndpointFactory rawEndpointFactory,
+            TransportCustomization transportCustomization,
+            TransportSettings transportSettings,
             IErrorHandlingPolicy errorHandlingPolicy,
             Func<string, Exception, Task> onCriticalError)
         {
+            this.transportSettings = transportSettings;
+            this.onBatches = onBatches;
+            this.transportCustomization = transportCustomization;
             this.onMessage = onMessage;
             this.initialize = initialize;
             this.inputEndpoint = inputEndpoint;
@@ -32,9 +40,17 @@
             {
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                if (ingestionEndpoint != null)
+                if (ingestionEndpoint != null || batchConsumer != null)
                 {
                     return; //Already started
+                }
+
+                batchConsumer = transportCustomization.CreateBatchConsumer();
+                batchConsumer?.Start(onBatches, inputEndpoint, transportSettings.ConnectionString);
+
+                if (batchConsumer != null)
+                {
+                    return;
                 }
 
                 var rawConfiguration = rawEndpointFactory.CreateAuditIngestor(inputEndpoint, onMessage);
@@ -64,13 +80,24 @@
             {
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                if (ingestionEndpoint == null)
+                if (ingestionEndpoint == null && batchConsumer == null)
                 {
                     return; //Already stopped
                 }
-                var stoppable = ingestionEndpoint;
+                var stoppableEndpoint = ingestionEndpoint;
                 ingestionEndpoint = null;
-                await stoppable.Stop().ConfigureAwait(false);
+                if (stoppableEndpoint != null)
+                {
+                    await stoppableEndpoint.Stop().ConfigureAwait(false);
+                    return;
+                }
+
+                var stoppableBatchConsumer = batchConsumer;
+                batchConsumer = null;
+                if (stoppableBatchConsumer != null)
+                {
+                    await stoppableBatchConsumer.Stop().ConfigureAwait(false);
+                }
             }
             finally
             {
@@ -86,5 +113,9 @@
         IErrorHandlingPolicy errorHandlingPolicy;
         Func<string, Exception, Task> onCriticalError;
         IReceivingRawEndpoint ingestionEndpoint;
+        readonly TransportCustomization transportCustomization;
+        Func<IReadOnlyCollection<BatchMessage>, Task> onBatches;
+        TransportSettings transportSettings;
+        IConsumeBatches batchConsumer;
     }
 }

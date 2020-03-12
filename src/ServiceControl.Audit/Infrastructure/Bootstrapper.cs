@@ -75,6 +75,7 @@ namespace ServiceControl.Audit.Infrastructure
             transportSettings = MapSettings(settings);
 
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+            containerBuilder.RegisterInstance(transportCustomization).SingleInstance();
 
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();

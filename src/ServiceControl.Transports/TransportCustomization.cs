@@ -18,7 +18,12 @@
         public abstract void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
         public abstract void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-        
+
         public abstract IProvideQueueLength CreateQueueLengthProvider();
+
+        public virtual IConsumeBatches CreateBatchConsumer()
+        {
+            return null;
+        }
     }
 }

@@ -58,5 +58,10 @@
         {
             return new QueueLengthProvider();
         }
+
+        public override IConsumeBatches CreateBatchConsumer()
+        {
+            return new QueueBatchIngestor();
+        }
     }
 }
