@@ -19,7 +19,7 @@ namespace ServiceControl.Audit.Infrastructure
             var transportCustomization = settings.LoadTransportCustomization();
             var factory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
 
-            var config = factory.CreateRawEndpointConfiguration(settings.AuditQueue, (context, dispatcher) => Task.CompletedTask);
+            var config = factory.CreateAuditIngestor(settings.AuditQueue, (context, dispatcher) => Task.CompletedTask);
 
             if (settings.SkipQueueCreation)
             {

@@ -28,7 +28,7 @@ namespace ServiceControl.Audit.Auditing
 
         async Task Run<T, I>(CancellationToken token) where I : AbstractIndexCreationTask, new()
         {
-            var config = rawEndpointFactory.CreateSendOnlyRawEndpointConfiguration("ImportFailedAudits");
+            var config = rawEndpointFactory.CreateFailedAuditsSender("ImportFailedAudits");
             var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
 
             await auditIngestor.Initialize(endpoint).ConfigureAwait(false);
