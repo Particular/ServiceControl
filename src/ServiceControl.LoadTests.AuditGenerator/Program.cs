@@ -43,7 +43,7 @@
             {
                 ConnectionString = connectionString
             };
-            customization.CustomizeEndpoint(config, transportSettings);
+            customization.CustomizeSendOnlyEndpoint(config, transportSettings);
 
             config.UsePersistence<InMemoryPersistence>();
             config.SendFailedMessagesTo("error");

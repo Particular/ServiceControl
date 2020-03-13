@@ -33,7 +33,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.SendOnly();
 
-            transportCustomization.CustomizeEndpoint(configuration, transportSettings);
+            transportCustomization.CustomizeSendOnlyEndpoint(configuration, transportSettings);
             //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
             configuration.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
 
