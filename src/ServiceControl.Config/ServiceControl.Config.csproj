@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/2.0.54">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
@@ -13,12 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Xaml" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceProcess" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="splash.png" />
     <SplashScreen Include="splash.png" />
   </ItemGroup>
 
@@ -48,29 +45,9 @@
     <Resource Include="App.ico" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
-    <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:XamlIntelliSenseFileGenerator" Exclude="App.xaml" />
-    <None Update="App.xaml" Generator="MSBuild:Compile" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Remove="Resources\**\*.*" />
     <Resource Include="Resources\**\*.*" />
-  </ItemGroup>
-
-  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup Condition="$(NETCoreSdkVersion.StartsWith('3')) != true">
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <Target Name="CopyZips" AfterTargets="Build">
