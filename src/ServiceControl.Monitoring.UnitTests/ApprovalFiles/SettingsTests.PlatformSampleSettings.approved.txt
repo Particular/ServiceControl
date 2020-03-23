@@ -5,10 +5,7 @@
   "ConnectionString": null,
   "ErrorQueue": "error",
   "LogPath": "C:\\Logs",
-  "LogLevel": {
-    "Name": "Warn",
-    "Ordinal": 3
-  },
+  "LogLevel": "Warn",
   "Username": null,
   "EnableInstallers": false,
   "HttpHostName": "localhost",
