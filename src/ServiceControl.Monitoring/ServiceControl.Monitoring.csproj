@@ -24,7 +24,7 @@
     <PackageReference Include="NServiceBus" Version="7.2.3" />
     <PackageReference Include="NServiceBus.Autofac" Version="7.1.0" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
-    <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
+    <PackageReference Include="NServiceBus.NLog" Version="3.1.0+0" />
     <PackageReference Include="Particular.Licensing.Sources" Version="3.3.1" PrivateAssets="All" />
   </ItemGroup>
 
