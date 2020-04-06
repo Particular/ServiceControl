@@ -1,0 +1,12 @@
+<Project>
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>	
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>	
+  </PropertyGroup>
+
+  <ItemGroup>	
+    <PackageReference Include="Particular.Packaging" Version="0.6.2" PrivateAssets="All" />	
+  </ItemGroup>	
+
+</Project> 
