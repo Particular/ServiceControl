@@ -1,1 +1,2 @@
-
+exclusions:
+- src/NServiceBus.snk
