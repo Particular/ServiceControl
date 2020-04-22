@@ -4,7 +4,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Xml.Linq;
     using Instances;
 
     public class ServiceControlAppConfig : AppConfig
@@ -173,8 +172,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         {
             UpdateSettings();
 
-            UpdateRuntimeSection();
-
             Config.Save();
         }
 
@@ -184,26 +181,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public abstract void DisableMaintenanceMode();
 
         public abstract IEnumerable<string> RavenDataPaths();
-
-
-        void UpdateRuntimeSection()
-        {
-            var runtimesection = Config.GetSection("runtime");
-            var runtimeXml = XDocument.Parse(runtimesection.SectionInformation.GetRawXml() ?? "<runtime/>");
-
-            // Set gcServer Value if it does not exist
-            var gcServer = runtimeXml.Descendants("gcServer").SingleOrDefault();
-            if (gcServer == null) //So no config so we can set
-            {
-                gcServer = new XElement("gcServer");
-                gcServer.SetAttributeValue("enabled", "true");
-                if (runtimeXml.Root != null)
-                {
-                    runtimeXml.Root.Add(gcServer);
-                    runtimesection.SectionInformation.SetRawXml(runtimeXml.Root.ToString());
-                }
-            }
-        }
 
         protected abstract void UpdateSettings();
     }
