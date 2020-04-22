@@ -36,13 +36,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             settings.RemoveIfRetired(ServiceControlSettings.AuditQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
-
-            // Add Settings for performance tuning
-            // See https://github.com/Particular/ServiceControl/issues/655
-            if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))
-            {
-                settings.Add("Raven/Esent/MaxVerPages", "2048");
-            }
         }
 
         public override void EnableMaintenanceMode()
@@ -110,13 +103,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, details.ForwardAuditMessages ? details.AuditLogQueue : null);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, details.ServiceControlQueueAddress);
-
-            // Add Settings for performance tuning
-            // See https://github.com/Particular/ServiceControl/issues/655
-            if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))
-            {
-                settings.Add("Raven/Esent/MaxVerPages", "2048");
-            }
         }
 
 
