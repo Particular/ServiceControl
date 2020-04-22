@@ -57,7 +57,7 @@
     <ItemGroup>
       <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb;Newtonsoft.Json.dll" />
 
-      <ServiceControl Include="$(ServiceControlFolder)*.*" Exclude="$(ServiceControlFolder)*.config" />
+      <ServiceControl Include="$(ServiceControlFolder)*.*" />
       <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
       <ASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
       <ASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
@@ -104,7 +104,7 @@
     <ItemGroup>
       <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
 
-      <ServiceControlAudit Include="$(ServiceControlAuditFolder)*.*" Exclude="$(ServiceControlAuditFolder)*.config" />
+      <ServiceControlAudit Include="$(ServiceControlAuditFolder)*.*" />
       <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
       <ASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
       <ASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
@@ -151,7 +151,7 @@
     <ItemGroup>
       <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
 
-      <ServiceControlMonitoring Include="$(ServiceControlMonitoringFolder)*.*" Exclude="$(ServiceControlMonitoringFolder)*.config" />
+      <ServiceControlMonitoring Include="$(ServiceControlMonitoringFolder)*.*" />
       <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
       <ASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
       <ASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
