@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AmazonSQS" Version="4.4.0" />
+    <PackageReference Include="NServiceBus.AmazonSQS" Version="5.0.0-PullRequest0426.317" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
     <PackageReference Include="Particular.CodeRules" Version="0.2.1" PrivateAssets="All" />
   </ItemGroup>

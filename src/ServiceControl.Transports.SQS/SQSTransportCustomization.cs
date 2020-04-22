@@ -131,6 +131,11 @@
                 }
             }
 
+            if (builder.TryGetValue("MessageDrivenPubSubCompatibilityMode", out var messageDrivenPubSubCompatibilityMode) && string.Equals((string)messageDrivenPubSubCompatibilityMode, "enabled", StringComparison.OrdinalIgnoreCase))
+            {
+                transport.EnableMessageDrivenPubSubCompatibilityMode();
+            }
+
             //HINT: This is needed to make Core doesn't load a connection string value from the app.config.
             //      This prevents SQS from throwing on startup.
             var connectionString = transport.GetSettings().Get("NServiceBus.TransportConnectionString");
