@@ -7,6 +7,7 @@
     using Amazon;
     using Amazon.Runtime;
     using Amazon.S3;
+    using Amazon.SimpleNotificationService;
     using Amazon.SQS;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -82,6 +83,7 @@
                 // if the user provided the access key and secret access key they should always be loaded from environment credentials
                 alwaysLoadFromEnvironmentVariable = true;
                 transport.ClientFactory(() => new AmazonSQSClient(new EnvironmentVariablesAWSCredentials()));
+                transport.ClientFactory(() => new AmazonSimpleNotificationServiceClient(new EnvironmentVariablesAWSCredentials()));
             }
             else
             {
