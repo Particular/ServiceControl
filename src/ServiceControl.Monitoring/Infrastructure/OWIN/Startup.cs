@@ -28,6 +28,7 @@
             config.Formatters.Remove(config.Formatters.XmlFormatter);
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
 
+            config.MessageHandlers.Add(new XParticularVersionHttpHandler());
             config.MessageHandlers.Add(new CachingHttpHandler());
             app.UseWebApi(config);
         }
