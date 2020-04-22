@@ -4,7 +4,6 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using NServiceBus.Transport.SQLServer;
 
     public class SqlServerTransportCustomization : TransportCustomization
     {
@@ -62,7 +61,7 @@
             var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
             if (!sendOnlyEndpoint)
             {
-                transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
+                transport.NativeDelayedDelivery();
             }
 
             transport.Transactions(transportTransactionMode);
@@ -77,7 +76,7 @@
             var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
             if (!sendOnlyEndpoint)
             {
-                transport.NativeDelayedDelivery().DisableTimeoutManagerCompatibility();
+                transport.NativeDelayedDelivery();
             }
 
             transport.Transactions(transportTransactionMode);
