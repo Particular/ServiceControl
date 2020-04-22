@@ -7,6 +7,10 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <AppConfig>App.$(Configuration).config</AppConfig>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
@@ -30,6 +34,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="App.Debug.config">
+      <DependentUpon>App.Release.config</DependentUpon>
+    </Content>
   </ItemGroup>
 
 </Project>

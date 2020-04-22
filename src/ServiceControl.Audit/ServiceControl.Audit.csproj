@@ -7,6 +7,10 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <AppConfig>App.$(Configuration).config</AppConfig>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
@@ -33,6 +37,12 @@
     <PackageReference Include="Rx-Linq" Version="2.2.5" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.1.0" />
     <PackageReference Include="Particular.CodeRules" Version="0.2.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="App.Debug.config">
+      <DependentUpon>App.Release.config</DependentUpon>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
