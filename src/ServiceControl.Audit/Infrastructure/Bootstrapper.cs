@@ -181,7 +181,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
             logger.Info(startupMessage);
-            endpointConfiguration.SetDiagnosticsPath(loggingSettings.LogPath);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {
                 Settings = new

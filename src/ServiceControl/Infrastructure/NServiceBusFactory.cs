@@ -33,6 +33,7 @@ namespace ServiceBus.Management.Infrastructure
             transportCustomization.CustomizeServiceControlEndpoint(configuration, transportSettings);
 
             configuration.GetSettings().Set(loggingSettings);
+            configuration.SetDiagnosticsPath(loggingSettings.LogPath);
 
             // Disable Auditing for the service control endpoint
             configuration.DisableFeature<Audit>();
