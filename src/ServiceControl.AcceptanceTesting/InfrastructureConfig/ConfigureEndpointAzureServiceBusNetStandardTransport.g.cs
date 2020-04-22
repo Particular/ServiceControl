@@ -1,13 +1,13 @@
-﻿extern alias TransportASBS;
-using System.Threading.Tasks;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting.Support;
-using ServiceControl.AcceptanceTesting;
-using ServiceControl.Transports.ASBS;
-using ServiceControlInstaller.Engine.Instances;
-
-namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
+﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    extern alias TransportASBS;
+    using System.Threading.Tasks;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControl.AcceptanceTesting;
+    using ServiceControl.Transports.ASBS;
+    using ServiceControlInstaller.Engine.Instances;
+
     public class ConfigureEndpointAzureServiceBusNetStandardTransport : ITransportIntegration
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)

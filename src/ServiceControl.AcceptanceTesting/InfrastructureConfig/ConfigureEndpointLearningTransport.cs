@@ -1,12 +1,12 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting.Support;
-using NUnit.Framework;
-using ServiceControl.Transports.Learning;
-
-namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
+﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    using System.IO;
+    using System.Threading.Tasks;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using NUnit.Framework;
+    using Transports.Learning;
+
     public class ConfigureEndpointLearningTransport : ITransportIntegration
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)

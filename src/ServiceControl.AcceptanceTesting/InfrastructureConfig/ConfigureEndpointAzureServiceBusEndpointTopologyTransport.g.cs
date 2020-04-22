@@ -1,11 +1,11 @@
-﻿using System.Threading.Tasks;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting.Support;
-using ServiceControl.AcceptanceTesting;
-using ServiceControlInstaller.Engine.Instances;
-
-namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
+﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    using System.Threading.Tasks;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControl.AcceptanceTesting;
+    using ServiceControlInstaller.Engine.Instances;
+
     public class ConfigureEndpointAzureServiceBusEndpointTopologyTransport : ITransportIntegration
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)

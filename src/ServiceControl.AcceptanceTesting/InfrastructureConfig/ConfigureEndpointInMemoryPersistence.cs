@@ -1,10 +1,9 @@
-﻿using System.Threading.Tasks;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting.Support;
-
-namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
+﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    using System.Threading.Tasks;
     using EndpointTemplates;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
 
     public class ConfigureEndpointInMemoryPersistence : IConfigureEndpointTestExecution
     {

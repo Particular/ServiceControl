@@ -1,16 +1,16 @@
-﻿using System;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting.Support;
-using NServiceBus.Configuration.AdvancedExtensibility;
-using NServiceBus.Transport;
-using ServiceControl.Transports.SqlServer;
-using ServiceControlInstaller.Engine.Instances;
-
-namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
+﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    using System;
+    using System.Data.SqlClient;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Transport;
+    using ServiceControlInstaller.Engine.Instances;
+    using Transports.SqlServer;
+
     public class ConfigureEndpointSqlServerTransport : ITransportIntegration
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
