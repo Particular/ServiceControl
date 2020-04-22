@@ -7,11 +7,11 @@
 
     public static class Helper
     {
-        public static void ConfigureTransport(this TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
+        public static void ConfigureTransport(this TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
             transport.ConfigureNameShorteners();
 
-            transport.Transactions(TransportTransactionMode.ReceiveOnly);
+            transport.Transactions(transportTransactionMode);
             transport.ConnectionString(transportSettings.ConnectionString);
         }
 

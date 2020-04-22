@@ -37,7 +37,7 @@
                     return; //Already started
                 }
 
-                var rawConfiguration = rawEndpointFactory.CreateRawEndpointConfiguration(inputEndpoint, onMessage);
+                var rawConfiguration = rawEndpointFactory.CreateAuditIngestor(inputEndpoint, onMessage);
 
                 rawConfiguration.Settings.Set("onCriticalErrorAction", (Func<ICriticalErrorContext, Task>)OnCriticalErrorAction);
 

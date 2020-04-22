@@ -39,14 +39,26 @@
 
         protected bool Equals(SqlTable other)
         {
-            return String.Equals(QuotedName, other.QuotedName) && String.Equals(QuotedSchema, other.QuotedSchema) && String.Equals(QuotedCatalog, other.QuotedCatalog);
+            return string.Equals(QuotedName, other.QuotedName) && String.Equals(QuotedSchema, other.QuotedSchema) && String.Equals(QuotedCatalog, other.QuotedCatalog);
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((SqlTable) obj);
         }
 

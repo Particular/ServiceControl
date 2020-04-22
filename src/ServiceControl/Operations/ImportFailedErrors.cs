@@ -21,7 +21,7 @@
 
         public async Task Run(CancellationToken token)
         {
-            var config = rawEndpointFactory.CreateSendOnlyRawEndpointConfiguration("ImportFailedErrors");
+            var config = rawEndpointFactory.CreateFailedErrorsImporter("ImportFailedErrors");
             var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
 
             await errorIngestor.Initialize(endpoint).ConfigureAwait(false);

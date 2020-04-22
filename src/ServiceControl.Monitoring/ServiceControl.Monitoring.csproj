@@ -20,12 +20,12 @@
     <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
     <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="NLog" Version="4.5.10" />
+    <PackageReference Include="NLog" Version="4.7.0" />
     <PackageReference Include="NServiceBus" Version="7.2.3" />
     <PackageReference Include="NServiceBus.Autofac" Version="7.1.0" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
-    <PackageReference Include="Particular.Licensing.Sources" Version="2.0.1" PrivateAssets="All" />
+    <PackageReference Include="Particular.Licensing.Sources" Version="3.3.1" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

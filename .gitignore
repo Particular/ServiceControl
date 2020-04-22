@@ -2,7 +2,6 @@ nugets
 deploy
 build32
 binaries
-zip
 *.vshost.*
 .nu
 _UpgradeReport.*
@@ -34,9 +33,6 @@ src/Chocolatey/Build/*
 installer/[F|f]iles
 installer/[C|c]ustom[A|a]ctions
 installer/ServiceControl-cache
-
-# Development Connection File
-src/connection.txt
 
 # Created by https://www.gitignore.io
 

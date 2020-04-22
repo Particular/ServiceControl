@@ -53,7 +53,7 @@
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
 
-            transportCustomization.CustomizeEndpoint(config, transportSettings);
+            transportCustomization.CustomizeForMonitoringIngestion(config, transportSettings);
 
             if (settings.EnableInstallers)
             {

@@ -30,9 +30,7 @@ namespace ServiceBus.Management.Infrastructure
             configuration.GetSettings().Set(documentStore);
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
-            MapSettings(transportSettings, settings);
-
-            transportCustomization.CustomizeEndpoint(configuration, transportSettings);
+            transportCustomization.CustomizeServiceControlEndpoint(configuration, transportSettings);
 
             configuration.GetSettings().Set(loggingSettings);
 
@@ -70,13 +68,6 @@ namespace ServiceBus.Management.Infrastructure
             }
 
             return Endpoint.Create(configuration);
-        }
-
-        private static void MapSettings(TransportSettings transportSettings, Settings.Settings settings)
-        {
-            transportSettings.EndpointName = settings.ServiceName;
-            transportSettings.ConnectionString = settings.TransportConnectionString;
-            transportSettings.MaxConcurrency = settings.MaximumConcurrencyLevel;
         }
 
         public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)

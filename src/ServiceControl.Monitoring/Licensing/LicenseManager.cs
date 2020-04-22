@@ -18,7 +18,7 @@
             sources.Add(new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ParticularPlatformLicense.xml")));
             var result = ActiveLicense.Find("ServiceControl", sources.ToArray());
 
-            if (result.HasExpired)
+            if (result.License.HasExpired())
             {
                 foreach (var report in result.Report)
                 {
@@ -28,7 +28,7 @@
                 Logger.Warn("License has expired");
             }
 
-            IsValid = !result.HasExpired;
+            IsValid = !result.License.HasExpired();
             Details = result.License;
         }
 
