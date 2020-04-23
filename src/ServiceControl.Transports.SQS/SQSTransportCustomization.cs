@@ -66,6 +66,7 @@
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<SqsTransport>();
+            transport.ApplyHacksForNsbRaw();
 
             ConfigureTransport(transport, transportSettings);
         }
@@ -133,6 +134,8 @@
                 }
             }
 
+            // precaution in case we would ever use the subscription manager
+            transportSettings.Set("NServiceBus.AmazonSQS.DisableSubscribeBatchingOnStart", true);
             transport.EnableMessageDrivenPubSubCompatibilityMode();
 
             //HINT: This is needed to make Core doesn't load a connection string value from the app.config.
