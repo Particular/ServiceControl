@@ -1,15 +1,16 @@
-﻿using System;
-using System.Threading.Tasks;
-using Amazon.Runtime;
-using Amazon.S3;
-using Amazon.SQS;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting.Support;
-using ServiceControl.Transports.SQS;
-using ServiceControlInstaller.Engine.Instances;
-
-namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
+﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    using System;
+    using System.Threading.Tasks;
+    using Amazon.Runtime;
+    using Amazon.S3;
+    using Amazon.SimpleNotificationService;
+    using Amazon.SQS;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControlInstaller.Engine.Instances;
+    using Transports.SQS;
+
     public class ConfigureEndpointSQSTransport : ITransportIntegration
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
@@ -18,6 +19,7 @@ namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 
             var transportConfig = configuration.UseTransport<SqsTransport>();
             transportConfig.ClientFactory(CreateSQSClient);
+            transportConfig.ClientFactory(CreateSnsClient);
 
             S3BucketName = Environment.GetEnvironmentVariable(S3BucketEnvironmentVariableName);
 
@@ -25,15 +27,6 @@ namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
             {
                 var s3Configuration = transportConfig.S3(S3BucketName, S3Prefix);
                 s3Configuration.ClientFactory(CreateS3Client);
-            }
-
-            var routing = transportConfig.Routing();
-            foreach (var publisher in publisherMetadata.Publishers)
-            {
-                foreach (var eventType in publisher.Events)
-                {
-                    routing.RegisterPublisher(eventType, publisher.PublisherName);
-                }
             }
 
             return Task.FromResult(0);
@@ -60,6 +53,12 @@ namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
         {
             var credentials = new EnvironmentVariablesAWSCredentials();
             return new AmazonS3Client(credentials);
+        }
+
+        static IAmazonSimpleNotificationService CreateSnsClient()
+        {
+            var credentials = new EnvironmentVariablesAWSCredentials();
+            return new AmazonSimpleNotificationServiceClient(credentials);
         }
 
         const string S3Prefix = "test";

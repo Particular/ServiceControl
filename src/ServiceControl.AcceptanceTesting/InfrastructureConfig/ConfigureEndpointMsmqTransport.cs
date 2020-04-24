@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Messaging;
-using System.Threading.Tasks;
-using NServiceBus;
-using NServiceBus.AcceptanceTesting.Support;
-using NServiceBus.Configuration.AdvancedExtensibility;
-using NServiceBus.Transport;
-using ServiceControl.Transports.Msmq;
-using ServiceControlInstaller.Engine.Instances;
-
-namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
+﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Messaging;
+    using System.Threading.Tasks;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Transport;
+    using ServiceControlInstaller.Engine.Instances;
+    using Transports.Msmq;
+
     public class ConfigureEndpointMsmqTransport : ITransportIntegration
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)

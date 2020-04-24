@@ -7,6 +7,7 @@
     using Amazon;
     using Amazon.Runtime;
     using Amazon.S3;
+    using Amazon.SimpleNotificationService;
     using Amazon.SQS;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -65,6 +66,7 @@
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<SqsTransport>();
+            transport.ApplyHacksForNsbRaw();
 
             ConfigureTransport(transport, transportSettings);
         }
@@ -82,6 +84,7 @@
                 // if the user provided the access key and secret access key they should always be loaded from environment credentials
                 alwaysLoadFromEnvironmentVariable = true;
                 transport.ClientFactory(() => new AmazonSQSClient(new EnvironmentVariablesAWSCredentials()));
+                transport.ClientFactory(() => new AmazonSimpleNotificationServiceClient(new EnvironmentVariablesAWSCredentials()));
             }
             else
             {
@@ -108,6 +111,15 @@
                 }
             }
 
+            if (builder.TryGetValue("TopicNamePrefix", out var topicNamePrefix))
+            {
+                var topicNamePrefixAsString = (string)topicNamePrefix;
+                if (!string.IsNullOrEmpty(topicNamePrefixAsString))
+                {
+                    transport.TopicNamePrefix(topicNamePrefixAsString);
+                }
+            }
+
             if (builder.TryGetValue("S3BucketForLargeMessages", out var bucketForLargeMessages))
             {
                 var bucketForLargeMessagesAsString = (string)bucketForLargeMessages;
@@ -130,6 +142,10 @@
                     }
                 }
             }
+
+            // precaution in case we would ever use the subscription manager
+            transportSettings.Set("NServiceBus.AmazonSQS.DisableSubscribeBatchingOnStart", true);
+            transport.EnableMessageDrivenPubSubCompatibilityMode();
 
             //HINT: This is needed to make Core doesn't load a connection string value from the app.config.
             //      This prevents SQS from throwing on startup.
