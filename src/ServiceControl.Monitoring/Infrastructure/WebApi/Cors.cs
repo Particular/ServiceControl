@@ -46,7 +46,8 @@
 
             return policy;
         }
-
+        
+        public static CorsOptions MonitoringCorsOptions = GetDefaultCorsOptions();
         static Task<CorsPolicy> defaultPolicy;
     }
 }
