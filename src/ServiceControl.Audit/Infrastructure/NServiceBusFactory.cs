@@ -42,6 +42,7 @@ namespace ServiceControl.Audit.Infrastructure
             routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), settings.ServiceControlQueueAddress);
 
             configuration.GetSettings().Set(loggingSettings);
+            configuration.SetDiagnosticsPath(loggingSettings.LogPath);
 
             configuration.UseSerialization<NewtonsoftSerializer>();
 
