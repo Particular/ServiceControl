@@ -29,15 +29,6 @@
                 s3Configuration.ClientFactory(CreateS3Client);
             }
 
-            var routing = transportConfig.Routing();
-            foreach (var publisher in publisherMetadata.Publishers)
-            {
-                foreach (var eventType in publisher.Events)
-                {
-                    routing.RegisterPublisher(eventType, publisher.PublisherName);
-                }
-            }
-
             return Task.FromResult(0);
         }
 
