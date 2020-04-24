@@ -111,6 +111,15 @@
                 }
             }
 
+            if (builder.TryGetValue("TopicNamePrefix", out var topicNamePrefix))
+            {
+                var topicNamePrefixAsString = (string)topicNamePrefix;
+                if (!string.IsNullOrEmpty(topicNamePrefixAsString))
+                {
+                    transport.TopicNamePrefix(topicNamePrefixAsString);
+                }
+            }
+
             if (builder.TryGetValue("S3BucketForLargeMessages", out var bucketForLargeMessages))
             {
                 var bucketForLargeMessagesAsString = (string)bucketForLargeMessages;

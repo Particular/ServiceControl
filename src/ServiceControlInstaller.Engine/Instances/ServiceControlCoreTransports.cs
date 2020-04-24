@@ -18,7 +18,7 @@
                 Name = TransportNames.AmazonSQS,
                 ZipName = "AmazonSQS",
                 TypeName = "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS",
-                SampleConnectionString = "Region=<REGION>;QueueNamePrefix=<prefix>;AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;S3BucketForLargeMessages=<BUCKETNAME>;S3KeyPrefix=<KEYPREFIX>",
+                SampleConnectionString = "Region=<REGION>;QueueNamePrefix=<prefix>;TopicNamePrefix=<prefix>;AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;S3BucketForLargeMessages=<BUCKETNAME>;S3KeyPrefix=<KEYPREFIX>",
                 Help = "'Region' is mandatory. Specify 'AccessKeyId' and 'SecretAccessKey' values to set the AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY environment variables if not using IAM roles or EC2 metadata. Specify 'S3BucketForLargeMessages' and optionally 'S3KeyPrefix' if large message bodies are used.",
                 Matches = name => name.Equals(TransportNames.AmazonSQS, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS", StringComparison.OrdinalIgnoreCase)
