@@ -6,7 +6,6 @@
 
     class LicenseComponentFactory
     {
-        const string TrialLicenseText = "Please extend your trial or purchase a license to continue using the Particular Service Platform.";
         const string UpgradeProtectionLicenseText = "Please extend your upgrade protection so that we can continue to provide you with support and new versions of the Particular Service Platform.";
         const string SubscriptionLicenseText = "Please extend your license to continue using the Particular Service Platform.";
 
@@ -17,56 +16,6 @@
         };
 
         public IEnumerable<LicenseComponent> CreateComponents(LicenseDetails details)
-        {
-            return details.IsTrialLicense ? TrialLicense(details) : CommercialLicense(details);
-        }
-
-        IEnumerable<LicenseComponent> TrialLicense(LicenseDetails details)
-        {
-            yield return new LicenseComponent
-            {
-                Label = "Platform license type:",
-                Value = "Trial"
-            };
-
-            yield return TrialExpiryComponent(details);
-        }
-
-        LicenseComponent TrialExpiryComponent(LicenseDetails details)
-        {
-            if (details.WarnUserTrialHasExpired)
-            {
-                return new LicenseComponent
-                {
-                    Label = "Trial expiry date:",
-                    Value = $"{details.ExpirationDate:d} - expired",
-                    Importance = Importance.Serious,
-                    ShortText = "Trial expired",
-                    WarningText = TrialLicenseText
-                };
-            }
-
-            if (details.WarnUserTrialIsExpiring)
-            {
-                var daysRemaining = daysInflector.Inflect(details.DaysUntilSubscriptionExpires ?? 0);
-                return new LicenseComponent
-                {
-                    Label = "Trial expiry date:",
-                    Value = $"{details.ExpirationDate:d} - {daysRemaining} left",
-                    Importance = Importance.Warning,
-                    ShortText = $"Warning: Trial expiring in {daysRemaining}",
-                    WarningText = TrialLicenseText
-                };
-            }
-
-            return new LicenseComponent
-            {
-                Label = "Trial expiry date:",
-                Value = $"{details.ExpirationDate:d}"
-            };
-        }
-
-        IEnumerable<LicenseComponent> CommercialLicense(LicenseDetails details)
         {
             yield return new LicenseComponent
             {
@@ -91,7 +40,7 @@
 
         LicenseComponent SubscriptionExpiryComponent(LicenseDetails details)
         {
-            if (details.WarnUserSubscriptionHasExpired)
+            if (details.WarnUserSubscriptionHasExpired || details.WarnUserTrialHasExpired)
             {
                 return new LicenseComponent
                 {
@@ -103,14 +52,14 @@
                 };
             }
 
-            if (details.WarnUserSubscriptionIsExpiring)
+            if (details.WarnUserSubscriptionIsExpiring || details.WarnUserTrialIsExpiring)
             {
                 var daysRemain = daysInflector.Inflect(details.DaysUntilSubscriptionExpires ?? 0);
                 return new LicenseComponent
                 {
                     Label = "Platform license expiry date:",
                     Value = $"{details.ExpirationDate:d} - {daysRemain} left",
-                    Importance = Importance.Serious,
+                    Importance = details.WarnUserTrialIsExpiring ? Importance.Warning : Importance.Serious,
                     ShortText = $"Platform license expiring in {daysRemain}",
                     WarningText = SubscriptionLicenseText
                 };

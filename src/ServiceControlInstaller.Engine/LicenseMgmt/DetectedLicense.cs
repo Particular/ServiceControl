@@ -15,5 +15,6 @@
 
         public string Location { get; set; }
         public LicenseDetails Details;
+        public bool IsEvaluationLicense { get; set; }
     }
 }

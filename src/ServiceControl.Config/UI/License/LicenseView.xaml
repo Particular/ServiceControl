@@ -98,8 +98,8 @@
 
             <Button Margin="5,0"
                     Command="{Binding OpenUrl}"
-                    CommandParameter="http://particular.net/extend-your-trial-14?p=servicecontrol"
-                    Content="Extend trial..."
+                    CommandParameter="{Binding ExtendLicenseUrl}"
+                    Content="Extend license..."
                     FontSize="12"
                     IsDefault="True"
                     Style="{StaticResource HiliteButton}"/>
