@@ -11,7 +11,11 @@
             var sources = LicenseSource.GetStandardLicenseSources().ToArray();
             var result = ActiveLicense.Find("ServiceControl", sources);
 
-            return new DetectedLicense("HKEY_LOCAL_MACHINE", LicenseDetails.FromLicense(result.License));
+            var detectedLicense = new DetectedLicense("HKEY_LOCAL_MACHINE", LicenseDetails.FromLicense(result.License));
+
+            detectedLicense.IsEvaluationLicense = string.Equals(result.Location, "Trial License", StringComparison.OrdinalIgnoreCase);
+
+            return detectedLicense;
         }
 
         public static bool TryImportLicense(string licenseFile, out string errorMessage)

@@ -29,6 +29,8 @@
 
         public bool CanExtendTrial { get; set; }
 
+        public string ExtendLicenseUrl { get; set; }
+
         protected override void OnActivate()
         {
             RefreshLicenseInfo();
@@ -41,6 +43,8 @@
             Components = new LicenseComponentFactory().CreateComponents(license.Details).ToList();
 
             CanExtendTrial = license.Details.IsTrialLicense;
+
+            ExtendLicenseUrl = $"https://particular.net/license/nservicebus?t={(license.IsEvaluationLicense ? 0 : 1)}&p=servicecontrol";
         }
 
         void OpenLicenseFile(string path)

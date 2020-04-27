@@ -98,7 +98,7 @@
 
             <Button Margin="5,0"
                     Command="{Binding OpenUrl}"
-                    CommandParameter="http://particular.net/extend-your-trial-14?p=servicecontrol"
+                    CommandParameter="{Binding ExtendLicenseUrl}"
                     Content="Extend license..."
                     FontSize="12"
                     IsDefault="True"
