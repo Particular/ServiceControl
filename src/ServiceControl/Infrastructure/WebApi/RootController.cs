@@ -39,7 +39,8 @@
                 LicenseStatus = license.IsValid ? "valid" : "invalid",
                 LicenseDetails = baseUrl + "license",
                 Configuration = baseUrl + "configuration",
-                EventLogItems = baseUrl + "eventlogitems"
+                EventLogItems = baseUrl + "eventlogitems",
+                ArchivedGroupsUrl = baseUrl + "errors/groups/{classifier?}"
             };
 
             return Ok(model);
@@ -112,6 +113,7 @@
             public string Name { get; set; }
             public string SagasUrl { get; set; }
             public string EventLogItems { get; set; }
+            public string ArchivedGroupsUrl { get; set; }
         }
     }
 }
