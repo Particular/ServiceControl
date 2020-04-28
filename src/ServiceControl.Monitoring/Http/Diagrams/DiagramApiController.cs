@@ -13,7 +13,7 @@
     {
         public DiagramApiController(IProvideBreakdown[] breakdownProviders, EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker, MessageTypeRegistry messageTypeRegistry)
         {
-            this.breakdownProviders = breakdownProviders;
+            this.breakdownProviders = new List<IProvideBreakdown>(breakdownProviders);
             this.endpointRegistry = endpointRegistry;
             this.activityTracker = activityTracker;
             this.messageTypeRegistry = messageTypeRegistry;
@@ -173,6 +173,33 @@
             return Ok(data);
         }
 
+        [Route("monitored-instance/{instanceId}")]
+        [HttpDelete]
+        public IHttpActionResult DeleteEndpointInstance(string instanceId)
+        {
+            var asd = breakdownProviders.Where(provider =>
+            {
+                if (provider is EndpointInstanceId)
+                {
+                    return ((EndpointInstanceId)provider).InstanceId == instanceId;
+                }
+
+                return false;
+            }).ToList();
+
+            breakdownProviders.RemoveAll(provider =>
+            {
+                if (provider is EndpointInstanceId)
+                {
+                    return ((EndpointInstanceId)provider).InstanceId == instanceId;
+                }
+
+                return false;
+            });
+
+            return Ok();
+        }
+
         static DateTime[] GetTimeAxisValues<T>(IEnumerable<IntervalsStore<T>.IntervalsBreakdown> intervals)
         {
             return intervals
@@ -229,7 +256,7 @@
                 .ToArray();
         }
 
-        readonly IProvideBreakdown[] breakdownProviders;
+        readonly List<IProvideBreakdown> breakdownProviders;
         readonly EndpointRegistry endpointRegistry;
         readonly EndpointInstanceActivityTracker activityTracker;
         readonly MessageTypeRegistry messageTypeRegistry;
