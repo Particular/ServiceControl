@@ -8,12 +8,16 @@
     using System.Web.Http;
     using InternalMessages;
     using NServiceBus;
+    using Raven.Client;
+    using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Recoverability;
 
     public class ArchiveMessagesController : ApiController
     {
-        public ArchiveMessagesController(IMessageSession session)
+        public ArchiveMessagesController(IMessageSession session, IDocumentStore store)
         {
             messageSession = session;
+            this.store = store;
         }
 
         [Route("errors/archive")]
@@ -36,6 +40,28 @@
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
 
+        [Route("errors/groups/{classifier?}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetArchiveMessageGroups([FromUri] string classifierFilter = null, string classifier = "Exception Type and Stack Trace")
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var groups = (IQueryable<FailureGroupView>)session.Query<FailureGroupView, ArchivedGroupsViewIndex>();
+                if (classifier != null)
+                {
+                    groups = groups.Where(v => v.Type == classifier);
+                }
+
+                var results = await groups.OrderByDescending(x => x.Last)
+                    .Take(200)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return Negotiator.FromModel(Request, results)
+                    .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
+            }
+        }
+
         [Route("errors/{messageid}/archive")]
         [HttpPost]
         [HttpPatch]
@@ -51,6 +77,7 @@
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
 
+        readonly IDocumentStore store;
         readonly IMessageSession messageSession;
     }
 }
