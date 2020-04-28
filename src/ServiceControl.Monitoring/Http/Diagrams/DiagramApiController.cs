@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Web.Http;
     using Infrastructure;
@@ -175,11 +176,16 @@
 
         [Route("monitored-instance/{endpointName}/{instanceId}")]
         [HttpDelete]
-        public IHttpActionResult DeleteEndpointInstance(string endpointName, string instanceId)
+        public HttpResponseMessage DeleteEndpointInstance(string endpointName, string instanceId)
         {
             endpointRegistry.RemoveEndpointInstance(endpointName, instanceId);
 
-            return Ok();
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(new byte[] { }) //need to force empty content to avoid null reference when adding headers below :(
+            };
+
+            return response;
         }
 
         static DateTime[] GetTimeAxisValues<T>(IEnumerable<IntervalsStore<T>.IntervalsBreakdown> intervals)
