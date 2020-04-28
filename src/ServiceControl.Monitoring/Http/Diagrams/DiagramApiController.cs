@@ -173,29 +173,11 @@
             return Ok(data);
         }
 
-        [Route("monitored-instance/{instanceId}")]
+        [Route("monitored-instance/{endpointName}/{instanceId}")]
         [HttpDelete]
-        public IHttpActionResult DeleteEndpointInstance(string instanceId)
+        public IHttpActionResult DeleteEndpointInstance(string endpointName, string instanceId)
         {
-            var asd = breakdownProviders.Where(provider =>
-            {
-                if (provider is EndpointInstanceId)
-                {
-                    return ((EndpointInstanceId)provider).InstanceId == instanceId;
-                }
-
-                return false;
-            }).ToList();
-
-            breakdownProviders.RemoveAll(provider =>
-            {
-                if (provider is EndpointInstanceId)
-                {
-                    return ((EndpointInstanceId)provider).InstanceId == instanceId;
-                }
-
-                return false;
-            });
+            endpointRegistry.RemoveEndpointInstance(endpointName, instanceId);
 
             return Ok();
         }

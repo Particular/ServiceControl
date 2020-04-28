@@ -51,6 +51,11 @@ namespace ServiceControl.Monitoring.Infrastructure
             return emptyResult;
         }
 
+        public void RemoveBreakdown(BreakdownT breakdown)
+        {
+            breakdowns.Remove(breakdown);
+        }
+
         Dictionary<BreakdownT, BreakdownT> breakdowns = new Dictionary<BreakdownT, BreakdownT>();
         volatile Dictionary<string, IEnumerable<BreakdownT>> lookup = new Dictionary<string, IEnumerable<BreakdownT>>();
         object @lock = new object();
