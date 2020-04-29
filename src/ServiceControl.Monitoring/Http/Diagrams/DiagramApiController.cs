@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Web.Http;
     using Infrastructure;
@@ -13,7 +14,7 @@
     {
         public DiagramApiController(IProvideBreakdown[] breakdownProviders, EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker, MessageTypeRegistry messageTypeRegistry)
         {
-            this.breakdownProviders = breakdownProviders;
+            this.breakdownProviders = new List<IProvideBreakdown>(breakdownProviders);
             this.endpointRegistry = endpointRegistry;
             this.activityTracker = activityTracker;
             this.messageTypeRegistry = messageTypeRegistry;
@@ -173,6 +174,20 @@
             return Ok(data);
         }
 
+        [Route("monitored-instance/{endpointName}/{instanceId}")]
+        [HttpDelete]
+        public HttpResponseMessage DeleteEndpointInstance(string endpointName, string instanceId)
+        {
+            endpointRegistry.RemoveEndpointInstance(endpointName, instanceId);
+
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(new byte[] { }) //need to force empty content to avoid null reference when adding headers below :(
+            };
+
+            return response;
+        }
+
         static DateTime[] GetTimeAxisValues<T>(IEnumerable<IntervalsStore<T>.IntervalsBreakdown> intervals)
         {
             return intervals
@@ -229,7 +244,7 @@
                 .ToArray();
         }
 
-        readonly IProvideBreakdown[] breakdownProviders;
+        readonly List<IProvideBreakdown> breakdownProviders;
         readonly EndpointRegistry endpointRegistry;
         readonly EndpointInstanceActivityTracker activityTracker;
         readonly MessageTypeRegistry messageTypeRegistry;
