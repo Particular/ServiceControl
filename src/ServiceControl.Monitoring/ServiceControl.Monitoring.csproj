@@ -32,4 +32,8 @@
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+      <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+  </ItemGroup>
+
 </Project>
