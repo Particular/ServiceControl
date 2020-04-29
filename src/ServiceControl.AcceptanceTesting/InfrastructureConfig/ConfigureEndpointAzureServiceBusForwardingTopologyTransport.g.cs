@@ -27,7 +27,7 @@
             return Task.FromResult(0);
         }
 
-        public string Name => TransportNames.AzureServiceBusForwardingTopology;
+        public string Name => TransportNames.AzureServiceBusForwardingTopologyDeprecated;
 
         public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization).AssemblyQualifiedName}";
 

@@ -27,11 +27,12 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.AzureServiceBusEndpointOrientedTopology,
+                Name = TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
-                Matches = name => name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopology, StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyOld, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
@@ -40,11 +41,12 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.AzureServiceBusForwardingTopology,
+                Name = TransportNames.AzureServiceBusForwardingTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
-                Matches = name => name.Equals(TransportNames.AzureServiceBusForwardingTopology, StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals(TransportNames.AzureServiceBusForwardingTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals(TransportNames.AzureServiceBusForwardingTopologyLegacy, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals(TransportNames.AzureServiceBusForwardingTopologyOld, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)

@@ -4,11 +4,15 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public const string AzureServiceBus = "Azure Service Bus";
 
-        public const string AzureServiceBusEndpointOrientedTopology = "Azure Service Bus - Endpoint-oriented topology (Legacy)";
+        public const string AzureServiceBusEndpointOrientedTopologyDeprecated = "DEPRECATED: Azure Service Bus - Endpoint-oriented topology (Legacy)";
+
+        public const string AzureServiceBusEndpointOrientedTopologyLegacy = "Azure Service Bus - Endpoint-oriented topology (Legacy)";
         // for backward compatibility
         public const string AzureServiceBusEndpointOrientedTopologyOld = "Azure Service Bus - Endpoint-oriented topology (Old)";
-        
-        public const string AzureServiceBusForwardingTopology = "Azure Service Bus - Forwarding topology (Legacy)";
+
+        public const string AzureServiceBusForwardingTopologyDeprecated = "DEPRECATED: Azure Service Bus - Forwarding topology (Legacy)";
+
+        public const string AzureServiceBusForwardingTopologyLegacy = "Azure Service Bus - Forwarding topology (Legacy)";
         // for backward compatibility
         public const string AzureServiceBusForwardingTopologyOld = "Azure Service Bus - Forwarding topology (Old)";
 
@@ -23,5 +27,15 @@ namespace ServiceControlInstaller.Engine.Instances
         public const string RabbitMQConventionalRoutingTopology = "RabbitMQ - Conventional routing topology";
 
         public const string RabbitMQDirectRoutingTopology = "RabbitMQ - Direct routing topology (Old)";
+
+        public static bool IsDeprecated(string transportName)
+        {
+            return transportName == AzureServiceBusEndpointOrientedTopologyDeprecated ||
+                   transportName == AzureServiceBusEndpointOrientedTopologyLegacy ||
+                   transportName == AzureServiceBusEndpointOrientedTopologyOld ||
+                   transportName == AzureServiceBusForwardingTopologyDeprecated ||
+                   transportName == AzureServiceBusForwardingTopologyLegacy ||
+                   transportName == AzureServiceBusForwardingTopologyOld;
+        }
     }
 }

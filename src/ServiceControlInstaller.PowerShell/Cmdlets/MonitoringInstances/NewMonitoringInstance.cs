@@ -44,7 +44,7 @@ namespace ServiceControlInstaller.PowerShell
         public string ErrorQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet(TransportNames.AzureServiceBusForwardingTopology, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopology, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureServiceBus, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
+        [ValidateSet(TransportNames.AzureServiceBusForwardingTopologyDeprecated, TransportNames.AzureServiceBusForwardingTopologyLegacy, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated, TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureServiceBus, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
@@ -76,6 +76,11 @@ namespace ServiceControlInstaller.PowerShell
             if (Transport != TransportNames.MSMQ && string.IsNullOrEmpty(ConnectionString))
             {
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
+            }
+            
+            if (TransportNames.IsDeprecated(Transport))
+            {
+                WriteWarning($"The transport '{Transport}' is deprecated.");
             }
 
             if (string.IsNullOrWhiteSpace(HostName))
