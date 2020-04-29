@@ -27,34 +27,6 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated,
-                TypeName = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
-                ZipName = "AzureServiceBus",
-                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
-                Matches = name => name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy, StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyOld, StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
-            },
-            new TransportInfo
-            {
-                Name = TransportNames.AzureServiceBusForwardingTopologyDeprecated,
-                TypeName = "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
-                ZipName = "AzureServiceBus",
-                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
-                Matches = name => name.Equals(TransportNames.AzureServiceBusForwardingTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals(TransportNames.AzureServiceBusForwardingTopologyLegacy, StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals(TransportNames.AzureServiceBusForwardingTopologyOld, StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
-            },
-            new TransportInfo
-            {
                 Name = TransportNames.AzureServiceBus,
                 TypeName = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
                 ZipName = "NetStandardAzureServiceBus",
@@ -88,19 +60,6 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.SQLServer,
-                TypeName = "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer",
-                ZipName = "SqlServer",
-                SampleConnectionString = "Data Source=<SQLInstance>;Initial Catalog=nservicebus;Integrated Security=True;Queue Schema=myschema;Subscriptions Table=tablename@schema@catalog",
-                Help = "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location. When integrated authentication is specified in the SQL connection string the the current installing user is used to create the required SQL tables structure not the service account.",
-                Matches = name => name.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("NServiceBus.SqlServerTransport, NServiceBus.Transports.SQLServer", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("ServiceControl.Transports.SQLServer.ServiceControlSQLServerTransport, ServiceControl.Transports.SQLServer", StringComparison.OrdinalIgnoreCase)
-                                  || name.Equals("NServiceBus.SqlServerTransport, NServiceBus.Transport.SQLServer", StringComparison.OrdinalIgnoreCase)
-            },
-            new TransportInfo
-            {
                 Name = TransportNames.RabbitMQConventionalRoutingTopology,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
@@ -120,7 +79,48 @@
                 Matches = name => name.Equals(TransportNames.RabbitMQDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
-            }
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.SQLServer,
+                TypeName = "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer",
+                ZipName = "SqlServer",
+                SampleConnectionString = "Data Source=<SQLInstance>;Initial Catalog=nservicebus;Integrated Security=True;Queue Schema=myschema;Subscriptions Table=tablename@schema@catalog",
+                Help = "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location. When integrated authentication is specified in the SQL connection string the the current installing user is used to create the required SQL tables structure not the service account.",
+                Matches = name => name.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.SqlServerTransport, NServiceBus.Transports.SQLServer", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.SQLServer.ServiceControlSQLServerTransport, ServiceControl.Transports.SQLServer", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.SqlServerTransport, NServiceBus.Transport.SQLServer", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated,
+                TypeName = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
+                ZipName = "AzureServiceBus",
+                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
+                Matches = name => name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals(TransportNames.AzureServiceBusEndpointOrientedTopologyOld, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.AzureServiceBusForwardingTopologyDeprecated,
+                TypeName = "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
+                ZipName = "AzureServiceBus",
+                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
+                Matches = name => name.Equals(TransportNames.AzureServiceBusForwardingTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals(TransportNames.AzureServiceBusForwardingTopologyLegacy, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals(TransportNames.AzureServiceBusForwardingTopologyOld, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("AzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
+            },
         };
 
         public static TransportInfo Find(string name)
