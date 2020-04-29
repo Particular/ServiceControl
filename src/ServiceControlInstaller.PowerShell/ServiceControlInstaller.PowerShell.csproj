@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ServiceControlInstaller.Powershell.dll-help.xml" CopyToOutputDirectory="PreserveNewest" />
     <None Update="ServiceControlMgmt.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
     <None Update="ServiceControlMgmt.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Update="ServiceControlMgmt.psm1" CopyToOutputDirectory="PreserveNewest" />
