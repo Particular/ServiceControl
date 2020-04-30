@@ -12,7 +12,9 @@
         {
             configuration.UseSerialization<NewtonsoftSerializer>();
 
+#pragma warning disable 618
             var transportConfig = configuration.UseTransport<AzureServiceBusTransport>();
+#pragma warning restore 618
             transportConfig.UseForwardingTopology();
 
             transportConfig.ConnectionString(ConnectionString);

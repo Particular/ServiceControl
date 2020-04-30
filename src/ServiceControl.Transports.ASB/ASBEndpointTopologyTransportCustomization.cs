@@ -47,7 +47,9 @@
 
         static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transactionMode)
         {
+#pragma warning disable 618
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
+#pragma warning restore 618
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
             var topology = transport.UseEndpointOrientedTopology();
             topology.EnableMigrationToForwardingTopology();
@@ -57,7 +59,9 @@
 
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transactionMode)
         {
+#pragma warning disable 618
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
+#pragma warning restore 618
             transport.UseEndpointOrientedTopology();
             transport.ApplyHacksForNsbRaw();
 
