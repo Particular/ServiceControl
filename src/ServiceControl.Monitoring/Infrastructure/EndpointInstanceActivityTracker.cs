@@ -17,14 +17,13 @@
 
         public bool IsStale(EndpointInstanceId endpointInstance)
         {
-            DateTime lastActivityTime;
-            if (endpointsInstances.TryGetValue(endpointInstance, out lastActivityTime))
+            if (endpointsInstances.TryGetValue(endpointInstance, out var lastActivityTime))
             {
-                var timeSpan = DateTime.UtcNow - lastActivityTime;
-                return timeSpan > StalenessThreshold;
+                var age = DateTime.UtcNow - lastActivityTime;
+                return age > StalenessThreshold;
             }
 
-            return false;
+            return true;
         }
 
         internal readonly TimeSpan StalenessThreshold;
