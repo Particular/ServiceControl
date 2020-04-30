@@ -73,21 +73,19 @@
                 var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
-
-                if (isBelowMaxSize)
+                
+                if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
+                {
+                    metadata.Add("Body", Encoding.UTF8.GetString(body));
+                }
+                else if (isBelowMaxSize)
                 {
                     bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
                         .ConfigureAwait(false);
                     storedInBodyStorage = true;
                 }
 
-                if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
-                {
-                    metadata.Add("Body", Encoding.UTF8.GetString(body));
-                }
-
                 metadata.Add("BodyUrl", bodyUrl);
-
                 return storedInBodyStorage;
             }
 
@@ -104,7 +102,7 @@
             IBodyStorage bodyStorage;
             Settings settings;
 
-            static int LargeObjectHeapThreshold = 85 * 1024;
+            internal const int LargeObjectHeapThreshold = 85 * 1024;
         }
     }
 }
