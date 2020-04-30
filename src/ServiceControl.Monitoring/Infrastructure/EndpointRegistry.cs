@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure
 {
-    using ServiceControl.Monitoring.Infrastructure.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -28,10 +27,7 @@
         public void RemoveEndpointInstance(string endpointName, string endpointInstance)
         {
             var instances = GetForEndpointName(endpointName).Where(breakdown => string.Equals(breakdown.InstanceId, endpointInstance, StringComparison.OrdinalIgnoreCase));
-            instances.ForEach(instance =>
-            {
-                RemoveBreakdown(instance);
-            });
+            RemoveBreakdowns(instances);
         }
     }
 }

@@ -17,9 +17,7 @@ namespace ServiceControl.Monitoring.Infrastructure
             {
                 if (AddBreakdown(breakdown, breakdowns))
                 {
-                    lookup = breakdowns.Values.ToArray()
-                        .GroupBy(b => endpointNameExtractor(b))
-                        .ToDictionary(g => g.Key, g => (IEnumerable<BreakdownT>)g.Select(i => i).ToArray());
+                    UpdateLookups();
                 }
             }
         }
@@ -36,37 +34,44 @@ namespace ServiceControl.Monitoring.Infrastructure
             return true;
         }
 
-        public IReadOnlyDictionary<string, IEnumerable<BreakdownT>> GetGroupedByEndpointName()
+        public IReadOnlyDictionary<string, BreakdownT[]> GetGroupedByEndpointName()
         {
             return lookup;
         }
 
-        public IEnumerable<BreakdownT> GetForEndpointName(string endpointName)
+        public BreakdownT[] GetForEndpointName(string endpointName)
         {
             if (lookup.TryGetValue(endpointName, out var endpointBreakdowns))
             {
                 return endpointBreakdowns;
             }
 
-            return emptyResult;
+            return Array.Empty<BreakdownT>();
         }
 
-        public void RemoveBreakdown(BreakdownT breakdown)
+        public void RemoveBreakdowns(IEnumerable<BreakdownT> breakdownsToRemove)
         {
-            if (breakdowns.Remove(breakdown))
+            lock (@lock)
             {
-                lookup = breakdowns.Values.ToArray()
-                        .GroupBy(b => endpointNameExtractor(b))
-                        .ToDictionary(g => g.Key, g => (IEnumerable<BreakdownT>)g.Select(i => i).ToArray());
+                foreach (var breakdown in breakdownsToRemove)
+                {
+                    breakdowns.Remove(breakdown);
+                }
+                UpdateLookups();
             }
         }
 
+        void UpdateLookups()
+        {
+            lookup = breakdowns.Values
+                        .GroupBy(b => endpointNameExtractor(b))
+                        .ToDictionary(g => g.Key, g => g.Select(i => i).ToArray());
+        }
+
         Dictionary<BreakdownT, BreakdownT> breakdowns = new Dictionary<BreakdownT, BreakdownT>();
-        volatile Dictionary<string, IEnumerable<BreakdownT>> lookup = new Dictionary<string, IEnumerable<BreakdownT>>();
+        volatile Dictionary<string, BreakdownT[]> lookup = new Dictionary<string, BreakdownT[]>();
         object @lock = new object();
 
         Func<BreakdownT, string> endpointNameExtractor;
-
-        static IEnumerable<BreakdownT> emptyResult = new BreakdownT[0];
     }
 }
