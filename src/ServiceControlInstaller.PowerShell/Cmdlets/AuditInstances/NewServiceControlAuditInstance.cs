@@ -95,10 +95,10 @@
             {
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
             }
-            
+
             if (TransportNames.IsDeprecated(Transport))
             {
-                WriteWarning($"The transport '{Transport}' is deprecated.");
+                WriteWarning($"The transport '{Transport.Replace(TransportNames.DeprecatedPrefix, string.Empty)}' is deprecated. Consult the corresponding upgrade guide for the selected transport on 'https://docs.particular.net'");
             }
 
             if (string.IsNullOrWhiteSpace(HostName))
@@ -141,7 +141,7 @@
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ConnectionString = ConnectionString,
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
-                SkipQueueCreation = SkipQueueCreation, 
+                SkipQueueCreation = SkipQueueCreation,
                 ServiceControlQueueAddress = ServiceControlQueueAddress
             };
 

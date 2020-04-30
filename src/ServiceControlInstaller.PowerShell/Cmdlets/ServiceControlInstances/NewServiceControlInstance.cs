@@ -104,7 +104,7 @@ namespace ServiceControlInstaller.PowerShell
 
             if (TransportNames.IsDeprecated(Transport))
             {
-                WriteWarning($"The transport '{Transport}' is deprecated.");
+                WriteWarning($"The transport '{Transport.Replace(TransportNames.DeprecatedPrefix, string.Empty)}' is deprecated. Consult the corresponding upgrade guide for the selected transport on 'https://docs.particular.net'");
             }
 
             if (string.IsNullOrWhiteSpace(HostName))

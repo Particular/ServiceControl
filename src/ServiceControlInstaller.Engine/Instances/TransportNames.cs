@@ -4,13 +4,15 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public const string AzureServiceBus = "Azure Service Bus";
 
-        public const string AzureServiceBusEndpointOrientedTopologyDeprecated = "DEPRECATED: Azure Service Bus - Endpoint-oriented topology (Legacy)";
+        public const string DeprecatedPrefix = "DEPRECATED: ";
+
+        public const string AzureServiceBusEndpointOrientedTopologyDeprecated = DeprecatedPrefix + "Azure Service Bus - Endpoint-oriented topology (Legacy)";
 
         public const string AzureServiceBusEndpointOrientedTopologyLegacy = "Azure Service Bus - Endpoint-oriented topology (Legacy)";
         // for backward compatibility
         public const string AzureServiceBusEndpointOrientedTopologyOld = "Azure Service Bus - Endpoint-oriented topology (Old)";
 
-        public const string AzureServiceBusForwardingTopologyDeprecated = "DEPRECATED: Azure Service Bus - Forwarding topology (Legacy)";
+        public const string AzureServiceBusForwardingTopologyDeprecated = DeprecatedPrefix + "Azure Service Bus - Forwarding topology (Legacy)";
 
         public const string AzureServiceBusForwardingTopologyLegacy = "Azure Service Bus - Forwarding topology (Legacy)";
         // for backward compatibility
