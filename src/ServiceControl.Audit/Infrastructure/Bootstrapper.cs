@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -167,7 +168,7 @@ namespace ServiceControl.Audit.Infrastructure
 
         private void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
-            var version = typeof(Bootstrapper).Assembly.GetName().Version;
+            var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Audit Version:       {version}
