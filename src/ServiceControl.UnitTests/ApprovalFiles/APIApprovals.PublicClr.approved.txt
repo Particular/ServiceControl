@@ -618,6 +618,7 @@ namespace ServiceControl.Infrastructure.WebApi
             public string EndpointsUrl { get; set; }
             public string ErrorsUrl { get; set; }
             public string EventLogItems { get; set; }
+            public string GetArchiveGroup { get; set; }
             public string KnownEndpointsUrl { get; set; }
             public string LicenseDetails { get; set; }
             public string LicenseStatus { get; set; }
