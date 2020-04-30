@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using NLog;
@@ -22,7 +23,7 @@
                 return;
             }
 
-            var version = typeof(Host).Assembly.GetName().Version;
+            var version = FileVersionInfo.GetVersionInfo(typeof(Host).Assembly.Location).ProductVersion;
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
             var header = $@"-------------------------------------------------------------
