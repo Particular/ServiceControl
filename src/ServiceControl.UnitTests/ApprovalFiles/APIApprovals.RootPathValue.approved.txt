@@ -13,5 +13,6 @@
   "Name": "testName",
   "SagasUrl": "http://localhost/sagas",
   "EventLogItems": "http://localhost/eventlogitems",
-  "ArchivedGroupsUrl": "http://localhost/errors/groups/{classifier?}"
+  "ArchivedGroupsUrl": "http://localhost/errors/groups/{classifier?}",
+  "GetArchiveGroup": "http://localhost/archive/groups/id/{groupId}"
 }
