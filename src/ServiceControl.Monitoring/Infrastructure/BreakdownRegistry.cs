@@ -53,11 +53,14 @@ namespace ServiceControl.Monitoring.Infrastructure
 
         public void RemoveBreakdown(BreakdownT breakdown)
         {
-            if (breakdowns.Remove(breakdown))
+            lock (@lock)
             {
-                lookup = breakdowns.Values.ToArray()
-                        .GroupBy(b => endpointNameExtractor(b))
-                        .ToDictionary(g => g.Key, g => (IEnumerable<BreakdownT>)g.Select(i => i).ToArray());
+                if (breakdowns.Remove(breakdown))
+                {
+                    lookup = breakdowns.Values.ToArray()
+                            .GroupBy(b => endpointNameExtractor(b))
+                            .ToDictionary(g => g.Key, g => (IEnumerable<BreakdownT>)g.Select(i => i).ToArray());
+                }
             }
         }
 
