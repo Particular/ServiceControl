@@ -47,7 +47,9 @@
 
         static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transactionMode)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
+#pragma warning restore CS0618 // Type or member is obsolete
             transport.Sanitization().UseStrategy<ValidateAndHashIfNeeded>();
             var topology = transport.UseEndpointOrientedTopology();
             topology.EnableMigrationToForwardingTopology();
@@ -57,7 +59,9 @@
 
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transactionMode)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             var transport = endpointConfig.UseTransport<AzureServiceBusTransport>();
+#pragma warning restore CS0618 // Type or member is obsolete
             transport.UseEndpointOrientedTopology();
             transport.ApplyHacksForNsbRaw();
 

@@ -12,7 +12,9 @@
         {
             configuration.UseSerialization<NewtonsoftSerializer>();
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var transportConfig = configuration.UseTransport<AzureServiceBusTransport>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
             transportConfig.ConnectionString(ConnectionString);
 
