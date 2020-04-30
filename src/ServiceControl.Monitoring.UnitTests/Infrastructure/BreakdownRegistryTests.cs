@@ -84,6 +84,26 @@
             CollectionAssert.AreEquivalent(new[] {instanceA}, instances);
         }
 
+        [Test]
+        public void Returns_only_not_removed_instances()
+        {
+            var instanceA = new EndpointInstanceId("EndpointA", "instance1");
+            var instanceB1 = new EndpointInstanceId("EndpointB", "instance1");
+            var instanceB2 = new EndpointInstanceId("EndpointB", "instance2");
+            var instanceC = new EndpointInstanceId("EndpointC", "instance2");
+
+            registry.Record(instanceA);
+            registry.Record(instanceB1);
+            registry.Record(instanceB2);
+            registry.Record(instanceC);
+
+            registry.RemoveEndpointInstance("EndpointB", "instance2");
+
+            var instances = registry.GetForEndpointName("EndpointB");
+
+            CollectionAssert.AreEquivalent(new[] {instanceB1}, instances);
+        }
+
         EndpointRegistry registry;
     }
 }
