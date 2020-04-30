@@ -12,7 +12,9 @@
         {
             configuration.UseSerialization<NewtonsoftSerializer>();
 
+#pragma warning disable 618
             var transportConfig = configuration.UseTransport<AzureServiceBusTransport>();
+#pragma warning restore 618
             transportConfig.UseForwardingTopology();
 
             transportConfig.ConnectionString(ConnectionString);
@@ -27,7 +29,7 @@
             return Task.FromResult(0);
         }
 
-        public string Name => TransportNames.AzureServiceBusForwardingTopology;
+        public string Name => TransportNames.AzureServiceBusForwardingTopologyDeprecated;
 
         public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization).AssemblyQualifiedName}";
 

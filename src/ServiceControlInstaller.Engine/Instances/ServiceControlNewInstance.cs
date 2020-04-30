@@ -107,17 +107,17 @@ namespace ServiceControlInstaller.Engine.Instances
             doc.Load(path);
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ForwardErrorMessages") == null)
             {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+                throw new InvalidDataException("The supplied file is using an old format. Which is no longer supported.");
             }
 
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/AuditRetentionPeriod") == null)
             {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+                throw new InvalidDataException("The supplied file is using an old format. Which is no longer supported.");
             }
 
             if (doc.SelectSingleNode("/ServiceControlInstanceMetadata/ErrorRetentionPeriod") == null)
             {
-                throw new InvalidDataException("The supplied file is using an old format. Use 'New-ServiceControlUnattendedFile' from the ServiceControl to create a new unattended install file.");
+                throw new InvalidDataException("The supplied file is using an old format. Which is no longer supported.");
             }
 
             return instanceData;

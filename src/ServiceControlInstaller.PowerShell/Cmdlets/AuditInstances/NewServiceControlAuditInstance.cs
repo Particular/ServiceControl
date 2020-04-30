@@ -51,7 +51,7 @@
         public string AuditLogQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet(TransportNames.AzureServiceBus, TransportNames.AzureServiceBusForwardingTopology, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopology, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
+        [ValidateSet(TransportNames.AzureServiceBus, TransportNames.AzureServiceBusForwardingTopologyDeprecated, TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated, TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
@@ -96,6 +96,11 @@
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
             }
 
+            if (TransportNames.IsDeprecated(Transport))
+            {
+                WriteWarning($"The transport '{Transport.Replace(TransportNames.DeprecatedPrefix, string.Empty)}' is deprecated. Consult the corresponding upgrade guide for the selected transport on 'https://docs.particular.net'");
+            }
+
             if (string.IsNullOrWhiteSpace(HostName))
             {
                 WriteWarning("HostName set to default value 'localhost'");
@@ -136,7 +141,7 @@
                 AuditRetentionPeriod = AuditRetentionPeriod,
                 ConnectionString = ConnectionString,
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
-                SkipQueueCreation = SkipQueueCreation, 
+                SkipQueueCreation = SkipQueueCreation,
                 ServiceControlQueueAddress = ServiceControlQueueAddress
             };
 
