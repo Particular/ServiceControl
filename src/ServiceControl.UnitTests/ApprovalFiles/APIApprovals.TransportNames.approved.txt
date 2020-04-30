@@ -13,6 +13,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public const string AzureServiceBusForwardingTopologyLegacy = "Azure Service Bus - Forwarding topology (Legacy)";
         public const string AzureServiceBusForwardingTopologyOld = "Azure Service Bus - Forwarding topology (Old)";
         public const string AzureStorageQueue = "Azure Storage Queue";
+        public const string DeprecatedPrefix = "DEPRECATED: ";
         public const string MSMQ = "MSMQ";
         public const string RabbitMQConventionalRoutingTopology = "RabbitMQ - Conventional routing topology";
         public const string RabbitMQDirectRoutingTopology = "RabbitMQ - Direct routing topology (Old)";
