@@ -14,7 +14,7 @@
     {
         public DiagramApiController(IProvideBreakdown[] breakdownProviders, EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker, MessageTypeRegistry messageTypeRegistry)
         {
-            this.breakdownProviders = new List<IProvideBreakdown>(breakdownProviders);
+            this.breakdownProviders = breakdownProviders;
             this.endpointRegistry = endpointRegistry;
             this.activityTracker = activityTracker;
             this.messageTypeRegistry = messageTypeRegistry;
@@ -246,7 +246,7 @@
                 .ToArray();
         }
 
-        readonly List<IProvideBreakdown> breakdownProviders;
+        readonly IProvideBreakdown[] breakdownProviders;
         readonly EndpointRegistry endpointRegistry;
         readonly EndpointInstanceActivityTracker activityTracker;
         readonly MessageTypeRegistry messageTypeRegistry;
