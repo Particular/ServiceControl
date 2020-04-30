@@ -1457,7 +1457,7 @@ The named instance will be updated to the latest version.</maml:para>
 			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
 				<maml:name>AuditRetentionPeriod</maml:name>
 				<maml:description>
-					<maml:para>AuditRetentionPeriod controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days. 
+					<maml:para>AuditRetentionPeriod controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days.
 Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="true">Nullable`1[TimeSpan]</command:parameterValue>
@@ -1465,7 +1465,7 @@ Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ErrorRetentionPeriod</maml:name>
 				<maml:description>
-					<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  Only error messages that have been successfully retried or marked as resolved are purged. 
+					<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  Only error messages that have been successfully retried or marked as resolved are purged.
 The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="true">Nullable`1[TimeSpan]</command:parameterValue>
@@ -1504,7 +1504,7 @@ The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-T
 		<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
 			<maml:name>AuditRetentionPeriod</maml:name>
 			<maml:description>
-				<maml:para>AuditRetentionPeriod controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days. 
+				<maml:para>AuditRetentionPeriod controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days.
 Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="true">Nullable`1[TimeSpan]</command:parameterValue>
@@ -1517,7 +1517,7 @@ Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 		<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ErrorRetentionPeriod</maml:name>
 			<maml:description>
-				<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  Only error messages that have been successfully retried or marked as resolved are purged. 
+				<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  Only error messages that have been successfully retried or marked as resolved are purged.
 The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="true">Nullable`1[TimeSpan]</command:parameterValue>
@@ -1740,7 +1740,7 @@ If external integration is not required, it is highly recommend to turn forwardi
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ServiceAccount</maml:name>
 				<maml:description>
-					<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.  
+					<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.
 When specifying Active Directory Group Managed Service Accounts use single quotes so Powershell interprets the dollar sign with the account name as a string literal.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
@@ -1959,7 +1959,7 @@ If external integration is not required, it is highly recommend to turn forwardi
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ServiceAccount</maml:name>
 			<maml:description>
-				<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.  
+				<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.
 When specifying Active Directory Group Managed Service Accounts use single quotes so Powershell interprets the dollar sign with the account name as a string literal.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
@@ -2165,7 +2165,7 @@ Execute  &#39;Get-ServiceControlTransportTypes | Select -Property Name&#39;  to 
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ServiceAccount</maml:name>
 				<maml:description>
-					<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.  
+					<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.
 When specifying Active Directory Group Managed Service Accounts use single quotes so Powershell interprets the dollar sign with the account name as a string literal.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
@@ -2319,7 +2319,7 @@ Execute  &#39;Get-ServiceControlTransportTypes | Select -Property Name&#39;  to 
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ServiceAccount</maml:name>
 			<maml:description>
-				<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.  
+				<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.
 When specifying Active Directory Group Managed Service Accounts use single quotes so Powershell interprets the dollar sign with the account name as a string literal.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
@@ -2538,7 +2538,7 @@ If external integration is not required, it is highly recommend to turn forwardi
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ServiceAccount</maml:name>
 				<maml:description>
-					<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.  
+					<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.
 When specifying Active Directory Group Managed Service Accounts use single quotes so Powershell interprets the dollar sign with the account name as a string literal.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
@@ -2553,7 +2553,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>ErrorRetentionPeriod</maml:name>
 				<maml:description>
-					<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  
+					<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.
 The retention policy does not remove error messages that still in the unresolved state.
 The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 				</maml:description>
@@ -2764,7 +2764,7 @@ If external integration is not required, it is highly recommend to turn forwardi
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ServiceAccount</maml:name>
 			<maml:description>
-				<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.  
+				<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.
 When specifying Active Directory Group Managed Service Accounts use single quotes so Powershell interprets the dollar sign with the account name as a string literal.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
@@ -2789,7 +2789,7 @@ When specifying Active Directory Group Managed Service Accounts use single quote
 		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>ErrorRetentionPeriod</maml:name>
 			<maml:description>
-				<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  
+				<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.
 The retention policy does not remove error messages that still in the unresolved state.
 The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
 			</maml:description>
@@ -2909,7 +2909,7 @@ InstallPath          : c:\bin\ServiceControlProd
 DBPath               : c:\data\ServiceControlProd\DB
 LogPath              : c:\data\ServiceControlProd\Logs
 TransportPackage     : MSMQ
-ConnectionString     : 
+ConnectionString     :
 ErrorQueue           : error
 ErrorLogQueue        : error.log
 ForwardErrorMessages : False
@@ -2924,646 +2924,6 @@ Version              : 1.33.0</maml:para>
 				</command:commandLine>
 			</command:commandLines>
 		</command:example>
-	</command:examples>
-	<maml:relatedLinks>
-	</maml:relatedLinks>
-</command:command>
-<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
-<!--Generated by PS Cmdlet Help Editor-->
-	<command:details>
-		<command:name>New-ServiceControlInstanceFromUnattendedFile</command:name>
-		<maml:description>
-			<maml:para>Create an instance from an unattended install file.</maml:para>
-		</maml:description>
-		<maml:copyright>
-			<maml:para />
-		</maml:copyright>
-		<command:verb>New</command:verb>
-		<command:noun>ServiceControlInstanceFromUnattendedFile</command:noun>
-		<dev:version />
-	</command:details>
-	<maml:description>
-		<maml:para>Create an instance from an unattended install file. The unattended install file can be made using the New-ServiceControlUnattendedFile cmdlet.</maml:para>
-	</maml:description>
-	<command:syntax>
-		<command:syntaxItem>
-			<maml:name>New-ServiceControlInstanceFromUnattendedFile</maml:name>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="true (ByValue, ByPropertyName)" position="0">
-				<maml:name>UnattendFile</maml:name>
-				<maml:description>
-					<maml:para>The path the the unattended xml file to process.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="1">
-				<maml:name>ServiceAccount</maml:name>
-				<maml:description>
-					<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.  
-When specifying Active Directory Group Managed Service Accounts use single quotes so Powershell interprets the dollar sign with the account name as a string literal.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="2">
-				<maml:name>Password</maml:name>
-				<maml:description>
-					<maml:para>The password for the Service Account.  When using LocalSystem, LocalService,, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>Force</maml:name>
-				<maml:description>
-					<maml:para>Force the installation even if the directories specified are not empty.</maml:para>
-				</maml:description>
-				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
-			</command:parameter>
-		</command:syntaxItem>
-	</command:syntax>
-	<command:parameters>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="true (ByValue, ByPropertyName)" position="0">
-			<maml:name>UnattendFile</maml:name>
-			<maml:description>
-				<maml:para>The path the the unattended xml file to process.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="1">
-			<maml:name>ServiceAccount</maml:name>
-			<maml:description>
-				<maml:para>The Windows Account to run the service under.  Defaults to the LocalSystem account if no account is specified.  
-When specifying Active Directory Group Managed Service Accounts use single quotes so Powershell interprets the dollar sign with the account name as a string literal.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue>LocalSystem</dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="2">
-			<maml:name>Password</maml:name>
-			<maml:description>
-				<maml:para>The password for the Service Account.  When using LocalSystem, LocalService,, NetworkService or an Active Directory Group Managed Service Account no password should be specified.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>Force</maml:name>
-			<maml:description>
-				<maml:para>Force the installation even if the directories specified are not empty.</maml:para>
-			</maml:description>
-			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
-			<dev:type>
-				<maml:name>SwitchParameter</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-	</command:parameters>
-	<command:inputTypes>
-		<command:inputType>
-			<dev:type>
-				<maml:name></maml:name>
-				<maml:uri></maml:uri>
-				<maml:description/>
-			</dev:type>
-			<maml:description>
-				<maml:para>
-</maml:para>
-			</maml:description>
-		</command:inputType>
-	</command:inputTypes>
-	<command:returnValues>
-		<command:returnValue>
-			<dev:type>
-				<maml:name></maml:name>
-				<maml:uri></maml:uri>
-				<maml:description/>
-			</dev:type>
-			<maml:description>
-				<maml:para>
-</maml:para>
-			</maml:description>
-		</command:returnValue>
-	</command:returnValues>
-	<command:terminatingErrors></command:terminatingErrors>
-	<command:nonTerminatingErrors></command:nonTerminatingErrors>
-	<maml:alertSet>
-		<maml:title></maml:title>
-		<maml:alert>
-			<maml:para>DEPRECATED - This Cmdlet  will be removed in a future version. To automate an installation the preferred approach is to use a  New-ServiceControlInstance instead of the unattended install file.</maml:para>
-		</maml:alert>
-	</maml:alertSet>
-	<command:examples>
-		<command:example>
-			<maml:title>--------------------------  Example 1  --------------------------</maml:title>
-			<maml:introduction>
-				<maml:paragraph>PS C:\&gt;</maml:paragraph>
-			</maml:introduction>
-			<dev:code>New-ServiceControlInstanceFromUnattendedFile -unattendedfile sample.xml</dev:code>
-			<dev:remarks>
-				<maml:para />
-				<maml:para />
-				<maml:para />
-				<maml:para></maml:para>
-			</dev:remarks>
-			<command:commandLines>
-				<command:commandLine>
-					<command:commandText>
-						<maml:para />
-					</command:commandText>
-				</command:commandLine>
-			</command:commandLines>
-		</command:example>
-	</command:examples>
-	<maml:relatedLinks>
-	</maml:relatedLinks>
-</command:command>
-<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
-<!--Generated by PS Cmdlet Help Editor-->
-	<command:details>
-		<command:name>New-ServiceControlUnattendedFile</command:name>
-		<maml:description>
-			<maml:para>Create an instance from an unattended install file.
-DEPRECATED - This Cmdlet  will be removed in a future version. To automate an installation the preferred approach is to use a  New-ServiceControlInstance instead of the unattended install fle.</maml:para>
-		</maml:description>
-		<maml:copyright>
-			<maml:para />
-		</maml:copyright>
-		<command:verb>New</command:verb>
-		<command:noun>ServiceControlUnattendedFile</command:noun>
-		<dev:version />
-	</command:details>
-	<maml:description>
-		<maml:para>Create an instance from an unattended install file.  The resultant XML file can be passed to the ServiceControl Installation executable using the UNATTENDEDFILE command line option.  An instance can also me made from the file by using the New-ServiceControlInstanceFromUnattendedFile cmdlet.</maml:para>
-	</maml:description>
-	<command:syntax>
-		<command:syntaxItem>
-			<maml:name>New-ServiceControlUnattendedFile</maml:name>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>Name</maml:name>
-				<maml:description>
-					<maml:para>The name of the ServiceControl Instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows services and not contain any spaces or special characters.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>InstallPath</maml:name>
-				<maml:description>
-					<maml:para>The directory to use for this ServiceControl Instance.  The binary files are copied here.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>DBPath</maml:name>
-				<maml:description>
-					<maml:para>The directory that will contain the embedded database files for this ServiceControl Instance.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>LogPath</maml:name>
-				<maml:description>
-					<maml:para>The directory that will contain the logs for this instance of ServiceControl.  This should be unique for each instance of ServiceControl and should not be a subfolder of the InstallPath or DBPath.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>HostName</maml:name>
-				<maml:description>
-					<maml:para>The hostname to use in the URLACL (defaults to localhost).  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. This is why the default is to only respond to the localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URL.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>Port</maml:name>
-				<maml:description>
-					<maml:para>The TCP port number to listen on. If this is the only ServiceControl instance then 33333 is recommended.  The port number must be unique for each instance and not be in use by another process.  Use the Test-IfPortIsAvailable cmdlet to verify a port number is free.
-The allowed port range is 1 to 49151.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>DatabaseMaintenancePort</maml:name>
-				<maml:description>
-					<maml:para />
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>ErrorQueue</maml:name>
-				<maml:description>
-					<maml:para>Specifies the input queue name to consume error messages from.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>AuditQueue</maml:name>
-				<maml:description>
-					<maml:para>Specifies the input queue name to consume audit messages from.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>ErrorLogQueue</maml:name>
-				<maml:description>
-					<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See  ForwardErrorMessages for more information</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>AuditLogQueue</maml:name>
-				<maml:description>
-					<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See  ForwardAuditMessages for more information</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>Transport</maml:name>
-				<maml:description>
-					<maml:para>The name of the NServiceBus Transport to use.  e.g. &quot;AzureServiceBus&quot;, &quot;AzureStorageQueue&quot;, &quot;MSMQ&quot;, &quot;SQLServer&quot; or  &quot;RabbitMQ&quot;.
-Execute  &#39;Get-ServiceControlTransportTypes | Select -Property Name&#39;  to retrieve the full list of valid transports.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>DisplayName</maml:name>
-				<maml:description>
-					<maml:para>Specify the Windows Service Display name. If unspecified the instance name will be used.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>VirtualDirectory</maml:name>
-				<maml:description>
-					<maml:para>DEPRECATED.
-Optional Virtual directory name. Not recommended, this is retained for legacy configuration purposes.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>ConnectionString</maml:name>
-				<maml:description>
-					<maml:para>The connection string to use to connect to the queuing system.  This is not required for MSMQ.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>Description</maml:name>
-				<maml:description>
-					<maml:para>Set the optional description on the Windows Service.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>ForwardAuditMessages</maml:name>
-				<maml:description>
-					<maml:para>When enabled the audit forwarding queue retains a copy of the original messages ingested by ServiceControl. Forwarding queues are not directly managed by ServiceControl and are meant as points of external integration.
-If external integration is not required, it is highly recommend to turn forwarding off. Otherwise, messages will accumulate unprocessed in the forwarding queue until eventually all available disk space is consumed.</maml:para>
-				</maml:description>
-				<command:parameterValue required="false" variableLength="false">Boolean</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>ForwardErrorMessages</maml:name>
-				<maml:description>
-					<maml:para>When enabled the error forwarding queue retains a copy of the original messages ingested by ServiceControl. Forwarding queues are not directly managed by ServiceControl and are meant as points of external integration.
-If external integration is not required, it is highly recommend to turn forwarding off. Otherwise, messages will accumulate unprocessed in the forwarding queue until eventually all available disk space is consumed.</maml:para>
-				</maml:description>
-				<command:parameterValue required="false" variableLength="false">Boolean</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>AuditRetentionPeriod</maml:name>
-				<maml:description>
-					<maml:para>AuditRetention Period controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days. 
-Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">TimeSpan</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>ErrorRetentionPeriod</maml:name>
-				<maml:description>
-					<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  
-The retention policy does not remove error messages that still in the unresolved state.
-The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">TimeSpan</command:parameterValue>
-			</command:parameter>
-			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-				<maml:name>OutputFile</maml:name>
-				<maml:description>
-					<maml:para>Specifies the path of the XML output file.</maml:para>
-				</maml:description>
-				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			</command:parameter>
-		</command:syntaxItem>
-	</command:syntax>
-	<command:parameters>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>Name</maml:name>
-			<maml:description>
-				<maml:para>The name of the ServiceControl Instance.  This will be used as the Windows Service Name.  The name must be unique for all Windows services and not contain any spaces or special characters.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>InstallPath</maml:name>
-			<maml:description>
-				<maml:para>The directory to use for this ServiceControl Instance.  The binary files are copied here.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>DBPath</maml:name>
-			<maml:description>
-				<maml:para>The directory that will contain the embedded database files for this ServiceControl Instance.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>LogPath</maml:name>
-			<maml:description>
-				<maml:para>The directory that will contain the logs for this instance of ServiceControl.  This should be unique for each instance of ServiceControl and should not be a subfolder of the InstallPath or DBPath.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>HostName</maml:name>
-			<maml:description>
-				<maml:para>The hostname to use in the URLACL (defaults to localhost).  Anyone who can access the ServiceControl URL has complete access to the message data stored within ServiceControl. This is why the default is to only respond to the localhost. Consider carefully the implications of exposing ServiceControl via a custom or wildcard URL.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>Port</maml:name>
-			<maml:description>
-				<maml:para>The TCP port number to listen on. If this is the only ServiceControl instance then 33333 is recommended.  The port number must be unique for each instance and not be in use by another process.  Use the Test-IfPortIsAvailable cmdlet to verify a port number is free.
-The allowed port range is 1 to 49151.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
-			<dev:type>
-				<maml:name>Int32</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>DatabaseMaintenancePort</maml:name>
-			<maml:description>
-				<maml:para />
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
-			<dev:type>
-				<maml:name>Int32</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>ErrorQueue</maml:name>
-			<maml:description>
-				<maml:para>Specifies the input queue name to consume error messages from.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>AuditQueue</maml:name>
-			<maml:description>
-				<maml:para>Specifies the input queue name to consume audit messages from.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>ErrorLogQueue</maml:name>
-			<maml:description>
-				<maml:para>The queue that error messages will be forwarded to if ForwardErrorMessages is enabled. See  ForwardErrorMessages for more information</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>AuditLogQueue</maml:name>
-			<maml:description>
-				<maml:para>The queue that audit messages will be forwarded to if ForwardAuditMessages is enabled. See  ForwardAuditMessages for more information</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>Transport</maml:name>
-			<maml:description>
-				<maml:para>The name of the NServiceBus Transport to use.  e.g. &quot;AzureServiceBus&quot;, &quot;AzureStorageQueue&quot;, &quot;MSMQ&quot;, &quot;SQLServer&quot; or  &quot;RabbitMQ&quot;.
-Execute  &#39;Get-ServiceControlTransportTypes | Select -Property Name&#39;  to retrieve the full list of valid transports.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>DisplayName</maml:name>
-			<maml:description>
-				<maml:para>Specify the Windows Service Display name. If unspecified the instance name will be used.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>VirtualDirectory</maml:name>
-			<maml:description>
-				<maml:para>DEPRECATED.
-Optional Virtual directory name. Not recommended, this is retained for legacy configuration purposes.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>ConnectionString</maml:name>
-			<maml:description>
-				<maml:para>The connection string to use to connect to the queuing system.  This is not required for MSMQ.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>Description</maml:name>
-			<maml:description>
-				<maml:para>Set the optional description on the Windows Service.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>ForwardAuditMessages</maml:name>
-			<maml:description>
-				<maml:para>When enabled the audit forwarding queue retains a copy of the original messages ingested by ServiceControl. Forwarding queues are not directly managed by ServiceControl and are meant as points of external integration.
-If external integration is not required, it is highly recommend to turn forwarding off. Otherwise, messages will accumulate unprocessed in the forwarding queue until eventually all available disk space is consumed.</maml:para>
-			</maml:description>
-			<command:parameterValue required="false" variableLength="false">Boolean</command:parameterValue>
-			<dev:type>
-				<maml:name>Boolean</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>ForwardErrorMessages</maml:name>
-			<maml:description>
-				<maml:para>When enabled the error forwarding queue retains a copy of the original messages ingested by ServiceControl. Forwarding queues are not directly managed by ServiceControl and are meant as points of external integration.
-If external integration is not required, it is highly recommend to turn forwarding off. Otherwise, messages will accumulate unprocessed in the forwarding queue until eventually all available disk space is consumed.</maml:para>
-			</maml:description>
-			<command:parameterValue required="false" variableLength="false">Boolean</command:parameterValue>
-			<dev:type>
-				<maml:name>Boolean</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>AuditRetentionPeriod</maml:name>
-			<maml:description>
-				<maml:para>AuditRetention Period controls how long ServiceControl retains messages ingested from the Audit queue in the database.  The value must be a TimeSpan within the range 1 hour to 365 days. 
-Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">TimeSpan</command:parameterValue>
-			<dev:type>
-				<maml:name>TimeSpan</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>ErrorRetentionPeriod</maml:name>
-			<maml:description>
-				<maml:para>ErrorRetentionPeriod controls how long ServiceControl retains messages ingested from the Error queue in the database.  
-The retention policy does not remove error messages that still in the unresolved state.
-The value must be a TimeSpan within the range 10 days to 45 days.  Use the New-TimeSpan cmdlet to generate a TimeSpan value.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">TimeSpan</command:parameterValue>
-			<dev:type>
-				<maml:name>TimeSpan</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
-			<maml:name>OutputFile</maml:name>
-			<maml:description>
-				<maml:para>Specifies the path of the XML output file.</maml:para>
-			</maml:description>
-			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-			<dev:type>
-				<maml:name>String</maml:name>
-				<maml:uri/>
-			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
-		</command:parameter>
-	</command:parameters>
-	<command:inputTypes>
-		<command:inputType>
-			<dev:type>
-				<maml:name></maml:name>
-				<maml:uri></maml:uri>
-				<maml:description/>
-			</dev:type>
-			<maml:description>
-				<maml:para>
-</maml:para>
-			</maml:description>
-		</command:inputType>
-	</command:inputTypes>
-	<command:returnValues>
-		<command:returnValue>
-			<dev:type>
-				<maml:name></maml:name>
-				<maml:uri></maml:uri>
-				<maml:description/>
-			</dev:type>
-			<maml:description>
-				<maml:para>
-</maml:para>
-			</maml:description>
-		</command:returnValue>
-	</command:returnValues>
-	<command:terminatingErrors></command:terminatingErrors>
-	<command:nonTerminatingErrors></command:nonTerminatingErrors>
-	<maml:alertSet>
-		<maml:title></maml:title>
-		<maml:alert>
-			<maml:para />
-		</maml:alert>
-	</maml:alertSet>
-	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
 	</maml:relatedLinks>
