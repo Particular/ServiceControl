@@ -17,9 +17,7 @@ namespace ServiceControl.Monitoring.Infrastructure
             {
                 if (AddBreakdown(breakdown, breakdowns))
                 {
-                    lookup = breakdowns.Values.ToArray()
-                        .GroupBy(b => endpointNameExtractor(b))
-                        .ToDictionary(g => g.Key, g => (IEnumerable<BreakdownT>)g.Select(i => i).ToArray());
+                    UpdateLookups();
                 }
             }
         }
@@ -57,11 +55,16 @@ namespace ServiceControl.Monitoring.Infrastructure
             {
                 if (breakdowns.Remove(breakdown))
                 {
-                    lookup = breakdowns.Values.ToArray()
-                            .GroupBy(b => endpointNameExtractor(b))
-                            .ToDictionary(g => g.Key, g => (IEnumerable<BreakdownT>)g.Select(i => i).ToArray());
+                    UpdateLookups();
                 }
             }
+        }
+
+        void UpdateLookups()
+        {
+            lookup = breakdowns.Values.ToArray()
+                        .GroupBy(b => endpointNameExtractor(b))
+                        .ToDictionary(g => g.Key, g => (IEnumerable<BreakdownT>)g.Select(i => i).ToArray());
         }
 
         Dictionary<BreakdownT, BreakdownT> breakdowns = new Dictionary<BreakdownT, BreakdownT>();
