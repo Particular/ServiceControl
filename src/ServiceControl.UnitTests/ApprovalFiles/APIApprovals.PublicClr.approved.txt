@@ -609,6 +609,7 @@ namespace ServiceControl.Infrastructure.WebApi
         public class RootUrls
         {
             public RootUrls() { }
+            public string ArchivedGroupsUrl { get; set; }
             public string Configuration { get; set; }
             public string Description { get; set; }
             public string EndpointsErrorUrl { get; set; }
@@ -617,6 +618,7 @@ namespace ServiceControl.Infrastructure.WebApi
             public string EndpointsUrl { get; set; }
             public string ErrorsUrl { get; set; }
             public string EventLogItems { get; set; }
+            public string GetArchiveGroup { get; set; }
             public string KnownEndpointsUrl { get; set; }
             public string LicenseDetails { get; set; }
             public string LicenseStatus { get; set; }
@@ -665,7 +667,7 @@ namespace ServiceControl.MessageFailures.Api
 {
     public class ArchiveMessagesController : System.Web.Http.ApiController
     {
-        public ArchiveMessagesController(NServiceBus.IMessageSession session) { }
+        public ArchiveMessagesController(NServiceBus.IMessageSession session, Raven.Client.IDocumentStore store) { }
         [System.Web.Http.HttpPatchAttribute()]
         [System.Web.Http.HttpPostAttribute()]
         [System.Web.Http.RouteAttribute("errors/{messageid}/archive")]
@@ -674,6 +676,12 @@ namespace ServiceControl.MessageFailures.Api
         [System.Web.Http.HttpPostAttribute()]
         [System.Web.Http.RouteAttribute("errors/archive")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ArchiveBatch(System.Collections.Generic.List<string> messageIds) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("errors/groups/{classifier?}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetArchiveMessageGroups([System.Web.Http.FromUriAttribute()] string classifierFilter = null, string classifier = "Exception Type and Stack Trace") { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("archive/groups/id/{groupId}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetGroup(string groupId) { }
     }
     public class EditConfigurationModel
     {
@@ -1139,6 +1147,10 @@ namespace ServiceControl.Recoverability
         AllForEndpoint = 4,
         All = 5,
         ByQueueAddress = 6,
+    }
+    public class ArchivedGroupsViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupView>
+    {
+        public ArchivedGroupsViewIndex() { }
     }
     public struct ClassifiableMessageDetails
     {

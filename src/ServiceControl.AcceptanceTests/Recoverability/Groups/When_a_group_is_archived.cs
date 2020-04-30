@@ -63,6 +63,112 @@
         }
 
         [Test]
+        public async Task All_archived_messages_should_be_grouped()
+        {
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
+                {
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
+                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
+                        .ConfigureAwait(false);
+                }).DoNotFailOnErrorMessages())
+                .Do("WaitUntilGrouped", async ctx =>
+                {
+                    if (ctx.FirstMessageId == null || ctx.SecondMessageId == null)
+                    {
+                        return false;
+                    }
+
+                    // Don't retry until the message has been added to a group
+                    var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
+                    if (!groups)
+                    {
+                        return false;
+                    }
+
+                    ctx.GroupId = groups.Items[0].Id;
+                    return true;
+                })
+                .Do("WaitUntilGroupContainsBothMessages", async ctx =>
+                {
+                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
+                    return failedMessages && failedMessages.Items.Count == 2;
+                })
+                .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
+                .Do("EnsureFirstArchived", async ctx =>
+                {
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FirstMessageId}",
+                        e => e.Status == FailedMessageStatus.Archived);
+                })
+                .Do("EnsureSecondArchived", async ctx =>
+                {
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
+                        e => e.Status == FailedMessageStatus.Archived);
+                })
+                .Do("WaitUntilArchiveGroupContainsBothMessages", async ctx =>
+                {
+                    var failedMessages = await this.TryGetMany<ServiceControl.Recoverability.FailureGroupView>($"/api/errors/groups/").ConfigureAwait(false);
+                    return failedMessages && failedMessages.Items.Count == 1 && failedMessages.Items[0].Count == 2;
+                })
+                .Done(ctx => true) //Done when sequence is finished
+                .Run();
+        }
+
+        [Test]
+        public async Task Archived_messages_group_info_should_be_accessible()
+        {
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(async bus =>
+                {
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
+                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
+                        .ConfigureAwait(false);
+                }).DoNotFailOnErrorMessages())
+                .Do("WaitUntilGrouped", async ctx =>
+                {
+                    if (ctx.FirstMessageId == null || ctx.SecondMessageId == null)
+                    {
+                        return false;
+                    }
+
+                    // Don't retry until the message has been added to a group
+                    var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
+                    if (!groups)
+                    {
+                        return false;
+                    }
+
+                    ctx.GroupId = groups.Items[0].Id;
+                    return true;
+                })
+                .Do("WaitUntilGroupContainsBothMessages", async ctx =>
+                {
+                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
+                    return failedMessages && failedMessages.Items.Count == 2;
+                })
+                .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
+                .Do("EnsureFirstArchived", async ctx =>
+                {
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FirstMessageId}",
+                        e => e.Status == FailedMessageStatus.Archived);
+                })
+                .Do("EnsureSecondArchived", async ctx =>
+                {
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
+                        e => e.Status == FailedMessageStatus.Archived);
+                })
+                .Do("WaitUntilArchiveGroupContainsBothMessages", async ctx =>
+                {
+                    var failedMessages = await this.TryGet<ServiceControl.Recoverability.FailureGroupView>($"/api/archive/groups/id/{ctx.GroupId}").ConfigureAwait(false);
+                    return failedMessages && failedMessages.Item.Count == 2;
+                })
+                .Done(ctx => true) //Done when sequence is finished
+                .Run();
+        }
+
+        [Test]
         public async Task Only_unresolved_issues_should_be_archived()
         {
             await Define<MyContext>()
