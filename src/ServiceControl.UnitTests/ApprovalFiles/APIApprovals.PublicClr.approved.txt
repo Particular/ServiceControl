@@ -508,21 +508,6 @@ namespace ServiceControl.EndpointControl.Contracts
         public System.Guid EndpointInstanceId { get; set; }
     }
 }
-namespace ServiceControl
-{
-    public class EndpointInstanceId
-    {
-        public EndpointInstanceId(string endpointName, string instanceId) { }
-        public EndpointInstanceId(string endpointName, string instanceId, string instanceName) { }
-        public string EndpointName { get; }
-        public string InstanceId { get; }
-        public string InstanceName { get; }
-        protected bool Equals(ServiceControl.EndpointInstanceId other) { }
-        public override bool Equals(object obj) { }
-        public static ServiceControl.EndpointInstanceId From(System.Collections.Generic.IReadOnlyDictionary<string, string> headers) { }
-        public override int GetHashCode() { }
-    }
-}
 namespace ServiceControl.EventLog
 {
     public class EventLogApiController : System.Web.Http.ApiController
@@ -1169,7 +1154,6 @@ namespace ServiceControl.Recoverability
     }
     public class EndpointNameClassifier : ServiceControl.Recoverability.IFailureClassifier
     {
-        public const string Id = "Endpoint Name";
         public EndpointNameClassifier() { }
         public string Name { get; }
         public string ClassifyFailure(ServiceControl.Recoverability.ClassifiableMessageDetails failureDetails) { }

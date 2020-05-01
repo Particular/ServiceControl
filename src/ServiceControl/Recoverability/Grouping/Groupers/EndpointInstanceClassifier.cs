@@ -5,7 +5,7 @@ namespace ServiceControl.Recoverability
 
     class EndpointInstanceClassifier : IFailureClassifier
     {
-        public string Name => Id;
+        public string Name => "Endpoint Instance";
 
         public string ClassifyFailure(ClassifiableMessageDetails failureDetails)
         {
@@ -22,7 +22,5 @@ namespace ServiceControl.Recoverability
             var details = EndpointDetailsParser.ReceivingEndpoint(headers);
             return details?.HostId.ToString("N");
         }
-
-        const string Id = "Endpoint Instance";
     }
 }
