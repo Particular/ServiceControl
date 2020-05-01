@@ -15,6 +15,11 @@
             endpointsInstances.AddOrUpdate(instanceId, utcNow, (_, __) => utcNow);
         }
 
+        public void Remove(EndpointInstanceId instanceId)
+        {
+            endpointsInstances.TryRemove(instanceId, out _);
+        }
+
         public bool IsStale(EndpointInstanceId endpointInstance)
         {
             DateTime lastActivityTime;

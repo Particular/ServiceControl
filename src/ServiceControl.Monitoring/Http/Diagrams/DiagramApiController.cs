@@ -179,10 +179,11 @@
         public HttpResponseMessage DeleteEndpointInstance(string endpointName, string instanceId)
         {
             endpointRegistry.RemoveEndpointInstance(endpointName, instanceId);
+            activityTracker.Remove(new EndpointInstanceId(endpointName, instanceId));
 
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new ByteArrayContent(new byte[] { }) //need to force empty content to avoid null reference when adding headers below :(
+                Content = new ByteArrayContent(Array.Empty<byte>()) //need to force empty content to avoid null reference when adding headers below :(
             };
 
             return response;
