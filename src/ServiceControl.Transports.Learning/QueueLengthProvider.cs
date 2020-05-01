@@ -13,7 +13,7 @@
     {
         public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
-            rootFolder = connectionString;
+            rootFolder = Environment.ExpandEnvironmentVariables(connectionString);
             this.store = store;
         }
 
