@@ -179,6 +179,7 @@
         public HttpResponseMessage DeleteEndpointInstance(string endpointName, string instanceId)
         {
             endpointRegistry.RemoveEndpointInstance(endpointName, instanceId);
+            activityTracker.Remove(new EndpointInstanceId(endpointName, instanceId));
 
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
