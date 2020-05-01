@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.Learning
 {
+    using System;
     using LearningTransport;
     using NServiceBus;
     using NServiceBus.Raw;
@@ -49,14 +50,14 @@
         static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
             var transport = endpointConfig.UseTransport<LearningTransport>();
-            transport.StorageDirectory(transportSettings.ConnectionString);
+            transport.StorageDirectory(Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString));
             transport.Transactions(transportTransactionMode);
         }
 
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
             var transport = endpointConfig.UseTransport<LearningTransport>();
-            transport.StorageDirectory(transportSettings.ConnectionString);
+            transport.StorageDirectory(Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString));
             transport.Transactions(transportTransactionMode);
         }
     }
