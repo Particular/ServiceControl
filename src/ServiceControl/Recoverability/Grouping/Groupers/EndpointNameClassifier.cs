@@ -9,7 +9,9 @@ namespace ServiceControl.Recoverability
 
         public string ClassifyFailure(ClassifiableMessageDetails failureDetails)
         {
-            return failureDetails.ProcessingAttempt == null ? null : ExtractEndpointName(failureDetails.ProcessingAttempt.Headers);
+            return failureDetails.ProcessingAttempt == null
+                ? null
+                : ExtractEndpointName(failureDetails.ProcessingAttempt.Headers);
         }
 
         static string ExtractEndpointName(IReadOnlyDictionary<string, string> headers)
