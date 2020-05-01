@@ -15,9 +15,9 @@
         }
 
         [Test]
-        public void When_no_endpoint_instance_reports_not_stale()
+        public void When_no_endpoint_instance_reports_stale()
         {
-            Assert.IsFalse(tracker.IsStale(A1));
+            Assert.IsTrue(tracker.IsStale(A1));
         }
 
         [Test]
