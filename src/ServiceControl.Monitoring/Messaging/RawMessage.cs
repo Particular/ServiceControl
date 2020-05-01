@@ -32,9 +32,10 @@
         {
             public T Lease()
             {
-                T value;
-                if (pool.TryPop(out value))
+                if (pool.TryPop(out var value))
+                {
                     return value;
+                }
 
                 return new T();
             }

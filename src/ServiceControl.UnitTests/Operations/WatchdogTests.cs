@@ -14,7 +14,6 @@
         [Test]
         public async Task It_shuts_down_gracefully()
         {
-            string lastFailure = null;
             var started = new TaskCompletionSource<bool>();
             var stopped = new TaskCompletionSource<bool>();
 
@@ -26,7 +25,7 @@
             {
                 stopped.SetResult(true);
                 return Task.CompletedTask;
-            }, x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
+            }, x => { }, () => { }, TimeSpan.FromSeconds(1), log, "test process");
 
             await dog.Start();
 
@@ -48,8 +47,8 @@
                 {
                     started.SetResult(true);
                     return Task.CompletedTask;
-                }, 
-                token => throw new Exception("Simulated"), 
+                },
+                token => throw new Exception("Simulated"),
                 x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
 
             await dog.Start();
@@ -64,7 +63,6 @@
         [Test]
         public async Task On_failure_triggers_stopping()
         {
-            string lastFailure = null;
             var startAttempts = 0;
             var stopCalled = false;
             var started = new TaskCompletionSource<bool>();
@@ -88,8 +86,8 @@
                 {
                     stopCalled = true;
                     return Task.CompletedTask;
-                }, 
-                x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
+                },
+                x => { }, () => { }, TimeSpan.FromSeconds(1), log, "test process");
 
             await dog.Start();
 
@@ -125,7 +123,7 @@
                     started.SetResult(true);
                     return Task.CompletedTask;
                 },
-                token => Task.CompletedTask, 
+                token => Task.CompletedTask,
                 x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
 
             await dog.Start();

@@ -204,7 +204,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
         async Task<int> InitializeServiceControlAudit(ScenarioContext context, int startPort)
         {
-            var instanceName = ServiceControl.Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
+            var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
 
             var instancePort = FindAvailablePort(startPort++);
