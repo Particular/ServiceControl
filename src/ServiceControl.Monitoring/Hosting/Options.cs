@@ -969,8 +969,7 @@ namespace ServiceControl.Monitoring
                 return true;
             }
 
-            string f, n, s, v;
-            if (!GetOptionParts(argument, out f, out n, out s, out v))
+            if (!GetOptionParts(argument, out var f, out var n, out var s, out var v))
             {
                 return false;
             }

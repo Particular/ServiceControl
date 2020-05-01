@@ -1,20 +1,23 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Collections.Generic;
+    using Contracts.Operations;
+
     public class EndpointNameClassifier : IFailureClassifier
     {
-        public string Name => Id;
+        public string Name => "Endpoint Name";
 
         public string ClassifyFailure(ClassifiableMessageDetails failureDetails)
         {
-            if (failureDetails.ProcessingAttempt == null)
-            {
-                return null;
-            }
-
-            var instanceId = EndpointInstanceId.From(failureDetails.ProcessingAttempt.Headers);
-            return instanceId?.EndpointName;
+            return failureDetails.ProcessingAttempt == null
+                ? null
+                : ExtractEndpointName(failureDetails.ProcessingAttempt.Headers);
         }
 
-        public const string Id = "Endpoint Name";
+        static string ExtractEndpointName(IReadOnlyDictionary<string, string> headers)
+        {
+            var details = EndpointDetailsParser.ReceivingEndpoint(headers);
+            return details?.Name;
+        }
     }
 }

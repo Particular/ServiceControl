@@ -108,7 +108,7 @@
                 })
                 .Do("WaitUntilArchiveGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<ServiceControl.Recoverability.FailureGroupView>($"/api/errors/groups/").ConfigureAwait(false);
+                    var failedMessages = await this.TryGetMany<ServiceControl.Recoverability.FailureGroupView>("/api/errors/groups/").ConfigureAwait(false);
                     return failedMessages && failedMessages.Items.Count == 1 && failedMessages.Items[0].Count == 2;
                 })
                 .Done(ctx => true) //Done when sequence is finished

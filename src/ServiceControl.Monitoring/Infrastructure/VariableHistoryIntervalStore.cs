@@ -18,9 +18,7 @@
 
         public IntervalsStore<BreakdownT>.IntervalsBreakdown[] GetIntervals(HistoryPeriod period, DateTime now)
         {
-            IntervalsStore<BreakdownT> store;
-
-            if (histories.TryGetValue(period, out store))
+            if (histories.TryGetValue(period, out var store))
             {
                 return store.GetIntervals(now);
             }

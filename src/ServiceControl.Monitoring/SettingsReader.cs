@@ -14,7 +14,10 @@
         {
             var value = values[key];
             if (value == null)
+            {
                 return defaultValue;
+            }
+
             return (T)Convert.ChangeType(value, typeof(T));
         }
 

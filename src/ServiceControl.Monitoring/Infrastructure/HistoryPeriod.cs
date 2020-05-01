@@ -38,7 +38,9 @@
         {
             var period = All.FirstOrDefault(p => p.Value == TimeSpan.FromMinutes(minutes));
             if (period != null)
+            {
                 return period;
+            }
 
             throw new Exception("Unknown history period.");
         }
@@ -50,9 +52,21 @@
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
             return Equals((HistoryPeriod)obj);
         }
 

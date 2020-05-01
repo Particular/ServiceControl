@@ -11,7 +11,7 @@
     using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
-    class When_querying_queue_length_data : AcceptanceTests.AcceptanceTest
+    class When_querying_queue_length_data : AcceptanceTest
     {
         [Test]
         public async Task Should_report_via_http()
@@ -34,7 +34,7 @@
                          ec.UniquelyIdentifyRunningInstance()
                              .UsingCustomIdentifier(instanceId);
                          ec.EnableMetrics()
-                             .SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
+                             .SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                      });
                      c.DoNotFailOnErrorMessages();
                      c.When(async s =>
@@ -51,7 +51,7 @@
                      {
                          ec.MakeInstanceUniquelyAddressable("2");
                          ec.EnableMetrics()
-                             .SendMetricDataToServiceControl(global::ServiceControl.Monitoring.Settings.DEFAULT_ENDPOINT_NAME,
+                             .SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME,
                              TimeSpan.FromSeconds(1),
                              metricsInstanceId.ToString("N"));
                      });

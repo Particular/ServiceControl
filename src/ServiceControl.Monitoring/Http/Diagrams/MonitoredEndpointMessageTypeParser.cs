@@ -14,7 +14,9 @@ namespace ServiceControl.Monitoring.Http.Diagrams
             //      see: https://docs.particular.net/nservicebus/messaging/headers#serialization-headers-nservicebus-enclosedmessagetypes
 
             if (string.IsNullOrEmpty(typeName))
+            {
                 return new MonitoredEndpointMessageType();
+            }
 
             var commaIndex = typeName.IndexOf(",", StringComparison.InvariantCulture);
 
