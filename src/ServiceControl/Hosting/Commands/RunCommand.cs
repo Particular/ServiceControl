@@ -8,25 +8,26 @@
     {
         public override async Task Execute(HostArguments args)
         {
-            if (!args.Portable && !Environment.UserInteractive)
+            if (!args.Portable && !Environment.UserInteractive) // Windows Service
             {
                 RunNonBlocking(args);
             }
 
+            // Interactive or non-interactive portable (e.g. docker)
             await RunAndWait(args).ConfigureAwait(false);
         }
 
         static void RunNonBlocking(HostArguments args)
         {
-            using (var service = new Host {ServiceName = args.ServiceName})
+            using (var service = new Host(false) { ServiceName = args.ServiceName })
             {
-                service.Run(false);
+                service.Run();
             }
         }
 
         static async Task RunAndWait(HostArguments args)
         {
-            using (var service = new Host {ServiceName = args.ServiceName})
+            using (var service = new Host(true) { ServiceName = args.ServiceName })
             {
                 var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 service.OnStopping = () =>
@@ -35,7 +36,7 @@
                     completionSource.TrySetResult(true);
                 };
 
-                service.Run(args.Portable || Environment.UserInteractive);
+                service.Run();
 
                 var r = new CancelWrapper(completionSource, service);
                 Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;

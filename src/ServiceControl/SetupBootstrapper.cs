@@ -40,7 +40,7 @@ namespace Particular.ServiceControl
             var transportSettings = MapSettings(settings);
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, false);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
             var documentStore = new EmbeddableDocumentStore();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();

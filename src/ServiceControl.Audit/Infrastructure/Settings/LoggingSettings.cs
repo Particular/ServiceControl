@@ -7,8 +7,9 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 
     class LoggingSettings
     {
-        public LoggingSettings(string serviceName, LogLevel defaultLevel = null, LogLevel defaultRavenDBLevel = null, string logPath = null)
+        public LoggingSettings(string serviceName, bool printToConsole, LogLevel defaultLevel = null, LogLevel defaultRavenDBLevel = null, string logPath = null)
         {
+            PrintToConsole = printToConsole;
             LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
             RavenDBLogLevel = InitializeLevel("RavenDBLogLevel", defaultRavenDBLevel ?? LogLevel.Warn);
             LogPath = Environment.ExpandEnvironmentVariables(ConfigFileSettingsReader<string>.Read("LogPath", logPath ?? DefaultLogPathForInstance(serviceName)));
@@ -19,6 +20,8 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public LogLevel RavenDBLogLevel { get; }
 
         public string LogPath { get; }
+
+        public bool PrintToConsole { get; }
 
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
