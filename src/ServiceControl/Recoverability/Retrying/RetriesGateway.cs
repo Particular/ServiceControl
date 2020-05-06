@@ -123,7 +123,7 @@ namespace ServiceControl.Recoverability
             var commands = new ICommandData[messageIds.Length];
             for (var i = 0; i < messageIds.Length; i++)
             {
-                commands[i] = retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
+                commands[i] = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
             }
 
             await store.AsyncDatabaseCommands.BatchAsync(commands)
