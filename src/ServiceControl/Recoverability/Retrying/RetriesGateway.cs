@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
+    using Infrastructure;
     using MessageFailures;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
@@ -93,7 +94,7 @@ namespace ServiceControl.Recoverability
         {
             log.Info($"Retrying a selection of {uniqueMessageIds.Length} messages");
 
-            var requestId = Guid.NewGuid().ToString();
+            var requestId = DeterministicGuid.MakeId(string.Join(string.Empty, uniqueMessageIds)).ToString();
             var retryType = RetryType.MultipleMessages;
             var numberOfMessages = uniqueMessageIds.Length;
 
