@@ -47,7 +47,7 @@ namespace ServiceControl.Recoverability
                         currentBatch.Clear();
                     }
 
-                    var lastDocumentAttempt = current.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure).Max();
+                    var lastDocumentAttempt = current.LatestTimeOfFailure;
                     if (lastDocumentAttempt > latestAttempt)
                     {
                         latestAttempt = lastDocumentAttempt;
@@ -172,7 +172,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private string GetBatchName(int pageNum, int totalPages, string context)
+        private static string GetBatchName(int pageNum, int totalPages, string context)
         {
             if (context == null)
             {
@@ -196,7 +196,7 @@ namespace ServiceControl.Recoverability
             string Originator { get; set; }
             string Classifier { get; set; }
             DateTime StartTime { get; set; }
-            Task<IAsyncEnumerator<StreamResult<FailedMessage>>> GetDocuments(IAsyncDocumentSession session);
+            Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session);
         }
 
         class IndexBasedBulkRetryRequest<TType, TIndex> : IBulkRetryRequest
@@ -219,7 +219,7 @@ namespace ServiceControl.Recoverability
             public string Classifier { get; set; }
             public DateTime StartTime { get; set; }
 
-            public Task<IAsyncEnumerator<StreamResult<FailedMessage>>> GetDocuments(IAsyncDocumentSession session)
+            public Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
             {
                 var query = session.Query<TType, TIndex>();
 
@@ -230,10 +230,30 @@ namespace ServiceControl.Recoverability
                     query = query.Where(filter);
                 }
 
-                return session.Advanced.StreamAsync(query.As<FailedMessage>());
+                return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
             }
 
             Expression<Func<TType, bool>> filter;
+        }
+    }
+
+    public class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
+    {
+        public class Result
+        {
+            public string UniqueMessageId { get; set; }
+
+            public DateTime LatestTimeOfFailure { get; set; }
+        }
+
+        public FailedMessages_UniqueMessageIdAndTimeOfFailures()
+        {
+            TransformResults = failedMessages => from failedMessage in failedMessages
+                select new
+                {
+                    UniqueMessageId = failedMessage.UniqueMessageId,
+                    LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
+                };
         }
     }
 }
