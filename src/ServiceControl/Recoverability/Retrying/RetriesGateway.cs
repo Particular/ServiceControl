@@ -239,7 +239,7 @@ namespace ServiceControl.Recoverability
 
     public class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
     {
-        public class Result
+        public struct Result
         {
             public string UniqueMessageId { get; set; }
 
