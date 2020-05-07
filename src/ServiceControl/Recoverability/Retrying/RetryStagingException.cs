@@ -4,5 +4,8 @@ namespace ServiceControl.Recoverability
 
     class RetryStagingException : Exception
     {
+        public RetryStagingException(Exception innerException) : base("Staging failed. Retry required", innerException)
+        {
+        }
     }
 }
