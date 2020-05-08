@@ -281,7 +281,8 @@
                 await session.SaveChangesAsync();
             }
 
-            new FailedMessages_ByGroup().Execute(documentStore);
+            await new FailedMessages_ByGroup().ExecuteAsync(documentStore);
+            await new FailedMessages_UniqueMessageIdAndTimeOfFailures().ExecuteAsync(documentStore);
 
             documentStore.WaitForIndexing();
 
