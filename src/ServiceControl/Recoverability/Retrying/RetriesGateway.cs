@@ -239,21 +239,21 @@ namespace ServiceControl.Recoverability
 
     public class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
     {
-        public struct Result
-        {
-            public string UniqueMessageId { get; set; }
-
-            public DateTime LatestTimeOfFailure { get; set; }
-        }
-
         public FailedMessages_UniqueMessageIdAndTimeOfFailures()
         {
             TransformResults = failedMessages => from failedMessage in failedMessages
                 select new
                 {
-                    UniqueMessageId = failedMessage.UniqueMessageId,
+                    failedMessage.UniqueMessageId,
                     LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
                 };
+        }
+
+        public struct Result
+        {
+            public string UniqueMessageId { get; set; }
+
+            public DateTime LatestTimeOfFailure { get; set; }
         }
     }
 }
