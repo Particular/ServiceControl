@@ -1210,6 +1210,15 @@ namespace ServiceControl.Recoverability
     {
         public FailedMessages_ByGroup() { }
     }
+    public class FailedMessages_UniqueMessageIdAndTimeOfFailures : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.MessageFailures.FailedMessage>
+    {
+        public FailedMessages_UniqueMessageIdAndTimeOfFailures() { }
+        public struct Result
+        {
+            public System.DateTime LatestTimeOfFailure { get; set; }
+            public string UniqueMessageId { get; set; }
+        }
+    }
     public class FailureGroupMessageView : ServiceControl.MessageFailures.IHaveStatus
     {
         public FailureGroupMessageView() { }

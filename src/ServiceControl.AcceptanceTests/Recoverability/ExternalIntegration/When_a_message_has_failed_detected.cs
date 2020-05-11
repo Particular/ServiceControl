@@ -26,7 +26,13 @@
             });
 
             var context = await Define<MyContext>()
-                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, bus => bus.SendLocal(new MyMessage {Body = "Faulty message"})).DoNotFailOnErrorMessages())
+                .WithEndpoint<FailingReceiver>(b => b.When(c => c.ExternalProcessorSubscribed, (bus, c) =>
+                {
+                    var options = new SendOptions();
+                    options.SetHeader("AcceptanceTestRunId", c.TestRunId.ToString());
+                    options.RouteToThisEndpoint();
+                    return bus.Send(new MyMessage {Body = "Faulty message"}, options);
+                }).DoNotFailOnErrorMessages())
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
                     await bus.Subscribe<MessageFailed>();
@@ -81,6 +87,11 @@
 
                 public Task Handle(MessageFailed message, IMessageHandlerContext context)
                 {
+                    if (!message.MessageDetails.Headers.TryGetValue("AcceptanceTestRunId", out var runId) || runId != Context.TestRunId.ToString())
+                    {
+                        return Task.FromResult(0);
+                    }
+
                     var serializedMessage = JsonConvert.SerializeObject(message);
                     Context.Event = serializedMessage;
                     Context.EventDelivered = true;
