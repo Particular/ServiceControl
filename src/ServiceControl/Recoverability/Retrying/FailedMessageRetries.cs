@@ -160,7 +160,7 @@
                 using (var session = store.OpenAsyncSession())
                 {
                     var batchesProcessed = await processor.ProcessBatches(session, token).ConfigureAwait(false);
-                    await session.SaveChangesAsync().ConfigureAwait(false);
+                    await session.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
                     return batchesProcessed ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
                 }
             }

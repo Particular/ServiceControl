@@ -49,7 +49,7 @@ namespace ServiceControl.Recoverability
             return batchDocumentId;
         }
 
-        public ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
+        public static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
             return new PatchCommandData
             {

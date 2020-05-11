@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
@@ -182,11 +184,13 @@ namespace ServiceControl.Recoverability
         async Task<int> Stage(RetryBatch stagingBatch, IAsyncDocumentSession session)
         {
             var stagingId = Guid.NewGuid().ToString();
+
             var failedMessageRetryDocs = await session.LoadAsync<FailedMessageRetry>(stagingBatch.FailureRetries).ConfigureAwait(false);
-            var matchingFailures = failedMessageRetryDocs
+
+            var failedMessageRetriesById = failedMessageRetryDocs
                 .Where(r => r != null && r.RetryBatchId == stagingBatch.Id)
                 .Distinct(FailedMessageEqualityComparer.Instance)
-                .ToArray();
+                .ToDictionary(x => x.FailedMessageId, x => x);
 
             foreach (var failedMessageRetry in failedMessageRetryDocs)
             {
@@ -196,23 +200,35 @@ namespace ServiceControl.Recoverability
                 }
             }
 
-            var failedMessagesById = matchingFailures.ToDictionary(x => x.FailedMessageId, x => x);
-
-            if (!failedMessagesById.Any())
+            if (failedMessageRetriesById.Count == 0)
             {
                 Log.Info($"Retry batch {stagingBatch.Id} cancelled as all matching unresolved messages are already marked for retry as part of another batch.");
                 session.Delete(stagingBatch);
                 return 0;
             }
 
-            var failedMessagesDocs = await session.LoadAsync<FailedMessage>(failedMessagesById.Keys).ConfigureAwait(false);
-            var messages = failedMessagesDocs
-                .Where(m => m != null)
-                .ToArray();
+            var failedMessagesDocs = await session.LoadAsync<FailedMessage>(failedMessageRetriesById.Keys).ConfigureAwait(false);
+            var messages = failedMessagesDocs.Where(m => m != null).ToArray();
 
             Log.Info($"Staging {messages.Length} messages for retry batch {stagingBatch.Id} with staging attempt Id {stagingId}.");
 
-            await Task.WhenAll(messages.Select(m => TryStageMessage(m, stagingId, failedMessagesById[m.Id])).ToArray()).ConfigureAwait(false);
+            var previousAttemptFailed = false;
+            var transportOperations = new TransportOperation[messages.Length];
+            var current = 0;
+            foreach (var failedMessage in messages)
+            {
+                transportOperations[current++] = ToTransportOperation(failedMessage, stagingId);
+
+                if (!previousAttemptFailed)
+                {
+                    previousAttemptFailed = failedMessageRetriesById[failedMessage.Id].StageAttempts > 0;
+                }
+
+                // should not be done concurrently due to sessions not being thread safe
+                failedMessage.Status = FailedMessageStatus.RetryIssued;
+            }
+
+            await TryDispatch(transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
@@ -229,42 +245,106 @@ namespace ServiceControl.Recoverability
 
             stagingBatch.Status = RetryBatchStatus.Forwarding;
             stagingBatch.StagingId = stagingId;
-            stagingBatch.FailureRetries = matchingFailures.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
+            stagingBatch.FailureRetries = failedMessageRetriesById.Values.Where(x => msgLookup[x.FailedMessageId].Any()).Select(x => x.Id).ToArray();
             Log.Info($"Retry batch {stagingBatch.Id} staged with Staging Id {stagingBatch.StagingId} and {stagingBatch.FailureRetries.Count} matching failure retries");
             return messages.Length;
         }
 
-        async Task TryStageMessage(FailedMessage message, string stagingId, FailedMessageRetry failedMessageRetry)
+        Task TryDispatch(TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId, bool previousAttemptFailed)
+        {
+            return previousAttemptFailed ? ConcurrentDispatchToTransport(transportOperations, failedMessageRetriesById) :
+                BatchDispatchToTransport(transportOperations, messages, failedMessageRetriesById, stagingId);
+        }
+
+        Task ConcurrentDispatchToTransport(IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById)
+        {
+            var tasks = new List<Task>(transportOperations.Count);
+            // ReSharper disable once LoopCanBeConvertedToQuery
+            foreach (var transportOperation in transportOperations)
+            {
+                tasks.Add(TryStageMessage(transportOperation, failedMessageRetriesById[transportOperation.Message.MessageId]));
+            }
+            return Task.WhenAll(tasks);
+        }
+
+        async Task BatchDispatchToTransport(TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId)
         {
             try
             {
-                await StageMessage(message, stagingId).ConfigureAwait(false);
+                await sender.Dispatch(new TransportOperations(transportOperations), transaction, contextBag).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                var commands = new ICommandData[messages.Count];
+                var commandIndex = 0;
+                foreach (var failedMessage in messages)
+                {
+                    var failedMessageRetry = failedMessageRetriesById[failedMessage.Id];
+
+                    Log.Warn($"Attempt {1} of {MaxStagingAttempts} to stage a retry message {failedMessage.UniqueMessageId} failed", e);
+
+                    commands[commandIndex] = new PatchCommandData
+                    {
+                        Patches = new[]
+                        {
+                            new PatchRequest
+                            {
+                                Type = PatchCommandType.Set,
+                                Name = "StageAttempts",
+                                Value = 1
+                            }
+                        },
+                        Key = failedMessageRetry.Id
+                    };
+
+                    commandIndex++;
+                }
+
+                try
+                {
+                    await store.AsyncDatabaseCommands.BatchAsync(commands).ConfigureAwait(false);
+                }
+                catch (ConcurrencyException)
+                {
+                    Log.DebugFormat("Ignoring concurrency exception while incrementing staging attempt count for {0}", stagingId);
+                }
+
+                throw new RetryStagingException(e);
+            }
+        }
+
+        async Task TryStageMessage(TransportOperation transportOperation, FailedMessageRetry failedMessageRetry)
+        {
+            try
+            {
+                await sender.Dispatch(new TransportOperations(transportOperation), transaction, contextBag).ConfigureAwait(false);
             }
             catch (Exception e)
             {
                 var incrementedAttempts = failedMessageRetry.StageAttempts + 1;
+                var uniqueMessageId = transportOperation.Message.Headers["ServiceControl.Retry.UniqueMessageId"];
 
                 if (incrementedAttempts < MaxStagingAttempts)
                 {
-                    Log.Warn($"Attempt {incrementedAttempts} of {MaxStagingAttempts} to stage a retry message {message.UniqueMessageId} failed", e);
+                    Log.Warn($"Attempt {incrementedAttempts} of {MaxStagingAttempts} to stage a retry message {uniqueMessageId} failed", e);
 
                     await IncrementAttemptCounter(failedMessageRetry)
                         .ConfigureAwait(false);
                 }
                 else
                 {
-                    Log.Error($"Retry message {message.UniqueMessageId} reached its staging retry limit ({MaxStagingAttempts}) and is going to be removed from the batch.", e);
+                    Log.Error($"Retry message {uniqueMessageId} reached its staging retry limit ({MaxStagingAttempts}) and is going to be removed from the batch.", e);
 
-                    await store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(message.UniqueMessageId), null)
+                    await store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null)
                         .ConfigureAwait(false);
 
                     await domainEvents.Raise(new MessageFailedInStaging
                     {
-                        UniqueMessageId = message.UniqueMessageId
+                        UniqueMessageId = uniqueMessageId
                     }).ConfigureAwait(false);
                 }
 
-                throw new RetryStagingException();
+                throw new RetryStagingException(e);
             }
         }
 
@@ -289,10 +369,9 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        Task StageMessage(FailedMessage message, string stagingId)
-        {
-            message.Status = FailedMessageStatus.RetryIssued;
 
+        TransportOperation ToTransportOperation(FailedMessage message, string stagingId)
+        {
             var attempt = message.ProcessingAttempts.Last();
 
             var headersToRetryWith = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
@@ -313,12 +392,10 @@ namespace ServiceControl.Recoverability
 
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 
-            var transportMessage = new OutgoingMessage(message.Id, headersToRetryWith, emptyBody);
-
-            return sender.Dispatch(new TransportOperations(new TransportOperation(transportMessage, new UnicastAddressTag(returnToSender.InputAddress))), transaction, contextBag);
+            var transportMessage = new OutgoingMessage(message.Id, headersToRetryWith, Array.Empty<byte>());
+            return new TransportOperation(transportMessage, new UnicastAddressTag(returnToSender.InputAddress));
         }
 
-        byte[] emptyBody = new byte[0];
         TransportTransaction transaction = new TransportTransaction();
         ContextBag contextBag = new ContextBag();
         IDocumentStore store;

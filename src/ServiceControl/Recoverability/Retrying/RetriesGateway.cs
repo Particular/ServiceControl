@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
+    using Infrastructure;
     using MessageFailures;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
@@ -46,7 +47,7 @@ namespace ServiceControl.Recoverability
                         currentBatch.Clear();
                     }
 
-                    var lastDocumentAttempt = current.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure).Max();
+                    var lastDocumentAttempt = current.LatestTimeOfFailure;
                     if (lastDocumentAttempt > latestAttempt)
                     {
                         latestAttempt = lastDocumentAttempt;
@@ -93,7 +94,7 @@ namespace ServiceControl.Recoverability
         {
             log.Info($"Retrying a selection of {uniqueMessageIds.Length} messages");
 
-            var requestId = Guid.NewGuid().ToString();
+            var requestId = DeterministicGuid.MakeId(string.Join(string.Empty, uniqueMessageIds)).ToString();
             var retryType = RetryType.MultipleMessages;
             var numberOfMessages = uniqueMessageIds.Length;
 
@@ -123,7 +124,7 @@ namespace ServiceControl.Recoverability
             var commands = new ICommandData[messageIds.Length];
             for (var i = 0; i < messageIds.Length; i++)
             {
-                commands[i] = retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
+                commands[i] = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
             }
 
             await store.AsyncDatabaseCommands.BatchAsync(commands)
@@ -171,7 +172,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private string GetBatchName(int pageNum, int totalPages, string context)
+        private static string GetBatchName(int pageNum, int totalPages, string context)
         {
             if (context == null)
             {
@@ -195,7 +196,7 @@ namespace ServiceControl.Recoverability
             string Originator { get; set; }
             string Classifier { get; set; }
             DateTime StartTime { get; set; }
-            Task<IAsyncEnumerator<StreamResult<FailedMessage>>> GetDocuments(IAsyncDocumentSession session);
+            Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session);
         }
 
         class IndexBasedBulkRetryRequest<TType, TIndex> : IBulkRetryRequest
@@ -218,7 +219,7 @@ namespace ServiceControl.Recoverability
             public string Classifier { get; set; }
             public DateTime StartTime { get; set; }
 
-            public Task<IAsyncEnumerator<StreamResult<FailedMessage>>> GetDocuments(IAsyncDocumentSession session)
+            public Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
             {
                 var query = session.Query<TType, TIndex>();
 
@@ -229,10 +230,30 @@ namespace ServiceControl.Recoverability
                     query = query.Where(filter);
                 }
 
-                return session.Advanced.StreamAsync(query.As<FailedMessage>());
+                return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
             }
 
             Expression<Func<TType, bool>> filter;
+        }
+    }
+
+    public class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
+    {
+        public FailedMessages_UniqueMessageIdAndTimeOfFailures()
+        {
+            TransformResults = failedMessages => from failedMessage in failedMessages
+                select new
+                {
+                    failedMessage.UniqueMessageId,
+                    LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
+                };
+        }
+
+        public struct Result
+        {
+            public string UniqueMessageId { get; set; }
+
+            public DateTime LatestTimeOfFailure { get; set; }
         }
     }
 }
