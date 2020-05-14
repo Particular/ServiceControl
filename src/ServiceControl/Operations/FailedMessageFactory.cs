@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
     using System.Collections.Generic;
     using Contracts.Operations;
     using Infrastructure;
@@ -35,7 +36,10 @@
 
             result.Exception = GetException(headers);
 
-            result.AddressOfFailingEndpoint = headers[FaultsHeaderKeys.FailedQ];
+            if (!headers.ContainsKey(FaultsHeaderKeys.FailedQ))
+            {
+                throw new Exception($"Missing '{FaultsHeaderKeys.FailedQ}' header. Message is poison message or incorrectly send to (error) queue.");
+            }
 
             return result;
         }
