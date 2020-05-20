@@ -189,6 +189,15 @@
             return response;
         }
 
+        [Route("monitored-endpoints/disconnected")]
+        [HttpGet]
+        public IHttpActionResult DisconnectedEndpointInstanceCount()
+        {
+            var count = endpointRegistry.GetGroupedByEndpointName().Sum(endpoint => endpoint.Value.Count(activityTracker.IsStale));
+
+            return Ok(count);
+        }
+
         static DateTime[] GetTimeAxisValues<T>(IEnumerable<IntervalsStore<T>.IntervalsBreakdown> intervals)
         {
             return intervals
