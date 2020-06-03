@@ -6,6 +6,7 @@
     <AssemblyName>ServiceControlConfig</AssemblyName>
     <ApplicationIcon>App.ico</ApplicationIcon>
     <UseWpf>true</UseWpf>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
