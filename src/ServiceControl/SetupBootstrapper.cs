@@ -40,8 +40,7 @@ namespace Particular.ServiceControl
             var transportSettings = MapSettings(settings);
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName, false);
-            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
+            containerBuilder.RegisterInstance(LoggingConfigurator.Settings).SingleInstance();
             var documentStore = new EmbeddableDocumentStore();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
@@ -49,7 +48,7 @@ namespace Particular.ServiceControl
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, documentStore, configuration, false)
+                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, LoggingConfigurator.Settings, container, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
         }

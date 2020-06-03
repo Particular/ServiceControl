@@ -23,7 +23,7 @@
 
         static void RunAsService(HostArguments args)
         {
-            using (var service = new Host(logToConsole: false) { ServiceName = args.ServiceName })
+            using (var service = new Host() { ServiceName = args.ServiceName })
             {
                 service.RunAsService();
             }
@@ -31,7 +31,7 @@
 
         static async Task RunAsConsole(HostArguments args)
         {
-            using (var service = new Host(logToConsole: true) { ServiceName = args.ServiceName })
+            using (var service = new Host() { ServiceName = args.ServiceName })
             {
                 var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 service.OnStopping = () =>

@@ -22,8 +22,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                var loggingSettings = new LoggingSettings(settings.ServiceName, false, LogLevel.Info, LogLevel.Info);
-                var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
+                var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, LoggingConfigurator.Settings);
                 var busInstance = await bootstrapper.Start().ConfigureAwait(false);
                 var importer = busInstance.ImportFailedAudits;
 

@@ -14,11 +14,13 @@
         public void ResetLogConfiguration()
         {
             NLog.LogManager.Configuration = new LoggingConfiguration();
+            LoggingConfigurator.Settings = null;
         }
 
         [Test]
         public void Should_remove_Console_targets_if_not_printing_to_console()
         {
+            LoggingConfigurator.Settings = null;
             var loggingSettings = new LoggingSettings("Test", false);
 
             LoggingConfigurator.ConfigureLogging(loggingSettings);
@@ -31,6 +33,7 @@
         [Test]
         public void Should_contain_Console_targets_if_printing_to_console()
         {
+            LoggingConfigurator.Settings = null;
             var loggingSettings = new LoggingSettings("Test", true);
 
             LoggingConfigurator.ConfigureLogging(loggingSettings);

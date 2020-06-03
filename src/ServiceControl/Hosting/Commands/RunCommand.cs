@@ -3,12 +3,14 @@
     using System;
     using System.Threading.Tasks;
     using Hosting;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class RunCommand : AbstractCommand
     {
         public override async Task Execute(HostArguments args)
         {
             var consoleSession = args.Portable || Environment.UserInteractive;
+
             if (consoleSession)
             {
                 // Regular console (interactive) & Docker (non-interactive)
@@ -23,7 +25,7 @@
 
         static void RunAsService(HostArguments args)
         {
-            using (var service = new Host(logToConsole: false) { ServiceName = args.ServiceName })
+            using (var service = new Host() { ServiceName = args.ServiceName })
             {
                 service.RunAsService();
             }
@@ -31,7 +33,7 @@
 
         static async Task RunAsConsole(HostArguments args)
         {
-            using (var service = new Host(logToConsole: true) { ServiceName = args.ServiceName })
+            using (var service = new Host() { ServiceName = args.ServiceName })
             {
                 var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 service.OnStopping = () =>

@@ -22,7 +22,7 @@ namespace ServiceControl.Monitoring
 
         Task RunAsService(Settings settings)
         {
-            using (var service = new Host(logToConsole: false)
+            using (var service = new Host()
             {
                 Settings = settings,
                 ServiceName = settings.ServiceName
@@ -36,7 +36,7 @@ namespace ServiceControl.Monitoring
 
         async Task RunAsConsole(Settings settings)
         {
-            using (var service = new Host(logToConsole: true)
+            using (var service = new Host()
             {
                 Settings = settings,
                 ServiceName = settings.ServiceName,

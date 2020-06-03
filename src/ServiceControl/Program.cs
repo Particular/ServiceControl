@@ -22,7 +22,9 @@
                 return;
             }
 
-            var loggingSettings = new LoggingSettings(arguments.ServiceName, false);
+            var logToConsole = Environment.UserInteractive || arguments.Portable;
+
+            var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole);
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
             await new CommandRunner(arguments.Commands).Execute(arguments)

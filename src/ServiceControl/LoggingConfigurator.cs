@@ -1,5 +1,6 @@
 namespace Particular.ServiceControl
 {
+    using System;
     using System.IO;
     using System.Linq;
     using NLog.Config;
@@ -12,8 +13,13 @@ namespace Particular.ServiceControl
 
     static class LoggingConfigurator
     {
+        public static LoggingSettings Settings { get; internal set; }
+
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
+            if (Settings != null) new InvalidOperationException("Logging already initialized");
+            Settings = loggingSettings;
+
             LogManager.Use<NLogFactory>();
 
             const long megaByte = 1024 * 1024;

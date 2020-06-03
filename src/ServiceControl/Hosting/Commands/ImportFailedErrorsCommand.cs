@@ -25,8 +25,7 @@
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             var tokenSource = new CancellationTokenSource();
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName, false, defaultLevel: LogLevel.Info, defaultRavenDBLevel: LogLevel.Info);
-            var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
+            var bootstrapper = new Bootstrapper(settings, busConfiguration, LoggingConfigurator.Settings);
             var instance = await bootstrapper.Start().ConfigureAwait(false);
             var errorIngestion = instance.ErrorIngestion;
 

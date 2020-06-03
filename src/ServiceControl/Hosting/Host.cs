@@ -7,11 +7,6 @@
 
     class Host : ServiceBase
     {
-        public Host(bool logToConsole)
-        {
-            this.logToConsole = logToConsole;
-        }
-
         public void RunAsConsole()
         {
             OnStart(null);
@@ -28,13 +23,11 @@
             var assemblyScanner = busConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
-            var loggingSettings = new LoggingSettings(ServiceName, logToConsole);
-
             var settings = new Settings(ServiceName)
             {
                 RunCleanupBundle = true
             };
-            bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
+            bootstrapper = new Bootstrapper(settings, busConfiguration, LoggingConfigurator.Settings);
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 
@@ -52,7 +45,6 @@
 
         internal Action OnStopping = () => { };
 
-        bool logToConsole;
         Bootstrapper bootstrapper;
     }
 }

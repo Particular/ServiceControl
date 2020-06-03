@@ -7,11 +7,6 @@
 
     class Host : ServiceBase
     {
-        public Host(bool logToConsole)
-        {
-            this.logToConsole = logToConsole;
-        }
-
         public void RunAsConsole()
         {
             OnStart(null);
@@ -28,15 +23,13 @@
             var assemblyScanner = busConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
-            var loggingSettings = new LoggingSettings(ServiceName, logToConsole);
-
             var settings = new Settings(ServiceName)
             {
                 RunCleanupBundle = true
             };
             bootstrapper = new Bootstrapper(
                 ctx => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
-                settings, busConfiguration, loggingSettings);
+                settings, busConfiguration, LoggingConfigurator.Settings);
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 
@@ -54,7 +47,6 @@
 
         internal Action OnStopping = () => { };
 
-        bool logToConsole;
         Bootstrapper bootstrapper;
     }
 }

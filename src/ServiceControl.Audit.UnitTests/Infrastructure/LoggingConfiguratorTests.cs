@@ -14,6 +14,7 @@
         public void ResetLogConfiguration()
         {
             NLog.LogManager.Configuration = new LoggingConfiguration();
+            LoggingConfigurator.Settings = null;
         }
 
         [Test]
