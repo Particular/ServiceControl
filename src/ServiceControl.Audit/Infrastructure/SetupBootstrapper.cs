@@ -4,6 +4,8 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using Raven.Client.Embedded;
+    using RavenDB;
     using Transports;
 
     class SetupBootstrapper
@@ -39,7 +41,11 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             //No need to start the raw endpoint to create queues
-            await RawEndpoint.Create(config).ConfigureAwait(false);
+            using (var documentStore = new EmbeddableDocumentStore())
+            {
+                new RavenBootstrapper().StartRaven(documentStore, settings, false);
+                await RawEndpoint.Create(config).ConfigureAwait(false);
+            }
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)
