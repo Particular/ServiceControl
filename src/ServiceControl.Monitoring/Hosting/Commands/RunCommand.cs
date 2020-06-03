@@ -7,32 +7,36 @@ namespace ServiceControl.Monitoring
     {
         public override Task Execute(Settings settings)
         {
-            if (Environment.UserInteractive) // Interactive or non-interactive portable (e.g. docker)
+            var consoleSession = settings.Portable || Environment.UserInteractive;
+            if (consoleSession)
             {
-                return RunAndWait(settings);
+                // Regular console (interactive) & Docker (non-interactive)
+                return RunAsConsole(settings);
             }
-
-            // Windows Service
-            return RunNonBlocking(settings);
+            else
+            {
+                // Windows Service
+                return RunAsService(settings);
+            }
         }
 
-        Task RunNonBlocking(Settings settings)
+        Task RunAsService(Settings settings)
         {
-            using (var service = new Host(false)
+            using (var service = new Host(logToConsole: false)
             {
                 Settings = settings,
                 ServiceName = settings.ServiceName
             })
             {
-                service.Run();
+                service.RunAsService();
             }
 
             return Task.FromResult(0);
         }
 
-        async Task RunAndWait(Settings settings)
+        async Task RunAsConsole(Settings settings)
         {
-            using (var service = new Host(true)
+            using (var service = new Host(logToConsole: true)
             {
                 Settings = settings,
                 ServiceName = settings.ServiceName,
@@ -50,7 +54,7 @@ namespace ServiceControl.Monitoring
 
                 OnConsoleCancel.Run(done);
 
-                service.Run();
+                service.RunAsConsole();
 
                 Console.WriteLine("Press Ctrl+C to exit");
 

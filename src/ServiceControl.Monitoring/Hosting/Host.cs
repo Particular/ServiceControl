@@ -15,24 +15,12 @@
 
         public Settings Settings { get; set; }
 
-        public void Run()
-        {
-            if (logToConsole)
-            {
-                RunInteractive();
-            }
-            else
-            {
-                RunAsService();
-            }
-        }
-
-        void RunInteractive()
+        public void RunAsConsole()
         {
             OnStart(null);
         }
 
-        void RunAsService()
+        public void RunAsService()
         {
             Run(this);
         }

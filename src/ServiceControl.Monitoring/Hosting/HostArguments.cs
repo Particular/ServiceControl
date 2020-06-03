@@ -30,6 +30,11 @@
                     "skip-queue-creation",
                     "Skip queue creation during install/update",
                     s => overrides.Add(settings => settings.SkipQueueCreation = true)
+                },
+                {
+                    "p|portable",
+                    "Runs as a console app, even non-interactively.",
+                    s=> overrides.Add(settings => settings.Portable = true)
                 }
             };
 

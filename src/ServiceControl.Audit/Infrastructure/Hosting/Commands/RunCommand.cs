@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
+    using NLog;
     using System;
     using System.Threading.Tasks;
 
@@ -7,26 +8,30 @@
     {
         public override async Task Execute(HostArguments args)
         {
-            if (!args.Portable && !Environment.UserInteractive) // Windows Service
+            var consoleSession = args.Portable || Environment.UserInteractive;
+            if (consoleSession)
             {
-                RunNonBlocking(args);
+                // Regular console (interactive) & Docker (non-interactive)
+                await RunAsConsole(args).ConfigureAwait(false);
             }
-
-            // Interactive or non-interactive portable (e.g. docker)
-            await RunAndWait(args).ConfigureAwait(false);
-        }
-
-        static void RunNonBlocking(HostArguments args)
-        {
-            using (var service = new Host(false) { ServiceName = args.ServiceName })
+            else
             {
-                service.Run();
+                // Windows Service
+                RunAsService(args);
             }
         }
 
-        static async Task RunAndWait(HostArguments args)
+        static void RunAsService(HostArguments args)
         {
-            using (var service = new Host(true) { ServiceName = args.ServiceName })
+            using (var service = new Host(logToConsole: false) { ServiceName = args.ServiceName })
+            {
+                service.RunAsService();
+            }
+        }
+
+        static async Task RunAsConsole(HostArguments args)
+        {
+            using (var service = new Host(logToConsole: true) { ServiceName = args.ServiceName })
             {
                 var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 service.OnStopping = () =>
@@ -35,7 +40,7 @@
                     completionSource.TrySetResult(true);
                 };
 
-                service.Run();
+                service.RunAsConsole();
 
                 var r = new CancelWrapper(completionSource, service);
                 Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;

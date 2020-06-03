@@ -32,6 +32,7 @@ namespace ServiceControl.Monitoring
         public bool SkipQueueCreation { get; set; }
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
         public int MaximumConcurrencyLevel { get; set; }
+        public bool Portable { get; set; }
 
         internal static Settings Load(SettingsReader reader)
         {

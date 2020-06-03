@@ -12,26 +12,14 @@
             this.logToConsole = logToConsole;
         }
 
-        public void Run()
-        {
-            if (logToConsole)
-            {
-                RunInteractive();
-            }
-            else
-            {
-                RunAsService();
-            }
-        }
-
-        void RunInteractive()
+        public void RunAsConsole()
         {
             OnStart(null);
         }
 
-        void RunAsService()
+        public void RunAsService()
         {
-            Run(this);
+            ServiceBase.Run(this);
         }
 
         protected override void OnStart(string[] args)
