@@ -2,8 +2,13 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Autofac;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using Raven.Client;
+    using Raven.Client.Embedded;
+    using Settings;
     using Transports;
 
     class SetupBootstrapper
@@ -40,6 +45,35 @@ namespace ServiceControl.Audit.Infrastructure
 
             //No need to start the raw endpoint to create queues
             await RawEndpoint.Create(config).ConfigureAwait(false);
+
+            var configuration = new EndpointConfiguration(settings.ServiceName);
+            var assemblyScanner = configuration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+
+            configuration.EnableInstallers(username);
+
+            if (settings.SkipQueueCreation)
+            {
+                log.Info("Skipping queue creation");
+                configuration.DoNotCreateQueues();
+            }
+
+            var containerBuilder = new ContainerBuilder();
+
+            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+
+            var loggingSettings = new LoggingSettings(settings.ServiceName, false);
+            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
+            var documentStore = new EmbeddableDocumentStore();
+            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.RegisterInstance(settings).SingleInstance();
+
+            using (documentStore)
+            using (var container = containerBuilder.Build())
+            {
+                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
+                    .ConfigureAwait(false);
+            }
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)
