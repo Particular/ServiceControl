@@ -17,7 +17,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using Subscriptions;
 
-    class RavenBootstrapper : INeedInitialization
+    class RavenBootstrapper : INeedInitialization // TODO: Should this just be removed if not used?
     {
         public static Settings Settings { get; set; }
 
