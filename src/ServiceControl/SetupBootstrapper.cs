@@ -13,8 +13,9 @@ namespace Particular.ServiceControl
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings settings)
+        public SetupBootstrapper(Settings settings, string[] excludeAssemblies = null)
         {
+            this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
         }
 
@@ -23,6 +24,10 @@ namespace Particular.ServiceControl
             var configuration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = configuration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+            if (excludeAssemblies != null)
+            {
+                assemblyScanner.ExcludeAssemblies(excludeAssemblies);
+            }
 
             configuration.EnableInstallers(username);
 
@@ -53,7 +58,7 @@ namespace Particular.ServiceControl
                     .ConfigureAwait(false);
             }
         }
-        
+
         static TransportSettings MapSettings(Settings settings)
         {
             var transportSettings = new TransportSettings
@@ -68,5 +73,6 @@ namespace Particular.ServiceControl
         private readonly Settings settings;
 
         private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
+        string[] excludeAssemblies;
     }
 }

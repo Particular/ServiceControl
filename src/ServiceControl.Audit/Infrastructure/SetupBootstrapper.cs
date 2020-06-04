@@ -13,8 +13,9 @@ namespace ServiceControl.Audit.Infrastructure
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings.Settings settings)
+        public SetupBootstrapper(Settings.Settings settings, string[] excludeAssemblies = null)
         {
+            this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
         }
 
@@ -49,6 +50,10 @@ namespace ServiceControl.Audit.Infrastructure
             var configuration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = configuration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+            if (excludeAssemblies != null)
+            {
+                assemblyScanner.ExcludeAssemblies(excludeAssemblies);
+            }
 
             configuration.EnableInstallers(username);
 
@@ -90,5 +95,6 @@ namespace ServiceControl.Audit.Infrastructure
         private readonly Settings.Settings settings;
 
         private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
+        string[] excludeAssemblies;
     }
 }
