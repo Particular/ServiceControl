@@ -71,7 +71,7 @@ namespace ServiceControl.Audit.Infrastructure
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
+                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
         }
