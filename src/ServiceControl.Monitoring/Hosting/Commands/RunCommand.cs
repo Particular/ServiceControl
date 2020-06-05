@@ -7,24 +7,23 @@ namespace ServiceControl.Monitoring
     {
         public override Task Execute(Settings settings)
         {
-            if (Environment.UserInteractive) // Interactive or non-interactive portable (e.g. docker)
+            if (Environment.UserInteractive)
             {
                 return RunAndWait(settings);
             }
 
-            // Windows Service
             return RunNonBlocking(settings);
         }
 
         Task RunNonBlocking(Settings settings)
         {
-            using (var service = new Host(false)
+            using (var service = new Host
             {
                 Settings = settings,
                 ServiceName = settings.ServiceName
             })
             {
-                service.Run();
+                service.Run(false);
             }
 
             return Task.FromResult(0);
@@ -32,10 +31,10 @@ namespace ServiceControl.Monitoring
 
         async Task RunAndWait(Settings settings)
         {
-            using (var service = new Host(true)
+            using (var service = new Host
             {
                 Settings = settings,
-                ServiceName = settings.ServiceName,
+                ServiceName = settings.ServiceName
             })
             {
                 var tcs = new TaskCompletionSource<bool>();
@@ -50,7 +49,7 @@ namespace ServiceControl.Monitoring
 
                 OnConsoleCancel.Run(done);
 
-                service.Run();
+                service.Run(true);
 
                 Console.WriteLine("Press Ctrl+C to exit");
 

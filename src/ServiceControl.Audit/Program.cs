@@ -23,7 +23,7 @@
                 return;
             }
 
-            var loggingSettings = new LoggingSettings(arguments.ServiceName, false);
+            var loggingSettings = new LoggingSettings(arguments.ServiceName);
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
             await new CommandRunner(arguments.Commands).Execute(arguments)
