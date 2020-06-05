@@ -7,14 +7,9 @@
 
     class Host : ServiceBase
     {
-        public Host(bool logToConsole)
+        public void Run(bool interactive)
         {
-            this.logToConsole = logToConsole;
-        }
-
-        public void Run()
-        {
-            if (logToConsole)
+            if (interactive)
             {
                 RunInteractive();
             }
@@ -40,7 +35,7 @@
             var assemblyScanner = busConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
-            var loggingSettings = new LoggingSettings(ServiceName, logToConsole);
+            var loggingSettings = new LoggingSettings(ServiceName);
 
             var settings = new Settings(ServiceName)
             {
@@ -66,7 +61,6 @@
 
         internal Action OnStopping = () => { };
 
-        bool logToConsole;
         Bootstrapper bootstrapper;
     }
 }

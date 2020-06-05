@@ -8,16 +8,11 @@
     [DesignerCategory("Code")]
     class Host : ServiceBase
     {
-        public Host(bool logToConsole)
-        {
-            this.logToConsole = logToConsole;
-        }
-
         public Settings Settings { get; set; }
 
-        public void Run()
+        public void Run(bool interactive)
         {
-            if (logToConsole)
+            if (interactive)
             {
                 RunInteractive();
             }
@@ -61,7 +56,6 @@
             OnStop();
         }
 
-        bool logToConsole;
         internal Action OnStopping = () => { };
         Bootstrapper bootstrapper;
     }

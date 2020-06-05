@@ -172,7 +172,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, false, logPath: logPath);
+                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
                 bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder => { });
                 bootstrappers[instanceName] = bootstrapper;
                 bootstrapper.HttpClientFactory = HttpClientFactory;
@@ -302,7 +302,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new ServiceControl.Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, false, logPath: logPath);
+                var loggingSettings = new ServiceControl.Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
                 bootstrapper = new ServiceControl.Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
