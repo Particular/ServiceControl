@@ -181,9 +181,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 HttpClient = httpClient;
             }
 
-            using (new DiagnosticTimer($"Creating queues for {instanceName}"))
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings);
+                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new []{ typeof(IComponentBehavior).Assembly.GetName().Name });
                 await setupBootstrapper.Run(null);
             }
 

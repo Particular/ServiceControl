@@ -138,10 +138,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             SettingsPerInstance[instanceName] = settings;
 
             var configuration = new EndpointConfiguration(instanceName);
-            configuration.EnableInstallers();
             var scanner = configuration.AssemblyScanner();
-            scanner.ExcludeAssemblies(Path.GetFileName(typeof(ServiceControl.Audit.Infrastructure.Settings.Settings).Assembly.CodeBase));
-            scanner.ExcludeAssemblies(typeof(ServiceControlComponentRunner).Assembly.GetName().Name);
+            var excludedAssemblies = new[]
+            {
+                Path.GetFileName(typeof(ServiceControl.Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
+                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
+            };
+            scanner.ExcludeAssemblies(excludedAssemblies);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
@@ -160,7 +163,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
             configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
             configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-
 
             customEndpointConfiguration(configuration);
 
@@ -192,6 +194,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 var httpClient = new HttpClient(handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClients[instanceName] = httpClient;
+            }
+
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                    .Concat(new []{ typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
+                await setupBootstrapper.Run(null);
             }
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
@@ -260,8 +269,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var configuration = new EndpointConfiguration(instanceName);
             configuration.EnableInstallers();
             var scanner = configuration.AssemblyScanner();
-            scanner.ExcludeAssemblies(Path.GetFileName(typeof(Settings).Assembly.CodeBase));
-            scanner.ExcludeAssemblies(typeof(ServiceControlComponentRunner).Assembly.GetName().Name);
+            var excludedAssemblies = new[]
+            {
+                Path.GetFileName(typeof(Settings).Assembly.CodeBase),
+                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
+            };
+            scanner.ExcludeAssemblies(excludedAssemblies);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
@@ -280,7 +293,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
             configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
             configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-
 
             customAuditEndpointConfiguration(configuration);
 
@@ -323,6 +335,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 var httpClient = new HttpClient(handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClients[instanceName] = httpClient;
+            }
+
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+                var setupBootstrapper = new ServiceControl.Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                    .Concat(new []{ typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
+                await setupBootstrapper.Run(null);
             }
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))

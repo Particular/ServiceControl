@@ -40,6 +40,7 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<AutoSubscribe>();
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
+            configuration.DisableFeature<Sagas>();
 
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));
