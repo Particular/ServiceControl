@@ -41,7 +41,7 @@
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
             request.Properties.Add(HttpPropertyKeys.RequestContextKey, new HttpRequestContext {VirtualPathRoot = "/"});
 
-            var controller = new RootController(new ActiveLicense {IsValid = true}, new LoggingSettings("testEndpoint", false), new Settings())
+            var controller = new RootController(new ActiveLicense {IsValid = true}, new LoggingSettings("testEndpoint"), new Settings())
             {
                 Url = new UrlHelper(request)
             };
