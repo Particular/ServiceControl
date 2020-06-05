@@ -23,7 +23,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
     <PackageReference Include="Particular.Approvals" Version="0.2.0" />
     <PackageReference Include="PublicApiGenerator" Version="9.3.0" />
-    <PackageReference Include="RavenDB.Tests.Helpers" Version="3.5.10-patch-35294" />
+    <PackageReference Include="RavenDB.Tests.Helpers" Version="3.5.10-patch-35295" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
