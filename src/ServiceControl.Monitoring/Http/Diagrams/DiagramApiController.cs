@@ -193,7 +193,9 @@
         [HttpGet]
         public IHttpActionResult DisconnectedEndpointInstanceCount()
         {
-            var count = endpointRegistry.GetGroupedByEndpointName().Sum(endpoint => endpoint.Value.Count(activityTracker.IsStale));
+            var count = endpointRegistry
+                .GetGroupedByEndpointName()
+                .Sum(endpoint => endpoint.Value.Count(activityTracker.IsStale));
 
             return Ok(count);
         }

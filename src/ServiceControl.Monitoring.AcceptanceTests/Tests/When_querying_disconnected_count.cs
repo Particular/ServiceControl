@@ -1,9 +1,7 @@
 ﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
+    using System.Configuration;
     using System.Threading.Tasks;
     using NLog.Fluent;
     using NServiceBus;
@@ -19,15 +17,23 @@
         {
             TestContext context = null;
 
+            ConfigurationManager.AppSettings.Set("Monitoring/EndpointUptimeGracePeriod", TimeSpan.FromSeconds(1).ToString());
+
             await Define<TestContext>(ctx => context = ctx)
-                .WithEndpoint<MonitoredEndpoint>(b => b.ToCreateInstance(endpointConfig => Task.FromResult(endpointConfig), async endpointConfig =>
+                .WithEndpoint<MonitoredEndpoint>(b =>
+                b.CustomConfig(endpointConfig => endpointConfig.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromMilliseconds(200), "First"))
+                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async startableEndpoint =>
                 {
-                    context.FirstInstance = await Endpoint.Start(endpointConfig);
+                    context.FirstInstance = await startableEndpoint.Start();
+
                     return context.FirstInstance;
                 }))
-                .WithEndpoint<MonitoredEndpoint>(b => b.ToCreateInstance(endpointConfig => Task.FromResult(endpointConfig), async endpointConfig =>
+                .WithEndpoint<MonitoredEndpoint>(b =>
+                b.CustomConfig(endpointConfig => endpointConfig.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromMilliseconds(200), "Second"))
+                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async startableEndpoint =>
                 {
-                    context.SecondInstance = await Endpoint.Start(endpointConfig);
+                    context.SecondInstance = await startableEndpoint.Start();
+
                     return context.SecondInstance;
                 }))
                 .Done(async c =>
@@ -82,10 +88,7 @@
         {
             public MonitoredEndpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
-                {
-                    c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
-                });
+                EndpointSetup<DefaultServer>();
             }
         }
 
