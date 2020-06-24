@@ -22,12 +22,14 @@
 
         public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+            var transport = CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+            transport.IgnoreIncomingTimeToBeReceivedHeaders();
         }
 
         public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+            var transport = CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+            transport.IgnoreIncomingTimeToBeReceivedHeaders();
         }
 
         public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -37,7 +39,8 @@
 
         public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
+            var transport = CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
+            transport.IgnoreIncomingTimeToBeReceivedHeaders();
         }
 
         public override IProvideQueueLength CreateQueueLengthProvider()
@@ -51,10 +54,11 @@
             transport.Transactions(transportTransactionMode);
         }
 
-        static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
+        static TransportExtensions<MsmqTransport> CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
             var transport = endpointConfig.UseTransport<MsmqTransport>();
             transport.Transactions(transportTransactionMode);
+            return transport;
         }
     }
 }
