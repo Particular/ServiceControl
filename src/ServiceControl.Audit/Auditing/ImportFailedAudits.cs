@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Auditing
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
@@ -32,7 +33,7 @@ namespace ServiceControl.Audit.Auditing
             var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
 
             await auditIngestor.Initialize(endpoint).ConfigureAwait(false);
-                
+
             var succeeded = 0;
             var failed = 0;
             using (var session = store.OpenAsyncSession())
@@ -48,7 +49,7 @@ namespace ServiceControl.Audit.Auditing
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                            await auditIngestor.Ingest(messageContext).ConfigureAwait(false);
+                            await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
 
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
