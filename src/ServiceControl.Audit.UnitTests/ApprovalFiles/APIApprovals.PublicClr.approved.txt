@@ -229,6 +229,16 @@ namespace ServiceControl.Audit.Monitoring
         public System.Guid HostId { get; set; }
         public string Name { get; set; }
     }
+    public class KnownEndpoint
+    {
+        public const string CollectionName = "KnownEndpoints";
+        public KnownEndpoint() { }
+        public string Host { get; set; }
+        public System.Guid HostId { get; set; }
+        public string Id { get; set; }
+        public System.DateTime LastSeen { get; set; }
+        public string Name { get; set; }
+    }
     public class KnownEndpointsController : System.Web.Http.ApiController
     {
         [System.Web.Http.HttpGetAttribute()]
