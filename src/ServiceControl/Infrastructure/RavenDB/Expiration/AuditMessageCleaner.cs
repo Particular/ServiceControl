@@ -116,7 +116,7 @@
                     logger.Debug($"Batching deletion of {s}-{e} attachment audit documents completed.");
                 }
 
-                return 0;
+                return e;
             }, attachments, database, token);
 
             if (deletedAttachments + deletedAuditDocuments == 0)
