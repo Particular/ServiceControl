@@ -30,6 +30,8 @@ namespace ServiceControl.Audit.Monitoring
                     HostId = first.HostId,
                     Name = first.Name
                 };
+
+            DisableInMemoryIndexing = true;
         }
     }
 }
