@@ -86,7 +86,8 @@
             }
 
             IBodyStorage bodyStorage;
-            static int LargeObjectHeapThreshold = 85 * 1024;
+            // large object heap starts above 85000 bytes and not above 85 KB!
+            internal const int LargeObjectHeapThreshold = 85 * 1000;
         }
     }
 }

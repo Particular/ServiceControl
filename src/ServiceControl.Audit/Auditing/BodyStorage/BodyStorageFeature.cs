@@ -73,7 +73,7 @@
                 var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
-                
+
                 if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
                 {
                     metadata.Add("Body", Encoding.UTF8.GetString(body));
@@ -102,7 +102,8 @@
             IBodyStorage bodyStorage;
             Settings settings;
 
-            internal const int LargeObjectHeapThreshold = 85 * 1024;
+            // large object heap starts above 85000 bytes and not above 85 KB!
+            internal const int LargeObjectHeapThreshold = 85 * 1000;
         }
     }
 }
