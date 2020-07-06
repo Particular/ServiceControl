@@ -90,6 +90,7 @@
 
             var deletedAttachments = Chunker.ExecuteInChunks(attachments.Count, (atts, db, s, e) =>
             {
+                var deleted = 0;
                 if (logger.IsDebugEnabled)
                 {
                     logger.Debug($"Batching deletion of {s}-{e} attachment error documents.");
@@ -103,6 +104,7 @@
 #pragma warning disable 618
                         accessor.Attachments.DeleteAttachment("messagebodies/" + attachments[idx], null);
 #pragma warning restore 618
+                        deleted++;
                     }
                 });
                 if (logger.IsDebugEnabled)
@@ -110,7 +112,7 @@
                     logger.Debug($"Batching deletion of {s}-{e} attachment error documents completed.");
                 }
 
-                return 0;
+                return deleted;
             }, attachments, database, token);
 
             if (deletedFailedMessage + deletedAttachments == 0)
