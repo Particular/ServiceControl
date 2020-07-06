@@ -96,6 +96,7 @@
 
             var deletedAttachments = Chunker.ExecuteInChunks(attachments.Count, (att, db, s, e) =>
             {
+                var deleted = 0;
                 if (logger.IsDebugEnabled)
                 {
                     logger.Debug($"Batching deletion of {s}-{e} attachment audit documents.");
@@ -109,6 +110,7 @@
 #pragma warning disable 618
                         accessor.Attachments.DeleteAttachment(att[idx], null);
 #pragma warning restore 618
+                        deleted++;
                     }
                 });
                 if (logger.IsDebugEnabled)
@@ -116,7 +118,7 @@
                     logger.Debug($"Batching deletion of {s}-{e} attachment audit documents completed.");
                 }
 
-                return e;
+                return deleted;
             }, attachments, database, token);
 
             if (deletedAttachments + deletedAuditDocuments == 0)
