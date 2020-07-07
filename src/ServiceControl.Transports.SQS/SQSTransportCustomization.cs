@@ -18,12 +18,16 @@
     {
         public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
-            CustomizeEndpoint(endpointConfiguration, transportSettings);
+            var transport = endpointConfiguration.UseTransport<SqsTransport>();
+            ConfigureTransport(transport, transportSettings);
+            //Do not ConfigurePubSub for send-only endpoint
         }
 
         public override void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
-            CustomizeEndpoint(endpointConfiguration, transportSettings);
+            var transport = endpointConfiguration.UseTransport<SqsTransport>();
+            ConfigureTransport(transport, transportSettings);
+            ConfigurePubSub(transport, transportSettings);
         }
 
         public override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -43,7 +47,9 @@
 
         public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
-            CustomizeEndpoint(endpointConfiguration, transportSettings);
+            var transport = endpointConfiguration.UseTransport<SqsTransport>();
+            ConfigureTransport(transport, transportSettings);
+            ConfigurePubSub(transport, transportSettings);
         }
 
         public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -56,19 +62,20 @@
             return new QueueLengthProvider();
         }
 
-        static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
-        {
-            var transport = endpointConfig.UseTransport<SqsTransport>();
-
-            ConfigureTransport(transport, transportSettings);
-        }
-
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<SqsTransport>();
             transport.ApplyHacksForNsbRaw();
 
             ConfigureTransport(transport, transportSettings);
+            ConfigurePubSub(transport, transportSettings);
+        }
+
+        static void ConfigurePubSub(TransportExtensions<SqsTransport> transport, TransportSettings transportSettings)
+        {
+            // precaution in case we would ever use the subscription manager
+            transportSettings.Set("NServiceBus.AmazonSQS.DisableSubscribeBatchingOnStart", true);
+            transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
         static void ConfigureTransport(TransportExtensions<SqsTransport> transport, TransportSettings transportSettings)
