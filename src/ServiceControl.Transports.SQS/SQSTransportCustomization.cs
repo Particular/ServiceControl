@@ -49,7 +49,6 @@
         {
             var transport = endpointConfiguration.UseTransport<SqsTransport>();
             ConfigureTransport(transport, transportSettings);
-            ConfigurePubSub(transport, transportSettings);
         }
 
         public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
