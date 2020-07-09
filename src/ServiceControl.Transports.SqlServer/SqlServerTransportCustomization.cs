@@ -10,11 +10,13 @@
         public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
+            //Do not EnableMessageDrivenPubSubCompatibilityMode for send-only endpoint
         }
 
         public override void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
-            CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
+            var transport = CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
+            transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
         public override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -47,7 +49,7 @@
             return new QueueLengthProvider();
         }
 
-        static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
+        static TransportExtensions<SqlServerTransport> CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             ConfigureConnection(transport, transportSettings);
@@ -65,12 +67,14 @@
             }
 
             transport.Transactions(transportTransactionMode);
+            return transport;
         }
 
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
             var transport = endpointConfig.UseTransport<SqlServerTransport>();
             ConfigureConnection(transport, transportSettings);
+            transport.EnableMessageDrivenPubSubCompatibilityMode();
             endpointConfig.Settings.Set("SqlServer.DisableDelayedDelivery", true);
 
             var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
@@ -108,7 +112,6 @@
 
             transport.ConnectionString(connectionString);
 
-            transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
         const string defaultSubscriptionTableName = "SubscriptionRouting";
