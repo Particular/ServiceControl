@@ -33,7 +33,7 @@
 
         public string Password { get; }
 
-        public ushort RequestedHeartbeat { get; }
+        public TimeSpan RequestedHeartbeat { get; }
 
         public TimeSpan RetryDelay { get; }
 
@@ -51,7 +51,7 @@
             string virtualHost,
             string userName,
             string password,
-            ushort requestedHeartbeat,
+            TimeSpan requestedHeartbeat,
             TimeSpan retryDelay,
             bool useTls,
             string certPath,
@@ -104,7 +104,7 @@
             var virtualHost = GetValue(dictionary, "virtualHost", defaultVirtualHost);
             var userName = GetValue(dictionary, "userName", defaultUserName);
             var password = GetValue(dictionary, "password", defaultPassword);
-            var requestedHeartbeat = GetValue(dictionary, "requestedHeartbeat", ushort.TryParse, defaultRequestedHeartbeat, invalidOptionsMessage);
+            var requestedHeartbeat = TimeSpan.FromSeconds(GetValue(dictionary, "requestedHeartbeat", ushort.TryParse, defaultRequestedHeartbeat, invalidOptionsMessage));
             var retryDelay = GetValue(dictionary, "retryDelay", TimeSpan.TryParse, defaultRetryDelay, invalidOptionsMessage);
             var certPath = GetValue(dictionary, "certPath", defaultCertPath);
             var certPassPhrase = GetValue(dictionary, "certPassphrase", defaultCertPassphrase);
