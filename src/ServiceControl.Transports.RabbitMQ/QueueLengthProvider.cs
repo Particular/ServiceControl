@@ -144,10 +144,13 @@
 
                 var dbConnectionStringBuilder = new DbConnectionStringBuilder {ConnectionString = connectionString};
 
-                connectionFactory = new ConnectionFactory(connectionConfiguration,
+                connectionFactory = new ConnectionFactory("ServiceControl.Monitoring",
+                    connectionConfiguration,
                     null, //providing certificates is not supported yet
                     dbConnectionStringBuilder.GetBooleanValue("DisableRemoteCertificateValidation"),
-                    dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"));
+                    dbConnectionStringBuilder.GetBooleanValue("UseExternalAuthMechanism"),
+                    null, // value would come from config API in actual transport
+                    null); // value would come from config API in actual transport
             }
 
             public async Task Execute(Action<IModel> action, CancellationToken token)

@@ -8,11 +8,24 @@
 
     class ConnectionFactory
     {
+        readonly string endpointName;
         readonly global::RabbitMQ.Client.ConnectionFactory connectionFactory;
         readonly object lockObject = new object();
 
-        public ConnectionFactory(ConnectionConfiguration connectionConfiguration, X509CertificateCollection clientCertificates, bool disableRemoteCertificateValidation, bool useExternalAuthMechanism)
+        public ConnectionFactory(string endpointName, ConnectionConfiguration connectionConfiguration, X509Certificate2Collection clientCertificateCollection, bool disableRemoteCertificateValidation, bool useExternalAuthMechanism, TimeSpan? heartbeatInterval, TimeSpan? networkRecoveryInterval)
         {
+            if (endpointName is null)
+            {
+                throw new ArgumentNullException(nameof(endpointName));
+            }
+
+            if (endpointName == string.Empty)
+            {
+                throw new ArgumentException("The endpoint name cannot be empty.", nameof(endpointName));
+            }
+
+            this.endpointName = endpointName;
+
             if (connectionConfiguration == null)
             {
                 throw new ArgumentNullException(nameof(connectionConfiguration));
@@ -30,14 +43,13 @@
                 VirtualHost = connectionConfiguration.VirtualHost,
                 UserName = connectionConfiguration.UserName,
                 Password = connectionConfiguration.Password,
-                RequestedHeartbeat = connectionConfiguration.RequestedHeartbeat,
-                AutomaticRecoveryEnabled = true,
-                NetworkRecoveryInterval = connectionConfiguration.RetryDelay,
+                RequestedHeartbeat = heartbeatInterval ?? connectionConfiguration.RequestedHeartbeat,
+                NetworkRecoveryInterval = networkRecoveryInterval ?? connectionConfiguration.RetryDelay,
                 UseBackgroundThreadsForIO = true
             };
 
             connectionFactory.Ssl.ServerName = connectionConfiguration.Host;
-            connectionFactory.Ssl.Certs = clientCertificates;
+            connectionFactory.Ssl.Certs = clientCertificateCollection;
             connectionFactory.Ssl.CertPath = connectionConfiguration.CertPath;
             connectionFactory.Ssl.CertPassphrase = connectionConfiguration.CertPassphrase;
             connectionFactory.Ssl.Version = SslProtocols.Tls12;
@@ -63,17 +75,20 @@
             }
         }
 
-        public IConnection CreatePublishConnection() => CreateConnection("Publish");
+        public IConnection CreatePublishConnection() => CreateConnection($"{endpointName} Publish", false);
 
-        public IConnection CreateAdministrationConnection() => CreateConnection("Administration");
+        public IConnection CreateAdministrationConnection() => CreateConnection($"{endpointName} Administration", false);
 
-        public IConnection CreateConnection(string connectionName)
+        public IConnection CreateConnection(string connectionName, bool automaticRecoveryEnabled = true)
         {
             lock (lockObject)
             {
+                connectionFactory.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
                 connectionFactory.ClientProperties["connected"] = DateTime.Now.ToString("G");
 
-                return connectionFactory.CreateConnection(connectionName);
+                var connection = connectionFactory.CreateConnection(connectionName);
+
+                return connection;
             }
         }
     }
