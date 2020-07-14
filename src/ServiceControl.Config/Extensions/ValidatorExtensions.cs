@@ -8,12 +8,12 @@
 
     static class ValidatorExtensions
     {
-        public static ValidationResult Validate(this IValidator validator, object instance, string propertyName)
+        public static ValidationResult Validate<T>(this IValidator validator, T instance, string propertyName)
         {
-            return validator.Validate(new ValidationContext(instance, new PropertyChain(), new DefaultValidatorSelector()), propertyName);
+            return validator.Validate(new ValidationContext<T>(instance, new PropertyChain(), new DefaultValidatorSelector()), propertyName);
         }
 
-        public static ValidationResult Validate(this IValidator validator, ValidationContext context, string propertyName)
+        public static ValidationResult Validate<T>(this IValidator validator, ValidationContext<T> context, string propertyName)
         {
             if (!(validator is IEnumerable<IValidationRule> validatorWrapper))
             {

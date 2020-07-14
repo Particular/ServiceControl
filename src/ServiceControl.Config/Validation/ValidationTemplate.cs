@@ -71,7 +71,7 @@
         public bool Validate()
         {
             validationResults.Clear();
-            var validationResult = validator.Validate(target);
+            var validationResult = validator.Validate(new ValidationContext<RxPropertyChanged>(target));
             validationResults.AddRange(validationResult.Errors);
             RaiseErrorsChanged();
             return validationResults.Count == 0;
@@ -105,7 +105,7 @@
             else
             {
                 validationResults.Clear();
-                var validationResult = validator.Validate(target);
+                var validationResult = validator.Validate(new ValidationContext<RxPropertyChanged>(target));
                 validationResults.AddRange(validationResult.Errors);
             }
 

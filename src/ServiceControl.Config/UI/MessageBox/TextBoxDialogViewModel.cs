@@ -31,7 +31,7 @@
             {
                 Result = true;
                 ((IDeactivate)this).Deactivate(true);
-            }, () => Validator.Validate(this).IsValid);
+            }, () => Validator.Validate(new ValidationContext<TextBoxDialogViewModel>(this)).IsValid);
         }
 
         public string Header { get; set; }
