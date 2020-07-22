@@ -127,6 +127,11 @@ namespace ServiceControl.Monitoring
 
         public void RemoveEndpoint(Guid endpointId)
         {
+            var heartbeat = heartbeats.Keys.SingleOrDefault(t => t.UniqueId == endpointId);
+            if(heartbeat != null)
+            {
+                heartbeats.TryRemove(heartbeat, out var _);
+            }
             endpoints.TryRemove(endpointId, out _);
         }
 
