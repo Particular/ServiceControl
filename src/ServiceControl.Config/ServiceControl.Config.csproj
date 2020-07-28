@@ -22,7 +22,7 @@
     <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="Caliburn.Micro" Version="3.0.3" />
     <PackageReference Include="FluentValidation" Version="9.0.1" />
-    <PackageReference Include="Fody" Version="6.2.0" />
+    <PackageReference Include="Fody" Version="6.2.1" />
     <PackageReference Include="Mindscape.Raygun4Net" Version="5.10.2" />
     <PackageReference Include="PropertyChanged.Fody" Version="3.2.8" />
     <PackageReference Include="PropertyChanging.Fody" Version="1.30.1" />
