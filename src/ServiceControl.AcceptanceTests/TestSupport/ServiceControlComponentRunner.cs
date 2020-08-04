@@ -156,6 +156,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder =>
                 {
                     builder.RegisterType<FailedErrorsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
+                    builder.RegisterType<FailedMessageRetriesController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
                     builder.RegisterType<CriticalErrorTriggerController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
                 });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
