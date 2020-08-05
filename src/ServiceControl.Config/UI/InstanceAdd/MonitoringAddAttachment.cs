@@ -86,7 +86,7 @@
 
             viewModel.TryClose(true);
 
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
+            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
         bool PromptToProceed(PathInfo pathInfo)

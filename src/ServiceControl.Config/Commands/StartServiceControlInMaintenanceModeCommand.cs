@@ -31,7 +31,7 @@
 
                     if (!stopped)
                     {
-                        eventAggregator.PublishOnUIThread(new RefreshInstances());
+                        await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                         var reportCard = new ReportCard();
                         reportCard.Errors.Add("Failed to stop the service");
                         reportCard.SetStatus();
@@ -50,7 +50,7 @@
                     }
                 }
 
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }
         }
 
