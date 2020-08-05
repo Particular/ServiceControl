@@ -20,5 +20,5 @@ https://docs.particular.net/servicecontrol/
 How to build
 ============
 
-- Enable Windows Feature .NET Framework 3.5 support
-- Install .NET 4.0 SDK according to https://stackoverflow.com/a/45509430
+- Enable Windows Feature .NET Framework 3.5 support, which is needed to support the Wix components in the ServiceControl installer.
+- If not using Visual Studio, you may need to install .NET 4.0 SDK according to https://stackoverflow.com/a/45509430
