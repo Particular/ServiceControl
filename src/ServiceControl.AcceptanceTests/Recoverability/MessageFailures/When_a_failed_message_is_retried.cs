@@ -10,13 +10,14 @@
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using ServiceControl.AcceptanceTests.TestSupport;
     using ServiceControl.MessageFailures;
     using TestSupport.EndpointTemplates;
 
     class When_a_failed_message_is_retried : AcceptanceTest
     {
         [Test]
-        public async Task Should_remove_failedmessageretries_for_the_retry()
+        public async Task Should_remove_failedmessageretries_when_retrying_groups()
         {
             FailedMessageRetriesCountReponse failedMessageRetries = null;
 
@@ -56,7 +57,48 @@
 
                         failedMessageRetries = await this.TryGet<FailedMessageRetriesCountReponse>("/api/failedmessageretries/count");
 
-                        return true;
+                        return failedMessageRetries.Count == 0;
+                    }
+
+                    return false;
+                })
+                .Run();
+
+            Assert.AreEqual(failedMessageRetries.Count, 0, "FaileMessageRetries not removed");
+        }
+
+        [Test]
+        public async Task Should_remove_failedmessageretries_when_retrying_individual_messages()
+        {
+            FailedMessageRetriesCountReponse failedMessageRetries = null;
+
+            await Define<Context>()
+                .WithEndpoint<FailingEndpoint>(b => b.When(async ctx =>
+                {
+                    if (ctx.UniqueMessageId == null)
+                    {
+                        return false;
+                    }
+
+                    FailedMessage failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    if (failedMessage == null)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }, async (bus, ctx) =>
+                {
+                    ctx.AboutToSendRetry = true;
+                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                }).DoNotFailOnErrorMessages())
+                .Done(async ctx =>
+                {
+                    if (ctx.Retried)
+                    {
+                        failedMessageRetries = await this.TryGet<FailedMessageRetriesCountReponse>("/api/failedmessageretries/count");
+
+                        return failedMessageRetries.Count == 0;
                     }
 
                     return false;
@@ -73,6 +115,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableFeature<Outbox>();
+                    c.ReportSuccessfulRetriesToServiceControl();
 
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(1));
