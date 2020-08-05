@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
@@ -27,17 +28,34 @@
                         return false;
                     }
 
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    FailedMessage failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    if (failedMessage == null)
+                    {
+                        return false;
+                    }
+                    ctx.FailureGroupId = failedMessage.FailureGroups.First().Id;
+
+                    return true;
                 }, async (bus, ctx) =>
                 {
                     ctx.AboutToSendRetry = true;
-                    await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
+                    await this.Post<object>($"/api/recoverability/groups/{ctx.FailureGroupId}/errors/retry");
                 }).DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
                     if (ctx.Retried)
                     {
+                        try
+                        {
+                            await this.Delete($"/api/recoverability/unacknowledgedgroups/{ctx.FailureGroupId}");
+                        }
+                        catch
+                        {
+                            return false;
+                        }
+
                         failedMessageRetries = await this.TryGet<FailedMessageRetriesCountReponse>("/api/failedmessageretries/count");
+
                         return true;
                     }
 
@@ -114,6 +132,7 @@
         public class Context : ScenarioContext
         {
             public string UniqueMessageId { get; set; }
+            public string FailureGroupId { get; set; }
             public bool Retried { get; set; }
             public bool AboutToSendRetry { get; set; }
         }
