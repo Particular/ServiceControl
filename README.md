@@ -16,3 +16,9 @@ User Documentation
 Documentation for ServiceControl is located on the Particular Docs website at following address:
 
 https://docs.particular.net/servicecontrol/
+
+How to build
+============
+
+- Enable Windows Feature .NET Framework 3.5 support
+- Install .NET 4.0 SDK according to https://stackoverflow.com/a/45509430
