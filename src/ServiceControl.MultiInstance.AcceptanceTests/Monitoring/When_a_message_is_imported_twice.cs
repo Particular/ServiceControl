@@ -1,11 +1,13 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Monitoring
 {
+    using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
+    using NServiceBus.Pipeline;
     using NUnit.Framework;
     using TestSupport;
     using TestSupport.EndpointTemplates;
@@ -55,7 +57,16 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.ForwardReceivedMessagesTo("audit"));
+                EndpointSetup<DefaultServerWithAudit>(c => c.Pipeline.Register(new DuplicateAuditsBehavior(), "Duplicates outgoing audits"));
+            }
+
+            class DuplicateAuditsBehavior : Behavior<IAuditContext>
+            {
+                public override async Task Invoke(IAuditContext context, Func<Task> next)
+                {
+                    await next().ConfigureAwait(false);
+                    await next().ConfigureAwait(false);
+                }
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
