@@ -6,12 +6,14 @@
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using Raven.Client;
+    using ServiceControl.Recoverability;
 
     class MessageFailureResolvedDomainHandler : IDomainHandler<MessageFailureResolvedByRetry>
     {
-        public MessageFailureResolvedDomainHandler(IDocumentStore store)
+        public MessageFailureResolvedDomainHandler(IDocumentStore store, RetryDocumentManager retryDocumentManager)
         {
             this.store = store;
+            this.retryDocumentManager = retryDocumentManager;
         }
 
         public async Task Handle(MessageFailureResolvedByRetry domainEvent)
@@ -39,6 +41,8 @@
 
         async Task<bool> MarkMessageAsResolved(string failedMessageId)
         {
+            await retryDocumentManager.RemoveFailedMessageRetryDocument(failedMessageId).ConfigureAwait(false);
+
             using (var session = store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
@@ -60,5 +64,6 @@
         }
 
         IDocumentStore store;
+        RetryDocumentManager retryDocumentManager;
     }
 }
