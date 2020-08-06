@@ -12,6 +12,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
+    using System.Web.Http;
     using AcceptanceTesting;
     using Autofac;
     using Infrastructure.WebApi;
@@ -155,9 +156,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
                 bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder =>
                 {
-                    builder.RegisterType<FailedErrorsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
-                    builder.RegisterType<FailedMessageRetriesController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
-                    builder.RegisterType<CriticalErrorTriggerController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray());
+                    builder.RegisterAssemblyTypes(typeof(FailedErrorsController).Assembly)
+                      .AssignableTo<ApiController>()
+                      .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
+                      .AsSelf();
                 });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
