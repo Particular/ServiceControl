@@ -101,7 +101,7 @@
                 if (!result.HasValue)
                 {
                     //Dialog was cancelled
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                     return;
                 }
 
@@ -141,7 +141,7 @@
                     else
                     {
                         //Dialog was cancelled
-                        eventAggregator.PublishOnUIThread(new RefreshInstances());
+                        await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                         return;
                     }
                 }
@@ -167,7 +167,7 @@
                 else
                 {
                     //Dialog was cancelled
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                     return;
                 }
             }
@@ -187,7 +187,7 @@
                 else
                 {
                     //Dialog was cancelled
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                     return;
                 }
             }
@@ -200,7 +200,7 @@
                 if (windowManager.ShowInnerDialog(auditViewModel) != true)
                 {
                     //Dialog was cancelled
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                     return;
                 }
             }
@@ -220,7 +220,7 @@
                 if (!auditInstalled)
                 {
                     //Dialog was cancelled
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                     return;
                 }
 
@@ -230,7 +230,7 @@
 
             await UpgradeServiceControlInstance(model, instance, upgradeOptions);
 
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
+            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
         async Task<bool> InstallServiceControlAudit(InstanceDetailsViewModel detailsViewModel, AddNewAuditInstanceViewModel viewModel, ServiceControlInstance instance)
@@ -302,7 +302,7 @@
 
                 if (!stopped)
                 {
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
 
                     reportCard.Errors.Add("Failed to stop the service");
                     reportCard.SetStatus();

@@ -63,7 +63,7 @@
 
             await UpgradeAuditInstance(model, instance, upgradeOptions);
 
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
+            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
         async Task UpgradeAuditInstance(InstanceDetailsViewModel model, ServiceControlAuditInstance instance, ServiceControlUpgradeOptions upgradeOptions)
@@ -77,7 +77,7 @@
 
                 if (!stopped)
                 {
-                    eventAggregator.PublishOnUIThread(new RefreshInstances());
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
 
                     reportCard.Errors.Add("Failed to stop the service");
                     reportCard.SetStatus();

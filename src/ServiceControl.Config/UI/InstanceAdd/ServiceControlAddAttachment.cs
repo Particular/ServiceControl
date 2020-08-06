@@ -119,7 +119,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             viewModel.TryClose(true);
 
-            eventAggregator.PublishOnUIThread(new RefreshInstances());
+            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
         async Task<bool> InstallInstance(ServiceControlNewInstance instanceData, IProgressObject progress)

@@ -40,7 +40,7 @@
                     }
                 }
 
-                eventAggregator.PublishOnUIThread(new ResetInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
             }
         }
 
