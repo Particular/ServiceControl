@@ -23,6 +23,12 @@
 
                 var retrieved = await bodyStore.TryFetch(messageId);
                 Assert.True(retrieved.HasResult);
+                Assert.AreEqual(contentType, retrieved.ContentType);
+
+                var buffer = new byte[retrieved.BodySize];
+                retrieved.Stream.Read(buffer, 0, retrieved.BodySize);
+
+                Assert.AreEqual(body, buffer);
             }
         }
     }
