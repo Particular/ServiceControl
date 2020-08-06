@@ -118,7 +118,7 @@
                     c.ReportSuccessfulRetriesToServiceControl();
 
                     var recoverability = c.Recoverability();
-                    recoverability.Immediate(s => s.NumberOfRetries(1));
+                    recoverability.Immediate(s => s.NumberOfRetries(0));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
             }
