@@ -990,6 +990,9 @@ namespace ServiceControl.Operations.BodyStorage.Api
     public class GetBodyByIdController : System.Web.Http.ApiController
     {
         [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{*idCatchAll}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CatchAll(string idCatchAll) { }
+        [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("messages/{id}/body")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
     }
