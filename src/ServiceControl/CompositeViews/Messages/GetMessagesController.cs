@@ -1,6 +1,6 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using ServiceControl.Operations.BodyStorage.Api;
+    using Operations.BodyStorage.Api;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
