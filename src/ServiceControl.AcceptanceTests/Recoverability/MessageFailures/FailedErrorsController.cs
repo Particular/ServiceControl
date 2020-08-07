@@ -66,7 +66,7 @@
             return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK));
         }
 
-        void WaitForIndexes(IDocumentStore store)
+        static void WaitForIndexes(IDocumentStore store)
         {
             SpinWait.SpinUntil(() => store.DatabaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
         }
