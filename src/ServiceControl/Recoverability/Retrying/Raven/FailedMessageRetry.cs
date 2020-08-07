@@ -12,6 +12,11 @@ namespace ServiceControl.Recoverability
             return CollectionName + "/" + messageUniqueId;
         }
 
+        public static string MakeDocumentIdFromFailedMessageId(string failedMessageId)
+        {
+            return CollectionName + "/" + failedMessageId.Substring(ServiceControl.MessageFailures.FailedMessage.CollectionName.Length + 1);
+        }
+
         public const string CollectionName = "FailedMessageRetries";
     }
 }

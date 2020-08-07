@@ -43,6 +43,7 @@
                         }
                     }
                 };
+
                 var indexName = new ExpiryErrorMessageIndex().IndexName;
                 database.Query(indexName, query, token,
                     (doc, state) =>
