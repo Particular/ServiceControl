@@ -6,10 +6,11 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
     public class GetMessagesController : ApiController
     {
-        internal GetMessagesController(GetAllMessagesApi getAllMessagesApi, GetAllMessagesForEndpointApi getAllMessagesForEndpointApi)
+        internal GetMessagesController(GetAllMessagesApi getAllMessagesApi, GetAllMessagesForEndpointApi getAllMessagesForEndpointApi, GetBodyByIdApi getBodyByIdApi)
         {
             this.getAllMessagesApi = getAllMessagesApi;
             this.getAllMessagesForEndpointApi = getAllMessagesForEndpointApi;
+            this.getBodyByIdApi = getBodyByIdApi;
         }
 
         [Route("messages")]
@@ -20,7 +21,27 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public Task<HttpResponseMessage> GetEndpointMessages(string endpoint) => getAllMessagesForEndpointApi.Execute(this, endpoint);
 
+        [Route("messages/{id}/body")]
+        [HttpGet]
+        public Task<HttpResponseMessage> Get(string id) => getBodyByIdApi.Execute(Request, id);
+
+        // Possible a message may contain a slash or backslash, either way http.sys will rewrite it to forward slash,
+        // and then the "normal" route above will not activate, resulting in 404 if this route is not present.
+        [Route("messages/{*catchAll}")]
+        [HttpGet]
+        public Task<HttpResponseMessage> CatchAll(string catchAll)
+        {
+            if (!string.IsNullOrEmpty(catchAll) && catchAll.EndsWith("/body"))
+            {
+                var id = catchAll.Substring(0, catchAll.Length - 5);
+                return Get(id);
+            }
+
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
+        }
+
         readonly GetAllMessagesApi getAllMessagesApi;
         readonly GetAllMessagesForEndpointApi getAllMessagesForEndpointApi;
+        readonly GetBodyByIdApi getBodyByIdApi;
     }
 }

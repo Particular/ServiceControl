@@ -155,6 +155,12 @@ namespace ServiceControl.CompositeViews.Messages
     public class GetMessagesController : System.Web.Http.ApiController
     {
         [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{*catchAll}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CatchAll(string catchAll) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{id}/body")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
+        [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("messages")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Messages() { }
         [System.Web.Http.HttpGetAttribute()]
@@ -983,18 +989,6 @@ namespace ServiceControl.Monitoring
         public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
         public string HostDisplayName { get; set; }
         public System.Guid Id { get; set; }
-    }
-}
-namespace ServiceControl.Operations.BodyStorage.Api
-{
-    public class GetBodyByIdController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("messages/{*idCatchAll}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CatchAll(string idCatchAll) { }
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("messages/{id}/body")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
     }
 }
 namespace ServiceControl.Operations
