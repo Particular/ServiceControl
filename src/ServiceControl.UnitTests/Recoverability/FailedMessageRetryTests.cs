@@ -15,7 +15,7 @@
             var messageId = Guid.NewGuid().ToString();
             var failedMessageId = FailedMessage.MakeDocumentId(messageId);
 
-            var extractedFailedMessageRetryId = FailedMessageRetry.MakeDocumentIdFromFailedMessageId(failedMessageId);
+            var extractedFailedMessageRetryId = FailedMessageRetry.MakeDocumentId(FailedMessage.GetDocumentIdFromCollectionId(failedMessageId));
 
             Assert.AreEqual(FailedMessageRetry.MakeDocumentId(messageId), extractedFailedMessageRetryId);
         }

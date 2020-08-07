@@ -26,6 +26,11 @@
             return $"{CollectionName}/{messageUniqueId}";
         }
 
+        public static string GetDocumentIdFromCollectionId(string collectionId)
+        {
+            return collectionId.Substring(CollectionName.Length + 1);
+        }
+
         public const string CollectionName = "FailedMessages";
 
         public class ProcessingAttempt

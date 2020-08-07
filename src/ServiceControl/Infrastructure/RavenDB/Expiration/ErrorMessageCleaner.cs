@@ -10,6 +10,7 @@
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
+    using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
     static class ErrorMessageCleaner
@@ -62,7 +63,7 @@
                             return;
                         }
 
-                        var failedMessageRetryId = FailedMessageRetry.MakeDocumentIdFromFailedMessageId(id);
+                        var failedMessageRetryId = FailedMessageRetry.MakeDocumentId(FailedMessage.GetDocumentIdFromCollectionId(id));
                         state.failedRetryItems.Add(new DeleteCommandData
                         {
                             Key = failedMessageRetryId
