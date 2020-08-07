@@ -10,8 +10,8 @@
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.AcceptanceTests.TestSupport;
     using ServiceControl.MessageFailures;
+    using TestSupport;
     using TestSupport.EndpointTemplates;
 
     class When_a_failed_message_is_retried : AcceptanceTest
@@ -34,6 +34,7 @@
                     {
                         return false;
                     }
+
                     ctx.FailureGroupId = failedMessage.FailureGroups.First().Id;
 
                     return true;
