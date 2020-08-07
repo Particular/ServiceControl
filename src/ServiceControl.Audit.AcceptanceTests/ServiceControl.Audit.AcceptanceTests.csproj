@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.SignalR.Client" Version="2.4.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.0" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.3.0" />
     <PackageReference Include="NServiceBus.Heartbeat" Version="3.0.0" />
     <PackageReference Include="NServiceBus.SagaAudit" Version="3.0.1" />
