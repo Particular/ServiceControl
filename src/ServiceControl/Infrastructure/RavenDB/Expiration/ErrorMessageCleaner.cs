@@ -63,7 +63,7 @@
                             return;
                         }
 
-                        var failedMessageRetryId = FailedMessageRetry.MakeDocumentId(FailedMessage.GetDocumentIdFromCollectionId(id));
+                        var failedMessageRetryId = FailedMessageRetry.MakeDocumentId(FailedMessage.GetMessageIdFromDocumentId(id));
                         state.failedRetryItems.Add(new DeleteCommandData
                         {
                             Key = failedMessageRetryId

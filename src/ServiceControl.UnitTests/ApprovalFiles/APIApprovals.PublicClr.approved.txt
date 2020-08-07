@@ -846,7 +846,7 @@ namespace ServiceControl.MessageFailures
         public System.Collections.Generic.List<ServiceControl.MessageFailures.FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
         public ServiceControl.MessageFailures.FailedMessageStatus Status { get; set; }
         public string UniqueMessageId { get; set; }
-        public static string GetDocumentIdFromCollectionId(string collectionId) { }
+        public static string GetMessageIdFromDocumentId(string failedMessageDocumentId) { }
         public static string MakeDocumentId(string messageUniqueId) { }
         public class FailureGroup
         {

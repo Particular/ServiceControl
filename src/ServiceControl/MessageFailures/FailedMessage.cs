@@ -26,9 +26,9 @@
             return $"{CollectionName}/{messageUniqueId}";
         }
 
-        public static string GetDocumentIdFromCollectionId(string collectionId)
+        public static string GetMessageIdFromDocumentId(string failedMessageDocumentId)
         {
-            return collectionId.Substring(CollectionName.Length + 1);
+            return failedMessageDocumentId.Substring(CollectionName.Length + 1);
         }
 
         public const string CollectionName = "FailedMessages";
