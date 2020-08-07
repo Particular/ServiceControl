@@ -10,6 +10,7 @@
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
+    using ServiceControl.Recoverability;
 
     static class ErrorMessageCleaner
     {
@@ -18,7 +19,14 @@
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
-            var itemsAndAttachements = Tuple.Create(items, attachments);
+            var failedRetryItems = new List<ICommandData>(deletionBatchSize);
+
+            var itemsAndAttachements = new
+            {
+                items,
+                attachments,
+                failedRetryItems
+            };
 
             try
             {
@@ -54,12 +62,18 @@
                             return;
                         }
 
-                        state.Item1.Add(new DeleteCommandData
+                        var failedMessageRetryId = FailedMessageRetry.MakeDocumentIdFromFailedMessageId(id);
+                        state.failedRetryItems.Add(new DeleteCommandData
+                        {
+                            Key = failedMessageRetryId
+                        });
+
+                        state.items.Add(new DeleteCommandData
                         {
                             Key = id
                         });
                         var bodyid = doc.Value<string>("ProcessingAttempts[0].MessageId");
-                        state.Item2.Add(bodyid);
+                        state.attachments.Add(bodyid);
                     }, itemsAndAttachements);
             }
             catch (OperationCanceledException)
@@ -88,6 +102,22 @@
 
                 return results.Count(x => x.Deleted == true);
             }, items, database, token);
+
+            var deletedFailedMessageRetry = Chunker.ExecuteInChunks(failedRetryItems.Count, (itemsForBatch, db, s, e) =>
+            {
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} FailedMessageRetry documents.");
+                }
+
+                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} FailedMessageRetry documents completed.");
+                }
+
+                return results.Count(x => x.Deleted == true);
+            }, failedRetryItems, database, token);
 
             var deletedAttachments = Chunker.ExecuteInChunks(attachments.Count, (atts, db, s, e) =>
             {
