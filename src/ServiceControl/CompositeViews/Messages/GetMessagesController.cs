@@ -5,6 +5,8 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Threading.Tasks;
     using System.Web.Http;
 
+    // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
+    // from `messages/{*catchAll}` if they're in separate controllers.
     public class GetMessagesController : ApiController
     {
         internal GetMessagesController(
