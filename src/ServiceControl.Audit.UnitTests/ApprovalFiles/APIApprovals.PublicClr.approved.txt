@@ -27,12 +27,6 @@ namespace ServiceControl.Audit.Auditing
         public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
         public string Id { get; set; }
     }
-    public class GetBodyByIdController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("messages/{id}/body")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
-    }
     public class ProcessedMessage
     {
         public ProcessedMessage() { }
@@ -46,8 +40,20 @@ namespace ServiceControl.Audit.Auditing
 }
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
-    public class GetMessagesByQueryController : System.Web.Http.ApiController
+    public class GetMessagesController : System.Web.Http.ApiController
     {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{*catchAll}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CatchAll(string catchAll) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{id}/body")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAllMessages() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetEndpointMessages(string endpoint) { }
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("messages/search")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string q) { }
@@ -60,15 +66,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search/{keyword}")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) { }
-    }
-    public class GetMessagesController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("messages")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAllMessages() { }
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetEndpointMessages(string endpoint) { }
     }
     public class MessagesConversationController : System.Web.Http.ApiController
     {

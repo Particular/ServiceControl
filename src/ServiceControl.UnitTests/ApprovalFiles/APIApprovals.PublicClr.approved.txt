@@ -137,8 +137,20 @@ namespace ServiceControl.CompositeViews.Messages
         [System.Web.Http.RouteAttribute("conversations/{conversationid}")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Messages(string conversationId) { }
     }
-    public class GetMessagesByQueryController : System.Web.Http.ApiController
+    public class GetMessagesController : System.Web.Http.ApiController
     {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{*catchAll}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CatchAll(string catchAll) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages/{id}/body")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("messages")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Messages() { }
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> MessagesForEndpoint(string endpoint) { }
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("messages/search")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string q) { }
@@ -151,15 +163,6 @@ namespace ServiceControl.CompositeViews.Messages
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search/{keyword}")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) { }
-    }
-    public class GetMessagesController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("messages")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Messages() { }
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> MessagesForEndpoint(string endpoint) { }
     }
     public class MessagesBodyTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewTransformer.Result>
     {
@@ -983,15 +986,6 @@ namespace ServiceControl.Monitoring
         public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
         public string HostDisplayName { get; set; }
         public System.Guid Id { get; set; }
-    }
-}
-namespace ServiceControl.Operations.BodyStorage.Api
-{
-    public class GetBodyByIdController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGetAttribute()]
-        [System.Web.Http.RouteAttribute("messages/{id}/body")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
     }
 }
 namespace ServiceControl.Operations
