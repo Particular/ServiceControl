@@ -6,7 +6,7 @@
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using Raven.Client;
-    using ServiceControl.Recoverability;
+    using Recoverability;
 
     class MessageFailureResolvedDomainHandler : IDomainHandler<MessageFailureResolvedByRetry>
     {

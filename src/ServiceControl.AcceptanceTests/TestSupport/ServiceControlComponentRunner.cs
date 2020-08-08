@@ -17,7 +17,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using Autofac;
     using Infrastructure.WebApi;
     using Microsoft.Owin.Builder;
-    using Monitoring.InternalCustomChecks;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -39,13 +38,13 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
+        public Settings Settings { get; set; }
+        public OwinHttpMessageHandler Handler { get; set; }
+        public BusInstance Bus { get; set; }
 
 
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
-        public Settings Settings { get; set; }
-        public OwinHttpMessageHandler Handler { get; set; }
-        public BusInstance Bus { get; set; }
         public string Port => Settings.Port.ToString();
 
         public Task Initialize(RunDescriptor run)
@@ -157,9 +156,9 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder =>
                 {
                     builder.RegisterAssemblyTypes(typeof(FailedErrorsController).Assembly)
-                      .AssignableTo<ApiController>()
-                      .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
-                      .AsSelf();
+                        .AssignableTo<ApiController>()
+                        .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
+                        .AsSelf();
                 });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
