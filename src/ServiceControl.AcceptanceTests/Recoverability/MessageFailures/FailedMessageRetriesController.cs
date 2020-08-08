@@ -26,13 +26,13 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var query = await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync().ConfigureAwait(false);
+                await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync().ConfigureAwait(false);
 
                 return Request.CreateResponse(HttpStatusCode.OK, new FailedMessageRetriesCountReponse
                     {
                         Count = stats.TotalResults
                     })
-                    .WithEtag(stats));
+                    .WithEtag(stats);
             }
         }
 
