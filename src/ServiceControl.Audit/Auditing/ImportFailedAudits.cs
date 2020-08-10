@@ -48,8 +48,12 @@ namespace ServiceControl.Audit.Auditing
                         try
                         {
                             var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                            messageContext.SetTaskCompletionSource(taskCompletionSource);
 
                             await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
+
+                            await taskCompletionSource.Task.ConfigureAwait(false);
 
                             await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
                                 .ConfigureAwait(false);
