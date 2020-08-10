@@ -33,6 +33,10 @@
                 .OrderByDescending(retry => retry.CompletionTime)
                 .Take(historyDepth)
                 .ToList();
+
+            UnacknowledgedOperations = UnacknowledgedOperations
+                .Where(operation => operation.RetryType != RetryType.MultipleMessages && operation.RetryType != RetryType.SingleMessage)
+                .ToList();
         }
 
         public string GetHistoryOperationsUniqueIdentifier()
