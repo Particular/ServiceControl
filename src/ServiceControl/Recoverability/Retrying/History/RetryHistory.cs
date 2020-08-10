@@ -33,10 +33,6 @@
                 .OrderByDescending(retry => retry.CompletionTime)
                 .Take(historyDepth)
                 .ToList();
-
-            UnacknowledgedOperations = UnacknowledgedOperations
-                .Where(operation => operation.RetryType != RetryType.MultipleMessages && operation.RetryType != RetryType.SingleMessage)
-                .ToList();
         }
 
         public string GetHistoryOperationsUniqueIdentifier()
@@ -46,10 +42,12 @@
 
         public void AddToUnacknowledged(UnacknowledgedRetryOperation unacknowledgedRetryOperation)
         {
-            if (unacknowledgedRetryOperation.RetryType != RetryType.MultipleMessages && unacknowledgedRetryOperation.RetryType != RetryType.SingleMessage)
-            {
-                UnacknowledgedOperations.Add(unacknowledgedRetryOperation);
-            }
+            UnacknowledgedOperations.Add(unacknowledgedRetryOperation);
+
+            UnacknowledgedOperations = UnacknowledgedOperations
+                // All other retry types already have an explicit way to dismiss them on the UI
+                .Where(operation => operation.RetryType != RetryType.MultipleMessages && operation.RetryType != RetryType.SingleMessage)
+                .ToList();
         }
 
         public UnacknowledgedRetryOperation[] GetUnacknowledgedByClassifier(string classifier)
