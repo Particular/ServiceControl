@@ -12,6 +12,7 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability;
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
