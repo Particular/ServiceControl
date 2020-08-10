@@ -57,7 +57,12 @@
             watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, ingestionState.ReportError,
                 ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, log, "failed message ingestion");
 
-            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(settings.MaximumConcurrencyLevel) { SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false });
+            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(settings.MaximumConcurrencyLevel * 2)
+            {
+                SingleReader = true,
+                SingleWriter = false,
+                AllowSynchronousContinuations = false
+            });
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
