@@ -9,6 +9,8 @@
     using Infrastructure.WebApi;
     using Operations;
     using Raven.Client;
+    using Raven.Client.Embedded;
+    using ServiceControl.Infrastructure.RavenDB.Expiration;
 
     public class FailedErrorsCountReponse
     {
@@ -49,6 +51,24 @@
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             await importFailedAudits.Value.ImportFailedErrors(tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
+        }
+
+        [Route("failederrors/forcecleanerrors")]
+        [HttpPost]
+        public Task<HttpResponseMessage> ForceErrorMessageCleanerRun(CancellationToken token)
+        {
+            new ExpiryErrorMessageIndex().Execute(store);
+            WaitForIndexes(store);
+
+            ErrorMessageCleaner.Clean(1000, ((EmbeddableDocumentStore)store).DocumentDatabase, DateTime.Now, token);
+            WaitForIndexes(store);
+
+            return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK));
+        }
+
+        static void WaitForIndexes(IDocumentStore store)
+        {
+            SpinWait.SpinUntil(() => store.DatabaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
         }
 
         readonly IDocumentStore store;

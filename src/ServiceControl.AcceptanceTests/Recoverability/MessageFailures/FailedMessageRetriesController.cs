@@ -22,17 +22,17 @@
 
         [Route("failedmessageretries/count")]
         [HttpGet]
-        public Task<HttpResponseMessage> GetFailedMessageRetriesCount()
+        public async Task<HttpResponseMessage> GetFailedMessageRetriesCount()
         {
             using (var session = store.OpenAsyncSession())
             {
-                session.Query<FailedMessageRetry>().Statistics(out var stats);
+                await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync().ConfigureAwait(false);
 
-                return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, new FailedMessageRetriesCountReponse
+                return Request.CreateResponse(HttpStatusCode.OK, new FailedMessageRetriesCountReponse
                     {
                         Count = stats.TotalResults
                     })
-                    .WithEtag(stats));
+                    .WithEtag(stats);
             }
         }
 
