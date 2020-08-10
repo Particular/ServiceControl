@@ -2,11 +2,13 @@
 {
     using System.IO;
     using System.Threading.Tasks;
+    using Raven.Client;
+    using Raven.Client.Document;
 
     interface IBodyStorage
     {
-        Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
-        Task<StreamResult> TryFetch(string bodyId);
+        Task<string> Store(BulkInsertOperation bulkInsert, string bodyId, string contentType, int bodySize, Stream bodyStream);
+        Task<StreamResult> TryFetch(IDocumentStore documentStore, string bodyId);
     }
 
     struct StreamResult

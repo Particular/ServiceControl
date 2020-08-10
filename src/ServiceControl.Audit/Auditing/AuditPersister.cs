@@ -145,7 +145,7 @@
                     enricher.Enrich(enricherContext);
                 }
 
-                await bodyStorageEnricher.StoreAuditMessageBody(context.Body, context.Headers, metadata)
+                await bodyStorageEnricher.StoreAuditMessageBody(bulkInsert, context.Body, context.Headers, metadata)
                     .ConfigureAwait(false);
 
                 var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))

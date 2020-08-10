@@ -36,7 +36,7 @@
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var result = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);
+            var result = await bodyStorage.TryFetch(documentStore, messageId).ConfigureAwait(false);
 #pragma warning restore 618
             if (result.HasResult)
             {
@@ -70,7 +70,7 @@
                 {
                     return request.CreateResponse(HttpStatusCode.NoContent);
                 }
-                    
+
                 var response = request.CreateResponse(HttpStatusCode.OK);
                 var content = new StringContent(message.Body);
                 content.Headers.ContentType = MediaTypeHeaderValue.Parse(message.ContentType);
