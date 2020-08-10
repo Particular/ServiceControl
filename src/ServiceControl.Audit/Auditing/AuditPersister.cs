@@ -176,71 +176,10 @@
             }
         }
 
-        public async Task Persist(MessageContext message)
-        {
-            if (!message.Headers.TryGetValue(Headers.MessageId, out var messageId))
-            {
-                messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
-            }
-
-            var metadata = new ConcurrentDictionary<string, object>
-            {
-                ["MessageId"] = messageId,
-                ["MessageIntent"] = message.Headers.MessageIntent()
-            };
-
-            var commandsToEmit = new List<ICommand>();
-            var enricherContext = new AuditEnricherContext(message.Headers, commandsToEmit, metadata);
-
-            // ReSharper disable once LoopCanBeConvertedToQuery
-            foreach (var enricher in enrichers)
-            {
-                enricher.Enrich(enricherContext);
-            }
-
-            await bodyStorageEnricher.StoreAuditMessageBody(message.Body, message.Headers, metadata)
-                .ConfigureAwait(false);
-
-            var auditMessage = new ProcessedMessage(message.Headers, new Dictionary<string, object>(metadata))
-            {
-                // We do this so Raven does not spend time assigning a hilo key
-                Id = $"ProcessedMessages/{Guid.NewGuid()}"
-            };
-
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.StoreAsync(auditMessage)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
-
-            foreach (var commandToEmit in commandsToEmit)
-            {
-                await messageSession.Send(commandToEmit)
-                    .ConfigureAwait(false);
-            }
-        }
-
         readonly IEnrichImportedAuditMessages[] enrichers;
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         IMessageSession messageSession;
         static ILog Logger = LogManager.GetLogger<AuditPersister>();
-
-        class EndpointDetailsComparer : IEqualityComparer<EndpointDetails>
-        {
-            public static EndpointDetailsComparer Instance = new EndpointDetailsComparer();
-
-            public bool Equals(EndpointDetails x, EndpointDetails y)
-            {
-                return y != null && x != null && x.Name.Equals(y.Name, StringComparison.Ordinal) && x.HostId == y.HostId;
-            }
-
-            public int GetHashCode(EndpointDetails obj)
-            {
-                return obj.GetHashCode();
-            }
-        }
     }
 }
