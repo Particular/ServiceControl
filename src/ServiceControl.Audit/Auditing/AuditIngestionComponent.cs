@@ -44,7 +44,7 @@
                 async (messageContext, dispatcher) =>
                 {
                     var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    messageContext.Extensions.Set(taskCompletionSource);
+                    messageContext.SetTaskCompletionSource(taskCompletionSource);
 
                     await channel.Writer.WriteAsync(messageContext).ConfigureAwait(false);
                     await taskCompletionSource.Task.ConfigureAwait(false);
@@ -96,7 +96,6 @@
             {
                 try
                 {
-                    // TODO: Check conditions of try read
                     while (channel.Reader.TryRead(out var context))
                     {
                         contexts.Add(context);

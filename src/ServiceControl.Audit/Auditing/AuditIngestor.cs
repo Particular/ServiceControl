@@ -31,7 +31,7 @@
 
                 foreach (var context in stored)
                 {
-                    context.Extensions.Get<TaskCompletionSource<bool>>().TrySetResult(true);
+                    context.GetTaskCompletionSource().TrySetResult(true);
                 }
             }
             catch (Exception e)
@@ -39,7 +39,7 @@
                 // in case forwarding throws
                 foreach (var context in stored)
                 {
-                    context.Extensions.Get<TaskCompletionSource<bool>>().TrySetException(e);
+                    context.GetTaskCompletionSource().TrySetException(e);
                 }
             }
         }

@@ -89,7 +89,7 @@
                     // let's give up
                     foreach (var context in contexts)
                     {
-                        context.Extensions.Get<TaskCompletionSource<bool>>().TrySetException(e);
+                        context.GetTaskCompletionSource().TrySetException(e);
                     }
                 }
 
