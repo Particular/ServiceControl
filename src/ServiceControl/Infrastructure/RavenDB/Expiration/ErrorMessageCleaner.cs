@@ -88,22 +88,6 @@
                 return;
             }
 
-            var deletedFailedMessage = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
-            {
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Batching deletion of {s}-{e} error documents.");
-                }
-
-                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Batching deletion of {s}-{e} error documents completed.");
-                }
-
-                return results.Count(x => x.Deleted == true);
-            }, items, database, token);
-
             var deletedFailedMessageRetry = Chunker.ExecuteInChunks(failedRetryItems.Count, (itemsForBatch, db, s, e) =>
             {
                 if (logger.IsDebugEnabled)
@@ -147,7 +131,23 @@
                 return deleted;
             }, attachments, database, token);
 
-            if (deletedFailedMessage + deletedAttachments == 0)
+            var deletedFailedMessage = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
+            {
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} error documents.");
+                }
+
+                var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} error documents completed.");
+                }
+
+                return results.Count(x => x.Deleted == true);
+            }, items, database, token);
+
+            if (deletedFailedMessage + deletedAttachments + deletedFailedMessageRetry == 0)
             {
                 logger.Info("No expired error documents found");
             }
