@@ -172,7 +172,7 @@
             }
             catch (Exception e)
             {
-                context.Extensions.Get<TaskCompletionSource<bool>>().TrySetException(e);
+                context.GetTaskCompletionSource().TrySetException(e);
             }
         }
 
