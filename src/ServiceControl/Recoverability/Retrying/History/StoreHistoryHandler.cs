@@ -20,6 +20,19 @@
                 var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ??
                                    RetryHistory.CreateNew();
 
+                retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
+                {
+                    RequestId = message.RequestId,
+                    RetryType = message.RetryType,
+                    StartTime = message.StartTime,
+                    CompletionTime = message.CompletionTime,
+                    Originator = message.Originator,
+                    Classifier = message.Classifier,
+                    Failed = message.Failed,
+                    NumberOfMessagesProcessed = message.NumberOfMessagesProcessed,
+                    Last = message.Last
+                });
+
                 retryHistory.AddToHistory(new HistoricRetryOperation
                 {
                     RequestId = message.RequestId,
@@ -30,23 +43,6 @@
                     Failed = message.Failed,
                     NumberOfMessagesProcessed = message.NumberOfMessagesProcessed
                 }, settings.RetryHistoryDepth);
-
-                // No need to store these retry types as there is no UI to acknowledge them
-                if (message.RetryType != RetryType.MultipleMessages && message.RetryType != RetryType.SingleMessage)
-                {
-                    retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
-                    {
-                        RequestId = message.RequestId,
-                        RetryType = message.RetryType,
-                        StartTime = message.StartTime,
-                        CompletionTime = message.CompletionTime,
-                        Originator = message.Originator,
-                        Classifier = message.Classifier,
-                        Failed = message.Failed,
-                        NumberOfMessagesProcessed = message.NumberOfMessagesProcessed,
-                        Last = message.Last
-                    });
-                }
 
                 await session.StoreAsync(retryHistory)
                     .ConfigureAwait(false);

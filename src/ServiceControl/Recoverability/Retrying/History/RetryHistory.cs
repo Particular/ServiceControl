@@ -46,7 +46,10 @@
 
         public void AddToUnacknowledged(UnacknowledgedRetryOperation unacknowledgedRetryOperation)
         {
-            UnacknowledgedOperations.Add(unacknowledgedRetryOperation);
+            if (unacknowledgedRetryOperation.RetryType != RetryType.MultipleMessages && unacknowledgedRetryOperation.RetryType != RetryType.SingleMessage)
+            {
+                UnacknowledgedOperations.Add(unacknowledgedRetryOperation);
+            }
         }
 
         public UnacknowledgedRetryOperation[] GetUnacknowledgedByClassifier(string classifier)
