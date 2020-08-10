@@ -55,7 +55,7 @@
         {
             public Receiver()
             {
-                EndpointSetup<DefaultServerWithAudit>(c => c.ForwardReceivedMessagesTo("audit"));
+                EndpointSetup<DefaultServerWithAudit>(c => c.AuditProcessedMessagesTo("audit"));
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
