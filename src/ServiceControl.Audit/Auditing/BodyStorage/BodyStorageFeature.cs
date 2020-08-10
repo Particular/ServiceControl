@@ -8,7 +8,6 @@
     using Microsoft.IO;
     using NServiceBus;
     using NServiceBus.Features;
-    using Raven.Client.Document;
     using RavenAttachments;
 
     class BodyStorageFeature : Feature
@@ -36,7 +35,7 @@
                 this.settings = settings;
             }
 
-            public async Task StoreAuditMessageBody(BulkInsertOperation bulkInsert, byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public async Task StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.Add("ContentLength", bodySize);
@@ -48,7 +47,7 @@
                 var contentType = GetContentType(headers, "text/xml");
                 metadata.Add("ContentType", contentType);
 
-                var stored = await TryStoreBody(bulkInsert, body, headers, metadata, bodySize, contentType)
+                var stored = await TryStoreBody(body, headers, metadata, bodySize, contentType)
                     .ConfigureAwait(false);
                 if (!stored)
                 {
@@ -66,7 +65,7 @@
                 return contentType;
             }
 
-            async Task<bool> TryStoreBody(BulkInsertOperation bulkInsert, byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
+            async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
                 var bodyId = headers.MessageId();
                 var storedInBodyStorage = false;
@@ -81,7 +80,7 @@
                 }
                 else if (isBelowMaxSize)
                 {
-                    bodyUrl = await StoreBodyInBodyStorage(bulkInsert, body, bodyId, contentType, bodySize)
+                    bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
                         .ConfigureAwait(false);
                     storedInBodyStorage = true;
                 }
@@ -90,11 +89,11 @@
                 return storedInBodyStorage;
             }
 
-            async Task<string> StoreBodyInBodyStorage(BulkInsertOperation bulkInsert, byte[] body, string bodyId, string contentType, int bodySize)
+            async Task<string> StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
             {
                 using (var bodyStream = memoryStreamManager.GetStream(body))
                 {
-                    var bodyUrl = await bodyStorage.Store(bulkInsert, bodyId, contentType, bodySize, bodyStream)
+                    var bodyUrl = await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
                         .ConfigureAwait(false);
                     return bodyUrl;
                 }

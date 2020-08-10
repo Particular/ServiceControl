@@ -2,10 +2,10 @@ namespace ServiceControl.UnitTests.BodyStorage
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Text;
     using System.Threading.Tasks;
     using Audit.Auditing.BodyStorage;
-    using Audit.Auditing.BodyStorage.RavenAttachments;
     using Audit.Infrastructure.Settings;
     using NServiceBus;
     using NUnit.Framework;
@@ -16,210 +16,142 @@ namespace ServiceControl.UnitTests.BodyStorage
         [Test]
         public async Task Should_remove_body_when_above_threshold()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            var fakeStorage = new FakeBodyStorage();
+            var maxBodySizeToStore = 20000;
+            var settings = new Settings
             {
-                var attachmentsBodyStorage = new RavenAttachmentsBodyStorage();
-                var maxBodySizeToStore = 20000;
-                var settings = new Settings
-                {
-                    MaxBodySizeToStore = maxBodySizeToStore
-                };
+                MaxBodySizeToStore = maxBodySizeToStore
+            };
 
-                var enricher = new BodyStorageFeature.BodyStorageEnricher(attachmentsBodyStorage, settings);
-                var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
-                var metadata = new Dictionary<string, object>();
-                var headers = new Dictionary<string, string>
-                {
-                    {Headers.MessageId, Guid.NewGuid().ToString()},
-                };
+            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
+            var metadata = new Dictionary<string, object>();
 
-                using (var bulkInsert = store.BulkInsert())
-                {
-                    await enricher.StoreAuditMessageBody(bulkInsert, body, headers, metadata);
+            await enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
 
-                    await bulkInsert.DisposeAsync();
-                }
-
-                var streamResult = await attachmentsBodyStorage.TryFetch(store, headers[Headers.MessageId]);
-
-                Assert.IsFalse(streamResult.HasResult, "Body should be removed if above threshold");
-                Assert.IsFalse(metadata.ContainsKey("Body"));
-            }
+            Assert.AreEqual(0, fakeStorage.StoredBodySize, "Body should be removed if above threshold");
+            Assert.IsFalse(metadata.ContainsKey("Body"));
         }
 
         [Test]
         public async Task Should_remove_body_when_above_threshold_and_binary()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            var fakeStorage = new FakeBodyStorage();
+            var maxBodySizeToStore = 20000;
+            var settings = new Settings
             {
-                var attachmentsBodyStorage = new RavenAttachmentsBodyStorage();
-                var maxBodySizeToStore = 20000;
-                var settings = new Settings
-                {
-                    MaxBodySizeToStore = maxBodySizeToStore
-                };
+                MaxBodySizeToStore = maxBodySizeToStore
+            };
 
-                var enricher = new BodyStorageFeature.BodyStorageEnricher(attachmentsBodyStorage, settings);
-                var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
-                var metadata = new Dictionary<string, object>();
-                var headers = new Dictionary<string, string>
-                {
-                    {Headers.MessageId, Guid.NewGuid().ToString()},
-                    {Headers.ContentType, "application/binary"}
-                };
+            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
+            var metadata = new Dictionary<string, object>();
+            var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary"}};
 
-                using (var bulkInsert = store.BulkInsert())
-                {
-                    await enricher.StoreAuditMessageBody(bulkInsert, body, headers, metadata);
+            await enricher.StoreAuditMessageBody(body, headers, metadata);
 
-                    await bulkInsert.DisposeAsync();
-                }
-
-                var streamResult = await attachmentsBodyStorage.TryFetch(store, headers[Headers.MessageId]);
-
-                Assert.IsFalse(streamResult.HasResult, "Body should be removed if above threshold");
-                Assert.IsFalse(metadata.ContainsKey("Body"));
-            }
+            Assert.AreEqual(0, fakeStorage.StoredBodySize, "Body should be removed if above threshold");
+            Assert.IsFalse(metadata.ContainsKey("Body"));
         }
 
         [Test]
         public async Task Should_store_body_in_metadata_when_below_large_object_heap_and_not_binary()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            var fakeStorage = new FakeBodyStorage();
+            var maxBodySizeToStore = 100000;
+            var settings = new Settings
             {
-                var attachmentsBodyStorage = new RavenAttachmentsBodyStorage();
-                var maxBodySizeToStore = 100000;
-                var settings = new Settings
-                {
-                    MaxBodySizeToStore = maxBodySizeToStore
-                };
+                MaxBodySizeToStore = maxBodySizeToStore
+            };
 
-                var enricher = new BodyStorageFeature.BodyStorageEnricher(attachmentsBodyStorage, settings);
-                var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold - 1;
-                var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
-                var metadata = new Dictionary<string, object>();
-                var headers = new Dictionary<string, string>
-                {
-                    {Headers.MessageId, Guid.NewGuid().ToString()},
-                };
+            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold - 1;
+            var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
+            var metadata = new Dictionary<string, object>();
 
-                using (var bulkInsert = store.BulkInsert())
-                {
-                    await enricher.StoreAuditMessageBody(bulkInsert, body, headers, metadata);
+            await enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
 
-                    await bulkInsert.DisposeAsync();
-                }
-
-                var streamResult = await attachmentsBodyStorage.TryFetch(store, headers[Headers.MessageId]);
-
-                Assert.AreEqual(body, metadata["Body"], "Body should be stored if below threshold");
-                Assert.IsFalse(streamResult.HasResult);
-            }
+            Assert.AreEqual(body, metadata["Body"], "Body should be stored if below threshold");
+            Assert.AreEqual(0, fakeStorage.StoredBodySize);
         }
 
         [Test]
         public async Task Should_store_body_in_storage_when_above_large_object_heap_but_below_threshold_and_not_binary()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            var fakeStorage = new FakeBodyStorage();
+            var maxBodySizeToStore = 100000;
+            var settings = new Settings
             {
-                var attachmentsBodyStorage = new RavenAttachmentsBodyStorage();
-                var maxBodySizeToStore = 100000;
-                var settings = new Settings
-                {
-                    MaxBodySizeToStore = maxBodySizeToStore
-                };
+                MaxBodySizeToStore = maxBodySizeToStore
+            };
 
-                var enricher = new BodyStorageFeature.BodyStorageEnricher(attachmentsBodyStorage, settings);
-                var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
-                var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
-                var metadata = new Dictionary<string, object>();
-                var headers = new Dictionary<string, string>
-                {
-                    {Headers.MessageId, Guid.NewGuid().ToString()},
-                };
+            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
+            var metadata = new Dictionary<string, object>();
 
-                using (var bulkInsert = store.BulkInsert())
-                {
-                    await enricher.StoreAuditMessageBody(bulkInsert, body, headers, metadata);
+            await enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
 
-                    await bulkInsert.DisposeAsync();
-                }
-
-                var streamResult = await attachmentsBodyStorage.TryFetch(store, headers[Headers.MessageId]);
-
-                Assert.AreEqual(expectedBodySize, streamResult.BodySize, "Body should be stored if below threshold");
-                Assert.IsFalse(metadata.ContainsKey("Body"));
-            }
+            Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
+            Assert.IsFalse(metadata.ContainsKey("Body"));
         }
 
         [Test]
         public async Task Should_store_body_in_storage_when_below_threshold_and_binary()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            var fakeStorage = new FakeBodyStorage();
+            var maxBodySizeToStore = 100000;
+            var settings = new Settings
             {
-                var attachmentsBodyStorage = new RavenAttachmentsBodyStorage();
-                var maxBodySizeToStore = 100000;
-                var settings = new Settings
-                {
-                    MaxBodySizeToStore = maxBodySizeToStore
-                };
+                MaxBodySizeToStore = maxBodySizeToStore
+            };
 
-                var enricher = new BodyStorageFeature.BodyStorageEnricher(attachmentsBodyStorage, settings);
-                var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
-                var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
-                var metadata = new Dictionary<string, object>();
-                var headers = new Dictionary<string, string>
-                {
-                    {Headers.MessageId, Guid.NewGuid().ToString()},
-                    {Headers.ContentType, "application/binary"}
-                };
+            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
+            var metadata = new Dictionary<string, object>();
+            var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary"}};
 
-                using (var bulkInsert = store.BulkInsert())
-                {
-                    await enricher.StoreAuditMessageBody(bulkInsert, body, headers, metadata);
+            await enricher.StoreAuditMessageBody(body, headers, metadata);
 
-                    await bulkInsert.DisposeAsync();
-                }
-
-                var streamResult = await attachmentsBodyStorage.TryFetch(store, headers[Headers.MessageId]);
-
-                Assert.AreEqual(expectedBodySize, streamResult.BodySize, "Body should be stored if below threshold");
-                Assert.IsFalse(metadata.ContainsKey("Body"));
-            }
+            Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
+            Assert.IsFalse(metadata.ContainsKey("Body"));
         }
 
         [Test]
         public async Task Should_store_body_in_storage_when_below_threshold()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            var fakeStorage = new FakeBodyStorage();
+            var maxBodySizeToStore = 100000;
+            var settings = new Settings
             {
-                var attachmentsBodyStorage = new RavenAttachmentsBodyStorage();
-                var maxBodySizeToStore = 100000;
-                var settings = new Settings
-                {
-                    MaxBodySizeToStore = maxBodySizeToStore
-                };
+                MaxBodySizeToStore = maxBodySizeToStore
+            };
 
-                var enricher = new BodyStorageFeature.BodyStorageEnricher(attachmentsBodyStorage, settings);
-                var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
-                var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
-                var metadata = new Dictionary<string, object>();
-                var headers = new Dictionary<string, string>
-                {
-                    {Headers.MessageId, Guid.NewGuid().ToString()},
-                };
+            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
+            var metadata = new Dictionary<string, object>();
 
-                using (var bulkInsert = store.BulkInsert())
-                {
-                    await enricher.StoreAuditMessageBody(bulkInsert, body, headers, metadata);
+            await enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
 
-                    await bulkInsert.DisposeAsync();
-                }
+            Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
+            Assert.IsFalse(metadata.ContainsKey("Body"));
+        }
 
-                var streamResult = await attachmentsBodyStorage.TryFetch(store, headers[Headers.MessageId]);
+        class FakeBodyStorage : IBodyStorage
+        {
+            public int StoredBodySize { get; set; }
 
-                Assert.AreEqual(expectedBodySize, streamResult.BodySize, "Body should be stored if below threshold");
-                Assert.IsFalse(metadata.ContainsKey("Body"));
+            public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+            {
+                StoredBodySize = bodySize;
+                return Task.FromResult(default(string));
+            }
+
+            public Task<StreamResult> TryFetch(string bodyId)
+            {
+                throw new NotImplementedException();
             }
         }
     }
