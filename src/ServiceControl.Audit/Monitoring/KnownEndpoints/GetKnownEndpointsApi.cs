@@ -18,8 +18,7 @@ namespace ServiceControl.Audit.Monitoring
         {
             using (var session = Store.OpenAsyncSession())
             {
-                var endpoints = await session.Advanced.LoadStartingWithAsync<
-                        KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024)
+                var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024)
                     .ConfigureAwait(false);
 
                 var knownEndpoints = endpoints
