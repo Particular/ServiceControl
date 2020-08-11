@@ -149,6 +149,10 @@ namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
         public void Dispose() { }
         public void Execute(Raven.Database.DocumentDatabase database) { }
     }
+    public class ExpiryKnownEndpointsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Monitoring.KnownEndpoint>
+    {
+        public ExpiryKnownEndpointsIndex() { }
+    }
     public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage>
     {
         public ExpiryProcessedMessageIndex() { }
