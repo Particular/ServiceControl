@@ -40,6 +40,7 @@
             {
                 throw new Exception($"Missing '{FaultsHeaderKeys.FailedQ}' header. Message is poison message or incorrectly send to (error) queue.");
             }
+            result.AddressOfFailingEndpoint = headers[FaultsHeaderKeys.FailedQ];
 
             return result;
         }
