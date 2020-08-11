@@ -15,6 +15,7 @@
 
             var transportConfig = configuration.UseTransport<LearningTransport>();
             transportConfig.StorageDirectory(ConnectionString);
+            transportConfig.NoPayloadSizeRestriction();
 
             return Task.FromResult(0);
         }
