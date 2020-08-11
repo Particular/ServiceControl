@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -11,6 +12,7 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability;
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
@@ -98,6 +100,47 @@
                 .Run();
 
             Assert.AreEqual(failedMessageRetries.Count, 0, "FaileMessageRetries not removed");
+        }
+
+        [Test]
+        public async Task Should_remove_UnacknowledgedOperation_when_retrying_individual_messages()
+        {
+            RetryHistory retryHistory = null;
+
+            await Define<Context>()
+                .WithEndpoint<FailingEndpoint>(b => b.When(async ctx =>
+                {
+                    if (ctx.UniqueMessageId == null)
+                    {
+                        return false;
+                    }
+
+                    FailedMessage failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    if (failedMessage == null)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }, async (bus, ctx) =>
+                {
+                    ctx.AboutToSendRetry = true;
+                    await this.Post<object>("/api/errors/retry", new List<string> { ctx.UniqueMessageId });
+                }).DoNotFailOnErrorMessages())
+                .Done(async ctx =>
+                {
+                    if (ctx.Retried)
+                    {
+                        retryHistory = await this.TryGet<RetryHistory>("/api/recoverability/history");
+
+                        return !retryHistory.UnacknowledgedOperations.Any() && retryHistory.HistoricOperations.Any();
+                    }
+
+                    return false;
+                })
+                .Run();
+
+            Assert.IsEmpty(retryHistory.UnacknowledgedOperations, "Unucknowledged retry operation not removed");
         }
 
         [Test]

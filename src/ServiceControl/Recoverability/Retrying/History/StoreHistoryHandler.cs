@@ -20,17 +20,6 @@
                 var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ??
                                    RetryHistory.CreateNew();
 
-                retryHistory.AddToHistory(new HistoricRetryOperation
-                {
-                    RequestId = message.RequestId,
-                    RetryType = message.RetryType,
-                    StartTime = message.StartTime,
-                    CompletionTime = message.CompletionTime,
-                    Originator = message.Originator,
-                    Failed = message.Failed,
-                    NumberOfMessagesProcessed = message.NumberOfMessagesProcessed
-                }, settings.RetryHistoryDepth);
-
                 retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
                 {
                     RequestId = message.RequestId,
@@ -43,6 +32,17 @@
                     NumberOfMessagesProcessed = message.NumberOfMessagesProcessed,
                     Last = message.Last
                 });
+
+                retryHistory.AddToHistory(new HistoricRetryOperation
+                {
+                    RequestId = message.RequestId,
+                    RetryType = message.RetryType,
+                    StartTime = message.StartTime,
+                    CompletionTime = message.CompletionTime,
+                    Originator = message.Originator,
+                    Failed = message.Failed,
+                    NumberOfMessagesProcessed = message.NumberOfMessagesProcessed
+                }, settings.RetryHistoryDepth);
 
                 await session.StoreAsync(retryHistory)
                     .ConfigureAwait(false);

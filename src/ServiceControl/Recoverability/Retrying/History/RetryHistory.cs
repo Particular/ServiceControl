@@ -43,6 +43,11 @@
         public void AddToUnacknowledged(UnacknowledgedRetryOperation unacknowledgedRetryOperation)
         {
             UnacknowledgedOperations.Add(unacknowledgedRetryOperation);
+
+            UnacknowledgedOperations = UnacknowledgedOperations
+                // All other retry types already have an explicit way to dismiss them on the UI
+                .Where(operation => operation.RetryType != RetryType.MultipleMessages && operation.RetryType != RetryType.SingleMessage)
+                .ToList();
         }
 
         public UnacknowledgedRetryOperation[] GetUnacknowledgedByClassifier(string classifier)
