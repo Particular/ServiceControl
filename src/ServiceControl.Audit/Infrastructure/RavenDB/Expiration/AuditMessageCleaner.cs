@@ -77,7 +77,6 @@
                 return;
             }
 
-
             var deletedAuditDocuments = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
                 if (logger.IsDebugEnabled)

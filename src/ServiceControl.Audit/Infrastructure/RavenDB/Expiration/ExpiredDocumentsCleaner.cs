@@ -16,6 +16,8 @@
 
             logger.Debug("Trying to find expired ProcessedMessage and SagaHistory documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
             AuditMessageCleaner.Clean(deletionBatchSize, database, threshold, token);
+            logger.Debug("Trying to find expired KnownEndpoints to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
+            KnownEndpointsCleaner.Clean(deletionBatchSize, database, threshold, token);
 
             return Task.FromResult(TimerJobExecutionResult.ScheduleNextExecution);
         }
