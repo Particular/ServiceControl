@@ -38,11 +38,14 @@
                 Logger.Debug($"Batch size {contexts.Count}");
             }
 
-            using (var bulkInsert = store.BulkInsert(options: new BulkInsertOptions
+            var storedContexts = new List<MessageContext>(contexts.Count);
+            try
             {
-                OverwriteExisting = true
-            }))
-            {
+                // deliberately not using the using statement because we dispose async explicitly
+                var bulkInsert = store.BulkInsert(options: new BulkInsertOptions
+                {
+                    OverwriteExisting = true
+                });
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
@@ -52,7 +55,7 @@
                 await Task.WhenAll(inserts).ConfigureAwait(false);
 
                 var knownEndpoints = new Dictionary<string, KnownEndpoint>();
-                var storedContexts = new List<MessageContext>(contexts.Count);
+
                 foreach (var context in contexts)
                 {
                     if (!context.Extensions.TryGet(out ProcessedMessage processedMessage))
@@ -79,27 +82,32 @@
                     bulkInsert.Store(endpoint);
                 }
 
-                try
+                await bulkInsert.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                storedContexts.Clear();
+                // let's give up
+                foreach (var context in contexts)
                 {
-                    await bulkInsert.DisposeAsync().ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    storedContexts.Clear();
-                    // let's give up
-                    foreach (var context in contexts)
-                    {
-                        context.GetTaskCompletionSource().TrySetException(e);
-                    }
+                    context.GetTaskCompletionSource().TrySetException(e);
                 }
 
+                if (Logger.IsWarnEnabled)
+                {
+                    Logger.Warn("Bulk insertion failed", e);
+                }
+            }
+            finally
+            {
                 stopwatch.Stop();
                 if (Logger.IsDebugEnabled)
                 {
                     Logger.Debug($"Batch size {contexts.Count} took {stopwatch.ElapsedMilliseconds}");
                 }
-                return storedContexts;
             }
+
+            return storedContexts;
         }
 
         static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints, ProcessedMessage processedMessage)
@@ -165,6 +173,7 @@
                 {
                     context.Extensions.Set("SendingEndpoint", (EndpointDetails)sendingEndpoint);
                 }
+
                 if (metadata.TryGetValue("ReceivingEndpoint", out var receivingEndpoint))
                 {
                     context.Extensions.Set("ReceivingEndpoint", (EndpointDetails)receivingEndpoint);
