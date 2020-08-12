@@ -13,7 +13,6 @@
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using Raven.Client.Document;
 
     class AuditPersister
     {
@@ -49,7 +48,7 @@
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
-                    inserts.Add(ProcessedMessage(context, bulkInsert));
+                    inserts.Add(ProcessedMessage(context));
                 }
 
                 await Task.WhenAll(inserts).ConfigureAwait(false);
@@ -93,9 +92,9 @@
                     context.GetTaskCompletionSource().TrySetException(e);
                 }
 
-                if (Logger.IsWarnEnabled)
+                if (Logger.IsDebugEnabled)
                 {
-                    Logger.Warn("Bulk insertion failed", e);
+                    Logger.Debug("Bulk insertion failed", e);
                 }
             }
             finally
@@ -129,15 +128,15 @@
             knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
-        async Task ProcessedMessage(MessageContext context, BulkInsertOperation bulkInsert)
+        async Task ProcessedMessage(MessageContext context)
         {
+            if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
+            {
+                messageId = DeterministicGuid.MakeId(context.MessageId).ToString();
+            }
+
             try
             {
-                if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
-                {
-                    messageId = DeterministicGuid.MakeId(context.MessageId).ToString();
-                }
-
                 var metadata = new ConcurrentDictionary<string, object>
                 {
                     ["MessageId"] = messageId,
@@ -181,6 +180,11 @@
             }
             catch (Exception e)
             {
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Processing of message '{messageId}' failed.", e);
+                }
+
                 context.GetTaskCompletionSource().TrySetException(e);
             }
         }
