@@ -228,6 +228,46 @@
             }
         }
 
+        [Test]
+        public async Task Should_noop_migration_if_no_index()
+        {
+            Guid sendHostId = Guid.NewGuid();
+            Guid receiverHostId = Guid.NewGuid();
+
+            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            {
+                using (var session = store.OpenAsyncSession())
+                {
+                    await session.StoreAsync(new ProcessedMessage
+                    {
+                        Id = "1",
+                        ProcessedAt = DateTime.Now,
+                        UniqueMessageId = "xyz",
+                        MessageMetadata = new System.Collections.Generic.Dictionary<string, object>
+                        {
+                            { "SendingEndpoint", new EndpointDetails { Host = "SendHost", HostId = sendHostId, Name = "SendHostName" } },
+                            { "ReceivingEndpoint", new EndpointDetails { Host = "ReceivingHost", HostId = receiverHostId, Name = "ReceivingHostName" } },
+                        }
+                    });
+
+                    await session.SaveChangesAsync();
+                }
+
+                store.WaitForIndexing();
+
+                var migrator = new MigrateKnownEndpoints(store);
+
+                await migrator.MigrateEndpoints(pageSize: 1).ConfigureAwait(false);
+
+                using (var session = store.OpenAsyncSession())
+                {
+                    var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
+
+                    Assert.Null(loadedSenderEndpoint);
+                }
+            }
+        }
+
         class EndpointsIndex : AbstractIndexCreationTask<ProcessedMessage, EndpointDetails>
         {
             public EndpointsIndex()
