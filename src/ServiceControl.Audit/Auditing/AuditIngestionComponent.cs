@@ -57,11 +57,12 @@
             watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, ingestionState.ReportError,
                 ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, log, "failed message ingestion");
 
-            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(settings.MaximumConcurrencyLevel * 2)
+            channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(settings.MaximumConcurrencyLevel)
             {
                 SingleReader = true,
                 SingleWriter = false,
-                AllowSynchronousContinuations = false
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.Wait
             });
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
@@ -99,8 +100,10 @@
 
             while (await channel.Reader.WaitToReadAsync().ConfigureAwait(false))
             {
+                // will only enter here if there is something to read.
                 try
                 {
+                    // as long as there is something to read this will fetch up to MaximumConcurrency items
                     while (channel.Reader.TryRead(out var context))
                     {
                         contexts.Add(context);
@@ -113,6 +116,7 @@
                     contexts.Clear();
                 }
             }
+            // will fall out here when writer is completed
         }
 
         public Task ImportFailedErrors(CancellationToken cancellationToken)
