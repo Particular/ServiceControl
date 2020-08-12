@@ -25,8 +25,6 @@
                 return;
             }
 
-            await WaitForNonStaleIndex(knownEndpointsIndex.Name).ConfigureAwait(false);
-
             int previouslyDone = 0;
             do
             {
@@ -68,22 +66,6 @@
             } while (true);
 
             await Store.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name).ConfigureAwait(false);
-        }
-
-        async Task WaitForNonStaleIndex(string indexName)
-        {
-            var maxWaitTime = DateTime.UtcNow.AddMinutes(5);
-            var isStale = true;
-            do
-            {
-                var stats = await Store.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
-                isStale = stats.StaleIndexes.Any(index => index == indexName);
-
-                if (isStale)
-                {
-                    await Task.Delay(1000).ConfigureAwait(false);
-                }
-            } while (isStale && DateTime.UtcNow <= maxWaitTime);
         }
     }
 }

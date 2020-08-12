@@ -135,7 +135,6 @@
 
                 await migrator.MigrateEndpoints().ConfigureAwait(false);
 
-
                 using (var session = store.OpenAsyncSession())
                 {
                     var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
