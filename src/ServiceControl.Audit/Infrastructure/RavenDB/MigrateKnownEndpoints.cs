@@ -69,6 +69,8 @@
                         {
                             bulkInsert.Store(endpoint);
                         }
+
+                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
                     }
                 }
             } while (true);
