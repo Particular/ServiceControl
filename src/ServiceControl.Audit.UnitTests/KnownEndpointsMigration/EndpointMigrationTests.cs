@@ -172,6 +172,10 @@
                 store.WaitForIndexing();
 
                 await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints().ConfigureAwait(false);
 
                 using (var session = store.OpenAsyncSession())
                 {

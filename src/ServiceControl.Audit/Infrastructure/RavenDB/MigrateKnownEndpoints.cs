@@ -27,6 +27,7 @@
             var knownEndpointsIndex = await store.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
             if (knownEndpointsIndex == null)
             {
+                // Index has already been deleted, no need to migrate
                 return;
             }
 
@@ -34,6 +35,8 @@
             var indexStats = dbStatistics.Indexes.First(index => index.Name == knownEndpointsIndex.Name);
             if (indexStats.Priority == IndexingPriority.Disabled)
             {
+                // This should only happen the second time the migration is attempted.
+                // The index is disabled so the data should have been migrated. We can now delete the index.
                 await store.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name).ConfigureAwait(false);
                 return;
             }
@@ -80,6 +83,7 @@
                 }
             } while (true);
 
+            // Disable the index so it can be safely deleted in the next migration run
             await store.AsyncDatabaseCommands.SetIndexPriorityAsync(knownEndpointsIndex.Name, IndexingPriority.Disabled).ConfigureAwait(false);
         }
     }
