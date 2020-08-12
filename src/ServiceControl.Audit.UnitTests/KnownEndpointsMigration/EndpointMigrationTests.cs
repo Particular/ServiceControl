@@ -42,8 +42,7 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints();
-                migrator.Store = store;
+                var migrator = new MigrateKnownEndpoints(store);
 
                 await migrator.MigrateEndpoints().ConfigureAwait(false);
 
@@ -82,8 +81,7 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints();
-                migrator.Store = store;
+                var migrator = new MigrateKnownEndpoints(store);
 
                 await migrator.MigrateEndpoints().ConfigureAwait(false);
                 await migrator.MigrateEndpoints().ConfigureAwait(false);
@@ -122,8 +120,7 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints();
-                migrator.Store = store;
+                var migrator = new MigrateKnownEndpoints(store);
 
                 await migrator.MigrateEndpoints().ConfigureAwait(false);
 
@@ -167,8 +164,7 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints();
-                migrator.Store = store;
+                var migrator = new MigrateKnownEndpoints(store);
 
                 await migrator.MigrateEndpoints().ConfigureAwait(false);
 
@@ -217,8 +213,7 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints();
-                migrator.Store = store;
+                var migrator = new MigrateKnownEndpoints(store);
 
                 await migrator.MigrateEndpoints(pageSize: 1).ConfigureAwait(false);
 

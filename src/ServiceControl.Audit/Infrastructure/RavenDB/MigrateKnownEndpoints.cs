@@ -10,7 +10,12 @@
 
     class MigrateKnownEndpoints : INeedToInstallSomething
     {
-        public IDocumentStore Store { get; set; }
+        IDocumentStore store;
+
+        public MigrateKnownEndpoints(IDocumentStore store)
+        {
+            this.store = store;
+        }
 
         public Task Install(string identity)
         {
@@ -19,24 +24,24 @@
 
         internal async Task MigrateEndpoints(int pageSize = 1024)
         {
-            var knownEndpointsIndex = await Store.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
+            var knownEndpointsIndex = await store.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
             if (knownEndpointsIndex == null)
             {
                 return;
             }
 
-            var dbStatistics = await Store.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
+            var dbStatistics = await store.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
             var indexStats = dbStatistics.Indexes.First(index => index.Name == knownEndpointsIndex.Name);
             if (indexStats.Priority == IndexingPriority.Disabled)
             {
-                await Store.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name).ConfigureAwait(false);
+                await store.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name).ConfigureAwait(false);
                 return;
             }
 
             int previouslyDone = 0;
             do
             {
-                using (var session = Store.OpenAsyncSession())
+                using (var session = store.OpenAsyncSession())
                 {
                     var endpointsFromIndex = await session.Query<dynamic>(knownEndpointsIndex.Name, true)
                         .Skip(previouslyDone)
@@ -60,7 +65,7 @@
                         LastSeen = DateTime.UtcNow // Set the imported date to be now since we have no better guess
                     });
 
-                    using (var bulkInsert = Store.BulkInsert(options: new BulkInsertOptions
+                    using (var bulkInsert = store.BulkInsert(options: new BulkInsertOptions
                     {
                         OverwriteExisting = true
                     }))
@@ -75,7 +80,7 @@
                 }
             } while (true);
 
-            await Store.AsyncDatabaseCommands.SetIndexPriorityAsync(knownEndpointsIndex.Name, IndexingPriority.Disabled).ConfigureAwait(false);
+            await store.AsyncDatabaseCommands.SetIndexPriorityAsync(knownEndpointsIndex.Name, IndexingPriority.Disabled).ConfigureAwait(false);
         }
     }
 }

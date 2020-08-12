@@ -8,6 +8,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Raw;
     using Raven.Client;
     using Raven.Client.Embedded;
+    using ServiceControl.Audit.Infrastructure.RavenDB;
     using Settings;
     using Transports;
 
@@ -72,6 +73,7 @@ namespace ServiceControl.Audit.Infrastructure
             var documentStore = new EmbeddableDocumentStore();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
+            containerBuilder.RegisterType<MigrateKnownEndpoints>();
 
             using (documentStore)
             using (var container = containerBuilder.Build())
