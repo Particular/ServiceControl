@@ -17,7 +17,7 @@
             return MigrateEndpoints();
         }
 
-        internal async Task MigrateEndpoints()
+        internal async Task MigrateEndpoints(int pageSize = 1024)
         {
             var knownEndpointsIndex = await Store.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
             if (knownEndpointsIndex == null)
@@ -34,7 +34,7 @@
                 {
                     var endpointsFromIndex = await session.Query<dynamic>(knownEndpointsIndex.Name, true)
                         .Skip(previouslyDone)
-                        .Take(1024)
+                        .Take(pageSize)
                         .ToListAsync()
                         .ConfigureAwait(false);
 
