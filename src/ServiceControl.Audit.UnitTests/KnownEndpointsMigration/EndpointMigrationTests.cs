@@ -97,6 +97,57 @@
         }
 
         [Test]
+        public async Task Should_migrate_idempotently()
+        {
+            Guid sendHostId = Guid.NewGuid();
+            Guid receiverHostId = Guid.NewGuid();
+
+            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            {
+                store.ExecuteIndex(new EndpointsIndex());
+
+                using (var session = store.OpenAsyncSession())
+                {
+                    await session.StoreAsync(new ProcessedMessage
+                    {
+                        Id = "1",
+                        ProcessedAt = DateTime.Now,
+                        UniqueMessageId = "xyz",
+                        MessageMetadata = new System.Collections.Generic.Dictionary<string, object>
+                        {
+                            { "SendingEndpoint", new EndpointDetails { Host = "SendHost", HostId = sendHostId, Name = "SendHostName" } },
+                            { "ReceivingEndpoint", new EndpointDetails { Host = "ReceivingHost", HostId = receiverHostId, Name = "ReceivingHostName" } },
+                        }
+                    });
+
+                    await session.SaveChangesAsync();
+                }
+
+                store.WaitForIndexing();
+
+                var migrator = new MigrateKnownEndpoints();
+                migrator.Store = store;
+
+                await migrator.MigrateEndpoints().ConfigureAwait(false);
+
+                store.ExecuteIndex(new EndpointsIndex());
+                store.WaitForIndexing();
+
+                await migrator.MigrateEndpoints().ConfigureAwait(false);
+
+
+                using (var session = store.OpenAsyncSession())
+                {
+                    var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
+                    var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId)).ConfigureAwait(false);
+
+                    Assert.NotNull(loadedReceiverEndpoint);
+                    Assert.NotNull(loadedSenderEndpoint);
+                }
+            }
+        }
+
+        [Test]
         public async Task Should_page_endpoints_migration()
         {
             Guid sendHostId = Guid.NewGuid();
