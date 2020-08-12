@@ -25,6 +25,14 @@
                 return;
             }
 
+            var dbStatistics = await Store.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
+            var indexStats = dbStatistics.Indexes.First(index => index.Name == knownEndpointsIndex.Name);
+            if (indexStats.Priority == IndexingPriority.Disabled)
+            {
+                await Store.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name).ConfigureAwait(false);
+                return;
+            }
+
             int previouslyDone = 0;
             do
             {
@@ -65,7 +73,7 @@
                 }
             } while (true);
 
-            await Store.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name).ConfigureAwait(false);
+            await Store.AsyncDatabaseCommands.SetIndexPriorityAsync(knownEndpointsIndex.Name, IndexingPriority.Disabled).ConfigureAwait(false);
         }
     }
 }
