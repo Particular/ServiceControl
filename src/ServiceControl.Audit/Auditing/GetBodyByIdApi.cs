@@ -46,6 +46,7 @@
                 content.Headers.ContentLength = result.BodySize;
                 response.Headers.ETag = new EntityTagHeaderValue($"\"{result.Etag}\"");
                 response.Content = content;
+                return response;
             }
 
             return request.CreateResponse(HttpStatusCode.NotFound);
@@ -70,7 +71,12 @@
                 {
                     return request.CreateResponse(HttpStatusCode.NoContent);
                 }
-                    
+
+                if (message.Body == null)
+                {
+                    return request.CreateResponse(HttpStatusCode.NotFound);
+                }
+
                 var response = request.CreateResponse(HttpStatusCode.OK);
                 var content = new StringContent(message.Body);
                 content.Headers.ContentType = MediaTypeHeaderValue.Parse(message.ContentType);
