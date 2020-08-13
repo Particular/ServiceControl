@@ -96,7 +96,8 @@
 
         async Task Loop()
         {
-            var contexts = new List<MessageContext>(settings.MaximumConcurrencyLevel);
+            var firstSweep = new List<MessageContext>(settings.MaximumConcurrencyLevel);
+            var secondSweep = new List<MessageContext>(settings.MaximumConcurrencyLevel);
 
             while (await channel.Reader.WaitToReadAsync().ConfigureAwait(false))
             {
@@ -106,14 +107,33 @@
                     // as long as there is something to read this will fetch up to MaximumConcurrency items
                     while (channel.Reader.TryRead(out var context))
                     {
-                        contexts.Add(context);
+                        firstSweep.Add(context);
                     }
 
-                    await ingestor.Ingest(contexts).ConfigureAwait(false);
+                    // we do this to interleave the bulk ingestion. This primarily is powerful with transport that
+                    // offer high throughput. What we have seen with transports with high throughput is that the
+                    // ingestion dances around have the concurrency and due to that the other half that would like to be
+                    // ingested would have to wait until the first half is completed. By interleaving we achieve higher
+                    // throughput
+                    var firstIngestion = ingestor.Ingest(firstSweep);
+
+                    // as long as there is something to read this will fetch up to MaximumConcurrency items
+                    var secondReadSuccessful = false;
+                    while (channel.Reader.TryRead(out var context))
+                    {
+                        secondReadSuccessful = true;
+                        secondSweep.Add(context);
+                    }
+
+                    var secondIngestion = secondReadSuccessful ?
+                        ingestor.Ingest(secondSweep) : Task.CompletedTask;
+
+                    await Task.WhenAll(firstIngestion, secondIngestion).ConfigureAwait(false);
                 }
                 finally
                 {
-                    contexts.Clear();
+                    firstSweep.Clear();
+                    secondSweep.Clear();
                 }
             }
             // will fall out here when writer is completed
