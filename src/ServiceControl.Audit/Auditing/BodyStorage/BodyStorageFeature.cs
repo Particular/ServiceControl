@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
     using System.Collections.Generic;
-    using System.IO;
     using System.Text;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
+    using Microsoft.IO;
     using NServiceBus;
     using NServiceBus.Features;
     using RavenAttachments;
@@ -91,7 +91,7 @@
 
             async Task<string> StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
             {
-                using (var bodyStream = new MemoryStream(body))
+                using (var bodyStream = memoryStreamManager.GetStream(body))
                 {
                     var bodyUrl = await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
                         .ConfigureAwait(false);
@@ -104,6 +104,8 @@
 
             // large object heap starts above 85000 bytes and not above 85 KB!
             internal const int LargeObjectHeapThreshold = 85 * 1000;
+
+            static readonly RecyclableMemoryStreamManager memoryStreamManager = new RecyclableMemoryStreamManager();
         }
     }
 }

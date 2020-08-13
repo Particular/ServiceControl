@@ -6,7 +6,6 @@ namespace ServiceControl.Audit.Monitoring
     using System.Threading.Tasks;
     using Auditing.MessagesView;
     using Infrastructure;
-    using Infrastructure.Extensions;
     using Raven.Client;
 
     class GetKnownEndpointsApi : ApiBaseNoInput<IList<KnownEndpointsView>>
@@ -19,21 +18,24 @@ namespace ServiceControl.Audit.Monitoring
         {
             using (var session = Store.OpenAsyncSession())
             {
-                var endpoints = await session.Query<EndpointDetails, EndpointsIndex>()
-                    .Statistics(out var stats)
-                    .ToListAsync()
+                var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024)
                     .ConfigureAwait(false);
 
                 var knownEndpoints = endpoints
                     .Select(x => new KnownEndpointsView
                     {
                         Id = DeterministicGuid.MakeId(x.Name, x.HostId.ToString()),
-                        EndpointDetails = x,
+                        EndpointDetails = new EndpointDetails
+                        {
+                            Host = x.Host,
+                            HostId = x.HostId,
+                            Name = x.Name
+                        },
                         HostDisplayName = x.Host
                     })
                     .ToList();
 
-                return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, stats.ToQueryStatsInfo());
+                return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
             }
         }
     }

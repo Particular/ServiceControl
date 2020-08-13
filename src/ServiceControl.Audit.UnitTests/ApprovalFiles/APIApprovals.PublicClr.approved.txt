@@ -149,6 +149,10 @@ namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
         public void Dispose() { }
         public void Execute(Raven.Database.DocumentDatabase database) { }
     }
+    public class ExpiryKnownEndpointsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Monitoring.KnownEndpoint>
+    {
+        public ExpiryKnownEndpointsIndex() { }
+    }
     public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage>
     {
         public ExpiryProcessedMessageIndex() { }
@@ -227,6 +231,16 @@ namespace ServiceControl.Audit.Monitoring
         public EndpointDetails() { }
         public string Host { get; set; }
         public System.Guid HostId { get; set; }
+        public string Name { get; set; }
+    }
+    public class KnownEndpoint
+    {
+        public const string CollectionName = "KnownEndpoints";
+        public KnownEndpoint() { }
+        public string Host { get; set; }
+        public System.Guid HostId { get; set; }
+        public string Id { get; set; }
+        public System.DateTime LastSeen { get; set; }
         public string Name { get; set; }
     }
     public class KnownEndpointsController : System.Web.Http.ApiController

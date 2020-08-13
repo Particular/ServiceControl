@@ -17,22 +17,33 @@
             this.settings = settings;
         }
 
-        public async Task Ingest(MessageContext message)
+        public async Task Ingest(List<MessageContext> contexts)
         {
-            if (log.IsDebugEnabled)
+            var stored = await auditPersister.Persist(contexts).ConfigureAwait(false);
+
+            try
             {
-                log.DebugFormat("Ingesting audit message {0}", message.MessageId);
+                if (settings.ForwardAuditMessages)
+                {
+                    await Forward(stored, settings.AuditLogQueue)
+                        .ConfigureAwait(false);
+                }
+
+                foreach (var context in stored)
+                {
+                    context.GetTaskCompletionSource().TrySetResult(true);
+                }
             }
-
-            await auditPersister.Persist(message).ConfigureAwait(false);
-
-            if (settings.ForwardAuditMessages)
+            catch (Exception e)
             {
-                await Forward(message, settings.AuditLogQueue)
-                    .ConfigureAwait(false);
+                // in case forwarding throws
+                foreach (var context in stored)
+                {
+                    context.GetTaskCompletionSource().TrySetException(e);
+                }
             }
         }
-        
+
         public async Task Initialize(IDispatchMessages dispatcher)
         {
             this.dispatcher = dispatcher;
@@ -42,25 +53,33 @@
             }
         }
 
-        Task Forward(MessageContext messageContext, string forwardingAddress)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress)
         {
-            var outgoingMessage = new OutgoingMessage(
-                messageContext.MessageId,
-                messageContext.Headers,
-                messageContext.Body);
+            var transportOperations = new TransportOperation[messageContexts.Count];
+            var index = 0;
+            MessageContext anyContext = null;
+            foreach (var messageContext in messageContexts)
+            {
+                anyContext = messageContext;
+                var outgoingMessage = new OutgoingMessage(
+                    messageContext.MessageId,
+                    messageContext.Headers,
+                    messageContext.Body);
 
-            // Forwarded messages should last as long as possible
-            outgoingMessage.Headers.Remove(NServiceBus.Headers.TimeToBeReceived);
+                // Forwarded messages should last as long as possible
+                outgoingMessage.Headers.Remove(NServiceBus.Headers.TimeToBeReceived);
 
-            var transportOperations = new TransportOperations(
-                new TransportOperation(outgoingMessage, new UnicastAddressTag(forwardingAddress))
-            );
+                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(forwardingAddress));
+                index++;
+            }
 
-            return dispatcher.Dispatch(
-                transportOperations,
-                messageContext.TransportTransaction,
-                messageContext.Extensions
-            );
+            return anyContext != null
+                ? dispatcher.Dispatch(
+                    new TransportOperations(transportOperations),
+                    anyContext.TransportTransaction,
+                    anyContext.Extensions
+                )
+                : Task.CompletedTask;
         }
 
         async Task VerifyCanReachForwardingAddress()
