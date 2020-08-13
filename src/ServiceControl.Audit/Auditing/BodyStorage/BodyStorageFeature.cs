@@ -35,7 +35,7 @@
                 this.settings = settings;
             }
 
-            public async Task StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public async ValueTask StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.Add("ContentLength", bodySize);
@@ -65,7 +65,7 @@
                 return contentType;
             }
 
-            async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
+            async ValueTask<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
                 var bodyId = headers.MessageId();
                 var storedInBodyStorage = false;
