@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
 {
     using NServiceBus.Installation;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceControl.Audit.Monitoring;
@@ -27,6 +28,7 @@
             var knownEndpointsIndex = await store.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
             if (knownEndpointsIndex == null)
             {
+                Logger.Debug("EndpointsIndex migration already completed.");
                 // Index has already been deleted, no need to migrate
                 return;
             }
@@ -35,6 +37,8 @@
             var indexStats = dbStatistics.Indexes.First(index => index.Name == knownEndpointsIndex.Name);
             if (indexStats.Priority == IndexingPriority.Disabled)
             {
+                Logger.Debug("EndpointsIndex already disabled. Deleting EndpointsIndex.");
+
                 // This should only happen the second time the migration is attempted.
                 // The index is disabled so the data should have been migrated. We can now delete the index.
                 await store.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name).ConfigureAwait(false);
@@ -54,6 +58,7 @@
 
                     if (endpointsFromIndex.Count == 0)
                     {
+                        Logger.Debug("No more records from EndpointsIndex to migrate.");
                         break;
                     }
                      
@@ -78,13 +83,17 @@
                             bulkInsert.Store(endpoint);
                         }
 
+                        Logger.Debug($"Migrating {endpointsFromIndex.Count} entries.");
                         await bulkInsert.DisposeAsync().ConfigureAwait(false);
                     }
                 }
             } while (true);
 
+            Logger.Debug("EndpointsIndex entries migrated. Disabling EndpointsIndex.");
             // Disable the index so it can be safely deleted in the next migration run
             await store.AsyncDatabaseCommands.SetIndexPriorityAsync(knownEndpointsIndex.Name, IndexingPriority.Disabled).ConfigureAwait(false);
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(MigrateKnownEndpoints));
     }
 }
