@@ -94,7 +94,7 @@
 
                         if (Logger.IsDebugEnabled)
                         {
-                            Logger.Debug($"Migrating {endpointsFromIndex.Count} endtries.");
+                            Logger.Debug($"Migrating {endpointsFromIndex.Count} entries.");
                         }
                         await bulkInsert.DisposeAsync().ConfigureAwait(false);
                     }
