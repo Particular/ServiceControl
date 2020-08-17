@@ -36,7 +36,7 @@
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 44445);
-            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
+            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 32);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             DbPath = GetDbPath();
@@ -166,7 +166,7 @@
         public string ServiceControlQueueAddress { get; set; }
 
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
-        
+
         public TransportCustomization LoadTransportCustomization()
         {
             try
@@ -179,7 +179,7 @@
                 throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
             }
         }
-        
+
         TimeSpan GetTimeToRestartAuditIngestionAfterFailure()
         {
             string message;
