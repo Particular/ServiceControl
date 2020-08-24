@@ -74,7 +74,10 @@
         {
             // precaution in case we would ever use the subscription manager
             transportSettings.Set("NServiceBus.AmazonSQS.DisableSubscribeBatchingOnStart", true);
+            // will be removed in next major
+#pragma warning disable 618
             transport.EnableMessageDrivenPubSubCompatibilityMode();
+#pragma warning restore 618
         }
 
         static void ConfigureTransport(TransportExtensions<SqsTransport> transport, TransportSettings transportSettings)
