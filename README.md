@@ -6,9 +6,7 @@ ServiceControl is the monitoring brain in the Particular Service Platform. It co
 Where to Download
 =====================
 
-The easiest way to download and install ServiceControl is through the Particular Service Platform Installer, available at https://particular.net/start-platform-download.
-
-If you would like to download ServiceControl directly you can visit https://particular.net/downloads.
+The current version of ServiceControl can be downloaded from https://particular.net/downloads.
 
 User Documentation
 =====================
