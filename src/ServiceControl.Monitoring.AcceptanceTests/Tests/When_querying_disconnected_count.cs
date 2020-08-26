@@ -80,8 +80,8 @@
                 .Run();
 
             Assert.AreEqual(0, context.AfterAllStartedCount, "Disconnected count after all endpoints started");
-            Assert.AreEqual(1, context.AfterFirstStoppedCount, "Disconnected count after first endpoint stopped");
-            Assert.AreEqual(2, context.AfterSecondStoppedCount, "Disconnected count after both endpoints stopped");
+            Assert.AreEqual(0, context.AfterFirstStoppedCount, "Disconnected count after first endpoint stopped");
+            Assert.AreEqual(1, context.AfterSecondStoppedCount, "Disconnected count after both endpoints stopped");
         }
 
         class MonitoredEndpoint : EndpointConfigurationBuilder
