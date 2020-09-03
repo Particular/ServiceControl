@@ -87,8 +87,8 @@
 
             return new GroupDetails
             {
-                NumberOfMessagesInGroup = group.Count,
-                GroupName = group.Title ?? "Undefined"
+                NumberOfMessagesInGroup = group?.Count ?? 0,
+                GroupName = group?.Title ?? "Undefined"
             };
         }
 
