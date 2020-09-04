@@ -37,7 +37,7 @@
 
                 rawConfiguration.Settings.Set("onCriticalErrorAction", (Func<ICriticalErrorContext, Task>)OnCriticalErrorAction);
 
-                rawConfiguration.CustomErrorHandlingPolicy(new ErrorIngestionFaultPolicy(importFailuresHandler, errorQueue));
+                rawConfiguration.CustomErrorHandlingPolicy(new ErrorIngestionFaultPolicy(importFailuresHandler));
 
                 var startableRaw = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
