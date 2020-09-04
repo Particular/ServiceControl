@@ -6,12 +6,14 @@
 
     class ErrorIngestionFaultPolicy : IErrorHandlingPolicy
     {
-        public ErrorIngestionFaultPolicy(SatelliteImportFailuresHandler importFailuresHandler)
+        public ErrorIngestionFaultPolicy(SatelliteImportFailuresHandler importFailuresHandler, string errorQueue)
         {
             this.importFailuresHandler = importFailuresHandler;
+            this.errorQueue = errorQueue;
         }
 
         SatelliteImportFailuresHandler importFailuresHandler;
+        string errorQueue;
 
         public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
         {
@@ -23,7 +25,7 @@
 
             await importFailuresHandler.Handle(handlingContext.Error)
                 .ConfigureAwait(false);
-            await handlingContext.MoveToErrorQueue(handlingContext.FailedQueue, false)
+            await handlingContext.MoveToErrorQueue(errorQueue, false)
                 .ConfigureAwait(false);
             return ErrorHandleResult.Handled;
         }
