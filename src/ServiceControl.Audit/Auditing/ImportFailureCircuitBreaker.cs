@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
 
     class ImportFailureCircuitBreaker : IDisposable
     {
@@ -23,12 +24,12 @@
             Interlocked.Exchange(ref failureCount, 0);
         }
 
-        public async Task Increment(Exception lastException)
+        public void Increment(Exception lastException)
         {
             var result = Interlocked.Increment(ref failureCount);
             if (result > 50)
             {
-                await onCriticalError("Failed to import too many times", lastException).ConfigureAwait(false);
+                Task.Run(() => onCriticalError("Failed to import too many times", lastException)).Ignore();
             }
         }
 

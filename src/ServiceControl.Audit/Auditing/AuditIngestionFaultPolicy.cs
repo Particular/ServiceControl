@@ -64,7 +64,7 @@
             }
             finally
             {
-                await failureCircuitBreaker.Increment(exception).ConfigureAwait(false);
+                failureCircuitBreaker.Increment(exception);
             }
         }
 
