@@ -19,7 +19,7 @@
     class When_errors_with_same_uniqueid_are_imported : AcceptanceTest
     {
         [Test]
-        public async Task The_import_should_support_it()
+        public async Task The_import_should_deduplicate_on_TimeOfFailure()
         {
             var criticalErrorExecuted = false;
 
@@ -35,7 +35,7 @@
             };
 
             FailedMessage failure = null;
-            await Define<MyContext>()
+            var context = await Define<MyContext>()
                 .WithEndpoint<SourceEndpoint>()
                 .Done(async c =>
                 {
@@ -47,7 +47,7 @@
                     var result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueId}", m =>
                     {
                         Console.WriteLine("Processing attempts: " + m.ProcessingAttempts.Count);
-                        return m.ProcessingAttempts.Count == 10;
+                        return m.ProcessingAttempts.Count == 2;
                     });
                     failure = result;
                     return criticalErrorExecuted || result;
@@ -56,7 +56,10 @@
 
             Assert.IsFalse(criticalErrorExecuted);
             Assert.NotNull(failure);
-            Assert.AreEqual(10, failure.ProcessingAttempts.Count);
+
+            var attempts = failure.ProcessingAttempts;
+            Assert.AreEqual(2, attempts.Count);
+            CollectionAssert.AreEquivalent(context.FailureTimes, attempts.Select(a => a.AttemptedAt));
         }
 
         class CounterEnricher : ErrorImportEnricher
@@ -91,33 +94,41 @@
                 {
                     var messageId = Guid.NewGuid().ToString();
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();
+                    context.FailureTimes = new[]
+                    {
+                        new DateTime(2020, 09, 05, 13, 20, 00, 0, DateTimeKind.Utc), 
+                        new DateTime(2020, 09, 05, 12, 20, 00, 0, DateTimeKind.Utc), 
+                    };
 
-                    return new TransportOperations(GetMessages(context.UniqueId).ToArray());
+                    return new TransportOperations(GetMessages(context.UniqueId, context.FailureTimes).ToArray());
                 }
 
-                IEnumerable<TransportOperation> GetMessages(string uniqueId)
+                IEnumerable<TransportOperation> GetMessages(string uniqueId, DateTime[] failureTimes)
                 {
-                    for (var i = 0; i < 10; i++)
+                    for (var failureNo = 0; failureNo < failureTimes.Length; failureNo++)
                     {
-                        var messageId = Guid.NewGuid().ToString();
-                        var headers = new Dictionary<string, string>
+                        for (var i = 0; i < 5; i++)
                         {
-                            [Headers.MessageId] = messageId,
-                            ["ServiceControl.Retry.UniqueMessageId"] = uniqueId,
-                            [Headers.ProcessingEndpoint] = "Error.SourceEndpoint",
-                            ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
-                            ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
-                            ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
-                            ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                            ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
-                            ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
-                            ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
-                            ["Counter"] = i.ToString()
-                        };
+                            var messageId = Guid.NewGuid().ToString();
+                            var headers = new Dictionary<string, string>
+                            {
+                                [Headers.MessageId] = messageId,
+                                ["ServiceControl.Retry.UniqueMessageId"] = uniqueId,
+                                [Headers.ProcessingEndpoint] = "Error.SourceEndpoint",
+                                ["NServiceBus.ExceptionInfo.ExceptionType"] = typeof(Exception).FullName,
+                                ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
+                                ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
+                                ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
+                                ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                                ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
+                                ["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(failureTimes[failureNo]),
+                                ["Counter"] = i.ToString()
+                            };
 
-                        var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
+                            var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
 
-                        yield return new TransportOperation(outgoingMessage, new UnicastAddressTag("error"));
+                            yield return new TransportOperation(outgoingMessage, new UnicastAddressTag("error"));
+                        }
                     }
                 }
             }
@@ -126,6 +137,8 @@
         class MyContext : ScenarioContext
         {
             public string UniqueId { get; set; }
+
+            public DateTime[] FailureTimes { get; set; }
 
             public void OnMessage(string counter)
             {

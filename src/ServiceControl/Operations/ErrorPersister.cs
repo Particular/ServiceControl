@@ -80,11 +80,11 @@
             return failureDetails;
         }
 
-        Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
+        async Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
         {
             var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
 
-            return store.AsyncDatabaseCommands.PatchAsync(documentId,
+            await store.AsyncDatabaseCommands.PatchAsync(documentId,
                 new[]
                 {
                     new PatchRequest
@@ -92,12 +92,6 @@
                         Name = nameof(FailedMessage.Status),
                         Type = PatchCommandType.Set,
                         Value = (int)FailedMessageStatus.Unresolved
-                    },
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.ProcessingAttempts),
-                        Type = PatchCommandType.Add,
-                        Value = RavenJToken.FromObject(processingAttempt, Serializer) // Need to specify serializer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
                     },
                     new PatchRequest
                     {
@@ -122,18 +116,35 @@
                     },
                     new PatchRequest
                     {
-                        Name = nameof(FailedMessage.ProcessingAttempts),
-                        Type = PatchCommandType.Add,
-                        Value = RavenJToken.FromObject(processingAttempt, Serializer) // Need to specify serilaizer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
-                    },
-                    new PatchRequest
-                    {
                         Name = nameof(FailedMessage.FailureGroups),
                         Type = PatchCommandType.Set,
                         Value = RavenJToken.FromObject(groups)
                     }
                 }, JObjectMetadata
-            );
+            ).ConfigureAwait(false);
+
+            var attemptedAtField = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
+            var processingAttemptsField = nameof(FailedMessage.ProcessingAttempts);
+
+            var script = $@"var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{ 
+                                return a.{attemptedAtField} === attempt.{attemptedAtField};
+                            }});
+
+                            output(attempt.{attemptedAtField});
+
+                            if(duplicateIndex === -1){{
+                                this.{processingAttemptsField} = _.union(this.{processingAttemptsField}, [attempt]);
+                            }}";
+
+            var response =    await store.AsyncDatabaseCommands.PatchAsync(documentId,
+                new ScriptedPatchRequest
+                {
+                    Script = script,
+                    Values = new Dictionary<string, object>
+                    {
+                        {"attempt", RavenJToken.FromObject(processingAttempt, Serializer)}
+                    }
+                }).ConfigureAwait(false);
         }
 
         IEnrichImportedErrorMessages[] enrichers;
