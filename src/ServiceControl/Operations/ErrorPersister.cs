@@ -90,11 +90,10 @@
             var failureGroupsField = nameof(FailedMessage.FailureGroups);
             var uniqueMessageIdField = nameof(FailedMessage.UniqueMessageId);
 
-            var response = await store.AsyncDatabaseCommands.PatchAsync(documentId,
+            await store.AsyncDatabaseCommands.PatchAsync(documentId,
                 new ScriptedPatchRequest
                 {
                     Script = $@"this.{statusField} = status;
-                                this.{uniqueMessageIdField} = uniqueMessageId;
                                 this.{failureGroupsField} = failureGroups;
 
                                 var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{ 
@@ -107,7 +106,6 @@
                     Values = new Dictionary<string, object>
                     {
                         { "status", (int)FailedMessageStatus.Unresolved },
-                        { "uniqueMessageId", uniqueMessageId },
                         { "failureGroups", RavenJToken.FromObject(groups) },
                         { "attempt", RavenJToken.FromObject(processingAttempt, Serializer)}
                     }
@@ -116,12 +114,15 @@
                 {
                     Script = $@"this.{statusField} = status;
                                 this.{failureGroupsField} = failureGroups;
-                                this.{processingAttemptsField} = [attempt];",
+                                this.{processingAttemptsField} = [attempt];
+                                this.{uniqueMessageIdField} = uniqueMessageId;
+                             ",
                     Values = new Dictionary<string, object>
                     {
                         { "status", (int)FailedMessageStatus.Unresolved },
                         { "failureGroups", RavenJToken.FromObject(groups) },
                         { "attempt", RavenJToken.FromObject(processingAttempt, Serializer)},
+                        { "uniqueMessageId", uniqueMessageId }
                     }
                 },
                 JObjectMetadata).ConfigureAwait(false);
