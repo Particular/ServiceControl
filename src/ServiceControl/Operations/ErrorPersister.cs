@@ -84,67 +84,47 @@
         {
             var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
 
-            await store.AsyncDatabaseCommands.PatchAsync(documentId,
-                new[]
-                {
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.Status),
-                        Type = PatchCommandType.Set,
-                        Value = (int)FailedMessageStatus.Unresolved
-                    },
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.FailureGroups),
-                        Type = PatchCommandType.Set,
-                        Value = RavenJToken.FromObject(groups)
-                    }
-                },
-                new[]
-                {
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.UniqueMessageId),
-                        Type = PatchCommandType.Set,
-                        Value = uniqueMessageId
-                    },
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.Status),
-                        Type = PatchCommandType.Set,
-                        Value = (int)FailedMessageStatus.Unresolved
-                    },
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.FailureGroups),
-                        Type = PatchCommandType.Set,
-                        Value = RavenJToken.FromObject(groups)
-                    }
-                }, JObjectMetadata
-            ).ConfigureAwait(false);
-
             var attemptedAtField = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
             var processingAttemptsField = nameof(FailedMessage.ProcessingAttempts);
+            var statusField = nameof(FailedMessage.Status);
+            var failureGroupsField = nameof(FailedMessage.FailureGroups);
+            var uniqueMessageIdField = nameof(FailedMessage.UniqueMessageId);
 
-            var script = $@"var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{ 
-                                return a.{attemptedAtField} === attempt.{attemptedAtField};
-                            }});
-
-                            output(attempt.{attemptedAtField});
-
-                            if(duplicateIndex === -1){{
-                                this.{processingAttemptsField} = _.union(this.{processingAttemptsField}, [attempt]);
-                            }}";
-
-            var response =    await store.AsyncDatabaseCommands.PatchAsync(documentId,
+            var response = await store.AsyncDatabaseCommands.PatchAsync(documentId,
                 new ScriptedPatchRequest
                 {
-                    Script = script,
+                    Script = $@"this.{statusField} = status;
+                                this.{uniqueMessageIdField} = uniqueMessageId;
+                                this.{failureGroupsField} = failureGroups;
+
+                                var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{ 
+                                    return a.{attemptedAtField} === attempt.{attemptedAtField};
+                                }});
+
+                                if(duplicateIndex === -1){{
+                                    this.{processingAttemptsField} = _.union(this.{processingAttemptsField}, [attempt]);
+                                }}",
                     Values = new Dictionary<string, object>
                     {
-                        {"attempt", RavenJToken.FromObject(processingAttempt, Serializer)}
+                        { "status", (int)FailedMessageStatus.Unresolved },
+                        { "uniqueMessageId", uniqueMessageId },
+                        { "failureGroups", RavenJToken.FromObject(groups) },
+                        { "attempt", RavenJToken.FromObject(processingAttempt, Serializer)}
                     }
-                }).ConfigureAwait(false);
+                }, 
+                new ScriptedPatchRequest
+                {
+                    Script = $@"this.{statusField} = status;
+                                this.{failureGroupsField} = failureGroups;
+                                this.{processingAttemptsField} = [attempt];",
+                    Values = new Dictionary<string, object>
+                    {
+                        { "status", (int)FailedMessageStatus.Unresolved },
+                        { "failureGroups", RavenJToken.FromObject(groups) },
+                        { "attempt", RavenJToken.FromObject(processingAttempt, Serializer)},
+                    }
+                },
+                JObjectMetadata).ConfigureAwait(false);
         }
 
         IEnrichImportedErrorMessages[] enrichers;
