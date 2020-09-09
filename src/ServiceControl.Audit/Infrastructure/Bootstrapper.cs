@@ -11,6 +11,7 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Reflection;
     using System.Threading.Tasks;
     using System.Web.Http.Controllers;
+    using Auditing;
     using Auditing.MessagesView;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
@@ -87,6 +88,7 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
+            containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
 
             RegisterInternalWebApiControllers(containerBuilder);
 

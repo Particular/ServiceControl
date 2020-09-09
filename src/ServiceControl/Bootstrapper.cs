@@ -19,6 +19,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Monitoring;
+    using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
@@ -98,6 +99,7 @@ namespace Particular.ServiceControl
 
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
             containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
+            containerBuilder.RegisterType<ErrorIngestionComponent>().SingleInstance();
 
             RegisterInternalWebApiControllers(containerBuilder);
 
