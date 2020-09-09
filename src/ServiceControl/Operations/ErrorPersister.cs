@@ -90,6 +90,9 @@
             var failureGroupsField = nameof(FailedMessage.FailureGroups);
             var uniqueMessageIdField = nameof(FailedMessage.UniqueMessageId);
 
+            var serializedGroups = RavenJToken.FromObject(groups);
+            var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
+
             await store.AsyncDatabaseCommands.PatchAsync(documentId,
                 new ScriptedPatchRequest
                 {
@@ -106,8 +109,8 @@
                     Values = new Dictionary<string, object>
                     {
                         { "status", (int)FailedMessageStatus.Unresolved },
-                        { "failureGroups", RavenJToken.FromObject(groups) },
-                        { "attempt", RavenJToken.FromObject(processingAttempt, Serializer)}
+                        { "failureGroups", serializedGroups },
+                        { "attempt", serializedAttempt}
                     }
                 }, 
                 new ScriptedPatchRequest
@@ -120,8 +123,8 @@
                     Values = new Dictionary<string, object>
                     {
                         { "status", (int)FailedMessageStatus.Unresolved },
-                        { "failureGroups", RavenJToken.FromObject(groups) },
-                        { "attempt", RavenJToken.FromObject(processingAttempt, Serializer)},
+                        { "failureGroups", serializedGroups },
+                        { "attempt", serializedAttempt},
                         { "uniqueMessageId", uniqueMessageId }
                     }
                 },
