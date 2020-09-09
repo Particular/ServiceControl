@@ -119,7 +119,7 @@
             // will fall out here when writer is completed
         }
 
-        public Task ImportFailedErrors(CancellationToken cancellationToken)
+        public Task ImportFailedAudits(CancellationToken cancellationToken)
         {
             return failedImporter.Run(cancellationToken);
         }

@@ -88,9 +88,9 @@ namespace ServiceControl.Audit.Infrastructure
 
             builder.Update(container.ComponentRegistry);
 
-            var importFailedAudits = container.Resolve<ImportFailedAudits>();
+            var auditIngestion = container.Resolve<AuditIngestionComponent>();
 
-            return new BusInstance(endpointInstance, importFailedAudits);
+            return new BusInstance(endpointInstance, auditIngestion);
         }
 
         static bool IsExternalContract(Type t)

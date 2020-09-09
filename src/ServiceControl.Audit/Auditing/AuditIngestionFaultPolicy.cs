@@ -38,8 +38,6 @@
 
             await StoreFailedMessageDocument(handlingContext.Error)
                 .ConfigureAwait(false);
-            await handlingContext.MoveToErrorQueue(handlingContext.FailedQueue, false)
-                .ConfigureAwait(false);
             return ErrorHandleResult.Handled;
         }
 
@@ -64,7 +62,7 @@
             }
             finally
             {
-                await failureCircuitBreaker.Increment(exception).ConfigureAwait(false);
+                failureCircuitBreaker.Increment(exception);
             }
         }
 
