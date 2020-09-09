@@ -80,7 +80,7 @@
             return failureDetails;
         }
 
-        async Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
+        Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
         {
             var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
 
@@ -93,7 +93,7 @@
             var serializedGroups = RavenJToken.FromObject(groups);
             var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
 
-            await store.AsyncDatabaseCommands.PatchAsync(documentId,
+            return store.AsyncDatabaseCommands.PatchAsync(documentId,
                 new ScriptedPatchRequest
                 {
                     Script = $@"this.{statusField} = status;
@@ -128,7 +128,7 @@
                         { "uniqueMessageId", uniqueMessageId }
                     }
                 },
-                JObjectMetadata).ConfigureAwait(false);
+                JObjectMetadata);
         }
 
         IEnrichImportedErrorMessages[] enrichers;
