@@ -84,56 +84,51 @@
         {
             var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
 
+            var attemptedAtField = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
+            var processingAttemptsField = nameof(FailedMessage.ProcessingAttempts);
+            var statusField = nameof(FailedMessage.Status);
+            var failureGroupsField = nameof(FailedMessage.FailureGroups);
+            var uniqueMessageIdField = nameof(FailedMessage.UniqueMessageId);
+
+            var serializedGroups = RavenJToken.FromObject(groups);
+            var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
+
             return store.AsyncDatabaseCommands.PatchAsync(documentId,
-                new[]
+                new ScriptedPatchRequest
                 {
-                    new PatchRequest
+                    Script = $@"this.{statusField} = status;
+                                this.{failureGroupsField} = failureGroups;
+
+                                var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{ 
+                                    return a.{attemptedAtField} === attempt.{attemptedAtField};
+                                }});
+
+                                if(duplicateIndex === -1){{
+                                    this.{processingAttemptsField} = _.union(this.{processingAttemptsField}, [attempt]);
+                                }}",
+                    Values = new Dictionary<string, object>
                     {
-                        Name = nameof(FailedMessage.Status),
-                        Type = PatchCommandType.Set,
-                        Value = (int)FailedMessageStatus.Unresolved
-                    },
-                    new PatchRequest
+                        { "status", (int)FailedMessageStatus.Unresolved },
+                        { "failureGroups", serializedGroups },
+                        { "attempt", serializedAttempt}
+                    }
+                }, 
+                new ScriptedPatchRequest
+                {
+                    Script = $@"this.{statusField} = status;
+                                this.{failureGroupsField} = failureGroups;
+                                this.{processingAttemptsField} = [attempt];
+                                this.{uniqueMessageIdField} = uniqueMessageId;
+                             ",
+                    Values = new Dictionary<string, object>
                     {
-                        Name = nameof(FailedMessage.ProcessingAttempts),
-                        Type = PatchCommandType.Add,
-                        Value = RavenJToken.FromObject(processingAttempt, Serializer) // Need to specify serializer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
-                    },
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.FailureGroups),
-                        Type = PatchCommandType.Set,
-                        Value = RavenJToken.FromObject(groups)
+                        { "status", (int)FailedMessageStatus.Unresolved },
+                        { "failureGroups", serializedGroups },
+                        { "attempt", serializedAttempt},
+                        { "uniqueMessageId", uniqueMessageId }
                     }
                 },
-                new[]
-                {
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.UniqueMessageId),
-                        Type = PatchCommandType.Set,
-                        Value = uniqueMessageId
-                    },
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.Status),
-                        Type = PatchCommandType.Set,
-                        Value = (int)FailedMessageStatus.Unresolved
-                    },
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.ProcessingAttempts),
-                        Type = PatchCommandType.Add,
-                        Value = RavenJToken.FromObject(processingAttempt, Serializer) // Need to specify serilaizer here because otherwise the $type for EndpointDetails is missing and this causes EventDispatcher to blow up!
-                    },
-                    new PatchRequest
-                    {
-                        Name = nameof(FailedMessage.FailureGroups),
-                        Type = PatchCommandType.Set,
-                        Value = RavenJToken.FromObject(groups)
-                    }
-                }, JObjectMetadata
-            );
+                JObjectMetadata);
         }
 
         IEnrichImportedErrorMessages[] enrichers;

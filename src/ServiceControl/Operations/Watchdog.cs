@@ -38,10 +38,12 @@
         {
             watchdog = Task.Run(async () =>
             {
+                log.Debug($"Starting watching process {processName}");
                 while (!shutdownTokenSource.IsCancellationRequested)
                 {
                     try
                     {
+                        log.Debug($"Ensuring {processName} is running");
                         await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
                         clearFailure();
                     }
@@ -66,6 +68,7 @@
                 }
                 try
                 {
+                    log.Debug($"Stopping watching process {processName}");
                     //We don't pass the shutdown token here because it has already been cancelled and we want to ensure we stop the ingestion.
                     await ensureStopped(CancellationToken.None).ConfigureAwait(false);
                 }

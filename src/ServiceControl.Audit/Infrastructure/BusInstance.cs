@@ -6,13 +6,13 @@ namespace ServiceControl.Audit.Infrastructure
 
     class BusInstance
     {
-        public BusInstance(IEndpointInstance bus, ImportFailedAudits importFailedAudits)
+        public BusInstance(IEndpointInstance bus, AuditIngestionComponent auditIngestion)
         {
-            ImportFailedAudits = importFailedAudits;
+            AuditIngestion = auditIngestion;
             this.bus = bus;
         }
 
-        public ImportFailedAudits ImportFailedAudits { get; }
+        public AuditIngestionComponent AuditIngestion { get; }
 
         public Task Stop()
         {
