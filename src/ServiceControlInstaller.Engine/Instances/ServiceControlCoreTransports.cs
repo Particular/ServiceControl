@@ -30,7 +30,7 @@
                 Name = TransportNames.AzureServiceBus,
                 TypeName = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
                 ZipName = "NetStandardAzureServiceBus",
-                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
+                SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>;TopicName=<TopicBundleName(Default=bundle-1)>",
                 Matches = name => name.Equals(TransportNames.AzureServiceBus, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", StringComparison.OrdinalIgnoreCase)
