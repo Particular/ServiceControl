@@ -4,15 +4,21 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
     using BodyStorage;
+    using EndpointPlugin.Messages.SagaState;
     using Infrastructure;
     using Monitoring;
+    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using SagaAudit;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class AuditPersister
     {
@@ -48,7 +54,7 @@
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
-                    inserts.Add(ProcessedMessage(context));
+                    inserts.Add(ProcessMessage(context));
                 }
 
                 await Task.WhenAll(inserts).ConfigureAwait(false);
@@ -57,23 +63,26 @@
 
                 foreach (var context in contexts)
                 {
-                    if (!context.Extensions.TryGet(out ProcessedMessage processedMessage))
+                    if (context.Extensions.TryGet(out ProcessedMessage processedMessage)) //Message was an audit message
                     {
-                        continue;
-                    }
+                        if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
+                        {
+                            RecordKnownEndpoints(sendingEndpoint, knownEndpoints, processedMessage);
+                        }
 
-                    if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
+                        if (context.Extensions.TryGet("ReceivingEndpoint", out EndpointDetails receivingEndpoint))
+                        {
+                            RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
+                        }
+
+                        bulkInsert.Store(processedMessage);
+                        storedContexts.Add(context);
+                    }
+                    else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
-                        RecordKnownEndpoints(sendingEndpoint, knownEndpoints, processedMessage);
+                        bulkInsert.Store(sagaSnapshot);
+                        storedContexts.Add(context);
                     }
-
-                    if (context.Extensions.TryGet("ReceivingEndpoint", out EndpointDetails receivingEndpoint))
-                    {
-                        RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
-                    }
-
-                    await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
-                    storedContexts.Add(context);
                 }
 
                 foreach (var endpoint in knownEndpoints.Values)
@@ -128,7 +137,108 @@
             knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
-        async Task ProcessedMessage(MessageContext context)
+        async Task ProcessMessage(MessageContext context)
+        {
+            if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
+                && messageType == "ServiceControl.EndpointPlugin.Messages.SagaState.SagaUpdatedMessage")
+            {
+                ProcessSagaAuditMessage(context);
+            }
+            else
+            {
+                await ProcessAuditMessage(context).ConfigureAwait(false);
+            }
+        }
+
+        void ProcessSagaAuditMessage(MessageContext context)
+        {
+            try
+            {
+                SagaUpdatedMessage message;
+                using (var reader = new JsonTextReader(new StreamReader(new MemoryStream(context.Body))))
+                {
+                    message = sagaAuditSerializer.Deserialize<SagaUpdatedMessage>(reader);
+                }
+
+                var sagaSnapshot = new SagaSnapshot
+                {
+                    SagaId = message.SagaId,
+                    SagaType = message.SagaType,
+                    FinishTime = message.FinishTime,
+                    StartTime = message.StartTime,
+                    StateAfterChange = message.SagaState,
+                    Endpoint = message.Endpoint,
+                    InitiatingMessage = CreateInitiatingMessage(message.Initiator)
+                };
+
+                if (message.IsNew)
+                {
+                    sagaSnapshot.Status = SagaStateChangeStatus.New;
+                }
+                else
+                {
+                    sagaSnapshot.Status = SagaStateChangeStatus.Updated;
+                }
+
+                if (message.IsCompleted)
+                {
+                    sagaSnapshot.Status = SagaStateChangeStatus.Completed;
+                }
+
+                sagaSnapshot.ProcessedAt = message.FinishTime;
+
+                AddResultingMessages(message.ResultingMessages, sagaSnapshot);
+
+                context.Extensions.Set(sagaSnapshot);
+                context.Extensions.Set("AuditType", "SagaSnapshot");
+            }
+            catch (Exception e)
+            {
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Processing of saga audit message '{context.MessageId}' failed.", e);
+                }
+
+                context.GetTaskCompletionSource().TrySetException(e);
+            }
+        }
+
+        static InitiatingMessage CreateInitiatingMessage(SagaChangeInitiator initiator)
+        {
+            return new InitiatingMessage
+            {
+                MessageId = initiator.InitiatingMessageId,
+                IsSagaTimeoutMessage = initiator.IsSagaTimeoutMessage,
+                OriginatingEndpoint = initiator.OriginatingEndpoint,
+                OriginatingMachine = initiator.OriginatingMachine,
+                TimeSent = initiator.TimeSent,
+                MessageType = initiator.MessageType,
+                Intent = initiator.Intent
+            };
+        }
+
+        static void AddResultingMessages(List<SagaChangeOutput> sagaChangeResultingMessages, SagaSnapshot sagaStateChange)
+        {
+            foreach (var toAdd in sagaChangeResultingMessages)
+            {
+                var resultingMessage = sagaStateChange.OutgoingMessages.FirstOrDefault(x => x.MessageId == toAdd.ResultingMessageId);
+                if (resultingMessage == null)
+                {
+                    resultingMessage = new ResultingMessage();
+                    sagaStateChange.OutgoingMessages.Add(resultingMessage);
+                }
+
+                resultingMessage.MessageType = toAdd.MessageType;
+                resultingMessage.MessageId = toAdd.ResultingMessageId;
+                resultingMessage.TimeSent = toAdd.TimeSent;
+                resultingMessage.DeliveryDelay = toAdd.DeliveryDelay;
+                resultingMessage.DeliverAt = toAdd.DeliveryAt;
+                resultingMessage.Destination = toAdd.Destination;
+                resultingMessage.Intent = toAdd.Intent;
+            }
+        }
+
+        async Task ProcessAuditMessage(MessageContext context)
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
@@ -176,6 +286,8 @@
                 {
                     context.Extensions.Set("ReceivingEndpoint", (EndpointDetails)receivingEndpoint);
                 }
+
+                context.Extensions.Set("AuditType", "ProcessedMessage");
             }
             catch (Exception e)
             {
@@ -188,6 +300,7 @@
             }
         }
 
+        readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;

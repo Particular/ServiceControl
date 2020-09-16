@@ -35,7 +35,25 @@ namespace ServiceControl.SagaAudit
 
         protected override SagaHistory ProcessResults(HttpRequestMessage request, QueryResult<SagaHistory>[] results)
         {
-            return results.Select(p => p.Results).SingleOrDefault(x => x != null);
+            var nonEmptyCount = results.Count(x => x.Results != null);
+            if (nonEmptyCount == 0)
+            {
+                return null;
+            }
+
+            if (nonEmptyCount == 1)
+            {
+                return results.Select(p => p.Results).First(x => x != null);
+            }
+
+            var firstResult = results.Select(p => p.Results).First(x => x != null);
+            var mergedChanges = results.Select(p => p.Results)
+                    .Where(x => x != null)
+                    .SelectMany(x => x.Changes)
+                    .OrderByDescending(x => x.FinishTime)
+                    .ToList();
+            firstResult.Changes = mergedChanges;
+            return firstResult;
         }
     }
 }

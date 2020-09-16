@@ -4,7 +4,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Collections.Generic;
     using Monitoring;
     using NServiceBus;
-    using SagaAudit;
+    using ServiceControl.SagaAudit;
 
     public class MessagesView
     {

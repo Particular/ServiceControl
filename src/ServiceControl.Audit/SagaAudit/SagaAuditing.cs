@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.SagaAudit
+﻿namespace ServiceControl.Audit.SagaAudit
 {
     using System;
     using System.Collections.Generic;
@@ -6,6 +6,7 @@
     using Audit.Auditing;
     using NServiceBus;
     using NServiceBus.Features;
+    using ServiceControl.SagaAudit;
 
     class SagaAuditing : Feature
     {
