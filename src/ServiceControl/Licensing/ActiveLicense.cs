@@ -1,7 +1,6 @@
 ﻿namespace Particular.ServiceControl.Licensing
 {
     using System;
-    using System.IO;
     using NServiceBus.Logging;
     using Particular.Licensing;
 
@@ -19,10 +18,12 @@
         public void Refresh()
         {
             Logger.Debug("Refreshing ActiveLicense");
-            var sources = LicenseSource.GetStandardLicenseSources();
-            sources.Add(new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "License", "License.xml")));
-            sources.Add(new LicenseSourceFilePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ParticularPlatformLicense.xml")));
-            var result = Particular.Licensing.ActiveLicense.Find("ServiceControl", sources.ToArray());
+            var sources = new LicenseSource[]
+            {
+                new LicenseSourceFilePath(LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData))
+            };
+
+            var result = Particular.Licensing.ActiveLicense.Find("ServiceControl", sources);
 
             IsValid = !result.License.HasExpired();
 
