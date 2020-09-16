@@ -21,8 +21,8 @@
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    var previousAchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    await session.StoreAsync(previousAchiveBatch)
+                    var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
+                    await session.StoreAsync(previousArchiveBatch)
                         .ConfigureAwait(false);
 
                     var previousArchiveOperation = new ArchiveOperation
@@ -44,11 +44,7 @@
                         .ConfigureAwait(false);
                 }
 
-                var documentManager = new ArchiveDocumentManager();
-                var domainEvents = new FakeDomainEvents();
-                var archivingManager = new ArchivingManager(domainEvents);
-                var retryingManager = new RetryingManager(domainEvents);
-                var handler = new ArchiveAllInGroupHandler(documentStore, domainEvents, documentManager, archivingManager, retryingManager);
+                var handler = new ArchiveAllInGroupHandler(documentStore, new FakeDomainEvents(), new ArchiveDocumentManager(), new ArchivingManager(domainEvents), new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();
                 var message = new ArchiveAllInGroup { GroupId = groupId };
@@ -80,8 +76,8 @@
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    var previousAchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    await session.StoreAsync(previousAchiveBatch)
+                    var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
+                    await session.StoreAsync(previousArchiveBatch)
                         .ConfigureAwait(false);
 
                     var previousArchiveOperation = new ArchiveOperation
@@ -103,21 +99,20 @@
                         .ConfigureAwait(false);
                 }
 
-                var documentManager = new ArchiveDocumentManager();
-                var domainEvents = new FakeDomainEvents();
-                var archivingManager = new ArchivingManager(domainEvents);
-                var retryingManager = new RetryingManager(domainEvents);
-                var handler = new ArchiveAllInGroupHandler(documentStore, domainEvents, documentManager, archivingManager, retryingManager);
+                var handler = new ArchiveAllInGroupHandler(documentStore, new FakeDomainEvents(), new ArchiveDocumentManager(), new ArchivingManager(domainEvents), new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();
                 var message = new ArchiveAllInGroup { GroupId = groupId + "Invalid" };
 
                 // Act
-                await handler.Handle(message, context)
-                    .ConfigureAwait(false);
+                
 
                 // Assert
-                // Nothing to assert. If no exception, the test passes.
+                Assert.DoesNotThrowAsync(async () =>
+                {
+                    // Act
+                    await handler.Handle(message, context).ConfigureAwait(false);
+                });
             }
         }
     }
