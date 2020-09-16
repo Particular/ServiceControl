@@ -2,8 +2,8 @@
 {
     using System;
     using System.Linq;
-    using Engine.Configuration.ServiceControl;
     using NUnit.Framework;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
 
     [TestFixture]
     public class UpgradeControlDetailsTests
@@ -40,6 +40,12 @@
             Assert.AreEqual(minimumVersion, upgradeInfo.CurrentMinimumVersion, "CurrentMinimumVersion mismatch");
             Assert.AreEqual(version2, upgradeInfo.TargetMinimumVersion, "TargetMinimumVersion mismatch");
             Assert.AreEqual(recommendedVersion, upgradeInfo.RecommendedUpgradeVersion, "RecommendedUpgradeVersion mismatch");
+        }
+
+        [Test]
+        public void VersionCheckerHelperTests()
+        {
+            
         }
     }
 }
