@@ -5,6 +5,7 @@
     using NServiceBus.Testing;
     using NUnit.Framework;
     using Operations;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -44,7 +45,12 @@
                         .ConfigureAwait(false);
                 }
 
-                var handler = new ArchiveAllInGroupHandler(documentStore, new FakeDomainEvents(), new ArchiveDocumentManager(), new ArchivingManager(domainEvents), new RetryingManager(domainEvents));
+                var domainEvents = new DomainEvents();
+                var handler = new ArchiveAllInGroupHandler(documentStore,
+                    new FakeDomainEvents(),
+                    new ArchiveDocumentManager(),
+                    new ArchivingManager(domainEvents),
+                    new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();
                 var message = new ArchiveAllInGroup { GroupId = groupId };
@@ -99,13 +105,18 @@
                         .ConfigureAwait(false);
                 }
 
-                var handler = new ArchiveAllInGroupHandler(documentStore, new FakeDomainEvents(), new ArchiveDocumentManager(), new ArchivingManager(domainEvents), new RetryingManager(domainEvents));
+                var domainEvents = new DomainEvents();
+                var handler = new ArchiveAllInGroupHandler(documentStore,
+                    new FakeDomainEvents(),
+                    new ArchiveDocumentManager(),
+                    new ArchivingManager(domainEvents),
+                    new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();
                 var message = new ArchiveAllInGroup { GroupId = groupId + "Invalid" };
 
                 // Act
-                
+
 
                 // Assert
                 Assert.DoesNotThrowAsync(async () =>
