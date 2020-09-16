@@ -10,7 +10,7 @@
             var sources = LicenseSource.GetStandardLicenseSources().ToArray();
             var result = ActiveLicense.Find("ServiceControl", sources);
 
-            var detectedLicense = new DetectedLicense("HKEY_LOCAL_MACHINE", LicenseDetails.FromLicense(result.License));
+            var detectedLicense = new DetectedLicense(result.Location, LicenseDetails.FromLicense(result.License));
 
             detectedLicense.IsEvaluationLicense = string.Equals(result.Location, "Trial License", StringComparison.OrdinalIgnoreCase);
 
