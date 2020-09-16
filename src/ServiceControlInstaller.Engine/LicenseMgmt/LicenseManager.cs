@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.LicenseMgmt
 {
     using System;
-    using Microsoft.Win32;
     using Particular.Licensing;
 
     public class LicenseManager
@@ -43,16 +42,6 @@
             if(license.HasExpired())
             {
                 errorMessage = "Failed to import because the license has expired";
-                return false;
-            }
-
-            try
-            {
-                new RegistryLicenseStore(Registry.LocalMachine).StoreLicense(licenseText);
-            }
-            catch (Exception)
-            {
-                errorMessage = "Failed to import license into the registry";
                 return false;
             }
 
