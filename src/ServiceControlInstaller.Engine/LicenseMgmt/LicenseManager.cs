@@ -9,7 +9,7 @@
         {
             var sources = new LicenseSource[]
             {
-                new LicenseSourceFilePath(LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData))
+                new LicenseSourceFilePath(GetMachineLevelLicenseLocation())
             };
 
             var result = ActiveLicense.Find("ServiceControl", sources);
@@ -51,9 +51,7 @@
 
             try
             {
-                var machineLevelLicenseLocation = LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
-
-                new FilePathLicenseStore().StoreLicense(machineLevelLicenseLocation, licenseText);
+                new FilePathLicenseStore().StoreLicense(GetMachineLevelLicenseLocation(), licenseText);
             }
             catch (Exception)
             {
@@ -63,6 +61,11 @@
 
             errorMessage = null;
             return true;
+        }
+
+        static string GetMachineLevelLicenseLocation()
+        {
+            return LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
         }
 
         static bool TryDeserializeLicense(string licenseText, out License license)
