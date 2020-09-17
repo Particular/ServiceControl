@@ -157,7 +157,7 @@
 
                 var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
                 {
-                    Id = $"ProcessedMessages/{context.Headers.UniqueId()}"
+                    Id = $"ProcessedMessages/{context.Headers.ProcessingId()}"
                 };
 
                 foreach (var commandToEmit in commandsToEmit)
