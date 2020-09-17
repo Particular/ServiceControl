@@ -45,7 +45,16 @@
 
         public static string ProcessingId(this IReadOnlyDictionary<string, string> headers)
         {
-            return DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName(), headers.ProcessingStarted()).ToString();
+            var messageId = headers.MessageId();
+            var processingEndpointName = headers.ProcessingEndpointName();
+            var processingStarted = headers.ProcessingStarted();
+
+            if (messageId == default || processingEndpointName == default || processingStarted == default)
+            {
+                return Guid.NewGuid().ToString();
+            }
+
+            return DeterministicGuid.MakeId(messageId, processingEndpointName, processingStarted).ToString();
         }
 
         // NOTE: Duplicated from TransportMessage
