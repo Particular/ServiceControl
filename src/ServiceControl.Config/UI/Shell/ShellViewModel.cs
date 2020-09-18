@@ -150,7 +150,7 @@
 
             var shortAppVersion = AppVersion.Substring(0, 6);
             
-            Release availableUpgradeRelease = await VersionCheckerHelper.GetDownloadUrlForNextVersionToUpdate(shortAppVersion).ConfigureAwait(false);
+            Release availableUpgradeRelease = await VersionCheckerHelper.GetRecommendedRelease(shortAppVersion).ConfigureAwait(false);
             
             if (availableUpgradeRelease.Version.ToString() == shortAppVersion)
             {

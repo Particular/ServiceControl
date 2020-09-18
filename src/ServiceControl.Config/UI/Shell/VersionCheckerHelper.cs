@@ -12,7 +12,7 @@
 
     public static class VersionCheckerHelper
     {
-        public static async Task<Release> GetDownloadUrlForNextVersionToUpdate(string currentVersion)
+        public static async Task<Release> GetRecommendedRelease(string currentVersion)
         {
             Version current = new Version(currentVersion);
             List<Release> releases = await GetVersionInformation().ConfigureAwait(false);
