@@ -114,6 +114,8 @@ namespace ServiceControl.Config.Framework.Modules
                 };
             }
 
+            instance.UpgradeTransportSeam();
+
             progress.Report(currentStep++, totalSteps, "Backing up app.config...");
             var backupFile = instance.BackupAppConfig();
             try
@@ -334,6 +336,8 @@ namespace ServiceControl.Config.Framework.Modules
                     Status = Status.Failed
                 };
             }
+
+            instance.UpgradeTransportSeam();
 
             progress.Report(1, 5, "Backing up app.config...");
             var backupFile = instance.BackupAppConfig();

@@ -290,5 +290,17 @@
                 ReportCard.Errors.Add(ex.Message);
             }
         }
+
+        public void UpgradeTransportSeam()
+        {
+            //Legacy ASB Forwarding Topology should be migrated to the ASBS transport seam
+            if (TransportPackage.Name == TransportNames.AzureServiceBusForwardingTopologyDeprecated)
+            {
+                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.AzureServiceBus);
+
+                var config = new AppConfig(this);
+                config.Save();
+            }
+        }
     }
 }
