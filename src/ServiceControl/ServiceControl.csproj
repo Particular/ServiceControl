@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
     <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
     <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35294" />
-    <PackageReference Include="NServiceBus" Version="7.4.2" />
+    <PackageReference Include="NServiceBus" Version="7.4.3" />
     <PackageReference Include="NServiceBus.Autofac" Version="7.1.0" />
     <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
