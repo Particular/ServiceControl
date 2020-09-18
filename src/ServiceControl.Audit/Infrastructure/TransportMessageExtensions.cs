@@ -43,6 +43,20 @@
                 : DeterministicGuid.MakeId(headers.MessageId(), headers.ProcessingEndpointName()).ToString();
         }
 
+        public static string ProcessingId(this IReadOnlyDictionary<string, string> headers)
+        {
+            var messageId = headers.MessageId();
+            var processingEndpointName = headers.ProcessingEndpointName();
+            var processingStarted = headers.ProcessingStarted();
+
+            if (messageId == default || processingEndpointName == default || processingStarted == default)
+            {
+                return Guid.NewGuid().ToString();
+            }
+
+            return DeterministicGuid.MakeId(messageId, processingEndpointName, processingStarted).ToString();
+        }
+
         // NOTE: Duplicated from TransportMessage
         public static string MessageId(this IReadOnlyDictionary<string, string> headers)
         {
@@ -73,6 +87,11 @@
         static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
         {
             return headers.TryGetValue(Headers.ReplyToAddress, out var destination) ? destination : null;
+        }
+
+        static string ProcessingStarted(this IReadOnlyDictionary<string, string> headers)
+        {
+            return headers.TryGetValue(Headers.ProcessingStarted, out var processingStarted) ? processingStarted : null;
         }
 
         static string ExtractQueue(string address)
