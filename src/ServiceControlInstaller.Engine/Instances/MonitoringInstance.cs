@@ -295,14 +295,10 @@
 
         public void UpgradeTransportSeam()
         {
-            //Legacy ASB Forwarding Topology should be migrated to the ASBS transport seam
-            if (TransportPackage.Name == TransportNames.AzureServiceBusForwardingTopologyDeprecated)
-            {
-                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.AzureServiceBus);
+            TransportPackage = ServiceControlCoreTransports.UpgradedTransportSeam(TransportPackage);
 
-                var config = new AppConfig(this);
-                config.Save();
-            }
+            var config = new AppConfig(this);
+            config.Save();
         }
     }
 }

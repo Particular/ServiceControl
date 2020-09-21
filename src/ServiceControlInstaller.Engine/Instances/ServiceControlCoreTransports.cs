@@ -122,6 +122,8 @@
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
                 AvailableInSCMU = false,
+                ////Legacy ASB Forwarding Topology should be migrated to the ASBS transport seam
+                AutoMigrateTo = TransportNames.AzureServiceBus,
                 Matches = name => name.Equals(TransportNames.AzureServiceBusForwardingTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals(TransportNames.AzureServiceBusForwardingTopologyLegacy, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals(TransportNames.AzureServiceBusForwardingTopologyOld, StringComparison.OrdinalIgnoreCase)
@@ -136,5 +138,16 @@
         {
             return All.FirstOrDefault(p => p.Matches(name));
         }
+
+        public static TransportInfo UpgradedTransportSeam(TransportInfo transport)
+        {
+            if (!string.IsNullOrWhiteSpace(transport.AutoMigrateTo))
+            {
+                return Find(transport.AutoMigrateTo);
+            }
+
+            return transport;
+        }
+
     }
 }

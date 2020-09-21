@@ -16,6 +16,7 @@
         public string Help { get; set; }
         public bool Default { get; set; }
         public bool AvailableInSCMU { get; set; }
+        public string AutoMigrateTo { get; set; }
         public Func<string, bool> Matches { get; set; }
 
         public override bool Equals(object obj)

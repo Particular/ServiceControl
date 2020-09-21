@@ -434,14 +434,10 @@ namespace ServiceControlInstaller.Engine.Instances
         
         public void UpgradeTransportSeam()
         {
-            //Legacy ASB Forwarding Topology should be migrated to the ASBS transport seam
-            if (TransportPackage.Name == TransportNames.AzureServiceBusForwardingTopologyDeprecated)
-            {
-                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.AzureServiceBus);
+            TransportPackage = ServiceControlCoreTransports.UpgradedTransportSeam(TransportPackage);
 
-                AppConfig.SetTransportType(TransportPackage.TypeName);
-                AppConfig.Save();
-            }
+            AppConfig.SetTransportType(TransportPackage.TypeName);
+            AppConfig.Save();
         }
 
         public AppConfig AppConfig;
