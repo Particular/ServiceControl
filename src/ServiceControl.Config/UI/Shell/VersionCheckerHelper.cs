@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.Shell
 {
     using Newtonsoft.Json;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -12,19 +11,15 @@
 
     public static class VersionCheckerHelper
     {
-        public static async Task<Release> GetRecommendedRelease(string currentVersion)
+        public static async Task<Release> GetLatestRelease(string currentVersion)
         {
             Version current = new Version(currentVersion);
             List<Release> releases = await GetVersionInformation().ConfigureAwait(false);
 
             Release topversion = releases.Select(t => (t.Version, t)).Max().t;
             
-            UpgradeInfo upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(topversion.Version, current);
-            
-            Release recomendedVersion = releases.FirstOrDefault(t => t.Version == upgradeInfo.RecommendedUpgradeVersion);
-
-            if (recomendedVersion != null && recomendedVersion.Version > current)
-                return recomendedVersion;
+            if (topversion.Version > current)
+                return topversion;
             // we have no release available
             return new Release(current);
         }
