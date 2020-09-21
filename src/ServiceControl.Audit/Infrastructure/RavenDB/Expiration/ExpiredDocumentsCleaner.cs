@@ -6,6 +6,7 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Logging;
     using Raven.Database;
+    using ServiceControl.SagaAudit;
     using Settings;
 
     class ExpiredDocumentsCleaner
@@ -17,6 +18,7 @@
             logger.Debug("Trying to find expired ProcessedMessage, SagaHistory and KnownEndpoint documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
             AuditMessageCleaner.Clean(deletionBatchSize, database, threshold, token);
             KnownEndpointsCleaner.Clean(deletionBatchSize, database, threshold, token);
+            SagaHistoryCleaner.Clean(deletionBatchSize, database, threshold, token);
 
             return Task.FromResult(TimerJobExecutionResult.ScheduleNextExecution);
         }

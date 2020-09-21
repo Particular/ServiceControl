@@ -3,7 +3,7 @@ namespace ServiceControl.EndpointPlugin.Messages.SagaState
     using System;
     using NServiceBus;
 
-    class SagaChangeInitiator : ICommand
+    public class SagaChangeInitiator : ICommand
     {
         public string InitiatingMessageId { get; set; }
         public string MessageType { get; set; }

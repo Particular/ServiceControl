@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Threading;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using ServiceControl.Infrastructure.RavenDB;
 
     [TestFixture]
     public class ChunkerTests

@@ -4,10 +4,10 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Audit.SagaAudit;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.SagaAudit;
     using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]

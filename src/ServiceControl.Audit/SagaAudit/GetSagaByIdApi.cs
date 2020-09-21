@@ -5,6 +5,7 @@ namespace ServiceControl.Audit.SagaAudit
     using System.Threading.Tasks;
     using Auditing.MessagesView;
     using Raven.Client;
+    using ServiceControl.SagaAudit;
 
     class GetSagaByIdApi : ApiBase<Guid, SagaHistory>
     {

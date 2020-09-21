@@ -11,6 +11,7 @@
     using Raven.Abstractions.Data;
     using Raven.Database;
     using Raven.Json.Linq;
+    using ServiceControl.Infrastructure.RavenDB;
 
     static class AuditMessageCleaner
     {
