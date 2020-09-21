@@ -5,7 +5,7 @@ namespace ServiceControl.Recoverability
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {
@@ -75,8 +75,7 @@ namespace ServiceControl.Recoverability
                         logger.Info($"Archiving {nextBatch.DocumentIds.Count} messages from group {message.GroupId} starting");
                     }
 
-                    await documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch)
-                        .ConfigureAwait(false);
+                    documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
 
                     await archiveOperationManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0)
                         .ConfigureAwait(false);
@@ -108,7 +107,7 @@ namespace ServiceControl.Recoverability
             logger.Info($"Archiving of group {message.GroupId} completed");
             await archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType)
                 .ConfigureAwait(false);
-            await documentManager.RemoveArchiveOperation(store, archiveOperation).ConfigureAwait(false);
+            documentManager.RemoveArchiveOperation(store, archiveOperation);
 
             await domainEvents.Raise(new FailedMessageGroupArchived
             {

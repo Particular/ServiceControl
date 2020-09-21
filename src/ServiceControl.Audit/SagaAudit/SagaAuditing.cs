@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Audit.SagaAudit
+﻿using System.Collections.Generic;
+
+namespace ServiceControl.Audit.SagaAudit
 {
     using Auditing;
     using NServiceBus;
@@ -21,10 +23,10 @@
         {
             public void Enrich(AuditEnricherContext context)
             {
-                var headers = context.Headers;
-                var metadata = context.Metadata;
+                var result = InvokedSagasParser.Parse(context.Headers);
 
-                InvokedSagasParser.Parse(headers, metadata);
+                context.Metadata.InvokedSagas = result.InvokedSagas;
+                context.Metadata.OriginatesFromSaga = result.OriginatesFromSaga;
             }
         }
     }

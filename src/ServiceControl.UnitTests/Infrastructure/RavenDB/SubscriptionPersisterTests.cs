@@ -8,11 +8,12 @@
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.TestDriver;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 
     [TestFixture]
-    public class SubscriptionPersisterTests
+    public class SubscriptionPersisterTests : RavenTestDriver
     {
         [Test]
         public async Task ShouldReturnSubscriptionsForOlderVersionsOfSameMessageType()
@@ -55,7 +56,7 @@
         [SetUp]
         public void SetUp()
         {
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
+            documentStore = GetDocumentStore();
         }
 
         [TearDown]

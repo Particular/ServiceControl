@@ -1,0 +1,54 @@
+{
+  "Id": "SomeId",
+  "UniqueMessageId": "518e1dde-d16c-4a0f-d699-ec178288af07",
+  "MessageMetadata": {
+    "ContentType": "text/xml",
+    "MessageId": "081a72cf-6e77-478f-9ad9-ac5600cae2c4",
+    "MessageType": "ServiceControl.LoadTests.Messages.AuditMessage",
+    "IsSystemMessage": false,
+    "TimeSent": "2020-10-16T12:18:41.076078Z",
+    "ReceivingEndpoint": {
+      "Name": "LoadGenerator",
+      "HostId": "8bf9147e-c232-40d9-8f93-1bcbc7fec718",
+      "Host": "Load Generator"
+    },
+    "SendingEndpoint": {
+      "Name": "AuditGenerator",
+      "HostId": "6b581b38-1844-0da1-6624-7ee65e301afe",
+      "Host": "SURFACEBOOK2"
+    },
+    "CriticalTime": "00:00:00",
+    "ProcessingTime": "00:00:00",
+    "DeliveryTime": "00:00:00",
+    "ConversationId": "01d4e139-0855-429e-bbf0-ac5600cae2c4",
+    "IsRetried": false,
+    "MessageIntent": "Send",
+    "BodyUrl": "/messages/081a72cf-6e77-478f-9ad9-ac5600cae2c4/body",
+    "ContentLength": 1559,
+    "InvokedSagas": null,
+    "OriginatesFromSaga": null,
+    "RelatedToId": null,
+    "Body": "The Body"
+  },
+  "Headers": {
+    "$.diagnostics.hostid": "8bf9147e-c232-40d9-8f93-1bcbc7fec718",
+    "$.diagnostics.hostdisplayname": "Load Generator",
+    "NServiceBus.ProcessingMachine": "SURFACEBOOK2",
+    "NServiceBus.ProcessingEndpoint": "LoadGenerator",
+    "NServiceBus.ProcessingStarted": "2020-10-16 12:18:41:076078 Z",
+    "NServiceBus.ProcessingEnded": "2020-10-16 12:18:41:076078 Z",
+    "NServiceBus.MessageId": "081a72cf-6e77-478f-9ad9-ac5600cae2c4",
+    "NServiceBus.MessageIntent": "Send",
+    "NServiceBus.ConversationId": "01d4e139-0855-429e-bbf0-ac5600cae2c4",
+    "NServiceBus.CorrelationId": "081a72cf-6e77-478f-9ad9-ac5600cae2c4",
+    "NServiceBus.OriginatingMachine": "SURFACEBOOK2",
+    "NServiceBus.OriginatingEndpoint": "AuditGenerator",
+    "$.diagnostics.originating.hostid": "6b581b3818440da166247ee65e301afe",
+    "NServiceBus.ContentType": "text/xml",
+    "NServiceBus.EnclosedMessageTypes": "ServiceControl.LoadTests.Messages.AuditMessage, ServiceControl.LoadTests.Messages, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "NServiceBus.Version": "7.4.3",
+    "NServiceBus.TimeSent": "2020-10-16 12:18:41:076078 Z",
+    "CorrId": "081a72cf-6e77-478f-9ad9-ac5600cae2c4\\0"
+  },
+  "ProcessedAt": "2020-10-16T12:18:41.076078Z"
+}

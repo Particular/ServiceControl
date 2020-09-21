@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.Recoverability;
 
     public class FailedMessageRetriesCountReponse

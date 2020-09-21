@@ -2,7 +2,9 @@ namespace ServiceControl.SagaAudit
 {
     using System;
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client;
+    using Raven.Client.Documents.Indexes;
+    using SagaAudit;
 
     public class ExpirySagaAuditIndex : AbstractMultiMapIndexCreationTask
     {
@@ -11,16 +13,14 @@ namespace ServiceControl.SagaAudit
             AddMap<SagaSnapshot>(messages => from message in messages
                 select new
                 {
-                    LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                    LastModified = MetadataFor(message).Value<DateTime>(Constants.Documents.Metadata.LastModified).Ticks
                 });
 
             AddMap<SagaHistory>(sagaHistories => from sagaHistory in sagaHistories
                 select new
                 {
-                    LastModified = MetadataFor(sagaHistory).Value<DateTime>("Last-Modified").Ticks
+                    LastModified = MetadataFor(sagaHistory).Value<DateTime>(Constants.Documents.Metadata.LastModified).Ticks
                 });
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

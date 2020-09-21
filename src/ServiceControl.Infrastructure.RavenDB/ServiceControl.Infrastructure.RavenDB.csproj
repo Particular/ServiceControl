@@ -5,8 +5,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="RavenLicense.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="RavenLicense.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RavenDB.Client" Version="5.0.2" />
+    <PackageReference Include="RavenDB.Embedded" Version="5.0.2" />
     <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
-    <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35294" />
     <PackageReference Include="NServiceBus" Version="7.4.4" />
   </ItemGroup>
 </Project>

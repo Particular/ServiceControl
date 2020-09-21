@@ -25,7 +25,7 @@ namespace ServiceControl.Recoverability
         {
             if (message.RepeatedFailure)
             {
-                return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+                return RetryDocumentManager.RemoveFailedMessageRetryDocument(FailedMessage.MakeDocumentId(message.FailedMessageId));
             }
 
             return Task.FromResult(0);

@@ -6,7 +6,7 @@ namespace ServiceControl.ExternalIntegrations
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using MessageFailures;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
@@ -14,18 +14,18 @@ namespace ServiceControl.ExternalIntegrations
         {
             return new DispatchContext
             {
-                FailedMessageId = new Guid(@event.FailedMessageId)
+                FailedMessageId = @event.FailedMessageId
             };
         }
 
         protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
+            var documentIds = contexts.Select(x => FailedMessage.MakeDocumentId(x.FailedMessageId)).ToArray();
             var failedMessageData = await session.LoadAsync<FailedMessage>(documentIds)
                 .ConfigureAwait(false);
 
-            var failedMessages = new List<object>(failedMessageData.Length);
-            foreach (var entity in failedMessageData)
+            var failedMessages = new List<object>(failedMessageData.Values.Count);
+            foreach (var entity in failedMessageData.Values)
             {
                 if (entity != null)
                 {
@@ -39,7 +39,7 @@ namespace ServiceControl.ExternalIntegrations
 
         public class DispatchContext
         {
-            public Guid FailedMessageId { get; set; }
+            public string FailedMessageId { get; set; }
         }
     }
 }

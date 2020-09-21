@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
-    using System;
     using System.Net;
     using System.Net.Http;
     using System.Threading;
@@ -8,7 +7,7 @@
     using System.Web.Http;
     using Audit.Auditing;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class FailedAuditsController : ApiController
     {

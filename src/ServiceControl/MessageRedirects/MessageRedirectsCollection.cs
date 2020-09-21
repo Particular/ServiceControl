@@ -4,14 +4,13 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     class MessageRedirectsCollection
     {
         public string Id { get; set; } = DefaultId;
 
-        public Etag ETag { get; set; }
+        public string ETag { get; set; }
 
         public DateTime LastModified { get; set; }
 
@@ -32,9 +31,8 @@
 
             if (redirects != null)
             {
-                redirects.ETag = session.Advanced.GetEtagFor(redirects);
-                redirects.LastModified = session.Advanced.GetMetadataFor(redirects).Value<DateTime>("Last-Modified");
-
+                redirects.ETag = session.Advanced.GetChangeVectorFor(redirects);
+                redirects.LastModified = session.Advanced.GetLastModifiedFor(redirects).Value;
                 return redirects;
             }
 

@@ -22,52 +22,33 @@
             {
                 var headers = context.Headers;
                 var metadata = context.Metadata;
-                var processingEnded = DateTime.MinValue;
                 var timeSent = DateTime.MinValue;
-                var processingStarted = DateTime.MinValue;
 
                 if (headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
                 {
                     timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                    metadata.Add("TimeSent", timeSent);
+                    metadata.TimeSent = timeSent;
                 }
 
-                if (headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue))
-                {
-                    processingStarted = DateTimeExtensions.ToUtcDateTime(processingStartedValue);
-                }
+                var processingStarted = headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue) 
+                    ? DateTimeExtensions.ToUtcDateTime(processingStartedValue) 
+                    : DateTime.MinValue;
 
-                if (headers.TryGetValue(Headers.ProcessingEnded, out var processingEndedValue))
-                {
-                    processingEnded = DateTimeExtensions.ToUtcDateTime(processingEndedValue);
-                }
+                var processingEnded = headers.TryGetValue(Headers.ProcessingEnded, out var processingEndedValue) 
+                    ? DateTimeExtensions.ToUtcDateTime(processingEndedValue) 
+                    : DateTime.MinValue;
 
-                var criticalTime = TimeSpan.Zero;
+                metadata.CriticalTime = processingEnded != DateTime.MinValue && timeSent != DateTime.MinValue
+                    ? processingEnded - timeSent
+                    : TimeSpan.Zero;
 
-                if (processingEnded != DateTime.MinValue && timeSent != DateTime.MinValue)
-                {
-                    criticalTime = processingEnded - timeSent;
-                }
+                metadata.ProcessingTime = processingEnded != DateTime.MinValue && processingStarted != DateTime.MinValue
+                    ? processingEnded - processingStarted
+                    : TimeSpan.Zero;
 
-                metadata.Add("CriticalTime", criticalTime);
-
-                var processingTime = TimeSpan.Zero;
-
-                if (processingEnded != DateTime.MinValue && processingStarted != DateTime.MinValue)
-                {
-                    processingTime = processingEnded - processingStarted;
-                }
-
-                metadata.Add("ProcessingTime", processingTime);
-
-                var deliveryTime = TimeSpan.Zero;
-
-                if (processingStarted != DateTime.MinValue && timeSent != DateTime.MinValue)
-                {
-                    deliveryTime = processingStarted - timeSent;
-                }
-
-                metadata.Add("DeliveryTime", deliveryTime);
+                metadata.DeliveryTime = processingStarted != DateTime.MinValue && timeSent != DateTime.MinValue
+                    ? processingStarted - timeSent
+                    : TimeSpan.Zero;
             }
         }
     }

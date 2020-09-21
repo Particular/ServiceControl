@@ -4,7 +4,7 @@ namespace ServiceControl.Audit.Auditing
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class FailedAuditImportCustomCheck : CustomCheck
     {
@@ -19,14 +19,10 @@ namespace ServiceControl.Audit.Auditing
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                using (var ie = await session.Advanced.StreamAsync(query)
-                    .ConfigureAwait(false))
+                if (await query.AnyAsync().ConfigureAwait(false))
                 {
-                    if (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        Logger.Warn(message);
-                        return CheckResult.Failed(message);
-                    }
+                    Logger.Warn(message);
+                    return CheckResult.Failed(message);
                 }
             }
 

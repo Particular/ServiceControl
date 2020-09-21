@@ -12,12 +12,12 @@
         public void DetailsAreValid()
         {
             //No duplicates
-            Assert.AreEqual(UpgradeControl.details.Length, UpgradeControl.details.GroupBy(d => d.TargetMinimumVersion).Count(), "Duplicate TargetMinimumVersion entries");
+            Assert.AreEqual(UpgradeInfo.details.Length, UpgradeInfo.details.GroupBy(d => d.TargetMinimumVersion).Count(), "Duplicate TargetMinimumVersion entries");
 
             //No overlaps
-            foreach (var upgradeInfo in UpgradeControl.details)
+            foreach (var upgradeInfo in UpgradeInfo.details)
             {
-                var details = UpgradeControl.details.Where(d => d != upgradeInfo);
+                var details = UpgradeInfo.details.Where(d => d != upgradeInfo);
 
                 var failures = details.Where(d => d.TargetMinimumVersion > upgradeInfo.TargetMinimumVersion && d.CurrentMinimumVersion < upgradeInfo.TargetMinimumVersion).ToList();
                 Assert.IsEmpty(failures, $"{string.Join(",", failures)} overlap with {upgradeInfo}");
@@ -36,7 +36,7 @@
             var version2 = new Version(2, 0, 0);
 
             //Test current is too old
-            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(version2, tooOldVersion);
+            var upgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(version2, tooOldVersion);
             Assert.AreEqual(minimumVersion, upgradeInfo.CurrentMinimumVersion, "CurrentMinimumVersion mismatch");
             Assert.AreEqual(version2, upgradeInfo.TargetMinimumVersion, "TargetMinimumVersion mismatch");
             Assert.AreEqual(recommendedVersion, upgradeInfo.RecommendedUpgradeVersion, "RecommendedUpgradeVersion mismatch");

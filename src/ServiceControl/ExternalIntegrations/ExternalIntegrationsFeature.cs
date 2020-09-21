@@ -12,6 +12,7 @@ namespace ServiceControl.ExternalIntegrations
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.Container.ConfigureComponent<EventDispatcher>(DependencyLifecycle.SingleInstance);
             context.RegisterStartupTask(b => b.Build<EventDispatcher>());
 
             var eventPublisherTypes = context.Settings.GetAvailableTypes().Implementing<IEventPublisher>();

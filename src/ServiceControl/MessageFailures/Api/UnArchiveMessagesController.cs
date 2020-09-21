@@ -53,8 +53,7 @@
             await messageSession.SendLocal(new UnArchiveMessagesByRange
             {
                 From = fromDateTime,
-                To = toDateTime,
-                CutOff = DateTime.UtcNow
+                To = toDateTime
             }).ConfigureAwait(false);
 
             return StatusCode(HttpStatusCode.Accepted);

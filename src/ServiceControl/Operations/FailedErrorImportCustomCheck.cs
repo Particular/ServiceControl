@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class FailedErrorImportCustomCheck : CustomCheck
     {
@@ -19,13 +19,12 @@
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false);
+
+                if (await ie.MoveNextAsync().ConfigureAwait(false))
                 {
-                    if (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        Logger.Warn(message);
-                        return CheckResult.Failed(message);
-                    }
+                    Logger.Warn(message);
+                    return CheckResult.Failed(message);
                 }
             }
 

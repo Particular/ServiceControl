@@ -3,16 +3,17 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
+    using MessageFailures;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using Operations.BodyStorage;
+    using Raven.Client.Documents;
 
     class ReturnToSender
     {
-        public ReturnToSender(IBodyStorage bodyStorage)
+        public ReturnToSender(IDocumentStore documentStore)
         {
-            this.bodyStorage = bodyStorage;
+            this.documentStore = documentStore;
         }
 
         public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender)
@@ -21,6 +22,7 @@ namespace ServiceControl.Recoverability
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
+            outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
 
             var messageId = message.MessageId;
             if (Log.IsDebugEnabled)
@@ -28,32 +30,54 @@ namespace ServiceControl.Recoverability
                 Log.DebugFormat("{0}: Retrieving message body", messageId);
             }
 
-            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
+            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.BodyId", out var bodyId))
             {
-                var result = await bodyStorage.TryFetch(attemptMessageId)
-                    .ConfigureAwait(false);
-                if (result.HasResult)
+                using (var session = documentStore.OpenAsyncSession())
                 {
-                    using (result.Stream)
-                    {
-                        body = ReadFully(result.Stream);
-                    }
+                    var attachment = await session.Advanced.Attachments.GetAsync(FailedMessage.MakeDocumentId(bodyId),
+                        "body").ConfigureAwait(false);
 
-                    if (Log.IsDebugEnabled)
+                    if (attachment == null)
                     {
-                        Log.DebugFormat("{0}: Body size: {1} bytes", messageId, body.LongLength);
+                        Log.WarnFormat("{0}: Can't find message body. Missing attachment", messageId);
+                    }
+                    else
+                    {
+                        body = ReadFully(attachment.Stream);
+                        if (Log.IsDebugEnabled)
+                        {
+                            Log.DebugFormat("{0}: Body size: {1} bytes", messageId, attachment.Details.Size);
+                        }
                     }
                 }
-                else
+                outgoingHeaders.Remove("ServiceControl.Retry.BodyId");
+            }
+            else if (outgoingHeaders.TryGetValue("ServiceControl.Retry.LegacyBodyId", out var legacyBodyId))
+            {
+                using (var session = documentStore.OpenAsyncSession())
                 {
-                    Log.WarnFormat("{0}: Message Body not found for attempt Id {1}", messageId, attemptMessageId);
-                }
+                    var legacyAttachment = await session.Advanced.Attachments
+                        .GetAsync($"files/messagebodies/{legacyBodyId}", $"messagebodies/{legacyBodyId}")
+                        .ConfigureAwait(false);
 
-                outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
+                    if (legacyAttachment == null)
+                    {
+                        Log.WarnFormat("{0}: Can't find message body in a failed message migrated from previous version of ServiceControl. Missing attachment", messageId);
+                    }
+                    else
+                    {
+                        body = ReadFully(legacyAttachment.Stream);
+                        if (Log.IsDebugEnabled)
+                        {
+                            Log.DebugFormat("{0}: Body size: {1} bytes", messageId, legacyAttachment.Details.Size);
+                        }
+                    }
+                }
+                outgoingHeaders.Remove("ServiceControl.Retry.LegacyBodyId");
             }
             else
             {
-                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", messageId);
+                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.BodyId/LegacyBodyId", messageId);
             }
 
             var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body);
@@ -88,6 +112,9 @@ namespace ServiceControl.Recoverability
             }
         }
 
+        // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
+        // furthermore call ToArray would neglect many of the benefits of the recyclable stream
+        // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
         static byte[] ReadFully(Stream input)
         {
             var buffer = new byte[16 * 1024];
@@ -103,7 +130,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private readonly IBodyStorage bodyStorage;
+        IDocumentStore documentStore;
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
     }
 }

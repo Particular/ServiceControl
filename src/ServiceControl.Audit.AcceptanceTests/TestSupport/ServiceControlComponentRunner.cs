@@ -1,3 +1,5 @@
+using ServiceControl.Infrastructure.RavenDB;
+
 namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
@@ -25,6 +27,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using Raven.Embedded;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -37,7 +40,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
 
-
+        public EmbeddedDatabase Database => embeddedDatabase;
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.Port.ToString();
@@ -144,53 +147,71 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(ctx =>
+            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
+
+            try
+            {
+                using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
                 {
-                    var logitem = new ScenarioContext.LogItem
+
+                    bootstrapper = new Bootstrapper(ctx =>
                     {
-                        Endpoint = settings.ServiceName,
-                        Level = LogLevel.Fatal,
-                        LoggerName = $"{settings.ServiceName}.CriticalError",
-                        Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
-                    };
-                    context.Logs.Enqueue(logitem);
-                    ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
-                bootstrapper.HttpClientFactory = HttpClientFactory;
-            }
+                        var logitem = new ScenarioContext.LogItem
+                        {
+                            Endpoint = settings.ServiceName,
+                            Level = LogLevel.Fatal,
+                            LoggerName = $"{settings.ServiceName}.CriticalError",
+                            Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
+                        };
+                        context.Logs.Enqueue(logitem);
+                        ctx.Stop().GetAwaiter().GetResult();
+                    }, settings, configuration, loggingSettings, embeddedDatabase, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
+                    bootstrapper.HttpClientFactory = HttpClientFactory;
+                }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app, typeof(FailedAuditsController).Assembly);
-                var appFunc = app.Build();
-
-                Handler = new OwinHttpMessageHandler(appFunc)
+                using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
                 {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                var httpClient = new HttpClient(Handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
-            }
+                    var app = new AppBuilder();
+                    bootstrapper.Startup.Configuration(app, typeof(FailedAuditsController).Assembly);
+                    var appFunc = app.Build();
 
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
-                await setupBootstrapper.Run(null);
-            }
+                    Handler = new OwinHttpMessageHandler(appFunc)
+                    {
+                        UseCookies = false,
+                        AllowAutoRedirect = false
+                    };
+                    var httpClient = new HttpClient(Handler);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    HttpClient = httpClient;
+                }
 
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+                using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+                {
+                    var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                    await setupBootstrapper.Run(null);
+                }
+
+                using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+                {
+                    Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+                }
+
+                if (Debugger.IsAttached)
+                {
+                    EmbeddedServer.Instance.OpenStudioInBrowser();
+                }
             }
+            catch (Exception)
+            {
+                embeddedDatabase.Dispose();
+                embeddedDatabase = null;
+                throw;
+            }
+            
         }
 
         public override async Task Stop()
@@ -202,6 +223,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 Handler.Dispose();
                 DeleteFolder(Settings.DbPath);
             }
+
+            embeddedDatabase?.Dispose();
+            embeddedDatabase = null;
 
             bootstrapper = null;
             Bus = null;
@@ -263,5 +287,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        EmbeddedDatabase embeddedDatabase;
     }
 }

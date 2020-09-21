@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.SagaAudit
 
         [Route("sagas/{id}")]
         [HttpGet]
-        public Task<HttpResponseMessage> Sagas(Guid id) => getSagaByIdApi.Execute(this, id);
+        public Task<HttpResponseMessage> Sagas(string id) => getSagaByIdApi.Execute(this, id);
 
         readonly GetSagaByIdApi getSagaByIdApi;
     }

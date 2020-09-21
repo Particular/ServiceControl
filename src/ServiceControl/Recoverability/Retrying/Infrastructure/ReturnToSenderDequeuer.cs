@@ -9,7 +9,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class ReturnToSenderDequeuer
     {

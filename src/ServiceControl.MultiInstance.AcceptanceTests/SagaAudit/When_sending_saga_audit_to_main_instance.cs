@@ -46,7 +46,7 @@
                 .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
                 .Done(async c =>
                 {
-                    if (!c.SagaId.HasValue)
+                    if (c.SagaId == null)
                     {
                         return false;
                     }
@@ -82,7 +82,7 @@
 
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    TestContext.SagaId = Data.Id;
+                    TestContext.SagaId = Data.Id.ToString();
                     return Task.CompletedTask;
                 }
 
@@ -107,7 +107,7 @@
 
         public class MyContext : ScenarioContext
         {
-            public Guid? SagaId { get; set; }
+            public string SagaId { get; set; }
         }
     }
 }

@@ -1,7 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class RetryBatches_ByStatusAndSession : AbstractIndexCreationTask<RetryBatch>
     {
@@ -13,8 +13,6 @@ namespace ServiceControl.Recoverability
                     doc.RetrySessionId,
                     doc.Status
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

@@ -13,10 +13,10 @@ namespace ServiceControl.Audit.Auditing
     public class FailedAuditImport
     {
         public FailedAuditImport() { }
-        public System.Guid Id { get; set; }
+        public string Id { get; set; }
         public ServiceControl.Audit.Auditing.FailedTransportMessage Message { get; set; }
     }
-    public class FailedAuditImportIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.FailedAuditImport>
+    public class FailedAuditImportIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.FailedAuditImport>
     {
         public FailedAuditImportIndex() { }
     }
@@ -30,12 +30,35 @@ namespace ServiceControl.Audit.Auditing
     public class ProcessedMessage
     {
         public ProcessedMessage() { }
-        public ProcessedMessage(System.Collections.Generic.Dictionary<string, string> headers, System.Collections.Generic.Dictionary<string, object> metadata) { }
+        public ProcessedMessage(System.Collections.Generic.Dictionary<string, string> headers, ServiceControl.Audit.Auditing.ProcessedMessageData metadata) { }
         public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
         public string Id { get; set; }
-        public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
+        public ServiceControl.Audit.Auditing.ProcessedMessageData MessageMetadata { get; set; }
         public System.DateTime ProcessedAt { get; set; }
         public string UniqueMessageId { get; set; }
+    }
+    public class ProcessedMessageData
+    {
+        public ProcessedMessageData() { }
+        public string Body { get; set; }
+        public string BodyUrl { get; set; }
+        public int ContentLength { get; set; }
+        public string ContentType { get; set; }
+        public string ConversationId { get; set; }
+        public System.TimeSpan CriticalTime { get; set; }
+        public System.TimeSpan DeliveryTime { get; set; }
+        public System.Collections.Generic.List<ServiceControl.SagaAudit.SagaInfo> InvokedSagas { get; set; }
+        public bool IsRetried { get; set; }
+        public bool IsSystemMessage { get; set; }
+        public string MessageId { get; set; }
+        public NServiceBus.MessageIntentEnum MessageIntent { get; set; }
+        public string MessageType { get; set; }
+        public ServiceControl.SagaAudit.SagaInfo OriginatesFromSaga { get; set; }
+        public System.TimeSpan ProcessingTime { get; set; }
+        public ServiceControl.Audit.Monitoring.EndpointDetails ReceivingEndpoint { get; set; }
+        public string RelatedToId { get; set; }
+        public ServiceControl.Audit.Monitoring.EndpointDetails SendingEndpoint { get; set; }
+        public System.Nullable<System.DateTime> TimeSent { get; set; }
     }
 }
 namespace ServiceControl.Audit.Auditing.MessagesView
@@ -80,7 +103,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public string ConversationId { get; set; }
         public System.TimeSpan CriticalTime { get; set; }
         public System.TimeSpan DeliveryTime { get; set; }
-        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>> Headers { get; set; }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> Headers { get; set; }
         public string Id { get; set; }
         public string InstanceId { get; set; }
         public System.Collections.Generic.List<ServiceControl.SagaAudit.SagaInfo> InvokedSagas { get; set; }
@@ -96,12 +119,12 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public ServiceControl.Audit.Monitoring.MessageStatus Status { get; set; }
         public System.Nullable<System.DateTime> TimeSent { get; set; }
     }
-    public class MessagesViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage, ServiceControl.Audit.Auditing.MessagesView.MessagesViewIndex.SortAndFilterOptions>
+    public class MessagesViewIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage, ServiceControl.Audit.Auditing.MessagesView.MessagesViewIndex.Result>
     {
         public MessagesViewIndex() { }
-        public class SortAndFilterOptions
+        public class Result
         {
-            public SortAndFilterOptions() { }
+            public Result() { }
             public string ConversationId { get; set; }
             public System.Nullable<System.TimeSpan> CriticalTime { get; set; }
             public System.Nullable<System.TimeSpan> DeliveryTime { get; set; }
@@ -113,20 +136,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             public string[] Query { get; set; }
             public string ReceivingEndpointName { get; set; }
             public ServiceControl.Audit.Monitoring.MessageStatus Status { get; set; }
-            public System.DateTime TimeSent { get; set; }
-        }
-    }
-    public class MessagesViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.Audit.Auditing.MessagesView.MessagesViewTransformer.Result>
-    {
-        public MessagesViewTransformer() { }
-        public class Result
-        {
-            public Result() { }
-            public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
-            public string Id { get; set; }
-            public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
-            public System.DateTime ProcessedAt { get; set; }
-            public string UniqueMessageId { get; set; }
+            public System.Nullable<System.DateTime> TimeSent { get; set; }
         }
     }
 }
@@ -139,25 +149,6 @@ namespace ServiceControl.Audit.Infrastructure.Installers
         public System.Threading.Tasks.Task Install(string identity) { }
     }
 }
-namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
-{
-    [System.ComponentModel.Composition.ExportMetadataAttribute("Bundle", "customDocumentExpiration")]
-    [System.ComponentModel.Composition.InheritedExportAttribute(typeof(Raven.Database.Plugins.IStartupTask))]
-    public class ExpiredDocumentsCleanerBundle : Raven.Database.Plugins.IStartupTask, System.IDisposable
-    {
-        public ExpiredDocumentsCleanerBundle() { }
-        public void Dispose() { }
-        public void Execute(Raven.Database.DocumentDatabase database) { }
-    }
-    public class ExpiryKnownEndpointsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Monitoring.KnownEndpoint>
-    {
-        public ExpiryKnownEndpointsIndex() { }
-    }
-    public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage>
-    {
-        public ExpiryProcessedMessageIndex() { }
-    }
-}
 namespace ServiceControl.Audit.Infrastructure.Settings
 {
     public class Settings
@@ -168,15 +159,13 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string ApiUrl { get; }
         public string AuditLogQueue { get; set; }
         public string AuditQueue { get; set; }
-        public System.TimeSpan AuditRetentionPeriod { get; }
+        public System.TimeSpan AuditRetentionPeriod { get; set; }
         public int DataSpaceRemainingThreshold { get; set; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
-        public int ExpirationProcessBatchSize { get; }
-        public int ExpirationProcessTimerInSeconds { get; }
-        public bool ExposeRavenDB { get; }
+        public int ExpirationProcessTimerInSeconds { get; set; }
         public bool ForwardAuditMessages { get; set; }
         public string Hostname { get; }
         public int HttpDefaultConnectionLimit { get; set; }
@@ -186,8 +175,8 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public int MaximumConcurrencyLevel { get; set; }
         public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
         public int Port { get; set; }
+        public string RavenDBNetCoreRuntimeVersion { get; }
         public string RootUrl { get; }
-        public bool RunCleanupBundle { get; set; }
         public bool RunInMemory { get; set; }
         public string ServiceControlQueueAddress { get; set; }
         public string ServiceName { get; }
@@ -278,7 +267,7 @@ namespace ServiceControl.Audit.SagaAudit
     {
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("sagas/{id}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(System.Guid id) { }
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(string id) { }
     }
 }
 namespace ServiceControl.Contracts.EndpointControl

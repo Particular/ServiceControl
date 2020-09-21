@@ -9,8 +9,8 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
 
     class ImportFailedAudits
     {
@@ -39,41 +39,42 @@ namespace ServiceControl.Audit.Auditing
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<T, I>();
-                using (var ie = await session.Advanced.StreamAsync(query, token)
-                    .ConfigureAwait(false))
+                var ie = await session.Advanced.StreamAsync(query, token)
+                    .ConfigureAwait(false);
+                while (!token.IsCancellationRequested && await ie.MoveNextAsync().ConfigureAwait(false))
                 {
-                    while (!token.IsCancellationRequested && await ie.MoveNextAsync().ConfigureAwait(false))
+                    FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
+                    try
                     {
-                        FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
-                        try
-                        {
-                            var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
-                            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                            messageContext.SetTaskCompletionSource(taskCompletionSource);
+                        var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                        var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                        messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                            await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
+                        await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
 
-                            await taskCompletionSource.Task.ConfigureAwait(false);
+                        await taskCompletionSource.Task.ConfigureAwait(false);
 
-                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
-                                .ConfigureAwait(false);
-                            succeeded++;
-                            if (Logger.IsDebugEnabled)
-                            {
-                                Logger.Debug($"Successfully re-imported failed audit message {dto.Id}.");
-                            }
-                        }
-                        catch (OperationCanceledException)
+                        session.Delete(ie.Current.Id, ie.Current.ChangeVector);
+
+                        succeeded++;
+                        if (Logger.IsDebugEnabled)
                         {
-                            // no-op
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Error($"Error while attempting to re-import failed audit message {dto.Id}.", e);
-                            failed++;
+                            Logger.Debug($"Successfully re-imported failed audit message {dto.Id}.");
                         }
                     }
+                    catch (OperationCanceledException)
+                    {
+                        // no-op
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error($"Error while attempting to re-import failed audit message {dto.Id}.", e);
+                        failed++;
+                    }
                 }
+
+                // HINT: We have already imported these messages so we should not allow cancellation of their deletion
+                await session.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
             }
 
             Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");

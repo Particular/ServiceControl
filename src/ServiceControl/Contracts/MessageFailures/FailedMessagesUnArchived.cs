@@ -4,6 +4,6 @@
 
     public class FailedMessagesUnArchived : IDomainEvent
     {
-        public int MessagesCount { get; set; }
+        public long MessagesCount { get; set; }
     }
 }

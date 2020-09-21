@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControl.Infrastructure.RavenDB;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
@@ -19,6 +20,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             transportIntegration = transportToUse;
         }
 
+        public EmbeddedDatabase Database => runner.Database;
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
         public string Port => runner.Port;

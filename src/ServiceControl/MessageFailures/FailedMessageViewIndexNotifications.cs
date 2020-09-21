@@ -6,10 +6,11 @@
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Changes;
 
-    class FailedMessageViewIndexNotifications : IObserver<IndexChangeNotification>
+
+    class FailedMessageViewIndexNotifications : IObserver<IndexChange>
     {
         public FailedMessageViewIndexNotifications(IDocumentStore store, IDomainEvents domainEvents)
         {
@@ -17,7 +18,7 @@
             this.domainEvents = domainEvents;
         }
 
-        public void OnNext(IndexChangeNotification value)
+        public void OnNext(IndexChange value)
         {
             try
             {

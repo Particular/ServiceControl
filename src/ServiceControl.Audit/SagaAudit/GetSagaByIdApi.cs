@@ -4,16 +4,16 @@ namespace ServiceControl.Audit.SagaAudit
     using System.Net.Http;
     using System.Threading.Tasks;
     using Auditing.MessagesView;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.SagaAudit;
 
-    class GetSagaByIdApi : ApiBase<Guid, SagaHistory>
+    class GetSagaByIdApi : ApiBase<string, SagaHistory>
     {
         public GetSagaByIdApi(IDocumentStore documentStore) : base(documentStore)
         {
         }
 
-        protected override async Task<QueryResult<SagaHistory>> Query(HttpRequestMessage request, Guid input)
+        protected override async Task<QueryResult<SagaHistory>> Query(HttpRequestMessage request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -28,7 +28,7 @@ namespace ServiceControl.Audit.SagaAudit
                     return QueryResult<SagaHistory>.Empty();
                 }
 
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
+                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
             }
         }
     }

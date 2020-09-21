@@ -120,7 +120,6 @@
 //      p.Parse (new string[]{"-a"});   // sets v != null
 //      p.Parse (new string[]{"-a+"});  // sets v != null
 //      p.Parse (new string[]{"-a-"});  // sets v == null
-//
 #if LINQ
 using System.Linq;
 #endif
@@ -129,7 +128,7 @@ using System.Linq;
 using NDesk.Options;
 #endif
 
-namespace Particular.ServiceControl.Hosting
+namespace ServiceControl.Hosting
 {
     using System;
     using System.Collections;

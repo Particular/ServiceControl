@@ -5,17 +5,18 @@
     using NServiceBus.Testing;
     using NUnit.Framework;
     using Operations;
+    using Raven.TestDriver;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Recoverability;
 
     [TestFixture]
-    public class ArchiveGroupTests
+    public class ArchiveGroupTests : RavenTestDriver
     {
         [Test]
         public async Task ArchiveGroup_skips_over_empty_batches_but_still_completes()
         {
             // Arrange
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var documentStore = GetDocumentStore())
             {
                 var groupId = "TestGroup";
                 var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
@@ -72,7 +73,7 @@
         public async Task ArchiveGroup_GetGroupDetails_doesnt_fail_with_invalid_groupId()
         {
             // Arrange
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var documentStore = GetDocumentStore())
             {
                 var failureGroupsViewIndex = new FailureGroupsViewIndex();
                 await failureGroupsViewIndex.ExecuteAsync(documentStore);

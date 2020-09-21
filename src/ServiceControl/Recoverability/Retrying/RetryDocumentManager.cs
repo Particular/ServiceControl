@@ -1,23 +1,25 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure;
     using MessageFailures;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
-    using Raven.Client;
-    using Raven.Client.Linq;
-    using Raven.Json.Linq;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Documents.Session;
+    using Raven.Client.Documents.Linq;
+    using Newtonsoft.Json.Linq;
+    using Raven.Client.Documents.Commands.Batches;
 
     class RetryDocumentManager
     {
-        public RetryDocumentManager(ShutdownNotifier notifier, IDocumentStore store)
+        public RetryDocumentManager(ShutdownNotifier notifier, IDocumentStore store, TimeSpan failedMessageRetentionPeriod)
         {
             this.store = store;
+            this.failedMessageRetentionPeriod = failedMessageRetentionPeriod;
             notifier.Register(() => { abort = true; });
         }
 
@@ -49,62 +51,72 @@ namespace ServiceControl.Recoverability
             return batchDocumentId;
         }
 
-        public static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
+        public PatchCommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
-            return new PatchCommandData
-            {
-                Patches = patchRequestsEmpty,
-                PatchesIfMissing = new[]
+            var expireTime = DateTime.UtcNow + failedMessageRetentionPeriod;
+
+            return new PatchCommandData(
+                FailedMessageRetry.MakeDocumentId(messageId),
+                null,
+                new PatchRequest
                 {
-                    new PatchRequest
-                    {
-                        Name = "FailedMessageId",
-                        Type = PatchCommandType.Set,
-                        Value = FailedMessage.MakeDocumentId(messageId)
-                    },
-                    new PatchRequest
-                    {
-                        Name = "RetryBatchId",
-                        Type = PatchCommandType.Set,
-                        Value = batchDocumentId
-                    }
+                    Script = @"// Need to put something here",
+                    Values = new Dictionary<string, object>()
                 },
-                Key = FailedMessageRetry.MakeDocumentId(messageId),
-                Metadata = defaultMetadata
-            };
+                new PatchRequest
+                {
+                    Script = $@"
+this.FailedMessageId = $failedMessageId
+this.RetryBatchId = $retryBatchId
+this[""@metadata""] = {{
+    ""@collection"": ""{FailedMessageRetry.CollectionName}"",
+    ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}"",
+    ""@expires"" : ""{expireTime:O}""
+}}
+",
+                    Values = new Dictionary<string, object>
+                    {
+                        ["failedMessageId"] = FailedMessage.MakeDocumentId(messageId),
+                        ["retryBatchId"] = batchDocumentId
+                    }
+                });
         }
 
         public virtual async Task MoveBatchToStaging(string batchDocumentId)
         {
-            try
-            {
-                await store.AsyncDatabaseCommands.PatchAsync(batchDocumentId,
-                    new[]
+            await store.Operations.SendAsync(new PatchOperation(
+                    batchDocumentId,
+                    null,
+                    new PatchRequest
                     {
-                        new PatchRequest
+                        Script = @"
+if(this.Status === $oldStatus) {
+    this.Status = $newStatus
+}",
+                        Values = new Dictionary<string, object>
                         {
-                            Type = PatchCommandType.Set,
-                            Name = "Status",
-                            Value = (int)RetryBatchStatus.Staging,
-                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
+                            ["oldStatus"] = (int)RetryBatchStatus.MarkingDocuments,
+                            ["newStatus"] = (int)RetryBatchStatus.Staging
                         }
-                    }).ConfigureAwait(false);
-            }
-            catch (ConcurrencyException)
-            {
-                log.DebugFormat("Ignoring concurrency exception while moving batch to staging {0}", batchDocumentId);
-            }
+                    }
+                    )).ConfigureAwait(false);
         }
 
-        public Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
+        public async Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
         {
-            return store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
+            using (var session = store.OpenAsyncSession())
+            {
+                session.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
+
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+
+            }
         }
 
         internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
         {
             var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                 .Statistics(out var stats)
                 .ToListAsync()
@@ -132,7 +144,9 @@ namespace ServiceControl.Recoverability
                 return false;
             }
 
-            return stats.IsStale || orphanedBatches.Any();
+            var indexUpToDateEnough = stats.Timestamp > cutoff;
+
+            return (stats.IsStale && indexUpToDateEnough) || orphanedBatches.Any();
         }
 
         internal async Task RebuildRetryOperationState(IAsyncDocumentSession session)
@@ -158,16 +172,9 @@ namespace ServiceControl.Recoverability
         }
 
         private IDocumentStore store;
+        readonly TimeSpan failedMessageRetentionPeriod;
         private bool abort;
         protected static string RetrySessionId = Guid.NewGuid().ToString();
-
-        private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
-                                    }}");
-
-        private static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
     }

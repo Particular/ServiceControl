@@ -6,8 +6,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Lucene.Net.Analysis.Standard;
     using MessageAuditing;
     using MessageFailures;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
     {
@@ -53,11 +52,9 @@ namespace ServiceControl.CompositeViews.Messages
                     ConversationId = (string)last.MessageMetadata["ConversationId"]
                 });
 
-            Index(x => x.Query, FieldIndexing.Analyzed);
+            Index(x => x.Query, FieldIndexing.Search);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
-
-            DisableInMemoryIndexing = true;
         }
 
         public class SortAndFilterOptions

@@ -6,7 +6,8 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <Description>Particular ServiceControl binaries for use by Particular.PlatformSample. Not intended for use outside of Particular.PlatformSample.</Description>
     <PackageProjectUrl>https://docs.particular.net/servicecontrol/</PackageProjectUrl>
-    <NoWarn>$(NoWarn);NU5100</NoWarn>
+    <NoWarn>$(NoWarn);NU5100;NU5123</NoWarn>
+    <!-- NU5123: Path too long. Caused by intro of Raven5 Embedded package -->
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 

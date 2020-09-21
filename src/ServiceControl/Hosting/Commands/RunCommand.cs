@@ -1,17 +1,17 @@
-﻿namespace Particular.ServiceControl.Commands
-{
-    using System;
-    using System.ServiceProcess;
-    using System.Threading.Tasks;
-    using Hosting;
+﻿using System;
+using System.ServiceProcess;
+using System.Threading.Tasks;
 
-    class RunCommand : AbstractCommand
+namespace ServiceControl.Hosting.Commands
+{
+    class RunCommand<T> : AbstractCommand
+        where T : ServiceBase, IStartableStoppableService, new()
     {
         public override async Task Execute(HostArguments args)
         {
             if (args.RunAsWindowsService)
             {
-                using (var service = new Host {ServiceName = args.ServiceName})
+                using (var service = new T {ServiceName = args.ServiceName})
                 {
                     //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
                     //      until service reports it has stopped.
@@ -27,7 +27,7 @@
 
         static async Task RunAsConsoleApp(HostArguments args)
         {
-            using (var service = new Host {ServiceName = args.ServiceName})
+            using (var service = new T {ServiceName = args.ServiceName})
             {
                 var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 service.OnStopping = () =>
@@ -36,7 +36,7 @@
                     completionSource.TrySetResult(true);
                 };
 
-                service.Start();
+                await service.Start().ConfigureAwait(false);
 
                 var r = new CancelWrapper(completionSource, service);
                 Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;
@@ -48,7 +48,7 @@
 
         class CancelWrapper
         {
-            public CancelWrapper(TaskCompletionSource<bool> syncEvent, Host host)
+            public CancelWrapper(TaskCompletionSource<bool> syncEvent, T host)
             {
                 this.syncEvent = syncEvent;
                 this.host = host;
@@ -63,7 +63,7 @@
             }
 
             readonly TaskCompletionSource<bool> syncEvent;
-            readonly Host host;
+            readonly T host;
         }
     }
 }

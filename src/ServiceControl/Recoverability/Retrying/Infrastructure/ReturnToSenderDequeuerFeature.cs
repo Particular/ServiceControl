@@ -5,7 +5,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class ReturnToSenderDequeuerFeature : Feature
     {

@@ -3,7 +3,8 @@ namespace ServiceControl.MessageFailures.Api
     using System;
     using System.Linq;
     using Contracts.Operations;
-    using Raven.Client.Indexes;
+    using Raven.Client;
+    using Raven.Client.Documents.Indexes;
 
     public class FailedMessageViewIndex : AbstractIndexCreationTask<FailedMessage>
     {
@@ -20,10 +21,8 @@ namespace ServiceControl.MessageFailures.Api
                     ReceivingEndpointName = ((EndpointDetails)processingAttemptsLast.MessageMetadata["ReceivingEndpoint"]).Name,
                     QueueAddress = processingAttemptsLast.FailureDetails.AddressOfFailingEndpoint,
                     processingAttemptsLast.FailureDetails.TimeOfFailure,
-                    LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                    LastModified = MetadataFor(message).Value<DateTime>(Constants.Documents.Metadata.LastModified).Ticks
                 };
-
-            DisableInMemoryIndexing = true;
         }
 
         public class SortAndFilterOptions : IHaveStatus

@@ -62,7 +62,6 @@
                     {
                         loggingSettings.LogPath,
                         LoggingLevel = loggingSettings.LoggingLevel.Name,
-                        RavenDBLogLevel = loggingSettings.RavenDBLogLevel.Name
                     }
                 },
                 DataRetention = new
@@ -74,7 +73,6 @@
                 {
                     settings.HttpDefaultConnectionLimit,
                     settings.ExternalIntegrationsDispatchingBatchSize,
-                    settings.ExpirationProcessBatchSize,
                     settings.ExpirationProcessTimerInSeconds
                 },
                 Transport = new

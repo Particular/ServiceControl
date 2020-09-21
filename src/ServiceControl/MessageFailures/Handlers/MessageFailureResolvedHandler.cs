@@ -1,13 +1,12 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
     using System.Threading.Tasks;
     using Api;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class MessageFailureResolvedHandler :
         IHandleMessages<MarkMessageFailureResolvedByRetry>,
@@ -35,9 +34,9 @@
             {
                 var prequery = session.Advanced
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
+                    .WhereEquals("Status", FailedMessageStatus.RetryIssued)
                     .AndAlso()
-                    .WhereBetweenOrEqual("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
+                    .WhereBetween("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
 
                 if (!string.IsNullOrWhiteSpace(message.QueueAddress))
                 {
@@ -46,16 +45,14 @@
                 }
 
                 var query = prequery
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 
-                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false);
+                while (await ie.MoveNextAsync().ConfigureAwait(false))
                 {
-                    while (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        await context.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id)
-                            .ConfigureAwait(false);
-                    }
+                    var documentId = ie.Current.Document.Id.Replace("FailedMessages/", "");
+                    await context.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = documentId)
+                        .ConfigureAwait(false);
                 }
             }
         }
@@ -77,7 +74,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
+                var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId))
                     .ConfigureAwait(false);
 
                 if (failedMessage == null)

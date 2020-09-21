@@ -1,4 +1,7 @@
-﻿namespace ServiceControl.Audit.Auditing
+﻿using Raven.Client.Documents.BulkInsert;
+using ServiceControl.Infrastructure;
+
+namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Collections.Concurrent;
@@ -9,24 +12,32 @@
     using BodyStorage;
     using EndpointPlugin.Messages.SagaState;
     using Infrastructure;
+    using Microsoft.IO;
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
     using Raven.Client;
-    using Raven.Client.Document;
+    using Raven.Client.Documents;
+    using Raven.Client.Json;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers)
+        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers, TimeSpan auditRetentionPeriod,
+            Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter, Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
+            this.auditRetentionPeriod = auditRetentionPeriod;
+            this.ingestedAuditMeter = ingestedAuditMeter;
+            this.ingestedSagaAuditMeter = ingestedSagaAuditMeter;
+            this.auditBulkInsertDurationMeter = auditBulkInsertDurationMeter;
+            this.sagaAuditBulkInsertDurationMeter = sagaAuditBulkInsertDurationMeter;
+            this.bulkInsertCommitDurationMeter = bulkInsertCommitDurationMeter;
         }
 
         public void Initialize(IMessageSession messageSession)
@@ -47,11 +58,7 @@
             BulkInsertOperation bulkInsert = null;
             try
             {
-                // deliberately not using the using statement because we dispose async explicitly
-                bulkInsert = store.BulkInsert(options: new BulkInsertOptions
-                {
-                    OverwriteExisting = true
-                });
+                bulkInsert = store.BulkInsert();
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
@@ -76,31 +83,54 @@
                             RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                         }
 
-                        if (Logger.IsDebugEnabled)
+                        using (auditBulkInsertDurationMeter.Measure())
                         {
-                            Logger.Debug($"Adding audit message for bulk storage");
+                            if (Logger.IsDebugEnabled)
+                            {
+                                Logger.Debug($"Adding audit message for bulk storage");
+                            }
+                            await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata())
+                                .ConfigureAwait(false);
+
+                            using (var stream = Memory.Manager.GetStream(Guid.NewGuid(), processedMessage.Id, context.Body, 0, context.Body.Length))
+                            {
+                                if (processedMessage.MessageMetadata.ContentType != null)
+                                {
+                                    await bulkInsert.AttachmentsFor(processedMessage.Id)
+                                        .StoreAsync("body", stream, (string)processedMessage.MessageMetadata.ContentType).ConfigureAwait(false);
+                                }
+                                else
+                                {
+                                    await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync("body", stream)
+                                        .ConfigureAwait(false);
+                                }
+                            }
                         }
-                        await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
+
                         storedContexts.Add(context);
+                        ingestedAuditMeter.Mark();
+
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
                         if (Logger.IsDebugEnabled)
                         {
                             Logger.Debug($"Adding SagaSnapshot message for bulk storage");
+                        }                        
+                        using (sagaAuditBulkInsertDurationMeter.Measure())
+                        {
+                            await bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata()).ConfigureAwait(false);
                         }
-                        await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
                         storedContexts.Add(context);
+                        ingestedSagaAuditMeter.Mark();
                     }
                 }
 
-                foreach (var endpoint in knownEndpoints.Values)
+                await StoreKnownEndpoints(knownEndpoints, bulkInsert).ConfigureAwait(false);
+
+                using (bulkInsertCommitDurationMeter.Measure())
                 {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug($"Adding known endpoint for bulk storage");
-                    }
-                    await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
+                    await bulkInsert.DisposeAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception e)
@@ -137,6 +167,41 @@
             }
 
             return storedContexts;
+        }
+
+        async Task StoreKnownEndpoints(Dictionary<string, KnownEndpoint> knownEndpoints, BulkInsertOperation bulkInsert)
+        {
+            foreach (var endpoint in knownEndpoints)
+            {
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Adding known endpoint for bulk storage");
+                }
+                if (endpointInfoPersistTimes.TryGetValue(endpoint.Key, out var timePersisted) 
+                    && timePersisted.AddSeconds(30) > DateTime.UtcNow)
+                {
+                    //Only store endpoint if it has not been stored in last 30 seconds
+                    continue;
+                }
+
+                await bulkInsert.StoreAsync(
+                    endpoint.Value,
+                    new MetadataAsDictionary(new Dictionary<string, object>
+                    {
+                        [Constants.Documents.Metadata.Expires] = endpoint.Value.LastSeen.Add(auditRetentionPeriod).ToString("O")
+                    })
+                ).ConfigureAwait(false);
+
+                endpointInfoPersistTimes[endpoint.Key] = DateTime.UtcNow;
+            }
+        }
+
+        MetadataAsDictionary GetExpirationMetadata()
+        {
+            return new MetadataAsDictionary
+            {
+                [Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
+            };
         }
 
         static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints, ProcessedMessage processedMessage)
@@ -176,7 +241,9 @@
             try
             {
                 SagaUpdatedMessage message;
-                using (var reader = new JsonTextReader(new StreamReader(new MemoryStream(context.Body))))
+                using (var memoryStream = Memory.Manager.GetStream(context.MessageId, context.Body, 0, context.Body.Length))
+                using (var streamReader = new StreamReader(memoryStream))
+                using (var reader = new JsonTextReader(streamReader))
                 {
                     message = sagaAuditSerializer.Deserialize<SagaUpdatedMessage>(reader);
                 }
@@ -206,26 +273,32 @@
 
             try
             {
-                var metadata = new ConcurrentDictionary<string, object>
+                var messageData = new ProcessedMessageData
                 {
-                    ["MessageId"] = messageId,
-                    ["MessageIntent"] = context.Headers.MessageIntent()
+                    MessageId = messageId,
+                    MessageIntent = context.Headers.MessageIntent()
                 };
 
                 var commandsToEmit = new List<ICommand>();
-                var enricherContext = new AuditEnricherContext(context.Headers, commandsToEmit, metadata);
+                var enricherContext = new AuditEnricherContext(context.Headers, commandsToEmit, messageData);
 
                 foreach (var enricher in enrichers)
                 {
                     enricher.Enrich(enricherContext);
                 }
 
-                await bodyStorageEnricher.StoreAuditMessageBody(context.Body, context.Headers, metadata)
-                    .ConfigureAwait(false);
+                var processingStartedTicks =
+                    context.Headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue)
+                        ? DateTimeExtensions.ToUtcDateTime(processingStartedValue).Ticks
+                        : DateTime.UtcNow.Ticks;
 
-                var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
+                var documentId = $"{processingStartedTicks}-{context.Headers.ProcessingId()}";
+
+                bodyStorageEnricher.StoreAuditMessageBody(documentId, context.Body, context.Headers, messageData);
+
+                var auditMessage = new ProcessedMessage(context.Headers, messageData)
                 {
-                    Id = $"ProcessedMessages/{context.Headers.ProcessingId()}"
+                    Id = $"ProcessedMessages/{documentId}"
                 };
 
                 if (Logger.IsDebugEnabled)
@@ -243,14 +316,14 @@
                 }
 
                 context.Extensions.Set(auditMessage);
-                if (metadata.TryGetValue("SendingEndpoint", out var sendingEndpoint))
+                if (messageData.SendingEndpoint != null)
                 {
-                    context.Extensions.Set("SendingEndpoint", (EndpointDetails)sendingEndpoint);
+                    context.Extensions.Set("SendingEndpoint", messageData.SendingEndpoint);
                 }
 
-                if (metadata.TryGetValue("ReceivingEndpoint", out var receivingEndpoint))
+                if (messageData.ReceivingEndpoint != null)
                 {
-                    context.Extensions.Set("ReceivingEndpoint", (EndpointDetails)receivingEndpoint);
+                    context.Extensions.Set("ReceivingEndpoint", messageData.ReceivingEndpoint);
                 }
 
                 context.Extensions.Set("AuditType", "ProcessedMessage");
@@ -268,8 +341,15 @@
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
+        readonly TimeSpan auditRetentionPeriod;
+        readonly Counter ingestedAuditMeter;
+        readonly Counter ingestedSagaAuditMeter;
+        readonly Meter auditBulkInsertDurationMeter;
+        readonly Meter sagaAuditBulkInsertDurationMeter;
+        readonly Meter bulkInsertCommitDurationMeter;
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        readonly Dictionary<string, DateTime> endpointInfoPersistTimes = new Dictionary<string, DateTime>();
         IMessageSession messageSession;
         static ILog Logger = LogManager.GetLogger<AuditPersister>();
     }
