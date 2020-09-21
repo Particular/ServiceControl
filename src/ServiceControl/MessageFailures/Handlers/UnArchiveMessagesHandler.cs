@@ -1,12 +1,13 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
     {
@@ -18,7 +19,7 @@
 
         public async Task Handle(UnArchiveMessages messages, IMessageHandlerContext context)
         {
-            FailedMessage[] failedMessages;
+            Dictionary<string, FailedMessage> failedMessages;
 
             using (var session = store.OpenAsyncSession())
             {
@@ -29,9 +30,9 @@
 
                 foreach (var failedMessage in failedMessages)
                 {
-                    if (failedMessage.Status == FailedMessageStatus.Archived)
+                    if (failedMessage.Value.Status == FailedMessageStatus.Archived)
                     {
-                        failedMessage.Status = FailedMessageStatus.Unresolved;
+                        failedMessage.Value.Status = FailedMessageStatus.Unresolved;
                     }
                 }
 
@@ -41,7 +42,7 @@
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
-                MessagesCount = failedMessages.Length
+                MessagesCount = failedMessages.Count
             }).ConfigureAwait(false);
         }
 

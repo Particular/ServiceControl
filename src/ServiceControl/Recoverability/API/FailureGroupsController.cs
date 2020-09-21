@@ -9,10 +9,11 @@
     using System.Web.Http;
     using Infrastructure.Extensions;
     using Infrastructure.WebApi;
+    using MessageFailures;
     using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class FailureGroupsController : ApiController
     {
@@ -81,12 +82,11 @@
                     .FilterByLastModifiedRange(Request)
                     .Sort(Request)
                     .Paging(Request)
-                    .SetResultTransformer(FailedMessageViewTransformer.Name)
-                    .SelectFields<FailedMessageView>()
+                    .SelectFields<FailedMessage>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return Negotiator.FromModel(Request, results)
+                return Negotiator.FromModel(Request, results.ToFailedMessageView())
                     .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
                     .WithEtag(stats);
             }
@@ -104,14 +104,14 @@
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
                     .FilterByLastModifiedRange(Request)
-                    .QueryResultAsync()
+                    .GetQueryResultAsync()
                     .ConfigureAwait(false);
 
                 var response = Request.CreateResponse(HttpStatusCode.OK);
 
                 return response
                     .WithTotalCount(queryResult.TotalResults)
-                    .WithEtag(queryResult.IndexEtag);
+                    .WithEtag($"{queryResult.ResultEtag}");
             }
         }
 

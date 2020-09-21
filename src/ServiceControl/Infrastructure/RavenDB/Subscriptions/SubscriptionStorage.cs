@@ -1,13 +1,15 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
+﻿using Sparrow.Json;
+
+namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
 {
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
-    using Raven.Client.Document;
-    using Raven.Client.Embedded;
+    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Util;
 
     class SubscriptionStorage : Feature
     {
@@ -23,30 +25,33 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var store = context.Settings.Get<EmbeddableDocumentStore>();
-
-            store.Conventions.FindClrType = (id, doc, metadata) =>
+            var store = context.Settings.Get<IDocumentStore>();
+            store.Conventions.FindClrType = (id, doc) =>
             {
-                var clrtype = metadata.Value<string>(Constants.RavenClrType);
-
-                // The CLR type cannot be assumed to be always there
-                if (clrtype == null)
+                if (doc.TryGet(Constants.Documents.Metadata.Key, out BlittableJsonReaderObject metadata) &&
+                    metadata.TryGet(Constants.Documents.Metadata.RavenClrType, out string clrType))
                 {
-                    return null;
+                    // The CLR type cannot be assumed to be always there
+                    if (clrType == null)
+                    {
+                        return null;
+                    }
+
+                    //TODO:RAVEN5 Need to add a test that handles subscription types with wrong metadata
+                    if (clrType.EndsWith(".Subscription, NServiceBus.Core"))
+                    {
+                        clrType = $"{typeof(Subscription).FullName}, {typeof(Subscription).Assembly.GetName().Name}";
+                    }
+                    else if (clrType.EndsWith(".Subscription, NServiceBus.RavenDB"))
+                    {
+                        clrType = $"{typeof(Subscription).FullName}, {typeof(Subscription).Assembly.GetName().Name}";
+                    }
+
+                    return clrType;
                 }
 
-                if (clrtype.EndsWith(".Subscription, NServiceBus.Core"))
-                {
-                    clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
-                }
-                else if (clrtype.EndsWith(".Subscription, NServiceBus.RavenDB"))
-                {
-                    clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
-                }
-
-                return clrtype;
+                return null;
             };
-
             context.Container.ConfigureComponent<SubscriptionPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<PrimeSubscriptions>(DependencyLifecycle.SingleInstance);
             context.RegisterStartupTask(b => b.Build<PrimeSubscriptions>());

@@ -13,7 +13,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
 

@@ -7,6 +7,5 @@ namespace ServiceControl.MessageFailures.InternalMessages
     {
         public DateTime To { get; set; }
         public DateTime From { get; set; }
-        public DateTime CutOff { get; set; }
     }
 }

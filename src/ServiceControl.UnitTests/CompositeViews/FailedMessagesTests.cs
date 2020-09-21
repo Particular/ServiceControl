@@ -8,10 +8,12 @@
     using MessageFailures;
     using MessageFailures.Api;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Session;
+    using Raven.TestDriver;
 
     [TestFixture]
-    public class FailedMessagesTests
+    public class FailedMessagesTests : RavenTestDriver
     {
         [Test]
         public void Should_allow_errors_with_no_metadata()
@@ -39,14 +41,13 @@
                 session.SaveChanges();
             }
 
-            RavenQueryStatistics stats;
+            QueryStatistics stats;
 
             do
             {
                 using (var session = documentStore.OpenSession())
                 {
                     var results = session.Advanced.DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .SetResultTransformer(FailedMessageViewTransformer.Name)
                         .Statistics(out stats)
                         .SelectFields<FailedMessageView>()
                         .ToList();
@@ -74,14 +75,10 @@
         [SetUp]
         public void SetUp()
         {
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
+            documentStore = GetDocumentStore();
 
             var customIndex = new FailedMessageViewIndex();
             customIndex.Execute(documentStore);
-
-            var transformer = new FailedMessageViewTransformer();
-
-            transformer.Execute(documentStore);
         }
 
         [TearDown]

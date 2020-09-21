@@ -7,7 +7,7 @@
 
     static class HeaderExtensions
     {
-        public static string ProcessingEndpointName(this IReadOnlyDictionary<string, string> headers)
+        public static string ProcessingEndpointName(this IReadOnlyDictionary<string, string> headers, bool throwIfUnknown = true)
         {
             if (headers.TryGetValue(Headers.ProcessingEndpoint, out var endpoint))
             {
@@ -28,12 +28,18 @@
                 return ExtractQueue(replyToAddress);
             }
 
-            if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes))
+            if (throwIfUnknown)
             {
-                throw new Exception($"No processing endpoint could be determined for message ({headers.MessageId()}) with EnclosedMessageTypes ({messageTypes})");
+
+                if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes))
+                {
+                    throw new Exception($"No processing endpoint could be determined for message ({headers.MessageId()}) with EnclosedMessageTypes ({messageTypes})");
+                }
+
+                throw new Exception($"No processing endpoint could be determined for message ({headers.MessageId()})");
             }
 
-            throw new Exception($"No processing endpoint could be determined for message ({headers.MessageId()})");
+            return default;
         }
 
         public static string UniqueId(this IReadOnlyDictionary<string, string> headers)
@@ -46,7 +52,7 @@
         public static string ProcessingId(this IReadOnlyDictionary<string, string> headers)
         {
             var messageId = headers.MessageId();
-            var processingEndpointName = headers.ProcessingEndpointName();
+            var processingEndpointName = headers.ProcessingEndpointName(throwIfUnknown: false);
             var processingStarted = headers.ProcessingStarted();
 
             if (messageId == default || processingEndpointName == default || processingStarted == default)

@@ -22,8 +22,7 @@
             if (sendingEndpoint != null)
             {
                 TryAddEndpoint(sendingEndpoint, context);
-
-                metadata.Add("SendingEndpoint", sendingEndpoint);
+                metadata.SendingEndpoint = sendingEndpoint;
             }
 
             var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
@@ -32,8 +31,7 @@
             if (receivingEndpoint != null)
             {
                 TryAddEndpoint(receivingEndpoint, context);
-
-                metadata.Add("ReceivingEndpoint", receivingEndpoint);
+                metadata.ReceivingEndpoint = receivingEndpoint;
             }
         }
 

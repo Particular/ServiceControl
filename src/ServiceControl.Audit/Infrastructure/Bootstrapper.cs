@@ -1,3 +1,7 @@
+using ServiceControl.Infrastructure;
+using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.SagaAudit;
+
 namespace ServiceControl.Audit.Infrastructure
 {
     using System;
@@ -22,15 +26,15 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using OWIN;
-    using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
+    using Raven.Embedded;
     using Settings;
     using Transports;
 
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, EmbeddedDatabase embeddedDatabase, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
             if (configuration == null)
             {
@@ -40,6 +44,7 @@ namespace ServiceControl.Audit.Infrastructure
             this.onCriticalError = onCriticalError;
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
+            this.embeddedDatabase = embeddedDatabase;
             this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
             Initialize();
@@ -89,9 +94,12 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
+            var metrics = new Metrics();
+            reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
+            containerBuilder.RegisterInstance(metrics).ExternallyOwned();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
             containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
 
@@ -128,6 +136,7 @@ namespace ServiceControl.Audit.Infrastructure
         public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
+            documentStore = await embeddedDatabase.PrepareDatabase("audit", typeof(Bootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
@@ -140,17 +149,19 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
-
+            reporter.Start();
             return bus;
         }
 
         public async Task Stop()
         {
+            await reporter.Stop().ConfigureAwait(false);
             notifier.Dispose();
             if (bus != null)
             {
                 await bus.Stop().ConfigureAwait(false);
             }
+
 
             documentStore.Dispose();
             WebApp?.Dispose();
@@ -218,15 +229,18 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        readonly EmbeddedDatabase embeddedDatabase;
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings.Settings settings;
+        IDocumentStore documentStore;
         private IContainer container;
         private BusInstance bus;
         private TransportSettings transportSettings;
         TransportCustomization transportCustomization;
         private static HttpClient httpClient;
+        static ILog metricsLog = LogManager.GetLogger("Metrics");
+        MetricsReporter reporter;
 
         class AllConstructorFinder : IConstructorFinder
         {

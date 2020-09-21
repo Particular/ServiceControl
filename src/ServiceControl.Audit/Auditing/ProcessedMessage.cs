@@ -9,11 +9,11 @@
     {
         public ProcessedMessage()
         {
-            MessageMetadata = new Dictionary<string, object>();
+            MessageMetadata = new ProcessedMessageData();
             Headers = new Dictionary<string, string>();
         }
 
-        public ProcessedMessage(Dictionary<string, string> headers, Dictionary<string, object> metadata)
+        public ProcessedMessage(Dictionary<string, string> headers, ProcessedMessageData metadata)
         {
             UniqueMessageId = headers.UniqueId();
             MessageMetadata = metadata;
@@ -33,7 +33,7 @@
 
         public string UniqueMessageId { get; set; }
 
-        public Dictionary<string, object> MessageMetadata { get; set; }
+        public ProcessedMessageData MessageMetadata { get; set; }
 
         public Dictionary<string, string> Headers { get; set; }
 

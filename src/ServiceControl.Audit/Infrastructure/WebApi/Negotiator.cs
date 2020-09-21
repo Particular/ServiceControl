@@ -8,9 +8,8 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
-    using QueryResult = Auditing.MessagesView.QueryResult;
+    using Auditing.MessagesView;
+    using Raven.Client.Documents.Session;
 
     static class Negotiator
     {
@@ -133,27 +132,31 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
             links.Add($"<{uriPath + query}>; rel=\"{rel}\"");
         }
 
-        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, RavenQueryStatistics stats)
-        {
-            var etag = stats.IndexEtag;
-
-            return response.WithEtag(etag);
-        }
-
-        public static HttpResponseMessage WithDeterministicEtag(this HttpResponseMessage response, string data)
+        static HttpResponseMessage WithDeterministicEtag(this HttpResponseMessage response, string data)
         {
             if (string.IsNullOrEmpty(data))
             {
                 return response;
             }
 
-            var guid = DeterministicGuid.MakeId(data);
-            return response.WithEtag(Etag.Parse(guid.ToString()));
+            var etag = data.GetHashCode();
+
+            response.Headers.ETag = new EntityTagHeaderValue($"\"{etag}\"");
+
+            return response;
         }
 
-        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, Etag etag)
+        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, QueryStatistics queryStats)
         {
-            response.Headers.ETag = new EntityTagHeaderValue($"\"{etag}\"");
+            return response.WithEtag(queryStats.ResultEtag);
+        }
+
+        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, long? etag)
+        {
+            if (etag.HasValue)
+            {
+                response.Headers.ETag = new EntityTagHeaderValue($"\"{etag.Value}\"");
+            }
             return response;
         }
 

@@ -1,7 +1,7 @@
 namespace ServiceControl.MessageFailures.Api
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class QueueAddressIndex : AbstractIndexCreationTask<FailedMessage, QueueAddress>
     {
@@ -23,8 +23,6 @@ namespace ServiceControl.MessageFailures.Api
                     PhysicalAddress = g.Key,
                     FailedMessageCount = g.Sum(m => m.FailedMessageCount)
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

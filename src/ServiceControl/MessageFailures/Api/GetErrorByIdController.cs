@@ -8,7 +8,8 @@
     using System.Web.Http;
     using Contracts.Operations;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Session;
 
     public class GetErrorByIdController : ApiController
     {
@@ -21,9 +22,10 @@
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorBy(Guid failedMessageId)
         {
+            var documentId = $"FailedMessages/{failedMessageId}";
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                var message = await session.LoadAsync<FailedMessage>(documentId).ConfigureAwait(false);
 
                 if (message == null)
                 {
@@ -38,9 +40,10 @@
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorLastBy(Guid failedMessageId)
         {
+            var documentId = $"FailedMessages/{failedMessageId}";
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                var message = await session.LoadAsync<FailedMessage>(documentId).ConfigureAwait(false);
 
                 if (message == null)
                 {
@@ -75,7 +78,7 @@
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                 Status = message.Status,
                 TimeOfFailure = failureDetails.TimeOfFailure,
-                LastModified = session.Advanced.GetMetadataFor(message)["Last-Modified"].Value<DateTime>(),
+                LastModified = session.Advanced.GetLastModifiedFor(message).Value,
                 Edited = wasEdited,
                 EditOf = wasEdited ? message.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"] : ""
             };

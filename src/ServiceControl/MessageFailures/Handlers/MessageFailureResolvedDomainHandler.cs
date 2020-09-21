@@ -1,11 +1,10 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Recoverability;
 
     class MessageFailureResolvedDomainHandler : IDomainHandler<MessageFailureResolvedByRetry>
@@ -41,13 +40,14 @@
 
         async Task<bool> MarkMessageAsResolved(string failedMessageId)
         {
+            //TODO: RAVEN5 check if failedMessageId contains collection name
             await retryDocumentManager.RemoveFailedMessageRetryDocument(failedMessageId).ConfigureAwait(false);
 
             using (var session = store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
+                var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId))
                     .ConfigureAwait(false);
 
                 if (failedMessage == null)

@@ -6,7 +6,7 @@
     using Contracts.Operations;
     using Infrastructure;
     using Infrastructure.DomainEvents;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class CustomChecksStorage
     {
@@ -23,7 +23,8 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                var customCheck = await session.LoadAsync<CustomCheck>(id)
+                var documentId = CustomCheck.MakeDocumentId(id);
+                var customCheck = await session.LoadAsync<CustomCheck>(documentId)
                     .ConfigureAwait(false);
 
                 if (customCheck == null ||
@@ -34,7 +35,7 @@
                     {
                         customCheck = new CustomCheck
                         {
-                            Id = id
+                            Id = documentId
                         };
                     }
 

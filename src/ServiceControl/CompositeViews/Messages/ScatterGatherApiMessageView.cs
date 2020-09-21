@@ -3,7 +3,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     abstract class ScatterGatherApiMessageView<TInput> : ScatterGatherApi<TInput, IList<MessagesView>>

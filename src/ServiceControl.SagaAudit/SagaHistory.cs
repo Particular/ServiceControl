@@ -10,8 +10,8 @@ namespace ServiceControl.SagaAudit
             Changes = new List<SagaStateChange>();
         }
 
-        public Guid Id { get; set; }
-        public Guid SagaId { get; set; }
+        public string Id { get; set; }
+        public string SagaId { get; set; }
         public string SagaType { get; set; }
         public List<SagaStateChange> Changes { get; set; }
     }

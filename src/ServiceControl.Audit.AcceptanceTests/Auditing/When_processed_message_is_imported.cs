@@ -83,6 +83,47 @@
             Assert.True(auditedMessage.Headers.Any(h => h.Key == Headers.MessageId));
         }
 
+        [Test]
+        public async Task Should_be_removed_after_retention_period()
+        {
+            SetSettings = settings =>
+            {
+                settings.ExpirationProcessTimerInSeconds = 1;
+                settings.AuditRetentionPeriod = TimeSpan.FromSeconds(10);
+            };
+
+            var context = await Define<MyContext>()
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
+                {
+                    Payload = "PAYLOAD"
+                })))
+                .WithEndpoint<Receiver>()
+                .Do("Ensure message processed", async c =>
+                {
+                    if (c.MessageId == null)
+                    {
+                        return false;
+                    }
+
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    return result;
+                })
+                .Do("Ensure message removed", async c =>
+                {
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == c.MessageId);
+                    if (!result)
+                    {
+                        c.MessageRemoved = true;
+                        return true;
+                    }
+                    return false;
+                })
+                .Done(c => c.MessageRemoved)
+                .Run();
+
+            Assert.IsTrue(context.MessageRemoved);
+        }
+
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
@@ -122,11 +163,13 @@
             public string Payload { get; set; }
         }
 
-        public class MyContext : ScenarioContext
+        public class MyContext : ScenarioContext, ISequenceContext
         {
             public string MessageId { get; set; }
 
             public string EndpointNameOfReceivingEndpoint { get; set; }
+            public int Step { get; set; }
+            public bool MessageRemoved { get; set; }
         }
     }
 }

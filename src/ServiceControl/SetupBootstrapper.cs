@@ -1,3 +1,6 @@
+using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.SagaAudit;
+
 namespace Particular.ServiceControl
 {
     using System.Threading.Tasks;
@@ -7,17 +10,19 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings settings, LoggingSettings loggingSettings, EmbeddedDatabase embeddedDatabase, string[] excludeAssemblies = null)
         {
             this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
+            this.loggingSettings = loggingSettings;
+            this.embeddedDatabase = embeddedDatabase;
         }
 
         public async Task Run(string username)
@@ -52,13 +57,12 @@ namespace Particular.ServiceControl
             var transportSettings = MapSettings(settings);
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = new EmbeddableDocumentStore();
+            var documentStore = await embeddedDatabase.PrepareDatabase("servicecontrol",typeof(SetupBootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
+            containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
 
-            using (documentStore)
             using (var container = containerBuilder.Build())
             {
                 await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, documentStore, configuration, false)
@@ -106,6 +110,8 @@ namespace Particular.ServiceControl
         }
 
         private readonly Settings settings;
+        readonly LoggingSettings loggingSettings;
+        readonly EmbeddedDatabase embeddedDatabase;
 
         private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
         string[] excludeAssemblies;

@@ -1,8 +1,7 @@
 namespace ServiceControl.SagaAudit
 {
-    using System;
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class SagaListIndex : AbstractMultiMapIndexCreationTask<SagaListIndex.Result>
     {
@@ -37,7 +36,7 @@ namespace ServiceControl.SagaAudit
 
         public class Result
         {
-            public Guid Id;
+            public string Id;
             public string Uri;
             public string SagaType;
         }

@@ -1,11 +1,10 @@
 ﻿namespace ServiceControl.Monitoring
 {
-    using System;
     using Contracts.Operations;
 
     public class KnownEndpoint
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public string HostDisplayName { get; set; }
         public bool Monitored { get; set; }
         public EndpointDetails EndpointDetails { get; set; }

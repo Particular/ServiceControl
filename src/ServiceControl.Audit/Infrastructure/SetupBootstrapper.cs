@@ -1,25 +1,30 @@
+using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.SagaAudit;
+
 namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Autofac;
     using NServiceBus;
-    using NServiceBus.Installation;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using Raven.Client;
-    using Raven.Client.Embedded;
-    using ServiceControl.Audit.Infrastructure.RavenDB;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Operations.Expiration;
+    using Raven.Embedded;
     using ServiceControl.LicenseManagement;
     using Settings;
     using Transports;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings.Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings.Settings settings, LoggingSettings loggingSettings, EmbeddedDatabase embeddedDatabase, string[] excludeAssemblies = null)
         {
             this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
+            this.loggingSettings = loggingSettings;
+            this.embeddedDatabase = embeddedDatabase;
         }
 
         public async Task Run(string username)
@@ -75,18 +80,16 @@ namespace ServiceControl.Audit.Infrastructure
             var containerBuilder = new ContainerBuilder();
 
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = new EmbeddableDocumentStore();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings).SingleInstance();
-            containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
 
-            using (documentStore)
+            var documentStore = await embeddedDatabase.PrepareDatabase("audit", typeof(SetupBootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
+            containerBuilder.Register(c => documentStore).ExternallyOwned();
+            containerBuilder.RegisterInstance(settings).SingleInstance();
+            containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
+            //containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
             using (var container = containerBuilder.Build())
             {
-                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
+                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { }, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
         }
@@ -130,9 +133,11 @@ namespace ServiceControl.Audit.Infrastructure
             return transportSettings;
         }
 
-        private readonly Settings.Settings settings;
+        readonly Settings.Settings settings;
+        readonly LoggingSettings loggingSettings;
+        readonly EmbeddedDatabase embeddedDatabase;
+        readonly string[] excludeAssemblies;
 
-        private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
-        string[] excludeAssemblies;
+        static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }
 }

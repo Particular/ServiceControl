@@ -2,82 +2,39 @@
 {
     using System.Net;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using MessageFailures;
+    using System.Net.Http.Headers;
 
     class GetBodyByIdApi : RoutedApi<string>
     {
-        public GetBodyByIdApi(IDocumentStore documentStore, IBodyStorage bodyStorage)
+        public GetBodyByIdApi(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
-            this.bodyStorage = bodyStorage;
         }
 
         protected override async Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, string input, string instanceId)
         {
-            var messageId = input;
-            messageId = messageId?.Replace("/", @"\");
-            string contentType;
-            int bodySize;
-
-            //We want to continue using attachments for now
-#pragma warning disable 618
-            var result = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);
-#pragma warning restore 618
-            Etag currentEtag;
-
-            HttpContent content;
-            if (!result.HasResult)
+            using (var session = documentStore.OpenAsyncSession())
             {
-                using (var session = documentStore.OpenAsyncSession())
-                {
-                    var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .Statistics(out var stats)
-                        .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
-                        .FirstOrDefaultAsync(f => f.MessageId == messageId)
-                        .ConfigureAwait(false);
+                var attachment = await session.Advanced.Attachments.GetAsync(FailedMessage.MakeDocumentId(input), "body")
+                    .ConfigureAwait(false);
 
-                    if (message == null)
-                    {
-                        return request.CreateResponse(HttpStatusCode.NotFound);
-                    }
+                var response = request.CreateResponse(HttpStatusCode.OK);
 
-                    if (message.BodyNotStored)
-                    {
-                        return request.CreateResponse(HttpStatusCode.NoContent);
-                    }
+                var content = new StreamContent(attachment.Stream);
+                await content.LoadIntoBufferAsync(attachment.Details.Size).ConfigureAwait(false);
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.Details.ContentType);
+                content.Headers.ContentLength = attachment.Details.Size;
+                //Message Id is in fact processing ID: a guid generated based on message ID, processing endpoint and processing time. It can safely be used as ETag.
+                response.Headers.ETag = new EntityTagHeaderValue($"\"{input}\"");
+                response.Content = content;
 
-                    if (message.Body == null)
-                    {
-                        return request.CreateResponse(HttpStatusCode.NotFound);
-                    }
-
-                    content = new StringContent(message.Body);
-                    contentType = message.ContentType;
-                    bodySize = message.BodySize;
-                    currentEtag = stats.IndexEtag;
-                }
+                return response;
             }
-            else
-            {
-                content = new StreamContent(result.Stream);
-                contentType = result.ContentType;
-                bodySize = result.BodySize;
-                currentEtag = result.Etag;
-            }
-
-            var response = request.CreateResponse(HttpStatusCode.OK);
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-            content.Headers.ContentLength = bodySize;
-            response.Headers.ETag = new EntityTagHeaderValue($"\"{currentEtag}\"");
-            response.Content = content;
-            return response;
         }
-
-        readonly IBodyStorage bodyStorage;
         readonly IDocumentStore documentStore;
     }
 }

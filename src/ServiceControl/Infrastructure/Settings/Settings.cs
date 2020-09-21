@@ -41,6 +41,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             Port = SettingsReader<int>.Read("Port", 33333);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
+            ExpirationProcessTimerInSeconds = GetExpirationProcessTimer();
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
@@ -65,8 +66,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
         public bool SkipQueueCreation { get; set; }
-
-        public bool RunCleanupBundle { get; set; }
 
         public string RootUrl
         {
@@ -96,8 +95,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int DatabaseMaintenancePort { get; set; }
 
         public string LicenseFileText { get; set; }
-
-        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
@@ -129,51 +126,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool RunRetryProcessor { get; set; } = true;
 
 
-        public int ExpirationProcessTimerInSeconds
-        {
-            get
-            {
-                if (expirationProcessTimerInSeconds < 0)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                return expirationProcessTimerInSeconds;
-            }
-        }
-
+        public int ExpirationProcessTimerInSeconds { get; set; }
         public TimeSpan? AuditRetentionPeriod { get; }
-
-        public TimeSpan ErrorRetentionPeriod { get; }
-
+        public TimeSpan ErrorRetentionPeriod { get; set; }
         public TimeSpan EventsRetentionPeriod { get; }
-
-        public int ExpirationProcessBatchSize
-        {
-            get
-            {
-                if (expirationProcessBatchSize < 1)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than 1. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                return expirationProcessBatchSize;
-            }
-        }
 
         public string ServiceName { get; }
 
@@ -200,6 +156,24 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
             }
+        }
+
+        int GetExpirationProcessTimer()
+        {
+            var expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
+            if (expirationProcessTimerInSeconds < 0)
+            {
+                logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                return ExpirationProcessTimerInSecondsDefault;
+            }
+
+            if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
+            {
+                logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                return ExpirationProcessTimerInSecondsDefault;
+            }
+
+            return expirationProcessTimerInSeconds;
         }
 
         public string GetConnectionString()
@@ -510,14 +484,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
-        int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
-        int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public const string Disabled = "!disable";
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
-        const int ExpirationProcessBatchSizeDefault = 65512;
-        const int ExpirationProcessBatchSizeMinimum = 10240;
         const int DataSpaceRemainingThresholdDefault = 20;
     }
 }

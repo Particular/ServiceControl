@@ -4,7 +4,7 @@ namespace ServiceControl.ExternalIntegrations
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     abstract class EventPublisher<TEvent, TDispatchContext> : IEventPublisher
         where TEvent : IDomainEvent

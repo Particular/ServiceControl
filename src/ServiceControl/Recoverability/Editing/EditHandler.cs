@@ -11,8 +11,7 @@
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
@@ -54,7 +53,7 @@
                         Id = FailedMessageEdit.MakeDocumentId(message.FailedMessageId),
                         FailedMessageId = message.FailedMessageId,
                         EditId = context.MessageId
-                    }, Etag.Empty).ConfigureAwait(false);
+                    }, FailedMessageEdit.MakeDocumentId(message.FailedMessageId)).ConfigureAwait(false);
                 }
                 else if (edit.EditId != context.MessageId)
                 {

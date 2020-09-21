@@ -37,7 +37,6 @@
                 {
                     messageType = GetMessageType(enclosedMessageTypes);
                     isSystemMessage = DetectSystemMessage(messageType);
-                    metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
                 }
 
                 metadata.Add("IsSystemMessage", isSystemMessage);

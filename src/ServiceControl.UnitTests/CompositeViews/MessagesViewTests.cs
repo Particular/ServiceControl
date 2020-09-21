@@ -1,18 +1,18 @@
 ﻿namespace ServiceControl.UnitTests.CompositeViews
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
+    using System.Collections.Generic;
     using Contracts.Operations;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
-    using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents;
+    using Raven.TestDriver;
     using ServiceControl.CompositeViews.Messages;
 
     [TestFixture]
-    public class MessagesViewTests
+    public class MessagesViewTests : RavenTestDriver
     {
         [Test]
         public void Filter_out_system_messages()
@@ -37,14 +37,14 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            WaitForIndexing(documentStore);
 
             using (var session = documentStore.OpenSession())
             {
                 var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Customize(x => x.WaitForNonStaleResults())
-                    .Where(x => !x.IsSystemMessage)
-                    .OfType<ProcessedMessage>()
+                    .Where(x => !x.IsSystemMessage, true)
+                    .As<ProcessedMessage>()
                     .ToList();
                 Assert.AreEqual(1, results.Count);
                 Assert.AreNotEqual("1", results.Single().Id);
@@ -86,14 +86,14 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            WaitForIndexing(documentStore);
 
             using (var session = documentStore.OpenSession())
             {
                 var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.CriticalTime)
                     .Where(x => x.CriticalTime.HasValue)
-                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
+                    .ProjectInto<ProcessedMessage>()
                     .First();
 
                 Assert.AreEqual("1", firstByCriticalTime.Id);
@@ -101,7 +101,7 @@
                 var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime.HasValue)
-                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
+                    .ProjectInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
             }
@@ -131,19 +131,19 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            WaitForIndexing(documentStore);
 
             using (var session = documentStore.OpenSession())
             {
                 var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.TimeSent)
-                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
+                    .ProjectInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("3", firstByTimeSent.Id);
 
                 var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
-                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
+                    .ProjectInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("1", firstByTimeSentDescription.Id);
             }
@@ -158,12 +158,13 @@
                 {
                     MessageMetadata = new Dictionary<string, object>
                     {
-                        {"MessageIntent", "1"},
+                        {"MessageIntent", "Send"},
                         {"TimeSent", null}
                     }
                 });
                 session.Store(new FailedMessage
                 {
+                    Status = FailedMessageStatus.Unresolved,
                     ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                     {
                         new FailedMessage.ProcessingAttempt
@@ -171,7 +172,7 @@
                             AttemptedAt = DateTime.Today,
                             MessageMetadata = new Dictionary<string, object>
                             {
-                                {"MessageIntent", "1"},
+                                {"MessageIntent", "Send"},
                                 {"TimeSent", null}
                             }
                         },
@@ -180,7 +181,7 @@
                             AttemptedAt = DateTime.Today,
                             MessageMetadata = new Dictionary<string, object>
                             {
-                                {"MessageIntent", "1"},
+                                {"MessageIntent", "Send"},
                                 {"TimeSent", null}
                             }
                         }
@@ -190,17 +191,22 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            WaitForIndexing(documentStore);
 
             using (var session = documentStore.OpenSession())
             {
                 var messageWithNoTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
+                    .ProjectInto<TimeSentProjection>()
                     .ToArray();
                 Assert.AreEqual(null, messageWithNoTimeSent[0].TimeSent);
                 Assert.AreEqual(null, messageWithNoTimeSent[1].TimeSent);
             }
+        }
+
+        class TimeSentProjection
+        {
+            public DateTime? TimeSent { get; set; }
         }
 
         [Test]
@@ -216,12 +222,12 @@
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "Send"} }
                         },
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "Send" } }
                         }
                     }
                 });
@@ -229,13 +235,13 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            WaitForIndexing(documentStore);
 
             using (var session = documentStore.OpenSession())
             {
                 var message = session.Query<FailedMessage>()
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
+                    .ToMessagesView()
                     .Single();
 
                 Assert.AreEqual(MessageStatus.RepeatedFailure, message.Status);
@@ -246,14 +252,10 @@
         [SetUp]
         public void SetUp()
         {
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
+            documentStore = GetDocumentStore();
 
             var customIndex = new MessagesViewIndex();
             customIndex.Execute(documentStore);
-
-            var transformer = new MessagesViewTransformer();
-
-            transformer.Execute(documentStore);
         }
 
         [TearDown]

@@ -2,8 +2,8 @@
 {
     using System.Threading.Tasks;
     using System.Web.Cors;
+    using Extensions;
     using Microsoft.Owin.Cors;
-    using Raven.Abstractions.Extensions;
 
     class Cors
     {

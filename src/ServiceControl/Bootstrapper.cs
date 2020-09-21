@@ -1,3 +1,6 @@
+using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.SagaAudit;
+
 namespace Particular.ServiceControl
 {
     using System;
@@ -26,8 +29,8 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
+    using Raven.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -35,7 +38,7 @@ namespace Particular.ServiceControl
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, EmbeddedDatabase embeddedDatabase, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
             if (configuration == null)
             {
@@ -44,6 +47,7 @@ namespace Particular.ServiceControl
 
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
+            this.embeddedDatabase = embeddedDatabase;
             this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
             Initialize();
@@ -97,7 +101,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
             containerBuilder.Register(c => bus.Bus);
@@ -131,6 +135,8 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
+            documentStore = await embeddedDatabase.PrepareDatabase("servicecontrol", typeof(Bootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
+
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
@@ -154,7 +160,6 @@ namespace Particular.ServiceControl
                 await bus.Stop().ConfigureAwait(false);
             }
 
-            documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
         }
@@ -238,7 +243,8 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        readonly EmbeddedDatabase embeddedDatabase;
+        private IDocumentStore documentStore;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private IContainer container;

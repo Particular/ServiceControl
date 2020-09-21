@@ -3,8 +3,8 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Linq;
     using MessageFailures;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
+    using Raven.Client;
+    using Raven.Client.Documents.Indexes;
 
     public class FailedMessages_ByGroup : AbstractIndexCreationTask<FailedMessage, FailureGroupMessageView>
     {
@@ -23,12 +23,10 @@ namespace ServiceControl.Recoverability
                     MessageType = (string)processingAttemptsLast.MessageMetadata["MessageType"],
                     TimeSent = (DateTime)processingAttemptsLast.MessageMetadata["TimeSent"],
                     TimeOfFailure = processingAttemptsLast.FailureDetails.TimeOfFailure,
-                    LastModified = MetadataFor(doc).Value<DateTime>("Last-Modified").Ticks
+                    LastModified = MetadataFor(doc).Value<DateTime>(Constants.Documents.Metadata.LastModified).Ticks
                 };
 
             StoreAllFields(FieldStorage.Yes);
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

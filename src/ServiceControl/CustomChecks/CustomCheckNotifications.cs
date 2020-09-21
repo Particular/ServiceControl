@@ -4,10 +4,10 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Changes;
 
-    class CustomCheckNotifications : IObserver<IndexChangeNotification>
+    class CustomCheckNotifications : IObserver<IndexChange>
     {
         public CustomCheckNotifications(IDocumentStore store, IDomainEvents domainEvents)
         {
@@ -15,7 +15,7 @@
             this.domainEvents = domainEvents;
         }
 
-        public void OnNext(IndexChangeNotification value)
+        public void OnNext(IndexChange value)
         {
             try
             {

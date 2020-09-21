@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
     <ProjectReference Include="..\ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
@@ -22,7 +23,6 @@
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
     <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.3.5" />
-    <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35302" />
     <PackageReference Include="NServiceBus" Version="7.4.3" />
     <PackageReference Include="NServiceBus.Autofac" Version="7.1.0" />
     <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
@@ -30,6 +30,8 @@
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Raw" Version="3.2.2" />
     <PackageReference Include="Microsoft.Owin.Hosting" Version="4.1.1" />
+    <PackageReference Include="RavenDB.Client" Version="5.0.2" />
+    <PackageReference Include="RavenDB.Embedded" Version="5.0.2" />
     <PackageReference Include="ServiceControl.Contracts" Version="1.2.0" />
     <PackageReference Include="Lucene.Net" Version="3.0.3" />
     <PackageReference Include="Rx-Linq" Version="2.2.5" />
@@ -39,13 +41,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Included to prevent a version conflict between ASBS and RavenDB -->
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Infrastructure\Hosting\Help.txt" />
+    <None Remove="Infrastructure\RavenDB\RavenLicense.json" />
     <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
-    <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
+    <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.json" />
   </ItemGroup>
 
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">

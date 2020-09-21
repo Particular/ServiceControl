@@ -1,3 +1,5 @@
+using ServiceControl.Infrastructure.RavenDB;
+
 namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
@@ -15,6 +17,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Web.Http;
     using AcceptanceTesting;
     using Autofac;
+    using Infrastructure;
     using Infrastructure.WebApi;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
@@ -24,6 +27,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
+    using Raven.Embedded;
     using Recoverability.MessageFailures;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -147,13 +151,15 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
+                embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder =>
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, embeddedDatabase, builder =>
                 {
                     builder.RegisterAssemblyTypes(typeof(FailedErrorsController).Assembly)
                         .AssignableTo<ApiController>()
@@ -163,31 +169,46 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            try
             {
-                var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app, typeof(FailedErrorsController).Assembly);
-                var appFunc = app.Build();
-
-                Handler = new OwinHttpMessageHandler(appFunc)
+                using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
                 {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                var httpClient = new HttpClient(Handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
-            }
+                    var app = new AppBuilder();
+                    bootstrapper.Startup.Configuration(app, typeof(FailedErrorsController).Assembly);
+                    var appFunc = app.Build();
 
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
-                await setupBootstrapper.Run(null);
-            }
+                    Handler = new OwinHttpMessageHandler(appFunc)
+                    {
+                        UseCookies = false,
+                        AllowAutoRedirect = false
+                    };
+                    var httpClient = new HttpClient(Handler);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    HttpClient = httpClient;
+                }
 
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+
+                using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+                {
+                    var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                    await setupBootstrapper.Run(null);
+                }
+
+                using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+                {
+                    Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+                }
+
+                if (Debugger.IsAttached)
+                {
+                    EmbeddedServer.Instance.OpenStudioInBrowser();
+                }
+            }
+            catch (Exception)
             {
-                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+                embeddedDatabase.Dispose();
+                embeddedDatabase = null;
+                throw;
             }
         }
 
@@ -198,9 +219,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 await bootstrapper.Stop().ConfigureAwait(false);
                 HttpClient.Dispose();
                 Handler.Dispose();
+                embeddedDatabase?.Dispose();
                 DeleteFolder(Settings.DbPath);
             }
 
+            embeddedDatabase = null;
             bootstrapper = null;
             Bus = null;
             HttpClient = null;
@@ -261,5 +284,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        EmbeddedDatabase embeddedDatabase;
     }
 }

@@ -1,18 +1,23 @@
-﻿namespace Particular.ServiceControl.Commands
-{
-    using System.Threading.Tasks;
-    using Hosting;
-    using ServiceBus.Management.Infrastructure.Settings;
+﻿using System.Threading.Tasks;
+using Particular.ServiceControl;
+using ServiceBus.Management.Infrastructure.Settings;
+using ServiceControl.Infrastructure.RavenDB;
 
+namespace ServiceControl.Hosting.Commands
+{
     class SetupCommand : AbstractCommand
     {
         public override async Task Execute(HostArguments args)
         {
-            await new SetupBootstrapper(new Settings(args.ServiceName)
-                {
-                    SkipQueueCreation = args.SkipQueueCreation
-                }).Run(args.Username)
+            var settings = new Settings(args.ServiceName)
+            {
+                SkipQueueCreation = args.SkipQueueCreation
+            };
+            var loggingSettings = new LoggingSettings(settings.ServiceName);
+            var embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
+            await new SetupBootstrapper(settings, loggingSettings, embeddedDatabase).Run(args.Username)
                 .ConfigureAwait(false);
+            embeddedDatabase.Dispose();
         }
     }
 }

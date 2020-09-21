@@ -3,7 +3,8 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
 
     class DeleteCustomCheckHandler : IHandleMessages<DeleteCustomCheck>
     {
@@ -15,8 +16,11 @@
 
         public async Task Handle(DeleteCustomCheck message, IMessageHandlerContext context)
         {
-            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null)
-                .ConfigureAwait(false);
+            using (var session = store.OpenSession())
+            {
+                await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(CustomCheck.MakeDocumentId(message.Id), null), session.Advanced.Context)
+                    .ConfigureAwait(false);
+            }
 
             await domainEvents.Raise(new CustomCheckDeleted {Id = message.Id})
                 .ConfigureAwait(false);

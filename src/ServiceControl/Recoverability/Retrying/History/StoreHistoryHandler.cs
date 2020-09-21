@@ -2,7 +2,7 @@
 {
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class StoreHistoryHandler : IDomainHandler<RetryOperationCompleted>

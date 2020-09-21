@@ -74,7 +74,6 @@
                 {
                     settings.HttpDefaultConnectionLimit,
                     settings.ExternalIntegrationsDispatchingBatchSize,
-                    settings.ExpirationProcessBatchSize,
                     settings.ExpirationProcessTimerInSeconds
                 },
                 Transport = new

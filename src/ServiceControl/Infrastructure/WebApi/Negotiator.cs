@@ -8,8 +8,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
     using QueryResult = CompositeViews.Messages.QueryResult;
 
     static class Negotiator
@@ -146,11 +145,11 @@ namespace ServiceControl.Infrastructure.WebApi
             links.Add($"<{uriPath + query}>; rel=\"{rel}\"");
         }
 
-        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, RavenQueryStatistics stats)
+        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, QueryStatistics stats)
         {
-            var etag = stats.IndexEtag;
+            var etag = stats.ResultEtag;
 
-            return response.WithEtag(etag);
+            return response.WithEtag($"{etag}");
         }
 
         public static HttpResponseMessage WithDeterministicEtag(this HttpResponseMessage response, string data)
@@ -161,10 +160,10 @@ namespace ServiceControl.Infrastructure.WebApi
             }
 
             var guid = DeterministicGuid.MakeId(data);
-            return response.WithEtag(Etag.Parse(guid.ToString()));
+            return response.WithEtag(guid.ToString());
         }
 
-        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, Etag etag)
+        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, string etag)
         {
             response.Headers.ETag = new EntityTagHeaderValue($"\"{etag}\"");
             return response;

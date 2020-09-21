@@ -62,7 +62,6 @@
                 {
                     settings.MaxBodySizeToStore,
                     settings.HttpDefaultConnectionLimit,
-                    settings.ExpirationProcessBatchSize,
                     settings.ExpirationProcessTimerInSeconds
                 },
                 Transport = new

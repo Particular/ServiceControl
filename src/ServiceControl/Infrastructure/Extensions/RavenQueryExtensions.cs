@@ -9,8 +9,8 @@ namespace ServiceControl.Infrastructure.Extensions
     using System.Text;
     using CompositeViews.Messages;
     using MessageFailures;
-    using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents.Linq;
+    using Raven.Client.Documents.Session;
 
     static class RavenQueryExtensions
     {
@@ -140,8 +140,7 @@ namespace ServiceControl.Infrastructure.Extensions
             sb.Append(")");
 
             source.AndAlso();
-            source.Where($"Status: {sb}");
-
+            source.WhereLucene("Status", sb.ToString());
             return source;
         }
 
@@ -167,7 +166,7 @@ namespace ServiceControl.Infrastructure.Extensions
                 var to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
                 source.AndAlso();
-                source.WhereBetweenOrEqual("LastModified", from.Ticks, to.Ticks);
+                source.WhereBetween("LastModified", from.Ticks, to.Ticks);
             }
             catch (Exception)
             {

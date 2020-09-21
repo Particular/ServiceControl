@@ -13,19 +13,22 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
     using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Documents.Session;
+    using Raven.Client.Exceptions;
 
     class RetryProcessor
     {
-        public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
+        public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager, TimeSpan failedMessageRetentionPeriod)
         {
             this.store = store;
             this.sender = sender;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
+            this.failedMessageRetentionPeriod = failedMessageRetentionPeriod;
             this.domainEvents = domainEvents;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
@@ -47,7 +50,7 @@ namespace ServiceControl.Recoverability
                 isRecoveringFromPrematureShutdown = false;
 
                 var stagingBatch = await session.Query<RetryBatch>()
-                    .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+                    .Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries)
                     .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging)
                     .ConfigureAwait(false);
 
@@ -187,16 +190,16 @@ namespace ServiceControl.Recoverability
 
             var failedMessageRetryDocs = await session.LoadAsync<FailedMessageRetry>(stagingBatch.FailureRetries).ConfigureAwait(false);
 
-            var failedMessageRetriesById = failedMessageRetryDocs
+            var failedMessageRetriesById = failedMessageRetryDocs.Values
                 .Where(r => r != null && r.RetryBatchId == stagingBatch.Id)
                 .Distinct(FailedMessageEqualityComparer.Instance)
                 .ToDictionary(x => x.FailedMessageId, x => x);
 
             foreach (var failedMessageRetry in failedMessageRetryDocs)
             {
-                if (failedMessageRetry != null)
+                if (failedMessageRetry.Value != null)
                 {
-                    session.Advanced.Evict(failedMessageRetry);
+                    session.Advanced.Evict(failedMessageRetry.Value);
                 }
             }
 
@@ -208,7 +211,7 @@ namespace ServiceControl.Recoverability
             }
 
             var failedMessagesDocs = await session.LoadAsync<FailedMessage>(failedMessageRetriesById.Keys).ConfigureAwait(false);
-            var messages = failedMessagesDocs.Where(m => m != null).ToArray();
+            var messages = failedMessagesDocs.Where(m => m.Value != null).Select(x => x.Value).ToArray();
 
             Log.Info($"Staging {messages.Length} messages for retry batch {stagingBatch.Id} with staging attempt Id {stagingId}.");
 
@@ -226,6 +229,7 @@ namespace ServiceControl.Recoverability
 
                 // should not be done concurrently due to sessions not being thread safe
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
+                session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = DateTime.UtcNow + failedMessageRetentionPeriod;
             }
 
             await TryDispatch(transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
@@ -282,26 +286,22 @@ namespace ServiceControl.Recoverability
 
                     Log.Warn($"Attempt {1} of {MaxStagingAttempts} to stage a retry message {failedMessage.UniqueMessageId} failed", e);
 
-                    commands[commandIndex] = new PatchCommandData
+                    commands[commandIndex] = new PatchCommandData(failedMessageRetry.Id, null, new PatchRequest
                     {
-                        Patches = new[]
-                        {
-                            new PatchRequest
-                            {
-                                Type = PatchCommandType.Set,
-                                Name = "StageAttempts",
-                                Value = 1
-                            }
-                        },
-                        Key = failedMessageRetry.Id
-                    };
+                        Script = "this.StageAttempts = 1",
+                        Values = new Dictionary<string, object>()
+                    }, null);
 
                     commandIndex++;
                 }
 
                 try
                 {
-                    await store.AsyncDatabaseCommands.BatchAsync(commands).ConfigureAwait(false);
+                    using (var session = store.OpenAsyncSession())
+                    {
+                        session.Advanced.Defer(commands);
+                        await session.SaveChangesAsync().ConfigureAwait(false);
+                    }
                 }
                 catch (ConcurrencyException)
                 {
@@ -327,15 +327,17 @@ namespace ServiceControl.Recoverability
                 {
                     Log.Warn($"Attempt {incrementedAttempts} of {MaxStagingAttempts} to stage a retry message {uniqueMessageId} failed", e);
 
-                    await IncrementAttemptCounter(failedMessageRetry)
-                        .ConfigureAwait(false);
+                    IncrementAttemptCounter(failedMessageRetry);
                 }
                 else
                 {
                     Log.Error($"Retry message {uniqueMessageId} reached its staging retry limit ({MaxStagingAttempts}) and is going to be removed from the batch.", e);
 
-                    await store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null)
-                        .ConfigureAwait(false);
+                    using (var session = store.OpenAsyncSession())
+                    {
+                        session.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId));
+                        await session.SaveChangesAsync().ConfigureAwait(false);
+                    }
 
                     await domainEvents.Raise(new MessageFailedInStaging
                     {
@@ -347,20 +349,15 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        async Task IncrementAttemptCounter(FailedMessageRetry message)
+        void IncrementAttemptCounter(FailedMessageRetry message)
         {
             try
             {
-                await store.AsyncDatabaseCommands.PatchAsync(message.Id,
-                    new[]
-                    {
-                        new PatchRequest
-                        {
-                            Type = PatchCommandType.Set,
-                            Name = "StageAttempts",
-                            Value = message.StageAttempts + 1
-                        }
-                    }).ConfigureAwait(false);
+                using (var session = store.OpenSession())
+                {
+                    session.Advanced.Patch<FailedMessageRetry, int>(message.Id, x => x.StageAttempts, message.StageAttempts + 1 );
+                    session.SaveChanges();
+                }
             }
             catch (ConcurrencyException)
             {
@@ -388,6 +385,10 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
             headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
+            if (attempt.MessageMetadata.ContainsKey("ContentType")) //Message has body
+            {
+                headersToRetryWith["ServiceControl.Retry.BodyId"] = message.UniqueMessageId;
+            }
 
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 
@@ -402,6 +403,7 @@ namespace ServiceControl.Recoverability
         IDomainEvents domainEvents;
         ReturnToSenderDequeuer returnToSender;
         RetryingManager retryingManager;
+        readonly TimeSpan failedMessageRetentionPeriod;
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
