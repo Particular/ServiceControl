@@ -12,7 +12,7 @@
     using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class FailureGroupsController : ApiController
     {

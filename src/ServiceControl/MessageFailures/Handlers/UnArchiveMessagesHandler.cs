@@ -6,7 +6,7 @@
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
     {

@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client;
+    using Raven.Client.Documents;
     using Raven.Json.Linq;
 
     class RavenAttachmentsBodyStorage : IBodyStorage

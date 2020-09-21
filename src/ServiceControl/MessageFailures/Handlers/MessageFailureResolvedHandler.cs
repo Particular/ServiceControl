@@ -7,7 +7,7 @@
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class MessageFailureResolvedHandler :
         IHandleMessages<MarkMessageFailureResolvedByRetry>,
@@ -77,7 +77,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
+                var failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId)
                     .ConfigureAwait(false);
 
                 if (failedMessage == null)

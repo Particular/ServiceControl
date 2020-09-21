@@ -7,9 +7,8 @@
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Queries;
 
     class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
     {

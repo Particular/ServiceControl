@@ -5,8 +5,7 @@
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class GetBodyByIdApi : RoutedApi<string>
     {

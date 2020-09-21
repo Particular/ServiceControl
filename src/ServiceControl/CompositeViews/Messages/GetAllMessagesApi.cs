@@ -5,7 +5,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class GetAllMessagesApi : ScatterGatherApiMessageView<NoInput>

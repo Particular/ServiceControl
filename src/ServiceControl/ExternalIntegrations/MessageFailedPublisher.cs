@@ -6,7 +6,7 @@ namespace ServiceControl.ExternalIntegrations
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using MessageFailures;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {

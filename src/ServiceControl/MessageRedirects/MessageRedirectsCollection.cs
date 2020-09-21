@@ -4,8 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     class MessageRedirectsCollection
     {
