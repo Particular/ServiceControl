@@ -1,4 +1,7 @@
-﻿namespace ServiceControl.Audit.Auditing
+﻿using System.Diagnostics;
+using ServiceControl.Infrastructure;
+
+namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Collections.Generic;
@@ -11,7 +14,7 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class AuditIngestionComponent
     {
@@ -24,8 +27,13 @@
         AuditIngestor ingestor;
         Task ingestionWorker;
         Settings settings;
+        Counter receivedMeter;
+        Meter batchSizeMeter;
+        Meter batchDurationMeter;
+        static readonly long frequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
         public AuditIngestionComponent(
+            Metrics metrics,
             Settings settings,
             IDocumentStore documentStore,
             RawEndpointFactory rawEndpointFactory,
@@ -35,9 +43,20 @@
             AuditIngestionCustomCheck.State ingestionState
         )
         {
+            receivedMeter = metrics.GetCounter("Audit ingestion - received");
+            batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");
+            var ingestedAuditMeter = metrics.GetCounter("Audit ingestion - ingested audit");
+            var ingestedSagaAuditMeter = metrics.GetCounter("Audit ingestion - ingested saga audit");
+            var auditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - audit bulk insert duration", frequencyInMilliseconds);
+            var sagaAuditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - saga audit bulk insert duration", frequencyInMilliseconds);
+            var bulkInsertCommitDurationMeter = metrics.GetMeter("Audit ingestion - bulk insert commit duration", frequencyInMilliseconds);
+            batchDurationMeter = metrics.GetMeter("Audit ingestion - batch processing duration", frequencyInMilliseconds);
+
             this.settings = settings;
-            var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, FailedMessageFactory, OnCriticalError);
-            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers);
+            var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, OnCriticalError);
+            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, settings.AuditRetentionPeriod, 
+                ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
+
             ingestor = new AuditIngestor(auditPersister, settings);
 
             var ingestion = new AuditIngestion(
@@ -45,6 +64,8 @@
                 {
                     var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     messageContext.SetTaskCompletionSource(taskCompletionSource);
+
+                    receivedMeter.Mark();
 
                     await channel.Writer.WriteAsync(messageContext).ConfigureAwait(false);
                     await taskCompletionSource.Task.ConfigureAwait(false);
@@ -57,6 +78,7 @@
             watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, ingestionState.ReportError,
                 ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, log, "audit message ingestion");
 
+
             channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(settings.MaximumConcurrencyLevel)
             {
                 SingleReader = true,
@@ -66,14 +88,6 @@
             });
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
-        }
-
-        FailedAuditImport FailedMessageFactory(FailedTransportMessage msg)
-        {
-            return new FailedAuditImport
-            {
-                Message = msg
-            };
         }
 
         Task OnCriticalError(string failure, Exception arg2)
@@ -104,13 +118,27 @@
                 // will only enter here if there is something to read.
                 try
                 {
-                    // as long as there is something to read this will fetch up to MaximumConcurrency items
-                    while (channel.Reader.TryRead(out var context))
+
+                    for (var attempts = 0; attempts <= 3; attempts++)
                     {
-                        contexts.Add(context);
+                        // as long as there is something to read this will fetch up to MaximumConcurrency items
+                        while (channel.Reader.TryRead(out var context))
+                        {
+                            contexts.Add(context);
+                        }
+
+                        if (contexts.Count < settings.MaximumConcurrencyLevel)
+                        {
+                            await Task.Delay(5)
+                                .ConfigureAwait(false);
+                        }
                     }
 
-                    await ingestor.Ingest(contexts).ConfigureAwait(false);
+                    batchSizeMeter.Mark(contexts.Count);
+                    using (batchDurationMeter.Measure())
+                    {
+                        await ingestor.Ingest(contexts).ConfigureAwait(false);
+                    }
                 }
                 catch (Exception e) // show must go on
                 {

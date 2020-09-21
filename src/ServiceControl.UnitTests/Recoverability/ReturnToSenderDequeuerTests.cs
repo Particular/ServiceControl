@@ -7,14 +7,16 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using MessageFailures;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Operations.BodyStorage;
+    using Raven.Client.Documents.Operations.Attachments;
+    using Raven.TestDriver;
     using ServiceControl.Recoverability;
 
     [TestFixture]
-    public class ReturnToSenderDequeuerTests
+    public class ReturnToSenderDequeuerTests : RavenTestDriver
     {
         private MessageContext CreateMessage(string id, Dictionary<string, string> headers)
         {
@@ -40,7 +42,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+            await new ReturnToSender(null).HandleMessage(message, sender)
                 .ConfigureAwait(false);
 
             Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"));
@@ -51,18 +53,41 @@
         {
             var sender = new FakeSender();
 
+            var uniqueMessageId = Guid.NewGuid();
+            var documentId = $"FailedMessages/{uniqueMessageId}";
+            var messageBody = "MessageBody";
+
             var headers = new Dictionary<string, string>
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
-                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId"
+                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
+                ["ServiceControl.Retry.BodyId"] = uniqueMessageId.ToString()
             };
+
+            var store = GetDocumentStore();
+
+            using (var session = store.OpenAsyncSession())
+            {
+                await session.StoreAsync(new FailedMessage
+                {
+                    Id = documentId
+                });
+
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(messageBody)))
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    session.Advanced.Attachments.Store(documentId, "body", stream);
+                    await session.SaveChangesAsync();
+                }
+            }
+
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+            await new ReturnToSender(store).HandleMessage(message, sender)
                 .ConfigureAwait(false);
 
-            Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
+            Assert.AreEqual(messageBody, Encoding.UTF8.GetString(sender.Message.Body));
         }
 
         [Test]
@@ -78,7 +103,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+            await new ReturnToSender(null).HandleMessage(message, sender)
                 .ConfigureAwait(false);
 
             Assert.AreEqual("Proxy", sender.Destination);
@@ -97,7 +122,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+            await new ReturnToSender(null).HandleMessage(message, sender)
                 .ConfigureAwait(false);
 
             Assert.AreEqual("TargetEndpoint", sender.Destination);
@@ -119,7 +144,7 @@
 
             try
             {
-                await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+                await new ReturnToSender(null).HandleMessage(message, sender)
                     .ConfigureAwait(false);
             }
             catch (Exception)
@@ -151,24 +176,6 @@
                 Message = operation.Message;
                 Destination = operation.Destination;
                 return Task.FromResult(0);
-            }
-        }
-
-        class FakeBodyStorage : IBodyStorage
-        {
-            public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<StreamResult> TryFetch(string bodyId)
-            {
-                var stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)); //Echo back the body ID.
-                return Task.FromResult(new StreamResult
-                {
-                    HasResult = true,
-                    Stream = stream
-                });
             }
         }
     }

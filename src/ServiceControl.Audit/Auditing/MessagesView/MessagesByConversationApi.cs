@@ -4,8 +4,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
-    using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents;
     using ServiceControl.Infrastructure.Extensions;
 
     class MessagesByConversationApi : ApiBase<string, IList<MessagesView>>
@@ -18,12 +17,12 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         {
             using (var session = Store.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var results = await session.Query<MessagesViewIndex.Result, MessagesViewIndex>()
                     .Statistics(out var stats)
-                    .Where(m => m.ConversationId == conversationId)
+                    .Where(m => m.ConversationId == conversationId, false)
                     .Sort(request)
                     .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToMessagesView()
                     .ToListAsync()
                     .ConfigureAwait(false);
 

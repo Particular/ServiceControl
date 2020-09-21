@@ -5,19 +5,16 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using NLog;
     using NLog.Common;
 
-    class LoggingSettings
+    public class LoggingSettings
     {
-        public LoggingSettings(string serviceName, LogLevel defaultLevel = null, LogLevel defaultRavenDBLevel = null, string logPath = null, bool logToConsole = true)
+        public LoggingSettings(string serviceName, LogLevel defaultLevel = null, string logPath = null, bool logToConsole = true)
         {
             LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
-            RavenDBLogLevel = InitializeLevel("RavenDBLogLevel", defaultRavenDBLevel ?? LogLevel.Warn);
             LogPath = Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", logPath ?? DefaultLogPathForInstance(serviceName)));
             LogToConsole = logToConsole;
         }
 
         public LogLevel LoggingLevel { get; }
-
-        public LogLevel RavenDBLogLevel { get; }
 
         public string LogPath { get; }
 

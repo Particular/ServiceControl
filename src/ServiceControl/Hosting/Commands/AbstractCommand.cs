@@ -1,8 +1,7 @@
-﻿namespace Particular.ServiceControl.Commands
-{
-    using System.Threading.Tasks;
-    using Hosting;
+﻿using System.Threading.Tasks;
 
+namespace ServiceControl.Hosting.Commands
+{
     abstract class AbstractCommand
     {
         public abstract Task Execute(HostArguments args);

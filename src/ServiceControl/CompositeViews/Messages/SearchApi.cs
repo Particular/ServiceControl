@@ -2,10 +2,13 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
-    using Raven.Client;
+    using MessageFailures;
+    using MessageFailures.Api;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class SearchApi : ScatterGatherApiMessageView<string>
@@ -23,11 +26,11 @@ namespace ServiceControl.CompositeViews.Messages
                     .Search(x => x.Query, input)
                     .Sort(request)
                     .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .As<FailedMessage>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+                return new QueryResult<IList<MessagesView>>(results.ToMessagesView().ToList(), stats.ToQueryStatsInfo());
             }
         }
     }

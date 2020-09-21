@@ -1,9 +1,8 @@
 ﻿namespace ServiceControl.UnitTests.Operations
 {
     using System;
-    using System.Threading.Tasks;
     using NUnit.Framework;
-    using ServiceControl.MessageFailures;
+    using MessageFailures;
     using ServiceControl.Recoverability;
 
     [TestFixture]

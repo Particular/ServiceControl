@@ -1,3 +1,5 @@
+using ServiceControl.Infrastructure.RavenDB;
+
 namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 {
     using System;
@@ -24,6 +26,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.WebApi;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
@@ -57,8 +60,27 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var auditInstancePort = FindAvailablePort(mainInstanceDbPort + 1);
             var auditInstanceDbPort = FindAvailablePort(auditInstancePort + 1);
 
-            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort, auditInstanceDbPort).ConfigureAwait(false);
-            await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort).ConfigureAwait(false);
+            var databaseUrl = $"http://localhost:{mainInstanceDbPort}";
+
+            dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+            var ravenBinaryPath = SettingsReader<string>.Read("ServiceControl", "RavenDBBinaryFolder",
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenDBServer"));
+
+            embeddedDatabase = EmbeddedDatabase.Start(dbPath, Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), 5, databaseUrl);
+
+            try
+            {
+                await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort, auditInstanceDbPort).ConfigureAwait(false);
+                await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                embeddedDatabase.Dispose();
+                embeddedDatabase = null;
+                throw;
+            }
+            
         }
 
         static int FindAvailablePort(int startPort)
@@ -90,7 +112,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
-                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                DbPath = dbPath,
                 ForwardErrorMessages = false,
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
@@ -169,14 +191,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customEndpointConfiguration(configuration);
 
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+
             Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder => { });
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, embeddedDatabase,  builder => { });
                 bootstrappers[instanceName] = bootstrapper;
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
@@ -201,7 +223,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, excludedAssemblies
                     .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
@@ -223,7 +245,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
-                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                DbPath = dbPath,
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
@@ -294,13 +316,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customAuditEndpointConfiguration(configuration);
 
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+            var loggingSettings = new ServiceControl.Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
+
             ServiceControl.Audit.Infrastructure.Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new ServiceControl.Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
                 bootstrapper = new ServiceControl.Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -312,7 +334,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { });
+                }, settings, configuration, loggingSettings, embeddedDatabase, builder => { });
                 bootstrappers[instanceName] = bootstrapper;
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
@@ -337,7 +359,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new ServiceControl.Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                var setupBootstrapper = new ServiceControl.Audit.Infrastructure.SetupBootstrapper(settings, loggingSettings, embeddedDatabase, excludedAssemblies
                     .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
@@ -359,10 +381,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     await bootstrappers[instanceName].Stop().ConfigureAwait(false);
                     HttpClients[instanceName].Dispose();
                     Handlers[instanceName].Dispose();
-                    DeleteFolder(settings.DbPath);
                 }
             }
-
+            embeddedDatabase?.Dispose();
+            embeddedDatabase = null;
+            DeleteFolder(dbPath);
             bootstrappers.Clear();
             Busses.Clear();
             HttpClients.Clear();
@@ -426,6 +449,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
+        EmbeddedDatabase embeddedDatabase;
+        string dbPath;
 
         class ForwardingHandler : DelegatingHandler
         {

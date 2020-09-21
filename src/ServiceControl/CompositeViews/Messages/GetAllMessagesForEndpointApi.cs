@@ -2,11 +2,12 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
-    using Raven.Client;
-    using Raven.Client.Linq;
+    using MessageFailures;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<string>
@@ -21,15 +22,15 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .IncludeSystemMessagesWhere(request)
-                    .Where(m => m.ReceivingEndpointName == input)
+                    .Where(m => m.ReceivingEndpointName == input, false)
                     .Statistics(out var stats)
                     .Sort(request)
                     .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .As<FailedMessage>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+                return new QueryResult<IList<MessagesView>>(results.ToMessagesView().ToList(), stats.ToQueryStatsInfo());
             }
         }
     }

@@ -6,7 +6,7 @@ namespace ServiceControl.ExternalIntegrations
     using System.Threading.Tasks;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
     {

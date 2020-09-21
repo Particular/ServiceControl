@@ -55,7 +55,7 @@
             log.Info($"Upgrading existing instance {instance.Name}...");
             var serviceControlUpgradeOptions = new ServiceControlUpgradeOptions
             {
-                UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version), 
+                UpgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version), 
                 RemoteUrl = newAuditInstance.Url
             };
 
@@ -91,12 +91,16 @@
 
         Result ValidateUpgradeVersion(ServiceControlInstance instance)
         {
-            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
-            if (instance.Version < upgradeInfo.CurrentMinimumVersion)
+            var upgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
+            var option = upgradeInfo.CanUpgradeFrom(instance.Version);
+            if (option == UpgradeOption.IntermediateUpgradeRequired)
             {
                 return Result.Failed($"An interim upgrade to version {upgradeInfo.RecommendedUpgradeVersion} is required before upgrading to version {serviceControlInstaller.ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{upgradeInfo.RecommendedUpgradeVersion}");
             }
-
+            if (option == UpgradeOption.NotPossible)
+            {
+                return Result.Failed("Upgrade aborted. Upgrade in place to Version 5 is not possible. Please consult the upgrade guide.");
+            }
             return Result.Success;
         }
 

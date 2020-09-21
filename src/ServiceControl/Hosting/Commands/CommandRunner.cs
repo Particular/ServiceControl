@@ -1,10 +1,9 @@
-﻿namespace Particular.ServiceControl.Commands
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Hosting;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
+namespace ServiceControl.Hosting.Commands
+{
     class CommandRunner
     {
         public CommandRunner(List<Type> commands)

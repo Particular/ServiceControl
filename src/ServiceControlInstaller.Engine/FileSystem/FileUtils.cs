@@ -98,6 +98,12 @@ namespace ServiceControlInstaller.Engine.FileSystem
                             continue;
                         }
 
+                        var directoryPath = Path.GetDirectoryName(filename);
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+
                         using (var stream = new FileStream(filename, FileMode.OpenOrCreate))
                         {
                             e.Extract(stream);

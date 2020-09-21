@@ -5,15 +5,16 @@
     using System.Linq;
     using NUnit.Framework;
     using Particular.Approvals;
+    using Raven.TestDriver;
     using ServiceControl.SagaAudit;
 
     [TestFixture]
-    class SagaDetailsIndexTests
+    class SagaDetailsIndexTests : RavenTestDriver
     {
         [Test]
         public void RunMapReduce()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var store = GetDocumentStore())
             {
                 store.ExecuteIndex(new SagaDetailsIndex());
                 using (var session = store.OpenSession())
@@ -26,7 +27,7 @@
                     session.SaveChanges();
                 }
 
-                store.WaitForIndexing();
+                WaitForIndexing(store);
 
                 using (var session = store.OpenSession())
                 {
@@ -41,7 +42,7 @@
         {
             yield return new SagaSnapshot
             {
-                SagaId = Guid.Empty,
+                SagaId = Guid.Empty.ToString(),
                 SagaType = "MySaga1",
                 Endpoint = "MyEndpoint",
                 FinishTime = new DateTime(2001, 1, 1, 1, 1, 1, DateTimeKind.Utc),
@@ -51,7 +52,7 @@
             };
             yield return new SagaHistory
             {
-                SagaId = Guid.Empty,
+                SagaId = Guid.Empty.ToString(),
                 SagaType = "MySaga1",
                 Changes = new List<SagaStateChange>
                 {
@@ -67,7 +68,7 @@
             };
             yield return new SagaSnapshot
             {
-                SagaId = Guid.Empty,
+                SagaId = Guid.Empty.ToString(),
                 SagaType = "MySaga1",
                 Endpoint = "MyEndpoint",
                 FinishTime = new DateTime(2002, 1, 1, 1, 1, 1, DateTimeKind.Utc),

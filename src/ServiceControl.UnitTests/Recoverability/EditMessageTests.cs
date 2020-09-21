@@ -12,13 +12,13 @@
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using Raven.Client;
-    using Raven.Tests.Helpers;
+    using Raven.Client.Documents;
+    using Raven.TestDriver;
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
     [TestFixture]
-    public class EditMessageTests : RavenTestBase
+    public class EditMessageTests : RavenTestDriver
     {
         IDocumentStore Store { get; set; }
         EditHandler Handler { get; set; }
@@ -27,7 +27,7 @@
         [SetUp]
         public void Setup()
         {
-            Store = NewDocumentStore();
+            Store = GetDocumentStore();
             Dispatcher = new TestableUnicastDispatcher();
             Handler = new EditHandler(Store, Dispatcher);
         }

@@ -37,6 +37,13 @@ namespace ServiceBus.Management.Infrastructure.Installers
 }
 namespace ServiceBus.Management.Infrastructure.Settings
 {
+    public class LoggingSettings
+    {
+        public LoggingSettings(string serviceName, NLog.LogLevel defaultLevel = null, string logPath = null, bool logToConsole = True) { }
+        public string LogPath { get; }
+        public bool LogToConsole { get; }
+        public NLog.LogLevel LoggingLevel { get; }
+    }
     public class RemoteInstanceSetting
     {
         public RemoteInstanceSetting() { }
@@ -59,11 +66,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
-        public System.TimeSpan ErrorRetentionPeriod { get; }
+        public System.TimeSpan ErrorRetentionPeriod { get; set; }
         public System.TimeSpan EventsRetentionPeriod { get; }
-        public int ExpirationProcessBatchSize { get; }
-        public int ExpirationProcessTimerInSeconds { get; }
-        public bool ExposeRavenDB { get; }
+        public int ExpirationProcessTimerInSeconds { get; set; }
         public int ExternalIntegrationsDispatchingBatchSize { get; }
         public bool ForwardErrorMessages { get; set; }
         public System.TimeSpan HeartbeatGracePeriod { get; }
@@ -78,7 +83,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public ServiceBus.Management.Infrastructure.Settings.RemoteInstanceSetting[] RemoteInstances { get; set; }
         public int RetryHistoryDepth { get; set; }
         public string RootUrl { get; }
-        public bool RunCleanupBundle { get; set; }
         public bool RunInMemory { get; set; }
         public bool RunRetryProcessor { get; set; }
         public string ServiceName { get; }
@@ -105,7 +109,7 @@ namespace ServiceControl.Audit.Monitoring
         public EnableEndpointMonitoring() { }
         public System.Guid EndpointId { get; set; }
     }
-    public class KnownEndpointIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Monitoring.KnownEndpoint>
+    public class KnownEndpointIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Monitoring.KnownEndpoint>
     {
         public KnownEndpointIndex() { }
     }
@@ -165,19 +169,6 @@ namespace ServiceControl.CompositeViews.Messages
         [System.Web.Http.RouteAttribute("endpoints/{endpoint}/messages/search/{keyword}")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) { }
     }
-    public class MessagesBodyTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewTransformer.Result>
-    {
-        public MessagesBodyTransformer() { }
-        public class Result
-        {
-            public Result() { }
-            public string Body { get; set; }
-            public bool BodyNotStored { get; set; }
-            public int BodySize { get; set; }
-            public string ContentType { get; set; }
-            public string MessageId { get; set; }
-        }
-    }
     public class MessagesView
     {
         public MessagesView() { }
@@ -202,7 +193,7 @@ namespace ServiceControl.CompositeViews.Messages
         public ServiceControl.Contracts.Operations.MessageStatus Status { get; set; }
         public System.Nullable<System.DateTime> TimeSent { get; set; }
     }
-    public class MessagesViewIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewIndex.SortAndFilterOptions>
+    public class MessagesViewIndex : Raven.Client.Documents.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewIndex.SortAndFilterOptions>
     {
         public MessagesViewIndex() { }
         public class SortAndFilterOptions
@@ -220,21 +211,6 @@ namespace ServiceControl.CompositeViews.Messages
             public string ReceivingEndpointName { get; set; }
             public ServiceControl.Contracts.Operations.MessageStatus Status { get; set; }
             public System.DateTime TimeSent { get; set; }
-        }
-    }
-    public class MessagesViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewTransformer.Result>
-    {
-        public MessagesViewTransformer() { }
-        public class Result
-        {
-            public Result() { }
-            public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
-            public string Id { get; set; }
-            public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
-            public System.DateTime ProcessedAt { get; set; }
-            public System.Collections.Generic.List<ServiceControl.MessageFailures.FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
-            public ServiceControl.MessageFailures.FailedMessageStatus Status { get; set; }
-            public string UniqueMessageId { get; set; }
         }
     }
 }
@@ -342,7 +318,7 @@ namespace ServiceControl.Contracts.MessageFailures
     public class FailedMessagesUnArchived
     {
         public FailedMessagesUnArchived() { }
-        public int MessagesCount { get; set; }
+        public long MessagesCount { get; set; }
     }
     public class MarkMessageFailureResolvedByRetry : NServiceBus.ICommand, NServiceBus.IMessage
     {
@@ -462,7 +438,7 @@ namespace ServiceControl.CustomChecks
         public string Category { get; set; }
         public string CustomCheckId { get; set; }
         public string FailureReason { get; set; }
-        public System.Guid Id { get; set; }
+        public string Id { get; set; }
         public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
         public System.DateTime ReportedAt { get; set; }
         public ServiceControl.CustomChecks.Status Status { get; set; }
@@ -481,7 +457,7 @@ namespace ServiceControl.CustomChecks
         public CustomCheckDeleted() { }
         public System.Guid Id { get; set; }
     }
-    public class CustomChecksIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.CustomChecks.CustomCheck>
+    public class CustomChecksIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.CustomChecks.CustomCheck>
     {
         public CustomChecksIndex() { }
     }
@@ -547,27 +523,12 @@ namespace ServiceControl.HeartbeatMonitoring
         Dead = 1,
     }
 }
-namespace ServiceControl.Infrastructure.RavenDB.Expiration
+namespace ServiceControl.Infrastructure.Extensions
 {
-    [System.ComponentModel.Composition.ExportMetadataAttribute("Bundle", "customDocumentExpiration")]
-    [System.ComponentModel.Composition.InheritedExportAttribute(typeof(Raven.Database.Plugins.IStartupTask))]
-    public class ExpiredDocumentsCleanerBundle : Raven.Database.Plugins.IStartupTask, System.IDisposable
+    public class static ListExtensions
     {
-        public ExpiredDocumentsCleanerBundle() { }
-        public void Dispose() { }
-        public void Execute(Raven.Database.DocumentDatabase database) { }
-    }
-    public class ExpiryErrorMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
-    {
-        public ExpiryErrorMessageIndex() { }
-    }
-    public class ExpiryEventLogItemsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.EventLog.EventLogItem>
-    {
-        public ExpiryEventLogItemsIndex() { }
-    }
-    public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageAuditing.ProcessedMessage>
-    {
-        public ExpiryProcessedMessageIndex() { }
+        public static void AddRange<T>(this System.Collections.Generic.IList<T> list, System.Collections.Generic.IEnumerable<T> items) { }
+        public static void ForEach<T>(this System.Collections.Generic.IEnumerable<T> source, System.Action<T> action) { }
     }
 }
 namespace ServiceControl.Infrastructure.SignalR
@@ -652,7 +613,7 @@ namespace ServiceControl.MessageFailures.Api
 {
     public class ArchiveMessagesController : System.Web.Http.ApiController
     {
-        public ArchiveMessagesController(NServiceBus.IMessageSession session, Raven.Client.IDocumentStore store) { }
+        public ArchiveMessagesController(NServiceBus.IMessageSession session, Raven.Client.Documents.IDocumentStore store) { }
         [System.Web.Http.HttpPatchAttribute()]
         [System.Web.Http.HttpPostAttribute()]
         [System.Web.Http.RouteAttribute("errors/{messageid}/archive")]
@@ -690,7 +651,7 @@ namespace ServiceControl.MessageFailures.Api
         public string MessageBody { get; set; }
         public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> MessageHeaders { get; set; }
     }
-    public class FailedMessageFacetsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
+    public class FailedMessageFacetsIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
     {
         public FailedMessageFacetsIndex() { }
     }
@@ -713,7 +674,7 @@ namespace ServiceControl.MessageFailures.Api
         public System.DateTime TimeOfFailure { get; set; }
         public System.Nullable<System.DateTime> TimeSent { get; set; }
     }
-    public class FailedMessageViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
+    public class FailedMessageViewIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage>
     {
         public FailedMessageViewIndex() { }
         public class SortAndFilterOptions : ServiceControl.MessageFailures.IHaveStatus
@@ -728,11 +689,6 @@ namespace ServiceControl.MessageFailures.Api
             public System.DateTime TimeOfFailure { get; set; }
             public System.DateTime TimeSent { get; set; }
         }
-    }
-    public class FailedMessageViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.MessageFailures.FailedMessage>
-    {
-        public FailedMessageViewTransformer() { }
-        public static string Name { get; }
     }
     public class GetAllErrorsController : System.Web.Http.ApiController
     {
@@ -783,7 +739,7 @@ namespace ServiceControl.MessageFailures.Api
         [System.Web.Http.RouteAttribute("errors/queues/addresses/search/{search}")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAddressesBySearchTerm(string search = null) { }
     }
-    public class QueueAddressIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.MessageFailures.QueueAddress>
+    public class QueueAddressIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.MessageFailures.QueueAddress>
     {
         public QueueAddressIndex() { }
     }
@@ -974,7 +930,7 @@ namespace ServiceControl.Monitoring
         public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
         public bool HasTemporaryId { get; set; }
         public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
+        public string Id { get; set; }
         public bool Monitored { get; set; }
     }
     public class KnownEndpointsView
@@ -990,20 +946,20 @@ namespace ServiceControl.Operations
     public class FailedAuditImport
     {
         public FailedAuditImport() { }
-        public System.Guid Id { get; set; }
+        public string Id { get; set; }
         public ServiceControl.Operations.FailedTransportMessage Message { get; set; }
     }
-    public class FailedAuditImportIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Operations.FailedAuditImport>
+    public class FailedAuditImportIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Operations.FailedAuditImport>
     {
         public FailedAuditImportIndex() { }
     }
     public class FailedErrorImport
     {
         public FailedErrorImport() { }
-        public System.Guid Id { get; set; }
+        public string Id { get; set; }
         public ServiceControl.Operations.FailedTransportMessage Message { get; set; }
     }
-    public class FailedErrorImportIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Operations.FailedErrorImport>
+    public class FailedErrorImportIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Operations.FailedErrorImport>
     {
         public FailedErrorImportIndex() { }
     }
@@ -1124,7 +1080,7 @@ namespace ServiceControl.Recoverability
         All = 5,
         ByQueueAddress = 6,
     }
-    public class ArchivedGroupsViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupView>
+    public class ArchivedGroupsViewIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupView>
     {
         public ArchivedGroupsViewIndex() { }
     }
@@ -1183,7 +1139,7 @@ namespace ServiceControl.Recoverability
         public FailedMessageRetries() { }
         protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
     }
-    public class FailedMessageRetries_ByBatch : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.FailedMessageRetry>
+    public class FailedMessageRetries_ByBatch : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.FailedMessageRetry>
     {
         public FailedMessageRetries_ByBatch() { }
     }
@@ -1197,18 +1153,9 @@ namespace ServiceControl.Recoverability
         public int StageAttempts { get; set; }
         public static string MakeDocumentId(string messageUniqueId) { }
     }
-    public class FailedMessages_ByGroup : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupMessageView>
+    public class FailedMessages_ByGroup : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupMessageView>
     {
         public FailedMessages_ByGroup() { }
-    }
-    public class FailedMessages_UniqueMessageIdAndTimeOfFailures : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.MessageFailures.FailedMessage>
-    {
-        public FailedMessages_UniqueMessageIdAndTimeOfFailures() { }
-        public struct Result
-        {
-            public System.DateTime LatestTimeOfFailure { get; set; }
-            public string UniqueMessageId { get; set; }
-        }
     }
     public class FailureGroupMessageView : ServiceControl.MessageFailures.IHaveStatus
     {
@@ -1233,7 +1180,7 @@ namespace ServiceControl.Recoverability
         public string Title { get; set; }
         public string Type { get; set; }
     }
-    public class FailureGroupsViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupView>
+    public class FailureGroupsViewIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupView>
     {
         public FailureGroupsViewIndex() { }
     }
@@ -1330,7 +1277,7 @@ namespace ServiceControl.Recoverability
         public System.DateTime Last { get; set; }
         public string Originator { get; set; }
         public string RequestId { get; set; }
-        [Raven.Imports.Newtonsoft.Json.JsonPropertyAttribute(NullValueHandling=Raven.Imports.Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonPropertyAttribute(NullValueHandling=Newtonsoft.Json.NullValueHandling.Ignore)]
         public ServiceControl.Recoverability.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
     }
@@ -1346,11 +1293,11 @@ namespace ServiceControl.Recoverability
         Staging = 2,
         Forwarding = 3,
     }
-    public class RetryBatches_ByStatusAndSession : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch>
+    public class RetryBatches_ByStatusAndSession : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch>
     {
         public RetryBatches_ByStatusAndSession() { }
     }
-    public class RetryBatches_ByStatus_ReduceInitialBatchSize : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch, ServiceControl.Recoverability.RetryBatchGroup>
+    public class RetryBatches_ByStatus_ReduceInitialBatchSize : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch, ServiceControl.Recoverability.RetryBatchGroup>
     {
         public RetryBatches_ByStatus_ReduceInitialBatchSize() { }
     }
@@ -1485,7 +1432,7 @@ namespace ServiceControl.Recoverability.Retrying
 {
     public class StoreHistoryHandler
     {
-        public StoreHistoryHandler(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
+        public StoreHistoryHandler(Raven.Client.Documents.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
         public System.Threading.Tasks.Task Handle(ServiceControl.Recoverability.RetryOperationCompleted message) { }
     }
 }
@@ -1496,12 +1443,12 @@ namespace ServiceControl.SagaAudit
         public SagaAuditing() { }
         protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
     }
-    public class SagaListIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.SagaAudit.SagaListIndex.Result>
+    public class SagaListIndex : Raven.Client.Documents.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.SagaAudit.SagaListIndex.Result>
     {
         public SagaListIndex() { }
         public class Result
         {
-            public System.Guid Id;
+            public string Id;
             public string SagaType;
             public string Uri;
             public Result() { }
@@ -1511,6 +1458,6 @@ namespace ServiceControl.SagaAudit
     {
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("sagas/{id}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(System.Guid id) { }
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(string id) { }
     }
 }

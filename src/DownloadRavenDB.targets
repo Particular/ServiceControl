@@ -1,0 +1,21 @@
+<Project>
+  
+
+  <Target Name="ReplaceRavenDB" AfterTargets="Build">
+    <PropertyGroup>
+      <DownloadCacheFolder>..\..\downloads\</DownloadCacheFolder>
+      <RavenServerFolder>$(OutputPath)\RavenDBServer</RavenServerFolder>
+      <UnzipFolder>$(DownloadCacheFolder)Staging</UnzipFolder>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <RavenDB Include="$(UnzipFolder)\Server\*.*" />
+    </ItemGroup>
+
+    <Message Text="Replacing RavenDB binaries in $(RavenServerFolder)" Importance="high"/>
+    <RemoveDir Directories="$(RavenServerFolder)" />
+    <MakeDir Directories="$(RavenServerFolder)" />
+
+    <Copy SourceFiles="@(RavenDB)" DestinationFolder="$(RavenServerFolder)" />
+  </Target>
+</Project>

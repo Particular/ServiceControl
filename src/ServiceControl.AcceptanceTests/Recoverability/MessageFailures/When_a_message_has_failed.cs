@@ -33,6 +33,7 @@
         public async Task Should_be_imported_and_accessible_via_the_rest_api()
         {
             FailedMessage failedMessage = null;
+            byte[] body = null;
 
             var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
@@ -40,6 +41,12 @@
                 {
                     var result = await this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId);
                     failedMessage = result;
+                    if (result.HasResult)
+                    {
+                        body = await this.DownloadData(failedMessage.ProcessingAttempts.Single()
+                            .MessageMetadata["body_url"].ToString());
+                    }
+
                     return c.MessageId != null && result;
                 })
                 .Run();
@@ -53,6 +60,8 @@
             Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
             Assert.AreEqual("Simulated exception", failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
                 "Exception message should be captured");
+
+            Assert.IsNotNull(body);
         }
 
         [Test]

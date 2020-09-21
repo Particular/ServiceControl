@@ -3,216 +3,202 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reactive.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Extensions;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Session;
+    using Raven.Client.Documents.Subscriptions;
+    using Raven.Client.Exceptions.Database;
+    using Raven.Client.Exceptions.Documents.Subscriptions;
+    using Raven.Client.Exceptions.Security;
 
-    class EventDispatcher : FeatureStartupTask
+    class EventDispatcher : FeatureStartupTask, IEventDispatcher
     {
-        public EventDispatcher(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
+        public EventDispatcher(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
-            this.criticalError = criticalError;
-            this.settings = settings;
             this.eventPublishers = eventPublishers;
             this.domainEvents = domainEvents;
         }
 
         protected override Task OnStart(IMessageSession session)
         {
-            subscription = store.Changes().ForDocumentsStartingWith("ExternalIntegrationDispatchRequests").Where(c => c.Type == DocumentChangeTypes.Put).Subscribe(OnNext);
-
             tokenSource = new CancellationTokenSource();
-            circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
-                TimeSpan.FromMinutes(5),
-                ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
-                TimeSpan.FromSeconds(20));
-
             bus = session;
 
-            StartDispatcher();
+            task = StartDispatcherTask();
             return Task.FromResult(0);
         }
 
-        void OnNext(DocumentChangeNotification documentChangeNotification)
+        public async Task Enqueue(object[] dispatchContexts)
         {
-            latestEtag = Etag.Max(documentChangeNotification.Etag, latestEtag);
-            signal.Set();
-        }
+            var bulkInsert = store.BulkInsert();
 
-        void StartDispatcher()
-        {
-            task = StartDispatcherTask();
+            foreach (var dispatchContext in dispatchContexts)
+            {
+                await bulkInsert.StoreAsync(new ExternalIntegrationDispatchRequest
+                {
+                    DispatchContext = dispatchContext
+                }, $"ExternalIntegrationDispatchRequests/{Guid.NewGuid()}").ConfigureAwait(false);
+            }
+
+            await bulkInsert.DisposeAsync().ConfigureAwait(false);
         }
 
         async Task StartDispatcherTask()
         {
-            try
+            var name = await store.Subscriptions.CreateAsync(new SubscriptionCreationOptions<ExternalIntegrationDispatchRequest>
             {
-                await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
-                do
+                Name = "ExternalIntegrationEvents"
+            }).ConfigureAwait(false);
+
+            while (true)
+            {
+                var options = new SubscriptionWorkerOptions(name)
                 {
-                    try
+                    //Values copied from RavenDB docs
+                    MaxErroneousPeriod = TimeSpan.FromHours(2),
+                    TimeToWaitBeforeConnectionRetry = TimeSpan.FromMinutes(2),
+                    Strategy = SubscriptionOpeningStrategy.TakeOver
+                };
+
+                subscriptionWorker = store.Subscriptions.GetSubscriptionWorker<ExternalIntegrationDispatchRequest>(options);
+
+                try
+                {
+                    // here we are able to be informed of any exception that happens during processing                    
+                    subscriptionWorker.OnSubscriptionConnectionRetry += exception =>
                     {
-                        await signal.WaitHandle.WaitOneAsync(tokenSource.Token).ConfigureAwait(false);
-                        signal.Reset();
-                    }
-                    catch (OperationCanceledException)
+                        Logger.Error("Retrying connection for ExternalIntegrationEvents subscription.", exception);
+                    };
+
+                    await subscriptionWorker.Run(async batch =>
                     {
-                        break;
-                    }
+                        using (var session = batch.OpenAsyncSession())
+                        {
+                            await Dispatch(batch.Items.Select(x => x.Result), session).ConfigureAwait(false);
+                            
+                            IList<ICommandData> deleteCommands = batch.Items.Select(x => new DeleteCommandData(x.Id, x.ChangeVector)).ToArray();
+                            var batchCommand = new SingleNodeBatchCommand(store.Conventions, session.Advanced.Context, deleteCommands);
+                            await session.Advanced.RequestExecutor.ExecuteAsync(batchCommand, session.Advanced.Context).ConfigureAwait(false);
+                        }
+                    }, tokenSource.Token).ConfigureAwait(false);
 
-                    await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
-                } 
-                while (!tokenSource.IsCancellationRequested);
-            }
-            catch (OperationCanceledException)
-            {
-                // ignore
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("An exception occurred when dispatching external integration events", ex);
-                await circuitBreaker.Failure(ex).ConfigureAwait(false);
-
-                if (!tokenSource.IsCancellationRequested)
-                {
-                    StartDispatcher();
+                    // Run will complete normally if you have disposed the subscription
+                    return;
                 }
-            }
-        }
-
-        async Task DispatchEvents(CancellationToken token)
-        {
-            bool more;
-
-            do
-            {
-                more = await TryDispatchEventBatch()
-                    .ConfigureAwait(false);
-
-                circuitBreaker.Success();
-
-                if (more && !token.IsCancellationRequested)
+                catch (Exception e)
                 {
-                    //if there is more events to dispatch we sleep for a bit and then we go again
-                    await Task.Delay(1000, CancellationToken.None).ConfigureAwait(false);
-                }
-            } 
-            while (!token.IsCancellationRequested && more);
-        }
+                    Logger.Error("Failure in subscription ExternalIntegrationEvents", e);
 
-        async Task<bool> TryDispatchEventBatch()
-        {
-            using (var session = store.OpenAsyncSession())
-            {
-                var awaitingDispatching = await session
-                    .Query<ExternalIntegrationDispatchRequest>()
-                    .Statistics(out var stats)
-                    .Take(settings.ExternalIntegrationsDispatchingBatchSize)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
-
-                if (awaitingDispatching.Count == 0)
-                {
-                    // If the index hasn't caught up, try again
-                    return stats.IndexEtag.CompareTo(latestEtag) < 0;
-                }
-
-                var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"Dispatching {allContexts.Length} events.");
-                }
-
-                var eventsToBePublished = new List<object>();
-                foreach (var publisher in eventPublishers)
-                {
-                    var events = await publisher.PublishEventsForOwnContexts(allContexts, session)
-                        .ConfigureAwait(false);
-                    eventsToBePublished.AddRange(events);
-                }
-
-                foreach (var eventToBePublished in eventsToBePublished)
-                {
-                    if (Logger.IsDebugEnabled)
+                    if (e is DatabaseDoesNotExistException ||
+                        e is SubscriptionDoesNotExistException ||
+                        e is SubscriptionInvalidStateException ||
+                        e is AuthorizationException)
                     {
-                        Logger.Debug("Publishing external event on the bus.");
+                        throw; // not recoverable
                     }
 
-                    try
+                    if (e is SubscriptionClosedException)
+                        // closed explicitly by admin, probably
                     {
-                        await bus.Publish(eventToBePublished)
-                            .ConfigureAwait(false);
+                        return;
                     }
-                    catch (Exception e)
+
+                    if (e is SubscriberErrorException)
                     {
                         Logger.Error("Failed dispatching external integration event.", e);
-
-                        var m = new ExternalIntegrationEventFailedToBePublished
-                        {
-                            EventType = eventToBePublished.GetType()
-                        };
-                        try
-                        {
-                            m.Reason = e.GetBaseException().Message;
-                        }
-                        catch (Exception)
-                        {
-                            m.Reason = "Failed to retrieve reason!";
-                        }
-
-                        await domainEvents.Raise(m)
-                            .ConfigureAwait(false);
+                        continue;
                     }
+                    return;
                 }
-
-                foreach (var dispatchedEvent in awaitingDispatching)
+                finally
                 {
-                    session.Delete(dispatchedEvent);
+                    await subscriptionWorker.DisposeAsync().ConfigureAwait(false);
+                    subscriptionWorker = null;
                 }
+            }
+        }
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+        async Task Dispatch(IEnumerable<ExternalIntegrationDispatchRequest> awaitingDispatching, IAsyncDocumentSession session)
+        {
+            var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Dispatching {allContexts.Length} events.");
             }
 
-            return true;
+            var eventsToBePublished = new List<object>();
+            foreach (var publisher in eventPublishers)
+            {
+                var events = await publisher.PublishEventsForOwnContexts(allContexts, session)
+                    .ConfigureAwait(false);
+                eventsToBePublished.AddRange(events);
+            }
+
+            foreach (var eventToBePublished in eventsToBePublished)
+            {
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug("Publishing external event on the bus.");
+                }
+
+                try
+                {
+                    await bus.Publish(eventToBePublished)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Failed dispatching external integration event.", e);
+
+                    var m = new ExternalIntegrationEventFailedToBePublished
+                    {
+                        EventType = eventToBePublished.GetType()
+                    };
+                    try
+                    {
+                        m.Reason = e.GetBaseException().Message;
+                    }
+                    catch (Exception)
+                    {
+                        m.Reason = "Failed to retrieve reason!";
+                    }
+
+                    await domainEvents.Raise(m)
+                        .ConfigureAwait(false);
+                }
+            }
         }
 
         protected override async Task OnStop(IMessageSession session)
         {
-            subscription.Dispose();
             tokenSource.Cancel();
 
             if (task != null)
             {
+                if (subscriptionWorker != null)
+                {
+                    await subscriptionWorker.DisposeAsync().ConfigureAwait(false);
+                }
                 await task.ConfigureAwait(false);
             }
 
             tokenSource.Dispose();
-            circuitBreaker.Dispose();
         }
 
         IMessageSession bus;
-        CriticalError criticalError;
         IEnumerable<IEventPublisher> eventPublishers;
-        Settings settings;
-        ManualResetEventSlim signal = new ManualResetEventSlim();
         IDocumentStore store;
         IDomainEvents domainEvents;
-        RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
-        IDisposable subscription;
         Task task;
         CancellationTokenSource tokenSource;
-        Etag latestEtag = Etag.Empty;
         static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
+        SubscriptionWorker<ExternalIntegrationDispatchRequest> subscriptionWorker;
     }
 }

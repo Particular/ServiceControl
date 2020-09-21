@@ -7,8 +7,10 @@
 
     public static class InvokedSagasParser
     {
-        public static void Parse(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+        public static SagaHeaderParseResult Parse(IReadOnlyDictionary<string, string> headers)
         {
+            List<SagaInfo> invokedSagas = null;
+            SagaInfo originatesFromSaga = null;
             if (headers.TryGetValue("NServiceBus.InvokedSagas", out var sagasInvokedRaw))
             {
                 var sagasChanges = new Dictionary<string, string>();
@@ -35,9 +37,9 @@
                     }
                 }
 
-                var invokedSagas = SplitInvokedSagas(sagasInvokedRaw);
+                var invokedSagasText = SplitInvokedSagas(sagasInvokedRaw);
 
-                var sagas = invokedSagas
+                invokedSagas = invokedSagasText
                     .Distinct()
                     .Select(saga =>
                     {
@@ -53,8 +55,6 @@
                         };
                     })
                     .ToList();
-
-                metadata.Add("InvokedSagas", sagas);
             }
             else
             {
@@ -73,14 +73,14 @@
                         sagaType = "Unknown";
                     }
 
-                    metadata.Add("InvokedSagas", new List<SagaInfo>
+                    invokedSagas = new List<SagaInfo>
+                    {
+                        new SagaInfo
                         {
-                            new SagaInfo
-                            {
-                                SagaId = Guid.Parse(sagaId),
-                                SagaType = sagaType
-                            }
-                        });
+                            SagaId = Guid.Parse(sagaId),
+                            SagaType = sagaType
+                        }
+                    };
                 }
             }
 
@@ -96,12 +96,14 @@
                     sagaType = "Unknown";
                 }
 
-                metadata.Add("OriginatesFromSaga", new SagaInfo
+                originatesFromSaga = new SagaInfo
                 {
                     SagaId = Guid.Parse(originatingSagaId),
                     SagaType = sagaType
-                });
+                };
             }
+
+            return new SagaHeaderParseResult(originatesFromSaga, invokedSagas);
         }
 
         static IEnumerable<string> SplitInvokedSagas(string sagasInvokedRaw)

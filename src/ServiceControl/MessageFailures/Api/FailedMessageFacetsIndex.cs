@@ -2,8 +2,7 @@
 {
     using System.Linq;
     using Contracts.Operations;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class FailedMessageFacetsIndex : AbstractIndexCreationTask<FailedMessage>
     {
@@ -19,11 +18,9 @@
                     MessageType = failure.ProcessingAttempts.Last().MessageMetadata["MessageType"]
                 };
 
-            Index("Name", FieldIndexing.NotAnalyzed); //to avoid lower casing
-            Index("Host", FieldIndexing.NotAnalyzed); //to avoid lower casing
-            Index("MessageType", FieldIndexing.NotAnalyzed); //to avoid lower casing
-
-            DisableInMemoryIndexing = true;
+            Index("Name", FieldIndexing.Exact); //to avoid lower casing
+            Index("Host", FieldIndexing.Exact); //to avoid lower casing
+            Index("MessageType", FieldIndexing.Exact); //to avoid lower casing
         }
     }
 }

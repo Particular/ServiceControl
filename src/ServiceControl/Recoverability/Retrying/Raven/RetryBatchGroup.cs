@@ -1,7 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
-    using Raven.Imports.Newtonsoft.Json;
+    using Newtonsoft.Json;
 
     public class RetryBatchGroup
     {

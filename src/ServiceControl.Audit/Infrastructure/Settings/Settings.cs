@@ -34,6 +34,7 @@
             TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
+            ExpirationProcessTimerInSeconds = GetExpirationProcessTimer();
             Port = SettingsReader<int>.Read("Port", 44444);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 44445);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 32);
@@ -54,8 +55,6 @@
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
         public bool SkipQueueCreation { get; set; }
-
-        public bool RunCleanupBundle { get; set; }
 
         public string RootUrl
         {
@@ -83,13 +82,10 @@
 
         public int Port { get; set; }
         public int DatabaseMaintenancePort { get; set; }
-
-        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
         public string TransportCustomizationType { get; set; }
-
         public string DbPath { get; set; }
 
         public string AuditQueue { get; set; }
@@ -100,49 +96,11 @@
 
         public string AuditLogQueue { get; set; }
 
+        public int ExpirationProcessTimerInSeconds { get; set; }
+        
+        public TimeSpan AuditRetentionPeriod { get; set; }
+
         public string LicenseFileText { get; set; }
-
-        public int ExpirationProcessTimerInSeconds
-        {
-            get
-            {
-                if (expirationProcessTimerInSeconds < 0)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                return expirationProcessTimerInSeconds;
-            }
-        }
-
-        public TimeSpan AuditRetentionPeriod { get; }
-
-        public int ExpirationProcessBatchSize
-        {
-            get
-            {
-                if (expirationProcessBatchSize < 1)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than 1. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                return expirationProcessBatchSize;
-            }
-        }
 
         public int MaxBodySizeToStore
         {
@@ -181,6 +139,23 @@
             {
                 throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
             }
+        }
+
+        int GetExpirationProcessTimer()
+        {
+            if (expirationProcessTimerInSeconds < 0)
+            {
+                logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                return ExpirationProcessTimerInSecondsDefault;
+            }
+
+            if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
+            {
+                logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                return ExpirationProcessTimerInSecondsDefault;
+            }
+
+            return expirationProcessTimerInSeconds;
         }
 
         TimeSpan GetTimeToRestartAuditIngestionAfterFailure()
@@ -412,15 +387,12 @@
         }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
-        int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
         int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
         public const string Disabled = "!disable";
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
-        const int ExpirationProcessBatchSizeDefault = 65512;
-        const int ExpirationProcessBatchSizeMinimum = 10240;
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
         const int DataSpaceRemainingThresholdDefault = 20;
     }

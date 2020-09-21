@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\DownloadRavenDB.targets"></Import>
+
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
   </PropertyGroup>
@@ -20,6 +22,7 @@
     <PackageReference Include="Particular.Approvals" Version="0.2.0" />
     <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Include="PublicApiGenerator" Version="9.3.0" />
+    <PackageReference Include="RavenDB.TestDriver" Version="5.1.0" />
   </ItemGroup>
 
 </Project>

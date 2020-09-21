@@ -2,7 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Linq;
     using MessageFailures;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class FailureGroupsViewIndex : AbstractIndexCreationTask<FailedMessage, FailureGroupView>
     {
@@ -39,8 +39,6 @@ namespace ServiceControl.Recoverability
                     Last = g.Max(x => x.Last),
                     Type = g.Key.Type
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

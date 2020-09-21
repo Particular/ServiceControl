@@ -6,7 +6,7 @@
     using Handlers;
     using NServiceBus;
     using NServiceBus.Features;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class FailedMessagesFeature : Feature
     {

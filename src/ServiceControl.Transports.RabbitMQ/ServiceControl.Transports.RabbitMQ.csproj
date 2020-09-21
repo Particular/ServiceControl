@@ -13,4 +13,10 @@
     <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Included to prevent a version conflict between RabbitMQ and RavenDB -->
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
+  </ItemGroup>
+
+
 </Project>

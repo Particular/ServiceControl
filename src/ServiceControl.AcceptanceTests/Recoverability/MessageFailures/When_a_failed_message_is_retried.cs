@@ -144,9 +144,16 @@
         }
 
         [Test]
-        public async Task Should_remove_failedmessageretries_after_expiration_process_passes()
+        public async Task Should_remove_failedmessageretries_and_failed_message_after_expiration_process_passes()
         {
             FailedMessageRetriesCountReponse failedMessageRetries = null;
+            FailedMessage failedMessage = null;
+
+            SetSettings = settings =>
+            {
+                settings.ExpirationProcessTimerInSeconds = 1;
+                settings.ErrorRetentionPeriod = TimeSpan.FromSeconds(1);
+            };
 
             await Define<Context>()
                 .WithEndpoint<FailingEndpointWithoutAudit>(b => b.When(async ctx =>
@@ -156,7 +163,7 @@
                         return false;
                     }
 
-                    FailedMessage failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+                    failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
                     if (failedMessage == null)
                     {
                         return false;
@@ -174,11 +181,10 @@
                 {
                     if (ctx.Retried)
                     {
-                        // trigger cleanup
-                        await this.Post<object>("/api/failederrors/forcecleanerrors");
-
                         failedMessageRetries = await this.TryGet<FailedMessageRetriesCountReponse>("/api/failedmessageretries/count");
-                        return failedMessageRetries.Count == 0;
+                        failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.UniqueMessageId}");
+
+                        return failedMessageRetries.Count == 0 && failedMessage == null;
                     }
 
                     return false;
@@ -186,6 +192,7 @@
                 .Run();
 
             Assert.AreEqual(failedMessageRetries.Count, 0, "FailedMessageRetries not removed");
+            Assert.IsNull(failedMessage, "FailedMessage not removed");
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder

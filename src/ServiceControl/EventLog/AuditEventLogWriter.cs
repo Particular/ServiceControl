@@ -1,10 +1,13 @@
 ﻿namespace ServiceControl.EventLog
 {
+    using System;
     using System.Threading.Tasks;
     using Contracts.EventLog;
     using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
     using Raven.Client;
+    using Raven.Client.Documents;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     /// <summary>
     /// Only for events that have been defined (under EventLog\Definitions), a logentry item will
@@ -12,11 +15,12 @@
     /// </summary>
     class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {
-        public AuditEventLogWriter(GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings)
+        public AuditEventLogWriter(GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings, Settings settings)
         {
             this.broadcaster = broadcaster;
             this.store = store;
             this.mappings = mappings;
+            eventsRetentionPeriod = settings.EventsRetentionPeriod;
         }
 
         public async Task Handle(IDomainEvent message)
@@ -32,6 +36,8 @@
             {
                 await session.StoreAsync(logItem)
                     .ConfigureAwait(false);
+                session.Advanced.GetMetadataFor(logItem)
+                    [Constants.Documents.Metadata.Expires] = $"{DateTime.UtcNow.Add(eventsRetentionPeriod):O}";
                 await session.SaveChangesAsync()
                     .ConfigureAwait(false);
             }
@@ -54,5 +60,6 @@
         readonly IDocumentStore store;
         readonly EventLogMappings mappings;
         static string[] emptyArray = new string[0];
+        private TimeSpan eventsRetentionPeriod;
     }
 }

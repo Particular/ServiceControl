@@ -94,3 +94,8 @@ src/scaffolding.config
 # JetBrains Rider
 .idea/
 *.sln.iml
+/src/ServiceControl.AcceptanceTests/.transport/
+/src/ServiceControl.MultiInstance.AcceptanceTests/.transport/
+/src/ServiceControl.Audit.AcceptanceTests/.transport
+/zip/
+/downloads/

@@ -5,16 +5,16 @@ namespace ServiceControl.SagaAudit
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class GetSagaByIdApi : ScatterGatherApi<Guid, SagaHistory>
+    class GetSagaByIdApi : ScatterGatherApi<string, SagaHistory>
     {
         public GetSagaByIdApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 
-        protected override async Task<QueryResult<SagaHistory>> LocalQuery(HttpRequestMessage request, Guid input)
+        protected override async Task<QueryResult<SagaHistory>> LocalQuery(HttpRequestMessage request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {
@@ -29,7 +29,7 @@ namespace ServiceControl.SagaAudit
                     return QueryResult<SagaHistory>.Empty();
                 }
 
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
+                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
             }
         }
 

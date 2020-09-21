@@ -1,4 +1,6 @@
-﻿namespace ServiceControlInstaller.Engine.Unattended
+﻿using ServiceControlInstaller.Engine.Configuration.ServiceControl;
+
+namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
     using System.IO;
@@ -92,8 +94,20 @@
             return true;
         }
 
-        public bool Upgrade(ServiceControlBaseService instance)
+        public bool Upgrade(ServiceControlBaseService instance, ServiceControlUpgradeOptions options)
         {
+            var option = options.UpgradeInfo.CanUpgradeFrom(instance.Version);
+            if (option == UpgradeOption.NotPossible)
+            {
+                logger.Error("Upgrade aborted. Upgrade in place to Version 5 is not possible. Please consult the upgrade guide.");
+                return false;
+            }
+            if (option == UpgradeOption.IntermediateUpgradeRequired)
+            {
+                logger.Error($"Upgrade aborted. An interim upgrade to version {options.UpgradeInfo.RecommendedUpgradeVersion} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{options.UpgradeInfo.RecommendedUpgradeVersion}");
+                return false;
+            }
+
             ZipInfo.ValidateZip();
 
             var checkLicenseResult = CheckLicenseIsValid();

@@ -3,8 +3,35 @@
     using System;
     using System.Linq;
 
-    public partial class UpgradeControl
+    public enum UpgradeOption
     {
+        Possible,
+        IntermediateUpgradeRequired,
+        NotPossible,
+    }
+
+    public class UpgradeInfo
+    {
+        internal static UpgradeInfo[] details =
+        {
+            new UpgradeInfo(new Version(2, 0), new Version(1, 41, 3)) //https://github.com/Particular/ServiceControl/issues/1228
+            {
+                RecommendedUpgradeVersion = new Version(1, 48, 0),
+            },
+            new UpgradeInfo(new Version(3, 0), new Version(2, 1, 3)) //https://github.com/Particular/ServiceControl/issues/1228
+            {
+                RecommendedUpgradeVersion = new Version(2, 1, 3),
+            },
+            new UpgradeInfo(new Version(4, 0), new Version(3, 8, 2)) //https://github.com/Particular/ServiceControl/issues/1228
+            {
+                RecommendedUpgradeVersion = new Version(3, 8, 2),
+            },
+            new UpgradeInfo(new Version(5, 0), new Version(5, 0, 0)) //No data migration from RavenDB 3.5 to 5. Can't upgrade in place
+            {
+                RecommendedUpgradeVersion = new Version(5, 0, 0),
+            }
+        };
+
         public static UpgradeInfo GetUpgradeInfoForTargetVersion(Version target, Version current)
         {
             return details.Where(r => r.TargetMinimumVersion <= target && current < r.CurrentMinimumVersion)
@@ -12,10 +39,7 @@
                 .OrderBy(r => r.CurrentMinimumVersion)
                 .First();
         }
-    }
 
-    public class UpgradeInfo
-    {
         public UpgradeInfo(Version targetMinimum, Version currentMinimum)
         {
             TargetMinimumVersion = ConvertToCleanVersion(targetMinimum);
@@ -31,6 +55,21 @@
         /// Minimum version instance must be to satisfy target version pre-conditions
         /// </summary>
         public Version CurrentMinimumVersion { get; }
+
+        /// <summary>
+        /// Returns true if the current version is suitable for upgrading to the target version.
+        /// </summary>
+        public UpgradeOption CanUpgradeFrom(Version currentVersion)
+        {
+            if (CurrentMinimumVersion.Major == 5 && currentVersion.Major < 5)
+            {
+                return UpgradeOption.NotPossible;
+            }
+
+            return currentVersion > CurrentMinimumVersion
+                ? UpgradeOption.Possible
+                : UpgradeOption.IntermediateUpgradeRequired;
+        }
 
         /// <summary>
         /// Version recommended for upgrade if instance version does not meet the CurrentMinimumVersion

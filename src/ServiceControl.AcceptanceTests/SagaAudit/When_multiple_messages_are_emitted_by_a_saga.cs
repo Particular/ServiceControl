@@ -40,7 +40,7 @@
 
             Assert.NotNull(sagaHistory);
 
-            Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
+            Assert.AreEqual(context.SagaId.ToString(), sagaHistory.SagaId);
             Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, sagaHistory.SagaType);
 
             var sagaStateChange = sagaHistory.Changes.First();

@@ -1,7 +1,7 @@
 namespace ServiceControl.Audit.Monitoring
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
     using ServiceControl.Monitoring;
 
     public class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
@@ -17,8 +17,6 @@ namespace ServiceControl.Audit.Monitoring
                     message.Monitored,
                     message.HasTemporaryId
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

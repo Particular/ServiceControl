@@ -39,6 +39,38 @@
             Assert.AreEqual(typeof(StartSagaMessage).FullName, change.InitiatingMessage.MessageType);
         }
 
+        [Test]
+        public async Task Saga_information_should_be_removed_after_retention_period()
+        {
+            SetSettings = settings =>
+            {
+                settings.ExpirationProcessTimerInSeconds = 1;
+                settings.AuditRetentionPeriod = TimeSpan.FromSeconds(10);
+            };
+
+            var context = await Define<MyContext>()
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage { Id = "Id" })))
+                .Do("Ensure SagaHistory created", async c =>
+                {
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
+                    return c.InitiatingMessageReceived && result;
+                })
+                .Do("Ensure SagaHistory removed", async c =>
+                {
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}");
+                    if (!result)
+                    {
+                        c.SagaHistoryRemoved = true;
+                        return true;
+                    }
+                    return false;
+                })
+                .Done(c => c.SagaHistoryRemoved)
+                .Run();
+
+            Assert.IsTrue(context.SagaHistoryRemoved);
+        }
+
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
             public SagaEndpoint()
@@ -55,7 +87,7 @@
 
             public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
-                Context.SagaId = Data.Id;
+                Context.SagaId = Data.Id.ToString();
                 Context.InitiatingMessageReceived = true;
                 return Task.FromResult(0);
             }
@@ -76,11 +108,13 @@
             public string Id { get; set; }
         }
 
-        public class MyContext : ScenarioContext
+        public class MyContext : ScenarioContext, ISequenceContext
         {
             public string MessageId { get; set; }
-            public Guid SagaId { get; set; }
+            public string SagaId { get; set; }
             public bool InitiatingMessageReceived { get; set; }
+            public bool SagaHistoryRemoved { get; set; }
+            public int Step { get; set; }
         }
     }
 }

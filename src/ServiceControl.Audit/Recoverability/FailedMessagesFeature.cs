@@ -31,7 +31,7 @@
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
 
-                context.Metadata.Add("IsRetried", hasBeenRetried);
+                context.Metadata.IsRetried = hasBeenRetried;
 
                 if (!hasBeenRetried)
                 {

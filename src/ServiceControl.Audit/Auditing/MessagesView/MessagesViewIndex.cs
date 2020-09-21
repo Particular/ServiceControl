@@ -4,38 +4,34 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
     using Monitoring;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
-    public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
+    public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.Result>
     {
         public MessagesViewIndex()
         {
             Map = messages => from message in messages
-                select new SortAndFilterOptions
+                select new Result
                 {
-                    MessageId = (string)message.MessageMetadata["MessageId"],
-                    MessageType = (string)message.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool)message.MessageMetadata["IsSystemMessage"],
-                    Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
-                    TimeSent = (DateTime)message.MessageMetadata["TimeSent"],
+                    MessageId = message.MessageMetadata.MessageId,
+                    MessageType = message.MessageMetadata.MessageType,
+                    IsSystemMessage = message.MessageMetadata.IsSystemMessage,
+                    Status = message.MessageMetadata.IsRetried ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
+                    TimeSent = message.MessageMetadata.TimeSent,
                     ProcessedAt = message.ProcessedAt,
-                    ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
-                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] {string.Join(" ", message.Headers.Select(x => x.Value))}).ToArray(),
-                    ConversationId = (string)message.MessageMetadata["ConversationId"]
+                    ReceivingEndpointName = message.MessageMetadata.ReceivingEndpoint != null ? message.MessageMetadata.ReceivingEndpoint.Name : null,
+                    CriticalTime = message.MessageMetadata.CriticalTime,
+                    ProcessingTime = message.MessageMetadata.ProcessingTime,
+                    DeliveryTime = message.MessageMetadata.DeliveryTime,
+                    Query = message.Headers.Select(x => x.Value).ToArray(),
+                    ConversationId = message.MessageMetadata.ConversationId
                 };
 
-            Index(x => x.Query, FieldIndexing.Analyzed);
-
-            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
-
-            DisableInMemoryIndexing = true;
+            Index(x => x.Query, FieldIndexing.Search);
+            Analyze(x => x.Query, typeof(StandardAnalyzer).FullName);
         }
 
-        public class SortAndFilterOptions
+        public class Result
         {
             public string MessageId { get; set; }
             public string MessageType { get; set; }
@@ -48,7 +44,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             public TimeSpan? DeliveryTime { get; set; }
             public string ConversationId { get; set; }
             public string[] Query { get; set; }
-            public DateTime TimeSent { get; set; }
+            public DateTime? TimeSent { get; set; }
         }
     }
 }

@@ -9,12 +9,11 @@ namespace ServiceControl.Recoverability
     using Infrastructure;
     using MessageFailures;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Util;
-    using Raven.Client;
-    using Raven.Client.Indexes;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Session;
 
     class RetriesGateway
     {
@@ -33,8 +32,8 @@ namespace ServiceControl.Recoverability
             var latestAttempt = DateTime.MinValue;
 
             using (var session = store.OpenAsyncSession())
-            using (var stream = await request.GetDocuments(session).ConfigureAwait(false))
             {
+                var stream = await request.GetDocuments(session).ConfigureAwait(false);
                 while (await stream.MoveNextAsync().ConfigureAwait(false))
                 {
                     var current = stream.Current.Document;
@@ -121,14 +120,18 @@ namespace ServiceControl.Recoverability
 
             log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
 
-            var commands = new ICommandData[messageIds.Length];
-            for (var i = 0; i < messageIds.Length; i++)
-            {
-                commands[i] = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
-            }
+            var commands = (
+                from id in messageIds
+                select (ICommandData)retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id)
+            ).ToList();
 
-            await store.AsyncDatabaseCommands.BatchAsync(commands)
-                .ConfigureAwait(false);
+            var requestExecutor = store.GetRequestExecutor();
+
+            using (requestExecutor.ContextPool.AllocateOperationContext(out var context))
+            {
+                var command = new SingleNodeBatchCommand(store.Conventions, context, commands);
+                await requestExecutor.ExecuteAsync(command, context).ConfigureAwait(false);
+            }
 
             await retryDocumentManager.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
 
@@ -196,7 +199,7 @@ namespace ServiceControl.Recoverability
             string Originator { get; set; }
             string Classifier { get; set; }
             DateTime StartTime { get; set; }
-            Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session);
+            Task<IAsyncEnumerator<StreamResult<UniqueMessageIdAndLatestTimeOfFailure>>> GetDocuments(IAsyncDocumentSession session);
         }
 
         class IndexBasedBulkRetryRequest<TType, TIndex> : IBulkRetryRequest
@@ -219,37 +222,27 @@ namespace ServiceControl.Recoverability
             public string Classifier { get; set; }
             public DateTime StartTime { get; set; }
 
-            public Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
+            public Task<IAsyncEnumerator<StreamResult<UniqueMessageIdAndLatestTimeOfFailure>>> GetDocuments(IAsyncDocumentSession session)
             {
-                var query = session.Query<TType, TIndex>();
-
-                query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
+                var query = session.Query<TType, TIndex>()
+                    .Where(d => d.Status == FailedMessageStatus.Unresolved);
 
                 if (filter != null)
                 {
                     query = query.Where(filter);
                 }
 
-                return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
+                return session.Advanced.StreamAsync(query.OfType<FailedMessage>().Select(message => new UniqueMessageIdAndLatestTimeOfFailure
+                {
+                    UniqueMessageId = message.UniqueMessageId,
+                    LatestTimeOfFailure = message.ProcessingAttempts.Max(x => x.AttemptedAt)
+                }));
             }
 
             Expression<Func<TType, bool>> filter;
         }
-    }
 
-    public class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
-    {
-        public FailedMessages_UniqueMessageIdAndTimeOfFailures()
-        {
-            TransformResults = failedMessages => from failedMessage in failedMessages
-                select new
-                {
-                    failedMessage.UniqueMessageId,
-                    LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
-                };
-        }
-
-        public struct Result
+        public struct UniqueMessageIdAndLatestTimeOfFailure
         {
             public string UniqueMessageId { get; set; }
 

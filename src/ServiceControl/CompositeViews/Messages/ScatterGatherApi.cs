@@ -13,7 +13,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.WebApi;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     interface IApi

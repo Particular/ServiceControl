@@ -7,7 +7,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Recoverability;
 
     class ImportFailedErrors
@@ -33,36 +33,35 @@
                 using (var session = store.OpenAsyncSession())
                 {
                     var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-                    using (var ie = await session.Advanced.StreamAsync(query, token)
-                        .ConfigureAwait(false))
+                    var ie = await session.Advanced.StreamAsync(query, token)
+                        .ConfigureAwait(false);
+
+                    while (!token.IsCancellationRequested && await ie.MoveNextAsync().ConfigureAwait(false))
                     {
-                        while (!token.IsCancellationRequested && await ie.MoveNextAsync().ConfigureAwait(false))
+                        FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
+                        try
                         {
-                            FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
-                            try
-                            {
-                                var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                            var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                                await errorIngestor.Ingest(messageContext).ConfigureAwait(false);
+                            await errorIngestor.Ingest(messageContext).ConfigureAwait(false);
 
-                                await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
-                                    .ConfigureAwait(false);
-                                succeeded++;
+                            session.Delete(ie.Current.Id, ie.Current.ChangeVector);
 
-                                if (Logger.IsDebugEnabled)
-                                {
-                                    Logger.Debug($"Successfully re-imported failed error message {dto.Id}.");
-                                }
-                            }
-                            catch (OperationCanceledException)
+                            succeeded++;
+
+                            if (Logger.IsDebugEnabled)
                             {
-                                //  no-op
+                                Logger.Debug($"Successfully re-imported failed error message {dto.Id}.");
                             }
-                            catch (Exception e)
-                            {
-                                Logger.Error($"Error while attempting to re-import failed error message {dto.Id}.", e);
-                                failed++;
-                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            //  no-op
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Error($"Error while attempting to re-import failed error message {dto.Id}.", e);
+                            failed++;
                         }
                     }
                 }

@@ -24,14 +24,16 @@
         [Test]
         public void PublicClr()
         {
-            var publicApi = ApiGenerator.GeneratePublicApi(typeof(Bootstrapper).Assembly);
+            var publicApi = ApiGenerator.GeneratePublicApi(typeof(Bootstrapper).Assembly, 
+                excludeAttributes: new string[] { "System.Reflection.AssemblyMetadataAttribute" });
             Approver.Verify(publicApi);
         }
 
         [Test]
         public void ServiceControlTransport()
         {
-            var serviceControlTransportApi = ApiGenerator.GeneratePublicApi(typeof(TransportSettings).Assembly);
+            var serviceControlTransportApi = ApiGenerator.GeneratePublicApi(typeof(TransportSettings).Assembly,
+                excludeAttributes: new string[] { "System.Reflection.AssemblyMetadataAttribute" });
             Approver.Verify(serviceControlTransportApi);
         }
 

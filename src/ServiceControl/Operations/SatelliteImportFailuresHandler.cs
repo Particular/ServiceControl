@@ -5,7 +5,7 @@
     using System.IO;
     using System.Threading.Tasks;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -57,11 +57,12 @@
         async Task DoLogging(Exception exception, FailedErrorImport failure)
         {
             var id = Guid.NewGuid();
+            var documentId = $"FailedErrorImports/{id}";
 
             // Write to Raven
             using (var session = store.OpenAsyncSession())
             {
-                failure.Id = id;
+                failure.Id = documentId;
 
                 await session.StoreAsync(failure)
                     .ConfigureAwait(false);
@@ -71,7 +72,7 @@
             }
 
             // Write to Log Path
-            var filePath = Path.Combine(logPath, failure.Id + ".txt");
+            var filePath = Path.Combine(logPath, $"{id}.txt");
             File.WriteAllText(filePath, exception.ToFriendlyString());
 
             // Write to Event Log
