@@ -5,7 +5,7 @@
     using System.IO;
     using System.Threading.Tasks;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 

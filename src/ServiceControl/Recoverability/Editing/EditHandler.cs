@@ -11,8 +11,7 @@
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class EditHandler : IHandleMessages<EditAndSend>
     {

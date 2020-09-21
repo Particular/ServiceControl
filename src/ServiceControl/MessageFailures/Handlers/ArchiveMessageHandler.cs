@@ -1,12 +1,11 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
@@ -20,7 +19,7 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(message.FailedMessageId))
+                var failedMessage = await session.LoadAsync<FailedMessage>(message.FailedMessageId)
                     .ConfigureAwait(false);
 
                 if (failedMessage == null)

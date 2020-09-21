@@ -6,7 +6,7 @@
     using Contracts.Operations;
     using Infrastructure;
     using Infrastructure.DomainEvents;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class CustomChecksStorage
     {

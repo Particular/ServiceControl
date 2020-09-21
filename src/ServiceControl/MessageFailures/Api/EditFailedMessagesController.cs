@@ -10,7 +10,7 @@
     using System.Web.Http.Results;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 

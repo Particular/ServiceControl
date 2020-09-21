@@ -7,7 +7,7 @@
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class FailedMessageRetries : Feature

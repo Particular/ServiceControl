@@ -6,7 +6,7 @@ namespace ServiceControl.Recoverability
     using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
         IHandleMessages<RetryPendingMessages>

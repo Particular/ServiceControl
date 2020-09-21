@@ -10,8 +10,8 @@
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Changes;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
 

@@ -12,7 +12,7 @@
     using Infrastructure.WebApi;
     using MessageFailures.InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class MessageRedirectsController : ApiController
     {

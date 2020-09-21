@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Runtime.Serialization;
     using Audit.Monitoring;
     using Monitoring;
@@ -9,6 +10,7 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.Licensing;
+    using Raven.Client.Documents;
     using Raven.Embedded;
     using Raven.Client.Documents.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;

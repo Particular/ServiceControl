@@ -9,9 +9,9 @@
     using MessageFailures;
     using MessageFailures.Api;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Exceptions;
     using Raven.Json.Linq;
 
     public class Reclassifier

@@ -13,7 +13,8 @@
     using NServiceBus.Settings;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Session;
 
     class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
     {
@@ -212,17 +213,16 @@
 
             var subscriptions = new Subscriptions();
 
-            using (var stream = await session.Advanced.StreamAsync<Subscription>("Subscriptions")
-                .ConfigureAwait(false))
+            var stream = await session.Advanced.StreamAsync<Subscription>("Subscriptions")
+                .ConfigureAwait(false);
+
+            while (await stream.MoveNextAsync().ConfigureAwait(false))
             {
-                while (await stream.MoveNextAsync().ConfigureAwait(false))
-                {
-                    var existingSubscription = stream.Current.Document;
-                    existingSubscription.Subscribers.Remove(localClient);
-                    subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", string.Empty), existingSubscription);
-                    await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null)
-                        .ConfigureAwait(false);
-                }
+                var existingSubscription = stream.Current.Document;
+                existingSubscription.Subscribers.Remove(localClient);
+                subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", String.Empty), existingSubscription);
+                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null)
+                    .ConfigureAwait(false);
             }
 
             await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId).ConfigureAwait(false);

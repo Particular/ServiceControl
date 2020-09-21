@@ -9,8 +9,6 @@
     using MessageFailures;
     using NServiceBus;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Imports.Newtonsoft.Json;
     using Raven.Json.Linq;
@@ -111,7 +109,7 @@
                         { "failureGroups", serializedGroups },
                         { "attempt", serializedAttempt}
                     }
-                }, 
+                },
                 new ScriptedPatchRequest
                 {
                     Script = $@"this.{statusField} = status;

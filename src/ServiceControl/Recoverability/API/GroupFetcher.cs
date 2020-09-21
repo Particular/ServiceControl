@@ -3,12 +3,13 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     class GroupFetcher
     {
         public GroupFetcher(RetryingManager retryingManager, ArchivingManager archivingManager)
         {
+
             this.retryingManager = retryingManager;
             this.archivingManager = archivingManager;
         }
