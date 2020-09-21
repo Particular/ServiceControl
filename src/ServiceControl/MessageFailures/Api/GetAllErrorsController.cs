@@ -7,8 +7,7 @@
     using System.Web.Http;
     using Infrastructure.Extensions;
     using Infrastructure.WebApi;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class GetAllErrorsController : ApiController
     {

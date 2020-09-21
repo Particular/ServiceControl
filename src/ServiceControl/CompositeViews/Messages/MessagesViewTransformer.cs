@@ -5,7 +5,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using Contracts.Operations;
     using MessageFailures;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
     {

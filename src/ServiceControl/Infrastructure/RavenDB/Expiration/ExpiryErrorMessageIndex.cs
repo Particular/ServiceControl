@@ -3,7 +3,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     using System;
     using System.Linq;
     using MessageFailures;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class ExpiryErrorMessageIndex : AbstractIndexCreationTask<FailedMessage>
     {
@@ -16,6 +16,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                     message.Status,
                     LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                 };
+
 
             DisableInMemoryIndexing = true;
         }

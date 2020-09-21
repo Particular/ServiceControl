@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class FailedErrorImportIndex : AbstractIndexCreationTask<FailedErrorImport>
     {

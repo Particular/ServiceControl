@@ -1,7 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class RetryBatches_ByStatus_ReduceInitialBatchSize : AbstractIndexCreationTask<RetryBatch, RetryBatchGroup>
     {

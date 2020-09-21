@@ -10,7 +10,8 @@ namespace ServiceControl.Infrastructure.Extensions
     using CompositeViews.Messages;
     using MessageFailures;
     using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents.Linq;
+    using Raven.Client.Documents.Session;
 
     static class RavenQueryExtensions
     {
