@@ -8,8 +8,6 @@ namespace ServiceControl.Infrastructure.WebApi
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
     using QueryResult = CompositeViews.Messages.QueryResult;
 
     static class Negotiator

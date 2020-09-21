@@ -1,19 +1,15 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
-    using System.ComponentModel.Composition.Hosting;
     using System.IO;
-    using System.Linq;
     using Audit.Monitoring;
     using Monitoring;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.Licensing;
-    using Raven.Abstractions.Extensions;
-    using Raven.Client;
-    using Raven.Client.Embedded;
-    using Raven.Client.Indexes;
+    using Raven.Embedded;
+    using Raven.Client.Documents.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
     using Subscriptions;
 
@@ -25,7 +21,7 @@
 
         public void Customize(EndpointConfiguration configuration)
         {
-            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>();
+            var documentStore = configuration.GetSettings().Get<EmbeddedServer>();
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
 
             Settings = settings;
@@ -44,7 +40,7 @@
             }
         }
 
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
+        public void StartRaven(EmbeddedServer documentStore, Settings settings, bool maintenanceMode)
         {
             Settings = settings;
 

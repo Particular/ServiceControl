@@ -3,7 +3,7 @@ namespace ServiceControl.MessageFailures.Api
     using System;
     using System.Linq;
     using Contracts.Operations;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class FailedMessageViewIndex : AbstractIndexCreationTask<FailedMessage>
     {

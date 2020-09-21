@@ -3,9 +3,6 @@
     using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Raven.Abstractions;
-    using Raven.Abstractions.Logging;
-    using Raven.Database;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ExpiredDocumentsCleaner

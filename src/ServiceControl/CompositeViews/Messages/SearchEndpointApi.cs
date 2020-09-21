@@ -6,7 +6,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
     using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class SearchEndpointApi : ScatterGatherApiMessageView<SearchEndpointApi.Input>

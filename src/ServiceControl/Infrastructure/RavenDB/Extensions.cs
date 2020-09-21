@@ -10,6 +10,7 @@
     {
         public static void Query<TState>(this DocumentDatabase db, string index, IndexQuery query, CancellationToken externalCancellationToken, Action<RavenJObject, TState> onItem, TState state)
         {
+            Raven.Client.Documents.DocumentStore dab;
             var results = db.Queries.Query(index, query, externalCancellationToken);
             foreach (var doc in results.Results)
             {

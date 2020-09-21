@@ -2,7 +2,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     using System.Linq;
     using MessageAuditing;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class ExpiryProcessedMessageIndex : AbstractIndexCreationTask<ProcessedMessage>
     {
