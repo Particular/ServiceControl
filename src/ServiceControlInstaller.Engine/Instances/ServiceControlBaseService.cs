@@ -93,7 +93,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public bool SkipQueueCreation { get; set; }
 
         protected abstract string BaseServiceName { get; }
-        public abstract void Reload();
 
         public string Url
         {

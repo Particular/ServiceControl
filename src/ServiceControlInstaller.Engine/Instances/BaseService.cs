@@ -137,9 +137,6 @@
             return destinationFile;
         }
 
-        public virtual void RefreshServiceProperties()
-        {
-            Service.Refresh();
-        }
+        public abstract void Reload();
     }
 }
