@@ -15,7 +15,7 @@
     using NoInstances;
     using ServiceControlInstaller.Engine.Instances;
 
-    class ShellViewModel : RxConductor<RxScreen>.Collection.OneActive, IHandle<RefreshInstances>// , IActivate
+    class ShellViewModel : RxConductor<RxScreen>.Collection.OneActive, IHandle<RefreshInstances>
     {
         public ShellViewModel(
             NoInstancesViewModel noInstances,
@@ -150,12 +150,11 @@
 
             var shortAppVersion = AppVersion.Substring(0, 6);
             
-            Release availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(shortAppVersion).ConfigureAwait(false);
+            var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(shortAppVersion).ConfigureAwait(false);
             
             if (availableUpgradeRelease.Version.ToString() == shortAppVersion)
             {
                 UpdateAvailable = false;
-                AvailableUpgradeReleaseLink = string.Empty;
             }
             else
             {

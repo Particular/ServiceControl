@@ -41,45 +41,44 @@
                 return JsonConvert.DeserializeObject<List<Release>>(json);
             }
         }
-    }
 
-    // TODO: move it to a better place?
-    public class Release
-    {
-        public Release()
+        public class Release
         {
+            public Release()
+            {
+            }
+
+            public Release(Version current)
+            {
+                Tag = current.ToString();
+            }
+
+            [JsonProperty("tag")]
+            public string Tag { get; set; }
+
+            [JsonProperty("release")]
+            public Uri ReleaseUri { get; set; }
+
+            [JsonProperty("published")]
+            public DateTimeOffset Published { get; set; }
+
+            [JsonProperty("assets")]
+            public List<Asset> Assets { get; set; }
+
+            [JsonIgnore]
+            public Version Version => new Version(Tag);
         }
 
-        public Release(Version current)
+        public class Asset
         {
-            Tag = current.ToString();
+            [JsonProperty("name")]
+            public string Name { get; set; }
+
+            [JsonProperty("size")]
+            public long Size { get; set; }
+
+            [JsonProperty("download")]
+            public Uri Download { get; set; }
         }
-
-        [JsonProperty("tag")]
-        public string Tag { get; set; }
-
-        [JsonProperty("release")]
-        public Uri ReleaseUri { get; set; }
-
-        [JsonProperty("published")]
-        public DateTimeOffset Published { get; set; }
-
-        [JsonProperty("assets")]
-        public List<Asset> Assets { get; set; }
-
-        [JsonIgnore]
-        public Version Version => new Version(Tag);
-    }
-
-    public class Asset
-    {
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("size")]
-        public long Size { get; set; }
-
-        [JsonProperty("download")]
-        public Uri Download { get; set; }
     }
 }

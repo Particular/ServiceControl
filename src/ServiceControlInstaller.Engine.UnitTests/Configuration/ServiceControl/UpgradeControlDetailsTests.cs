@@ -41,11 +41,5 @@
             Assert.AreEqual(version2, upgradeInfo.TargetMinimumVersion, "TargetMinimumVersion mismatch");
             Assert.AreEqual(recommendedVersion, upgradeInfo.RecommendedUpgradeVersion, "RecommendedUpgradeVersion mismatch");
         }
-
-        [Test]
-        public void VersionCheckerHelperTests()
-        {
-            
-        }
     }
 }

@@ -12,7 +12,7 @@
         {
             Version current = new Version("4.0.1");
 
-            Release releaseDetails = VersionCheckerHelper.GetLatestRelease(current.ToString()).Result;
+            var releaseDetails = VersionCheckerHelper.GetLatestRelease(current.ToString()).Result;
 
             Assert.IsNotNull(releaseDetails, "Failed to get a release details");
             Assert.IsTrue(current < releaseDetails.Version, "Got a lower version than current");
