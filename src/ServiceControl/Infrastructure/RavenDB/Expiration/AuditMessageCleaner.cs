@@ -6,10 +6,9 @@
     using System.Linq;
     using System.Threading;
     using NServiceBus.Logging;
-    using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Database;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Queries;
+    using Raven.Client.Util;
     using Raven.Json.Linq;
 
     static class AuditMessageCleaner

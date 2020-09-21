@@ -2,7 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Linq;
     using MessageFailures;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class ArchivedGroupsViewIndex : AbstractIndexCreationTask<FailedMessage, FailureGroupView>
     {

@@ -6,8 +6,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Lucene.Net.Analysis.Standard;
     using MessageAuditing;
     using MessageFailures;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
     {

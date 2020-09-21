@@ -7,10 +7,9 @@
     using System.Threading;
     using Infrastructure.RavenDB;
     using NServiceBus.Logging;
-    using Raven.Abstractions;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Database;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Queries;
+    using Raven.Client.Util;
 
     public static class SagaHistoryCleaner
     {

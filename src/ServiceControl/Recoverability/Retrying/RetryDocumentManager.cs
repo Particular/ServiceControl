@@ -6,11 +6,12 @@ namespace ServiceControl.Recoverability
     using Infrastructure;
     using MessageFailures;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
     using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Documents.Session;
+    using Raven.Client.Exceptions;
     using Raven.Json.Linq;
 
     class RetryDocumentManager

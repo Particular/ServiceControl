@@ -7,7 +7,7 @@
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Client.Document;
-    using Raven.Client.Embedded;
+    using Raven.Embedded;
 
     class SubscriptionStorage : Feature
     {

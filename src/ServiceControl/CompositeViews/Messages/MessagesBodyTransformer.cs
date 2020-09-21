@@ -1,7 +1,7 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
     {

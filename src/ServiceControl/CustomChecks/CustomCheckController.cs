@@ -10,7 +10,8 @@
     using Infrastructure.WebApi;
     using NServiceBus;
     using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Linq;
 
     public class CustomCheckController : ApiController
     {
