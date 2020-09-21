@@ -5,7 +5,7 @@ namespace ServiceControl.Recoverability
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class ArchiveAllInGroupHandler : IHandleMessages<ArchiveAllInGroup>
     {

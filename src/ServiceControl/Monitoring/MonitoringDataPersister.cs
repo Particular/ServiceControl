@@ -8,7 +8,7 @@
     using EndpointControl.Contracts;
     using Infrastructure;
     using Infrastructure.DomainEvents;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class MonitoringDataPersister :
         IDomainHandler<EndpointDetected>,

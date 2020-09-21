@@ -1,11 +1,10 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Recoverability;
 
     class MessageFailureResolvedDomainHandler : IDomainHandler<MessageFailureResolvedByRetry>
@@ -47,7 +46,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
+                var failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId)
                     .ConfigureAwait(false);
 
                 if (failedMessage == null)

@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class IntegrationEventWriter : IDomainHandler<IDomainEvent>
     {

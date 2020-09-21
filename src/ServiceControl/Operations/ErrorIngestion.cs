@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 

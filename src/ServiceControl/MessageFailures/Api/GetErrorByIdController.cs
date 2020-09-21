@@ -8,7 +8,8 @@
     using System.Web.Http;
     using Contracts.Operations;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Session;
 
     public class GetErrorByIdController : ApiController
     {

@@ -6,7 +6,7 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class GetKnownEndpointsApi : ScatterGatherApi<EndpointInstanceMonitoring, IList<KnownEndpointsView>>

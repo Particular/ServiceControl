@@ -12,6 +12,8 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
     using Raven.Client.Exceptions;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Raven.Json.Linq;
 
     class RetryDocumentManager
@@ -162,7 +164,7 @@ namespace ServiceControl.Recoverability
         private bool abort;
         protected static string RetrySessionId = Guid.NewGuid().ToString();
 
-        private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
+        private static JObject defaultMetadata = JObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""

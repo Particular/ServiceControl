@@ -8,9 +8,9 @@
     using System.Web.Http;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
     using Infrastructure.Extensions;
     using Infrastructure.WebApi;
+    using Raven.Client.Documents;
     using Recoverability;
 
     public class ArchiveMessagesController : ApiController

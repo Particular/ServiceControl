@@ -7,7 +7,7 @@
     using System.Web.Http;
     using System.Web.Http.Results;
     using CompositeViews.Endpoints;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class EndpointUpdateModel
     {
@@ -42,13 +42,13 @@
             {
                 Content = new ByteArrayContent(new byte[] { }) //need to force empty content to avoid null reference when adding headers below :(
             };
-            
+
             response.Content.Headers.Allow.Add("GET");
             response.Content.Headers.Allow.Add("DELETE");
             response.Content.Headers.Allow.Add("PATCH");
             response.Content.Headers.Add("Access-Control-Expose-Headers", "Allow");
             return response;
-        } 
+        }
 
         [Route("endpoints/{endpointId}")]
         [HttpDelete]
@@ -69,7 +69,7 @@
             using (var session = documentStore.OpenAsyncSession())
             {
                 session.Delete<KnownEndpoint>(endpointId);
-                await session.SaveChangesAsync().ConfigureAwait(false);    
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -77,7 +77,7 @@
         [HttpGet]
         public Task<HttpResponseMessage> KnownEndpoints() => getKnownEndpointsApi.Execute(this, endpointInstanceMonitoring);
 
-        
+
         [Route("endpoints/{endpointId}")]
         [HttpPatch]
         public async Task<StatusCodeResult> Foo(Guid endpointId, EndpointUpdateModel data)

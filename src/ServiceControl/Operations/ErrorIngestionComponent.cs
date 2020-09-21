@@ -6,7 +6,7 @@
     using BodyStorage;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
