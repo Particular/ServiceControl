@@ -91,7 +91,8 @@
                 </ItemsControl>
             </StackPanel>
 
-            <TextBlock Grid.Row="3"
+            <TextBlock Name="Footer" 
+                       Grid.Row="3"
                        Margin="0,25"
                        Text="Please verify the details or contact support." />
 
@@ -100,6 +101,13 @@
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Orientation="Horizontal">
+                <Button MinWidth="100" 
+                        Padding="0"
+                        Height="30"
+                        Click="CopyClick"
+                        Content="Copy"
+                        FontSize="14"
+                        ToolTip="Copy to Clipboard" />
                 <Button Width="100"
                         Height="30"
                         Command="{Binding Cancel}"
