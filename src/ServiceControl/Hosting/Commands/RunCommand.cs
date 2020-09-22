@@ -9,22 +9,17 @@
     {
         public override async Task Execute(HostArguments args)
         {
-            if (!args.Portable && !Environment.UserInteractive)
+            if (args.RunAsWindowsService)
             {
-                RunAsWindowsService(args);
+                using (var service = new Host {ServiceName = args.ServiceName})
+                {
+                    //HINT: this calls-back to Windows Service Controller and hangs.
+                    //      SC takes over and calls OnStart and OnStop on the service instance. 
+                    ServiceBase.Run(service);
+                }
             }
 
             await RunAsConsoleApp(args).ConfigureAwait(false);
-        }
-
-        static void RunAsWindowsService(HostArguments args)
-        {
-            using (var service = new Host {ServiceName = args.ServiceName})
-            {
-                //HINT: this calls-back to Windows Service Controller and hangs.
-                //      SC is responsible for calling OnStart and OnStop on the service instance passed-in. 
-                ServiceBase.Run(service);
-            }
         }
 
         static async Task RunAsConsoleApp(HostArguments args)

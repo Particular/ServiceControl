@@ -7,7 +7,7 @@
 
     class Host : ServiceBase
     {
-        public void ManualStart()
+        public void Start()
         {
             OnStart(null);
         }

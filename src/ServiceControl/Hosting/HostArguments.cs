@@ -132,7 +132,7 @@ namespace Particular.ServiceControl.Hosting
         public string Username { get; set; }
         public bool Portable { get; set; }
         public bool SkipQueueCreation { get; set; }
-
+        public bool RunAsWindowsService => !Portable && !Environment.UserInteractive;
 
         public void PrintUsage()
         {
