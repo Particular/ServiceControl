@@ -26,7 +26,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Raven.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.OWIN;
@@ -84,6 +84,11 @@ namespace Particular.ServiceControl
             transportSettings = MapSettings(settings);
 
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+
+
+            //TODO: RAVEN5 EmbeddableDocumentStore replacement
+            EmbeddedServer.Instance.StartServer();
+            documentStore = EmbeddedServer.Instance.GetDocumentStore("servicecontrol");
 
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
@@ -233,7 +238,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        private IDocumentStore documentStore;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;
         private IContainer container;
