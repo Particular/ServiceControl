@@ -14,7 +14,8 @@ namespace ServiceControl.Audit.Auditing
                     Message = cc.Message
                 };
 
-            DisableInMemoryIndexing = true;
+            // TODO: RAVEN5 - This API is missing
+            //DisableInMemoryIndexing = true;
         }
     }
 }

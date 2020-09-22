@@ -54,40 +54,44 @@
 
         async Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
-                    .FirstOrDefaultAsync(f => f.MessageId == messageId)
-                    .ConfigureAwait(false);
+            await Task.Yield();
+            return request.CreateResponse(HttpStatusCode.NotFound);
 
-                if (message == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
-                }
+            // TODO: RAVEN5 - There are no Transformers in Raven 5
+            //using (var session = documentStore.OpenAsyncSession())
+            //{
+            //    var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+            //        .Statistics(out var stats)
+            //        .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
+            //        .FirstOrDefaultAsync(f => f.MessageId == messageId)
+            //        .ConfigureAwait(false);
 
-                if (message.BodyNotStored && message.Body == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NoContent);
-                }
+            //    if (message == null)
+            //    {
+            //        return request.CreateResponse(HttpStatusCode.NotFound);
+            //    }
 
-                if (message.Body == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
-                }
+            //    if (message.BodyNotStored && message.Body == null)
+            //    {
+            //        return request.CreateResponse(HttpStatusCode.NoContent);
+            //    }
 
-                var response = request.CreateResponse(HttpStatusCode.OK);
-                var content = new StringContent(message.Body);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse(message.ContentType);
-                content.Headers.ContentLength = message.BodySize;
-                if (stats.ResultEtag.HasValue)
-                {
-                    response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.ResultEtag}\"");
-                }
-                response.Content = content;
-                return response;
-            }
+            //    if (message.Body == null)
+            //    {
+            //        return request.CreateResponse(HttpStatusCode.NotFound);
+            //    }
+
+            //    var response = request.CreateResponse(HttpStatusCode.OK);
+            //    var content = new StringContent(message.Body);
+            //    content.Headers.ContentType = MediaTypeHeaderValue.Parse(message.ContentType);
+            //    content.Headers.ContentLength = message.BodySize;
+            //    if (stats.ResultEtag.HasValue)
+            //    {
+            //        response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.ResultEtag}\"");
+            //    }
+            //    response.Content = content;
+            //    return response;
+            //}
         }
 
 

@@ -13,22 +13,24 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         {
         }
 
-        protected override async Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, string input)
+        protected override Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, string input)
         {
-            using (var session = Store.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(request)
-                    .Where(m => m.ReceivingEndpointName == input)
-                    .Statistics(out var stats)
-                    .Sort(request)
-                    .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            return Task.FromResult(QueryResult<IList<MessagesView>>.Empty());
+            // TODO: RAVEN5 - No Transformers
+            //using (var session = Store.OpenAsyncSession())
+            //{
+            //    var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+            //        .IncludeSystemMessagesWhere(request)
+            //        .Where(m => m.ReceivingEndpointName == input)
+            //        .Statistics(out var stats)
+            //        .Sort(request)
+            //        .Paging(request)
+            //        .TransformWith<MessagesViewTransformer, MessagesView>()
+            //        .ToListAsync()
+            //        .ConfigureAwait(false);
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            //    return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            //}
         }
     }
 }

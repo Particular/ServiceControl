@@ -4,8 +4,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
     using Monitoring;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
     {
@@ -28,11 +27,12 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                     ConversationId = (string)message.MessageMetadata["ConversationId"]
                 };
 
-            Index(x => x.Query, FieldIndexing.Analyzed);
+            Index(x => x.Query, FieldIndexing.Search);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
 
-            DisableInMemoryIndexing = true;
+            // TODO: RAVEN5 - This API is missing
+            //DisableInMemoryIndexing = true;
         }
 
         public class SortAndFilterOptions

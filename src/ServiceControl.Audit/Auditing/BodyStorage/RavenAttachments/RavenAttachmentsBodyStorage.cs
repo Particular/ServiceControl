@@ -16,57 +16,65 @@
 
         public IDocumentStore DocumentStore { get; set; }
 
-        public async Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+        public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
-            /*
-             * The locking here is a workaround for RavenDB bug DocumentDatabase.PutStatic that allows multiple threads to enter a critical section.
-             */
-            var idHash = Math.Abs(bodyId.GetHashCode());
-            var lockIndex = idHash % locks.Length; //I think using bit manipulation is not worth the effort
+            return Task.FromResult(String.Empty);
+            // TODO: RAVEN5 - No AsyncDatabaseCommands anymore
+//            /*
+//             * The locking here is a workaround for RavenDB bug DocumentDatabase.PutStatic that allows multiple threads to enter a critical section.
+//             */
+//            var idHash = Math.Abs(bodyId.GetHashCode());
+//            var lockIndex = idHash % locks.Length; //I think using bit manipulation is not worth the effort
 
-            var semaphore = locks[lockIndex];
-            try
-            {
-                await semaphore.WaitAsync().ConfigureAwait(false);
+//            var semaphore = locks[lockIndex];
+//            try
+//            {
+//                await semaphore.WaitAsync().ConfigureAwait(false);
 
-                //We want to continue using attachments for now
-#pragma warning disable 618
-                await DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream, new RavenJObject
-#pragma warning restore 618
-                {
-                    {"ContentType", contentType},
-                    {"ContentLength", bodySize}
-                }).ConfigureAwait(false);
+//                //We want to continue using attachments for now
+//#pragma warning disable 618
+//                await DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream, new RavenJObject
+//#pragma warning restore 618
+//                {
+//                    {"ContentType", contentType},
+//                    {"ContentLength", bodySize}
+//                }).ConfigureAwait(false);
 
-                return $"/messages/{bodyId}/body";
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+//                return $"/messages/{bodyId}/body";
+//            }
+//            finally
+//            {
+//                semaphore.Release();
+//            }
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId)
+        public Task<StreamResult> TryFetch(string bodyId)
         {
-            //We want to continue using attachments for now
-#pragma warning disable 618
-            var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
-#pragma warning restore 618
+            // TODO: RAVEN5 - No AsyncDatabaseCommands
+            return Task.FromResult(new StreamResult
+            {
+                HasResult = false,
+                Stream = null
+            });
+//            //We want to continue using attachments for now
+//#pragma warning disable 618
+//            var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
+//#pragma warning restore 618
 
-            return attachment == null
-                ? new StreamResult
-                {
-                    HasResult = false,
-                    Stream = null
-                }
-                : new StreamResult
-                {
-                    HasResult = true,
-                    Stream = attachment.Data(),
-                    ContentType = attachment.Metadata["ContentType"].Value<string>(),
-                    BodySize = attachment.Metadata["ContentLength"].Value<int>(),
-                    Etag = attachment.Etag
-                };
+            //            return attachment == null
+            //                ? new StreamResult
+            //                {
+            //                    HasResult = false,
+            //                    Stream = null
+            //                }
+            //                : new StreamResult
+            //                {
+            //                    HasResult = true,
+            //                    Stream = attachment.Data(),
+            //                    ContentType = attachment.Metadata["ContentType"].Value<string>(),
+            //                    BodySize = attachment.Metadata["ContentLength"].Value<int>(),
+            //                    Etag = attachment.Etag
+            //                };
         }
 
         SemaphoreSlim[] locks;
