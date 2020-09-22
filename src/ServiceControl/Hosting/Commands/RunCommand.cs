@@ -18,8 +18,10 @@
                     ServiceBase.Run(service);
                 }
             }
-
-            await RunAsConsoleApp(args).ConfigureAwait(false);
+            else
+            {
+                await RunAsConsoleApp(args).ConfigureAwait(false);
+            }
         }
 
         static async Task RunAsConsoleApp(HostArguments args)
