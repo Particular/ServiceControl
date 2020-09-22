@@ -2,7 +2,7 @@
 {
     using System;
     using Monitoring;
-    using Raven.Imports.Newtonsoft.Json.Serialization;
+    using Newtonsoft.Json.Serialization;
     using ServiceControl.SagaAudit;
 
     class MigratedTypeAwareBinder : DefaultSerializationBinder

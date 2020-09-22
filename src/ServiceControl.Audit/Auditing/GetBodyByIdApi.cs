@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using BodyStorage;
     using MessagesView;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class GetBodyByIdApi : IApi
     {

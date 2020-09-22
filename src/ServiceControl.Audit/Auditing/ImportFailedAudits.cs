@@ -9,8 +9,8 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
 
     class ImportFailedAudits
     {

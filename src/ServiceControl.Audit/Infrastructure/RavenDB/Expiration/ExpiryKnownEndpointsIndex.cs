@@ -2,7 +2,7 @@
 {
     using System.Linq;
     using Monitoring;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class ExpiryKnownEndpointsIndex : AbstractIndexCreationTask<KnownEndpoint>
     {

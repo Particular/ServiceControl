@@ -6,7 +6,7 @@ namespace ServiceControl.Audit.Monitoring
     using System.Threading.Tasks;
     using Auditing.MessagesView;
     using Infrastructure;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class GetKnownEndpointsApi : ApiBaseNoInput<IList<KnownEndpointsView>>
     {

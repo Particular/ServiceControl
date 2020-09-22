@@ -15,9 +15,9 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
-    using Raven.Client;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
+    using Raven.Client.Documents;
 
     class AuditPersister
     {

@@ -1,7 +1,7 @@
 namespace ServiceControl.Audit.Auditing
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     public class FailedAuditImportIndex : AbstractIndexCreationTask<FailedAuditImport>
     {

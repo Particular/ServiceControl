@@ -8,7 +8,7 @@
     using Infrastructure.Settings;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class AuditIngestionFaultPolicy : IErrorHandlingPolicy
     {

@@ -2,12 +2,11 @@
 {
     using NServiceBus.Installation;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
-    using ServiceControl.Audit.Monitoring;
+    using Monitoring;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Raven.Client.Documents;
 
     class MigrateKnownEndpoints : INeedToInstallSomething
     {
