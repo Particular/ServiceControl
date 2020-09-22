@@ -17,7 +17,7 @@
     {
         public ServiceControlEditorViewModel()
         {
-            Transports = ServiceControlCoreTransports.All;
+            Transports = ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU);
             ServiceControl = new ServiceControlInformation();
             ServiceControlAudit = new ServiceControlAuditInformation();
         }

@@ -336,7 +336,7 @@
 
         void UpdateServiceProperties()
         {
-            ServiceInstance.RefreshServiceProperties();
+            ServiceInstance.Reload();
 
             NotifyOfPropertyChange("Status");
             NotifyOfPropertyChange("AllowStop");

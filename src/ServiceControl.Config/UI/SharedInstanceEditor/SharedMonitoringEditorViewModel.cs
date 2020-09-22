@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
@@ -12,7 +13,7 @@
     {
         public SharedMonitoringEditorViewModel()
         {
-            Transports = ServiceControlCoreTransports.All;
+            Transports = ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU);
         }
 
         [DoNotNotify]

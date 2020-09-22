@@ -60,6 +60,13 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Config.Save();
         }
 
+        public override void SetTransportType(string transportTypeName)
+        {
+            var settings = Config.AppSettings.Settings;
+            var version = details.Version;
+            settings.Set(ServiceControlSettings.TransportType, transportTypeName, version);
+        }
+
         public override IEnumerable<string> RavenDataPaths()
         {
             string[] keys =
@@ -160,6 +167,13 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             }
         }
 
+        public override void SetTransportType(string transportTypeName)
+        {
+            var settings = Config.AppSettings.Settings;
+            var version = details.Version;
+            settings.Set(AuditInstanceSettingsList.TransportType, transportTypeName, version);
+        }
+
         IServiceControlAuditInstance details;
     }
 
@@ -185,6 +199,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 
         public abstract IEnumerable<string> RavenDataPaths();
 
+        public abstract void SetTransportType(string transportTypeName);
 
         void UpdateRuntimeSection()
         {

@@ -94,6 +94,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public override void Reload()
         {
             Service.Refresh();
+
+            AppConfig = CreateAppConfig();
             HostName = AppConfig.Read(ServiceControlSettings.HostName, "localhost");
             Port = AppConfig.Read(ServiceControlSettings.Port, 33333);
             DatabaseMaintenancePort = AppConfig.Read<int?>(ServiceControlSettings.DatabaseMaintenancePort, null);

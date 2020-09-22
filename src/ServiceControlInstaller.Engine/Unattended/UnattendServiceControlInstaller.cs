@@ -125,6 +125,8 @@ namespace ServiceControlInstaller.Engine.Unattended
 
             try
             {
+                instance.UpgradeTransportSeam();
+
                 var backupFile = instance.BackupAppConfig();
                 try
                 {

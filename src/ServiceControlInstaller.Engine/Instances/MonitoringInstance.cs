@@ -60,9 +60,11 @@
             }
         }
 
-        public void Reload()
+        public override void Reload()
         {
             Service.Refresh();
+
+            AppConfig = new AppConfig(this);
             HostName = AppConfig.Read(SettingsList.HostName, "localhost");
             Port = AppConfig.Read(SettingsList.Port, 1234);
             LogPath = AppConfig.Read(SettingsList.LogPath, DefaultLogPath());
@@ -289,6 +291,14 @@
             {
                 ReportCard.Errors.Add(ex.Message);
             }
+        }
+
+        public void UpgradeTransportSeam()
+        {
+            TransportPackage = ServiceControlCoreTransports.UpgradedTransportSeam(TransportPackage);
+
+            var config = new AppConfig(this);
+            config.Save();
         }
     }
 }

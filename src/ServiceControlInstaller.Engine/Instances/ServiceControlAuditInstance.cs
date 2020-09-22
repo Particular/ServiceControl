@@ -56,6 +56,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public override void Reload()
         {
             Service.Refresh();
+
+            AppConfig = CreateAppConfig();
             HostName = AppConfig.Read(AuditInstanceSettingsList.HostName, "localhost");
             Port = AppConfig.Read(AuditInstanceSettingsList.Port, 33333);
             DatabaseMaintenancePort = AppConfig.Read<int?>(AuditInstanceSettingsList.DatabaseMaintenancePort, null);
