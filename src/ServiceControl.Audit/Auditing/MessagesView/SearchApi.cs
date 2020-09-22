@@ -4,7 +4,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.Infrastructure.Extensions;
 
     class SearchApi : ApiBase<string, IList<MessagesView>>

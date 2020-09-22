@@ -12,7 +12,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class AuditPersister
     {

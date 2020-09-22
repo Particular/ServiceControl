@@ -5,7 +5,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Web.Http;
     using Autofac;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     interface IApi
     {

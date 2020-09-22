@@ -6,7 +6,7 @@
     using System.Linq.Expressions;
     using System.Net.Http;
     using Audit.Auditing.MessagesView;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents.Linq;
 
     static class RavenQueryExtensions
     {

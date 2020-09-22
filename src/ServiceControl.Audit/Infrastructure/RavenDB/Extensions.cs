@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using Raven.Abstractions.Data;
+    using Raven.Client.Documents.Queries;
     using Raven.Database;
     using Raven.Json.Linq;
 
