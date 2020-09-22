@@ -13,8 +13,9 @@
             {
                 using (var service = new Host {ServiceName = args.ServiceName})
                 {
-                    //HINT: this calls-back to Windows Service Controller and hangs.
-                    //      SC takes over and calls OnStart and OnStop on the service instance. 
+                    //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
+                    //      until service reports it has stopped.
+                    //      SCM takes over and calls OnStart and OnStop on the service instance. 
                     ServiceBase.Run(service);
                 }
             }
