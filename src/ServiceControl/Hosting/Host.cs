@@ -7,26 +7,9 @@
 
     class Host : ServiceBase
     {
-        public void Run(bool interactive)
-        {
-            if (interactive)
-            {
-                RunInteractive();
-            }
-            else
-            {
-                RunAsService();
-            }
-        }
-
-        void RunInteractive()
+        public void ManualStart()
         {
             OnStart(null);
-        }
-
-        void RunAsService()
-        {
-            Run(this);
         }
 
         protected override void OnStart(string[] args)
