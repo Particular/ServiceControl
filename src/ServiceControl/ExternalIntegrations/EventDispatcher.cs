@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reactive.Linq;
+    //using System.Reactive.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
@@ -11,7 +11,7 @@
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Changes;
+    //using Raven.Client.Documents.Changes;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -28,7 +28,8 @@
 
         protected override Task OnStart(IMessageSession session)
         {
-            subscription = store.Changes().ForDocumentsStartingWith("ExternalIntegrationDispatchRequests").Where(c => c.Type == DocumentChangeTypes.Put).Subscribe(OnNext);
+            //TODO: RAVEN5 Subscriptions on document change
+            //subscription = store.Changes().ForDocumentsStartingWith("ExternalIntegrationDispatchRequests").Where(c => c.Type == DocumentChangeTypes.Put).Subscribe(OnNext);
 
             tokenSource = new CancellationTokenSource();
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
@@ -42,11 +43,12 @@
             return Task.FromResult(0);
         }
 
-        void OnNext(DocumentChangeNotification documentChangeNotification)
-        {
-            latestEtag = Etag.Max(documentChangeNotification.Etag, latestEtag);
-            signal.Set();
-        }
+        //TODO: RAVEN5 Subscriptions on document change
+        // void OnNext(DocumentChangeNotification documentChangeNotification)
+        // {
+        //     latestEtag = Etag.Max(documentChangeNotification.Etag, latestEtag);
+        //     signal.Set();
+        // }
 
         void StartDispatcher()
         {
@@ -112,18 +114,20 @@
         {
             using (var session = store.OpenAsyncSession())
             {
+                //TODO: RAVEN5 stats
                 var awaitingDispatching = await session
                     .Query<ExternalIntegrationDispatchRequest>()
-                    .Statistics(out var stats)
+                    //.Statistics(out var stats)
                     .Take(settings.ExternalIntegrationsDispatchingBatchSize)
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                if (awaitingDispatching.Count == 0)
-                {
-                    // If the index hasn't caught up, try again
-                    return stats.IndexEtag.CompareTo(latestEtag) < 0;
-                }
+                //TODO: RAVEN5 IndexEtag??
+                // if (awaitingDispatching.Count == 0)
+                // {
+                //     // If the index hasn't caught up, try again
+                //     return stats.IndexEtag.CompareTo(latestEtag) < 0;
+                // }
 
                 var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
                 if (Logger.IsDebugEnabled)

@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using EndpointPlugin.Messages.SagaState;
     using NServiceBus;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
