@@ -1,12 +1,13 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting
 {
     using System.ServiceProcess;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
     using Settings;
 
     class MaintenanceHost : ServiceBase
     {
-        public MaintenanceHost(Settings settings, EmbeddableDocumentStore documentStore)
+        // TODO: RAVEN5 - Changed from EmbeddableDocumentStore. Figure out where this is used and if it is still needed.
+        public MaintenanceHost(Settings settings, IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
             ServiceName = settings.ServiceName;
@@ -31,6 +32,6 @@
             OnStop();
         }
 
-        readonly EmbeddableDocumentStore documentStore;
+        readonly IDocumentStore documentStore;
     }
 }

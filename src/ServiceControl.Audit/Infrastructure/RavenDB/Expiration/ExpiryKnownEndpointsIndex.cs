@@ -15,7 +15,8 @@
                 };
 
             // we expect a lowish number of endpoints so that can run in memory
-            DisableInMemoryIndexing = false;
+            // TODO: RAVEN5 - This API is missing
+            //DisableInMemoryIndexing = false;
         }
     }
 }

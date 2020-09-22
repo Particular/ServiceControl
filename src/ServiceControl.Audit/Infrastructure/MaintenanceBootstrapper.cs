@@ -2,7 +2,7 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using Hosting;
-    using Raven.Client.Embedded;
+    using Raven.Embedded;
     using RavenDB;
 
     class MaintenanceBootstrapper
@@ -10,9 +10,11 @@ namespace ServiceControl.Audit.Infrastructure
         public void Run(HostArguments args)
         {
             var settings = new Settings.Settings(args.ServiceName);
-            var documentStore = new EmbeddableDocumentStore();
 
-            new RavenBootstrapper().StartRaven(documentStore, settings, true);
+            // TODO: RAVEN5 - This used to be an EmbeddableServer
+            EmbeddedServer.Instance.StartServer();
+            var documentStore = EmbeddedServer.Instance.GetDocumentStore("audit");
+            //new RavenBootstrapper().StartRaven(documentStore, settings, true);
 
             if (Environment.UserInteractive)
             {
