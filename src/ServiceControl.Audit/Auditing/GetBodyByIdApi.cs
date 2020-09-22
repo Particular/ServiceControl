@@ -81,7 +81,10 @@
                 var content = new StringContent(message.Body);
                 content.Headers.ContentType = MediaTypeHeaderValue.Parse(message.ContentType);
                 content.Headers.ContentLength = message.BodySize;
-                response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.IndexEtag}\"");
+                if (stats.ResultEtag.HasValue)
+                {
+                    response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.ResultEtag}\"");
+                }
                 response.Content = content;
                 return response;
             }
