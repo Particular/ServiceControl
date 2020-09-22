@@ -4,12 +4,9 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Threading.Tasks;
     using Autofac;
     using NServiceBus;
-    using NServiceBus.Installation;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using Raven.Client;
-    using Raven.Client.Embedded;
-    using ServiceControl.Audit.Infrastructure.RavenDB;
+    using Raven.Embedded;
     using Settings;
     using Transports;
 
@@ -71,10 +68,15 @@ namespace ServiceControl.Audit.Infrastructure
 
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = new EmbeddableDocumentStore();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+
+            // TODO: RAVEN5 - Do this properly
+            EmbeddedServer.Instance.StartServer();
+            var documentStore = EmbeddedServer.Instance.GetDocumentStore("audit");
+            //var documentStore = new EmbeddableDocumentStore();
+            //containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
-            containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
+            //containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
 
             using (documentStore)
             using (var container = containerBuilder.Build())

@@ -13,21 +13,23 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         {
         }
 
-        protected override async Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, string conversationId)
+        protected override Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, string conversationId)
         {
-            using (var session = Store.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Where(m => m.ConversationId == conversationId)
-                    .Sort(request)
-                    .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            return Task.FromResult(QueryResult<IList<MessagesView>>.Empty());
+            // TODO: RAVEN5 - No Transformers
+            //using (var session = Store.OpenAsyncSession())
+            //{
+            //    var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+            //        .Statistics(out var stats)
+            //        .Where(m => m.ConversationId == conversationId)
+            //        .Sort(request)
+            //        .Paging(request)
+            //        .TransformWith<MessagesViewTransformer, MessagesView>()
+            //        .ToListAsync()
+            //        .ConfigureAwait(false);
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            //    return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            //}
         }
     }
 }

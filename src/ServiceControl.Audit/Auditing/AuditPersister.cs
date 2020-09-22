@@ -14,7 +14,6 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using Raven.Client.Documents;
@@ -46,10 +45,8 @@
             try
             {
                 // deliberately not using the using statement because we dispose async explicitly
-                var bulkInsert = store.BulkInsert(options: new BulkInsertOptions
-                {
-                    OverwriteExisting = true
-                });
+                // TODO: RAVEN5 This had OverwriteExisting set to true but the options parameter is missing
+                var bulkInsert = store.BulkInsert();
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {

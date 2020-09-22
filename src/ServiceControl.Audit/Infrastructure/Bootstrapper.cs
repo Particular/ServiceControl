@@ -22,8 +22,8 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using OWIN;
-    using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
+    using Raven.Embedded;
     using Settings;
     using Transports;
 
@@ -84,7 +84,7 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.Register(c => documentStore);
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
@@ -124,6 +124,10 @@ namespace ServiceControl.Audit.Infrastructure
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
+            EmbeddedServer.Instance.StartServer();
+            documentStore = await EmbeddedServer.Instance.GetDocumentStoreAsync("audit")
+                .ConfigureAwait(false);
+
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
@@ -147,9 +151,11 @@ namespace ServiceControl.Audit.Infrastructure
                 await bus.Stop().ConfigureAwait(false);
             }
 
+
             documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
+            EmbeddedServer.Instance.Dispose();
         }
 
         private long DataSize()
@@ -213,10 +219,10 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings.Settings settings;
+        IDocumentStore documentStore;
         private IContainer container;
         private BusInstance bus;
         private TransportSettings transportSettings;

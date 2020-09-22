@@ -11,7 +11,7 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class AuditIngestionComponent
     {
