@@ -72,13 +72,13 @@
                         RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                     }
 
-                    bulkInsert.Store(processedMessage);
+                    await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
                     storedContexts.Add(context);
                 }
 
                 foreach (var endpoint in knownEndpoints.Values)
                 {
-                    bulkInsert.Store(endpoint);
+                    await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
                 }
 
                 await bulkInsert.DisposeAsync().ConfigureAwait(false);
