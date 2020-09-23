@@ -6,6 +6,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using Raven.Client.Documents.Indexes;
     using Raven.Embedded;
     using Settings;
     using Transports;
@@ -76,11 +77,14 @@ namespace ServiceControl.Audit.Infrastructure
             //containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
+            containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
             //containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
 
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
+                await documentStore.ExecuteIndexesAsync(container.Resolve<IEnumerable<IAbstractIndexCreationTask>>())
+                    .ConfigureAwait(false);
                 await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
