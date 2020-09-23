@@ -3,16 +3,15 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
+    //using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using MessageFailures;
     using MessageFailures.Api;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Operations;
-    using Raven.Client.Exceptions;
-    using Raven.Json.Linq;
+    // using Raven.Client.Documents.Operations;
+    // using Raven.Client.Exceptions;
 
     public class Reclassifier
     {
@@ -49,21 +48,20 @@
 
                 var totalMessagesReclassified = 0;
 
-                using (var stream = await session.Advanced.StreamAsync(query.As<FailedMessage>())
-                    .ConfigureAwait(false))
+                var stream = await session.Advanced.StreamAsync(query.As<FailedMessage>())
+                    .ConfigureAwait(false);
+
+                while (!abort && await stream.MoveNextAsync().ConfigureAwait(false))
                 {
-                    while (!abort && await stream.MoveNextAsync().ConfigureAwait(false))
+                    currentBatch.Add(Tuple.Create(stream.Current.Document.Id, new ClassifiableMessageDetails(stream.Current.Document)));
+
+                    if (currentBatch.Count == BatchSize)
                     {
-                        currentBatch.Add(Tuple.Create(stream.Current.Document.Id, new ClassifiableMessageDetails(stream.Current.Document)));
+                        failedMessagesReclassified += ReclassifyBatch(store, currentBatch, classifiers);
+                        currentBatch.Clear();
 
-                        if (currentBatch.Count == BatchSize)
-                        {
-                            failedMessagesReclassified += ReclassifyBatch(store, currentBatch, classifiers);
-                            currentBatch.Clear();
-
-                            totalMessagesReclassified += BatchSize;
-                            logger.Info($"Reclassification of batch of {BatchSize} failed messages completed. Total messages reclassified: {totalMessagesReclassified}");
-                        }
+                        totalMessagesReclassified += BatchSize;
+                        logger.Info($"Reclassification of batch of {BatchSize} failed messages completed. Total messages reclassified: {totalMessagesReclassified}");
                     }
                 }
 
@@ -90,31 +88,31 @@
         int ReclassifyBatch(IDocumentStore store, IEnumerable<Tuple<string, ClassifiableMessageDetails>> docs, IEnumerable<IFailureClassifier> classifiers)
         {
             var failedMessagesReclassified = 0;
-
-            Parallel.ForEach(docs, doc =>
-            {
-                var failureGroups = GetClassificationGroups(doc.Item2, classifiers).Select(RavenJObject.FromObject);
-
-                try
-                {
-                    store.DatabaseCommands.Patch(doc.Item1,
-                        new[]
-                        {
-                            new PatchRequest
-                            {
-                                Type = PatchCommandType.Set,
-                                Name = "FailureGroups",
-                                Value = new RavenJArray(failureGroups)
-                            }
-                        });
-
-                    Interlocked.Increment(ref failedMessagesReclassified);
-                }
-                catch (ConcurrencyException)
-                {
-                    // Ignore concurrency exceptions
-                }
-            });
+            //TODO:RAVEN5 Missing API DatabaseCommands
+            // Parallel.ForEach(docs, doc =>
+            // {
+            //     var failureGroups = GetClassificationGroups(doc.Item2, classifiers).Select(RavenJObject.FromObject);
+            //
+            //     try
+            //     {
+            //         store.DatabaseCommands.Patch(doc.Item1,
+            //             new[]
+            //             {
+            //                 new PatchRequest
+            //                 {
+            //                     Type = PatchCommandType.Set,
+            //                     Name = "FailureGroups",
+            //                     Value = new RavenJArray(failureGroups)
+            //                 }
+            //             });
+            //
+            //         Interlocked.Increment(ref failedMessagesReclassified);
+            //     }
+            //     catch (ConcurrencyException)
+            //     {
+            //         // Ignore concurrency exceptions
+            //     }
+            // });
 
             return failedMessagesReclassified;
         }

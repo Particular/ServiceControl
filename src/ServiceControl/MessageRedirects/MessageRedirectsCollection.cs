@@ -10,7 +10,7 @@
     {
         public string Id { get; set; } = DefaultId;
 
-        public Etag ETag { get; set; }
+        public string ETag { get; set; }
 
         public DateTime LastModified { get; set; }
 
