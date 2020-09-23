@@ -8,7 +8,7 @@
     using System.Web.Http;
     using Audit.Auditing;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     public class FailedAuditsController : ApiController
     {
