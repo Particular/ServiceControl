@@ -84,7 +84,7 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.Register(c => documentStore);
+            containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
