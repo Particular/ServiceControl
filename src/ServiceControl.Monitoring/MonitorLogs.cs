@@ -70,7 +70,7 @@ Selected Transport:					{settings.TransportType}
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel < LogLevel.Info ? settings.LogLevel : LogLevel.Info, consoleTarget));
 
             // Remove Console Logging when running as a service
-            if (!Environment.UserInteractive)
+            if (settings.RunAsWindowsService)
             {
                 foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
                 {

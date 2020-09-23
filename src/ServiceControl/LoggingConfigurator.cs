@@ -1,6 +1,5 @@
 namespace Particular.ServiceControl
 {
-    using System;
     using System.IO;
     using System.Linq;
     using NLog.Config;
@@ -81,8 +80,7 @@ namespace Particular.ServiceControl
             nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Info ? loggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
 
-            // Remove Console Logging when running as a service
-            if (!Environment.UserInteractive)
+            if (!loggingSettings.LogToConsole)
             {
                 foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
                 {
