@@ -148,7 +148,7 @@
             // Get the lates upgradble version based on the current version
             // get the json version file from https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt
 
-            var shortAppVersion = AppVersion.Substring(0, 6);
+            var shortAppVersion = AppVersion.Split('-').First();
             
             var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(shortAppVersion).ConfigureAwait(false);
             
