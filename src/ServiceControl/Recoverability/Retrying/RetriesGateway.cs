@@ -33,8 +33,8 @@ namespace ServiceControl.Recoverability
             var latestAttempt = DateTime.MinValue;
 
             using (var session = store.OpenAsyncSession())
-            using (var stream = await request.GetDocuments(session).ConfigureAwait(false))
             {
+                var stream = await request.GetDocuments(session).ConfigureAwait(false);
                 while (await stream.MoveNextAsync().ConfigureAwait(false))
                 {
                     var current = stream.Current.Document;
@@ -127,8 +127,9 @@ namespace ServiceControl.Recoverability
                 commands[i] = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
             }
 
-            await store.AsyncDatabaseCommands.BatchAsync(commands)
-                .ConfigureAwait(false);
+            //TODO:RAVEN5 Missing API AsyncDatabaseCommands
+            // await store.AsyncDatabaseCommands.BatchAsync(commands)
+            //     .ConfigureAwait(false);
 
             await retryDocumentManager.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
 
@@ -221,33 +222,35 @@ namespace ServiceControl.Recoverability
 
             public Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
             {
-                var query = session.Query<TType, TIndex>();
-
-                query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
-
-                if (filter != null)
-                {
-                    query = query.Where(filter);
-                }
-
-                return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
+                return Task.FromResult(new IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>().Current);
+                // var query = session.Query<TType, TIndex>();
+                //
+                // query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
+                //
+                // if (filter != null)
+                // {
+                //     query = query.Where(filter);
+                // }
+                //
+                // return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
             }
 
             Expression<Func<TType, bool>> filter;
         }
     }
 
-    public class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
+    //TODO:RAVEN5 Missing Transformers
+    public class FailedMessages_UniqueMessageIdAndTimeOfFailures //: AbstractTransformerCreationTask<FailedMessage>
     {
-        public FailedMessages_UniqueMessageIdAndTimeOfFailures()
-        {
-            TransformResults = failedMessages => from failedMessage in failedMessages
-                select new
-                {
-                    failedMessage.UniqueMessageId,
-                    LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
-                };
-        }
+        // public FailedMessages_UniqueMessageIdAndTimeOfFailures()
+        // {
+        //     TransformResults = failedMessages => from failedMessage in failedMessages
+        //         select new
+        //         {
+        //             failedMessage.UniqueMessageId,
+        //             LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
+        //         };
+        // }
 
         public struct Result
         {

@@ -6,7 +6,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Raven.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -47,7 +47,8 @@ namespace Particular.ServiceControl
 
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = new EmbeddableDocumentStore();
+            EmbeddedServer.Instance.StartServer();
+            var documentStore = EmbeddedServer.Instance.GetDocumentStore("error");
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
 

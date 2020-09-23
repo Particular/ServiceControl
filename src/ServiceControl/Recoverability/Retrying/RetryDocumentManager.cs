@@ -14,7 +14,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Exceptions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Raven.Json.Linq;
+
 
     class RetryDocumentManager
     {
@@ -54,62 +54,69 @@ namespace ServiceControl.Recoverability
 
         public static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
-            return new PatchCommandData
-            {
-                Patches = patchRequestsEmpty,
-                PatchesIfMissing = new[]
-                {
-                    new PatchRequest
-                    {
-                        Name = "FailedMessageId",
-                        Type = PatchCommandType.Set,
-                        Value = FailedMessage.MakeDocumentId(messageId)
-                    },
-                    new PatchRequest
-                    {
-                        Name = "RetryBatchId",
-                        Type = PatchCommandType.Set,
-                        Value = batchDocumentId
-                    }
-                },
-                Key = FailedMessageRetry.MakeDocumentId(messageId),
-                Metadata = defaultMetadata
-            };
+            return new PatchCommandData();
+            //TODO:RAVEN5 CHanged API PatchCommandData
+            // return new PatchCommandData
+            // {
+            //     Patches = patchRequestsEmpty,
+            //     PatchesIfMissing = new[]
+            //     {
+            //         new PatchRequest
+            //         {
+            //             Name = "FailedMessageId",
+            //             Type = PatchCommandType.Set,
+            //             Value = FailedMessage.MakeDocumentId(messageId)
+            //         },
+            //         new PatchRequest
+            //         {
+            //             Name = "RetryBatchId",
+            //             Type = PatchCommandType.Set,
+            //             Value = batchDocumentId
+            //         }
+            //     },
+            //     Key = FailedMessageRetry.MakeDocumentId(messageId),
+            //     Metadata = defaultMetadata
+            // };
         }
 
-        public virtual async Task MoveBatchToStaging(string batchDocumentId)
+        public virtual Task MoveBatchToStaging(string batchDocumentId)
         {
-            try
-            {
-                await store.AsyncDatabaseCommands.PatchAsync(batchDocumentId,
-                    new[]
-                    {
-                        new PatchRequest
-                        {
-                            Type = PatchCommandType.Set,
-                            Name = "Status",
-                            Value = (int)RetryBatchStatus.Staging,
-                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
-                        }
-                    }).ConfigureAwait(false);
-            }
-            catch (ConcurrencyException)
-            {
-                log.DebugFormat("Ignoring concurrency exception while moving batch to staging {0}", batchDocumentId);
-            }
+            return Task.CompletedTask;
+            //TODO: RAVEN5 missing API AsyncDatabaseCommands
+            // try
+            // {
+            //     await store.AsyncDatabaseCommands.PatchAsync(batchDocumentId,
+            //         new[]
+            //         {
+            //             new PatchRequest
+            //             {
+            //                 Type = PatchCommandType.Set,
+            //                 Name = "Status",
+            //                 Value = (int)RetryBatchStatus.Staging,
+            //                 PrevVal = (int)RetryBatchStatus.MarkingDocuments
+            //             }
+            //         }).ConfigureAwait(false);
+            // }
+            // catch (ConcurrencyException)
+            // {
+            //     log.DebugFormat("Ignoring concurrency exception while moving batch to staging {0}", batchDocumentId);
+            // }
         }
 
         public Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
         {
-            return store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
+            return Task.CompletedTask;
+            //TODO: RAVEN5 missing API AsyncDatabaseCommands
+            //return store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
         internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
         {
+            //TODO:RAVEN5 change query API
             var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
+                //.Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
-                .Statistics(out var stats)
+                //.Statistics(out var stats)
                 .ToListAsync()
                 .ConfigureAwait(false);
 
@@ -135,7 +142,8 @@ namespace ServiceControl.Recoverability
                 return false;
             }
 
-            return stats.IsStale || orphanedBatches.Any();
+            return orphanedBatches.Any();
+            // return stats.IsStale || orphanedBatches.Any();
         }
 
         internal async Task RebuildRetryOperationState(IAsyncDocumentSession session)

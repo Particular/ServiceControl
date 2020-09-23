@@ -214,7 +214,7 @@
         IDisposable subscription;
         Task task;
         CancellationTokenSource tokenSource;
-        Etag latestEtag = Etag.Empty;
+        string latestEtag = string.Empty;
         static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
     }
 }
