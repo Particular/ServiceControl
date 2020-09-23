@@ -5,7 +5,6 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
     using BodyStorage;
     using EndpointPlugin.Messages.SagaState;
@@ -17,7 +16,6 @@
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using SagaAudit;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
@@ -141,7 +139,7 @@
         async Task ProcessMessage(MessageContext context)
         {
             if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
-                && messageType == "ServiceControl.EndpointPlugin.Messages.SagaState.SagaUpdatedMessage")
+                && messageType == typeof(SagaUpdatedMessage).FullName)
             {
                 ProcessSagaAuditMessage(context);
             }
