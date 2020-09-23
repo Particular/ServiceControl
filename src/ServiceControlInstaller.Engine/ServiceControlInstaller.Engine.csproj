@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net40</TargetFramework>
-    <DefineConstants>$(DefineConstants);REGISTRYLICENSESOURCE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

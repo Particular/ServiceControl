@@ -1,17 +1,20 @@
 ﻿namespace ServiceControlInstaller.Engine.LicenseMgmt
 {
     using System;
-    using Microsoft.Win32;
     using Particular.Licensing;
 
     public class LicenseManager
     {
         public static DetectedLicense FindLicense()
         {
-            var sources = LicenseSource.GetStandardLicenseSources().ToArray();
+            var sources = new LicenseSource[]
+            {
+                new LicenseSourceFilePath(GetMachineLevelLicenseLocation())
+            };
+
             var result = ActiveLicense.Find("ServiceControl", sources);
 
-            var detectedLicense = new DetectedLicense("HKEY_LOCAL_MACHINE", LicenseDetails.FromLicense(result.License));
+            var detectedLicense = new DetectedLicense(result.Location, LicenseDetails.FromLicense(result.License));
 
             detectedLicense.IsEvaluationLicense = string.Equals(result.Location, "Trial License", StringComparison.OrdinalIgnoreCase);
 
@@ -48,19 +51,7 @@
 
             try
             {
-                new RegistryLicenseStore(Registry.LocalMachine).StoreLicense(licenseText);
-            }
-            catch (Exception)
-            {
-                errorMessage = "Failed to import license into the registry";
-                return false;
-            }
-
-            try
-            {
-                var machineLevelLicenseLocation = LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
-
-                new FilePathLicenseStore().StoreLicense(machineLevelLicenseLocation, licenseText);
+                new FilePathLicenseStore().StoreLicense(GetMachineLevelLicenseLocation(), licenseText);
             }
             catch (Exception)
             {
@@ -70,6 +61,11 @@
 
             errorMessage = null;
             return true;
+        }
+
+        static string GetMachineLevelLicenseLocation()
+        {
+            return LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
         }
 
         static bool TryDeserializeLicense(string licenseText, out License license)
