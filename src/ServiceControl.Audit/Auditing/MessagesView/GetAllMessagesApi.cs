@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
@@ -27,7 +28,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                     //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .Select(x => new MessagesView()
                     {
-                        MessageId = x.Id
+                        MessageId = (string)x.MessageMetadata["MessageId"]
                     })
                     .ToListAsync()
                     .ConfigureAwait(false);
