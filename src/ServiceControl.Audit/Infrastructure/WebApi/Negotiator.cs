@@ -146,6 +146,20 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
             return response;
         }
 
+        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, QueryStatistics queryStats)
+        {
+            return response.WithEtag(queryStats.ResultEtag);
+        }
+
+        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, long? etag)
+        {
+            if (etag.HasValue)
+            {
+                response.Headers.ETag = new EntityTagHeaderValue($"\"{etag.Value}\"");
+            }
+            return response;
+        }
+
         static HttpResponseMessage WithHeader(this HttpResponseMessage response, string header, string value)
         {
             response.Headers.Add(header, value);
