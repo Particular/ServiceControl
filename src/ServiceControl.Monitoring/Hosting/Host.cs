@@ -10,26 +10,9 @@
     {
         public Settings Settings { get; set; }
 
-        public void Run(bool interactive)
-        {
-            if (interactive)
-            {
-                RunInteractive();
-            }
-            else
-            {
-                RunAsService();
-            }
-        }
-
-        void RunInteractive()
+        public void Start()
         {
             OnStart(null);
-        }
-
-        void RunAsService()
-        {
-            Run(this);
         }
 
         protected override void OnStart(string[] args)
