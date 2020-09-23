@@ -5,9 +5,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Raven.Client;
     using Raven.Client.Documents;
-    using Raven.Json.Linq;
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
@@ -31,14 +29,15 @@
             {
                 await semaphore.WaitAsync().ConfigureAwait(false);
 
+                //TODO:RAVEN5 Missing API AsyncDatabaseCommands
                 //We want to continue using attachments for now
-#pragma warning disable 618
-                await DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream, new RavenJObject
-#pragma warning restore 618
-                {
-                    {"ContentType", contentType},
-                    {"ContentLength", bodySize}
-                }).ConfigureAwait(false);
+// #pragma warning disable 618
+//                 await DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream, new RavenJObject
+// #pragma warning restore 618
+//                 {
+//                     {"ContentType", contentType},
+//                     {"ContentLength", bodySize}
+//                 }).ConfigureAwait(false);
 
                 return $"/messages/{bodyId}/body";
             }
@@ -50,25 +49,31 @@
 
         public async Task<StreamResult> TryFetch(string bodyId)
         {
+            return new StreamResult
+            {
+                HasResult = false,
+                Stream = null
+            };
+            //TODO:RAVEN5 Missing API AsyncDatabaseCommands
             //We want to continue using attachments for now
-#pragma warning disable 618
-            var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
-#pragma warning restore 618
+// #pragma warning disable 618
+//             var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
+// #pragma warning restore 618
 
-            return attachment == null
-                ? new StreamResult
-                {
-                    HasResult = false,
-                    Stream = null
-                }
-                : new StreamResult
-                {
-                    HasResult = true,
-                    Stream = attachment.Data(),
-                    ContentType = attachment.Metadata["ContentType"].Value<string>(),
-                    BodySize = attachment.Metadata["ContentLength"].Value<int>(),
-                    Etag = attachment.Etag
-                };
+            // return attachment == null
+            //     ? new StreamResult
+            //     {
+            //         HasResult = false,
+            //         Stream = null
+            //     }
+            //     : new StreamResult
+            //     {
+            //         HasResult = true,
+            //         Stream = attachment.Data(),
+            //         ContentType = attachment.Metadata["ContentType"].Value<string>(),
+            //         BodySize = attachment.Metadata["ContentLength"].Value<int>(),
+            //         Etag = attachment.Etag
+            //     };
         }
 
         SemaphoreSlim[] locks;

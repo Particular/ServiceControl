@@ -7,6 +7,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
+    using Raven.Client.Documents;
     using Raven.Embedded;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.DomainEvents;
@@ -16,7 +17,7 @@ namespace ServiceBus.Management.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, EmbeddedServer documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, IDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
