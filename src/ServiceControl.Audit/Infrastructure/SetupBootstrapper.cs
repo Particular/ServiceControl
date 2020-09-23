@@ -84,6 +84,7 @@ namespace ServiceControl.Audit.Infrastructure
                 await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
+            EmbeddedServer.Instance.Dispose();
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)
