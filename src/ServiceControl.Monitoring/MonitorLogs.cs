@@ -14,7 +14,7 @@
 
     static class MonitorLogs
     {
-        public static void Configure(Settings settings)
+        public static void Configure(Settings settings, bool logToConsole)
         {
             LogManager.Use<NLogFactory>();
 
@@ -69,8 +69,7 @@ Selected Transport:					{settings.TransportType}
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel < LogLevel.Info ? settings.LogLevel : LogLevel.Info, consoleTarget));
 
-            // Remove Console Logging when running as a service
-            if (!Environment.UserInteractive)
+            if (logToConsole)
             {
                 foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
                 {
