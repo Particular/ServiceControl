@@ -74,12 +74,12 @@
                             RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                         }
 
-                        bulkInsert.Store(processedMessage);
+                        await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
                         storedContexts.Add(context);
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
-                        bulkInsert.Store(sagaSnapshot);
+                        await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
                         storedContexts.Add(context);
                     }
                 }
