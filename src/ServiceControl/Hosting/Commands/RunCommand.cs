@@ -1,6 +1,7 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
     using System;
+    using System.ServiceProcess;
     using System.Threading.Tasks;
     using Hosting;
 
@@ -8,23 +9,23 @@
     {
         public override async Task Execute(HostArguments args)
         {
-            if (!args.Portable && !Environment.UserInteractive)
+            if (args.RunAsWindowsService)
             {
-                RunNonBlocking(args);
+                using (var service = new Host {ServiceName = args.ServiceName})
+                {
+                    //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
+                    //      until service reports it has stopped.
+                    //      SCM takes over and calls OnStart and OnStop on the service instance. 
+                    ServiceBase.Run(service);
+                }
             }
-
-            await RunAndWait(args).ConfigureAwait(false);
+            else
+            {
+                await RunAsConsoleApp(args).ConfigureAwait(false);
+            }
         }
 
-        static void RunNonBlocking(HostArguments args)
-        {
-            using (var service = new Host {ServiceName = args.ServiceName})
-            {
-                service.Run(false);
-            }
-        }
-
-        static async Task RunAndWait(HostArguments args)
+        static async Task RunAsConsoleApp(HostArguments args)
         {
             using (var service = new Host {ServiceName = args.ServiceName})
             {
@@ -35,7 +36,7 @@
                     completionSource.TrySetResult(true);
                 };
 
-                service.Run(args.Portable || Environment.UserInteractive);
+                service.Start();
 
                 var r = new CancelWrapper(completionSource, service);
                 Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;

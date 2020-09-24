@@ -1,35 +1,36 @@
 namespace ServiceControl.Monitoring
 {
     using System;
+    using System.ServiceProcess;
     using System.Threading.Tasks;
 
     class RunCommand : AbstractCommand
     {
         public override Task Execute(Settings settings)
         {
-            if (Environment.UserInteractive)
+            //RunAsWindowsService can't be a property on Settings class because it
+            //would be exposed as app.config configurable option and break ATT approvals
+            var runAsWindowsService = !Environment.UserInteractive;
+
+            if (runAsWindowsService)
             {
-                return RunAndWait(settings);
+                using (var service = new Host { Settings = settings, ServiceName = settings.ServiceName})
+                {
+                    //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
+                    //      until service reports it has stopped.
+                    //      SCM takes over and calls OnStart and OnStop on the service instance. 
+                    ServiceBase.Run(service);
+                }
+            }
+            else
+            {
+                return RunAsConsoleApp(settings);
             }
 
-            return RunNonBlocking(settings);
+            return Task.CompletedTask;
         }
 
-        Task RunNonBlocking(Settings settings)
-        {
-            using (var service = new Host
-            {
-                Settings = settings,
-                ServiceName = settings.ServiceName
-            })
-            {
-                service.Run(false);
-            }
-
-            return Task.FromResult(0);
-        }
-
-        async Task RunAndWait(Settings settings)
+        async Task RunAsConsoleApp(Settings settings)
         {
             using (var service = new Host
             {
@@ -49,7 +50,7 @@ namespace ServiceControl.Monitoring
 
                 OnConsoleCancel.Run(done);
 
-                service.Run(true);
+                service.Start();
 
                 Console.WriteLine("Press Ctrl+C to exit");
 
