@@ -34,9 +34,8 @@
             LicenseStatusManager = licenseStatusManager;
             DisplayName = "ServiceControl Config";
             IsModal = false;
-            LoadAppVersion();
+            LoadAppVersion();            
             CopyrightInfo = $"{DateTime.Now.Year} © Particular Software";
-
             addInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
             addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
 
@@ -60,6 +59,8 @@
 
         public RxScreen Overlay { get; set; }
 
+        public string AppVersion { get; private set; }
+
         public string VersionInfo { get; private set; }
 
         public string CopyrightInfo { get; }
@@ -80,6 +81,10 @@
         public ICommand RefreshInstancesCmd { get; }
 
         public LicenseStatusManager LicenseStatusManager { get; private set; }
+        
+        public bool UpdateAvailable { get; set; }
+
+        public string AvailableUpgradeReleaseLink { get; set; }
 
         public void Handle(RefreshInstances message)
         {
@@ -89,6 +94,13 @@
         protected override void OnInitialize()
         {
             RefreshInstances();
+        }
+
+        protected async override void OnActivate()
+        {
+            base.OnActivate();
+
+            await CheckForUpdates();
         }
 
         public void RefreshInstances()
@@ -115,9 +127,9 @@
             var assemblyInfo = typeof(App).Assembly.GetAttribute<AssemblyInformationalVersionAttribute>();
             var version = assemblyInfo != null ? assemblyInfo.InformationalVersion : "Unknown Version";
             var versionParts = version.Split('+');
-            var appVersion = versionParts[0];
+            AppVersion = versionParts[0];
 
-            VersionInfo = "v" + appVersion;
+            VersionInfo = "v" + AppVersion;
 
             var metadata = versionParts.Last();
             var parts = metadata.Split('.');
@@ -129,6 +141,28 @@
 
                 VersionInfo += " / " + shortCommitHash;
             }
+        }
+
+        private async Task CheckForUpdates()
+        {
+            // Get the lates upgradble version based on the current version
+            // get the json version file from https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt
+
+            var shortAppVersion = AppVersion.Split('-').First();
+            
+            var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(shortAppVersion).ConfigureAwait(false);
+            
+            if (availableUpgradeRelease.Version.ToString() == shortAppVersion)
+            {
+                UpdateAvailable = false;
+            }
+            else
+            {
+                AvailableUpgradeReleaseLink = availableUpgradeRelease.Assets.FirstOrDefault().Download.ToString();
+                UpdateAvailable = true;
+            }
+
+            NotifyOfPropertyChange(nameof(UpdateAvailable));
         }
 
         readonly ListInstancesViewModel listInstances;

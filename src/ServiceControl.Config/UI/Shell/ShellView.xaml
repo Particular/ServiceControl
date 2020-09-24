@@ -9,7 +9,7 @@
                       Title="ShellView"
                       Width="820"
                       Height="700"
-                      MinWidth="640"
+                      MinWidth="850"
                       MinHeight="500"
                       Padding="0"
                       x:Name="ShellContainer"
@@ -164,6 +164,9 @@
                 <TextBlock>
                     <Hyperlink Command="{Binding OpenFeedBack}">Feedback</Hyperlink>
                 </TextBlock>
+                <TextBlock Visibility="{Binding UpdateAvailable, Converter={StaticResource boolToVis}}">
+                    <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding AvailableUpgradeReleaseLink}">Update Available</Hyperlink>
+                </TextBlock>
             </StackPanel>
 
             <StackPanel Grid.Row="2"
@@ -173,6 +176,7 @@
                         Orientation="Horizontal"
                         Visibility="{Binding IsModal,
                                              Converter={StaticResource boolToVisInverted}}">
+
                 <TextBlock FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
                            Text="{Binding VersionInfo}" />
