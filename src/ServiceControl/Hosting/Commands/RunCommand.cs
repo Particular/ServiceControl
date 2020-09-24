@@ -15,7 +15,7 @@
                 {
                     //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
                     //      until service reports it has stopped.
-                    //      SCM takes over and calls OnStart and OnStop on the service instance. 
+                    //      SCM takes over and calls OnStart and OnStop on the instance. 
                     ServiceBase.Run(service);
                 }
             }
