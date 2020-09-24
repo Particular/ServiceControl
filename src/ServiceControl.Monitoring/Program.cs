@@ -18,7 +18,8 @@ namespace ServiceControl.Monitoring
 
                 var settings = LoadSettings(ConfigurationManager.AppSettings, arguments);
 
-                MonitorLogs.Configure(settings);
+                var runAsWindowsService = !Environment.UserInteractive && !arguments.Portable;
+                MonitorLogs.Configure(settings, !runAsWindowsService);
 
                 var runner = new CommandRunner(arguments.Commands);
 
