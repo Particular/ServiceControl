@@ -33,8 +33,6 @@ namespace ServiceControl.Monitoring
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
         public int MaximumConcurrencyLevel { get; set; }
 
-        public bool RunAsWindowsService => !Environment.UserInteractive;
-
         internal static Settings Load(SettingsReader reader)
         {
             var settings = new Settings

@@ -8,7 +8,11 @@ namespace ServiceControl.Monitoring
     {
         public override Task Execute(Settings settings)
         {
-            if (settings.RunAsWindowsService)
+            //RunAsWindowsService can't be a property on Settings class because it
+            //would be exposed as app.config configurable option and break ATT approvals
+            var runAsWindowsService = !Environment.UserInteractive;
+
+            if (runAsWindowsService)
             {
                 using (var service = new Host { Settings = settings, ServiceName = settings.ServiceName})
                 {
