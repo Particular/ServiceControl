@@ -55,11 +55,17 @@
 
         Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress)
         {
-            var transportOperations = new TransportOperation[messageContexts.Count];
+            var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
             MessageContext anyContext = null;
             foreach (var messageContext in messageContexts)
             {
+                if (messageContext.Extensions.TryGet("AuditType", out string auditType)
+                    && auditType != "ProcessedMessage")
+                {
+                    continue;
+                }
+
                 anyContext = messageContext;
                 var outgoingMessage = new OutgoingMessage(
                     messageContext.MessageId,

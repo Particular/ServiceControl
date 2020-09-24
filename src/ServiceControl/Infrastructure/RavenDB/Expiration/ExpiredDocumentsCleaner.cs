@@ -6,6 +6,7 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Logging;
     using Raven.Database;
+    using SagaAudit;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ExpiredDocumentsCleaner

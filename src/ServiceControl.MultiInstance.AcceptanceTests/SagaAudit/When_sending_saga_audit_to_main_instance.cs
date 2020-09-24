@@ -13,7 +13,7 @@
     using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
-    class When_multiple_messages_are_emitted_by_a_saga : AcceptanceTest
+    class When_sending_saga_audit_to_main_instance : AcceptanceTest
     {
         [SetUp]
         public void ConfigSetup()
@@ -38,7 +38,7 @@
         }
 
         [Test]
-        public async Task Saga_history_can_be_fetched_on_master()
+        public async Task Saga_history_can_be_fetched_from_main_instance()
         {
             SagaHistory sagaHistory = null;
 
@@ -73,7 +73,6 @@
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.AuditSagaStateChanges(ServiceControlInstanceName);
-                    c.AuditProcessedMessagesTo(ServiceControlInstanceName);
                 });
             }
 

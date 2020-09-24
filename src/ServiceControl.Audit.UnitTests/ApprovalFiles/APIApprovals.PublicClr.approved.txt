@@ -271,6 +271,15 @@ namespace ServiceControl.Audit.Recoverability
         public string PhysicalAddress { get; set; }
     }
 }
+namespace ServiceControl.Audit.SagaAudit
+{
+    public class SagasController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGetAttribute()]
+        [System.Web.Http.RouteAttribute("sagas/{id}")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(System.Guid id) { }
+    }
+}
 namespace ServiceControl.Contracts.EndpointControl
 {
     public class RegisterNewEndpoint : NServiceBus.ICommand, NServiceBus.IMessage
@@ -287,15 +296,5 @@ namespace ServiceControl.Contracts.MessageFailures
         public MarkMessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }
         public string FailedMessageId { get; set; }
-    }
-}
-namespace ServiceControl.SagaAudit
-{
-    public class SagaInfo
-    {
-        public SagaInfo() { }
-        public string ChangeStatus { get; set; }
-        public System.Guid SagaId { get; set; }
-        public string SagaType { get; set; }
     }
 }

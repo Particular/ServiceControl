@@ -9,6 +9,7 @@
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
+    using ServiceControl.SagaAudit;
     using Settings;
 
     class RavenBootstrapper : INeedInitialization
@@ -92,6 +93,7 @@
             Logger.Info("Index creation started");
 
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
+            IndexCreation.CreateIndexes(typeof(SagaSnapshot).Assembly, documentStore);
         }
 
         static string ReadAllTextWithoutLocking(string path)

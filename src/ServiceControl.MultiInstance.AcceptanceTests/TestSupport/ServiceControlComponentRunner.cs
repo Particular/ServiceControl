@@ -50,9 +50,15 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         {
             SettingsPerInstance.Clear();
 
-            var startPort = 33333;
-            startPort = await InitializeServiceControlAudit(run.ScenarioContext, startPort).ConfigureAwait(false);
-            await InitializeServiceControl(run.ScenarioContext, startPort).ConfigureAwait(false);
+            var startPort = 33334;
+
+            var mainInstancePort = FindAvailablePort(startPort);
+            var mainInstanceDbPort = FindAvailablePort(mainInstancePort + 1);
+            var auditInstancePort = FindAvailablePort(mainInstanceDbPort + 1);
+            var auditInstanceDbPort = FindAvailablePort(auditInstancePort + 1);
+
+            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort, auditInstanceDbPort).ConfigureAwait(false);
+            await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort).ConfigureAwait(false);
         }
 
         static int FindAvailablePort(int startPort)
@@ -73,13 +79,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             return startPort;
         }
 
-        async Task<int> InitializeServiceControl(ScenarioContext context, int startPort)
+        async Task InitializeServiceControl(ScenarioContext context, int instancePort, int maintenancePort, int auditInstanceApiPort)
         {
             var instanceName = Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
-
-            var instancePort = FindAvailablePort(startPort++);
-            var maintenancePort = FindAvailablePort(startPort++);
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
 
@@ -100,7 +103,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     new RemoteInstanceSetting
                     {
-                        ApiUri = $"http://localhost:{instancePort - 2}/api" // evil assumption for now
+                        ApiUri = $"http://localhost:{auditInstanceApiPort}/api" // evil assumption for now
                     }
                 },
                 OnMessage = (id, headers, body, @continue) =>
@@ -207,17 +210,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             {
                 Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
             }
-
-            return startPort;
         }
 
-        async Task<int> InitializeServiceControlAudit(ScenarioContext context, int startPort)
+        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort, int maintenancePort)
         {
             var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
-
-            var instancePort = FindAvailablePort(startPort++);
-            var maintenancePort = FindAvailablePort(startPort++);
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
@@ -348,8 +346,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             {
                 Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
             }
-
-            return startPort;
         }
 
         public override async Task Stop()

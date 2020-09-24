@@ -101,6 +101,7 @@
             Logger.Info("Index creation started");
 
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
+            IndexCreation.CreateIndexes(typeof(SagaAudit.SagaSnapshot).Assembly, documentStore);
 
             PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
         }

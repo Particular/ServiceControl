@@ -10,6 +10,7 @@
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
+    using ServiceControl.Infrastructure.RavenDB;
 
     static class KnownEndpointsCleaner
     {

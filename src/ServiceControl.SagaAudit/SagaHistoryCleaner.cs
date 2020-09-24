@@ -1,17 +1,18 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB.Expiration
+﻿namespace ServiceControl.SagaAudit
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using Infrastructure.RavenDB;
     using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Database;
 
-    static class SagaHistoryCleaner
+    public static class SagaHistoryCleaner
     {
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken token)
         {

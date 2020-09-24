@@ -568,10 +568,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     {
         public ExpiryProcessedMessageIndex() { }
     }
-    public class ExpirySagaAuditIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask
-    {
-        public ExpirySagaAuditIndex() { }
-    }
 }
 namespace ServiceControl.Infrastructure.SignalR
 {
@@ -1494,51 +1490,10 @@ namespace ServiceControl.Recoverability.Retrying
 }
 namespace ServiceControl.SagaAudit
 {
-    public class InitiatingMessage
-    {
-        public InitiatingMessage() { }
-        public string Intent { get; set; }
-        public bool IsSagaTimeoutMessage { get; set; }
-        public string MessageId { get; set; }
-        public string MessageType { get; set; }
-        public string OriginatingEndpoint { get; set; }
-        public string OriginatingMachine { get; set; }
-        public System.DateTime TimeSent { get; set; }
-    }
-    public class ResultingMessage
-    {
-        public ResultingMessage() { }
-        public System.Nullable<System.DateTime> DeliverAt { get; set; }
-        public System.Nullable<System.TimeSpan> DeliveryDelay { get; set; }
-        public string Destination { get; set; }
-        public string Intent { get; set; }
-        public string MessageId { get; set; }
-        public string MessageType { get; set; }
-        public System.DateTime TimeSent { get; set; }
-    }
     public class SagaAuditing : NServiceBus.Features.Feature
     {
         public SagaAuditing() { }
         protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
-    public class SagaDetailsIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.SagaAudit.SagaHistory>
-    {
-        public SagaDetailsIndex() { }
-    }
-    public class SagaHistory
-    {
-        public SagaHistory() { }
-        public System.Collections.Generic.List<ServiceControl.SagaAudit.SagaStateChange> Changes { get; set; }
-        public System.Guid Id { get; set; }
-        public System.Guid SagaId { get; set; }
-        public string SagaType { get; set; }
-    }
-    public class SagaInfo
-    {
-        public SagaInfo() { }
-        public string ChangeStatus { get; set; }
-        public System.Guid SagaId { get; set; }
-        public string SagaType { get; set; }
     }
     public class SagaListIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.SagaAudit.SagaListIndex.Result>
     {
@@ -1550,38 +1505,6 @@ namespace ServiceControl.SagaAudit
             public string Uri;
             public Result() { }
         }
-    }
-    public class SagaSnapshot
-    {
-        public SagaSnapshot() { }
-        public string Endpoint { get; set; }
-        public System.DateTime FinishTime { get; set; }
-        public System.Guid Id { get; set; }
-        public ServiceControl.SagaAudit.InitiatingMessage InitiatingMessage { get; set; }
-        public System.Collections.Generic.List<ServiceControl.SagaAudit.ResultingMessage> OutgoingMessages { get; set; }
-        public System.DateTime ProcessedAt { get; set; }
-        public System.Guid SagaId { get; set; }
-        public string SagaType { get; set; }
-        public System.DateTime StartTime { get; set; }
-        public string StateAfterChange { get; set; }
-        public ServiceControl.SagaAudit.SagaStateChangeStatus Status { get; set; }
-    }
-    public class SagaStateChange
-    {
-        public SagaStateChange() { }
-        public string Endpoint { get; set; }
-        public System.DateTime FinishTime { get; set; }
-        public ServiceControl.SagaAudit.InitiatingMessage InitiatingMessage { get; set; }
-        public System.Collections.Generic.List<ServiceControl.SagaAudit.ResultingMessage> OutgoingMessages { get; set; }
-        public System.DateTime StartTime { get; set; }
-        public string StateAfterChange { get; set; }
-        public ServiceControl.SagaAudit.SagaStateChangeStatus Status { get; set; }
-    }
-    public enum SagaStateChangeStatus
-    {
-        New = 0,
-        Updated = 1,
-        Completed = 2,
     }
     public class SagasController : System.Web.Http.ApiController
     {
