@@ -1,15 +1,10 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
-    using Monitoring;
-    using NServiceBus;
     using Raven.Client.Documents;
-    using SagaAudit;
     using ServiceControl.Infrastructure.Extensions;
 
     class GetAllMessagesApi : ApiBaseNoInput<IList<MessagesView>>
