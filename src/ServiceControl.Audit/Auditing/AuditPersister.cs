@@ -40,8 +40,6 @@
             var storedContexts = new List<MessageContext>(contexts.Count);
             try
             {
-                // deliberately not using the using statement because we dispose async explicitly
-                // TODO: RAVEN5 This had OverwriteExisting set to true but the options parameter is missing
                 var bulkInsert = store.BulkInsert();
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
