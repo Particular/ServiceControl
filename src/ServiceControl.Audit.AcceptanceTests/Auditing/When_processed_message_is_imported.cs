@@ -24,7 +24,7 @@
             const string Payload = "PAYLOAD";
             MessagesView auditedMessage = null;
             // TODO: RAVEN5 - Body Storage
-            //byte[] body = null;
+            byte[] body = null;
 
             var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
@@ -46,7 +46,7 @@
                         return false;
                     }
 
-                    //body = await this.DownloadData(auditedMessage.BodyUrl);
+                    body = await this.DownloadData(auditedMessage.BodyUrl);
 
                     return true;
                 })
@@ -75,11 +75,11 @@
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
             Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
 
-            //var bodyAsString = Encoding.UTF8.GetString(body);
+            var bodyAsString = Encoding.UTF8.GetString(body);
 
-            //Assert.True(bodyAsString.Contains(Payload), bodyAsString);
+            Assert.True(bodyAsString.Contains(Payload), bodyAsString);
 
-            //Assert.AreEqual(body.Length, auditedMessage.BodySize);
+            Assert.AreEqual(body.Length, auditedMessage.BodySize);
 
             Assert.True(auditedMessage.Headers.Any(h => h.Key == Headers.MessageId));
         }

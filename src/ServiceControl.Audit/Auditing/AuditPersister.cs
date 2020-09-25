@@ -4,6 +4,7 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Threading.Tasks;
     using BodyStorage;
     using Infrastructure;
@@ -69,13 +70,26 @@
                         RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                     }
 
-                    bulkInsert.Store(processedMessage);
+                    await bulkInsert.StoreAsync(processedMessage)
+                        .ConfigureAwait(false);
+
+                    using (var stream = new MemoryStream(context.Body))
+                    {
+                        await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync(
+                            "body", 
+                            stream, 
+                            (string)processedMessage.MessageMetadata["ContentType"]
+                        ).ConfigureAwait(false);
+                    }
+
+                    
                     storedContexts.Add(context);
                 }
 
                 foreach (var endpoint in knownEndpoints.Values)
                 {
-                    bulkInsert.Store(endpoint);
+                    await bulkInsert.StoreAsync(endpoint)
+                        .ConfigureAwait(false);
                 }
 
                 await bulkInsert.DisposeAsync().ConfigureAwait(false);
