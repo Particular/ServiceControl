@@ -19,7 +19,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .IncludeSystemMessagesWhere(request)
-                    .Where(m => m.ReceivingEndpointName == input, true)
+                    .Where(m => m.ReceivingEndpointName == input, false)
                     .Statistics(out var stats)
                     .Sort(request)
                     .Paging(request)
