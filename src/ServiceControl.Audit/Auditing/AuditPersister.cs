@@ -71,7 +71,18 @@
                             RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                         }
 
-                        await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
+                        await bulkInsert.StoreAsync(processedMessage)
+                            .ConfigureAwait(false);
+
+                        using (var stream = new MemoryStream(context.Body))
+                        {
+                            await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync(
+                                "body", 
+                                stream, 
+                                (string)processedMessage.MessageMetadata["ContentType"]
+                            ).ConfigureAwait(false);
+                        }
+
                         storedContexts.Add(context);
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
