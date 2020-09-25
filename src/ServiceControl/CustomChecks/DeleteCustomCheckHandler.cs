@@ -15,8 +15,9 @@
 
         public async Task Handle(DeleteCustomCheck message, IMessageHandlerContext context)
         {
-            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null)
-                .ConfigureAwait(false);
+            //TODO:RAVEN5 missing api AsyncDatabaseCommands
+            // await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null)
+            //     .ConfigureAwait(false);
 
             await domainEvents.Raise(new CustomCheckDeleted {Id = message.Id})
                 .ConfigureAwait(false);
