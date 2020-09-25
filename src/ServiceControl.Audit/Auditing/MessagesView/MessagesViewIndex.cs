@@ -30,9 +30,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             Index(x => x.Query, FieldIndexing.Search);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
-
-            // TODO: RAVEN5 - This API is missing
-            //DisableInMemoryIndexing = true;
         }
 
         public class SortAndFilterOptions

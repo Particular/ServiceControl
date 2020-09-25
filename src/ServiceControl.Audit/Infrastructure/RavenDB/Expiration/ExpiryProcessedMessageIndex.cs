@@ -13,9 +13,6 @@ namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
                 {
                     ProcessedAt = message.ProcessedAt.Ticks
                 };
-
-            // TODO: RAVEN5 - This API is missing
-            //DisableInMemoryIndexing = true;
         }
     }
 }
