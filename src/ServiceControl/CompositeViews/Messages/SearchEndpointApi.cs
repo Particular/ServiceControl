@@ -19,13 +19,14 @@ namespace ServiceControl.CompositeViews.Messages
         {
             using (var session = Store.OpenAsyncSession())
             {
+                //TODO:RAVEN5 Transformers missing
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .Search(x => x.Query, input.Keyword)
-                    .Where(m => m.ReceivingEndpointName == input.Endpoint)
+                    //.Where(m => m.ReceivingEndpointName == input.Endpoint)
                     .Sort(request)
                     .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 
