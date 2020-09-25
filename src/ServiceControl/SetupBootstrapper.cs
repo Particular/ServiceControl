@@ -48,7 +48,7 @@ namespace Particular.ServiceControl
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
             EmbeddedServer.Instance.StartServer();
-            var documentStore = EmbeddedServer.Instance.GetDocumentStore("error");
+            var documentStore = EmbeddedServer.Instance.GetDocumentStore("servicecontrol");
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
 

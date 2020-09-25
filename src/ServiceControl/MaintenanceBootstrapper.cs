@@ -11,9 +11,11 @@ namespace Particular.ServiceControl
         public void Run(HostArguments args)
         {
             var settings = new Settings(args.ServiceName);
-            var documentStore = new EmbeddableDocumentStore();
+            EmbeddedServer.Instance.StartServer();
+            var documentStore = EmbeddedServer.Instance.GetDocumentStore("servicecontrol");
 
-            new RavenBootstrapper().StartRaven(documentStore, settings, true);
+            //TODO:RAVEN5 RavenBootstraper should probably be gone
+            //new RavenBootstrapper().StartRaven(documentStore, settings, true);
 
             if (Environment.UserInteractive)
             {
