@@ -11,6 +11,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
     using SagaAudit;
+    using ServiceControl.Infrastructure.Extensions;
 
     class GetAllMessagesApi : ApiBaseNoInput<IList<MessagesView>>
     {
@@ -27,7 +28,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                     //.IncludeSystemMessagesWhere(request)
                     .Statistics(out var stats)
                     //.Sort(request)
-                    //.Paging(request)
+                    .Paging(request)
                     .ToMessagesView()
                     .ToListAsync()
                     .ConfigureAwait(false);
