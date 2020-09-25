@@ -25,6 +25,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using Raven.Embedded;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -190,6 +191,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
                 Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+            }
+
+            if (Debugger.IsAttached)
+            {
+                EmbeddedServer.Instance.OpenStudioInBrowser();
             }
         }
 
