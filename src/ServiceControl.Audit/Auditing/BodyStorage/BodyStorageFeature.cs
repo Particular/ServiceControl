@@ -2,13 +2,11 @@
 {
     using System.Collections.Generic;
     using System.Text;
-    using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
     using Microsoft.IO;
     using NServiceBus;
     using NServiceBus.Features;
-    using RavenAttachments;
 
     class BodyStorageFeature : Feature
     {
@@ -19,23 +17,17 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            if (!context.Container.HasComponent<IBodyStorage>())
-            {
-                context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
-            }
-
             context.Container.ConfigureComponent<BodyStorageEnricher>(DependencyLifecycle.SingleInstance);
         }
 
         public class BodyStorageEnricher
         {
-            public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
+            public BodyStorageEnricher(Settings settings)
             {
-                this.bodyStorage = bodyStorage;
                 this.settings = settings;
             }
 
-            public async Task StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public void StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.Add("ContentLength", bodySize);
@@ -47,8 +39,7 @@
                 var contentType = GetContentType(headers, "text/xml");
                 metadata.Add("ContentType", contentType);
 
-                var stored = await TryStoreBody(body, headers, metadata, bodySize, contentType)
-                    .ConfigureAwait(false);
+                var stored = TryStoreBody(body, headers, metadata, bodySize, contentType);
                 if (!stored)
                 {
                     metadata.Add("BodyNotStored", true);
@@ -65,7 +56,7 @@
                 return contentType;
             }
 
-            async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
+            bool TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
                 var bodyId = headers.UniqueId();
                 var storedInBodyStorage = false;
@@ -80,8 +71,6 @@
                 }
                 else if (isBelowMaxSize)
                 {
-                    bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                        .ConfigureAwait(false);
                     storedInBodyStorage = true;
                 }
 
@@ -89,17 +78,6 @@
                 return storedInBodyStorage;
             }
 
-            async Task<string> StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
-            {
-                using (var bodyStream = memoryStreamManager.GetStream(body))
-                {
-                    var bodyUrl = await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
-                        .ConfigureAwait(false);
-                    return bodyUrl;
-                }
-            }
-
-            IBodyStorage bodyStorage;
             Settings settings;
 
             // large object heap starts above 85000 bytes and not above 85 KB!
