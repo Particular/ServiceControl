@@ -124,8 +124,7 @@ namespace ServiceControl.Audit.Infrastructure
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            EmbeddedServer.Instance.StartServer();
-            EmbeddedServer.Instance.OpenStudioInBrowser();
+            EmbeddedDatabase.Start(settings, loggingSettings);
             documentStore = await EmbeddedServer.Instance.GetDocumentStoreAsync("audit")
                 .ConfigureAwait(false);
 
