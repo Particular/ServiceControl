@@ -155,7 +155,7 @@
                 var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
                 {
                     // We do this so Raven does not spend time assigning a hilo key
-                    Id = $"ProcessedMessages/{Guid.NewGuid()}"
+                    Id = $"ProcessedMessages/{context.Headers.UniqueId()}"
                 };
 
                 foreach (var commandToEmit in commandsToEmit)

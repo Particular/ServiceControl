@@ -67,7 +67,7 @@
 
             async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
-                var bodyId = headers.MessageId();
+                var bodyId = headers.UniqueId();
                 var storedInBodyStorage = false;
                 var bodyUrl = $"/messages/{bodyId}/body";
                 var isBinary = contentType.Contains("binary");
