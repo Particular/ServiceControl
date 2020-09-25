@@ -13,9 +13,6 @@ namespace ServiceControl.Audit.Auditing
                     Id = cc.Id,
                     Message = cc.Message
                 };
-
-            // TODO: RAVEN5 - This API is missing
-            //DisableInMemoryIndexing = true;
         }
     }
 }

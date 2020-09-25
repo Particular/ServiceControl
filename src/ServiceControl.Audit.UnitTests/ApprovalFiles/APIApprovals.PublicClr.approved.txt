@@ -116,19 +116,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             public System.DateTime TimeSent { get; set; }
         }
     }
-    public class MessagesViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.Audit.Auditing.MessagesView.MessagesViewTransformer.Result>
-    {
-        public MessagesViewTransformer() { }
-        public class Result
-        {
-            public Result() { }
-            public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
-            public string Id { get; set; }
-            public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
-            public System.DateTime ProcessedAt { get; set; }
-            public string UniqueMessageId { get; set; }
-        }
-    }
 }
 namespace ServiceControl.Audit.Infrastructure.Installers
 {

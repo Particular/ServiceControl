@@ -13,10 +13,6 @@
                 {
                     LastSeen = knownEndpoint.LastSeen.Ticks
                 };
-
-            // we expect a lowish number of endpoints so that can run in memory
-            // TODO: RAVEN5 - This API is missing
-            //DisableInMemoryIndexing = false;
         }
     }
 }

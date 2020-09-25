@@ -4,6 +4,7 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Threading.Tasks;
     using BodyStorage;
     using Infrastructure;
@@ -39,8 +40,6 @@
             var storedContexts = new List<MessageContext>(contexts.Count);
             try
             {
-                // deliberately not using the using statement because we dispose async explicitly
-                // TODO: RAVEN5 This had OverwriteExisting set to true but the options parameter is missing
                 var bulkInsert = store.BulkInsert();
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
@@ -69,13 +68,26 @@
                         RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                     }
 
-                    bulkInsert.Store(processedMessage);
+                    await bulkInsert.StoreAsync(processedMessage)
+                        .ConfigureAwait(false);
+
+                    using (var stream = new MemoryStream(context.Body))
+                    {
+                        await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync(
+                            "body", 
+                            stream, 
+                            (string)processedMessage.MessageMetadata["ContentType"]
+                        ).ConfigureAwait(false);
+                    }
+
+                    
                     storedContexts.Add(context);
                 }
 
                 foreach (var endpoint in knownEndpoints.Values)
                 {
-                    bulkInsert.Store(endpoint);
+                    await bulkInsert.StoreAsync(endpoint)
+                        .ConfigureAwait(false);
                 }
 
                 await bulkInsert.DisposeAsync().ConfigureAwait(false);
@@ -149,13 +161,12 @@
                     enricher.Enrich(enricherContext);
                 }
 
-                await bodyStorageEnricher.StoreAuditMessageBody(context.Body, context.Headers, metadata)
-                    .ConfigureAwait(false);
+                bodyStorageEnricher.StoreAuditMessageBody(context.Body, context.Headers, metadata);
 
                 var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
                 {
                     // We do this so Raven does not spend time assigning a hilo key
-                    Id = $"ProcessedMessages/{Guid.NewGuid()}"
+                    Id = $"ProcessedMessages/{context.Headers.UniqueId()}"
                 };
 
                 foreach (var commandToEmit in commandsToEmit)
