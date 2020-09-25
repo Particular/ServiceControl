@@ -71,7 +71,7 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
 
             // TODO: RAVEN5 - Do this properly
-            EmbeddedServer.Instance.StartServer();
+            EmbeddedDatabase.Start(settings, loggingSettings);
             var documentStore = EmbeddedServer.Instance.GetDocumentStore("audit");
             //var documentStore = new EmbeddableDocumentStore();
             //containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
