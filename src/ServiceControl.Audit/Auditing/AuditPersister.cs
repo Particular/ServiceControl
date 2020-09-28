@@ -8,19 +8,22 @@
     using System.Threading.Tasks;
     using BodyStorage;
     using Infrastructure;
+    using Lucene.Net.Util;
     using Monitoring;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client.Documents;
+    using Raven.Client.Json;
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers)
+        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers, TimeSpan auditRetentionPeriod)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
+            this.auditRetentionPeriod = auditRetentionPeriod;
         }
 
         public void Initialize(IMessageSession messageSession)
@@ -68,7 +71,10 @@
                         RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                     }
 
-                    await bulkInsert.StoreAsync(processedMessage)
+                    await bulkInsert.StoreAsync(processedMessage, new MetadataAsDictionary
+                        {
+                            [Raven.Client.Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
+                        })
                         .ConfigureAwait(false);
 
                     using (var stream = new MemoryStream(context.Body))
@@ -200,6 +206,7 @@
         }
 
         readonly IEnrichImportedAuditMessages[] enrichers;
+        readonly TimeSpan auditRetentionPeriod;
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         IMessageSession messageSession;
