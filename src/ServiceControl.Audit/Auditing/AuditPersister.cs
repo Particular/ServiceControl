@@ -73,13 +73,15 @@
 
                     using (var stream = new MemoryStream(context.Body))
                     {
-                        await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync(
-                            "body", 
-                            stream, 
-                            (string)processedMessage.MessageMetadata["ContentType"]
-                        ).ConfigureAwait(false);
+                        if (processedMessage.MessageMetadata.TryGetValue("ContentType", out var contentType))
+                        {
+                            await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync("body", stream, (string)contentType).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync("body", stream).ConfigureAwait(false);
+                        }
                     }
-
                     
                     storedContexts.Add(context);
                 }
