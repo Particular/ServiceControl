@@ -37,7 +37,7 @@
         public IConfigureEndpointTestExecution CreateTransportConfiguration() =>
             GetTransportIntegrationFromConnectionFile()
             ?? GetTransportIntegrationFromEnvironmentVar()
-            ?? new ConfigureEndpointMsmqTransport();
+            ?? new ConfigureEndpointLearningTransport();
 
         public IConfigureEndpointTestExecution CreatePersistenceConfiguration() => new ConfigureEndpointInMemoryPersistence();
 

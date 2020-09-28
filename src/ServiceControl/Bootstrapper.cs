@@ -85,11 +85,6 @@ namespace Particular.ServiceControl
 
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
-
-            //TODO: RAVEN5 EmbeddableDocumentStore replacement
-            EmbeddedServer.Instance.StartServer();
-            documentStore = EmbeddedServer.Instance.GetDocumentStore("servicecontrol");
-
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
@@ -97,7 +92,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
             containerBuilder.Register(c => bus.Bus);
@@ -131,6 +126,10 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
+            //TODO: RAVEN5 EmbeddableDocumentStore replacement
+            EmbeddedDatabase.Start(settings, loggingSettings);
+            documentStore = await EmbeddedDatabase.GetSCDatabase().ConfigureAwait(false);
+
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
@@ -157,6 +156,7 @@ namespace Particular.ServiceControl
             documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
+            EmbeddedServer.Instance.Dispose();
         }
 
         private TransportSettings MapSettings(Settings settings)
