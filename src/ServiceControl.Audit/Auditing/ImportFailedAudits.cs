@@ -11,7 +11,6 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Transport;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
-    using Raven.Client.Documents.Operations;
 
     class ImportFailedAudits
     {
@@ -55,12 +54,8 @@ namespace ServiceControl.Audit.Auditing
 
                         await taskCompletionSource.Task.ConfigureAwait(false);
 
-                        // TODO: RAVEN5 - No AsyncDatabaseCommands
-                        //await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
-                        //    .ConfigureAwait(false);
-                        // Something like this (BELOW)
-                        //await store.Operations.SendAsync(new DeleteByQueryOperation<FailedAuditImport>(typeof(I).Name, import => import.Id == ie.Current.Id))
-                        //    .ConfigureAwait(false);
+                        session.Delete(ie.Current.Id, ie.Current.ChangeVector);
+
                         succeeded++;
                         if (Logger.IsDebugEnabled)
                         {
@@ -77,6 +72,9 @@ namespace ServiceControl.Audit.Auditing
                         failed++;
                     }
                 }
+
+                // HINT: We have already imported these messages so we should not allow cancellation of their deletion
+                await session.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
             }
 
             Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");
