@@ -6,7 +6,10 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Operations.Expiration;
+    using Raven.Client.Documents.Operations.Refresh;
     using Raven.Embedded;
     using Settings;
     using Transports;
@@ -81,12 +84,29 @@ namespace ServiceControl.Audit.Infrastructure
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                await documentStore.ExecuteIndexesAsync(container.Resolve<IEnumerable<IAbstractIndexCreationTask>>())
-                    .ConfigureAwait(false);
-                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
+                await ConfigureDatabase(documentStore, container).ConfigureAwait(false);
+                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { }, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
             EmbeddedServer.Instance.Dispose();
+        }
+
+        async Task ConfigureDatabase(IDocumentStore documentStore, IContainer container)
+        {
+            await documentStore.ExecuteIndexesAsync(container.Resolve<IEnumerable<IAbstractIndexCreationTask>>())
+                .ConfigureAwait(false);
+
+            // TODO: Check to see if the configuration has changed.
+            // If it has, then send an update to the server to change the expires metadata on all documents
+
+            var expirationConfig = new ExpirationConfiguration
+            {
+                Disabled = false,
+                DeleteFrequencyInSec = settings.ExpirationProcessTimerInSeconds
+            };
+
+            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
+                .ConfigureAwait(false);
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)

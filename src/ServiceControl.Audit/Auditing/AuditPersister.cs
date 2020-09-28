@@ -9,6 +9,7 @@
     using BodyStorage;
     using EndpointPlugin.Messages.SagaState;
     using Infrastructure;
+    using Lucene.Net.Util;
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -17,14 +18,16 @@
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using Raven.Client.Documents;
+    using Raven.Client.Json;
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers)
+        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers, TimeSpan auditRetentionPeriod)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
+            this.auditRetentionPeriod = auditRetentionPeriod;
         }
 
         public void Initialize(IMessageSession messageSession)
@@ -57,19 +60,22 @@
 
                 foreach (var context in contexts)
                 {
+                    if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
+                    {
+                        RecordKnownEndpoints(sendingEndpoint, knownEndpoints, processedMessage);
+                    }
+
+                    if (context.Extensions.TryGet("ReceivingEndpoint", out EndpointDetails receivingEndpoint))
+                    {
+                        RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
+                    }
+
                     if (context.Extensions.TryGet(out ProcessedMessage processedMessage)) //Message was an audit message
                     {
-                        if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
-                        {
-                            RecordKnownEndpoints(sendingEndpoint, knownEndpoints, processedMessage);
-                        }
-
-                        if (context.Extensions.TryGet("ReceivingEndpoint", out EndpointDetails receivingEndpoint))
-                        {
-                            RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
-                        }
-
-                        await bulkInsert.StoreAsync(processedMessage)
+                        await bulkInsert.StoreAsync(processedMessage, new MetadataAsDictionary
+                            {
+                                [Raven.Client.Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
+                            })
                             .ConfigureAwait(false);
 
                         using (var stream = new MemoryStream(context.Body))
@@ -246,6 +252,7 @@
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
+        readonly TimeSpan auditRetentionPeriod;
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         IMessageSession messageSession;
