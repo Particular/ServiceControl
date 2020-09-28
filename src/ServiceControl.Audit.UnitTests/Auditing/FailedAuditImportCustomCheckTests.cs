@@ -1,5 +1,4 @@
-﻿//TODO: RAVEN5 - Need to come up with a strategy for In Memory Store Tests
-namespace ServiceControl.Audit.UnitTests.Auditing
+﻿namespace ServiceControl.Audit.UnitTests.Auditing
 {
     using System.Threading.Tasks;
     using Audit.Auditing;
