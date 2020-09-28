@@ -5,8 +5,6 @@
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NServiceBus.Transport;
-    //using Raven.Client;
-    using Raven.Client.Documents;
 
     class SubscriptionStorage : Feature
     {
@@ -22,9 +20,9 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var store = context.Settings.Get<IDocumentStore>();
-
             //TODO: RAVEN5 missing API RavenClrType
+            //var store = context.Settings.Get<IDocumentStore>();
+
             // store.Conventions.FindClrType = (id, doc, metadata) =>
             // {
             //     var clrtype = metadata.Value<string>(Constants.RavenClrType);

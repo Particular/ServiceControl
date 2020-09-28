@@ -5,15 +5,16 @@
     using System.Linq;
     using NUnit.Framework;
     using Particular.Approvals;
+    using Raven.TestDriver;
     using ServiceControl.SagaAudit;
 
     [TestFixture]
-    class SagaListIndexTests
+    class SagaListIndexTests : RavenTestDriver
     {
         [Test]
         public void RunMapReduce()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var store = GetDocumentStore())
             {
                 store.ExecuteIndex(new SagaListIndex());
                 using (var session = store.OpenSession())
@@ -26,7 +27,7 @@
                     session.SaveChanges();
                 }
 
-                store.WaitForIndexing();
+                WaitForIndexing(store);
 
                 using (var session = store.OpenSession())
                 {

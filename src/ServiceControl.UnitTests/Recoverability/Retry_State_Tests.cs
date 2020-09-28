@@ -11,14 +11,15 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Operations;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.TestDriver;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
     using ServiceControl.Recoverability;
 
     [TestFixture]
-    public class Retry_State_Tests
+    public class Retry_State_Tests : RavenTestDriver
     {
         [Test]
         public async Task When_a_group_is_processed_it_is_set_to_the_Preparing_state()
@@ -26,7 +27,7 @@
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
 
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var documentStore = GetDocumentStore())
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -41,14 +42,14 @@
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
 
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var documentStore = GetDocumentStore())
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", false, 1);
 
                 new RetryBatches_ByStatusAndSession().Execute(documentStore);
                 new FailedMessageRetries_ByBatch().Execute(documentStore);
 
-                documentStore.WaitForIndexing();
+                WaitForIndexing(documentStore);
 
                 var documentManager = new CustomRetryDocumentManager(false, documentStore)
                 {
@@ -69,7 +70,7 @@
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
 
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var documentStore = GetDocumentStore())
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 2001);
 
@@ -84,7 +85,7 @@
 
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
-                documentStore.WaitForIndexing();
+                WaitForIndexing(documentStore);
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
@@ -118,7 +119,7 @@
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
 
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var documentStore = GetDocumentStore())
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1);
 
@@ -152,7 +153,7 @@
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
 
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var documentStore = GetDocumentStore())
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, "A", "B", "C");
 
@@ -208,7 +209,7 @@
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
 
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var documentStore = GetDocumentStore())
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1001);
 
@@ -223,7 +224,7 @@
 
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(returnToSender, documentStore, domainEvents, "TestEndpoint"), retryManager);
 
-                documentStore.WaitForIndexing();
+                WaitForIndexing(documentStore);
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
@@ -283,9 +284,10 @@
             }
 
             await new FailedMessages_ByGroup().ExecuteAsync(documentStore);
-            await new FailedMessages_UniqueMessageIdAndTimeOfFailures().ExecuteAsync(documentStore);
+            // TODO: RAVEN5 - No transformers
+            //await new FailedMessages_UniqueMessageIdAndTimeOfFailures().ExecuteAsync(documentStore);
 
-            documentStore.WaitForIndexing();
+            WaitForIndexing(documentStore);
 
             var documentManager = new CustomRetryDocumentManager(progressToStaged, documentStore);
             var gateway = new RetriesGateway(documentStore, documentManager);
@@ -295,8 +297,8 @@
             gateway.OperationManager = retryManager;
 
             gateway.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>("Test-group", RetryType.FailureGroup, DateTime.UtcNow, x => x.FailureGroupId == "Test-group", "Test-Context");
-
-            documentStore.WaitForIndexing();
+            
+            WaitForIndexing(documentStore);
 
             await gateway.ProcessNextBulkRetry();
         }

@@ -1,7 +1,6 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using global::ServiceControl.Infrastructure.RavenDB;
     using Hosting;
     using Raven.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;

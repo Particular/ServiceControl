@@ -3,15 +3,16 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
+    using Raven.TestDriver;
     using ServiceControl.Operations;
 
     [TestFixture]
-    public class FailedErrorImportCustomCheckTests
+    public class FailedErrorImportCustomCheckTests : RavenTestDriver
     {
         [Test]
         public async Task Pass_if_no_failed_imports()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var store = GetDocumentStore())
             {
                 store.ExecuteIndex(new FailedErrorImportIndex());
 
@@ -26,7 +27,7 @@
         [Test]
         public async Task Fail_if_failed_imports()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var store = GetDocumentStore())
             {
                 store.ExecuteIndex(new FailedErrorImportIndex());
 
@@ -36,7 +37,7 @@
                     await session.SaveChangesAsync();
                 }
 
-                store.WaitForIndexing();
+                WaitForIndexing(store);
 
                 var customCheck = new FailedErrorImportCustomCheck(store);
 
