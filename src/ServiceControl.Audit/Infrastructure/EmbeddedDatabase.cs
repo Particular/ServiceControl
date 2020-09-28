@@ -1,5 +1,7 @@
 namespace ServiceControl.Audit.Infrastructure
 {
+    using System.Threading.Tasks;
+    using Raven.Client.Documents;
     using Raven.Embedded;
     using Settings;
 
@@ -14,6 +16,11 @@ namespace ServiceControl.Audit.Infrastructure
                 LogsPath = loggingSettings.LogPath
             };
             EmbeddedServer.Instance.StartServer(serverOptions);
+        }
+
+        public static Task<IDocumentStore> GetAuditDatabase()
+        {
+            return EmbeddedServer.Instance.GetDocumentStoreAsync("audit");
         }
     }
 }
