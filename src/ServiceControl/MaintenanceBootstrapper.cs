@@ -1,6 +1,7 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using global::ServiceControl.Infrastructure;
     using Hosting;
     using Raven.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -10,7 +11,9 @@ namespace Particular.ServiceControl
         public void Run(HostArguments args)
         {
             var settings = new Settings(args.ServiceName);
-            EmbeddedServer.Instance.StartServer();
+            var loggingSettings = new LoggingSettings(args.ServiceName);
+
+            EmbeddedDatabase.Start(settings, loggingSettings);
             var documentStore = EmbeddedServer.Instance.GetDocumentStore("servicecontrol");
 
             //TODO:RAVEN5 RavenBootstraper should probably be gone

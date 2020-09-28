@@ -1,12 +1,15 @@
 namespace Particular.ServiceControl
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Autofac;
+    using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
     using Raven.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -47,17 +50,22 @@ namespace Particular.ServiceControl
 
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            EmbeddedServer.Instance.StartServer();
-            var documentStore = EmbeddedServer.Instance.GetDocumentStore("servicecontrol");
+            EmbeddedDatabase.Start(settings, loggingSettings);
+            var documentStore = await EmbeddedDatabase.GetSCDatabase().ConfigureAwait(false);
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
+            containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
 
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
+                await documentStore.ExecuteIndexesAsync(container.Resolve<IEnumerable<IAbstractIndexCreationTask>>())
+                    .ConfigureAwait(false);
+
                 await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
+            EmbeddedServer.Instance.Dispose();
         }
 
         static TransportSettings MapSettings(Settings settings)
