@@ -12,11 +12,9 @@ namespace ServiceControl.Audit.Infrastructure
             var settings = new Settings.Settings(args.ServiceName);
             var loggingSettings = new LoggingSettings(args.ServiceName);
 
-            // TODO: RAVEN5 - This used to be an EmbeddableServer
             EmbeddedDatabase.Start(settings, loggingSettings);
             var documentStore = EmbeddedServer.Instance.GetDocumentStore("audit");
-            //new RavenBootstrapper().StartRaven(documentStore, settings, true);
-
+            
             if (Environment.UserInteractive)
             {
                 Console.Out.WriteLine("RavenDB is now accepting requests on {0}", settings.StorageUrl);
