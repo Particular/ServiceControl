@@ -72,9 +72,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             // TODO: RAVEN5 - Do this properly
             EmbeddedDatabase.Start(settings, loggingSettings);
-            var documentStore = EmbeddedServer.Instance.GetDocumentStore("audit");
-            //var documentStore = new EmbeddableDocumentStore();
-            //containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+            var documentStore = await EmbeddedServer.Instance.GetDocumentStoreAsync("audit").ConfigureAwait(false);
             containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();

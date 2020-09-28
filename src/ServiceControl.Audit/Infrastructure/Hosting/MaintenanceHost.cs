@@ -6,7 +6,6 @@
 
     class MaintenanceHost : ServiceBase
     {
-        // TODO: RAVEN5 - Changed from EmbeddableDocumentStore. Figure out where this is used and if it is still needed.
         public MaintenanceHost(Settings settings, IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
