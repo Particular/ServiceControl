@@ -36,7 +36,7 @@
         )
         {
             this.settings = settings;
-            var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, FailedMessageFactory, OnCriticalError);
+            var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, OnCriticalError);
             auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers);
             ingestor = new AuditIngestor(auditPersister, settings);
 
@@ -66,14 +66,6 @@
             });
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
-        }
-
-        FailedAuditImport FailedMessageFactory(FailedTransportMessage msg)
-        {
-            return new FailedAuditImport
-            {
-                Message = msg
-            };
         }
 
         Task OnCriticalError(string failure, Exception arg2)

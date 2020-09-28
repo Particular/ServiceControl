@@ -14,14 +14,12 @@
     {
         IDocumentStore store;
         string logPath;
-        Func<FailedTransportMessage, object> messageBuilder;
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public AuditIngestionFaultPolicy(IDocumentStore store, LoggingSettings settings, Func<FailedTransportMessage, object> messageBuilder, Func<string, Exception, Task> onCriticalError)
+        public AuditIngestionFaultPolicy(IDocumentStore store, LoggingSettings settings, Func<string, Exception, Task> onCriticalError)
         {
             this.store = store;
             this.logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
-            this.messageBuilder = messageBuilder;
 
             failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
 
@@ -43,17 +41,20 @@
 
         Task StoreFailedMessageDocument(ErrorContext errorContext)
         {
-            var failure = (dynamic)messageBuilder(new FailedTransportMessage
+            var failure = new FailedAuditImport
             {
-                Id = errorContext.Message.MessageId,
-                Headers = errorContext.Message.Headers,
-                Body = errorContext.Message.Body
-            });
+                Message = new FailedTransportMessage
+                {
+                    Id = errorContext.Message.MessageId,
+                    Headers = errorContext.Message.Headers,
+                    Body = errorContext.Message.Body
+                }
+            };
 
             return Handle(errorContext.Exception, failure);
         }
 
-        async Task Handle(Exception exception, dynamic failure)
+        async Task Handle(Exception exception, FailedAuditImport failure)
         {
             try
             {
@@ -66,14 +67,14 @@
             }
         }
 
-        async Task DoLogging(Exception exception, dynamic failure)
+        async Task DoLogging(Exception exception, FailedAuditImport failure)
         {
             var id = Guid.NewGuid();
 
             // Write to Raven
             using (var session = store.OpenAsyncSession())
             {
-                failure.Id = id;
+                failure.Id = $"FailedAuditImports/{id}";
 
                 await session.StoreAsync(failure)
                     .ConfigureAwait(false);
