@@ -3,15 +3,16 @@
     using System.IO;
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using Raven.TestDriver;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
 
     [TestFixture]
-    public class RavenAttachmentsBodyStorageTests
+    public class RavenAttachmentsBodyStorageTests : RavenTestDriver
     {
         [Test]
         public async Task Attachments_with_ids_that_contain_backslash_should_be_readable()
         {
-            using (var store = InMemoryStoreBuilder.GetInMemoryStore())
+            using (var store = GetDocumentStore())
             {
                 var bodyStore = new RavenAttachmentsBodyStorage {DocumentStore = store};
 
