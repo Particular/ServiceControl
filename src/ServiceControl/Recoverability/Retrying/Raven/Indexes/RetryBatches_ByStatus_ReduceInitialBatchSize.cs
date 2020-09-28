@@ -40,8 +40,6 @@ namespace ServiceControl.Recoverability
                     Last = g.Max(x => x.Last),
                     g.First().Classifier
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

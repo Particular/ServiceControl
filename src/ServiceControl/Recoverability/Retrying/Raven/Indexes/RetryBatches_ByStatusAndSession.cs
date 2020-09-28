@@ -13,8 +13,6 @@ namespace ServiceControl.Recoverability
                     doc.RetrySessionId,
                     doc.Status
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

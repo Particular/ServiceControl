@@ -23,7 +23,9 @@ namespace ServiceControl.CompositeViews.Messages
                     .Statistics(out var stats)
                     .Sort(request)
                     .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    // TODO: RAVEN5 No transformers
+                    .As<MessagesView>() // <-- This will probably fail
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 

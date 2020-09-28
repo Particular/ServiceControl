@@ -22,8 +22,6 @@ namespace ServiceControl.MessageFailures.Api
                     processingAttemptsLast.FailureDetails.TimeOfFailure,
                     LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                 };
-
-            DisableInMemoryIndexing = true;
         }
 
         public class SortAndFilterOptions : IHaveStatus

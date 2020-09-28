@@ -29,7 +29,7 @@ namespace ServiceControl.SagaAudit
                     return QueryResult<SagaHistory>.Empty();
                 }
 
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
+                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
             }
         }
 

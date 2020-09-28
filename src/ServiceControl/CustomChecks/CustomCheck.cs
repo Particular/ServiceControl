@@ -5,7 +5,7 @@
 
     public class CustomCheck
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public string CustomCheckId { get; set; }
         public string Category { get; set; }
         public Status Status { get; set; }

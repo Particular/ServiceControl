@@ -4,6 +4,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Infrastructure.Extensions;
     using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -19,10 +20,12 @@ namespace ServiceControl.CompositeViews.Messages
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
-                    .Where(m => m.ConversationId == input)
+                    .Where(m => m.ConversationId == input, false)
                     .Sort(request)
                     .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    // TODO: RAVEN5 no transformers
+                    .As<MessagesView>() // <-- This will fail
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 

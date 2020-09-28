@@ -2,14 +2,12 @@ namespace ServiceControl.Infrastructure.Extensions
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text;
     using CompositeViews.Messages;
     using MessageFailures;
-    using Raven.Client;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
 
@@ -140,8 +138,9 @@ namespace ServiceControl.Infrastructure.Extensions
 
             sb.Append(")");
 
-            source.AndAlso();
-            source.Where($"Status: {sb}");
+            // TODO: RAVEN5 - API has significantly changed
+            //source.AndAlso();
+            //source.Where($"Status: {sb}");
 
             return source;
         }
@@ -164,11 +163,12 @@ namespace ServiceControl.Infrastructure.Extensions
 
             try
             {
-                var from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-                var to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                // TODO: RAVEN5 - API has significantly changed
+                //var from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                //var to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
-                source.AndAlso();
-                source.WhereBetweenOrEqual("LastModified", from.Ticks, to.Ticks);
+                //source.AndAlso();
+                //source.WhereBetweenOrEqual("LastModified", from.Ticks, to.Ticks);
             }
             catch (Exception)
             {

@@ -221,8 +221,9 @@
                 var existingSubscription = stream.Current.Document;
                 existingSubscription.Subscribers.Remove(localClient);
                 subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", String.Empty), existingSubscription);
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null)
-                    .ConfigureAwait(false);
+                // TODO: RAVEN5 - No AsyncDatabaseCommands
+                //await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null)
+                //    .ConfigureAwait(false);
             }
 
             await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId).ConfigureAwait(false);

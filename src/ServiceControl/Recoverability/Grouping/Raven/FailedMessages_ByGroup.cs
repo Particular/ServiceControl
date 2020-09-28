@@ -26,8 +26,6 @@ namespace ServiceControl.Recoverability
                 };
 
             StoreAllFields(FieldStorage.Yes);
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

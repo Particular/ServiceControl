@@ -39,8 +39,6 @@ namespace ServiceControl.Recoverability
                     Last = g.Max(x => x.Last),
                     Type = g.Key.Type
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

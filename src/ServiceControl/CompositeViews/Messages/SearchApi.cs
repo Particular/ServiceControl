@@ -24,6 +24,8 @@ namespace ServiceControl.CompositeViews.Messages
                     .Search(x => x.Query, input)
                     .Sort(request)
                     .Paging(request)
+                    // TODO: RAVEN5 no transformers
+                    .As<MessagesView>() // <-- This will not work
                     //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
                     .ConfigureAwait(false);

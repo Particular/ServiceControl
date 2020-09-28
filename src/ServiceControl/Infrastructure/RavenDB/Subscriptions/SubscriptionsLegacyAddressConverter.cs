@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
 {
-    using System.Linq;
+    // using System.Linq;
     // using Raven.Client.Listeners;
     // using Raven.Json.Linq;
 

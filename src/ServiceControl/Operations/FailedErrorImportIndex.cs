@@ -13,8 +13,6 @@
                     Id = cc.Id,
                     Message = cc.Message
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

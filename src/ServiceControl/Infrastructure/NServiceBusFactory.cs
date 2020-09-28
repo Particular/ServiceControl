@@ -8,7 +8,6 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using Raven.Client.Documents;
-    using Raven.Embedded;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations;
