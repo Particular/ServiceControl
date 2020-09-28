@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
-    using System;
     using System.Net;
     using System.Net.Http;
     using System.Threading;

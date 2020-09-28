@@ -9,7 +9,6 @@ namespace ServiceControl.Audit.Infrastructure
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Expiration;
-    using Raven.Client.Documents.Operations.Refresh;
     using Raven.Embedded;
     using Settings;
     using Transports;

@@ -9,7 +9,6 @@
     using BodyStorage;
     using EndpointPlugin.Messages.SagaState;
     using Infrastructure;
-    using Lucene.Net.Util;
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
