@@ -15,8 +15,6 @@
                     Category = cc.Category,
                     CustomCheckId = cc.CustomCheckId
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

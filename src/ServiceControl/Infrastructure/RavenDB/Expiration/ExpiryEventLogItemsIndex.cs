@@ -14,8 +14,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                 {
                     LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

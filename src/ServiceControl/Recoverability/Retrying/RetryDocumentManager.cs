@@ -4,15 +4,11 @@ namespace ServiceControl.Recoverability
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure;
-    using MessageFailures;
     using NServiceBus.Logging;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
-    using Raven.Client.Exceptions;
-    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
 
@@ -54,7 +50,7 @@ namespace ServiceControl.Recoverability
 
         public static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
-            return new PatchCommandData();
+            return default;
             //TODO:RAVEN5 CHanged API PatchCommandData
             // return new PatchCommandData
             // {

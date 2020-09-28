@@ -23,8 +23,6 @@ namespace ServiceControl.MessageFailures.Api
                     PhysicalAddress = g.Key,
                     FailedMessageCount = g.Sum(m => m.FailedMessageCount)
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

@@ -9,7 +9,6 @@
     using Infrastructure.Extensions;
     using Infrastructure.WebApi;
     using NServiceBus;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
 

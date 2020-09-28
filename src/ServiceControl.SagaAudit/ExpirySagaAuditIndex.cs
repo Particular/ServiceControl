@@ -20,8 +20,6 @@ namespace ServiceControl.SagaAudit
                 {
                     LastModified = MetadataFor(sagaHistory).Value<DateTime>("Last-Modified").Ticks
                 });
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

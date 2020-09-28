@@ -18,12 +18,10 @@
                     MessageType = failure.ProcessingAttempts.Last().MessageMetadata["MessageType"]
                 };
 
-            //TODO: RAVEN5 FieldIndexing.NotAnalyzed ?? and DisableInMemoryIndexing
+            //TODO: RAVEN5 FieldIndexing.NotAnalyzed ??
             Index("Name", FieldIndexing.Exact); //to avoid lower casing
             Index("Host", FieldIndexing.Exact); //to avoid lower casing
             Index("MessageType", FieldIndexing.Exact); //to avoid lower casing
-
-            //DisableInMemoryIndexing = true;
         }
     }
 }

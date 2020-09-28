@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reactive.Linq;
     //using System.Reactive.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,7 @@
     using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
-    //using Raven.Client.Documents.Changes;
+    using Raven.Client.Documents.Changes;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -28,8 +29,7 @@
 
         protected override Task OnStart(IMessageSession session)
         {
-            //TODO: RAVEN5 Subscriptions on document change
-            //subscription = store.Changes().ForDocumentsStartingWith("ExternalIntegrationDispatchRequests").Where(c => c.Type == DocumentChangeTypes.Put).Subscribe(OnNext);
+            subscription = store.Changes().ForDocumentsStartingWith("ExternalIntegrationDispatchRequests").Where(c => c.Type == DocumentChangeTypes.Put).Subscribe(OnNext);
 
             tokenSource = new CancellationTokenSource();
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
@@ -43,12 +43,12 @@
             return Task.FromResult(0);
         }
 
-        //TODO: RAVEN5 Subscriptions on document change
-        // void OnNext(DocumentChangeNotification documentChangeNotification)
-        // {
-        //     latestEtag = Etag.Max(documentChangeNotification.Etag, latestEtag);
-        //     signal.Set();
-        // }
+        //TODO: RAVEN5 Should update the latestEtag
+        void OnNext(DocumentChange documentChangeNotification)
+        {
+            //latestEtag = documentChangeNotification.ChangeVector;
+            signal.Set();
+        }
 
         void StartDispatcher()
         {

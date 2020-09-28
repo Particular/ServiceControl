@@ -7,7 +7,7 @@
     {
         public static QueryStatsInfo ToQueryStatsInfo(this QueryStatistics stats)
         {
-            return new QueryStatsInfo(stats.IndexEtag, stats.TotalResults);
+            return new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults);
         }
     }
 }

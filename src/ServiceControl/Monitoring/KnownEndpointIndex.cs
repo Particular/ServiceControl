@@ -17,8 +17,6 @@ namespace ServiceControl.Audit.Monitoring
                     message.Monitored,
                     message.HasTemporaryId
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

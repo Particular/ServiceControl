@@ -9,7 +9,6 @@ namespace ServiceControl.Recoverability
     using Infrastructure;
     using MessageFailures;
     using NServiceBus.Logging;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Commands.Batches;
@@ -209,7 +208,7 @@ namespace ServiceControl.Recoverability
                 RequestId = requestId;
                 RetryType = retryType;
                 Originator = originator;
-                this.filter = filter;
+                //this.filter = filter;
                 StartTime = startTime;
                 Classifier = classifier;
             }
@@ -222,7 +221,7 @@ namespace ServiceControl.Recoverability
 
             public Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
             {
-                return Task.FromResult(new IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>().Current);
+                return Task.FromResult(default(IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>));
                 // var query = session.Query<TType, TIndex>();
                 //
                 // query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
@@ -235,7 +234,7 @@ namespace ServiceControl.Recoverability
                 // return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
             }
 
-            Expression<Func<TType, bool>> filter;
+            //Expression<Func<TType, bool>> filter;
         }
     }
 

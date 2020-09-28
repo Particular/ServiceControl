@@ -13,8 +13,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                 {
                     ProcessedAt = message.ProcessedAt.Ticks
                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

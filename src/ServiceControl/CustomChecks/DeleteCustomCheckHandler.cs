@@ -9,7 +9,7 @@
     {
         public DeleteCustomCheckHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
-            this.store = store;
+            //this.store = store;
             this.domainEvents = domainEvents;
         }
 
@@ -23,7 +23,7 @@
                 .ConfigureAwait(false);
         }
 
-        IDocumentStore store;
+//        IDocumentStore store;
         IDomainEvents domainEvents;
     }
 }

@@ -52,11 +52,9 @@ namespace ServiceControl.CompositeViews.Messages
                     ConversationId = (string)last.MessageMetadata["ConversationId"]
                 });
 
-            Index(x => x.Query, FieldIndexing.Analyzed);
+            Index(x => x.Query, FieldIndexing.Search);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
-
-            DisableInMemoryIndexing = true;
         }
 
         public class SortAndFilterOptions
