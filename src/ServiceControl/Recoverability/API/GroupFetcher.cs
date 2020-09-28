@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
 
     class GroupFetcher
@@ -61,7 +62,7 @@
                 select unack).ToArray();
         }
 
-        static Task<IList<FailureGroupView>> GetDBGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
+        static Task<List<FailureGroupView>> GetDBGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
         {
             var groups = session.Query<FailureGroupView, FailureGroupsViewIndex>()
                 .Where(v => v.Type == classifier);

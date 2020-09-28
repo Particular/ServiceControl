@@ -53,7 +53,7 @@
                         Id = FailedMessageEdit.MakeDocumentId(message.FailedMessageId),
                         FailedMessageId = message.FailedMessageId,
                         EditId = context.MessageId
-                    }, Etag.Empty).ConfigureAwait(false);
+                    }, string.Empty).ConfigureAwait(false);
                 }
                 else if (edit.EditId != context.MessageId)
                 {

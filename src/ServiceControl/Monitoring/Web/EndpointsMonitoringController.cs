@@ -59,16 +59,18 @@
                 return StatusCode(HttpStatusCode.NotFound);
             }
 
-            await DeletePersistedEndpoint(endpointId).ConfigureAwait(false);
+            var documentId = $"KnownEndpoints/{endpointId}";
+
+            await DeletePersistedEndpoint(documentId).ConfigureAwait(false);
             endpointInstanceMonitoring.RemoveEndpoint(endpointId);
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        async Task DeletePersistedEndpoint(Guid endpointId)
+        async Task DeletePersistedEndpoint(string endpointId)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                session.Delete<KnownEndpoint>(endpointId);
+                session.Delete(endpointId);
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }

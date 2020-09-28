@@ -45,8 +45,9 @@
 
                             await errorIngestor.Ingest(messageContext).ConfigureAwait(false);
 
-                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
-                                .ConfigureAwait(false);
+                            //TODO:RAVEN5 missing AsyncDatabaseCommands
+                            // await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
+                            //     .ConfigureAwait(false);
                             succeeded++;
 
                             if (Logger.IsDebugEnabled)

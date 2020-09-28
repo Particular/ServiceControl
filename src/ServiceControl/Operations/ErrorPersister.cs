@@ -7,8 +7,7 @@
     using Contracts.Operations;
     using Infrastructure;
     using MessageFailures;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Client.Documents;
     using Recoverability;
@@ -16,22 +15,22 @@
 
     class ErrorPersister
     {
-        static ErrorPersister()
-        {
-            //TODO: RAVEN5 Json Serializer
-            Serializer = Newtonsoft.Json.JsonSerializer.Create();
-            Serializer.TypeNameHandling = TypeNameHandling.Auto;
-
-            JObjectMetadata = JObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
-                                    }}");
-        }
+        // static ErrorPersister()
+        // {
+        //     //TODO: RAVEN5 Json Serializer
+        //     // Serializer = JsonSerializer.Create();
+        //     // Serializer.TypeNameHandling = TypeNameHandling.Auto;
+        //
+        //     // JObjectMetadata = JObject.Parse($@"
+        //     //                         {{
+        //     //                             ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
+        //     //                             ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
+        //     //                         }}");
+        // }
 
         public ErrorPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
         {
-            this.store = store;
+            // this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
@@ -133,8 +132,8 @@
         IEnrichImportedErrorMessages[] enrichers;
         BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
-        IDocumentStore store;
-        static JObject JObjectMetadata;
-        static JsonSerializer Serializer;
+        //IDocumentStore store;
+        //static JObject JObjectMetadata;
+        //static JsonSerializer Serializer;
     }
 }

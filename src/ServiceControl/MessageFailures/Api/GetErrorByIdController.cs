@@ -22,9 +22,10 @@
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorBy(Guid failedMessageId)
         {
+            var documentId = $"FailedMessages/{failedMessageId}";
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                var message = await session.LoadAsync<FailedMessage>(documentId).ConfigureAwait(false);
 
                 if (message == null)
                 {
@@ -39,9 +40,10 @@
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorLastBy(Guid failedMessageId)
         {
+            var documentId = $"FailedMessages/{failedMessageId}";
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                var message = await session.LoadAsync<FailedMessage>(documentId).ConfigureAwait(false);
 
                 if (message == null)
                 {
@@ -76,7 +78,8 @@
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                 Status = message.Status,
                 TimeOfFailure = failureDetails.TimeOfFailure,
-                LastModified = session.Advanced.GetMetadataFor(message)["Last-Modified"].Value<DateTime>(),
+                //TODO:RAVEN5 Missing API
+                //LastModified = session.Advanced.GetMetadataFor(message)["Last-Modified"].Value<DateTime>(),
                 Edited = wasEdited,
                 EditOf = wasEdited ? message.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"] : ""
             };
