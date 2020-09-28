@@ -19,10 +19,7 @@ namespace ServiceControl.Audit.Auditing
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                // TODO: RAVEN5 - This was being disposed
-                var ie = await session.Advanced.StreamAsync(query)
-                    .ConfigureAwait(false);
-                if (await ie.MoveNextAsync().ConfigureAwait(false))
+                if (await query.AnyAsync().ConfigureAwait(false))
                 {
                     Logger.Warn(message);
                     return CheckResult.Failed(message);
