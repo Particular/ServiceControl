@@ -37,7 +37,7 @@
         {
             this.settings = settings;
             var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, OnCriticalError);
-            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers);
+            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, settings.AuditRetentionPeriod);
             ingestor = new AuditIngestor(auditPersister, settings);
 
             var ingestion = new AuditIngestion(
