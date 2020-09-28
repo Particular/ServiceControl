@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="NServiceBus.Azure.Transports.WindowsAzureStorageQueues" Version="8.2.3" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
-    <PackageReference Include="Particular.CodeRules" Version="0.3.0" PrivateAssets="All" />
+    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
