@@ -11,7 +11,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using Raven.Abstractions.Extensions;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using TestSupport.EndpointTemplates;
@@ -100,7 +99,8 @@
 
                     testContext.EditedMessageProperty = message.SomeProperty;
                     testContext.EditedMessageId = context.MessageId;
-                    testContext.EditedMessageHeaders = context.MessageHeaders.Keys.ToHashSet();
+                    //TODO:RAVEN5 missing API
+                    //testContext.EditedMessageHeaders = context.MessageHeaders.Keys.ToHashSet();
                     return Task.CompletedTask;
                 }
 

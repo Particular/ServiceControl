@@ -9,7 +9,7 @@
     using Infrastructure.WebApi;
     using Operations;
     using Raven.Client;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
 
     public class FailedErrorsCountReponse
@@ -60,7 +60,8 @@
             new ExpiryErrorMessageIndex().Execute(store);
             WaitForIndexes(store);
 
-            ErrorMessageCleaner.Clean(1000, ((EmbeddableDocumentStore)store).DocumentDatabase, DateTime.Now, token);
+            //TODO:RAVEN5 missing cleaner
+            //ErrorMessageCleaner.Clean(1000, store, DateTime.Now, token);
             WaitForIndexes(store);
 
             return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK));
@@ -68,7 +69,7 @@
 
         static void WaitForIndexes(IDocumentStore store)
         {
-            SpinWait.SpinUntil(() => store.DatabaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
+            //SpinWait.SpinUntil(() => store.DatabaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
         }
 
         readonly IDocumentStore store;
