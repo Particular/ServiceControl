@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Linq;
     using Raven.Client.Documents.Session;
 
     class MessageRedirectsCollection
@@ -32,8 +33,9 @@
 
             if (redirects != null)
             {
-                redirects.ETag = session.Advanced.GetEtagFor(redirects);
-                redirects.LastModified = session.Advanced.GetMetadataFor(redirects).Value<DateTime>("Last-Modified");
+                redirects.ETag = session.Advanced.GetChangeVectorFor(redirects);
+                //TODO:RAVEN5 missing Value extension method for methadata.
+                //redirects.LastModified = session.Advanced.GetMetadataFor(redirects).Value<DateTime>("Last-Modified");
 
                 return redirects;
             }

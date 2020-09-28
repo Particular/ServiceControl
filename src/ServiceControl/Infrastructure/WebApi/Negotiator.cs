@@ -149,7 +149,7 @@ namespace ServiceControl.Infrastructure.WebApi
         {
             var etag = stats.ResultEtag;
 
-            return response.WithEtag(etag);
+            return response.WithEtag($"{etag}");
         }
 
         public static HttpResponseMessage WithDeterministicEtag(this HttpResponseMessage response, string data)

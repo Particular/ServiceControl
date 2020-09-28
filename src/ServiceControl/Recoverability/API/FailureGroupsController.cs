@@ -81,7 +81,8 @@
                     .FilterByLastModifiedRange(Request)
                     .Sort(Request)
                     .Paging(Request)
-                    .SetResultTransformer(FailedMessageViewTransformer.Name)
+                    //TODO:RAVEN5 MIssing transformenrs
+                    //.SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
@@ -104,14 +105,14 @@
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(Request)
                     .FilterByLastModifiedRange(Request)
-                    .QueryResultAsync()
+                    .GetQueryResultAsync()
                     .ConfigureAwait(false);
 
                 var response = Request.CreateResponse(HttpStatusCode.OK);
 
                 return response
                     .WithTotalCount(queryResult.TotalResults)
-                    .WithEtag(queryResult.IndexEtag);
+                    .WithEtag($"{queryResult.ResultEtag}");
             }
         }
 

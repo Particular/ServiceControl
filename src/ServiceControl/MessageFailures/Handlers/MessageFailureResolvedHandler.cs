@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
     using System.Threading.Tasks;
     using Api;
     using Contracts.MessageFailures;
@@ -36,8 +35,9 @@
                 var prequery = session.Advanced
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
-                    .AndAlso()
-                    .WhereBetweenOrEqual("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
+                    .AndAlso();
+                //TODO:RAVEN5 missing api
+                    //.WhereBetweenOrEqual("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
 
                 if (!string.IsNullOrWhiteSpace(message.QueueAddress))
                 {
@@ -46,16 +46,15 @@
                 }
 
                 var query = prequery
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                        //TODO:RAVEN% missing transformenrs and such.
+                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 
-                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false);
+                while (await ie.MoveNextAsync().ConfigureAwait(false))
                 {
-                    while (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        await context.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id)
-                            .ConfigureAwait(false);
-                    }
+                    await context.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id)
+                        .ConfigureAwait(false);
                 }
             }
         }

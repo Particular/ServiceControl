@@ -47,13 +47,13 @@
             }
         }
 
-        public async Task<StreamResult> TryFetch(string bodyId)
+        public Task<StreamResult> TryFetch(string bodyId)
         {
-            return new StreamResult
+            return Task.FromResult(new StreamResult
             {
                 HasResult = false,
                 Stream = null
-            };
+            });
             //TODO:RAVEN5 Missing API AsyncDatabaseCommands
             //We want to continue using attachments for now
 // #pragma warning disable 618

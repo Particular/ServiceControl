@@ -6,8 +6,6 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Commands.Batches;
-    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
 
     class ArchiveDocumentManager
@@ -64,14 +62,12 @@
         async Task<IEnumerable<string>> StreamResults(IAsyncDocumentSession session, IQueryable<string> query)
         {
             var results = new List<string>();
-            using (var enumerator = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
-            {
-                while (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                {
-                    results.Add(enumerator.Current.Document);
-                }
-            }
+            var enumerator = await session.Advanced.StreamAsync(query).ConfigureAwait(false);
 
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                results.Add(enumerator.Current.Document);
+            }
             return results;
         }
 
@@ -95,23 +91,25 @@
 
         public async Task ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
-            var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData {Key = documentId, Patches = patchRequest});
-
-            if (patchCommands != null)
-            {
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.BatchAsync(patchCommands)
-                    .ConfigureAwait(false);
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(batch.Id, null)
-                    .ConfigureAwait(false);
-            }
+            await Task.Yield();
+            //TODO:RAVEN5 Missing PatchCommandData
+            // var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData {Key = documentId, Patches = patchRequest});
+            //
+            // if (patchCommands != null)
+            // {
+            //     await session.Advanced.DocumentStore.AsyncDatabaseCommands.BatchAsync(patchCommands)
+            //         .ConfigureAwait(false);
+            //     await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(batch.Id, null)
+            //         .ConfigureAwait(false);
+            // }
         }
 
         public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, ArchiveType archiveType, TimeSpan timeToWait)
         {
             using (var session = store.OpenAsyncSession())
             {
-                var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
-                    .Customize(x => x.WaitForNonStaleResultsAsOfNow(timeToWait));
+                var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName);
+                    //.Customize(x => x.WaitForNonStaleResultsAsOfNow(timeToWait));
 
                 var docQuery = indexQuery
                     .Where(failure => failure.FailureGroupId == requestId)
@@ -138,24 +136,25 @@
 
         public async Task RemoveArchiveOperation(IDocumentStore store, ArchiveOperation archiveOperation)
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(archiveOperation.Id, null)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            await Task.Yield();
+            // using (var session = store.OpenAsyncSession())
+            // {
+            //     await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(archiveOperation.Id, null)
+            //         .ConfigureAwait(false);
+            //     await session.SaveChangesAsync()
+            //         .ConfigureAwait(false);
+            // }
         }
 
-        static PatchRequest[] patchRequest =
-        {
-            new PatchRequest
-            {
-                Type = PatchCommandType.Set,
-                Name = "Status",
-                Value = (int)FailedMessageStatus.Archived
-            }
-        };
+        // static PatchRequest[] patchRequest =
+        // {
+        //     new PatchRequest
+        //     {
+        //         Type = PatchCommandType.Set,
+        //         Name = "Status",
+        //         Value = (int)FailedMessageStatus.Archived
+        //     }
+        // };
 
         public class GroupDetails
         {

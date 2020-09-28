@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using System.Web.Cors;
+    using Extensions;
     using Microsoft.Owin.Cors;
 
     class Cors

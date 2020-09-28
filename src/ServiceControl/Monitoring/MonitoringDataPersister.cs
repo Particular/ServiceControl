@@ -26,10 +26,10 @@
         {
             var endpoint = domainEvent.Endpoint;
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
-
+            var knowndEndpointId = $"KnownEndpoints/{id}";
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(knowndEndpointId)
                     .ConfigureAwait(false);
 
                 if (knownEndpoint != null)
@@ -56,10 +56,11 @@
         {
             var endpoint = domainEvent.Endpoint;
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var knowndEndpointId = $"KnownEndpoints/{id}";
 
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(knowndEndpointId)
                     .ConfigureAwait(false);
 
                 if (knownEndpoint == null)
@@ -97,10 +98,11 @@
         public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var knowndEndpointId = $"KnownEndpoints/{id}";
 
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(knowndEndpointId)
                     .ConfigureAwait(false);
 
                 if (knownEndpoint != null)
@@ -117,15 +119,13 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                using (var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>())
-                    .ConfigureAwait(false))
+                var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>())
+                    .ConfigureAwait(false);
+                while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        var endpoint = endpointsEnumerator.Current.Document;
+                    var endpoint = endpointsEnumerator.Current.Document;
 
-                        monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
-                    }
+                    monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
                 }
             }
         }

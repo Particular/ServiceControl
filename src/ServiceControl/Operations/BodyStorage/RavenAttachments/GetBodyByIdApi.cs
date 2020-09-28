@@ -2,7 +2,6 @@
 {
     using System.Net;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Raven.Client.Documents;
@@ -11,8 +10,8 @@
     {
         public GetBodyByIdApi(IDocumentStore documentStore, IBodyStorage bodyStorage)
         {
-            this.documentStore = documentStore;
-            this.bodyStorage = bodyStorage;
+            // this.documentStore = documentStore;
+            // this.bodyStorage = bodyStorage;
         }
 
         protected override async Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, string input, string instanceId)
@@ -80,7 +79,7 @@
 //            return response;
         }
 
-        readonly IBodyStorage bodyStorage;
-        readonly IDocumentStore documentStore;
+        // readonly IBodyStorage bodyStorage;
+        // readonly IDocumentStore documentStore;
     }
 }

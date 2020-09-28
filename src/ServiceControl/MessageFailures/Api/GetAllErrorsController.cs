@@ -30,7 +30,8 @@
                     .FilterByQueueAddress(Request)
                     .Sort(Request)
                     .Paging(Request)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    //TODO:RAVEN5 missing API transformers
+                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
@@ -53,14 +54,14 @@
                     .FilterByStatusWhere(Request)
                     .FilterByLastModifiedRange(Request)
                     .FilterByQueueAddress(Request)
-                    .QueryResultAsync()
+                    .GetQueryResultAsync()
                     .ConfigureAwait(false);
 
                 var response = Request.CreateResponse(HttpStatusCode.OK);
 
                 return response
                     .WithTotalCount(queryResult.TotalResults)
-                    .WithEtag(queryResult.IndexEtag);
+                    .WithEtag($"{queryResult.ResultEtag}");
             }
         }
 
@@ -79,7 +80,8 @@
                     .FilterByLastModifiedRange(Request)
                     .Sort(Request)
                     .Paging(Request)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    //TODO:RAVEN5 missing API transformers and such
+                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
@@ -95,31 +97,34 @@
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorsSummary()
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
-                    .ToFacetsAsync(new List<Facet>
-                    {
-                        new Facet
-                        {
-                            Name = "Name",
-                            DisplayName = "Endpoints"
-                        },
-                        new Facet
-                        {
-                            Name = "Host",
-                            DisplayName = "Hosts"
-                        },
-                        new Facet
-                        {
-                            Name = "MessageType",
-                            DisplayName = "Message types"
-                        }
-                    })
-                    .ConfigureAwait(false);
+            await Task.Yield();
+            return default;
 
-                return Negotiator.FromModel(Request, facetResults.Results);
-            }
+            // using (var session = documentStore.OpenAsyncSession())
+            // {
+            //     var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
+            //         .ToFacetsAsync(new List<Facet>
+            //         {
+            //             new Facet
+            //             {
+            //                 Name = "Name",
+            //                 DisplayName = "Endpoints"
+            //             },
+            //             new Facet
+            //             {
+            //                 Name = "Host",
+            //                 DisplayName = "Hosts"
+            //             },
+            //             new Facet
+            //             {
+            //                 Name = "MessageType",
+            //                 DisplayName = "Message types"
+            //             }
+            //         })
+            //         .ConfigureAwait(false);
+            //
+            //     return Negotiator.FromModel(Request, facetResults.Results);
+            // }
         }
 
         readonly IDocumentStore documentStore;

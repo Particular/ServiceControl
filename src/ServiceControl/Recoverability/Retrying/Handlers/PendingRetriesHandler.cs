@@ -27,21 +27,23 @@ namespace ServiceControl.Recoverability
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
                     .AndAlso()
-                    .WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
+                    //TODO:RAVEN5 missing API transformers and such
+                    //.WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
                     .AndAlso()
                     .WhereEquals(o => o.QueueAddress, message.QueueAddress)
-                    .SetResultTransformer(FailedMessageViewTransformer.Name)
+                    //TODO:RAVEN5 missing API transformers and such
+                    //.SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>(fields);
 
-                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false);
+
+                while (await ie.MoveNextAsync().ConfigureAwait(false))
                 {
-                    while (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        await manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id)
-                            .ConfigureAwait(false);
-                        messageIds.Add(ie.Current.Document.Id);
-                    }
+                    await manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id)
+                        .ConfigureAwait(false);
+                    messageIds.Add(ie.Current.Document.Id);
                 }
+
             }
 
             await context.SendLocal(new RetryMessagesById {MessageUniqueIds = messageIds.ToArray()})
