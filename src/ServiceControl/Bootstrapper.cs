@@ -128,7 +128,7 @@ namespace Particular.ServiceControl
 
             //TODO: RAVEN5 EmbeddableDocumentStore replacement
             EmbeddedDatabase.Start(settings, loggingSettings);
-            documentStore = await EmbeddedDatabase.GetSCDatabase().ConfigureAwait(false);
+            documentStore = await EmbeddedDatabase.PrepareDatabase().ConfigureAwait(false);
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
