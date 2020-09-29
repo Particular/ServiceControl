@@ -59,18 +59,18 @@
 
                 foreach (var context in contexts)
                 {
-                    if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
-                    {
-                        RecordKnownEndpoints(sendingEndpoint, knownEndpoints, processedMessage);
-                    }
-
-                    if (context.Extensions.TryGet("ReceivingEndpoint", out EndpointDetails receivingEndpoint))
-                    {
-                        RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
-                    }
-
                     if (context.Extensions.TryGet(out ProcessedMessage processedMessage)) //Message was an audit message
                     {
+                        if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
+                        {
+                            RecordKnownEndpoints(sendingEndpoint, knownEndpoints, processedMessage);
+                        }
+
+                        if (context.Extensions.TryGet("ReceivingEndpoint", out EndpointDetails receivingEndpoint))
+                        {
+                            RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
+                        }
+
                         await bulkInsert.StoreAsync(processedMessage, new MetadataAsDictionary
                             {
                                 [Raven.Client.Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
