@@ -4,7 +4,7 @@ namespace ServiceControl.Audit.SagaAudit
     using System.Net.Http;
     using System.Threading.Tasks;
     using Auditing.MessagesView;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.SagaAudit;
 
     class GetSagaByIdApi : ApiBase<Guid, SagaHistory>
@@ -28,7 +28,7 @@ namespace ServiceControl.Audit.SagaAudit
                     return QueryResult<SagaHistory>.Empty();
                 }
 
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
+                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults));
             }
         }
     }
