@@ -10,7 +10,6 @@
             OutgoingMessages = new List<ResultingMessage>();
         }
 
-        public Guid Id { get; set; }
         public Guid SagaId { get; set; }
         public string SagaType { get; set; }
         public DateTime StartTime { get; set; }
