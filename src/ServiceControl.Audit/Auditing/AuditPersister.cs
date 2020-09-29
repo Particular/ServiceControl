@@ -71,10 +71,7 @@
                             RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                         }
 
-                        await bulkInsert.StoreAsync(processedMessage, new MetadataAsDictionary
-                            {
-                                [Raven.Client.Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
-                            })
+                        await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata())
                             .ConfigureAwait(false);
 
                         using (var stream = new MemoryStream(context.Body))
@@ -93,7 +90,7 @@
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
-                        await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
+                        await bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata()).ConfigureAwait(false);
                         storedContexts.Add(context);
                     }
                 }
@@ -129,6 +126,14 @@
             }
 
             return storedContexts;
+        }
+
+        MetadataAsDictionary GetExpirationMetadata()
+        {
+            return new MetadataAsDictionary
+            {
+                [Raven.Client.Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
+            };
         }
 
         static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints, ProcessedMessage processedMessage)
