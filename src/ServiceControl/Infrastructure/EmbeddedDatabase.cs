@@ -2,7 +2,9 @@ namespace ServiceControl.Infrastructure
 {
     using System.Threading.Tasks;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
     using Raven.Embedded;
+    using SagaAudit;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class EmbeddedDatabase
@@ -13,14 +15,17 @@ namespace ServiceControl.Infrastructure
             {
                 AcceptEula = true,
                 DataDirectory = settings.DbPath,
-                LogsPath = loggingSettings.LogPath
+                LogsPath = loggingSettings.LogPath,
             };
             EmbeddedServer.Instance.StartServer(serverOptions);
         }
 
-        public static Task<IDocumentStore> GetSCDatabase()
+        public static async Task<IDocumentStore> PrepareDatabase()
         {
-            return EmbeddedServer.Instance.GetDocumentStoreAsync("servicecontrol");
+            var documentStore = await EmbeddedServer.Instance.GetDocumentStoreAsync("servicecontrol").ConfigureAwait(false);
+            await IndexCreation.CreateIndexesAsync(typeof(EmbeddedDatabase).Assembly, documentStore).ConfigureAwait(false);
+            await IndexCreation.CreateIndexesAsync(typeof(SagaDetailsIndex).Assembly, documentStore).ConfigureAwait(false);
+            return documentStore;
         }
     }
 }

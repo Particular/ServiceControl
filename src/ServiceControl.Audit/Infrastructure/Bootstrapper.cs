@@ -125,7 +125,7 @@ namespace ServiceControl.Audit.Infrastructure
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
             EmbeddedDatabase.Start(settings, loggingSettings);
-            documentStore = await EmbeddedDatabase.GetAuditDatabase().ConfigureAwait(false);
+            documentStore = await EmbeddedDatabase.PrepareAuditDatabase().ConfigureAwait(false);
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
