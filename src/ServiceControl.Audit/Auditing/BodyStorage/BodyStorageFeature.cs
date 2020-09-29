@@ -58,7 +58,7 @@
 
             bool TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
-                var bodyId = headers.UniqueId();
+                var bodyId = headers.ProcessingId();
                 var storedInBodyStorage = false;
                 var bodyUrl = $"/messages/{bodyId}/body";
                 var isBinary = contentType.Contains("binary");
