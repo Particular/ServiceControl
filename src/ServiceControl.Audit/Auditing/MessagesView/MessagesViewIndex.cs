@@ -6,12 +6,12 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Monitoring;
     using Raven.Client.Documents.Indexes;
 
-    public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
+    public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.Result>
     {
         public MessagesViewIndex()
         {
             Map = messages => from message in messages
-                select new SortAndFilterOptions
+                select new Result
                 {
                     MessageId = (string)message.MessageMetadata["MessageId"],
                     MessageType = (string)message.MessageMetadata["MessageType"],
@@ -28,11 +28,10 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                 };
 
             Index(x => x.Query, FieldIndexing.Search);
-
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }
 
-        public class SortAndFilterOptions
+        public class Result
         {
             public string MessageId { get; set; }
             public string MessageType { get; set; }

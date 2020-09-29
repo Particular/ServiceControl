@@ -15,7 +15,7 @@
 
     static class RavenQueryExtensions
     {
-                public static IQueryable<MessagesView> ToMessagesView(this IQueryable<MessagesViewIndex.SortAndFilterOptions> query)
+                public static IQueryable<MessagesView> ToMessagesView(this IQueryable<MessagesViewIndex.Result> query)
                 => query.OfType<ProcessedMessage>()
                     .Select(message => new
                     {
@@ -46,8 +46,8 @@
                     ;
 
 
-        public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> IncludeSystemMessagesWhere(
-            this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, HttpRequestMessage request)
+        public static IRavenQueryable<MessagesViewIndex.Result> IncludeSystemMessagesWhere(
+            this IRavenQueryable<MessagesViewIndex.Result> source, HttpRequestMessage request)
         {
             var includeSystemMessages = request.GetQueryStringValue("include_system_messages", false);
 
@@ -101,7 +101,7 @@
 
         public static IRavenQueryable<TSource> Sort<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request,
             Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
-            where TSource : MessagesViewIndex.SortAndFilterOptions
+            where TSource : MessagesViewIndex.Result
         {
             var direction = request.GetQueryStringValue("direction", defaultSortDirection);
             if (direction != "asc" && direction != "desc")

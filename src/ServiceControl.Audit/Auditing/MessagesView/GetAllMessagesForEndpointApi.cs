@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         {
             using (var session = Store.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var results = await session.Query<MessagesViewIndex.Result, MessagesViewIndex>()
                     .IncludeSystemMessagesWhere(request)
                     .Where(m => m.ReceivingEndpointName == input, false)
                     .Statistics(out var stats)
