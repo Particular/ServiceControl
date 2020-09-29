@@ -21,16 +21,24 @@
             {
                 settings.MaximumConcurrencyLevel = 1;
             };
+            var conversationId = Guid.NewGuid().ToString();
 
             var context = await Define<MyContext>()
                 .WithEndpoint<AnEndpoint>(b => b.When(async s =>
                 {
-                    await s.SendLocal(new DuplicatedMessage());
-                    await s.SendLocal(new TrailingMessage());
+                    var options = new SendOptions();
+                    options.StartNewConversation(conversationId);
+                    options.RouteToThisEndpoint();
+                    await s.Send(new DuplicatedMessage(), options);
+
+                    options = new SendOptions();
+                    options.StartNewConversation(conversationId);
+                    options.RouteToThisEndpoint();
+                    await s.Send(new TrailingMessage(), options);
                 }))
                 .Done(async c =>
                 {
-                    var result = await this.TryGetMany<MessagesView>("/api/messages?per_page=10");
+                    var result = await this.TryGetMany<MessagesView>($"/api/conversations/{conversationId}");
                     List<MessagesView> messages = result;
                     if (result)
                     {
