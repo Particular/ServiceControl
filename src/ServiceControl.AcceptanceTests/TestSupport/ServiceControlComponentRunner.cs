@@ -24,6 +24,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
+    using Raven.Embedded;
     using Recoverability.MessageFailures;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -188,6 +189,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
                 Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+            }
+
+            if (Debugger.IsAttached)
+            {
+                EmbeddedServer.Instance.OpenStudioInBrowser();
             }
         }
 
