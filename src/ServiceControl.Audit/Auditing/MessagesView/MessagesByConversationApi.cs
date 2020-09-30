@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         {
             using (var session = Store.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.Result, MessagesViewIndex>()
+                var results = await session.Query<ProcessedMessage, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .Where(m => m.ConversationId == conversationId, false)
                     .Sort(request)

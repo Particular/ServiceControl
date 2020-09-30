@@ -7,11 +7,8 @@
     using System.Net.Http;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
-    using Audit.Monitoring;
-    using NServiceBus;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
-    using SagaAudit;
 
     static class RavenQueryExtensions
     {
@@ -45,7 +42,28 @@
                 .As<MessagesView>();
 
         public static IQueryable<MessagesView> ToMessagesView(this IQueryable<ProcessedMessage> query)
-            => query.As<MessagesView>();
+            => query.Select(x => new MessagesView
+            {
+                ProcessingTime = x.ProcessingTime,
+                SendingEndpoint = x.SendingEndpoint,
+                ReceivingEndpoint = x.ReceivingEndpoint,
+                MessageType = x.MessageType,
+                MessageId = x.MessageId,
+                ConversationId = x.ConversationId,
+                DeliveryTime = x.DeliveryTime,
+                TimeSent = x.TimeSent,
+                CriticalTime = x.CriticalTime,
+                IsSystemMessage = x.IsSystemMessage,
+                Status = x.Status,
+                ProcessedAt = x.ProcessedAt,
+                Headers = x.Headers.ToArray(),
+                MessageIntent = x.MessageIntent,
+                InvokedSagas = x.InvokedSagas,
+                OriginatesFromSaga = x.OriginatesFromSaga,
+                BodyUrl = x.BodyUrl,
+                BodySize = x.BodySize,
+                Id = x.Id
+            });
 
 
         public static IRavenQueryable<MessagesViewIndex.Result> IncludeSystemMessagesWhere(
