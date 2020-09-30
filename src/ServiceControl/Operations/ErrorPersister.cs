@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using System;
     using BodyStorage;
     using Contracts.Operations;
     using Infrastructure;
@@ -10,27 +8,18 @@
     using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Operations;
     using Recoverability;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
 
 
     class ErrorPersister
     {
-        // static ErrorPersister()
-        // {
-        //     //TODO: RAVEN5 Json Serializer
-        //     // Serializer = JsonSerializer.Create();
-        //     // Serializer.TypeNameHandling = TypeNameHandling.Auto;
-        //
-        //     // JObjectMetadata = JObject.Parse($@"
-        //     //                         {{
-        //     //                             ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
-        //     //                             ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
-        //     //                         }}");
-        // }
-
         public ErrorPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
         {
-            // this.store = store;
+            this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
@@ -76,64 +65,72 @@
             return failureDetails;
         }
 
-        Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
+        async Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
         {
-            return Task.FromResult(0);
-            //TODO: RAVEN5 missing AsyncDatabaseCommands
-            // var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
-            //
-            // var attemptedAtField = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
-            // var processingAttemptsField = nameof(FailedMessage.ProcessingAttempts);
-            // var statusField = nameof(FailedMessage.Status);
-            // var failureGroupsField = nameof(FailedMessage.FailureGroups);
-            // var uniqueMessageIdField = nameof(FailedMessage.UniqueMessageId);
+            try
+            {
+                var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
 
-//             var serializedGroups = RavenJToken.FromObject(groups);
-//             var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
-//
-//             return store.AsyncDatabaseCommands.PatchAsync(documentId,
-//                 new ScriptedPatchRequest
-//                 {
-//                     Script = $@"this.{statusField} = status;
-//                                 this.{failureGroupsField} = failureGroups;
-//
-//                                 var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{
-//                                     return a.{attemptedAtField} === attempt.{attemptedAtField};
-//                                 }});
-//
-//                                 if(duplicateIndex === -1){{
-//                                     this.{processingAttemptsField} = _.union(this.{processingAttemptsField}, [attempt]);
-//                                 }}",
-//                     Values = new Dictionary<string, object>
-//                     {
-//                         { "status", (int)FailedMessageStatus.Unresolved },
-//                         { "failureGroups", serializedGroups },
-//                         { "attempt", serializedAttempt}
-//                     }
-//                 },
-//                 new ScriptedPatchRequest
-//                 {
-//                     Script = $@"this.{statusField} = status;
-//                                 this.{failureGroupsField} = failureGroups;
-//                                 this.{processingAttemptsField} = [attempt];
-//                                 this.{uniqueMessageIdField} = uniqueMessageId;
-//                              ",
-//                     Values = new Dictionary<string, object>
-//                     {
-//                         { "status", (int)FailedMessageStatus.Unresolved },
-//                         { "failureGroups", serializedGroups },
-//                         { "attempt", serializedAttempt},
-//                         { "uniqueMessageId", uniqueMessageId }
-//                     }
-//                 },
-//                 JObjectMetadata);
+                var attemptedAtField = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
+                var processingAttemptsField = nameof(FailedMessage.ProcessingAttempts);
+                var statusField = nameof(FailedMessage.Status);
+                var failureGroupsField = nameof(FailedMessage.FailureGroups);
+                var uniqueMessageIdField = nameof(FailedMessage.UniqueMessageId);
+
+                await store.Operations.SendAsync(new PatchOperation<FailedMessage>(documentId, null,
+                    new PatchRequest
+                    {
+                        Script = $@"
+this.{statusField} = $status;
+this.{failureGroupsField} = $failureGroups;
+
+var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{
+ return a.{attemptedAtField} === $attempt.{attemptedAtField};
+}});
+
+if(duplicateIndex === -1){{
+ this.{processingAttemptsField} = _.union(this.{processingAttemptsField}, [$attempt]);
+}}
+",
+                        Values = new Dictionary<string, object>
+                        {
+                            ["status"] = FailedMessageStatus.Unresolved,
+                            ["failureGroups"] = groups,
+                            ["attempt"] = processingAttempt,
+                        }
+                    },
+                    new PatchRequest
+                    {
+                        Script = $@"
+this.{statusField} = $status;
+this.{failureGroupsField} = $failureGroups;
+this.{processingAttemptsField} = [$attempt];
+this.{uniqueMessageIdField} = $uniqueMessageId;
+this['@metadata'] = {{ '@collection': 'FailedMessages' }} 
+",
+
+                        Values = new Dictionary<string, object>
+                        {
+                            ["status"] = FailedMessageStatus.Unresolved,
+                            ["failureGroups"] = groups,
+                            ["attempt"] = processingAttempt,
+                            ["uniqueMessageId"] = uniqueMessageId
+                        }
+                    },
+                    skipPatchIfChangeVectorMismatch: false)
+                ).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // TODO: RAVEN5 - This is there to hang a breakpoint on. It should be removed before we finish.
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
 
         IEnrichImportedErrorMessages[] enrichers;
         BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
-        //IDocumentStore store;
-        //static JObject JObjectMetadata;
-        //static JsonSerializer Serializer;
+        IDocumentStore store;
     }
 }
