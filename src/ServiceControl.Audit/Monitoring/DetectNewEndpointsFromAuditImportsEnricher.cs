@@ -14,7 +14,6 @@
         public void Enrich(AuditEnricherContext context)
         {
             var headers = context.Headers;
-            var metadata = context.Metadata;
             var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(headers);
 
             // SendingEndpoint will be null for messages that are from v3.3.x endpoints because we don't
@@ -22,8 +21,7 @@
             if (sendingEndpoint != null)
             {
                 TryAddEndpoint(sendingEndpoint, context);
-
-                metadata.Add("SendingEndpoint", sendingEndpoint);
+                context.ProcessedMessage.SendingEndpoint = sendingEndpoint;
             }
 
             var receivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(headers);
@@ -32,8 +30,7 @@
             if (receivingEndpoint != null)
             {
                 TryAddEndpoint(receivingEndpoint, context);
-
-                metadata.Add("ReceivingEndpoint", receivingEndpoint);
+                context.ProcessedMessage.ReceivingEndpoint = receivingEndpoint;
             }
         }
 

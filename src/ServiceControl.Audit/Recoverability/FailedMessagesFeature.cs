@@ -6,6 +6,7 @@
     using Auditing;
     using Contracts.MessageFailures;
     using Infrastructure;
+    using Monitoring;
     using NServiceBus;
     using NServiceBus.Features;
 
@@ -31,7 +32,7 @@
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
 
-                context.Metadata.Add("IsRetried", hasBeenRetried);
+                context.ProcessedMessage.Status = hasBeenRetried ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful;
 
                 if (!hasBeenRetried)
                 {

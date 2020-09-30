@@ -30,12 +30,12 @@
             IDocumentStore documentStore,
             RawEndpointFactory rawEndpointFactory,
             LoggingSettings loggingSettings,
-            BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher,
             IEnrichImportedAuditMessages[] enrichers,
             AuditIngestionCustomCheck.State ingestionState
         )
         {
             this.settings = settings;
+            var bodyStorageEnricher = new BodyStorageEnricher(settings);
             var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, OnCriticalError);
             auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, settings.AuditRetentionPeriod);
             ingestor = new AuditIngestor(auditPersister, settings);

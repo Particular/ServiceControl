@@ -21,7 +21,6 @@
             public void Enrich(AuditEnricherContext context)
             {
                 var headers = context.Headers;
-                var metadata = context.Metadata;
                 var processingEnded = DateTime.MinValue;
                 var timeSent = DateTime.MinValue;
                 var processingStarted = DateTime.MinValue;
@@ -29,7 +28,7 @@
                 if (headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
                 {
                     timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                    metadata.Add("TimeSent", timeSent);
+                    context.ProcessedMessage.TimeSent = timeSent;
                 }
 
                 if (headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue))
@@ -49,7 +48,7 @@
                     criticalTime = processingEnded - timeSent;
                 }
 
-                metadata.Add("CriticalTime", criticalTime);
+                context.ProcessedMessage.CriticalTime = criticalTime;
 
                 var processingTime = TimeSpan.Zero;
 
@@ -58,7 +57,7 @@
                     processingTime = processingEnded - processingStarted;
                 }
 
-                metadata.Add("ProcessingTime", processingTime);
+                context.ProcessedMessage.ProcessingTime = processingTime;
 
                 var deliveryTime = TimeSpan.Zero;
 
@@ -67,7 +66,7 @@
                     deliveryTime = processingStarted - timeSent;
                 }
 
-                metadata.Add("DeliveryTime", deliveryTime);
+                context.ProcessedMessage.DeliveryTime = deliveryTime;
             }
         }
     }

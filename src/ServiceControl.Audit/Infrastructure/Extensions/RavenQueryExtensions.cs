@@ -15,39 +15,54 @@
 
     static class RavenQueryExtensions
     {
-                public static IQueryable<MessagesView> ToMessagesView(this IQueryable<MessagesViewIndex.Result> query)
-                => query.OfType<ProcessedMessage>()
-                    .Select(message => new
-                    {
-                        Id = message.UniqueMessageId,
-                        MessageId = (string)message.MessageMetadata["MessageId"],
-                        MessageType = (string)message.MessageMetadata["MessageType"],
-                        SendingEndpoint = (EndpointDetails)message.MessageMetadata["SendingEndpoint"],
-                        ReceivingEndpoint = (EndpointDetails)message.MessageMetadata["ReceivingEndpoint"],
-                        TimeSent = (DateTime?)message.MessageMetadata["TimeSent"],
-                        ProcessedAt = message.ProcessedAt,
-                        CriticalTime = (TimeSpan)message.MessageMetadata["CriticalTime"],
-                        ProcessingTime = (TimeSpan)message.MessageMetadata["ProcessingTime"],
-                        DeliveryTime = (TimeSpan)message.MessageMetadata["DeliveryTime"],
-                        IsSystemMessage = (bool)message.MessageMetadata["IsSystemMessage"],
-                        ConversationId = (string)message.MessageMetadata["ConversationId"],
-                        //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
-                        // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
-                        //Headers = message.Headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
-                        Headers = message.Headers.ToArray(),
-                        Status = !(bool)message.MessageMetadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully,
-                        MessageIntent = (MessageIntentEnum)message.MessageMetadata["MessageIntent"],
-                        BodyUrl = (string)message.MessageMetadata["BodyUrl"],
-                        BodySize = (int)message.MessageMetadata["ContentLength"],
-                        InvokedSagas = (List<SagaInfo>)message.MessageMetadata["InvokedSagas"],
-                        OriginatesFromSaga = (SagaInfo)message.MessageMetadata["OriginatesFromSaga"]
-                    })
-                    .As<MessagesView>()
-                    ;
+        public static IQueryable<MessagesView> ToMessagesView(this IQueryable<MessagesViewIndex.Result> query)
+            => query.OfType<ProcessedMessage>()
+                .Select(message => new
+                {
+                    Id = message.UniqueMessageId,
+                    MessageId = message.MessageId,
+                    MessageType = message.MessageType,
+                    SendingEndpoint = message.SendingEndpoint,
+                    ReceivingEndpoint = message.ReceivingEndpoint,
+                    TimeSent = message.TimeSent,
+                    ProcessedAt = message.ProcessedAt,
+                    CriticalTime = message.CriticalTime,
+                    ProcessingTime = message.ProcessingTime,
+                    DeliveryTime = message.DeliveryTime,
+                    IsSystemMessage = message.IsSystemMessage,
+                    ConversationId = message.ConversationId,
+                    //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
+                    // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
+                    //Headers = message.Headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
+                    Headers = message.Headers.ToArray(),
+                    Status = message.Status,
+                    MessageIntent = message.MessageIntent,
+                    BodyUrl = message.BodyUrl,
+                    BodySize = message.BodySize,
+                    InvokedSagas = message.InvokedSagas,
+                    OriginatesFromSaga = message.OriginatesFromSaga
+                })
+                .As<MessagesView>();
+
+        public static IQueryable<MessagesView> ToMessagesView(this IQueryable<ProcessedMessage> query)
+            => query.As<MessagesView>();
 
 
         public static IRavenQueryable<MessagesViewIndex.Result> IncludeSystemMessagesWhere(
             this IRavenQueryable<MessagesViewIndex.Result> source, HttpRequestMessage request)
+        {
+            var includeSystemMessages = request.GetQueryStringValue("include_system_messages", false);
+
+            if (!includeSystemMessages)
+            {
+                return source.Where(m => !m.IsSystemMessage);
+            }
+
+            return source;
+        }
+
+        public static IRavenQueryable<ProcessedMessage> IncludeSystemMessagesWhere(
+            this IRavenQueryable<ProcessedMessage> source, HttpRequestMessage request)
         {
             var includeSystemMessages = request.GetQueryStringValue("include_system_messages", false);
 
@@ -99,9 +114,8 @@
                 .Take(maxResultsPerPage);
         }
 
-        public static IRavenQueryable<TSource> Sort<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request,
-            Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
-            where TSource : MessagesViewIndex.Result
+        public static IRavenQueryable<MessagesViewIndex.Result> Sort(this IRavenQueryable<MessagesViewIndex.Result> source, HttpRequestMessage request,
+            Expression<Func<MessagesViewIndex.Result, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
         {
             var direction = request.GetQueryStringValue("direction", defaultSortDirection);
             if (direction != "asc" && direction != "desc")
@@ -110,7 +124,76 @@
             }
 
 
-            Expression<Func<TSource, object>> keySelector;
+            Expression<Func<MessagesViewIndex.Result, object>> keySelector;
+            var sort = request.GetQueryStringValue("sort", "time_sent");
+            if (!RavenQueryableSortOptions.Contains(sort))
+            {
+                sort = "time_sent";
+            }
+
+            switch (sort)
+            {
+                case "id":
+                case "message_id":
+                    keySelector = m => m.MessageId;
+                    break;
+
+                case "message_type":
+                    keySelector = m => m.MessageType;
+                    break;
+
+                case "critical_time":
+                    keySelector = m => m.CriticalTime;
+                    break;
+
+                case "delivery_time":
+                    keySelector = m => m.DeliveryTime;
+                    break;
+
+                case "processing_time":
+                    keySelector = m => m.ProcessingTime;
+                    break;
+
+                case "processed_at":
+                    keySelector = m => m.ProcessedAt;
+                    break;
+
+                case "status":
+                    keySelector = m => m.Status;
+                    break;
+
+                default:
+                    if (defaultKeySelector == null)
+                    {
+                        keySelector = m => m.TimeSent;
+                    }
+                    else
+                    {
+                        keySelector = defaultKeySelector;
+                    }
+
+                    break;
+            }
+
+            if (direction == "asc")
+            {
+                return source.OrderBy(keySelector);
+            }
+
+            return source.OrderByDescending(keySelector);
+        }
+
+        public static IRavenQueryable<ProcessedMessage> Sort(this IRavenQueryable<ProcessedMessage> source, HttpRequestMessage request,
+            Expression<Func<ProcessedMessage, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
+        {
+            var direction = request.GetQueryStringValue("direction", defaultSortDirection);
+            if (direction != "asc" && direction != "desc")
+            {
+                direction = defaultSortDirection;
+            }
+
+
+            Expression<Func<ProcessedMessage, object>> keySelector;
             var sort = request.GetQueryStringValue("sort", "time_sent");
             if (!RavenQueryableSortOptions.Contains(sort))
             {

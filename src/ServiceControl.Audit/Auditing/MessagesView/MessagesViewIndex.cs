@@ -13,18 +13,18 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             Map = messages => from message in messages
                 select new Result
                 {
-                    MessageId = (string)message.MessageMetadata["MessageId"],
-                    MessageType = (string)message.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool)message.MessageMetadata["IsSystemMessage"],
-                    Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
-                    TimeSent = (DateTime)message.MessageMetadata["TimeSent"],
+                    MessageId = message.MessageId,
+                    MessageType = message.MessageType,
+                    IsSystemMessage = message.IsSystemMessage,
+                    Status = message.Status,
+                    TimeSent = message.TimeSent,
                     ProcessedAt = message.ProcessedAt,
-                    ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
-                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] {string.Join(" ", message.Headers.Select(x => x.Value))}).ToArray(),
-                    ConversationId = (string)message.MessageMetadata["ConversationId"]
+                    ReceivingEndpointName = message.ReceivingEndpoint.Name, //TODO: what if ReceivingEndpoint is null
+                    CriticalTime = message.CriticalTime,
+                    ProcessingTime = message.ProcessingTime,
+                    DeliveryTime = message.DeliveryTime,
+                    Query = message.SearchTerms.Select(_ => _.Value.ToString()).Union(new[] {string.Join(" ", message.Headers.Select(x => x.Value))}).ToArray(),
+                    ConversationId = message.ConversationId
                 };
 
             Index(x => x.Query, FieldIndexing.Search);
@@ -44,7 +44,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             public TimeSpan? DeliveryTime { get; set; }
             public string ConversationId { get; set; }
             public string[] Query { get; set; }
-            public DateTime TimeSent { get; set; }
+            public DateTime? TimeSent { get; set; }
         }
     }
 }

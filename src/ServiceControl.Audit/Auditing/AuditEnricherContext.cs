@@ -5,16 +5,19 @@
 
     class AuditEnricherContext
     {
-        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IList<ICommand> outgoingCommands, IDictionary<string, object> metadata)
+        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IList<ICommand> outgoingCommands, IDictionary<string, string> searchTerms, ProcessedMessage processedMessage)
         {
             Headers = headers;
+            SearchTerms = searchTerms;
+            ProcessedMessage = processedMessage;
             this.outgoingCommands = outgoingCommands;
-            Metadata = metadata;
         }
 
         public IReadOnlyDictionary<string, string> Headers { get; }
 
-        public IDictionary<string, object> Metadata { get; }
+        public IDictionary<string, string> SearchTerms { get; }
+
+        public ProcessedMessage ProcessedMessage { get; }
 
         public void AddForSend(ICommand command)
         {

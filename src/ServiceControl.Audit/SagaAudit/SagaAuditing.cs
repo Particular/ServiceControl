@@ -22,9 +22,11 @@
             public void Enrich(AuditEnricherContext context)
             {
                 var headers = context.Headers;
-                var metadata = context.Metadata;
 
-                InvokedSagasParser.Parse(headers, metadata);
+                var result = InvokedSagasParser.Parse(headers);
+
+                context.ProcessedMessage.InvokedSagas = result.InvokedSagas;
+                context.ProcessedMessage.OriginatesFromSaga = result.OriginatesFromSaga;
             }
         }
     }

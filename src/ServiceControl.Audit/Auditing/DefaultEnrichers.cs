@@ -33,11 +33,11 @@
                 {
                     messageType = GetMessageType(enclosedMessageTypes);
                     isSystemMessage = DetectSystemMessage(messageType);
-                    context.Metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
+                    context.SearchTerms.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
                 }
 
-                context.Metadata.Add("IsSystemMessage", isSystemMessage);
-                context.Metadata.Add("MessageType", messageType);
+                context.ProcessedMessage.IsSystemMessage = isSystemMessage;
+                context.ProcessedMessage.MessageType = messageType;
             }
 
             bool DetectSystemMessage(string messageTypeString)
@@ -62,12 +62,13 @@
             {
                 if (context.Headers.TryGetValue(Headers.ConversationId, out var conversationId))
                 {
-                    context.Metadata.Add("ConversationId", conversationId);
+                    context.ProcessedMessage.ConversationId = conversationId;
+                    context.SearchTerms.Add("ConversationId", conversationId);
                 }
 
                 if (context.Headers.TryGetValue(Headers.RelatedTo, out var relatedToId))
                 {
-                    context.Metadata.Add("RelatedToId", relatedToId);
+                    context.SearchTerms.Add("RelatedToId", relatedToId);
                 }
             }
         }

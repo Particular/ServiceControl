@@ -21,7 +21,7 @@
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers, TimeSpan auditRetentionPeriod)
+        public AuditPersister(IDocumentStore store, BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers, TimeSpan auditRetentionPeriod)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
@@ -61,30 +61,27 @@
                 {
                     if (context.Extensions.TryGet(out ProcessedMessage processedMessage)) //Message was an audit message
                     {
-                        if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
+                        if (processedMessage.SendingEndpoint != null)
                         {
-                            RecordKnownEndpoints(sendingEndpoint, knownEndpoints, processedMessage);
+                            RecordKnownEndpoints(processedMessage.SendingEndpoint, knownEndpoints, processedMessage.ProcessedAt);
                         }
 
-                        if (context.Extensions.TryGet("ReceivingEndpoint", out EndpointDetails receivingEndpoint))
+                        if (processedMessage.ReceivingEndpoint != null)
                         {
-                            RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
+                            RecordKnownEndpoints(processedMessage.ReceivingEndpoint, knownEndpoints, processedMessage.ProcessedAt);
                         }
 
                         await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata())
                             .ConfigureAwait(false);
 
-                        using (var stream = new MemoryStream(context.Body))
+                        if (processedMessage.BodySize > 0)
                         {
-                            if (processedMessage.MessageMetadata.TryGetValue("ContentType", out var contentType))
-                            {
-                                await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync("body", stream, (string)contentType).ConfigureAwait(false);
-                            }
-                            else
-                            {
-                                await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync("body", stream).ConfigureAwait(false);
+                            using (var stream = new MemoryStream(context.Body))
+                            { 
+                                await bulkInsert.AttachmentsFor(processedMessage.Id).StoreAsync("body", stream, processedMessage.ContentType).ConfigureAwait(false);
                             }
                         }
+                        
 
                         storedContexts.Add(context);
                     }
@@ -136,23 +133,25 @@
             };
         }
 
-        static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints, ProcessedMessage processedMessage)
+        static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints, DateTime messageProcessingTime)
         {
             var uniqueEndpointId = $"{observedEndpoint.Name}{observedEndpoint.HostId}";
-            if (!observedEndpoints.TryGetValue(uniqueEndpointId, out var knownEndpoint))
+            if (observedEndpoints.TryGetValue(uniqueEndpointId, out var knownEndpoint))
+            {
+                knownEndpoint.LastSeen = messageProcessingTime > knownEndpoint.LastSeen ? messageProcessingTime : knownEndpoint.LastSeen;
+            }
+            else
             {
                 knownEndpoint = new KnownEndpoint
                 {
                     Host = observedEndpoint.Host,
                     HostId = observedEndpoint.HostId,
-                    LastSeen = processedMessage.ProcessedAt,
+                    LastSeen = messageProcessingTime,
                     Name = observedEndpoint.Name,
                     Id = KnownEndpoint.MakeDocumentId(observedEndpoint.Name, observedEndpoint.HostId),
                 };
                 observedEndpoints.Add(uniqueEndpointId, knownEndpoint);
             }
-
-            knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
         async Task ProcessMessage(MessageContext context)
@@ -203,14 +202,18 @@
 
             try
             {
-                var metadata = new ConcurrentDictionary<string, object>
+                var searchTerms = new Dictionary<string, string>
                 {
-                    ["MessageId"] = messageId,
-                    ["MessageIntent"] = context.Headers.MessageIntent()
+                    ["MessageId"] = messageId
                 };
-
+                var auditMessage = new ProcessedMessage(context.Headers, searchTerms)
+                {
+                    Id = $"ProcessedMessages/{context.Headers.ProcessingId()}",
+                    MessageId = messageId,
+                    MessageIntent = context.Headers.MessageIntent()
+                };
                 var commandsToEmit = new List<ICommand>();
-                var enricherContext = new AuditEnricherContext(context.Headers, commandsToEmit, metadata);
+                var enricherContext = new AuditEnricherContext(context.Headers, commandsToEmit, searchTerms, auditMessage);
 
                 // ReSharper disable once LoopCanBeConvertedToQuery
                 foreach (var enricher in enrichers)
@@ -218,12 +221,7 @@
                     enricher.Enrich(enricherContext);
                 }
 
-                bodyStorageEnricher.StoreAuditMessageBody(context.Body, context.Headers, metadata);
-
-                var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
-                {
-                    Id = $"ProcessedMessages/{context.Headers.ProcessingId()}"
-                };
+                bodyStorageEnricher.StoreAuditMessageBody(context.Body, context.Headers, auditMessage, searchTerms);
 
                 foreach (var commandToEmit in commandsToEmit)
                 {
@@ -232,16 +230,6 @@
                 }
 
                 context.Extensions.Set(auditMessage);
-                if (metadata.TryGetValue("SendingEndpoint", out var sendingEndpoint))
-                {
-                    context.Extensions.Set("SendingEndpoint", (EndpointDetails)sendingEndpoint);
-                }
-
-                if (metadata.TryGetValue("ReceivingEndpoint", out var receivingEndpoint))
-                {
-                    context.Extensions.Set("ReceivingEndpoint", (EndpointDetails)receivingEndpoint);
-                }
-
                 context.Extensions.Set("AuditType", "ProcessedMessage");
             }
             catch (Exception e)
@@ -259,7 +247,7 @@
         readonly IEnrichImportedAuditMessages[] enrichers;
         readonly TimeSpan auditRetentionPeriod;
         readonly IDocumentStore store;
-        readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        readonly BodyStorageEnricher bodyStorageEnricher;
         IMessageSession messageSession;
         static ILog Logger = LogManager.GetLogger<AuditPersister>();
     }

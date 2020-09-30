@@ -20,7 +20,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public TimeSpan DeliveryTime { get; set; }
         public bool IsSystemMessage { get; set; }
         public string ConversationId { get; set; }
-        public IEnumerable<KeyValuePair<string, object>> Headers { get; set; }
+        public IEnumerable<KeyValuePair<string, string>> Headers { get; set; }
         public MessageStatus Status { get; set; }
         public MessageIntentEnum MessageIntent { get; set; }
         public string BodyUrl { get; set; }
