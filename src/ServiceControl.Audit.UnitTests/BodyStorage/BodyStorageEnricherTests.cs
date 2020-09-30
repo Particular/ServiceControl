@@ -2,6 +2,7 @@ namespace ServiceControl.UnitTests.BodyStorage
 {
     using System.Collections.Generic;
     using System.Text;
+    using Audit.Auditing;
     using Audit.Auditing.BodyStorage;
     using Audit.Infrastructure.Settings;
     using NServiceBus;
@@ -19,13 +20,13 @@ namespace ServiceControl.UnitTests.BodyStorage
                 MaxBodySizeToStore = maxBodySizeToStore
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(settings);
+            var enricher = new BodyStorageEnricher(settings);
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
-            var metadata = new Dictionary<string, object>();
+            var searchTerms = new Dictionary<string, string>();
 
-            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), new ProcessedMessage(), searchTerms);
 
-            Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.IsFalse(searchTerms.ContainsKey("Body"));
         }
 
         [Test]
@@ -37,14 +38,14 @@ namespace ServiceControl.UnitTests.BodyStorage
                 MaxBodySizeToStore = maxBodySizeToStore
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(settings);
+            var enricher = new BodyStorageEnricher(settings);
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
-            var metadata = new Dictionary<string, object>();
+            var searchTerms = new Dictionary<string, string>();
             var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary"}};
 
-            enricher.StoreAuditMessageBody(body, headers, metadata);
+            enricher.StoreAuditMessageBody(body, headers, new ProcessedMessage(), searchTerms);
 
-            Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.IsFalse(searchTerms.ContainsKey("Body"));
         }
 
         [Test]
@@ -56,14 +57,14 @@ namespace ServiceControl.UnitTests.BodyStorage
                 MaxBodySizeToStore = maxBodySizeToStore
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold - 1;
+            var enricher = new BodyStorageEnricher(settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold - 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
-            var metadata = new Dictionary<string, object>();
+            var searchTerms = new Dictionary<string, string>();
 
-            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), new ProcessedMessage(), searchTerms);
 
-            Assert.AreEqual(body, metadata["Body"], "Body should be stored if below threshold");
+            Assert.AreEqual(body, searchTerms["Body"], "Body should be stored if below threshold");
         }
 
         [Test]
@@ -75,14 +76,14 @@ namespace ServiceControl.UnitTests.BodyStorage
                 MaxBodySizeToStore = maxBodySizeToStore
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var enricher = new BodyStorageEnricher(settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
-            var metadata = new Dictionary<string, object>();
+            var searchTerms = new Dictionary<string, string>();
 
-            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), new ProcessedMessage(), searchTerms);
 
-            Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.IsFalse(searchTerms.ContainsKey("Body"));
         }
 
         [Test]
@@ -94,15 +95,15 @@ namespace ServiceControl.UnitTests.BodyStorage
                 MaxBodySizeToStore = maxBodySizeToStore
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var enricher = new BodyStorageEnricher(settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
-            var metadata = new Dictionary<string, object>();
+            var searchTerms = new Dictionary<string, string>();
             var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary"}};
 
-            enricher.StoreAuditMessageBody(body, headers, metadata);
+            enricher.StoreAuditMessageBody(body, headers, new ProcessedMessage(), searchTerms);
 
-            Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.IsFalse(searchTerms.ContainsKey("Body"));
         }
 
         [Test]
@@ -114,14 +115,14 @@ namespace ServiceControl.UnitTests.BodyStorage
                 MaxBodySizeToStore = maxBodySizeToStore
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var enricher = new BodyStorageEnricher(settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
-            var metadata = new Dictionary<string, object>();
+            var searchTerms = new Dictionary<string, string>();
 
-            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), new ProcessedMessage(), searchTerms);
 
-            Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.IsFalse(searchTerms.ContainsKey("Body"));
         }
     }
 }

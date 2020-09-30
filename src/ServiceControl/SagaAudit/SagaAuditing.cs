@@ -22,7 +22,16 @@
         {
             public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
-                InvokedSagasParser.Parse(headers, metadata);
+                var result = InvokedSagasParser.Parse(headers);
+                if (result.InvokedSagas != null)
+                {
+                    metadata["InvokedSagas"] = result.InvokedSagas;
+                }
+
+                if (result.OriginatesFromSaga != null)
+                {
+                    metadata["OriginatesFromSaga"] = result.OriginatesFromSaga;
+                }
                 return Task.CompletedTask;
             }
         }
