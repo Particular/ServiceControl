@@ -2,9 +2,11 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.Extensions;
+    using MessageFailures;
     using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -24,13 +26,11 @@ namespace ServiceControl.CompositeViews.Messages
                     .Statistics(out var stats)
                     .Sort(request)
                     .Paging(request)
-                    // TODO: RAVEN5 no transformers
-                    .As<MessagesView>() // <-- This will not work
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
+                    .As<FailedMessage>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+                return new QueryResult<IList<MessagesView>>(results.ToMessagesView().ToList(), stats.ToQueryStatsInfo());
             }
         }
     }
