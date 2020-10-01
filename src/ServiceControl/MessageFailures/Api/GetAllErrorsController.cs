@@ -29,14 +29,12 @@
                     .FilterByQueueAddress(Request)
                     .Sort(Request)
                     .Paging(Request)
-                    //TODO:RAVEN5 missing API transformers
-                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>()
+                    .OfType<FailedMessage>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 
                 return Negotiator
-                    .FromModel(Request, results)
+                    .FromModel(Request, results.ToFailedMessageView())
                     .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
                     .WithEtag(stats);
             }
@@ -79,14 +77,12 @@
                     .FilterByLastModifiedRange(Request)
                     .Sort(Request)
                     .Paging(Request)
-                    //TODO:RAVEN5 missing API transformers and such
-                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>()
+                    .OfType<FailedMessage>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 
                 return Negotiator
-                    .FromModel(Request, results)
+                    .FromModel(Request, results.ToFailedMessageView())
                     .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
                     .WithEtag(stats);
             }
