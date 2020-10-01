@@ -4,6 +4,7 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
+    using System.Runtime.Serialization;
     using Audit.Monitoring;
     using Monitoring;
     using NServiceBus;
@@ -93,6 +94,7 @@
                 ? "localhost"
                 : settings.Hostname;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
+            documentStore.Conventions.CustomizeJsonSerializer = serializer => serializer.Binder = MigratedTypeAwareBinder;
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
 
@@ -126,5 +128,7 @@
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
+
+        static SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
     }
 }
