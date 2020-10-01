@@ -22,7 +22,7 @@
         /// <summary>
         /// Raised when a view is attached.
         /// </summary>
-        public event EventHandler<ViewAttachedEventArgs> ViewAttached = delegate { };
+        public event EventHandler<ViewAttachedEventArgs> ViewAttached = (sender, e) => { };
 
         void IViewAware.AttachView(object view, object context)
         {
@@ -86,7 +86,6 @@
         /// <summary>
         /// Called when an attached view's Loaded event fires.
         /// </summary>
-        /// <param name="view"></param>
         protected virtual void OnViewLoaded(object view)
         {
         }
@@ -94,7 +93,6 @@
         /// <summary>
         /// Called the first time the page's LayoutUpdated event fires after it is navigated to.
         /// </summary>
-        /// <param name="view"></param>
         protected virtual void OnViewReady(object view)
         {
         }

@@ -278,7 +278,7 @@
 
             try
             {
-                progress = progress ?? this.GetProgressObject(String.Empty);
+                progress = progress ?? this.GetProgressObject(string.Empty);
 
                 // We need this one here in case the user stopped the service by other means
                 if (InstanceType == InstanceType.ServiceControl && InMaintenanceMode)
@@ -309,7 +309,7 @@
 
             try
             {
-                progress = progress ?? this.GetProgressObject(String.Empty);
+                progress = progress ?? this.GetProgressObject(string.Empty);
 
                 progress.Report(new ProgressDetails("Stopping Service"));
                 await Task.Run(() =>

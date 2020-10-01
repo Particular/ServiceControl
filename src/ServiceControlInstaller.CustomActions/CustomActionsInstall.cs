@@ -83,7 +83,7 @@
             }
             else
             {
-                var candidates = upgradeInstancesPropertyValue.Replace(" ", String.Empty).Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                var candidates = upgradeInstancesPropertyValue.Replace(" ", string.Empty).Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 instancesToUpgrade.AddRange(InstanceFinder.ServiceControlInstances().Where(instance => candidates.Contains(instance.Name, StringComparer.OrdinalIgnoreCase)));
             }
 

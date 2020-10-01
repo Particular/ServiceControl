@@ -64,7 +64,6 @@
                 intervals = new MeasurementInterval[size];
             }
 
-            // ReSharper disable once SuggestBaseTypeForParameter
             public void ReportTimeIntervals(DateTime now, IntervalsBreakdown item)
             {
                 var currentEpoch = GetEpoch(now.Ticks);

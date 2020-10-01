@@ -69,7 +69,7 @@ namespace ServiceControl.Infrastructure.WebApi
             var per_pageParameter = queryNameValuePairs.LastOrDefault(x => x.Key == "per_page").Value;
             if (per_pageParameter != null)
             {
-                maxResultsPerPage = Decimal.Parse(per_pageParameter);
+                maxResultsPerPage = decimal.Parse(per_pageParameter);
             }
 
             if (maxResultsPerPage < 1)
@@ -82,7 +82,7 @@ namespace ServiceControl.Infrastructure.WebApi
             var pageParameter = queryNameValuePairs.LastOrDefault(x => x.Key == "page").Value;
             if (pageParameter != null)
             {
-                page = Int32.Parse(pageParameter);
+                page = int.Parse(pageParameter);
             }
 
             if (page < 1)

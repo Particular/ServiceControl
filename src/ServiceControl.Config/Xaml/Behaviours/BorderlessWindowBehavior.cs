@@ -122,14 +122,14 @@
 
                     // create the rectangles where resize arrows are shown
                     var topLeft = new Rect(0, 0, resizeWidth, resizeWidth);
-                    var top = new Rect(resizeWidth, 0, windowWidth - resizeWidth * 2, resizeWidth);
+                    var top = new Rect(resizeWidth, 0, windowWidth - (resizeWidth * 2), resizeWidth);
                     var topRight = new Rect(windowWidth - resizeWidth, 0, resizeWidth, resizeWidth);
 
-                    var left = new Rect(0, resizeWidth, resizeWidth, windowHeight - resizeWidth * 2);
-                    var right = new Rect(windowWidth - resizeWidth, resizeWidth, resizeWidth, windowHeight - resizeWidth * 2);
+                    var left = new Rect(0, resizeWidth, resizeWidth, windowHeight - (resizeWidth * 2));
+                    var right = new Rect(windowWidth - resizeWidth, resizeWidth, resizeWidth, windowHeight - (resizeWidth * 2));
 
                     var bottomLeft = new Rect(0, windowHeight - resizeWidth, resizeWidth, resizeWidth);
-                    var bottom = new Rect(resizeWidth, windowHeight - resizeWidth, windowWidth - resizeWidth * 2, resizeWidth);
+                    var bottom = new Rect(resizeWidth, windowHeight - resizeWidth, windowWidth - (resizeWidth * 2), resizeWidth);
                     var bottomRight = new Rect(windowWidth - resizeWidth, windowHeight - resizeWidth, resizeWidth, resizeWidth);
 
                     // check if the mouse is within one of the rectangles

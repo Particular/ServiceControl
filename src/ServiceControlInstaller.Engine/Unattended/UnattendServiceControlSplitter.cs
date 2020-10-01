@@ -132,7 +132,6 @@
                 AuditQueue = source.AuditQueue,
                 AuditLogQueue = source.AuditLogQueue,
                 ForwardAuditMessages = source.ForwardAuditMessages,
-                // ReSharper disable once PossibleInvalidOperationException
                 AuditRetentionPeriod = source.AuditRetentionPeriod.Value,
                 TransportPackage = source.TransportPackage,
                 ConnectionString = source.ConnectionString,

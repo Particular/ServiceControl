@@ -46,7 +46,7 @@
         [AlsoNotifyFor("ConnectionString", "ErrorQueueName")]
         public TransportInfo SelectedTransport
         {
-            get { return selectedTransport; }
+            get => selectedTransport;
             set
             {
                 ConnectionString = null;
@@ -58,10 +58,8 @@
 
         public string ConnectionString { get; set; }
 
-        // ReSharper disable once UnusedMember.Global
         public string SampleConnectionString => SelectedTransport?.SampleConnectionString;
 
-        // ReSharper disable once UnusedMember.Global
         public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
 
 

@@ -24,9 +24,9 @@
         }
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormComboBox), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormComboBox), new PropertyMetadata(string.Empty));
 
         public static readonly DependencyProperty WarningProperty =
-            DependencyProperty.Register("Warning", typeof(string), typeof(FormComboBox), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Warning", typeof(string), typeof(FormComboBox), new PropertyMetadata(string.Empty));
     }
 }

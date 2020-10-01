@@ -202,7 +202,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
-                    .Concat(new []{ typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
+                    .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
 
@@ -338,7 +338,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new ServiceControl.Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
-                    .Concat(new []{ typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
+                    .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
 

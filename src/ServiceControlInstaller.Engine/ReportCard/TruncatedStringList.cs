@@ -84,7 +84,7 @@
                 return s;
             }
 
-            var suffix = s.Length > maxLength ? "... " : String.Empty;
+            var suffix = s.Length > maxLength ? "... " : string.Empty;
             return s.Substring(0, Math.Min(s.Length, maxLength)) + suffix;
         }
 

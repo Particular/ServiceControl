@@ -39,7 +39,7 @@
 
                 var message = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                 {
-                    {Headers.EnclosedMessageTypes, messageTypes[messageType]}
+                    {Headers.EnclosedMessageTypes, messageTypes[messageType] }
                 }, Encoding.UTF8.GetBytes(jsonMessage));
                 var transportOperation = new TransportOperation(message, new UnicastAddressTag(localAddress));
                 var transportOperations = new TransportOperations(transportOperation);

@@ -1,7 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
-// ReSharper disable UnusedMethodReturnValue.Global
-
-namespace ServiceControlInstaller.Engine.Unattended
+﻿namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
     using System.IO;
@@ -203,7 +200,6 @@ namespace ServiceControlInstaller.Engine.Unattended
             return true;
         }
 
-        // ReSharper disable once UnusedMethodReturnValue.Global
         public bool Delete(string instanceName, bool removeLogs)
         {
             var instance = InstanceFinder.FindMonitoringInstance(instanceName);

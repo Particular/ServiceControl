@@ -153,7 +153,7 @@
 
                 return maxBodySizeToStore;
             }
-            set { maxBodySizeToStore = value; }
+            set => maxBodySizeToStore = value;
         }
 
         public string ServiceName { get; }

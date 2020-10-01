@@ -1,6 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
-// ReSharper disable UnusedAutoPropertyAccessor.Global
-namespace ServiceControlInstaller.PowerShell
+﻿namespace ServiceControlInstaller.PowerShell
 {
     using Engine.Configuration.ServiceControl;
 

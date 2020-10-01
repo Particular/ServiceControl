@@ -95,13 +95,13 @@
                         ["NServiceBus.ExceptionInfo.ExceptionType"] = "2014-11-11 02:26:57:767462 Z",
                         ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
-                        ["NServiceBus.ExceptionInfo.HelpLink"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.HelpLink"] = string.Empty,
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
                         ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                         ["NServiceBus.TimeSent"] = "2014-11-11 02:26:01:174786 Z",
-                        [Headers.ControlMessageHeader] = Boolean.TrueString,
+                        [Headers.ControlMessageHeader] = bool.TrueString,
                         [Headers.ReplyToAddress] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint))
                     };
 

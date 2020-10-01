@@ -12,7 +12,6 @@ namespace ServiceControl.Monitoring.Http.Diagrams
             //HINT: the value we get is either empty or equals EnclosedMessageTypes header value.
             //      What it means that when non empty the value is either TypeName or AssemblyQualifiedName
             //      see: https://docs.particular.net/nservicebus/messaging/headers#serialization-headers-nservicebus-enclosedmessagetypes
-
             if (string.IsNullOrEmpty(typeName))
             {
                 return new MonitoredEndpointMessageType();

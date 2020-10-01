@@ -18,7 +18,6 @@
         public MessageRedirect this[string from] => Redirects.SingleOrDefault(r => r.FromPhysicalAddress == from);
         public MessageRedirect this[Guid id] => Redirects.SingleOrDefault(r => r.MessageRedirectId == id);
 
-        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
         public List<MessageRedirect> Redirects { get; set; } = new List<MessageRedirect>();
 
         public async Task Save(IAsyncDocumentSession session)

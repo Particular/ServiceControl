@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetZip" Version="1.13.8" />
+    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Include="Particular.Licensing.Sources" Version="3.4.0" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>

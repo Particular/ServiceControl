@@ -28,7 +28,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                     .DoNotFailOnErrorMessages())
                 .Done(async ctx =>
                 {
-                    if (String.IsNullOrWhiteSpace(ctx.UniqueMessageId))
+                    if (string.IsNullOrWhiteSpace(ctx.UniqueMessageId))
                     {
                         return false;
                     }

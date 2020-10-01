@@ -31,7 +31,7 @@
 
         public string HostName
         {
-            get { return hostName; }
+            get => hostName;
             set
             {
                 if (!string.Equals("localhost", value, StringComparison.InvariantCulture))
@@ -71,12 +71,12 @@
 
                 return "LocalService";
             }
-            set { serviceAccount = value; }
+            set => serviceAccount = value;
         }
 
         public string Password
         {
-            get { return UseProvidedAccount ? password : String.Empty; }
+            get { return UseProvidedAccount ? password : string.Empty; }
             set { password = value; }
         }
 

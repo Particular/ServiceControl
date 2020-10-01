@@ -64,14 +64,12 @@
         }
 
         // NOTE: Duplicated from TransportMessage
-
         public static string CorrelationId(this IReadOnlyDictionary<string, string> headers)
         {
             return headers.TryGetValue(Headers.CorrelationId, out var correlationId) ? correlationId : null;
         }
 
         // NOTE: Duplicated from TransportMessage
-
         public static MessageIntentEnum MessageIntent(this IReadOnlyDictionary<string, string> headers)
         {
             var messageIntent = default(MessageIntentEnum);

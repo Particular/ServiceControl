@@ -112,7 +112,7 @@
 
                 public override Task<CheckResult> PerformCheck()
                 {
-                    if (Interlocked.Increment(ref counter) / 5 % 2 == 1)
+                    if ((Interlocked.Increment(ref counter) / 5) % 2 == 1)
                     {
                         return Task.FromResult(CheckResult.Failed("fail!"));
                     }

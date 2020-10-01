@@ -22,7 +22,7 @@
             obj.SetValue(DocumentXamlProperty, value);
         }
 
-        static HashSet<Thread> _recursionProtection = new HashSet<Thread>();
+        static HashSet<Thread> recursionProtection = new HashSet<Thread>();
 
         public static readonly DependencyProperty DocumentXamlProperty =
             DependencyProperty.RegisterAttached(
@@ -32,11 +32,11 @@
                 new FrameworkPropertyMetadata
                 {
                     AffectsRender = true,
-                    DefaultValue = String.Empty,
+                    DefaultValue = string.Empty,
                     BindsTwoWayByDefault = true,
                     PropertyChangedCallback = (obj, e) =>
                     {
-                        if (_recursionProtection.Contains(Thread.CurrentThread))
+                        if (recursionProtection.Contains(Thread.CurrentThread))
                         {
                             return;
                         }
@@ -46,7 +46,7 @@
                         try
                         {
                             var parser = new ParserContext();
-                            parser.XmlnsDictionary.Add(String.Empty, "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
+                            parser.XmlnsDictionary.Add(string.Empty, "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
                             parser.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
                             var doc = new FlowDocument();
 

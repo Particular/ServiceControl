@@ -57,11 +57,11 @@
                         ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
                         ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(FailureEndpoint)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
-                        [Headers.ControlMessageHeader] = Boolean.TrueString,
-                        ["NServiceBus.ClearTimeouts"] = Boolean.TrueString,
+                        [Headers.ControlMessageHeader] = bool.TrueString,
+                        ["NServiceBus.ClearTimeouts"] = bool.TrueString,
                         ["NServiceBus.SagaId"] = "626f86be-084c-4867-a5fc-a53f0092b299"
                     };
 

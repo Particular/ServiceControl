@@ -85,7 +85,6 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     var dir = Path.GetDirectoryName(e.FileName);
                     string filename = null;
 
-                    // ReSharper disable once PossibleNullReferenceException
                     if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
                     {
                         filename = Path.Combine(targetPath, e.FileName.Substring(zipFolderNameToExtract.Length + 1));

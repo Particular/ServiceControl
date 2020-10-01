@@ -34,17 +34,17 @@
         /// <summary>
         /// Raised after activation occurs.
         /// </summary>
-        public event EventHandler<ActivationEventArgs> Activated = delegate { };
+        public event EventHandler<ActivationEventArgs> Activated = (sender, e) => { };
 
         /// <summary>
         /// Raised before deactivation.
         /// </summary>
-        public event EventHandler<DeactivationEventArgs> AttemptingDeactivation = delegate { };
+        public event EventHandler<DeactivationEventArgs> AttemptingDeactivation = (sender, e) => { };
 
         /// <summary>
         /// Raised after deactivation.
         /// </summary>
-        public event EventHandler<DeactivationEventArgs> Deactivated = delegate { };
+        public event EventHandler<DeactivationEventArgs> Deactivated = (sender, e) => { };
 
         void IActivate.Activate()
         {

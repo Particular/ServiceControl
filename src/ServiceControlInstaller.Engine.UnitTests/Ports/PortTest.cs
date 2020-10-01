@@ -7,7 +7,8 @@
     [TestFixture]
     public class PortTest
     {
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public void TestIsPortAvailable()
         {
             Assert.DoesNotThrow(() => PortUtils.CheckAvailable(10000), "Port 10000 wasn't available"); // A Random Port
