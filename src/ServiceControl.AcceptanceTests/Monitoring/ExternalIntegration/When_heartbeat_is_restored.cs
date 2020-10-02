@@ -31,7 +31,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
                 }
             });
 
-            await ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointHeartbeatRestored
+            ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointHeartbeatRestored
             {
                 RestoredAt = new DateTime(2013, 09, 13, 13, 15, 13),
                 Endpoint = new EndpointDetails

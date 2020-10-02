@@ -104,11 +104,11 @@ namespace ServiceControl.AcceptanceTests
             }
         }
 
-        protected Task ExecuteWhen(Func<bool> execute, Func<IDomainEvents, Task> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected void ExecuteWhen(Func<bool> execute, Func<IDomainEvents, Task> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             var timeout = TimeSpan.FromSeconds(1);
 
-            return Task.Run(async () =>
+            Task.Run(async () =>
             {
                 while (!SpinWait.SpinUntil(execute, timeout))
                 {
