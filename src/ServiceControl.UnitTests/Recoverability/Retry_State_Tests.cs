@@ -190,7 +190,8 @@
                         //Continue trying until there is no exception -> poison message is removed from the batch
                         c = true;
                     }
-                } while (c);
+                } 
+                while (c);
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
 

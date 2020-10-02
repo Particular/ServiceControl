@@ -116,8 +116,6 @@
                 var message = new ArchiveAllInGroup { GroupId = groupId + "Invalid" };
 
                 // Act
-
-
                 // Assert
                 Assert.DoesNotThrowAsync(async () =>
                 {

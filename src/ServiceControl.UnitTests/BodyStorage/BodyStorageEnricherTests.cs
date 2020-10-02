@@ -16,7 +16,6 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             // previously the max body storage default was larger than 100 KB
-
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage);
             const int ExpectedBodySize = 150000;
             var body = Encoding.UTF8.GetBytes(new string('a', ExpectedBodySize));
