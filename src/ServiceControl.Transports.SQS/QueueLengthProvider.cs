@@ -101,11 +101,14 @@
             foreach (var tableNamePair in queues)
             {
                 store(
-                    new[]{ new QueueLengthEntry
+                    new[]
                     {
-                        DateTicks = nowTicks,
-                        Value = sizes.TryGetValue(tableNamePair.Value, out var size) ? size : 0
-                    }},
+                        new QueueLengthEntry
+                        {
+                            DateTicks = nowTicks,
+                            Value = sizes.TryGetValue(tableNamePair.Value, out var size) ? size : 0
+                        }
+                    },
                     tableNamePair.Key);
             }
         }

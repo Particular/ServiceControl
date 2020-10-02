@@ -1,6 +1,4 @@
-﻿// ReSharper disable UnusedMember.Local
-
-namespace ServiceControlInstaller.Engine.Accounts
+﻿namespace ServiceControlInstaller.Engine.Accounts
 {
     using System;
     using System.Collections.Generic;

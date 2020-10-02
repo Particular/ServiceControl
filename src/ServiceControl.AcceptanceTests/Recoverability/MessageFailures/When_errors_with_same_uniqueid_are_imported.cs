@@ -119,7 +119,7 @@
                                 ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
                                 ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                                 ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                                ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                                ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
                                 ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
                                 ["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(failureTimes[failureNo]),
                                 ["Counter"] = i.ToString()

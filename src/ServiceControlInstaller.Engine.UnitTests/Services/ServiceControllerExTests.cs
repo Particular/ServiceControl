@@ -12,13 +12,13 @@
         [Test]
         public void KnownServiceFoundByExe()
         {
-            // ReSharper disable once StringLiteralTypo
             var allServiceHostInstances = WindowsServiceController.FindInstancesByExe(@"svchost.exe").ToList();
             Assert.IsTrue(allServiceHostInstances.Count > 0);
             Assert.IsTrue(allServiceHostInstances.All(p => File.Exists(p.ExePath)));
         }
 
-        [Explicit, Test]
+        [Test]
+        [Explicit]
         public void CreateAService()
         {
             var s = new WindowsServiceDetails

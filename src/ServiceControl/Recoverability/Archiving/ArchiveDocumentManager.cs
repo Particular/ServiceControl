@@ -118,7 +118,6 @@
 
                 try
                 {
-                    // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
                     await docQuery.AnyAsync().ConfigureAwait(false);
 
                     return true;

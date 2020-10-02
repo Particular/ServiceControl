@@ -57,13 +57,13 @@
         PasswordBox passwordBox;
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormPasswordBox), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormPasswordBox), new PropertyMetadata(string.Empty));
 
         public static readonly DependencyProperty TextProperty =
             DependencyProperty.Register("Text", typeof(string), typeof(FormPasswordBox),
-                new FrameworkPropertyMetadata(String.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, (dp, e) => ((FormPasswordBox)dp).PasswordTextChanged(e)));
+                new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, (dp, e) => ((FormPasswordBox)dp).PasswordTextChanged(e)));
 
         public static readonly DependencyProperty WarningProperty =
-            DependencyProperty.Register("Warning", typeof(string), typeof(FormPasswordBox), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Warning", typeof(string), typeof(FormPasswordBox), new PropertyMetadata(string.Empty));
     }
 }

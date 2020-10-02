@@ -7,7 +7,8 @@
     [TestFixture]
     public class LicenseTests
     {
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public void FindLicenses()
         {
             var license = LicenseManager.FindLicense();

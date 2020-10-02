@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35294" />
     <PackageReference Include="NServiceBus" Version="7.4.2" />
   </ItemGroup>

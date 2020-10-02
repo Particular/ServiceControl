@@ -219,7 +219,7 @@
                 {
                     var existingSubscription = stream.Current.Document;
                     existingSubscription.Subscribers.Remove(localClient);
-                    subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", String.Empty), existingSubscription);
+                    subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", string.Empty), existingSubscription);
                     await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null)
                         .ConfigureAwait(false);
                 }

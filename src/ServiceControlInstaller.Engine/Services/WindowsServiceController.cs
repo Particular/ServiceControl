@@ -1,6 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
-
-namespace ServiceControlInstaller.Engine.Services
+﻿namespace ServiceControlInstaller.Engine.Services
 {
     using System;
     using System.Collections.Generic;
@@ -57,7 +55,6 @@ namespace ServiceControlInstaller.Engine.Services
                 throw new ArgumentException($"Invalid startmode:'{startMode}'. Valid options are: {string.Join(", ", validModes)}");
             }
 
-            // ReSharper disable once StringLiteralTypo
             using (var classInstance = new ManagementObject(@"\\.\root\cimv2", $"Win32_Service.Name='{ServiceName}'", null))
             using (var inParams = classInstance.GetMethodParameters("ChangeStartMode"))
             {
@@ -199,7 +196,6 @@ namespace ServiceControlInstaller.Engine.Services
 
         public void Delete()
         {
-            // ReSharper disable once StringLiteralTypo
             using (var classInstance = new ManagementObject(@"\\.\root\cimv2", $"Win32_Service.Name='{ServiceName}'", null))
             using (var outParams = classInstance.InvokeMethod("Delete", null, null))
             {

@@ -39,7 +39,6 @@
             var appDirectory = Path.GetDirectoryName(assemblyLocation);
             var requestingName = new AssemblyName(name).Name;
 
-            // ReSharper disable once AssignNullToNotNullAttribute
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             if (!File.Exists(combine))
             {

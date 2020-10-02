@@ -1,8 +1,4 @@
-﻿// ReSharper disable IdentifierTypo
-// ReSharper disable UnusedMethodReturnValue.Local
-// ReSharper disable ConvertToLambdaExpression
-//
-// Options.cs
+﻿// Options.cs
 //
 // Authors:
 //  Jonathan Pryor <jpryor@novell.com>
@@ -125,8 +121,6 @@
 //      p.Parse (new string[]{"-a+"});  // sets v != null
 //      p.Parse (new string[]{"-a-"});  // sets v == null
 //
-
-
 #if LINQ
 using System.Linq;
 #endif
@@ -303,7 +297,7 @@ namespace ServiceControl.Monitoring
                 AssertValid(index);
                 return index >= values.Count ? null : values[index];
             }
-            set { values[index] = value; }
+            set => values[index] = value;
         }
 
         void AssertValid(int index)
@@ -1242,7 +1236,8 @@ namespace ServiceControl.Monitoring
                 do
                 {
                     start = description.IndexOf(nameStart[i], j);
-                } while (start >= 0 && j != 0 && description[j++ - 1] == '{');
+                } 
+                while (start >= 0 && j != 0 && description[j++ - 1] == '{');
 
                 if (start == -1)
                 {
@@ -1365,7 +1360,8 @@ namespace ServiceControl.Monitoring
                 {
                     ++start;
                 }
-            } while (end < description.Length);
+            } 
+            while (end < description.Length);
 
             return lines;
         }

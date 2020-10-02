@@ -259,7 +259,6 @@ namespace ServiceControl.Recoverability
         Task ConcurrentDispatchToTransport(IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById)
         {
             var tasks = new List<Task>(transportOperations.Count);
-            // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var transportOperation in transportOperations)
             {
                 tasks.Add(TryStageMessage(transportOperation, failedMessageRetriesById[transportOperation.Message.MessageId]));

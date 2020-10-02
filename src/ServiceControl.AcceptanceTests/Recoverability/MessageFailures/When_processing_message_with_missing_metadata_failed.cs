@@ -97,7 +97,7 @@
                         ["NServiceBus.ExceptionInfo.Message"] = "An error occurred while attempting to extract logical messages from transport message NServiceBus.TransportMessage",
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
                         ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(Failing)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z"
                     };

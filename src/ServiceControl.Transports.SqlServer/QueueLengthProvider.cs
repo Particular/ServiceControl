@@ -9,7 +9,7 @@
     using System.Threading;
     using NServiceBus.Logging;
 
-    class QueueLengthProvider: IProvideQueueLength
+    class QueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
@@ -77,11 +77,14 @@
             foreach (var tableNamePair in tableNames)
             {
                 store(
-                    new[]{ new QueueLengthEntry
-                    {
-                        DateTicks = nowTicks,
-                        Value = tableSizes.TryGetValue(tableNamePair.Value, out var size) ? size : 0
-                    }},
+                    new[] 
+                    { 
+                        new QueueLengthEntry
+                        {
+                            DateTicks = nowTicks,
+                            Value = tableSizes.TryGetValue(tableNamePair.Value, out var size) ? size : 0
+                        }
+                    },
                     tableNamePair.Key);
             }
         }
@@ -153,7 +156,6 @@
             //      https://docs.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property?view=sql-server-ver15#remarks
             //
             //      Min and Max values return NULL when no rows are found.
-
             if (t.QuotedCatalog == null)
             {
                 return $@"IF (EXISTS (SELECT *  FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{t.UnquotedSchema}' AND  TABLE_NAME = '{t.UnquotedName}'))

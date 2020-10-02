@@ -82,7 +82,8 @@
             var now = DateTime.UtcNow;
             var timestamp = now.Subtract(new TimeSpan(period.IntervalSize.Ticks * period.DelayedIntervals)); // now - 5 seconds
 
-            var samples = new[]{
+            var samples = new[] 
+            {
                 new RawMessage.Entry { DateTicks = timestamp.Ticks, Value = 5 },
                 new RawMessage.Entry { DateTicks = timestamp.Ticks, Value = 10 }
             };

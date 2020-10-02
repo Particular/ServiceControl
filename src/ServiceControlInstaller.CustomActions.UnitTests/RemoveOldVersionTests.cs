@@ -5,7 +5,8 @@
     [TestFixture]
     public class RemoveOldVersionTests
     {
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public void RunCleanup()
         {
             CustomActionsMigrations.RemoveProductFromMSIList(new TestLogger());

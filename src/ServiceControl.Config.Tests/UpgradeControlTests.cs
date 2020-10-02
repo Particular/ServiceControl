@@ -7,7 +7,8 @@
     [TestFixture]
     public class UpgradeControlTests
     {
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public void GetUpgradeInfoForTargetVersionSameMajor()
         {
             Version current = new Version("4.0.1");

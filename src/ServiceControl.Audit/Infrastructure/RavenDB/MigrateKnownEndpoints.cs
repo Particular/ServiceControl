@@ -87,7 +87,8 @@
                         await bulkInsert.DisposeAsync().ConfigureAwait(false);
                     }
                 }
-            } while (true);
+            } 
+            while (true);
 
             Logger.Debug("EndpointsIndex entries migrated. Disabling EndpointsIndex.");
             // Disable the index so it can be safely deleted in the next migration run

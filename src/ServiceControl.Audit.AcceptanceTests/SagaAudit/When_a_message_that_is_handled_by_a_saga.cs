@@ -55,7 +55,6 @@
             AssertInitiatedHas2Sagas(messages, context);
         }
 
-        // ReSharper disable once UnusedParameter.Local
         static void AssertInitiatedHas2Sagas(IEnumerable<MessagesView> messages, MyContext context)
         {
             var m = messages.First(message => message.MessageType == typeof(InitiateSaga).FullName);

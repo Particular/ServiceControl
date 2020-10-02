@@ -99,13 +99,13 @@
             Assert.IsFalse(testUrl.HTTPS);
             Assert.IsTrue(testUrl.HostName == "localhost");
             Assert.IsTrue(testUrl.Port == 80);
-            Assert.IsTrue(testUrl.VirtualDirectory == String.Empty);
+            Assert.IsTrue(testUrl.VirtualDirectory == string.Empty);
 
             testUrl = new UrlReservation("https://localhost:8000/");
             Assert.IsTrue(testUrl.HTTPS);
             Assert.IsTrue(testUrl.HostName == "localhost");
             Assert.IsTrue(testUrl.Port == 8000);
-            Assert.IsTrue(testUrl.VirtualDirectory == String.Empty);
+            Assert.IsTrue(testUrl.VirtualDirectory == string.Empty);
 
             testUrl = new UrlReservation("https://localhost:8000/foo/api/");
             Assert.IsTrue(testUrl.HTTPS);
@@ -124,7 +124,6 @@
             Assert.IsTrue(testUrl.HostName == "[::1]");
             Assert.IsTrue(testUrl.Port == 10253);
 
-            // ReSharper disable once ObjectCreationAsStatement
             Assert.Throws<ArgumentException>(() => new UrlReservation("https://localhost:8000/foo/api"), "UrlAcl is invalid without trailing /");
         }
 

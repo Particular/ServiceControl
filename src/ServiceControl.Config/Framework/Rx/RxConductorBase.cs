@@ -28,7 +28,7 @@
             return GetChildren();
         }
 
-        public event EventHandler<ActivationProcessedEventArgs> ActivationProcessed = delegate { };
+        public event EventHandler<ActivationProcessedEventArgs> ActivationProcessed = (sender, e) => { };
 
         public abstract IEnumerable<T> GetChildren();
 

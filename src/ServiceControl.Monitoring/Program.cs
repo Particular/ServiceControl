@@ -46,7 +46,6 @@ namespace ServiceControl.Monitoring
             var appDirectory = Path.GetDirectoryName(assemblyLocation);
             var requestingName = new AssemblyName(name).Name;
 
-            // ReSharper disable once AssignNullToNotNullAttribute
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             return !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
         }

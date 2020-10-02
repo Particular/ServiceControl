@@ -1,7 +1,4 @@
-﻿// ReSharper disable MemberCanBePrivate.Global
-// ReSharper disable UnusedAutoPropertyAccessor.Global
-
-namespace ServiceControlInstaller.Engine.LicenseMgmt
+﻿namespace ServiceControlInstaller.Engine.LicenseMgmt
 {
     using System;
     using Particular.Licensing;

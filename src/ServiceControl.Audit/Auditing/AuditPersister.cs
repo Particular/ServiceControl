@@ -193,7 +193,6 @@
                 var commandsToEmit = new List<ICommand>();
                 var enricherContext = new AuditEnricherContext(context.Headers, commandsToEmit, metadata);
 
-                // ReSharper disable once LoopCanBeConvertedToQuery
                 foreach (var enricher in enrichers)
                 {
                     enricher.Enrich(enricherContext);

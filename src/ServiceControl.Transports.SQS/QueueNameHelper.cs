@@ -9,7 +9,6 @@
         public static string GetSqsQueueName(string queue, string queueNamePrefix = "")
         {
             // for now, there's no way to deliver queueNamePrefix used on the client side. An empty one is assumed.
-
             if (string.IsNullOrWhiteSpace(queue))
             {
                 throw new ArgumentNullException(nameof(queue));

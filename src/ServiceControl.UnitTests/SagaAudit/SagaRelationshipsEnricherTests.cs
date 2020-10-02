@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.UnitTests.SagaAudit
+﻿using System.Threading.Tasks;
+
+namespace ServiceControl.UnitTests.SagaAudit
 {
     using System.Collections.Generic;
     using NUnit.Framework;
@@ -8,7 +10,7 @@
     public class SagaRelationshipsEnricherTests
     {
         [Test]
-        public void New_overrides_Updated_state()
+        public async Task New_overrides_Updated_state()
         {
             var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
@@ -20,7 +22,7 @@
 
             var metadata = new Dictionary<string, object>();
 
-            enricher.Enrich(headers, metadata);
+            await enricher.Enrich(headers, metadata);
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -29,7 +31,7 @@
         }
 
         [Test]
-        public void Updated_does_not_override_new()
+        public async Task Updated_does_not_override_new()
         {
             var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
@@ -41,7 +43,7 @@
 
             var metadata = new Dictionary<string, object>();
 
-            enricher.Enrich(headers, metadata);
+            await enricher.Enrich(headers, metadata);
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -50,7 +52,7 @@
         }
 
         [Test]
-        public void Updated_does_not_override_completed()
+        public async Task Updated_does_not_override_completed()
         {
             var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
@@ -62,7 +64,7 @@
 
             var metadata = new Dictionary<string, object>();
 
-            enricher.Enrich(headers, metadata);
+            await enricher.Enrich(headers, metadata);
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -71,7 +73,7 @@
         }
 
         [Test]
-        public void Completed_overrides_new()
+        public async Task Completed_overrides_new()
         {
             var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
@@ -83,7 +85,7 @@
 
             var metadata = new Dictionary<string, object>();
 
-            enricher.Enrich(headers, metadata);
+            await enricher.Enrich(headers, metadata);
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -92,7 +94,7 @@
         }
 
         [Test]
-        public void New_does_not_override_completed()
+        public async Task New_does_not_override_completed()
         {
             var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
@@ -104,7 +106,7 @@
 
             var metadata = new Dictionary<string, object>();
 
-            enricher.Enrich(headers, metadata);
+            await enricher.Enrich(headers, metadata);
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -113,7 +115,7 @@
         }
 
         [Test]
-        public void It_can_parse_malformed_headers_of_three_sagas()
+        public async Task It_can_parse_malformed_headers_of_three_sagas()
         {
             var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
@@ -125,7 +127,7 @@
 
             var metadata = new Dictionary<string, object>();
 
-            enricher.Enrich(headers, metadata);
+            await enricher.Enrich(headers, metadata);
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 

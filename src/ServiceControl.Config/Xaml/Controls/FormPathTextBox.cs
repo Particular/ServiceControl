@@ -43,12 +43,12 @@
         }
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(string.Empty));
 
         public static readonly DependencyProperty SelectCommandProperty =
             DependencyProperty.Register("SelectCommand", typeof(ICommand), typeof(FormPathTextBox), new PropertyMetadata(null));
 
         public static readonly DependencyProperty WarningProperty =
-            DependencyProperty.Register("Warning", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Warning", typeof(string), typeof(FormPathTextBox), new PropertyMetadata(string.Empty));
     }
 }

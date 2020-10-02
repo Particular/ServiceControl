@@ -8,40 +8,40 @@
 
         public string ProgressTitle
         {
-            get { return _progressTitle; }
+            get => progressTitle;
             set
             {
-                _progressTitle = value;
+                progressTitle = value;
                 NotifyUpdates();
             }
         }
 
         public bool InProgress
         {
-            get { return _inProgress; }
+            get => inProgress;
             set
             {
-                _inProgress = value;
+                inProgress = value;
                 NotifyUpdates();
             }
         }
 
         public string ProgressMessage
         {
-            get { return _progressMessage; }
+            get => progressMessage;
             set
             {
-                _progressMessage = value;
+                progressMessage = value;
                 NotifyUpdates();
             }
         }
 
         public int ProgressPercent
         {
-            get { return _progressPercent; }
+            get => progressPercent;
             set
             {
-                _progressPercent = value;
+                progressPercent = value;
                 NotifyUpdates();
             }
         }
@@ -59,9 +59,9 @@
             NotifyOfPropertyChange("ProgressPercent");
         }
 
-        string _progressTitle;
-        int _progressPercent;
-        string _progressMessage;
-        bool _inProgress;
+        string progressTitle;
+        int progressPercent;
+        string progressMessage;
+        bool inProgress;
     }
 }

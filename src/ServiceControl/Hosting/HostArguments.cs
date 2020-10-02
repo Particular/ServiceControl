@@ -136,7 +136,7 @@ namespace Particular.ServiceControl.Hosting
 
         public void PrintUsage()
         {
-            var helpText = String.Empty;
+            var helpText = string.Empty;
             using (
                 var stream =
                     Assembly.GetCallingAssembly()

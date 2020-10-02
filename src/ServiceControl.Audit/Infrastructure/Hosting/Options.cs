@@ -1,7 +1,3 @@
-// ReSharper disable IdentifierTypo
-// ReSharper disable UnusedMethodReturnValue.Local
-// ReSharper disable ConvertToLambdaExpression
-//
 // Options.cs
 //
 // Authors:
@@ -125,8 +121,6 @@
 //      p.Parse (new string[]{"-a+"});  // sets v != null
 //      p.Parse (new string[]{"-a-"});  // sets v == null
 //
-
-
 #if LINQ
 using System.Linq;
 #endif
@@ -303,7 +297,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 AssertValid(index);
                 return index >= values.Count ? null : values[index];
             }
-            set { values[index] = value; }
+            set => values[index] = value;
         }
 
         void AssertValid(int index)
@@ -1242,7 +1236,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 do
                 {
                     start = description.IndexOf(nameStart[i], j);
-                } while (start >= 0 && j != 0 && description[j++ - 1] == '{');
+                } 
+                while (start >= 0 && j != 0 && description[j++ - 1] == '{');
 
                 if (start == -1)
                 {
@@ -1365,7 +1360,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 {
                     ++start;
                 }
-            } while (end < description.Length);
+            } 
+            while (end < description.Length);
 
             return lines;
         }

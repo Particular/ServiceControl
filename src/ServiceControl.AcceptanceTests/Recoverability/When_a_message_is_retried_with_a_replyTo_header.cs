@@ -72,7 +72,7 @@
                         ["NServiceBus.ExceptionInfo.Message"] = "Bad thing happened",
                         ["NServiceBus.ExceptionInfo.InnerExceptionType"] = "System.Exception",
                         ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
-                        ["NServiceBus.ExceptionInfo.StackTrace"] = String.Empty,
+                        ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
                         ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                         [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,

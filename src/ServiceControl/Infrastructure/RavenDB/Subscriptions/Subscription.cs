@@ -22,7 +22,7 @@
 
                 return subscribers;
             }
-            set { subscribers = value; }
+            set => subscribers = value;
         }
 
         [JsonProperty("Clients")]

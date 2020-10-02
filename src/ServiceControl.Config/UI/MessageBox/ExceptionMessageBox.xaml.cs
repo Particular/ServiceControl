@@ -108,7 +108,7 @@
             finally
             {
                 ProgressTitle = "Processing";
-                ProgressMessage = String.Empty;
+                ProgressMessage = string.Empty;
                 InProgress = false;
             }
         }

@@ -1,6 +1,4 @@
-﻿// ReSharper disable StringLiteralTypo
-
-namespace ServiceControlInstaller.Engine.UrlAcl.Api
+﻿namespace ServiceControlInstaller.Engine.UrlAcl.Api
 {
     using System;
     using System.Runtime.InteropServices;
@@ -15,7 +13,6 @@ namespace ServiceControlInstaller.Engine.UrlAcl.Api
             int InputConfigInfoLength,
             IntPtr pOutputConfigInfo,
             int OutputConfigInfoLength,
-            // ReSharper disable once OptionalParameterRefOut
             [Optional] out int pReturnLength,
             IntPtr pOverlapped);
 

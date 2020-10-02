@@ -105,11 +105,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             }
         }
 
-        protected void ExecuteWhen(Func<bool> execute, Func<dynamic, Task> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
+        protected Task ExecuteWhen(Func<bool> execute, Func<dynamic, Task> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
         {
             var timeout = TimeSpan.FromSeconds(1);
 
-            Task.Run(async () =>
+            return Task.Run(async () =>
             {
                 while (!SpinWait.SpinUntil(execute, timeout))
                 {

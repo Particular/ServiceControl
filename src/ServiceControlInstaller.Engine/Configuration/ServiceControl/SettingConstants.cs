@@ -1,6 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
-
-namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
+﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
     public class SettingConstants
     {

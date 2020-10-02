@@ -53,7 +53,6 @@
             };
 
             var enricherTasks = new List<Task>(enrichers.Length);
-            // ReSharper disable once LoopCanBeConvertedToQuery
             foreach (var enricher in enrichers)
             {
                 enricherTasks.Add(enricher.Enrich(message.Headers, metadata));

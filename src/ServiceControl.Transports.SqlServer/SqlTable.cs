@@ -39,7 +39,7 @@
 
         protected bool Equals(SqlTable other)
         {
-            return string.Equals(QuotedName, other.QuotedName) && String.Equals(QuotedSchema, other.QuotedSchema) && String.Equals(QuotedCatalog, other.QuotedCatalog);
+            return string.Equals(QuotedName, other.QuotedName) && string.Equals(QuotedSchema, other.QuotedSchema) && string.Equals(QuotedCatalog, other.QuotedCatalog);
         }
 
         public override bool Equals(object obj)

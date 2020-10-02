@@ -14,7 +14,8 @@
     [TestFixture]
     public class RunEngine
     {
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public void DeleteInstance()
         {
             var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
@@ -24,7 +25,8 @@
             }
         }
 
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public void UpgradeInstance()
         {
             var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
@@ -39,13 +41,13 @@
             }
         }
 
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public void CreateInstanceMSMQ()
         {
             var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
             var instanceName = "Test.ServiceControl.Msmq";
             var root = Path.Combine(@"c:\Test", instanceName);
-            // ReSharper disable once UseObjectOrCollectionInitializer
             var details = new ServiceControlNewInstance
             {
                 DisplayName = instanceName.Replace(".", " "),
@@ -82,7 +84,8 @@
             Assert.DoesNotThrow(() => installer.Add(details, s => false));
         }
 
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public void ChangeConfigTests()
         {
             var logger = new TestLogger();

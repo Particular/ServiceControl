@@ -90,10 +90,10 @@
             }
             else
             {
-                s.AppendFormat("{0} Day{1}", period.Days, period.Days > 1 ? "s" : String.Empty);
+                s.AppendFormat("{0} Day{1}", period.Days, period.Days > 1 ? "s" : string.Empty);
                 if (period.Hours != 0)
                 {
-                    s.AppendFormat(" {0} Hour{1}", period.Hours, period.Hours > 1 ? "s" : String.Empty);
+                    s.AppendFormat(" {0} Hour{1}", period.Hours, period.Hours > 1 ? "s" : string.Empty);
                 }
             }
 
@@ -103,13 +103,13 @@
         const string SliderPartName = "PART_Slider";
 
         public static readonly DependencyProperty ExplanationProperty =
-            DependencyProperty.Register("Explanation", typeof(string), typeof(FormSlider), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Explanation", typeof(string), typeof(FormSlider), new PropertyMetadata(string.Empty));
 
         public static readonly DependencyProperty SummaryProperty =
-            DependencyProperty.Register("Summary", typeof(string), typeof(FormSlider), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Summary", typeof(string), typeof(FormSlider), new PropertyMetadata(string.Empty));
 
         public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("Header", typeof(string), typeof(FormSlider), new PropertyMetadata(String.Empty));
+            DependencyProperty.Register("Header", typeof(string), typeof(FormSlider), new PropertyMetadata(string.Empty));
 
         public static readonly DependencyProperty UnitsProperty =
             DependencyProperty.Register("Units", typeof(TimeSpanUnits), typeof(FormSlider));

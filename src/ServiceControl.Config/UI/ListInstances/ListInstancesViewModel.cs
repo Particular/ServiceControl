@@ -47,7 +47,7 @@
                     continue;
                 }
 
-                Task.Run(() =>
+                _ = Task.Run(() =>
                 {
                     try
                     {

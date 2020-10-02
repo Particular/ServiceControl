@@ -69,7 +69,6 @@
             {
                 await throttle.WaitAsync(token).ConfigureAwait(false);
                 // We don't need to wait for this task
-                // ReSharper disable once UnusedVariable
                 var sendTask = Task.Run(async () =>
                 {
                     try

@@ -134,7 +134,8 @@
                                     var previous = next;
                                     next = DetermineNextItemToActivate(list, list.IndexOf(previous));
                                     list.Remove(previous);
-                                } while (closable.Contains(next));
+                                } 
+                                while (closable.Contains(next));
 
                                 var previousActive = ActiveItem;
                                 ChangeActiveItem(next, true);

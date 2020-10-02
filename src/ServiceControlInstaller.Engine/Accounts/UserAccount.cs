@@ -31,7 +31,6 @@
             return Domain == "NT SERVICE";
         }
 
-        // ReSharper disable once InconsistentNaming
         static string LocalizedNTAuthority()
         {
             var localSystem = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);
