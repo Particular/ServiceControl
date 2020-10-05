@@ -1,6 +1,5 @@
 namespace ServiceControl.SagaAudit
 {
-    using System;
     using System.Linq;
     using Raven.Client.Documents.Indexes;
 
@@ -37,7 +36,7 @@ namespace ServiceControl.SagaAudit
 
         public class Result
         {
-            public Guid Id;
+            public string Id;
             public string Uri;
             public string SagaType;
         }

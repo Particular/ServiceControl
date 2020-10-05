@@ -42,7 +42,7 @@
         {
             yield return new SagaSnapshot
             {
-                SagaId = Guid.Empty,
+                SagaId = Guid.Empty.ToString(),
                 SagaType = "MySaga1",
                 Endpoint = "MyEndpoint",
                 FinishTime = new DateTime(2001, 1, 1, 1, 1, 1, DateTimeKind.Utc),
@@ -52,7 +52,7 @@
             };
             yield return new SagaHistory
             {
-                SagaId = Guid.Empty,
+                SagaId = Guid.Empty.ToString(),
                 SagaType = "MySaga1",
                 Changes = new List<SagaStateChange>
                 {
@@ -68,7 +68,7 @@
             };
             yield return new SagaSnapshot
             {
-                SagaId = Guid.Empty,
+                SagaId = Guid.Empty.ToString(),
                 SagaType = "MySaga1",
                 Endpoint = "MyEndpoint",
                 FinishTime = new DateTime(2002, 1, 1, 1, 1, 1, DateTimeKind.Utc),

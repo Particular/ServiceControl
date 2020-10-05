@@ -7,13 +7,13 @@ namespace ServiceControl.Audit.SagaAudit
     using Raven.Client.Documents;
     using ServiceControl.SagaAudit;
 
-    class GetSagaByIdApi : ApiBase<Guid, SagaHistory>
+    class GetSagaByIdApi : ApiBase<string, SagaHistory>
     {
         public GetSagaByIdApi(IDocumentStore documentStore) : base(documentStore)
         {
         }
 
-        protected override async Task<QueryResult<SagaHistory>> Query(HttpRequestMessage request, Guid input)
+        protected override async Task<QueryResult<SagaHistory>> Query(HttpRequestMessage request, string input)
         {
             using (var session = Store.OpenAsyncSession())
             {

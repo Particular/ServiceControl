@@ -42,13 +42,13 @@
         {
             yield return new SagaSnapshot
             {
-                SagaId = new Guid("00000000-0000-0000-0000-000000000003"),
+                SagaId = "00000000-0000-0000-0000-000000000003",
                 SagaType = "MySaga3",
                 FinishTime = new DateTime(2000, 1, 1, 10, 0, 0)
             };
             yield return new SagaHistory
             {
-                SagaId = new Guid("00000000-0000-0000-0000-000000000001"),
+                SagaId = "00000000-0000-0000-0000-000000000001",
                 SagaType = "MySaga1",
                 Changes = new List<SagaStateChange>
                 {
@@ -60,7 +60,7 @@
             };
             yield return new SagaSnapshot
             {
-                SagaId = new Guid("00000000-0000-0000-0000-000000000002"),
+                SagaId = "00000000-0000-0000-0000-000000000002",
                 SagaType = "MySaga2",
                 FinishTime = new DateTime(2000, 1, 1, 15, 0, 0)
             };
