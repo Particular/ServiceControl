@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Include="RavenDB.Embedded" Version="2.5.2962" />
   </ItemGroup>
 
