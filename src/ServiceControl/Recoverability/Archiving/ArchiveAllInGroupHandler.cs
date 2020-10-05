@@ -108,7 +108,7 @@ namespace ServiceControl.Recoverability
             logger.Info($"Archiving of group {message.GroupId} completed");
             await archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType)
                 .ConfigureAwait(false);
-            await documentManager.RemoveArchiveOperation(store, archiveOperation).ConfigureAwait(false);
+            documentManager.RemoveArchiveOperation(store, archiveOperation);
 
             await domainEvents.Raise(new FailedMessageGroupArchived
             {

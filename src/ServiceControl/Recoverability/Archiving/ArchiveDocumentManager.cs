@@ -6,7 +6,9 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Session;
+    using Sparrow.Json.Parsing;
 
     class ArchiveDocumentManager
     {
@@ -91,25 +93,24 @@
 
         public async Task ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
-            await Task.Yield();
-            //TODO:RAVEN5 Missing PatchCommandData
-            // var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData {Key = documentId, Patches = patchRequest});
-            //
-            // if (patchCommands != null)
-            // {
-            //     await session.Advanced.DocumentStore.AsyncDatabaseCommands.BatchAsync(patchCommands)
-            //         .ConfigureAwait(false);
-            //     await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(batch.Id, null)
-            //         .ConfigureAwait(false);
-            // }
+            IList<ICommandData> patchCommands = new List<ICommandData>();
+            batch?.DocumentIds.ForEach(documentId => patchCommands.Add(new PutCommandData(documentId, null, new DynamicJsonValue {["Status"] = FailedMessageStatus.Archived})));
+
+            if (batch != null)
+            {
+                var commandBatch = new SingleNodeBatchCommand(session.Advanced.DocumentStore.Conventions, session.Advanced.Context, patchCommands);
+
+                await session.Advanced.RequestExecutor.ExecuteAsync(commandBatch, session.Advanced.Context).ConfigureAwait(false);
+                session.Delete(batch.Id);
+            }
         }
 
         public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, ArchiveType archiveType, TimeSpan timeToWait)
         {
             using (var session = store.OpenAsyncSession())
             {
-                var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName);
-                    //.Customize(x => x.WaitForNonStaleResultsAsOfNow(timeToWait));
+                var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
+                    .Customize(x => x.WaitForNonStaleResults(timeToWait));
 
                 var docQuery = indexQuery
                     .Where(failure => failure.FailureGroupId == requestId)
@@ -133,16 +134,12 @@
             return session.StoreAsync(archiveOperation);
         }
 
-        public async Task RemoveArchiveOperation(IDocumentStore store, ArchiveOperation archiveOperation)
+        public void RemoveArchiveOperation(IDocumentStore store, ArchiveOperation archiveOperation)
         {
-            await Task.Yield();
-            // using (var session = store.OpenAsyncSession())
-            // {
-            //     await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(archiveOperation.Id, null)
-            //         .ConfigureAwait(false);
-            //     await session.SaveChangesAsync()
-            //         .ConfigureAwait(false);
-            // }
+            using (var session = store.OpenAsyncSession())
+            {
+                session.Delete(archiveOperation.Id);
+            }
         }
 
         // static PatchRequest[] patchRequest =
