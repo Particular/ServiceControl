@@ -33,13 +33,13 @@
 
         static T Meta<T>(this FailedMessage.ProcessingAttempt attempt, string key, T defaultValue = default)
         {
-            if (attempt.MessageMetadata.TryGetValue(key, out var value))
+            if (attempt.MessageMetadata.TryGetValue(key, out var value) && value != null)
             {
-                if (typeof(T).IsAssignableFrom(value?.GetType()))
+                if (value is T convertedValue)
                 {
-                    return (T)value;
+                    return convertedValue;
                 }
-                
+
                 throw new Exception($"{key} is not {typeof(T).Name}");
             }
 
