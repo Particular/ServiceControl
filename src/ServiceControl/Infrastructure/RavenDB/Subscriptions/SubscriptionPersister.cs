@@ -14,6 +14,7 @@
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Session;
 
     class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
@@ -221,9 +222,9 @@
                 var existingSubscription = stream.Current.Document;
                 existingSubscription.Subscribers.Remove(localClient);
                 subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", String.Empty), existingSubscription);
-                // TODO: RAVEN5 - No AsyncDatabaseCommands
-                //await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null)
-                //    .ConfigureAwait(false);
+
+                await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(stream.Current.Id, null), session.Advanced.Context)
+                    .ConfigureAwait(false);
             }
 
             await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId).ConfigureAwait(false);
