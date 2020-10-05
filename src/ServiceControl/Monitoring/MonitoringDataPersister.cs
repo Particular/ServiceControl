@@ -39,7 +39,7 @@
 
                 knownEndpoint = new KnownEndpoint
                 {
-                    Id = id,
+                    Id = knowndEndpointId,
                     EndpointDetails = endpoint,
                     HostDisplayName = endpoint.Host,
                     Monitored = false
@@ -67,7 +67,7 @@
                 {
                     knownEndpoint = new KnownEndpoint
                     {
-                        Id = id,
+                        Id = knowndEndpointId,
                         EndpointDetails = endpoint,
                         HostDisplayName = endpoint.Host,
                         Monitored = true
