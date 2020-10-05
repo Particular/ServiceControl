@@ -19,7 +19,7 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var failedMessage = await session.LoadAsync<FailedMessage>(message.FailedMessageId)
+                var failedMessage = await session.LoadAsync<FailedMessage>($"FailedMessages/{message.FailedMessageId}")
                     .ConfigureAwait(false);
 
                 if (failedMessage == null)

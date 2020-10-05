@@ -46,7 +46,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId)
+                var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId))
                     .ConfigureAwait(false);
 
                 if (failedMessage == null)

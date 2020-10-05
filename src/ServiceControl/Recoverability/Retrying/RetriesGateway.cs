@@ -13,6 +13,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
 
     class RetriesGateway
@@ -120,15 +121,13 @@ namespace ServiceControl.Recoverability
 
             log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
 
-            var commands = new ICommandData[messageIds.Length];
             for (var i = 0; i < messageIds.Length; i++)
             {
-                commands[i] = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
+                //TODO:RAVEN5 We used to send these all to the server in a single batch
+                var operation = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
+                await store.Operations.SendAsync(
+                    operation).ConfigureAwait(false);
             }
-
-            //TODO:RAVEN5 Missing API AsyncDatabaseCommands
-            // await store.AsyncDatabaseCommands.BatchAsync(commands)
-            //     .ConfigureAwait(false);
 
             await retryDocumentManager.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
 
@@ -208,7 +207,7 @@ namespace ServiceControl.Recoverability
                 RequestId = requestId;
                 RetryType = retryType;
                 Originator = originator;
-                //this.filter = filter;
+                this.filter = filter;
                 StartTime = startTime;
                 Classifier = classifier;
             }
@@ -221,20 +220,22 @@ namespace ServiceControl.Recoverability
 
             public Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
             {
-                return Task.FromResult(default(IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>));
-                // var query = session.Query<TType, TIndex>();
-                //
-                // query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
-                //
-                // if (filter != null)
-                // {
-                //     query = query.Where(filter);
-                // }
-                //
-                // return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
+                var query = session.Query<TType, TIndex>()
+                    .Where(d => d.Status == FailedMessageStatus.Unresolved);
+
+                if (filter != null)
+                {
+                    query = query.Where(filter);
+                }
+
+                return session.Advanced.StreamAsync(query.OfType<FailedMessage>().Select(message => new FailedMessages_UniqueMessageIdAndTimeOfFailures.Result
+                {
+                    UniqueMessageId = message.UniqueMessageId,
+                    LatestTimeOfFailure = message.ProcessingAttempts.Max(x => x.AttemptedAt)
+                }));
             }
 
-            //Expression<Func<TType, bool>> filter;
+            Expression<Func<TType, bool>> filter;
         }
     }
 
