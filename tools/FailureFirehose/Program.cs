@@ -67,7 +67,8 @@ namespace FailureFirehose
                         break;
 
                 }
-            } while (wrongOption);
+            }
+            while (wrongOption);
 
             Console.WriteLine("Press Ctrl+C to exit");
 

@@ -5,4 +5,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
+  </ItemGroup>
 </Project>
