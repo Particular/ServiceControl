@@ -4,26 +4,29 @@
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
 
     class DeleteCustomCheckHandler : IHandleMessages<DeleteCustomCheck>
     {
         public DeleteCustomCheckHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
-            //this.store = store;
+            this.store = store;
             this.domainEvents = domainEvents;
         }
 
         public async Task Handle(DeleteCustomCheck message, IMessageHandlerContext context)
         {
-            //TODO:RAVEN5 missing api AsyncDatabaseCommands
-            // await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null)
-            //     .ConfigureAwait(false);
+            using (var session = store.OpenSession())
+            {
+                await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(CustomCheck.MakeDocumentId(message.Id), null), session.Advanced.Context)
+                    .ConfigureAwait(false);
+            }
 
             await domainEvents.Raise(new CustomCheckDeleted {Id = message.Id})
                 .ConfigureAwait(false);
         }
 
-//        IDocumentStore store;
+        IDocumentStore store;
         IDomainEvents domainEvents;
     }
 }

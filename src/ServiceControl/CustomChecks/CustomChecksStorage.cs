@@ -23,7 +23,7 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                var documentId = $"CustomChecks/{id}";
+                var documentId = CustomCheck.MakeDocumentId(id);
                 var customCheck = await session.LoadAsync<CustomCheck>(documentId)
                     .ConfigureAwait(false);
 
