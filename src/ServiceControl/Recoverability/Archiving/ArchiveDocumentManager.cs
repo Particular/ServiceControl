@@ -7,6 +7,7 @@
     using MessageFailures;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
     using Sparrow.Json.Parsing;
 
@@ -91,18 +92,24 @@
             };
         }
 
-        public async Task ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
+        public void ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
-            IList<ICommandData> patchCommands = new List<ICommandData>();
-            batch?.DocumentIds.ForEach(documentId => patchCommands.Add(new PutCommandData(documentId, null, new DynamicJsonValue {["Status"] = FailedMessageStatus.Archived})));
-
-            if (batch != null)
+            if (batch == null)
             {
-                var commandBatch = new SingleNodeBatchCommand(session.Advanced.DocumentStore.Conventions, session.Advanced.Context, patchCommands);
-
-                await session.Advanced.RequestExecutor.ExecuteAsync(commandBatch, session.Advanced.Context).ConfigureAwait(false);
-                session.Delete(batch.Id);
+                return;
             }
+
+            var command = new BatchPatchCommandData(batch.DocumentIds, new PatchRequest
+            {
+                Script = "this.Status = $newStatus",
+                Values = new Dictionary<string, object>
+                {
+                    ["newStatus"] = FailedMessageStatus.Archived
+                }
+            }, null);
+
+            session.Advanced.Defer(command);
+            session.Delete(batch.Id);
         }
 
         public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, ArchiveType archiveType, TimeSpan timeToWait)

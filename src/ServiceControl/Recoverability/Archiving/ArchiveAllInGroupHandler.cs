@@ -75,8 +75,7 @@ namespace ServiceControl.Recoverability
                         logger.Info($"Archiving {nextBatch.DocumentIds.Count} messages from group {message.GroupId} starting");
                     }
 
-                    await documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch)
-                        .ConfigureAwait(false);
+                    documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
 
                     await archiveOperationManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0)
                         .ConfigureAwait(false);

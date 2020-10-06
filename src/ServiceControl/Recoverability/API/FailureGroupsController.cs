@@ -9,6 +9,7 @@
     using System.Web.Http;
     using Infrastructure.Extensions;
     using Infrastructure.WebApi;
+    using MessageFailures;
     using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
@@ -81,13 +82,11 @@
                     .FilterByLastModifiedRange(Request)
                     .Sort(Request)
                     .Paging(Request)
-                    //TODO:RAVEN5 MIssing transformenrs
-                    //.SetResultTransformer(FailedMessageViewTransformer.Name)
-                    .SelectFields<FailedMessageView>()
+                    .SelectFields<FailedMessage>()
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return Negotiator.FromModel(Request, results)
+                return Negotiator.FromModel(Request, results.ToFailedMessageView())
                     .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
                     .WithEtag(stats);
             }
