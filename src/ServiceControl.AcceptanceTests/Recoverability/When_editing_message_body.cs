@@ -99,8 +99,7 @@
 
                     testContext.EditedMessageProperty = message.SomeProperty;
                     testContext.EditedMessageId = context.MessageId;
-                    //TODO:RAVEN5 missing API
-                    //testContext.EditedMessageHeaders = context.MessageHeaders.Keys.ToHashSet();
+                    testContext.EditedMessageHeaders = new HashSet<string>(context.MessageHeaders.Keys);
                     return Task.CompletedTask;
                 }
 

@@ -15,7 +15,6 @@
     using Raven.TestDriver;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.DomainEvents;
-    using ServiceControl.Operations.BodyStorage.RavenAttachments;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -78,12 +77,7 @@
 
                 var sender = new TestSender();
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
-
-                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 WaitForIndexing(documentStore);
 
@@ -102,7 +96,7 @@
                     };
                     await documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                    processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                     await processor.ProcessBatches(session, CancellationToken.None);
                     await session.SaveChangesAsync();
@@ -125,12 +119,7 @@
 
                 var sender = new TestSender();
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
-
-                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint");
+                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenAsyncSession())
@@ -167,12 +156,7 @@
                     }
                 };
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
-
-                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint");
+                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
 
                 bool c;
@@ -213,12 +197,7 @@
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1001);
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
-
-                var returnToSender = new ReturnToSender(bodyStorage);
+                var returnToSender = new ReturnToSender(documentStore);
 
                 var sender = new TestSender();
 

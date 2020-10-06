@@ -3,16 +3,17 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
+    using MessageFailures;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using Operations.BodyStorage;
+    using Raven.Client.Documents;
 
     class ReturnToSender
     {
-        public ReturnToSender(IBodyStorage bodyStorage)
+        public ReturnToSender(IDocumentStore documentStore)
         {
-            this.bodyStorage = bodyStorage;
+            this.documentStore = documentStore;
         }
 
         public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender)
@@ -28,25 +29,19 @@ namespace ServiceControl.Recoverability
                 Log.DebugFormat("{0}: Retrieving message body", messageId);
             }
 
-            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
+            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var uniqueMessageId))
             {
-                var result = await bodyStorage.TryFetch(attemptMessageId)
-                    .ConfigureAwait(false);
-                if (result.HasResult)
+                using (var session = documentStore.OpenAsyncSession())
                 {
-                    using (result.Stream)
-                    {
-                        body = ReadFully(result.Stream);
-                    }
+                    var attachment = await session.Advanced.Attachments.GetAsync(FailedMessage.MakeDocumentId(uniqueMessageId),
+                        "body").ConfigureAwait(false);
+
+                    body = ReadFully(attachment.Stream);
 
                     if (Log.IsDebugEnabled)
                     {
-                        Log.DebugFormat("{0}: Body size: {1} bytes", messageId, body.LongLength);
+                        Log.DebugFormat("{0}: Body size: {1} bytes", messageId, attachment.Details.Size);
                     }
-                }
-                else
-                {
-                    Log.WarnFormat("{0}: Message Body not found for attempt Id {1}", messageId, attemptMessageId);
                 }
 
                 outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
@@ -103,7 +98,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private readonly IBodyStorage bodyStorage;
+        IDocumentStore documentStore;
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
     }
 }
