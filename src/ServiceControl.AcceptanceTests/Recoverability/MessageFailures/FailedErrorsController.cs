@@ -57,7 +57,8 @@
         [HttpPost]
         public Task<HttpResponseMessage> ForceErrorMessageCleanerRun(CancellationToken token)
         {
-            new ExpiryErrorMessageIndex().Execute(store);
+            //TODO:RAVEN5 missing cleaner
+            //new ExpiryErrorMessageIndex().Execute(store);
             WaitForIndexes(store);
 
             //TODO:RAVEN5 missing cleaner
