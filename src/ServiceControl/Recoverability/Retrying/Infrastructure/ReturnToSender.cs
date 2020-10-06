@@ -22,6 +22,7 @@ namespace ServiceControl.Recoverability
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
+            outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
 
             var messageId = message.MessageId;
             if (Log.IsDebugEnabled)
@@ -29,26 +30,31 @@ namespace ServiceControl.Recoverability
                 Log.DebugFormat("{0}: Retrieving message body", messageId);
             }
 
-            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var uniqueMessageId))
+            if (outgoingHeaders.TryGetValue("ServiceControl.Retry.BodyId", out var bodyId))
             {
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    var attachment = await session.Advanced.Attachments.GetAsync(FailedMessage.MakeDocumentId(uniqueMessageId),
+                    var attachment = await session.Advanced.Attachments.GetAsync(FailedMessage.MakeDocumentId(bodyId),
                         "body").ConfigureAwait(false);
 
-                    body = ReadFully(attachment.Stream);
-
-                    if (Log.IsDebugEnabled)
+                    if (attachment == null)
                     {
-                        Log.DebugFormat("{0}: Body size: {1} bytes", messageId, attachment.Details.Size);
+                        Log.WarnFormat("{0}: Can't find message body. Missing attachment", messageId);
+                    }
+                    else
+                    {
+                        body = ReadFully(attachment.Stream);
+                        if (Log.IsDebugEnabled)
+                        {
+                            Log.DebugFormat("{0}: Body size: {1} bytes", messageId, attachment.Details.Size);
+                        }
                     }
                 }
-
-                outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
+                outgoingHeaders.Remove("ServiceControl.Retry.BodyId");
             }
             else
             {
-                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", messageId);
+                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.BodyId", messageId);
             }
 
             var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body);

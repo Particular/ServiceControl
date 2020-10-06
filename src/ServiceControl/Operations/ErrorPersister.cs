@@ -64,18 +64,19 @@
             await SaveToDb(message.Headers.UniqueId(), processingAttempt, groups)
                 .ConfigureAwait(false);
 
-            using (var stream = new MemoryStream(message.Body))
+            if (message.Body.Length > 0)
             {
-                await store.Operations.SendAsync(
-                    new PutAttachmentOperation(
-                        FailedMessage.MakeDocumentId(message.Headers.UniqueId()),
-                        "body",
-                        stream,
-                        (string)metadata["ContentType"])
-                ).ConfigureAwait(false);
+                using (var stream = new MemoryStream(message.Body))
+                {
+                    await store.Operations.SendAsync(
+                        new PutAttachmentOperation(
+                            FailedMessage.MakeDocumentId(message.Headers.UniqueId()),
+                            "body",
+                            stream,
+                            (string)metadata["ContentType"])
+                    ).ConfigureAwait(false);
+                }
             }
-
-
             return failureDetails;
         }
 

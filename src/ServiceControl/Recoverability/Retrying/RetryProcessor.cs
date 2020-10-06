@@ -380,6 +380,10 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
             headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
+            if (attempt.MessageMetadata.ContainsKey("ContentType")) //Message has body
+            {
+                headersToRetryWith["ServiceControl.Retry.BodyId"] = message.UniqueMessageId;
+            }
 
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 
