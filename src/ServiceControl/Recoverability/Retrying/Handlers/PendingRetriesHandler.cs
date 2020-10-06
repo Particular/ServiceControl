@@ -27,8 +27,7 @@ namespace ServiceControl.Recoverability
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
                     .AndAlso()
-                    //TODO:RAVEN5 missing API transformers and such
-                    //.WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
+                    .WhereBetween(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
                     .AndAlso()
                     .WhereEquals(o => o.QueueAddress, message.QueueAddress)
                     //TODO:RAVEN5 missing API transformers and such

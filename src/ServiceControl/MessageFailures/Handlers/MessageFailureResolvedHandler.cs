@@ -34,19 +34,18 @@
             {
                 var prequery = session.Advanced
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
-                    .AndAlso();
-                //TODO:RAVEN5 missing api
-                    //.WhereBetweenOrEqual("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
+                    .WhereEquals("Status", FailedMessageStatus.RetryIssued);
+                    //.AndAlso()
+                    //.WhereBetween("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
 
-                if (!string.IsNullOrWhiteSpace(message.QueueAddress))
-                {
-                    prequery = prequery.AndAlso()
-                        .WhereEquals(options => options.QueueAddress, message.QueueAddress);
-                }
+                //if (!string.IsNullOrWhiteSpace(message.QueueAddress))
+                //{
+                //    prequery = prequery.AndAlso()
+                //        .WhereEquals(options => options.QueueAddress, message.QueueAddress);
+                //}
 
                 var query = prequery
-                        //TODO:RAVEN% missing transformenrs and such.
+                        //TODO:RAVEN5 missing transformenrs and such.
                     //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 

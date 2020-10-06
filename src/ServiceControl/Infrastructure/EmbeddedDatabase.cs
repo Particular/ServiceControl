@@ -2,6 +2,7 @@ namespace ServiceControl.Infrastructure
 {
     using System.Threading.Tasks;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Conventions;
     using Raven.Client.Documents.Indexes;
     using Raven.Embedded;
     using SagaAudit;
@@ -22,7 +23,16 @@ namespace ServiceControl.Infrastructure
 
         public static async Task<IDocumentStore> PrepareDatabase()
         {
-            var documentStore = await EmbeddedServer.Instance.GetDocumentStoreAsync("servicecontrol").ConfigureAwait(false);
+            var dbOptions = new DatabaseOptions("servicecontrol")
+            {
+                Conventions = new DocumentConventions
+                {
+                    SaveEnumsAsIntegers = true
+                }
+            };
+
+            var documentStore = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions).ConfigureAwait(false);
+
             await IndexCreation.CreateIndexesAsync(typeof(EmbeddedDatabase).Assembly, documentStore).ConfigureAwait(false);
             await IndexCreation.CreateIndexesAsync(typeof(SagaDetailsIndex).Assembly, documentStore).ConfigureAwait(false);
             return documentStore;

@@ -9,7 +9,8 @@ namespace ServiceControl.Recoverability
         public FailureGroupsViewIndex()
         {
             Map = docs => from doc in docs
-                where doc.Status == FailedMessageStatus.Unresolved
+                //TODO: RAVEN5 type mismatch when SaveEnumsAsInt
+                where doc.Status.ToString() == "Unresolved"
                 let failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)
                 from failureGroup in doc.FailureGroups
                 select new FailureGroupView

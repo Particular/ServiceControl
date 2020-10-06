@@ -30,14 +30,14 @@ namespace ServiceControl.CompositeViews.Messages
                 });
 
             AddMap<FailedMessage>(messages => from message in messages
-                where message.Status != FailedMessageStatus.Resolved
+                where message.Status.ToString() != "Resolved"
                 let last = message.ProcessingAttempts.Last()
                 select new SortAndFilterOptions
                 {
                     MessageId = last.MessageId,
                     MessageType = (string)last.MessageMetadata["MessageType"],
                     IsSystemMessage = (bool)last.MessageMetadata["IsSystemMessage"],
-                    Status = message.Status == FailedMessageStatus.Archived
+                    Status = message.Status.ToString() == "Archived"
                         ? MessageStatus.ArchivedFailure
                         : message.ProcessingAttempts.Count == 1
                             ? MessageStatus.Failed
