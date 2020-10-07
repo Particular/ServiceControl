@@ -8,10 +8,9 @@
 
     class GetBodyByIdApi : RoutedApi<string>
     {
-        public GetBodyByIdApi(IDocumentStore documentStore, IBodyStorage bodyStorage)
+        public GetBodyByIdApi(IDocumentStore documentStore)
         {
             // this.documentStore = documentStore;
-            // this.bodyStorage = bodyStorage;
         }
 
         protected override async Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, string input, string instanceId)

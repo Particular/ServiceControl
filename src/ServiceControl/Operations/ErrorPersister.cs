@@ -49,8 +49,7 @@
             await Task.WhenAll(enricherTasks)
                 .ConfigureAwait(false);
 
-            await bodyStorageEnricher.StoreErrorMessageBody(message.Body, message.Headers, metadata)
-                .ConfigureAwait(false);
+            bodyStorageEnricher.StoreErrorMessageBody(message.Body, message.Headers, metadata);
 
             var failureDetails = failedMessageFactory.ParseFailureDetails(message.Headers);
 

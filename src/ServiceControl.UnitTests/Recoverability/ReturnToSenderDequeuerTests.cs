@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -10,7 +9,6 @@
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -151,24 +149,6 @@
                 Message = operation.Message;
                 Destination = operation.Destination;
                 return Task.FromResult(0);
-            }
-        }
-
-        class FakeBodyStorage : IBodyStorage
-        {
-            public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<StreamResult> TryFetch(string bodyId)
-            {
-                var stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)); //Echo back the body ID.
-                return Task.FromResult(new StreamResult
-                {
-                    HasResult = true,
-                    Stream = stream
-                });
             }
         }
     }
