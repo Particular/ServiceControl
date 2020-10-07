@@ -25,6 +25,7 @@ namespace ServiceControl.Recoverability
         {
             if (message.RepeatedFailure)
             {
+                //TODO: RAVEN5 check if failedMessageId contains collection name
                 return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
             }
 

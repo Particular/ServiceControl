@@ -38,9 +38,11 @@ namespace ServiceControl.Recoverability
 
                 while (await ie.MoveNextAsync().ConfigureAwait(false))
                 {
-                    await manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id)
+                    var documentId = ie.Current.Document.Id.Replace("FailedMessages/", "");
+
+                    await manager.RemoveFailedMessageRetryDocument(documentId)
                         .ConfigureAwait(false);
-                    messageIds.Add(ie.Current.Document.Id);
+                    messageIds.Add(documentId);
                 }
 
             }

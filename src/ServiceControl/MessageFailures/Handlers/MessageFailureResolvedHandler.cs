@@ -34,15 +34,15 @@
             {
                 var prequery = session.Advanced
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .WhereEquals("Status", FailedMessageStatus.RetryIssued);
-                    //.AndAlso()
-                    //.WhereBetween("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
+                    .WhereEquals("Status", FailedMessageStatus.RetryIssued)
+                    .AndAlso()
+                    .WhereBetween("LastModified", message.PeriodFrom.Ticks, message.PeriodTo.Ticks);
 
-                //if (!string.IsNullOrWhiteSpace(message.QueueAddress))
-                //{
-                //    prequery = prequery.AndAlso()
-                //        .WhereEquals(options => options.QueueAddress, message.QueueAddress);
-                //}
+                if (!string.IsNullOrWhiteSpace(message.QueueAddress))
+                {
+                    prequery = prequery.AndAlso()
+                        .WhereEquals(options => options.QueueAddress, message.QueueAddress);
+                }
 
                 var query = prequery
                         //TODO:RAVEN5 missing transformenrs and such.

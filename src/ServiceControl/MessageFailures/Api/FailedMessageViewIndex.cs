@@ -20,7 +20,7 @@ namespace ServiceControl.MessageFailures.Api
                     ReceivingEndpointName = ((EndpointDetails)processingAttemptsLast.MessageMetadata["ReceivingEndpoint"]).Name,
                     QueueAddress = processingAttemptsLast.FailureDetails.AddressOfFailingEndpoint,
                     processingAttemptsLast.FailureDetails.TimeOfFailure,
-                    LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                    LastModified = MetadataFor(message).Value<DateTime>("@last-modified").Ticks
                 };
         }
 
