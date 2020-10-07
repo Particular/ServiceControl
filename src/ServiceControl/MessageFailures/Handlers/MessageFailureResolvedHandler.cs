@@ -52,7 +52,8 @@
                 var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false);
                 while (await ie.MoveNextAsync().ConfigureAwait(false))
                 {
-                    await context.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id)
+                    var documentId = ie.Current.Document.Id.Replace("FailedMessages/", "");
+                    await context.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = documentId)
                         .ConfigureAwait(false);
                 }
             }
