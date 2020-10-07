@@ -109,7 +109,7 @@ if(duplicateIndex === -1){{
 ",
                         Values = new Dictionary<string, object>
                         {
-                            ["status"] = FailedMessageStatus.Unresolved,
+                            ["status"] = (int)FailedMessageStatus.Unresolved,
                             ["failureGroups"] = groups,
                             ["attempt"] = processingAttempt,
                         }
@@ -126,7 +126,7 @@ this['@metadata'] = {{ '@collection': 'FailedMessages' }}
 
                         Values = new Dictionary<string, object>
                         {
-                            ["status"] = FailedMessageStatus.Unresolved,
+                            ["status"] = (int)FailedMessageStatus.Unresolved,
                             ["failureGroups"] = groups,
                             ["attempt"] = processingAttempt,
                             ["uniqueMessageId"] = uniqueMessageId

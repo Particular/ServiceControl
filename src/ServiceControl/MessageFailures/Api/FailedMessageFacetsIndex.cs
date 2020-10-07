@@ -9,8 +9,7 @@
         public FailedMessageFacetsIndex()
         {
             Map = failures => from failure in failures
-                //TODO: RAVEN5 type mismatch when SaveEnumsAsInt
-                where failure.Status.ToString() == "Unresolved"
+                where failure.Status == FailedMessageStatus.Unresolved
                 let t = (EndpointDetails)failure.ProcessingAttempts.Last().MessageMetadata["ReceivingEndpoint"]
                 select new
                 {

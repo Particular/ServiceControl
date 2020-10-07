@@ -104,7 +104,7 @@
                 Script = "this.Status = $newStatus",
                 Values = new Dictionary<string, object>
                 {
-                    ["newStatus"] = FailedMessageStatus.Archived
+                    ["newStatus"] = (int)FailedMessageStatus.Archived
                 }
             }, null);
 

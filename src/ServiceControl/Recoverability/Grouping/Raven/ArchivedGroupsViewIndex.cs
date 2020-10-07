@@ -9,8 +9,7 @@ namespace ServiceControl.Recoverability
         public ArchivedGroupsViewIndex()
         {
             Map = docs => from doc in docs
-                //TODO: RAVEN5 type mismatch when SaveEnumsAsInt
-                where doc.Status.ToString() == "Archived"
+                where doc.Status == FailedMessageStatus.Archived
                 let failureTimes = doc.ProcessingAttempts.Select(x => x.FailureDetails.TimeOfFailure)
                 from failureGroup in doc.FailureGroups
                 select new FailureGroupView
