@@ -14,4 +14,4 @@ ENV "ServiceControl_LogPath"="C:\\Logs\\"
 EXPOSE 33333
 EXPOSE 33334
 
-ENTRYPOINT ["./ServiceControl.exe", "--portable"]
+ENTRYPOINT ["ServiceControl.exe", "--portable"]
