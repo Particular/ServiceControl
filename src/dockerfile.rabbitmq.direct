@@ -2,8 +2,8 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
 WORKDIR /servicecontrol
 
-ADD /ServiceControl.Transports.RabbitMQ/bin/Release/net461 .
-ADD /ServiceControl/bin/Release/net461 .
+ADD /ServiceControl.Transports.RabbitMQ/bin/Release/net462 .
+ADD /ServiceControl/bin/Release/net462 .
 
 ENV "ServiceControl/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
 ENV "ServiceControl/Hostname"="*"
