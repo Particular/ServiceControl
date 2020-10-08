@@ -11,4 +11,4 @@ ENV "ServiceControl_Hostname"="*"
 ENV "ServiceControl_DBPath"="C:\\Data\\"
 ENV "ServiceControl_LogPath"="C:\\Logs\\"
 
-ENTRYPOINT ["./ServiceControl.exe", "--portable", "--setup"]
+ENTRYPOINT ["ServiceControl.exe", "--portable", "--setup"]
