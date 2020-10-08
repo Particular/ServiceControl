@@ -98,12 +98,9 @@
 this.{statusField} = $status;
 this.{failureGroupsField} = $failureGroups;
 
-var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{
- return a.{attemptedAtField} === $attempt.{attemptedAtField};
-}});
-
-if(duplicateIndex === -1){{
- this.{processingAttemptsField} = _.union(this.{processingAttemptsField}, [$attempt]);
+var duplicate = this.{processingAttemptsField}.find(attempt => attempt.{attemptedAtField} === $attempt.{attemptedAtField});
+if(typeof duplicate === ""undefined"") {{
+    this.{processingAttemptsField}.push($attempt)
 }}
 ",
                         Values = new Dictionary<string, object>
