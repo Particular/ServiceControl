@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+
+WORKDIR /servicecontrol
+
+ADD /ServiceControl.Transports.ASBS/bin/Release/net461 .
+ADD /ServiceControl/bin/Release/net461 .
+
+ENV "ServiceControl_TransportType"="ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"
+ENV "ServiceControl_Hostname"="*"
+
+ENV "ServiceControl_DBPath"="C:\\Data\\"
+ENV "ServiceControl_LogPath"="C:\\Logs\\"
+
+EXPOSE 33333
+EXPOSE 33334
+
+ENTRYPOINT ["./ServiceControl.exe", "--portable"]
