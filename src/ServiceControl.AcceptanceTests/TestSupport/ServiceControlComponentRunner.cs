@@ -15,6 +15,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Web.Http;
     using AcceptanceTesting;
     using Autofac;
+    using Infrastructure;
     using Infrastructure.WebApi;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
@@ -148,13 +149,15 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
+                embeddedDatabase = EmbeddedDatabase.Start(settings, loggingSettings);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder =>
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, embeddedDatabase, builder =>
                 {
                     builder.RegisterAssemblyTypes(typeof(FailedErrorsController).Assembly)
                         .AssignableTo<ApiController>()
@@ -180,9 +183,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 HttpClient = httpClient;
             }
 
+
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, new []{ typeof(IComponentBehavior).Assembly.GetName().Name });
                 await setupBootstrapper.Run(null);
             }
 
@@ -204,9 +208,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 await bootstrapper.Stop().ConfigureAwait(false);
                 HttpClient.Dispose();
                 Handler.Dispose();
+                embeddedDatabase?.Dispose();
                 DeleteFolder(Settings.DbPath);
             }
 
+            embeddedDatabase = null;
             bootstrapper = null;
             Bus = null;
             HttpClient = null;
@@ -267,5 +273,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        EmbeddedDatabase embeddedDatabase;
     }
 }

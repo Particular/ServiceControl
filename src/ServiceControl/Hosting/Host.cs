@@ -2,6 +2,7 @@
 {
     using System;
     using System.ServiceProcess;
+    using global::ServiceControl.Infrastructure;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -24,14 +25,15 @@
             {
                 RunCleanupBundle = true
             };
-            bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
+            embeddedDatabase = EmbeddedDatabase.Start(settings, loggingSettings);
+            bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings, embeddedDatabase);
             bootstrapper.Start().GetAwaiter().GetResult();
         }
 
         protected override void OnStop()
         {
             bootstrapper?.Stop().GetAwaiter().GetResult();
-
+            embeddedDatabase?.Dispose();
             OnStopping();
         }
 
@@ -43,5 +45,6 @@
         internal Action OnStopping = () => { };
 
         Bootstrapper bootstrapper;
+        EmbeddedDatabase embeddedDatabase;
     }
 }

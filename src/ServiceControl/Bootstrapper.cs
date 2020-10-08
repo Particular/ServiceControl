@@ -35,7 +35,7 @@ namespace Particular.ServiceControl
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, EmbeddedDatabase embeddedDatabase, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
             if (configuration == null)
             {
@@ -44,6 +44,7 @@ namespace Particular.ServiceControl
 
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
+            this.embeddedDatabase = embeddedDatabase;
             this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
             Initialize();
@@ -126,9 +127,7 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            //TODO: RAVEN5 EmbeddableDocumentStore replacement
-            EmbeddedDatabase.Start(settings, loggingSettings);
-            documentStore = await EmbeddedDatabase.PrepareDatabase(settings).ConfigureAwait(false);
+            documentStore = await embeddedDatabase.PrepareDatabase().ConfigureAwait(false);
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
@@ -153,7 +152,6 @@ namespace Particular.ServiceControl
                 await bus.Stop().ConfigureAwait(false);
             }
 
-            documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
             EmbeddedServer.Instance.Dispose();
@@ -238,6 +236,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
+        readonly EmbeddedDatabase embeddedDatabase;
         private IDocumentStore documentStore;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings settings;

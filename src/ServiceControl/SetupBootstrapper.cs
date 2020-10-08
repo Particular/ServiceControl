@@ -1,6 +1,5 @@
 namespace Particular.ServiceControl
 {
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Autofac;
     using global::ServiceControl.Infrastructure;
@@ -10,16 +9,17 @@ namespace Particular.ServiceControl
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
-    using Raven.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings settings, LoggingSettings loggingSettings, EmbeddedDatabase embeddedDatabase, string[] excludeAssemblies = null)
         {
             this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
+            this.loggingSettings = loggingSettings;
+            this.embeddedDatabase = embeddedDatabase;
         }
 
         public async Task Run(string username)
@@ -48,24 +48,17 @@ namespace Particular.ServiceControl
             var transportSettings = MapSettings(settings);
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            EmbeddedDatabase.Start(settings, loggingSettings);
-            var documentStore = await EmbeddedDatabase.PrepareDatabase(settings).ConfigureAwait(false);
+            var documentStore = await embeddedDatabase.PrepareDatabase().ConfigureAwait(false);
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
 
-            using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                await documentStore.ExecuteIndexesAsync(container.Resolve<IEnumerable<IAbstractIndexCreationTask>>())
-                    .ConfigureAwait(false);
-
                 await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
-            EmbeddedServer.Instance.Dispose();
         }
 
         static TransportSettings MapSettings(Settings settings)
@@ -80,6 +73,8 @@ namespace Particular.ServiceControl
         }
 
         private readonly Settings settings;
+        readonly LoggingSettings loggingSettings;
+        readonly EmbeddedDatabase embeddedDatabase;
 
         private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
         string[] excludeAssemblies;

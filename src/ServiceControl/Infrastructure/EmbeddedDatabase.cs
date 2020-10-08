@@ -1,5 +1,7 @@
 namespace ServiceControl.Infrastructure
 {
+    using System;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
@@ -9,10 +11,20 @@ namespace ServiceControl.Infrastructure
     using SagaAudit;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    static class EmbeddedDatabase
+    public class EmbeddedDatabase : IDisposable
     {
-        public static void Start(ServiceBus.Management.Infrastructure.Settings.Settings settings, LoggingSettings loggingSettings)
+        readonly ServiceBus.Management.Infrastructure.Settings.Settings settings;
+        IDocumentStore preparedDocumentStore;
+
+        EmbeddedDatabase(ServiceBus.Management.Infrastructure.Settings.Settings settings)
         {
+            this.settings = settings;
+        }
+
+        public static EmbeddedDatabase Start(ServiceBus.Management.Infrastructure.Settings.Settings settings, LoggingSettings loggingSettings)
+        {
+            var watch = new Stopwatch();
+            watch.Start();
             var serverOptions = new ServerOptions
             {
                 AcceptEula = true,
@@ -20,10 +32,21 @@ namespace ServiceControl.Infrastructure
                 LogsPath = loggingSettings.LogPath,
             };
             EmbeddedServer.Instance.StartServer(serverOptions);
+            watch.Stop();
+            Console.WriteLine($"EmbeddedDatabase::Start took {watch.ElapsedMilliseconds} ms");
+
+            return new EmbeddedDatabase(settings);
         }
 
-        public static async Task<IDocumentStore> PrepareDatabase(ServiceBus.Management.Infrastructure.Settings.Settings settings)
+        public async Task<IDocumentStore> PrepareDatabase()
         {
+            if (preparedDocumentStore != null)
+            {
+                return preparedDocumentStore;
+            }
+
+            var watch = new Stopwatch();
+            watch.Start();
             var dbOptions = new DatabaseOptions("servicecontrol")
             {
                 Conventions = new DocumentConventions
@@ -48,7 +71,20 @@ namespace ServiceControl.Infrastructure
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
                 .ConfigureAwait(false);
+
+            watch.Stop();
+            Console.WriteLine($"EmbeddedDatabase::PrepareDatabase took {watch.ElapsedMilliseconds} ms");
+
+            preparedDocumentStore = documentStore;
+
             return documentStore;
+        }
+
+        public void Dispose()
+        {
+            preparedDocumentStore?.Dispose();
+            EmbeddedServer.Instance.Dispose();
+
         }
     }
 }

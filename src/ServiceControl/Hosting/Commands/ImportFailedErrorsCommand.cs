@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NLog;
     using NServiceBus;
     using Particular.ServiceControl;
@@ -26,7 +27,8 @@
             var tokenSource = new CancellationTokenSource();
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
-            var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
+            var embeddedDatabase = EmbeddedDatabase.Start(settings, loggingSettings);
+            var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings, embeddedDatabase);
             var instance = await bootstrapper.Start().ConfigureAwait(false);
             var errorIngestion = instance.ErrorIngestion;
 
@@ -43,6 +45,7 @@
             finally
             {
                 await bootstrapper.Stop().ConfigureAwait(false);
+                embeddedDatabase.Dispose();
             }
         }
     }

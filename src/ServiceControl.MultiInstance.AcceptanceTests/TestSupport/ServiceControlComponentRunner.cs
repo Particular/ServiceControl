@@ -24,6 +24,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.WebApi;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
@@ -169,14 +170,16 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customEndpointConfiguration(configuration);
 
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+
             Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
+                embeddedDatabase = EmbeddedDatabase.Start(settings, loggingSettings);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder => { });
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, embeddedDatabase,  builder => { });
                 bootstrappers[instanceName] = bootstrapper;
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
@@ -201,7 +204,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, excludedAssemblies
                     .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
@@ -426,6 +429,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
+        EmbeddedDatabase embeddedDatabase;
 
         class ForwardingHandler : DelegatingHandler
         {
