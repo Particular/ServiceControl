@@ -51,7 +51,7 @@ namespace Particular.ServiceControl
             var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
             EmbeddedDatabase.Start(settings, loggingSettings);
-            var documentStore = await EmbeddedDatabase.PrepareDatabase().ConfigureAwait(false);
+            var documentStore = await EmbeddedDatabase.PrepareDatabase(settings).ConfigureAwait(false);
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();

@@ -124,7 +124,7 @@ namespace ServiceControl.Recoverability
             for (var i = 0; i < messageIds.Length; i++)
             {
                 //TODO:RAVEN5 We used to send these all to the server in a single batch
-                var operation = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
+                var operation = retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
                 await store.Operations.SendAsync(
                     operation).ConfigureAwait(false);
             }

@@ -13,21 +13,22 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
+    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
-    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
     using Raven.Client.Exceptions;
     using Sparrow.Json.Parsing;
 
     class RetryProcessor
     {
-        public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
+        public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager, TimeSpan failedMessageRetentionPeriod)
         {
             this.store = store;
             this.sender = sender;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
+            this.failedMessageRetentionPeriod = failedMessageRetentionPeriod;
             this.domainEvents = domainEvents;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
@@ -230,6 +231,7 @@ namespace ServiceControl.Recoverability
 
                 // should not be done concurrently due to sessions not being thread safe
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
+                session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = DateTime.UtcNow + failedMessageRetentionPeriod;
             }
 
             await TryDispatch(transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
@@ -398,6 +400,7 @@ namespace ServiceControl.Recoverability
         IDomainEvents domainEvents;
         ReturnToSenderDequeuer returnToSender;
         RetryingManager retryingManager;
+        readonly TimeSpan failedMessageRetentionPeriod;
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;

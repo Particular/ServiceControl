@@ -4,9 +4,11 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
+    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
+    using NServiceBus.Transport;
     using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -24,9 +26,11 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
+            var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
+
+            context.Container.ConfigureComponent(b => new RetryDocumentManager(b.Build<ShutdownNotifier>(), b.Build<IDocumentStore>(), settings.ErrorRetentionPeriod),  DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent(b => new RetryProcessor(b.Build<IDocumentStore>(), b.Build<IDispatchMessages>(), b.Build<IDomainEvents>(), b.Build<ReturnToSenderDequeuer>(), b.Build<RetryingManager>(), settings.ErrorRetentionPeriod),  DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<RetriesGateway>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<RetryProcessor>(DependencyLifecycle.SingleInstance);
 
             context.RegisterStartupTask(b => b.Build<RebuildRetryGroupStatuses>());
             context.RegisterStartupTask(b => b.Build<BulkRetryBatchCreation>());

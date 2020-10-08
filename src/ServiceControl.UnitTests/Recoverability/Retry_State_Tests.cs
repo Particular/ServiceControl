@@ -77,7 +77,7 @@
 
                 var sender = new TestSender();
 
-                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager, TimeSpan.FromDays(90));
 
                 WaitForIndexing(documentStore);
 
@@ -96,7 +96,7 @@
                     };
                     await documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                    processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager, TimeSpan.FromDays(90));
 
                     await processor.ProcessBatches(session, CancellationToken.None);
                     await session.SaveChangesAsync();
@@ -120,7 +120,7 @@
                 var sender = new TestSender();
 
                 var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint");
-                var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager, TimeSpan.FromDays(90));
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
@@ -157,7 +157,7 @@
                 };
 
                 var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(documentStore), documentStore, domainEvents, "TestEndpoint");
-                var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager, TimeSpan.FromDays(90));
 
                 bool c;
                 do
@@ -201,7 +201,7 @@
 
                 var sender = new TestSender();
 
-                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(returnToSender, documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(returnToSender, documentStore, domainEvents, "TestEndpoint"), retryManager, TimeSpan.FromDays(90));
 
                 WaitForIndexing(documentStore);
 
@@ -286,7 +286,7 @@
     class CustomRetryDocumentManager : RetryDocumentManager
     {
         public CustomRetryDocumentManager(bool progressToStaged, IDocumentStore documentStore)
-            : base(new ShutdownNotifier(), documentStore)
+            : base(new ShutdownNotifier(), documentStore, TimeSpan.FromDays(90))
         {
             RetrySessionId = Guid.NewGuid().ToString();
             this.progressToStaged = progressToStaged;

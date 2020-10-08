@@ -8,7 +8,6 @@ namespace ServiceControl.Recoverability
     using MessageFailures;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
     using Newtonsoft.Json.Linq;
@@ -16,9 +15,10 @@ namespace ServiceControl.Recoverability
 
     class RetryDocumentManager
     {
-        public RetryDocumentManager(ShutdownNotifier notifier, IDocumentStore store)
+        public RetryDocumentManager(ShutdownNotifier notifier, IDocumentStore store, TimeSpan failedMessageRetentionPeriod)
         {
             this.store = store;
+            this.failedMessageRetentionPeriod = failedMessageRetentionPeriod;
             notifier.Register(() => { abort = true; });
         }
 
@@ -50,8 +50,10 @@ namespace ServiceControl.Recoverability
             return batchDocumentId;
         }
 
-        public static PatchOperation CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
+        public PatchOperation CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
+            var expireTime = DateTime.UtcNow + failedMessageRetentionPeriod;
+
             // TODO: RAVEN5 - Should this still be done as a patch operation or can we create a patch-by-query
             return new PatchOperation(
                 FailedMessageRetry.MakeDocumentId(messageId), 
@@ -68,7 +70,8 @@ this.FailedMessageId = $failedMessageId
 this.RetryBatchId = $retryBatchId
 this[""@metadata""] = {{
     ""@collection"": ""{FailedMessageRetry.CollectionName}"",
-    ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
+    ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}"",
+    ""@expires"" : ""{expireTime:O}""
 }}
 ",
                 Values = new Dictionary<string, object>
@@ -170,6 +173,7 @@ if(this.Status === $oldStatus) {
         }
 
         private IDocumentStore store;
+        readonly TimeSpan failedMessageRetentionPeriod;
         private bool abort;
         protected static string RetrySessionId = Guid.NewGuid().ToString();
 
