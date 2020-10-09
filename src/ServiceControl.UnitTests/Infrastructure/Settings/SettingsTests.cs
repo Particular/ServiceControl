@@ -22,7 +22,8 @@
             ConfigurationManager.RefreshSection("appSettings");
         }
 
-        [Test]
+        // HINT: This test destroys the settings config file which other tests are relying upon
+        [Test, Explicit]
         public void Should_read_RemoteInstances_from_serialized_json()
         {
             var settings = new Settings();
