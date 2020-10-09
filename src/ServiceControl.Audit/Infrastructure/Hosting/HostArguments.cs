@@ -21,7 +21,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             }
 
             var executionMode = ExecutionMode.Run;
-            Commands = new List<Type> {typeof(RunCommand)};
+            Commands = new List<Type> {typeof(RunCommand<Host>)};
             ServiceName = Settings.DEFAULT_SERVICE_NAME;
 
             var defaultOptions = new OptionSet
@@ -40,7 +40,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                     {
                         Commands = new List<Type>
                         {
-                            typeof(MaintCommand)
+                            typeof(RunCommand<MaintenanceHost>)
                         };
                         executionMode = ExecutionMode.Maintenance;
                     }

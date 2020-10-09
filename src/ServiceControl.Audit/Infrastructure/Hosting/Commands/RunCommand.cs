@@ -4,17 +4,18 @@
     using System.ServiceProcess;
     using System.Threading.Tasks;
 
-    class RunCommand : AbstractCommand
+    class RunCommand<T> : AbstractCommand
+        where T : ServiceBase, IStartableStoppableService, new()
     {
         public override async Task Execute(HostArguments args)
         {
             if (args.RunAsWindowsService)
             {
-                using (var service = new Host {ServiceName = args.ServiceName})
+                using (var service = new T { ServiceName = args.ServiceName })
                 {
                     //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
                     //      until service reports it has stopped.
-                    //      SCM takes over and calls OnStart and OnStop on the service instance. 
+                    //      SCM takes over and calls OnStart and OnStop on the instance. 
                     ServiceBase.Run(service);
                 }
             }
@@ -26,7 +27,7 @@
 
         static async Task RunAsConsoleApp(HostArguments args)
         {
-            using (var service = new Host {ServiceName = args.ServiceName})
+            using (var service = new T { ServiceName = args.ServiceName })
             {
                 var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 service.OnStopping = () =>
@@ -35,7 +36,7 @@
                     completionSource.TrySetResult(true);
                 };
 
-                service.Start();
+                await service.Start().ConfigureAwait(false);
 
                 var r = new CancelWrapper(completionSource, service);
                 Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;
@@ -47,7 +48,7 @@
 
         class CancelWrapper
         {
-            public CancelWrapper(TaskCompletionSource<bool> syncEvent, Host host)
+            public CancelWrapper(TaskCompletionSource<bool> syncEvent, T host)
             {
                 this.syncEvent = syncEvent;
                 this.host = host;
@@ -62,7 +63,7 @@
             }
 
             readonly TaskCompletionSource<bool> syncEvent;
-            readonly Host host;
+            readonly T host;
         }
     }
 }

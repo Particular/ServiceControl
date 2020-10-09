@@ -1,3 +1,6 @@
+using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.SagaAudit;
+
 namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
@@ -15,10 +18,12 @@ namespace ServiceControl.Audit.Infrastructure
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings.Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings.Settings settings, LoggingSettings loggingSettings, EmbeddedDatabase embeddedDatabase, string[] excludeAssemblies = null)
         {
             this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
+            this.loggingSettings = loggingSettings;
+            this.embeddedDatabase = embeddedDatabase;
         }
 
         public async Task Run(string username)
@@ -68,13 +73,9 @@ namespace ServiceControl.Audit.Infrastructure
             var containerBuilder = new ContainerBuilder();
 
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
 
-            // TODO: RAVEN5 - Do this properly
-            EmbeddedDatabase.Start(settings, loggingSettings);
-            var documentStore = await EmbeddedDatabase.PrepareAuditDatabase().ConfigureAwait(false);
+            var documentStore = await embeddedDatabase.PrepareDatabase("audit", typeof(SetupBootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
             containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
@@ -82,28 +83,9 @@ namespace ServiceControl.Audit.Infrastructure
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                await ConfigureDatabase(documentStore, container).ConfigureAwait(false);
                 await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { }, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
-            EmbeddedServer.Instance.Dispose();
-        }
-
-        async Task ConfigureDatabase(IDocumentStore documentStore, IContainer container)
-        {
-            await documentStore.ExecuteIndexesAsync(container.Resolve<IEnumerable<IAbstractIndexCreationTask>>())
-                .ConfigureAwait(false);
-
-            // TODO: Check to see if the configuration has changed.
-            // If it has, then send an update to the server to change the expires metadata on all documents
-            var expirationConfig = new ExpirationConfiguration
-            {
-                Disabled = false,
-                DeleteFrequencyInSec = settings.ExpirationProcessTimerInSeconds
-            };
-
-            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
-                .ConfigureAwait(false);
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)
@@ -117,9 +99,11 @@ namespace ServiceControl.Audit.Infrastructure
             return transportSettings;
         }
 
-        private readonly Settings.Settings settings;
+        readonly Settings.Settings settings;
+        readonly LoggingSettings loggingSettings;
+        readonly EmbeddedDatabase embeddedDatabase;
+        readonly string[] excludeAssemblies;
 
-        private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
-        string[] excludeAssemblies;
+        static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }
 }

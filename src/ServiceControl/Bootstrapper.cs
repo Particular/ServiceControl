@@ -1,3 +1,6 @@
+using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.SagaAudit;
+
 namespace Particular.ServiceControl
 {
     using System;
@@ -127,7 +130,7 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            documentStore = await embeddedDatabase.PrepareDatabase().ConfigureAwait(false);
+            documentStore = await embeddedDatabase.PrepareDatabase("servicecontrol", typeof(Bootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);

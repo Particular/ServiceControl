@@ -1,14 +1,13 @@
-﻿namespace ServiceControl.Hosting.Commands
+﻿using ServiceControl.Infrastructure.RavenDB;
+
+namespace ServiceControl.Hosting.Commands
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
     using NLog;
     using NServiceBus;
     using Particular.ServiceControl;
-    using Particular.ServiceControl.Commands;
-    using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ImportFailedErrorsCommand : AbstractCommand
@@ -27,7 +26,7 @@
             var tokenSource = new CancellationTokenSource();
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
-            var embeddedDatabase = EmbeddedDatabase.Start(settings, loggingSettings);
+            var embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings, embeddedDatabase);
             var instance = await bootstrapper.Start().ConfigureAwait(false);
             var errorIngestion = instance.ErrorIngestion;

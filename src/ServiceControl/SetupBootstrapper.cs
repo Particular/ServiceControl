@@ -1,8 +1,10 @@
+using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.SagaAudit;
+
 namespace Particular.ServiceControl
 {
     using System.Threading.Tasks;
     using Autofac;
-    using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Transports;
     using NServiceBus;
@@ -49,7 +51,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = await embeddedDatabase.PrepareDatabase().ConfigureAwait(false);
+            var documentStore = await embeddedDatabase.PrepareDatabase("servicecontrol",typeof(SetupBootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();

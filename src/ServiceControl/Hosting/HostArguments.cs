@@ -1,14 +1,14 @@
-namespace Particular.ServiceControl.Hosting
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using Commands;
-    using global::ServiceControl.Hosting.Commands;
-    using ServiceBus.Management.Infrastructure.Settings;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using Particular.ServiceControl.Hosting;
+using ServiceBus.Management.Infrastructure.Settings;
+using ServiceControl.Hosting.Commands;
 
+namespace ServiceControl.Hosting
+{
     class HostArguments
     {
         public HostArguments(string[] args)
@@ -22,7 +22,7 @@ namespace Particular.ServiceControl.Hosting
             }
 
             var executionMode = ExecutionMode.Run;
-            Commands = new List<Type> {typeof(RunCommand)};
+            Commands = new List<Type> {typeof(RunCommand<Host>)};
             ServiceName = Settings.DEFAULT_SERVICE_NAME;
 
             var defaultOptions = new OptionSet
@@ -41,7 +41,7 @@ namespace Particular.ServiceControl.Hosting
                     {
                         Commands = new List<Type>
                         {
-                            typeof(MaintCommand)
+                            typeof(RunCommand<MaintenanceHost>)
                         };
                         executionMode = ExecutionMode.Maintenance;
                     }

@@ -1,4 +1,7 @@
-namespace ServiceControl.Infrastructure
+using System.Collections.Generic;
+using System.Reflection;
+
+namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
     using System.Diagnostics;
@@ -8,46 +11,50 @@ namespace ServiceControl.Infrastructure
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Expiration;
     using Raven.Embedded;
-    using SagaAudit;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class EmbeddedDatabase : IDisposable
     {
-        readonly ServiceBus.Management.Infrastructure.Settings.Settings settings;
-        IDocumentStore preparedDocumentStore;
+        readonly int expirationProcessTimerInSeconds;
+        readonly Dictionary<string, IDocumentStore> preparedDocumentStores = new Dictionary<string, IDocumentStore>();
 
-        EmbeddedDatabase(ServiceBus.Management.Infrastructure.Settings.Settings settings)
+        public EmbeddedDatabase(int expirationProcessTimerInSeconds)
         {
-            this.settings = settings;
+            this.expirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
         }
 
-        public static EmbeddedDatabase Start(ServiceBus.Management.Infrastructure.Settings.Settings settings, LoggingSettings loggingSettings)
+
+        public static EmbeddedDatabase Start(string dbPath, string logPath, int expirationProcessTimerInSecond)
         {
             var watch = new Stopwatch();
             watch.Start();
             var serverOptions = new ServerOptions
             {
                 AcceptEula = true,
-                DataDirectory = settings.DbPath,
-                LogsPath = loggingSettings.LogPath,
+                DataDirectory = dbPath,
+                LogsPath = logPath,
             };
             EmbeddedServer.Instance.StartServer(serverOptions);
             watch.Stop();
             Console.WriteLine($"EmbeddedDatabase::Start took {watch.ElapsedMilliseconds} ms");
 
-            return new EmbeddedDatabase(settings);
+            return new EmbeddedDatabase(expirationProcessTimerInSecond);
         }
 
-        public async Task<IDocumentStore> PrepareDatabase()
+        public async Task<IDocumentStore> PrepareDatabase(string name, params Assembly[] indexAssemblies)
         {
-            if (preparedDocumentStore != null)
+            if (!preparedDocumentStores.TryGetValue(name, out var store))
             {
-                return preparedDocumentStore;
+                store = await InitializeDatabase(name, indexAssemblies).ConfigureAwait(false);
+                preparedDocumentStores[name] = store;
             }
+            return store;
+        }
 
+        async Task<IDocumentStore> InitializeDatabase(string name, Assembly[] indexAssemblies)
+        {
             var watch = new Stopwatch();
             watch.Start();
-            var dbOptions = new DatabaseOptions("servicecontrol")
+            var dbOptions = new DatabaseOptions(name)
             {
                 Conventions = new DocumentConventions
                 {
@@ -55,17 +62,20 @@ namespace ServiceControl.Infrastructure
                 }
             };
 
-            var documentStore = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions).ConfigureAwait(false);
+            var documentStore =
+                await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions).ConfigureAwait(false);
 
-            await IndexCreation.CreateIndexesAsync(typeof(EmbeddedDatabase).Assembly, documentStore).ConfigureAwait(false);
-            await IndexCreation.CreateIndexesAsync(typeof(SagaDetailsIndex).Assembly, documentStore).ConfigureAwait(false);
+            foreach (var indexAssembly in indexAssemblies)
+            {
+                await IndexCreation.CreateIndexesAsync(indexAssembly, documentStore).ConfigureAwait(false);
+            }
 
             // TODO: Check to see if the configuration has changed.
             // If it has, then send an update to the server to change the expires metadata on all documents
             var expirationConfig = new ExpirationConfiguration
             {
                 Disabled = false,
-                DeleteFrequencyInSec = settings.ExpirationProcessTimerInSeconds
+                DeleteFrequencyInSec = expirationProcessTimerInSeconds
             };
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
@@ -74,16 +84,16 @@ namespace ServiceControl.Infrastructure
             watch.Stop();
             Console.WriteLine($"EmbeddedDatabase::PrepareDatabase took {watch.ElapsedMilliseconds} ms");
 
-            preparedDocumentStore = documentStore;
-
             return documentStore;
         }
 
         public void Dispose()
         {
-            preparedDocumentStore?.Dispose();
+            foreach (var store in preparedDocumentStores.Values)
+            {
+                store.Dispose();
+            }
             EmbeddedServer.Instance.Dispose();
-
         }
     }
 }

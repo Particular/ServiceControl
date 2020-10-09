@@ -1,3 +1,6 @@
+using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.SagaAudit;
+
 namespace ServiceControl.Audit.Infrastructure
 {
     using System;
@@ -30,7 +33,7 @@ namespace ServiceControl.Audit.Infrastructure
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, EmbeddedDatabase embeddedDatabase, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
             if (configuration == null)
             {
@@ -40,6 +43,7 @@ namespace ServiceControl.Audit.Infrastructure
             this.onCriticalError = onCriticalError;
             this.configuration = configuration;
             this.loggingSettings = loggingSettings;
+            this.embeddedDatabase = embeddedDatabase;
             this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
             Initialize();
@@ -124,8 +128,7 @@ namespace ServiceControl.Audit.Infrastructure
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            EmbeddedDatabase.Start(settings, loggingSettings);
-            documentStore = await EmbeddedDatabase.PrepareAuditDatabase().ConfigureAwait(false);
+            documentStore = await embeddedDatabase.PrepareDatabase("audit", typeof(Bootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
@@ -218,6 +221,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         readonly Action<ContainerBuilder> additionalRegistrationActions;
         private EndpointConfiguration configuration;
         private LoggingSettings loggingSettings;
+        readonly EmbeddedDatabase embeddedDatabase;
         private Action<ICriticalErrorContext> onCriticalError;
         private ShutdownNotifier notifier = new ShutdownNotifier();
         private Settings.Settings settings;

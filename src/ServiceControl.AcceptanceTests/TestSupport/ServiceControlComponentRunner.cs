@@ -1,3 +1,5 @@
+using ServiceControl.Infrastructure.RavenDB;
+
 namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
@@ -155,7 +157,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
-                embeddedDatabase = EmbeddedDatabase.Start(settings, loggingSettings);
+                embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds);
 
                 bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, embeddedDatabase, builder =>
                 {
@@ -208,8 +210,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 embeddedDatabase = null;
                 throw;
             }
-
-            
         }
 
         public override async Task Stop()

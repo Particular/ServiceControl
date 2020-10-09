@@ -1,10 +1,12 @@
-﻿namespace Particular.ServiceControl
+﻿using ServiceControl.Hosting;
+using ServiceControl.Hosting.Commands;
+
+namespace Particular.ServiceControl
 {
     using System;
     using System.IO;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Commands;
     using Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 

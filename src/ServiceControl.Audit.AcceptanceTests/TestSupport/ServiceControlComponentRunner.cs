@@ -1,3 +1,5 @@
+using ServiceControl.Infrastructure.RavenDB;
+
 namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
@@ -145,12 +147,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
+            var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(logPath);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
+                embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
                 bootstrapper = new Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -162,41 +166,51 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
+                }, settings, configuration, loggingSettings, embeddedDatabase, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            try
             {
-                var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app, typeof(FailedAuditsController).Assembly);
-                var appFunc = app.Build();
-
-                Handler = new OwinHttpMessageHandler(appFunc)
+                using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
                 {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                var httpClient = new HttpClient(Handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
-            }
+                    var app = new AppBuilder();
+                    bootstrapper.Startup.Configuration(app, typeof(FailedAuditsController).Assembly);
+                    var appFunc = app.Build();
 
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
-                await setupBootstrapper.Run(null);
-            }
+                    Handler = new OwinHttpMessageHandler(appFunc)
+                    {
+                        UseCookies = false,
+                        AllowAutoRedirect = false
+                    };
+                    var httpClient = new HttpClient(Handler);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    HttpClient = httpClient;
+                }
 
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
-            }
+                using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+                {
+                    var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                    await setupBootstrapper.Run(null);
+                }
 
-            if (Debugger.IsAttached)
-            {
-                EmbeddedServer.Instance.OpenStudioInBrowser();
+                using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+                {
+                    Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+                }
+
+                if (Debugger.IsAttached)
+                {
+                    EmbeddedServer.Instance.OpenStudioInBrowser();
+                }
             }
+            catch (Exception)
+            {
+                embeddedDatabase.Dispose();
+                embeddedDatabase = null;
+                throw;
+            }
+            
         }
 
         public override async Task Stop()
@@ -269,5 +283,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        EmbeddedDatabase embeddedDatabase;
     }
 }

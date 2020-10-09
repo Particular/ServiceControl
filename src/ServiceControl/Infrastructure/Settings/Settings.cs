@@ -65,8 +65,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool SkipQueueCreation { get; set; }
 
-        public bool RunCleanupBundle { get; set; }
-
         public string RootUrl
         {
             get
