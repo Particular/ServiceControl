@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public static class HelperExtensions
+    static class HelperExtensions
     {
         public static void AddRange<T>(this IList<T> list, IEnumerable<T> items)
         {

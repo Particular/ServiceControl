@@ -13,10 +13,10 @@ namespace ServiceControl.Audit.Auditing
     public class FailedAuditImport
     {
         public FailedAuditImport() { }
-        public System.Guid Id { get; set; }
+        public string Id { get; set; }
         public ServiceControl.Audit.Auditing.FailedTransportMessage Message { get; set; }
     }
-    public class FailedAuditImportIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.FailedAuditImport>
+    public class FailedAuditImportIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.FailedAuditImport>
     {
         public FailedAuditImportIndex() { }
     }
@@ -96,12 +96,12 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public ServiceControl.Audit.Monitoring.MessageStatus Status { get; set; }
         public System.Nullable<System.DateTime> TimeSent { get; set; }
     }
-    public class MessagesViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage, ServiceControl.Audit.Auditing.MessagesView.MessagesViewIndex.SortAndFilterOptions>
+    public class MessagesViewIndex : Raven.Client.Documents.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage, ServiceControl.Audit.Auditing.MessagesView.MessagesViewIndex.Result>
     {
         public MessagesViewIndex() { }
-        public class SortAndFilterOptions
+        public class Result
         {
-            public SortAndFilterOptions() { }
+            public Result() { }
             public string ConversationId { get; set; }
             public System.Nullable<System.TimeSpan> CriticalTime { get; set; }
             public System.Nullable<System.TimeSpan> DeliveryTime { get; set; }
@@ -124,25 +124,6 @@ namespace ServiceControl.Audit.Infrastructure.Installers
         public const string SourceName = "ServiceControl.Audit";
         public CreateEventSource() { }
         public System.Threading.Tasks.Task Install(string identity) { }
-    }
-}
-namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
-{
-    [System.ComponentModel.Composition.ExportMetadataAttribute("Bundle", "customDocumentExpiration")]
-    [System.ComponentModel.Composition.InheritedExportAttribute(typeof(Raven.Database.Plugins.IStartupTask))]
-    public class ExpiredDocumentsCleanerBundle : Raven.Database.Plugins.IStartupTask, System.IDisposable
-    {
-        public ExpiredDocumentsCleanerBundle() { }
-        public void Dispose() { }
-        public void Execute(Raven.Database.DocumentDatabase database) { }
-    }
-    public class ExpiryKnownEndpointsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Monitoring.KnownEndpoint>
-    {
-        public ExpiryKnownEndpointsIndex() { }
-    }
-    public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage>
-    {
-        public ExpiryProcessedMessageIndex() { }
     }
 }
 namespace ServiceControl.Audit.Infrastructure.Settings
@@ -264,7 +245,7 @@ namespace ServiceControl.Audit.SagaAudit
     {
         [System.Web.Http.HttpGetAttribute()]
         [System.Web.Http.RouteAttribute("sagas/{id}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(System.Guid id) { }
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(string id) { }
     }
 }
 namespace ServiceControl.Contracts.EndpointControl
