@@ -39,6 +39,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Included to prevent a version conflict between ASBS and RavenDB -->
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Infrastructure\Hosting\Help.txt" />
     <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
   </ItemGroup>
