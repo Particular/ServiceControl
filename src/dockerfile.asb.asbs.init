@@ -5,10 +5,10 @@ WORKDIR /servicecontrol
 ADD /ServiceControl.Transports.ASBS/bin/Release/net462 .
 ADD /ServiceControl/bin/Release/net462 .
 
-ENV "ServiceControl_TransportType"="ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"
-ENV "ServiceControl_Hostname"="*"
+ENV "ServiceControl/TransportType"="ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"
+ENV "ServiceControl/Hostname"="*"
 
-ENV "ServiceControl_DBPath"="C:\\Data\\"
-ENV "ServiceControl_LogPath"="C:\\Logs\\"
+ENV "ServiceControl/DBPath"="C:\\Data\\"
+ENV "ServiceControl/LogPath"="C:\\Logs\\"
 
 ENTRYPOINT ["ServiceControl.exe", "--portable", "--setup"]
