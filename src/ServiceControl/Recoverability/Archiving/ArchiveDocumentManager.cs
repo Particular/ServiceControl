@@ -99,16 +99,20 @@
                 return;
             }
 
-            var command = new BatchPatchCommandData(batch.DocumentIds, new PatchRequest
+            if (batch.DocumentIds.Any())
             {
-                Script = "this.Status = $newStatus",
-                Values = new Dictionary<string, object>
+                var command = new BatchPatchCommandData(batch.DocumentIds, new PatchRequest
                 {
-                    ["newStatus"] = (int)FailedMessageStatus.Archived
-                }
-            }, null);
+                    Script = "this.Status = $newStatus",
+                    Values = new Dictionary<string, object>
+                    {
+                        ["newStatus"] = (int)FailedMessageStatus.Archived
+                    }
+                }, null);
 
-            session.Advanced.Defer(command);
+                session.Advanced.Defer(command);
+            }
+
             session.Delete(batch.Id);
         }
 
