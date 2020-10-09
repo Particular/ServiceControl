@@ -26,7 +26,7 @@ namespace ServiceControl.CompositeViews.Messages
                     IsSystemMessage = attempt.Meta<bool>("IsSystemMessage"),
                     BodyUrl = attempt.Meta<string>("BodyUrl"),
                     BodySize = (int)attempt.Meta<long>("ContentLength"),
-                    MessageIntent = (MessageIntentEnum)attempt.Meta<long>("MessageIntent"),
+                    MessageIntent = (MessageIntentEnum)Enum.Parse(typeof(MessageIntentEnum), attempt.Meta<string>("MessageIntent")), //TODO: RAVEN5 Check how the message intent used to be stored
                     InstanceId = attempt.Meta<string>("InstanceId"),
                     ProcessedAt = attempt.AttemptedAt,
                     CriticalTime = attempt.Meta<TimeSpan>("CriticalTime"),

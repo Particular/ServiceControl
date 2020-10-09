@@ -167,38 +167,49 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            try
             {
-                var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app, typeof(FailedErrorsController).Assembly);
-                var appFunc = app.Build();
-
-                Handler = new OwinHttpMessageHandler(appFunc)
+                using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
                 {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                var httpClient = new HttpClient(Handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
+                    var app = new AppBuilder();
+                    bootstrapper.Startup.Configuration(app, typeof(FailedErrorsController).Assembly);
+                    var appFunc = app.Build();
+
+                    Handler = new OwinHttpMessageHandler(appFunc)
+                    {
+                        UseCookies = false,
+                        AllowAutoRedirect = false
+                    };
+                    var httpClient = new HttpClient(Handler);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    HttpClient = httpClient;
+                }
+
+
+                using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+                {
+                    var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                    await setupBootstrapper.Run(null);
+                }
+
+                using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+                {
+                    Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+                }
+
+                if (Debugger.IsAttached)
+                {
+                    EmbeddedServer.Instance.OpenStudioInBrowser();
+                }
             }
-
-
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            catch (Exception)
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
-                await setupBootstrapper.Run(null);
+                embeddedDatabase.Dispose();
+                embeddedDatabase = null;
+                throw;
             }
 
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
-            }
-
-            if (Debugger.IsAttached)
-            {
-                EmbeddedServer.Instance.OpenStudioInBrowser();
-            }
+            
         }
 
         public override async Task Stop()
