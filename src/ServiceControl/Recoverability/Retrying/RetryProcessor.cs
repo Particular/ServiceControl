@@ -16,9 +16,9 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
     using Raven.Client.Exceptions;
-    using Sparrow.Json.Parsing;
 
     class RetryProcessor
     {
@@ -288,7 +288,11 @@ namespace ServiceControl.Recoverability
 
                     Log.Warn($"Attempt {1} of {MaxStagingAttempts} to stage a retry message {failedMessage.UniqueMessageId} failed", e);
 
-                    commands[commandIndex] = new PutCommandData(failedMessageRetry.Id, null, new DynamicJsonValue() {["StageAttempts"] = 1});
+                    commands[commandIndex] = new PatchCommandData(failedMessageRetry.Id, null, new PatchRequest
+                    {
+                        Script = "this.StageAttempts = 1",
+                        Values = new Dictionary<string, object>()
+                    }, null);
 
                     commandIndex++;
                 }
@@ -297,8 +301,8 @@ namespace ServiceControl.Recoverability
                 {
                     using (var session = store.OpenAsyncSession())
                     {
-                        var batch = new SingleNodeBatchCommand(store.Conventions, session.Advanced.Context, commands);
-                        await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context).ConfigureAwait(false);
+                        session.Advanced.Defer(commands);
+                        await session.SaveChangesAsync().ConfigureAwait(false);
                     }
                 }
                 catch (ConcurrencyException)
@@ -334,6 +338,7 @@ namespace ServiceControl.Recoverability
                     using (var session = store.OpenAsyncSession())
                     {
                         session.Delete(FailedMessageRetry.MakeDocumentId(uniqueMessageId));
+                        await session.SaveChangesAsync().ConfigureAwait(false);
                     }
 
                     await domainEvents.Raise(new MessageFailedInStaging
@@ -351,9 +356,10 @@ namespace ServiceControl.Recoverability
         {
             try
             {
-                using (var session = store.OpenAsyncSession())
+                using (var session = store.OpenSession())
                 {
                     session.Advanced.Patch<FailedMessageRetry, int>(message.Id, x => x.StageAttempts, message.StageAttempts + 1 );
+                    session.SaveChanges();
                 }
             }
             catch (ConcurrencyException)

@@ -64,7 +64,7 @@
         }
 
         [Test]
-        public async Task When_a_group_is_prepared_with_three_batches_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
+        public async Task When_a_group_is_prepared_and_SC_is_restarted_while_the_first_group_is_being_forwarded_then_the_count_still_matches()
         {
             var domainEvents = new FakeDomainEvents();
             var retryManager = new RetryingManager(domainEvents);
