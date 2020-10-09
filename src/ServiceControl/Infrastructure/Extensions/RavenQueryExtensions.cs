@@ -141,7 +141,6 @@ namespace ServiceControl.Infrastructure.Extensions
             // TODO: RAVEN5 - API has significantly changed
             //source.AndAlso();
             //source.Where($"Status: {sb}");
-
             return source;
         }
 

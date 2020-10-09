@@ -44,7 +44,6 @@
             //
             //     return clrtype;
             // };
-
             context.Container.ConfigureComponent<SubscriptionPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<PrimeSubscriptions>(DependencyLifecycle.SingleInstance);
             context.RegisterStartupTask(b => b.Build<PrimeSubscriptions>());

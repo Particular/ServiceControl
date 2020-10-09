@@ -62,7 +62,6 @@ namespace ServiceControl.Infrastructure
 
             // TODO: Check to see if the configuration has changed.
             // If it has, then send an update to the server to change the expires metadata on all documents
-
             var expirationConfig = new ExpirationConfiguration
             {
                 Disabled = false,

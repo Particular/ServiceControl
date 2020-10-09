@@ -162,7 +162,6 @@
         //         Value = (int)FailedMessageStatus.Archived
         //     }
         // };
-
         public class GroupDetails
         {
             public string GroupName { get; set; }

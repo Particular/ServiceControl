@@ -14,10 +14,10 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using ServiceControl.SagaAudit;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
     using Raven.Client.Documents;
     using Raven.Client.Json;
+    using ServiceControl.SagaAudit;
+    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class AuditPersister
     {

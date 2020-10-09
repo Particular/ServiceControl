@@ -79,7 +79,6 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
             //containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
-
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
@@ -97,7 +96,6 @@ namespace ServiceControl.Audit.Infrastructure
 
             // TODO: Check to see if the configuration has changed.
             // If it has, then send an update to the server to change the expires metadata on all documents
-
             var expirationConfig = new ExpirationConfiguration
             {
                 Disabled = false,

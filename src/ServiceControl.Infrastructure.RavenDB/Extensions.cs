@@ -2,10 +2,9 @@
 {
     //using System;
     //using System.Threading;
-    // using Raven.Abstractions.Data;
-    // using Raven.Database;
-    // using Raven.Json.Linq;
-
+    //using Raven.Abstractions.Data;
+    //using Raven.Database;
+    //using Raven.Json.Linq;
     public static class Extensions
     {
         //TODO: RAVEN5 We need to rethink it

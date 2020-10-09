@@ -12,7 +12,6 @@
     using Raven.Client.Documents;
     // using Raven.Client.Documents.Operations;
     // using Raven.Client.Exceptions;
-
     public class Reclassifier
     {
         internal Reclassifier(ShutdownNotifier notifier)
@@ -113,7 +112,6 @@
             //         // Ignore concurrency exceptions
             //     }
             // });
-
             return failedMessagesReclassified;
         }
 

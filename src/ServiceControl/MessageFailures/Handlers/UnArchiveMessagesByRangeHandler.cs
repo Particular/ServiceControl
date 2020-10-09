@@ -53,7 +53,6 @@
 
         //IDocumentStore store;
         //IDomainEvents domainEvents;
-
         class DocumentPatchResult
         {
             public string Document { get; set; }

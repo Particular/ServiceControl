@@ -181,7 +181,7 @@
                         //Continue trying until there is no exception -> poison message is removed from the batch
                         c = true;
                     }
-                } 
+                }
                 while (c);
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -271,7 +271,6 @@
             await new FailedMessages_ByGroup().ExecuteAsync(documentStore);
             // TODO: RAVEN5 - No transformers
             //await new FailedMessages_UniqueMessageIdAndTimeOfFailures().ExecuteAsync(documentStore);
-
             WaitForIndexing(documentStore);
 
             var documentManager = new CustomRetryDocumentManager(progressToStaged, documentStore);
@@ -282,7 +281,7 @@
             gateway.OperationManager = retryManager;
 
             gateway.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>("Test-group", RetryType.FailureGroup, DateTime.UtcNow, x => x.FailureGroupId == "Test-group", "Test-Context");
-            
+
             WaitForIndexing(documentStore);
 
             await gateway.ProcessNextBulkRetry();

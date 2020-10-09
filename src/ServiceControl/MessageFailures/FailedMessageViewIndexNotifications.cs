@@ -68,7 +68,8 @@
 
         IDocumentStore store;
         IDomainEvents domainEvents;
-        int lastUnresolvedCount, lastArchivedCount;
+        int lastUnresolvedCount;
+        int lastArchivedCount;
         ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
     }
 }

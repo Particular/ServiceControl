@@ -186,7 +186,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, new []{ typeof(IComponentBehavior).Assembly.GetName().Name });
+                var setupBootstrapper = new SetupBootstrapper(settings, loggingSettings, embeddedDatabase, new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
                 await setupBootstrapper.Run(null);
             }
 

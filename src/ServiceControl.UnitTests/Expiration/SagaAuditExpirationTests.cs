@@ -147,8 +147,6 @@
 //                }
 //            }
 //        }
-
-
 //        [Test]
 //        public void Recent_processed_messages_are_not_being_expired()
 //        {

@@ -251,7 +251,6 @@ namespace ServiceControl.Recoverability
         //             LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
         //         };
         // }
-
         public struct Result
         {
             public string UniqueMessageId { get; set; }

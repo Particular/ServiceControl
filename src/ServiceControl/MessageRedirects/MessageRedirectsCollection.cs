@@ -34,7 +34,6 @@
                 redirects.ETag = session.Advanced.GetChangeVectorFor(redirects);
                 //TODO:RAVEN5 missing Value extension method for methadata.
                 //redirects.LastModified = session.Advanced.GetMetadataFor(redirects).Value<DateTime>("Last-Modified");
-
                 return redirects;
             }
 

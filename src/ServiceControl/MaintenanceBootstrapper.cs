@@ -18,7 +18,6 @@ namespace Particular.ServiceControl
 
             //TODO:RAVEN5 RavenBootstraper should probably be gone
             //new RavenBootstrapper().StartRaven(documentStore, settings, true);
-
             if (Environment.UserInteractive)
             {
                 Console.Out.WriteLine("RavenDB is now accepting requests on {0}", settings.StorageUrl);
