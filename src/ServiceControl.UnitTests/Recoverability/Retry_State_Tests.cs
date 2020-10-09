@@ -20,6 +20,12 @@
     [TestFixture]
     public class Retry_State_Tests : RavenTestDriver
     {
+        protected override void PreInitialize(IDocumentStore documentStore)
+        {
+            base.PreInitialize(documentStore);
+            documentStore.Conventions.SaveEnumsAsIntegers = true;
+        }
+
         [Test]
         public async Task When_a_group_is_processed_it_is_set_to_the_Preparing_state()
         {

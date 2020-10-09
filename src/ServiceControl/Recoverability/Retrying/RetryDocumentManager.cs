@@ -95,8 +95,8 @@ if(this.Status === $oldStatus) {
 }", 
                         Values = new Dictionary<string, object>
                         {
-                            ["oldStatus"] = RetryBatchStatus.MarkingDocuments,
-                            ["newStatus"] = RetryBatchStatus.Staging
+                            ["oldStatus"] = (int)RetryBatchStatus.MarkingDocuments,
+                            ["newStatus"] = (int)RetryBatchStatus.Staging
                         }
                     }
                     )).ConfigureAwait(false);
