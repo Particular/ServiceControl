@@ -158,12 +158,13 @@
                 {
                     MessageMetadata = new Dictionary<string, object>
                     {
-                        {"MessageIntent", "1"},
+                        {"MessageIntent", 1},
                         {"TimeSent", null}
                     }
                 });
                 session.Store(new FailedMessage
                 {
+                    Status = FailedMessageStatus.Unresolved,
                     ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                     {
                         new FailedMessage.ProcessingAttempt
@@ -171,7 +172,7 @@
                             AttemptedAt = DateTime.Today,
                             MessageMetadata = new Dictionary<string, object>
                             {
-                                {"MessageIntent", "1"},
+                                {"MessageIntent", 1},
                                 {"TimeSent", null}
                             }
                         },
@@ -180,7 +181,7 @@
                             AttemptedAt = DateTime.Today,
                             MessageMetadata = new Dictionary<string, object>
                             {
-                                {"MessageIntent", "1"},
+                                {"MessageIntent", 1},
                                 {"TimeSent", null}
                             }
                         }
@@ -195,13 +196,17 @@
             using (var session = documentStore.OpenSession())
             {
                 var messageWithNoTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    // TODO: RAVEN5 - Missing Transformers and such
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
+                    .ProjectInto<TimeSentProjection>()
                     .ToArray();
                 Assert.AreEqual(null, messageWithNoTimeSent[0].TimeSent);
                 Assert.AreEqual(null, messageWithNoTimeSent[1].TimeSent);
             }
+        }
+
+        class TimeSentProjection
+        {
+            public DateTime? TimeSent { get; set; }
         }
 
         [Test]
@@ -217,12 +222,12 @@
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", 1}}
                         },
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", 1}}
                         }
                     }
                 });
@@ -235,9 +240,8 @@
             using (var session = documentStore.OpenSession())
             {
                 var message = session.Query<FailedMessage>()
-                    // TODO: RAVEN5 - Missing transformers and such
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
+                    .ToMessagesView()
                     .Single();
 
                 Assert.AreEqual(MessageStatus.RepeatedFailure, message.Status);

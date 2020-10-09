@@ -5,6 +5,8 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using Contracts.Operations;
     using MessageFailures;
+    using NServiceBus;
+    using SagaAudit;
 
     static class RavenQueryableExtensions
     {
@@ -16,23 +18,23 @@ namespace ServiceControl.CompositeViews.Messages
                 {
                     Id = message.UniqueMessageId,
                     MessageId = attempt.MessageId,
-                    SendingEndpoint = (EndpointDetails)attempt.MessageMetadata["SendingEndpoint"],
-                    ReceivingEndpoint = (EndpointDetails)attempt.MessageMetadata["ReceivingEndpoint"],
+                    SendingEndpoint = attempt.Meta<EndpointDetails>("SendingEndpoint"),
+                    ReceivingEndpoint = attempt.Meta<EndpointDetails>("ReceivingEndpoint"),
                     Headers = attempt.Headers.Select(x => new KeyValuePair<string, object>(x.Key, x.Value)),
-                    ConversationId = (string)attempt.MessageMetadata["ConversationId"],
-                    MessageType = (string)attempt.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool)attempt.MessageMetadata["IsSystemMessage"],
-                    BodyUrl = (string)attempt.MessageMetadata["BodyUrl"],
-                    BodySize = (int)(long)attempt.MessageMetadata["ContentLength"],
-                    //MessageIntent = (MessageIntentEnum)attempt.MessageMetadata["MessageIntent"],
-                    //InstanceId = (string)attempt.MessageMetadata["InstanceId"],
+                    ConversationId = attempt.Meta<string>("ConversationId"),
+                    MessageType = attempt.Meta<string>("MessageType"),
+                    IsSystemMessage = attempt.Meta<bool>("IsSystemMessage"),
+                    BodyUrl = attempt.Meta<string>("BodyUrl"),
+                    BodySize = (int)attempt.Meta<long>("ContentLength"),
+                    MessageIntent = (MessageIntentEnum)attempt.Meta<long>("MessageIntent"),
+                    InstanceId = attempt.Meta<string>("InstanceId"),
                     ProcessedAt = attempt.AttemptedAt,
-                    //CriticalTime = (TimeSpan)attempt.MessageMetadata["CriticalTime"],
-                    //ProcessingTime = (TimeSpan)attempt.MessageMetadata["ProcessingTime"],
-                    //DeliveryTime = (TimeSpan)attempt.MessageMetadata["DeliveryTime"],
+                    CriticalTime = attempt.Meta<TimeSpan>("CriticalTime"),
+                    ProcessingTime = attempt.Meta<TimeSpan>("ProcessingTime"),
+                    DeliveryTime = attempt.Meta<TimeSpan>("DeliveryTime"),
                     TimeSent = attempt.MessageMetadata.TryGetValue("TimeSent", out var timeSentValue) ? DateTime.SpecifyKind(DateTime.Parse((string)timeSentValue), DateTimeKind.Utc) : default(DateTime?),
-                    //InvokedSagas = (List<SagaInfo>)attempt.MessageMetadata["InvokedSagas"],
-                    //OriginatesFromSaga = (SagaInfo)attempt.MessageMetadata["OriginatesFromSaga"],
+                    InvokedSagas = attempt.Meta<List<SagaInfo>>("InvokedSagas"),
+                    OriginatesFromSaga = attempt.Meta<SagaInfo>("OriginatesFromSaga"),
                     Status =  message.Status == FailedMessageStatus.RetryIssued
                         ? MessageStatus.RetryIssued
                         : message.Status == FailedMessageStatus.Archived
@@ -41,5 +43,20 @@ namespace ServiceControl.CompositeViews.Messages
                                 ? MessageStatus.Failed
                                 : MessageStatus.RepeatedFailure
                 };
+
+        static T Meta<T>(this FailedMessage.ProcessingAttempt attempt, string key, T defaultValue = default)
+        {
+            if (attempt.MessageMetadata.TryGetValue(key, out var value) && value != null)
+            {
+                if (value is T convertedValue)
+                {
+                    return convertedValue;
+                }
+
+                throw new Exception($"{key} is not {typeof(T).Name}");
+            }
+
+            return defaultValue;
+        }
     }
 }
