@@ -158,7 +158,7 @@
                 {
                     MessageMetadata = new Dictionary<string, object>
                     {
-                        {"MessageIntent", 1},
+                        {"MessageIntent", "Send"},
                         {"TimeSent", null}
                     }
                 });
@@ -172,7 +172,7 @@
                             AttemptedAt = DateTime.Today,
                             MessageMetadata = new Dictionary<string, object>
                             {
-                                {"MessageIntent", 1},
+                                {"MessageIntent", "Send"},
                                 {"TimeSent", null}
                             }
                         },
@@ -181,7 +181,7 @@
                             AttemptedAt = DateTime.Today,
                             MessageMetadata = new Dictionary<string, object>
                             {
-                                {"MessageIntent", 1},
+                                {"MessageIntent", "Send"},
                                 {"TimeSent", null}
                             }
                         }
@@ -222,12 +222,12 @@
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", 1}}
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "Send"} }
                         },
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", 1}}
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "Send" } }
                         }
                     }
                 });
