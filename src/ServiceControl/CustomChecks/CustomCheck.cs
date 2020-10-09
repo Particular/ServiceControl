@@ -5,7 +5,7 @@
 
     public class CustomCheck
     {
-        public static string MakeDocumentId(Guid customCheckId)
+        internal static string MakeDocumentId(Guid customCheckId)
         {
             return $"CustomChecks/{customCheckId}";
         }
