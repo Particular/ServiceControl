@@ -5,10 +5,10 @@ WORKDIR /servicecontrol.audit
 ADD /ServiceControl.Transports.SqlServer/bin/Release/net462 .
 ADD /ServiceControl.Audit/bin/Release/net462 .
 
-ENV "ServiceControl/TransportType"="ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
-ENV "ServiceControl/Hostname"="*"
+ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
+ENV "ServiceControl.Audit/Hostname"="*"
 
-ENV "ServiceControl/DBPath"="C:\\Data\\"
-ENV "ServiceControl/LogPath"="C:\\Logs\\"
+ENV "ServiceControl.Audit/DBPath"="C:\\Data\\"
+ENV "ServiceControl.Audit/LogPath"="C:\\Logs\\"
 
 ENTRYPOINT ["ServiceControl.Audit.exe", "--portable", "--setup"]
