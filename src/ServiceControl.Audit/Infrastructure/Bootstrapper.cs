@@ -157,7 +157,6 @@ namespace ServiceControl.Audit.Infrastructure
             documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
-            EmbeddedServer.Instance.Dispose();
         }
 
         private long DataSize()

@@ -95,3 +95,4 @@ src/scaffolding.config
 .idea/
 *.sln.iml
 /src/ServiceControl.AcceptanceTests/.transport/
+/src/ServiceControl.MultiInstance.AcceptanceTests/.transport/

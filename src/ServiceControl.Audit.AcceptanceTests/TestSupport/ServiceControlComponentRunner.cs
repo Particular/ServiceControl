@@ -151,27 +151,28 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             Directory.CreateDirectory(logPath);
             var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
 
-            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
-            {
-                embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds);
-
-                bootstrapper = new Bootstrapper(ctx =>
-                {
-                    var logitem = new ScenarioContext.LogItem
-                    {
-                        Endpoint = settings.ServiceName,
-                        Level = LogLevel.Fatal,
-                        LoggerName = $"{settings.ServiceName}.CriticalError",
-                        Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
-                    };
-                    context.Logs.Enqueue(logitem);
-                    ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, embeddedDatabase, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
-                bootstrapper.HttpClientFactory = HttpClientFactory;
-            }
+            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds);
 
             try
             {
+                using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
+                {
+
+                    bootstrapper = new Bootstrapper(ctx =>
+                    {
+                        var logitem = new ScenarioContext.LogItem
+                        {
+                            Endpoint = settings.ServiceName,
+                            Level = LogLevel.Fatal,
+                            LoggerName = $"{settings.ServiceName}.CriticalError",
+                            Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
+                        };
+                        context.Logs.Enqueue(logitem);
+                        ctx.Stop().GetAwaiter().GetResult();
+                    }, settings, configuration, loggingSettings, embeddedDatabase, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
+                    bootstrapper.HttpClientFactory = HttpClientFactory;
+                }
+
                 using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
                 {
                     var app = new AppBuilder();
@@ -222,6 +223,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 Handler.Dispose();
                 DeleteFolder(Settings.DbPath);
             }
+
+            embeddedDatabase?.Dispose();
+            embeddedDatabase = null;
 
             bootstrapper = null;
             Bus = null;

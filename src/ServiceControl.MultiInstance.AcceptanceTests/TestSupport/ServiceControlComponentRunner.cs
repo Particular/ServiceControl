@@ -60,14 +60,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var auditInstancePort = FindAvailablePort(mainInstanceDbPort + 1);
             var auditInstanceDbPort = FindAvailablePort(auditInstancePort + 1);
 
-            var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
             embeddedDatabase = EmbeddedDatabase.Start(dbPath, Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), 5);
 
             try
             {
-                await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort, auditInstanceDbPort, dbPath).ConfigureAwait(false);
-                await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort, dbPath).ConfigureAwait(false);
+                await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort, auditInstanceDbPort).ConfigureAwait(false);
+                await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -96,7 +96,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             return startPort;
         }
 
-        async Task InitializeServiceControl(ScenarioContext context, int instancePort, int maintenancePort, int auditInstanceApiPort, string dbPath)
+        async Task InitializeServiceControl(ScenarioContext context, int instancePort, int maintenancePort, int auditInstanceApiPort)
         {
             var instanceName = Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
@@ -229,7 +229,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             }
         }
 
-        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort, int maintenancePort, string dbPath)
+        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort, int maintenancePort)
         {
             var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
@@ -376,11 +376,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     await bootstrappers[instanceName].Stop().ConfigureAwait(false);
                     HttpClients[instanceName].Dispose();
                     Handlers[instanceName].Dispose();
-                    DeleteFolder(settings.DbPath);
                 }
             }
             embeddedDatabase?.Dispose();
             embeddedDatabase = null;
+            DeleteFolder(dbPath);
             bootstrappers.Clear();
             Busses.Clear();
             HttpClients.Clear();
@@ -445,6 +445,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
         EmbeddedDatabase embeddedDatabase;
+        string dbPath;
 
         class ForwardingHandler : DelegatingHandler
         {

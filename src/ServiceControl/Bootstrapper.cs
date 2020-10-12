@@ -157,7 +157,6 @@ namespace Particular.ServiceControl
 
             WebApp?.Dispose();
             container.Dispose();
-            EmbeddedServer.Instance.Dispose();
         }
 
         private TransportSettings MapSettings(Settings settings)

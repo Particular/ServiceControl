@@ -52,8 +52,6 @@ namespace ServiceControl.Infrastructure.RavenDB
 
         async Task<IDocumentStore> InitializeDatabase(string name, Assembly[] indexAssemblies)
         {
-            var watch = new Stopwatch();
-            watch.Start();
             var dbOptions = new DatabaseOptions(name)
             {
                 Conventions = new DocumentConventions
@@ -80,9 +78,6 @@ namespace ServiceControl.Infrastructure.RavenDB
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
                 .ConfigureAwait(false);
-
-            watch.Stop();
-            Console.WriteLine($"EmbeddedDatabase::PrepareDatabase took {watch.ElapsedMilliseconds} ms");
 
             return documentStore;
         }

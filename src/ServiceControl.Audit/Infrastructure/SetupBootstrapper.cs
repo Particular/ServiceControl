@@ -80,7 +80,6 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
             //containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
-            using (documentStore)
             using (var container = containerBuilder.Build())
             {
                 await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { }, documentStore, configuration, false)
