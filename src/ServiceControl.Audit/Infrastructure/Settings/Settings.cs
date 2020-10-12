@@ -28,9 +28,7 @@
                 AuditLogQueue = GetAuditLogQueue();
             }
 
-            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
-            TransportConnectionString = connectionStringSettings?.ConnectionString;
-
+            TransportConnectionString = GetConnectionString();
             TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
@@ -283,6 +281,18 @@
             }
 
             throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
+        }
+
+        static string GetConnectionString()
+        {
+            var settingsValue = SettingsReader<string>.Read("ConnectionString");
+            if (settingsValue != null)
+            {
+                return settingsValue;
+            }
+
+            var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
+            return connectionStringSettings?.ConnectionString;
         }
 
         static string GetTransportType()
