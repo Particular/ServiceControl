@@ -25,23 +25,23 @@ How to build
 How to build and run Docker images
 ====================================
 
-Each combination of ServiceControl instance, transport, and topology has a dedicated dockerfile. Select the instance, transport, and topology you want to run and build the `init` container and the runtime container by executing the following commands (using RabbitMQ Conventional topology as an example) from within the `src` folder:
+Each combination of ServiceControl instance, transport, and topology has a dedicated dockerfile. Select the instance, transport, and topology you want to run and build the `init` container and the runtime container by executing the following commands (using RabbitMQ Conventional topology as an example) from within the `src\docker` folder:
 
 ```
-docker build -f .\dockerfile.rabbitmq.conventional.init -t particular/servicecontrolrabbitconventional.init .
-docker build -f .\dockerfile.rabbitmq.conventional -t particular/servicecontrolrabbitconventional .
+docker build -f .\dockerfile.rabbitmq.conventional.init -t particular/servicecontrolrabbitconventional.init ./../
+docker build -f .\dockerfile.rabbitmq.conventional -t particular/servicecontrolrabbitconventional ./../
 ```
 
 Once the images are built, the instances can be started by first running the init container to provision the required queues and databases:
 
 ```
-docker run --name servicecontrol.init -e "ServiceControl/ConnectionString={connectionstring}" -v c:/localfoldertostorethedatabasein/:c:/data/ -d particular/servicecontrolrabbitconventional.init
+docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=172.24.128.58;username=guest;password=guest" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.init
 ```
 
 That will create the required queues and the database for ServiceControl. To run the container now that everything is provisioned:
 
 ```
-docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString={connectionstring}" -v c:/localfoldertostorethedatabasein/:c:/data/ -d particular/servicecontrolrabbitconventional
+docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=172.24.128.58;username=guest;password=guest" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect
 ```
 
 ServiceControl will now run in a docker container.
