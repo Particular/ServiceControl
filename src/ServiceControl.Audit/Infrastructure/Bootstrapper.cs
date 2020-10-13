@@ -66,6 +66,11 @@ namespace ServiceControl.Audit.Infrastructure
         {
             RecordStartup(loggingSettings, configuration);
 
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                configuration.License(settings.LicenseFileText);
+            }
+
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
 

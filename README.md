@@ -30,18 +30,22 @@ Each combination of ServiceControl instance, transport, and topology has a dedic
 ```
 docker build -f .\dockerfile.rabbitmq.conventional.init -t particular/servicecontrolrabbitconventional.init ./../
 docker build -f .\dockerfile.rabbitmq.conventional -t particular/servicecontrolrabbitconventional ./../
+docker build -f .\dockerfile.rabbitmq.conventional.audit.init -t particular/servicecontrolrabbitconventional.audit.init ./../
+docker build -f .\dockerfile.rabbitmq.conventional.audit -t particular/servicecontrolrabbitconventional.audit ./../
 ```
 
 Once the images are built, the instances can be started by first running the init container to provision the required queues and databases:
 
 ```
-docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=172.24.128.58;username=guest;password=guest" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.init
+docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.init
+docker run --name servicecontrol.audit.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit.init
 ```
 
-That will create the required queues and the database for ServiceControl. To run the container now that everything is provisioned:
+That will create the required queues and the database for ServiceControl and ServiceControl.Audit. To run the containers now that everything is provisioned:
 
 ```
-docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=172.24.128.58;username=guest;password=guest" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect
+docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect
+docker run --name servicecontrol.audit -p 44444:44444 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl.Audit/LicenseText=[licensecontents]' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit
 ```
 
 ServiceControl will now run in a docker container.

@@ -28,6 +28,8 @@
                 AuditLogQueue = GetAuditLogQueue();
             }
 
+            TryLoadLicenseFromConfig();
+
             TransportConnectionString = GetConnectionString();
             TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
@@ -89,6 +91,7 @@
         public string TransportCustomizationType { get; set; }
 
         public string DbPath { get; set; }
+
         public string AuditQueue { get; set; }
 
         public bool ForwardAuditMessages { get; set; }
@@ -96,6 +99,8 @@
         public bool IngestAuditMessages { get; set; } = true;
 
         public string AuditLogQueue { get; set; }
+
+        public string LicenseFileText { get; set; }
 
         public int ExpirationProcessTimerInSeconds
         {
@@ -399,6 +404,11 @@
             }
 
             return threshold;
+        }
+
+        void TryLoadLicenseFromConfig()
+        {
+            LicenseFileText = SettingsReader<string>.Read("LicenseText");
         }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
