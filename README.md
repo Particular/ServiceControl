@@ -41,11 +41,16 @@ docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[
 docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit.init
 ```
 
-That will create the required queues and the database for ServiceControl and ServiceControl.Audit. To run the containers now that everything is provisioned:
+That will create the required queues and the database for ServiceControl and ServiceControl.Audit. To run the containers now that everything is provisioned, first run the audit container:
 
 ```
-docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect
 docker run --name servicecontrol.audit -p 44444:44444 -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl.Audit/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit
+```
+
+Then grab its IP address using `docker inspect`, and specify it using the `ServiceControl/RemoteInstances` environment variable when starting the servicecontrol container. 
+
+```
+docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -e "ServiceControl/RemoteInstances=[{'api_uri':'http://172.28.XXX.XXX:44444/api'}]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect
 ```
 
 ServiceControl will now run in a docker container.
