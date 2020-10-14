@@ -44,8 +44,8 @@ docker run --name servicecontrol.audit.init -e "ServiceControl/ConnectionString=
 That will create the required queues and the database for ServiceControl and ServiceControl.Audit. To run the containers now that everything is provisioned:
 
 ```
-docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect
-docker run --name servicecontrol.audit -p 44444:44444 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl.Audit/LicenseText=[licensecontents]' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit
+docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect
+docker run --name servicecontrol.audit -p 44444:44444 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl.Audit/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit
 ```
 
 ServiceControl will now run in a docker container.
