@@ -1,3 +1,5 @@
+using ServiceControl.Monitoring.Infrastructure.Settings;
+
 namespace ServiceControl.Monitoring
 {
     using System;
@@ -12,6 +14,20 @@ namespace ServiceControl.Monitoring
     //TODO: align names with SC and SC.Audit
     public class Settings
     {
+        public Settings()
+        {
+            TransportType = SettingsReader<string>.Read("TransportType");
+            ConnectionString = GetConnectionString();
+            LogLevel = MonitorLogs.InitializeLevel();
+            LogPath = SettingsReader<string>.Read("LogPath", DefaultLogLocation());
+            ErrorQueue = SettingsReader<string>.Read("ErrorQueue", "error");
+            HttpHostName = SettingsReader<string>.Read("HttpHostname");
+            HttpPort = SettingsReader<string>.Read("HttpPort");
+            EndpointName = SettingsReader<string>.Read("EndpointName");
+            EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("EndpointUptimeGracePeriod", "00:00:40"));
+            MaximumConcurrencyLevel = 10;
+        }
+        
         public string EndpointName
         {
             get { return endpointName ?? ServiceName; }
@@ -32,24 +48,6 @@ namespace ServiceControl.Monitoring
         public bool SkipQueueCreation { get; set; }
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
         public int MaximumConcurrencyLevel { get; set; }
-
-        internal static Settings Load(SettingsReader reader)
-        {
-            var settings = new Settings
-            {
-                TransportType = reader.Read<string>("Monitoring/TransportType"),
-                ConnectionString = GetConnectionString(reader),
-                LogLevel = MonitorLogs.InitializeLevel(reader),
-                LogPath = reader.Read("Monitoring/LogPath", DefaultLogLocation()),
-                ErrorQueue = reader.Read("Monitoring/ErrorQueue", "error"),
-                HttpHostName = reader.Read<string>("Monitoring/HttpHostname"),
-                HttpPort = reader.Read<string>("Monitoring/HttpPort"),
-                EndpointName = reader.Read<string>("Monitoring/EndpointName"),
-                EndpointUptimeGracePeriod = TimeSpan.Parse(reader.Read("Monitoring/EndpointUptimeGracePeriod", "00:00:40")),
-                MaximumConcurrencyLevel = 10
-            };
-            return settings;
-        }
 
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
@@ -73,9 +71,9 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        static string GetConnectionString(SettingsReader reader)
+        static string GetConnectionString()
         {
-            var settingsValue = reader.Read<string>("ConnectionString");
+            var settingsValue = SettingsReader<string>.Read("ConnectionString");
             if (settingsValue != null)
             {
                 return settingsValue;

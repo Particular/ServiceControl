@@ -68,7 +68,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("Monitoring/TransportType", transportToUse.TypeName);
 
-            var settings = Settings.Load(new SettingsReader(ConfigurationManager.AppSettings));
+            var settings = new Settings();
             settings.EndpointName = instanceName;
             settings.HttpPort = instancePort.ToString();
             settings.TransportType = transportToUse.TypeName;

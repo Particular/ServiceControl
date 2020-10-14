@@ -2,10 +2,11 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using Setting = ServiceControl.Monitoring.Settings;
 
     public class EndpointInstanceActivityTracker
     {
-        public EndpointInstanceActivityTracker(Settings settings)
+        public EndpointInstanceActivityTracker(Setting settings)
         {
             StalenessThreshold = settings.EndpointUptimeGracePeriod;
         }

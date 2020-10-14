@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Monitoring.UnitTests.API
 {
-    using System.Configuration;
     using NUnit.Framework;
     using Particular.Approvals;
 
@@ -9,7 +8,7 @@
         [Test]
         public void PlatformSampleSettings()
         {
-            Approver.Verify(Settings.Load(new SettingsReader(ConfigurationManager.AppSettings)));
+            Approver.Verify(new Settings());
         }
     }
 }
