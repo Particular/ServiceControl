@@ -10,7 +10,7 @@ namespace ServiceControl.Monitoring
         {
             //RunAsWindowsService can't be a property on Settings class because it
             //would be exposed as app.config configurable option and break ATT approvals
-            var runAsWindowsService = !Environment.UserInteractive;
+            var runAsWindowsService = !Environment.UserInteractive && !settings.Portable;
 
             if (runAsWindowsService)
             {

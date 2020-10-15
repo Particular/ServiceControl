@@ -34,6 +34,7 @@ namespace ServiceControl.Monitoring
             set { endpointName = value; }
         }
 
+        public bool Portable { get; set; } = false;
         public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
         public string TransportType { get; set; }
         public string ConnectionString { get; set; }

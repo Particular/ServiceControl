@@ -34,7 +34,11 @@
                 {
                     "portable",
                     "Force running as a console application",
-                    s => overrides.Add(_ => Portable = true)
+                    s => overrides.Add(settings =>
+                    {
+                            Portable = true;
+                            settings.Portable = true;
+                    })
                 }
             };
 

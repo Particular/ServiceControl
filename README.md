@@ -32,6 +32,8 @@ docker build -f .\dockerfile.rabbitmq.conventional.init -t particular/servicecon
 docker build -f .\dockerfile.rabbitmq.conventional -t particular/servicecontrolrabbitconventional ./../
 docker build -f .\dockerfile.rabbitmq.conventional.audit.init -t particular/servicecontrolrabbitconventional.audit.init ./../
 docker build -f .\dockerfile.rabbitmq.conventional.audit -t particular/servicecontrolrabbitconventional.audit ./../
+docker build -f .\dockerfile.rabbitmq.conventional.monitoring.init -t particular/servicecontrolrabbitconventional.monitoring.init ./../
+docker build -f .\dockerfile.rabbitmq.conventional.monitoring -t particular/servicecontrolrabbitconventional.monitoring ./../
 ```
 
 Once the images are built, the instances can be started by first running the init container to provision the required queues and databases:

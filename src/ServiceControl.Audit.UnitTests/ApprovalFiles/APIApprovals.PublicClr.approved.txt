@@ -181,6 +181,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string Hostname { get; }
         public int HttpDefaultConnectionLimit { get; set; }
         public bool IngestAuditMessages { get; set; }
+        public string LicenseFileText { get; set; }
         public int MaxBodySizeToStore { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
         public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }

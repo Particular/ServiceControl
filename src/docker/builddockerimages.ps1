@@ -24,6 +24,8 @@ docker build -f .\dockerfile.rabbitmq.direct -t particular/servicecontrolrabbitd
 docker build -f .\dockerfile.rabbitmq.direct.init -t particular/servicecontrolrabbitdirect.init ./../
 docker build -f .\dockerfile.rabbitmq.direct.audit -t particular/servicecontrolrabbitdirect.audit ./../
 docker build -f .\dockerfile.rabbitmq.direct.audit.init -t particular/servicecontrolrabbitdirect.audit.init ./../
+docker build -f .\dockerfile.rabbitmq.direct.monitoring -t particular/servicecontrolrabbitdirect.monitoring ./../
+docker build -f .\dockerfile.rabbitmq.direct.monitoring.init -t particular/servicecontrolrabbitdirect.monitoring.init ./../
 
 docker build -f .\dockerfile.asq -t particular/servicecontrolasq ./../
 docker build -f .\dockerfile.asq.init -t particular/servicecontrolasq.init ./../
