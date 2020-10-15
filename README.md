@@ -40,6 +40,7 @@ Once the images are built, the instances can be started by first running the ini
 
 ```
 docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.init
+docker run --name servicecontrol.monitoring.init -e "Monitoring/ConnectionString=[connectionstring]" -d particular/servicecontrolrabbitconventional.monitoring.init
 docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit.init
 ```
 
@@ -56,3 +57,9 @@ docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionStr
 ```
 
 ServiceControl will now run in a docker container.
+
+To run a ServiceControl Monitoring instance:
+
+```
+docker run --name servicecontrol.audit -p 33633:33633 -e "Monitoring/ConnectionString=host=[connectionstring]" -e 'Monitoring/LicenseText=[licensecontents]' -d particular/servicecontrolrabbitdirect.monitoring
+```
