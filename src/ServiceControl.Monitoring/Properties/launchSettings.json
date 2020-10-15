@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ServiceControl.Monitoring": {
+      "commandName": "Project",
+      "commandLineArgs": "--portable"
+    }
+  }
+}
