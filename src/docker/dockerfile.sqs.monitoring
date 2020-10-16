@@ -2,11 +2,11 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
 WORKDIR /servicecontrol.monitoring
 
-ADD /ServiceControl.Transports.RabbitMQ/bin/Release/net462 .
+ADD /ServiceControl.Transports.SQS/bin/Release/net462 .
 ADD /ServiceControl.Monitoring/bin/Release/net462 .
 
 ENV "Monitoring/TransportType"="ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS"
-ENV "Monitoring/Hostname"="*"
+ENV "Monitoring/HttpHostName"="*"
 
 EXPOSE 33633
 
