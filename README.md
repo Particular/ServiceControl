@@ -61,5 +61,5 @@ ServiceControl will now run in a docker container.
 To run a ServiceControl Monitoring instance:
 
 ```
-docker run --name servicecontrol.audit -p 33633:33633 -e "Monitoring/ConnectionString=host=[connectionstring]" -e 'Monitoring/LicenseText=[licensecontents]' -d particular/servicecontrolrabbitdirect.monitoring
+docker run --name servicecontrol.monitoring -p 33633:33633 -e "Monitoring/ConnectionString=host=[connectionstring]" -e 'Monitoring/LicenseText=[licensecontents]' -d particular/servicecontrolrabbitdirect.monitoring
 ```
