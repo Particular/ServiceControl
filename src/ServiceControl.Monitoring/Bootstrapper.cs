@@ -41,6 +41,11 @@
         {
             var transportCustomization = settings.LoadTransportCustomization();
 
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                config.License(settings.LicenseFileText);
+            }
+
             var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
 
             var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
