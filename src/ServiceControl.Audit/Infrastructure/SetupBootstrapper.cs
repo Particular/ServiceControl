@@ -25,16 +25,8 @@ namespace ServiceControl.Audit.Infrastructure
         public async Task Run(string username)
         {
             // Validate license:
-            var license = LicenseManager.FindLicense();
-            if (license.Details.HasLicenseExpired())
+            if (!ValidateLicense(settings))
             {
-                log.Error("License has expired.");
-                return;
-            }
-
-            if (license.Details.IsTrialLicense)
-            {
-                log.Error("Cannot run setup with a trial license.");
                 return;
             }
 
@@ -97,6 +89,28 @@ namespace ServiceControl.Audit.Infrastructure
                 await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
+        }
+
+        bool ValidateLicense(Settings.Settings settings)
+        {
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                if (!LicenseManager.IsLicenseValidForServiceControlInit(settings.LicenseFileText, out var errorMessageForLicenseText))
+                {
+                    log.Error(errorMessageForLicenseText);
+                    return false;
+                }
+            }
+
+            // Validate license:
+            var license = LicenseManager.FindLicense();
+            if (!LicenseManager.IsLicenseValidForServiceControlInit(license, out var errorMessageForFoundLicense))
+            {
+                log.Error(errorMessageForFoundLicense);
+                return false;
+            }
+
+            return true;
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)

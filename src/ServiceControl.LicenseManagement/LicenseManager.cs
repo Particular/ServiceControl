@@ -21,6 +21,41 @@
             return detectedLicense;
         }
 
+        public static bool IsLicenseValidForServiceControlInit(DetectedLicense license, out string errorMessage)
+        {
+            if (!license.Details.ValidForServiceControl)
+            {
+                errorMessage = "License is not for ServiceControl";
+                return false;
+            }
+
+            if (license.Details.HasLicenseExpired())
+            {
+                errorMessage = "License has expired";
+                return false;
+            }
+
+            if (license.IsEvaluationLicense)
+            {
+                errorMessage = "Cannot run setup with a trial license";
+                return false;
+            }
+
+            errorMessage = "";
+            return true;
+        }
+
+        public static bool IsLicenseValidForServiceControlInit(string licenseText, out string errorMessage)
+        {
+            if (!TryDeserializeLicense(licenseText, out var license))
+            {
+                errorMessage = "Invalid license file";
+                return false;
+            }
+
+            return IsLicenseValidForServiceControlInit(new DetectedLicense("", LicenseDetails.FromLicense(license)), out errorMessage);
+        }
+
         public static bool TryImportLicense(string licenseFile, out string errorMessage)
         {
             var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);

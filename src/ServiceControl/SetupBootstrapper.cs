@@ -1,6 +1,5 @@
 namespace Particular.ServiceControl
 {
-    using System;
     using System.Threading.Tasks;
     using Autofac;
     using global::ServiceControl.Infrastructure.DomainEvents;
@@ -8,7 +7,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Particular.Licensing;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
@@ -25,25 +23,10 @@ namespace Particular.ServiceControl
         public async Task Run(string username)
         {
             // Validate license:
-            var license = LicenseManager.FindLicense();
-            if (license.Details.HasLicenseExpired())
+            if (!ValidateLicense(settings))
             {
-                log.Error("License has expired.");
                 return;
             }
-
-            if (license.Details.IsTrialLicense)
-            {
-                log.Error("Cannot run setup with a trial license.");
-                return;
-            }
-
-            var sources = new LicenseSource[]
-            {
-                new LicenseSourceFilePath(LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData))
-            };
-
-            var result = Particular.Licensing.ActiveLicense.Find("ServiceControl", sources);
 
             var configuration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = configuration.AssemblyScanner();
@@ -81,6 +64,28 @@ namespace Particular.ServiceControl
                 await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
+        }
+
+        bool ValidateLicense(Settings settings)
+        {
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                if (!LicenseManager.IsLicenseValidForServiceControlInit(settings.LicenseFileText, out var errorMessageForLicenseText))
+                {
+                    log.Error(errorMessageForLicenseText);
+                    return false;
+                }
+            }
+
+            // Validate license:
+            var license = LicenseManager.FindLicense();
+            if (!LicenseManager.IsLicenseValidForServiceControlInit(license, out var errorMessageForFoundLicense))
+            {
+                log.Error(errorMessageForFoundLicense);
+                return false;
+            }
+
+            return true;
         }
 
         static TransportSettings MapSettings(Settings settings)
