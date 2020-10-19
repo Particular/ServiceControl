@@ -71,7 +71,7 @@ Selected Transport:					{settings.TransportType}
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel < LogLevel.Info ? settings.LogLevel : LogLevel.Info, consoleTarget));
 
-            if (logToConsole)
+            if (!logToConsole)
             {
                 foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
                 {

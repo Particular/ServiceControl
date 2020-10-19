@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         {
             LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
             RavenDBLogLevel = InitializeLevel("RavenDBLogLevel", defaultRavenDBLevel ?? LogLevel.Warn);
-            LogPath = Environment.ExpandEnvironmentVariables(ConfigFileSettingsReader<string>.Read("LogPath", logPath ?? DefaultLogPathForInstance(serviceName)));
+            LogPath = Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", logPath ?? DefaultLogPathForInstance(serviceName)));
             LogToConsole = logToConsole;
         }
 
@@ -25,7 +25,8 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
-            if (!ConfigFileSettingsReader<string>.TryRead("ServiceControl.Audit", key, out var levelText))
+            var levelText = SettingsReader<string>.Read("ServiceControl.Audit", key);
+            if (!string.IsNullOrWhiteSpace(levelText))
             {
                 return defaultLevel;
             }
