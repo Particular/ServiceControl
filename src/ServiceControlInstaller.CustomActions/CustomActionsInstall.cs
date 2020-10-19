@@ -7,7 +7,7 @@
     using Engine.Configuration.ServiceControl;
     using Engine.FileSystem;
     using Engine.Instances;
-    using Engine.LicenseMgmt;
+    using ServiceControl.LicenseManagement;
     using Engine.Unattended;
     using Microsoft.Deployment.WindowsInstaller;
 

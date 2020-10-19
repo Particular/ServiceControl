@@ -6,7 +6,7 @@ namespace ServiceControl.Config.Framework.Modules
     using Autofac;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
+    using ServiceControl.LicenseManagement;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Validation;
     using Module = Autofac.Module;

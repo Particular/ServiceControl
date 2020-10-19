@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.LicenseMgmt
+﻿namespace ServiceControl.LicenseManagement
 {
     using System;
     using Particular.Licensing;
@@ -43,7 +43,7 @@
                 return false;
             }
 
-            if(license.HasExpired())
+            if (license.HasExpired())
             {
                 errorMessage = "Failed to import because the license has expired";
                 return false;

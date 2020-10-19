@@ -2,7 +2,7 @@ namespace ServiceControlInstaller.PowerShell
 {
     using System;
     using System.Management.Automation;
-    using Engine.LicenseMgmt;
+    using ServiceControl.LicenseManagement;
     using Microsoft.PowerShell.Commands;
 
     [Cmdlet(VerbsData.Import, "ServiceControlLicense")]

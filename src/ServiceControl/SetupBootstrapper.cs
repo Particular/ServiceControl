@@ -1,11 +1,14 @@
 namespace Particular.ServiceControl
 {
+    using System;
     using System.Threading.Tasks;
     using Autofac;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Logging;
+    using Particular.Licensing;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
@@ -21,6 +24,27 @@ namespace Particular.ServiceControl
 
         public async Task Run(string username)
         {
+            // Validate license:
+            var license = LicenseManager.FindLicense();
+            if (license.Details.HasLicenseExpired())
+            {
+                log.Error("License has expired.");
+                return;
+            }
+
+            if (license.Details.IsTrialLicense)
+            {
+                log.Error("Cannot run setup with a trial license.");
+                return;
+            }
+
+            var sources = new LicenseSource[]
+            {
+                new LicenseSourceFilePath(LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData))
+            };
+
+            var result = Particular.Licensing.ActiveLicense.Find("ServiceControl", sources);
+
             var configuration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = configuration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");

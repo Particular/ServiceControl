@@ -10,6 +10,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceControl.Audit.Infrastructure.RavenDB;
+    using ServiceControl.LicenseManagement;
     using Settings;
     using Transports;
 
@@ -23,6 +24,20 @@ namespace ServiceControl.Audit.Infrastructure
 
         public async Task Run(string username)
         {
+            // Validate license:
+            var license = LicenseManager.FindLicense();
+            if (license.Details.HasLicenseExpired())
+            {
+                log.Error("License has expired.");
+                return;
+            }
+
+            if (license.Details.IsTrialLicense)
+            {
+                log.Error("Cannot run setup with a trial license.");
+                return;
+            }
+
             var transportSettings = MapSettings(settings);
             var transportCustomization = settings.LoadTransportCustomization();
             var factory = new RawEndpointFactory(settings, transportSettings, transportCustomization);

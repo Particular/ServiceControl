@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.LicenseMgmt
+﻿namespace ServiceControl.LicenseManagement
 {
     public class DetectedLicense
     {

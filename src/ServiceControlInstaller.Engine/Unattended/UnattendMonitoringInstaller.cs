@@ -5,7 +5,7 @@
     using System.ServiceProcess;
     using FileSystem;
     using Instances;
-    using LicenseMgmt;
+    using ServiceControl.LicenseManagement;
     using ReportCard;
     using Validation;
 
