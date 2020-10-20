@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
