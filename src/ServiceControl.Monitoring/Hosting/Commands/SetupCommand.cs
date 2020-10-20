@@ -36,16 +36,17 @@ namespace ServiceControl.Monitoring
         {
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
             {
-                Logger.WarnFormat("LicenseText Speficied: '{0}'", settings.LicenseFileText);
                 if (!LicenseManager.IsLicenseValidForServiceControlInit(settings.LicenseFileText, out var errorMessageForLicenseText))
                 {
                     Logger.Error(errorMessageForLicenseText);
                     return false;
                 }
-            }
-            else
-            {
-                Logger.Warn("No license text specified");
+
+                if (!LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
+                {
+                    Logger.Error(importErrorMessage);
+                    return false;
+                }
             }
 
             // Validate license:
