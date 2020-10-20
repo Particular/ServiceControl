@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.9.4" />
+    <PackageReference Include="Autofac" Version="6.0.0" />
     <PackageReference Include="Caliburn.Micro" Version="3.0.3" />
     <PackageReference Include="FluentValidation" Version="9.2.2" />
     <PackageReference Include="Fody" Version="6.3.0" />
