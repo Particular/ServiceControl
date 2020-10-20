@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
@@ -98,6 +100,12 @@ namespace ServiceControl.Audit.Infrastructure
                 if (!LicenseManager.IsLicenseValidForServiceControlInit(settings.LicenseFileText, out var errorMessageForLicenseText))
                 {
                     log.Error(errorMessageForLicenseText);
+                    return false;
+                }
+
+                if (LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
+                {
+                    log.Error(importErrorMessage);
                     return false;
                 }
             }

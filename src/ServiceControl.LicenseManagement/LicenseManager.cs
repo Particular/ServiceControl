@@ -5,7 +5,7 @@
 
     public class LicenseManager
     {
-        public static DetectedLicense FindLicense()
+        public static DetectedLicense FindLicense(bool includeTrial = true)
         {
             var sources = new LicenseSource[]
             {
@@ -56,10 +56,8 @@
             return IsLicenseValidForServiceControlInit(new DetectedLicense("", LicenseDetails.FromLicense(license)), out errorMessage);
         }
 
-        public static bool TryImportLicense(string licenseFile, out string errorMessage)
+        public static bool TryImportLicenseFromText(string licenseText, out string errorMessage)
         {
-            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
-
             if (!LicenseVerifier.TryVerify(licenseText, out _))
             {
                 errorMessage = "Invalid license file";
@@ -96,6 +94,12 @@
 
             errorMessage = null;
             return true;
+        }
+
+        public static bool TryImportLicense(string licenseFile, out string errorMessage)
+        {
+            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
+            return TryImportLicenseFromText(licenseText, out errorMessage);
         }
 
         static string GetMachineLevelLicenseLocation()

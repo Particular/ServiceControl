@@ -75,6 +75,12 @@ namespace Particular.ServiceControl
                     log.Error(errorMessageForLicenseText);
                     return false;
                 }
+                
+                if (!LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
+                {
+                    log.Error(importErrorMessage);
+                    return false;
+                }
             }
 
             // Validate license:
