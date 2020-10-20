@@ -19,7 +19,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using NUnit.Framework;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -75,9 +74,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             settings.TransportType = transportToUse.TypeName;
             settings.ConnectionString = transportToUse.ConnectionString;
             settings.HttpHostName = "localhost";
-
-            TestContext.WriteLine("LicenseText = " + settings.LicenseFileText);
-
             //MaximumConcurrencyLevel = 2,
             //HttpDefaultConnectionLimit = int.MaxValue,
             //RunInMemory = true,
