@@ -39,9 +39,9 @@ docker build -f .\dockerfile.rabbitmq.conventional.monitoring -t particular/serv
 Once the images are built, the instances can be started by first running the init container to provision the required queues and databases:
 
 ```
-docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.init
-docker run --name servicecontrol.monitoring.init -e "Monitoring/ConnectionString=[connectionstring]" -d particular/servicecontrolrabbitconventional.monitoring.init
-docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit.init
+docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.init
+docker run --name servicecontrol.monitoring.init -e "Monitoring/ConnectionString=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -d particular/servicecontrolrabbitconventional.monitoring.init
+docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit.init
 ```
 
 That will create the required queues and the database for ServiceControl and ServiceControl.Audit. To run the containers now that everything is provisioned, first run the audit container:
