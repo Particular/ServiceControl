@@ -6,7 +6,7 @@
     {
         public FailedMessageGroupArchivedDefinition()
         {
-            Description(m => $"Deleted {m.MessagesCount} messages from group: {m.GroupName}");
+            Description(m => $"Deleted {m.MessagesCount} message(s) from group: {m.GroupName}");
             RelatesToGroup(m => m.GroupId);
         }
     }
