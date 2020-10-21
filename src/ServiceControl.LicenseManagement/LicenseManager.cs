@@ -5,7 +5,7 @@
 
     public class LicenseManager
     {
-        public static DetectedLicense FindLicense(bool includeTrial = true)
+        public static DetectedLicense FindLicense()
         {
             var sources = new LicenseSource[]
             {
