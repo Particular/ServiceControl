@@ -88,11 +88,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.U
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.AcceptanceTesting", "ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj", "{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.SagaAudit", "ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj", "{25FD3DDB-B847-490C-8834-C48F828B8B6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.SagaAudit", "ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj", "{25FD3DDB-B847-490C-8834-C48F828B8B6F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructure.RavenDB", "ServiceControl.Infrastructure.RavenDB\ServiceControl.Infrastructure.RavenDB.csproj", "{6064822C-4A17-4557-A856-55DD94B96B9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Config.Tests", "ServiceControl.Config.Tests\ServiceControl.Config.Tests.csproj", "{9CA13A10-1F6F-495A-9623-AC62201FC0BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Config.Tests", "ServiceControl.Config.Tests\ServiceControl.Config.Tests.csproj", "{9CA13A10-1F6F-495A-9623-AC62201FC0BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.LicenseManagement", "ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj", "{FD1B9998-4B0C-4109-A3BC-0748F829F852}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -236,10 +238,6 @@ Global
 		{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{25FD3DDB-B847-490C-8834-C48F828B8B6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{25FD3DDB-B847-490C-8834-C48F828B8B6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25FD3DDB-B847-490C-8834-C48F828B8B6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -248,6 +246,14 @@ Global
 		{6064822C-4A17-4557-A856-55DD94B96B9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6064822C-4A17-4557-A856-55DD94B96B9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6064822C-4A17-4557-A856-55DD94B96B9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD1B9998-4B0C-4109-A3BC-0748F829F852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD1B9998-4B0C-4109-A3BC-0748F829F852}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD1B9998-4B0C-4109-A3BC-0748F829F852}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD1B9998-4B0C-4109-A3BC-0748F829F852}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

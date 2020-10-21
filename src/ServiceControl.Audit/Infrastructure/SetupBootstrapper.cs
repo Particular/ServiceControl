@@ -10,6 +10,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceControl.Audit.Infrastructure.RavenDB;
+    using ServiceControl.LicenseManagement;
     using Settings;
     using Transports;
 
@@ -23,6 +24,12 @@ namespace ServiceControl.Audit.Infrastructure
 
         public async Task Run(string username)
         {
+            // Validate license:
+            if (!ValidateLicense(settings))
+            {
+                return;
+            }
+
             var transportSettings = MapSettings(settings);
             var transportCustomization = settings.LoadTransportCustomization();
             var factory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
@@ -82,6 +89,34 @@ namespace ServiceControl.Audit.Infrastructure
                 await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
+        }
+
+        bool ValidateLicense(Settings.Settings settings)
+        {
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                if (!LicenseManager.IsLicenseValidForServiceControlInit(settings.LicenseFileText, out var errorMessageForLicenseText))
+                {
+                    log.Error(errorMessageForLicenseText);
+                    return false;
+                }
+
+                if (LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
+                {
+                    log.Error(importErrorMessage);
+                    return false;
+                }
+            }
+
+            // Validate license:
+            var license = LicenseManager.FindLicense();
+            if (!LicenseManager.IsLicenseValidForServiceControlInit(license, out var errorMessageForFoundLicense))
+            {
+                log.Error(errorMessageForFoundLicense);
+                return false;
+            }
+
+            return true;
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)

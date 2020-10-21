@@ -68,7 +68,10 @@
         {
             //HINT: Particular.PlatformSample includes a parameterized version of the ServiceControl.exe.config file.
             //If any changes have been made to settings, this may break the embedded config in that project, which may need to be updated.
-            Approver.Verify(new Settings());
+            var settings = new Settings();
+            settings.LicenseFileText = null;
+
+            Approver.Verify(settings);
         }
 
         [Test]

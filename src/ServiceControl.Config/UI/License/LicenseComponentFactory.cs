@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
+    using ServiceControl.LicenseManagement;
 
     class LicenseComponentFactory
     {

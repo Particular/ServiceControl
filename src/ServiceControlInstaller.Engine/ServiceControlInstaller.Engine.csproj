@@ -8,15 +8,17 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Management" />
-    <Reference Include="System.Security" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DotNetZip" Version="1.13.8" />
     <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
-    <PackageReference Include="Particular.Licensing.Sources" Version="3.4.0" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
   </ItemGroup>
 
 </Project>

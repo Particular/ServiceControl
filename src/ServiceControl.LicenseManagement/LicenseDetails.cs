@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.LicenseMgmt
+﻿namespace ServiceControl.LicenseManagement
 {
     using System;
     using Particular.Licensing;

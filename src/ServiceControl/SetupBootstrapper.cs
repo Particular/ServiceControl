@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System.Threading.Tasks;
     using Autofac;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -21,6 +22,12 @@ namespace Particular.ServiceControl
 
         public async Task Run(string username)
         {
+            // Validate license:
+            if (!ValidateLicense(settings))
+            {
+                return;
+            }
+
             var configuration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = configuration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
@@ -57,6 +64,34 @@ namespace Particular.ServiceControl
                 await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
+        }
+
+        bool ValidateLicense(Settings settings)
+        {
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                if (!LicenseManager.IsLicenseValidForServiceControlInit(settings.LicenseFileText, out var errorMessageForLicenseText))
+                {
+                    log.Error(errorMessageForLicenseText);
+                    return false;
+                }
+                
+                if (!LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
+                {
+                    log.Error(importErrorMessage);
+                    return false;
+                }
+            }
+
+            // Validate license:
+            var license = LicenseManager.FindLicense();
+            if (!LicenseManager.IsLicenseValidForServiceControlInit(license, out var errorMessageForFoundLicense))
+            {
+                log.Error(errorMessageForFoundLicense);
+                return false;
+            }
+
+            return true;
         }
 
         static TransportSettings MapSettings(Settings settings)

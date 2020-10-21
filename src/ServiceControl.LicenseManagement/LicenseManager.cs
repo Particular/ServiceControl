@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.LicenseMgmt
+﻿namespace ServiceControl.LicenseManagement
 {
     using System;
     using Particular.Licensing;
@@ -21,10 +21,43 @@
             return detectedLicense;
         }
 
-        public static bool TryImportLicense(string licenseFile, out string errorMessage)
+        public static bool IsLicenseValidForServiceControlInit(DetectedLicense license, out string errorMessage)
         {
-            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
+            if (!license.Details.ValidForServiceControl)
+            {
+                errorMessage = "License is not for ServiceControl";
+                return false;
+            }
 
+            if (license.Details.HasLicenseExpired())
+            {
+                errorMessage = "License has expired";
+                return false;
+            }
+
+            if (license.IsEvaluationLicense)
+            {
+                errorMessage = "Cannot run setup with a trial license";
+                return false;
+            }
+
+            errorMessage = "";
+            return true;
+        }
+
+        public static bool IsLicenseValidForServiceControlInit(string licenseText, out string errorMessage)
+        {
+            if (!TryDeserializeLicense(licenseText, out var license))
+            {
+                errorMessage = "Invalid license file";
+                return false;
+            }
+
+            return IsLicenseValidForServiceControlInit(new DetectedLicense("", LicenseDetails.FromLicense(license)), out errorMessage);
+        }
+
+        public static bool TryImportLicenseFromText(string licenseText, out string errorMessage)
+        {
             if (!LicenseVerifier.TryVerify(licenseText, out _))
             {
                 errorMessage = "Invalid license file";
@@ -43,7 +76,7 @@
                 return false;
             }
 
-            if(license.HasExpired())
+            if (license.HasExpired())
             {
                 errorMessage = "Failed to import because the license has expired";
                 return false;
@@ -61,6 +94,12 @@
 
             errorMessage = null;
             return true;
+        }
+
+        public static bool TryImportLicense(string licenseFile, out string errorMessage)
+        {
+            var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);
+            return TryImportLicenseFromText(licenseText, out errorMessage);
         }
 
         static string GetMachineLevelLicenseLocation()

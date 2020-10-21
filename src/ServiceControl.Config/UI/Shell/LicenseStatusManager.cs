@@ -7,7 +7,7 @@
     using Events;
     using Framework.Rx;
     using License;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
+    using ServiceControl.LicenseManagement;
 
     class LicenseStatusManager : RxScreen, IHandle<LicenseUpdated>, IHandle<FocusChanged>
     {

@@ -15,6 +15,7 @@
   "SkipQueueCreation": false,
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": 10,
+  "LicenseFileText": null,
   "OnMessage": {
     "Method": {
       "Name": "<.ctor>b__0_0",

@@ -1,7 +1,7 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System.Management.Automation;
-    using Engine.LicenseMgmt;
+    using ServiceControl.LicenseManagement;
 
     [Cmdlet(VerbsCommon.Get, "ServiceControlLicense")]
     public class GetServiceControlLicense : PSCmdlet

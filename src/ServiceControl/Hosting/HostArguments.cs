@@ -70,6 +70,11 @@ namespace Particular.ServiceControl.Hosting
                     "skip-queue-creation",
                     @"Skip queue creation during install/update",
                     s => { SkipQueueCreation = true; }
+                },
+                {
+                    "p|portable",
+                    @"Internal use - runs as a console app, even non-interactively",
+                    s => { Portable = true; }
                 }
             };
 

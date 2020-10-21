@@ -5,9 +5,9 @@
     using System.ServiceProcess;
     using FileSystem;
     using Instances;
-    using LicenseMgmt;
     using ReportCard;
     using Validation;
+    using ServiceControl.LicenseManagement;
 
     public class UnattendAuditInstaller
     {

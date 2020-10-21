@@ -16,6 +16,8 @@ namespace ServiceControl.Monitoring
     {
         public Settings()
         {
+            TryLoadLicenseFromConfig();
+
             TransportType = SettingsReader<string>.Read("TransportType");
             ConnectionString = GetConnectionString();
             LogLevel = MonitorLogs.InitializeLevel();
@@ -49,6 +51,7 @@ namespace ServiceControl.Monitoring
         public bool SkipQueueCreation { get; set; }
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
         public int MaximumConcurrencyLevel { get; set; }
+        public string LicenseFileText { get; set; }
 
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
@@ -56,6 +59,11 @@ namespace ServiceControl.Monitoring
         {
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
             return Path.GetDirectoryName(assemblyLocation);
+        }
+
+        void TryLoadLicenseFromConfig()
+        {
+            LicenseFileText = SettingsReader<string>.Read("LicenseText");
         }
 
         public TransportCustomization LoadTransportCustomization()
