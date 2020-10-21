@@ -6,7 +6,7 @@ namespace ServiceControl.EventLog.Definitions
     {
         public FailedMessageUnArchivedDefinition()
         {
-            Description(m => $"{m.MessagesCount} failed message(s) Restored");
+            Description(m => $"{m.MessagesCount} failed message(s) restored");
         }
     }
 }
