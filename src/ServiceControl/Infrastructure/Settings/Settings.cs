@@ -30,6 +30,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 ErrorLogQueue = GetErrorLogQueue();
             }
 
+            TryLoadLicenseFromConfig();
+
             TransportConnectionString = GetConnectionString();
             TransportCustomizationType = GetTransportType();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
@@ -92,6 +94,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public int Port { get; set; }
         public int DatabaseMaintenancePort { get; set; }
+
+        public string LicenseFileText { get; set; }
 
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
@@ -500,6 +504,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return threshold;
         }
 
+        void TryLoadLicenseFromConfig()
+        {
+            LicenseFileText = SettingsReader<string>.Read("LicenseText");
+        }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
         int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);

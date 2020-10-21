@@ -8,7 +8,7 @@
     using Events;
     using Framework.Rx;
     using Microsoft.WindowsAPICodePack.Dialogs;
-    using ServiceControlInstaller.Engine.LicenseMgmt;
+    using ServiceControl.LicenseManagement;
 
     class LicenseViewModel : RxScreen
     {

@@ -1,5 +1,6 @@
 {
   "EndpointName": "Particular.Monitoring",
+  "Portable": false,
   "ServiceName": "Particular.Monitoring",
   "TransportType": "NServiceBus.ServiceControlLearningTransport, ServiceControl.Transports.LearningTransport",
   "ConnectionString": null,
@@ -14,13 +15,14 @@
   "SkipQueueCreation": false,
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": 10,
+  "LicenseFileText": null,
   "OnMessage": {
     "Method": {
-      "Name": "<.ctor>b__69_0",
+      "Name": "<.ctor>b__0_0",
       "AssemblyName": "ServiceControl.Monitoring, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null",
       "ClassName": "ServiceControl.Monitoring.Settings+<>c",
-      "Signature": "System.Threading.Tasks.Task <.ctor>b__69_0(System.String, System.Collections.Generic.Dictionary`2[System.String,System.String], Byte[], System.Func`1[System.Threading.Tasks.Task])",
-      "Signature2": "System.Threading.Tasks.Task <.ctor>b__69_0(System.String, System.Collections.Generic.Dictionary`2[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.Byte[], System.Func`1[[System.Threading.Tasks.Task, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]])",
+      "Signature": "System.Threading.Tasks.Task <.ctor>b__0_0(System.String, System.Collections.Generic.Dictionary`2[System.String,System.String], Byte[], System.Func`1[System.Threading.Tasks.Task])",
+      "Signature2": "System.Threading.Tasks.Task <.ctor>b__0_0(System.String, System.Collections.Generic.Dictionary`2[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.Byte[], System.Func`1[[System.Threading.Tasks.Task, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]])",
       "MemberType": 8,
       "GenericArguments": null
     },

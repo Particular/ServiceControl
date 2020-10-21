@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Monitoring
+﻿using ServiceControl.Monitoring.Infrastructure.Settings;
+
+namespace ServiceControl.Monitoring
 {
     using System;
     using System.Diagnostics;
@@ -69,7 +71,7 @@ Selected Transport:					{settings.TransportType}
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel < LogLevel.Info ? settings.LogLevel : LogLevel.Info, consoleTarget));
 
-            if (logToConsole)
+            if (!logToConsole)
             {
                 foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
                 {
@@ -87,12 +89,12 @@ Selected Transport:					{settings.TransportType}
             logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), settings.LogLevel.Name);
         }
 
-        public static LogLevel InitializeLevel(SettingsReader reader)
+        public static LogLevel InitializeLevel()
         {
             var level = LogLevel.Warn;
             try
             {
-                level = LogLevel.FromString(reader.Read(LogLevelKey, LogLevel.Warn.Name));
+                level = LogLevel.FromString(SettingsReader<string>.Read(LogLevelKey, LogLevel.Warn.Name));
             }
             catch
             {

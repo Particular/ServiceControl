@@ -31,6 +31,7 @@
   "ForwardAuditMessages": false,
   "IngestAuditMessages": true,
   "AuditLogQueue": "audit.log",
+  "LicenseFileText": null,
   "ExpirationProcessTimerInSeconds": 600,
   "AuditRetentionPeriod": "10.00:00:00",
   "ExpirationProcessBatchSize": 65512,

@@ -1,0 +1,13 @@
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+
+WORKDIR /servicecontrol.monitoring
+
+ADD /ServiceControl.Transports.ASB/bin/Release/net462 .
+ADD /ServiceControl.Monitoring/bin/Release/net462 .
+
+ENV "Monitoring/TransportType"="ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB"
+ENV "Monitoring/HttpHostName"="*"
+
+EXPOSE 33633
+
+ENTRYPOINT ["ServiceControl.Monitoring.exe", "--portable"]

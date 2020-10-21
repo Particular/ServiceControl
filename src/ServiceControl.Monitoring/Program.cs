@@ -16,7 +16,7 @@ namespace ServiceControl.Monitoring
             {
                 var arguments = new HostArguments(args);
 
-                var settings = LoadSettings(ConfigurationManager.AppSettings, arguments);
+                var settings = LoadSettings(arguments);
 
                 var runAsWindowsService = !Environment.UserInteractive && !arguments.Portable;
                 MonitorLogs.Configure(settings, !runAsWindowsService);
@@ -32,10 +32,9 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        static Settings LoadSettings(NameValueCollection config, HostArguments args)
+        static Settings LoadSettings(HostArguments args)
         {
-            var reader = new SettingsReader(config);
-            var settings = Settings.Load(reader);
+            var settings = new Settings();
             args.ApplyOverridesTo(settings);
             return settings;
         }
