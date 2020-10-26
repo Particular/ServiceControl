@@ -10,6 +10,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
+    using Raven.Client.Documents.Linq;
     using Newtonsoft.Json.Linq;
 
 
@@ -56,13 +57,13 @@ namespace ServiceControl.Recoverability
 
             // TODO: RAVEN5 - Should this still be done as a patch operation or can we create a patch-by-query
             return new PatchOperation(
-                FailedMessageRetry.MakeDocumentId(messageId), 
-                null, 
+                FailedMessageRetry.MakeDocumentId(messageId),
+                null,
                 new PatchRequest
                 {
                     Script = @"// Need to put something here",
                     Values = new Dictionary<string, object>()
-                }, 
+                },
                 new PatchRequest
             {
                 Script = $@"
@@ -85,14 +86,14 @@ this[""@metadata""] = {{
         public virtual async Task MoveBatchToStaging(string batchDocumentId)
         {
             await store.Operations.SendAsync(new PatchOperation(
-                    batchDocumentId, 
-                    null, 
+                    batchDocumentId,
+                    null,
                     new PatchRequest
                     {
                         Script = @"
 if(this.Status === $oldStatus) {
     this.Status = $newStatus
-}", 
+}",
                         Values = new Dictionary<string, object>
                         {
                             ["oldStatus"] = (int)RetryBatchStatus.MarkingDocuments,
@@ -121,7 +122,7 @@ if(this.Status === $oldStatus) {
             var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
                 //.Customize(c => c.BeforeQueryExecuted(index => index.Cutoff = cutoff))
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
-                //.Statistics(out var stats)
+                .Statistics(out var stats)
                 .ToListAsync()
                 .ConfigureAwait(false);
 
@@ -147,8 +148,7 @@ if(this.Status === $oldStatus) {
                 return false;
             }
 
-            return orphanedBatches.Any();
-            // return stats.IsStale || orphanedBatches.Any();
+            return stats.IsStale || orphanedBatches.Any();
         }
 
         internal async Task RebuildRetryOperationState(IAsyncDocumentSession session)
