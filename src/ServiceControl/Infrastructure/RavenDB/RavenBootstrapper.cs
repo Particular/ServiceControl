@@ -105,7 +105,11 @@
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
             IndexCreation.CreateIndexes(typeof(SagaAudit.SagaSnapshot).Assembly, documentStore);
 
-            PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
+            if (!maintenanceMode)
+            {
+                // Only purge endpoints when not in maintenance mode
+                PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
+            }
         }
 
         static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)
