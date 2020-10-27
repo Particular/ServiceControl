@@ -41,7 +41,7 @@ namespace ServiceControl.Infrastructure.RavenDB
             {
                 logger.InfoFormat("Loading Embedded RavenDB license");
                 var license = ReadLicense();
-                commandLineArgs.Add($"--License={license}");
+                commandLineArgs.Add($"--License=\"{license}\"");
             }
 
             var highestUsableNetCoreRuntime = NetCoreRuntime.FindAll()
@@ -78,7 +78,10 @@ namespace ServiceControl.Infrastructure.RavenDB
             using (var resourceStream = typeof(EmbeddedDatabase).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.json"))
             using (var reader = new StreamReader(resourceStream))
             {
-                return reader.ReadToEnd().Replace(" ","").Replace(Environment.NewLine, ""); //Remove line breaks to pass value via command line argument
+                return reader.ReadToEnd()
+                    .Replace(" ","")
+                    .Replace(Environment.NewLine, "")
+                    .Replace("\"", "'"); //Remove line breaks to pass value via command line argument
             }
         }
 
