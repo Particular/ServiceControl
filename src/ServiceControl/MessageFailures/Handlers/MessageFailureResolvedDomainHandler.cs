@@ -40,8 +40,7 @@
 
         async Task<bool> MarkMessageAsResolved(string failedMessageId)
         {
-            //TODO: RAVEN5 check if failedMessageId contains collection name
-            await retryDocumentManager.RemoveFailedMessageRetryDocument(failedMessageId).ConfigureAwait(false);
+            await retryDocumentManager.RemoveFailedMessageRetryDocument(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
 
             using (var session = store.OpenAsyncSession())
             {

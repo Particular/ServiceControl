@@ -1,3 +1,5 @@
+using ServiceControl.MessageFailures;
+
 namespace ServiceControl.Recoverability
 {
     using System.Threading.Tasks;
@@ -12,8 +14,7 @@ namespace ServiceControl.Recoverability
         {
             if (message.RepeatedFailure)
             {
-                //TODO: RAVEN5 check if failedMessageId contains collection name
-                return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+                return RetryDocumentManager.RemoveFailedMessageRetryDocument(FailedMessage.MakeDocumentId(message.FailedMessageId));
             }
 
             return Task.FromResult(0);
