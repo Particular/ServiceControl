@@ -45,8 +45,6 @@
                 }
 
                 var query = prequery
-                    //TODO:RAVEN5 missing transformenrs and such.
-                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 
                 var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false);

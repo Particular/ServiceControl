@@ -30,8 +30,6 @@ namespace ServiceControl.Recoverability
                     .WhereBetween(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
                     .AndAlso()
                     .WhereEquals(o => o.QueueAddress, message.QueueAddress)
-                    //TODO:RAVEN5 missing API transformers and such
-                    //.SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>(fields);
 
                 var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false);
