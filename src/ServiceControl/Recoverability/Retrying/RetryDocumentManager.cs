@@ -116,10 +116,7 @@ if(this.Status === $oldStatus) {
 
         internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
         {
-            //TODO:RAVEN5 change query API. Not sure what the intention here was with the cutoff since the WaitForNonStaleResults was not specified. In V5 WaitForNonStaleResults uses time
-            //of the arrival of the query as a cutoff time.
             var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                //.Customize(c => c.BeforeQueryExecuted(index => index.Cutoff = cutoff))
                 .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
                 .Statistics(out var stats)
                 .ToListAsync()
@@ -147,7 +144,9 @@ if(this.Status === $oldStatus) {
                 return false;
             }
 
-            return stats.IsStale || orphanedBatches.Any();
+            var indexUpToDateEnough = stats.Timestamp > cutoff;
+
+            return (stats.IsStale && indexUpToDateEnough) || orphanedBatches.Any();
         }
 
         internal async Task RebuildRetryOperationState(IAsyncDocumentSession session)
@@ -176,14 +175,6 @@ if(this.Status === $oldStatus) {
         readonly TimeSpan failedMessageRetentionPeriod;
         private bool abort;
         protected static string RetrySessionId = Guid.NewGuid().ToString();
-
-        private static JObject defaultMetadata = JObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
-                                    }}");
-
-        private static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
     }
