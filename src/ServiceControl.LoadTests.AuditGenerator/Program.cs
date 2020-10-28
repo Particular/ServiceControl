@@ -16,6 +16,8 @@ namespace ServiceControl.LoadTests.AuditGenerator
 
     class Program
     {
+        static readonly string QueueLengthProviderMsmqTransportCustomizationName = typeof(MsmqTransportCustomizationWithQueueLengthProvider).AssemblyQualifiedName;
+
         static readonly Random random = new Random();
         const string DefaultDestination = "audit";
         static readonly string HostId = Guid.NewGuid().ToString();
@@ -29,7 +31,7 @@ namespace ServiceControl.LoadTests.AuditGenerator
             bodySize = int.Parse(commandLineArgs[0]);
             var transportCustomizationName = commandLineArgs.Length > 1
                 ? commandLineArgs[1]
-                : typeof(MsmqTransportCustomization).AssemblyQualifiedName;
+                : QueueLengthProviderMsmqTransportCustomizationName;
 
             var connectionString = commandLineArgs.Length > 2 ? commandLineArgs[2] : null;
 

@@ -44,6 +44,8 @@ namespace ServiceControl.Infrastructure.RavenDB
                 commandLineArgs.Add($"--License=\"{license}\"");
             }
 
+            commandLineArgs.Add($"--Server.MaxTimeForTaskToWaitForDatabaseToLoadInSec={(int)TimeSpan.FromDays(1).TotalSeconds}");
+
             var highestUsableNetCoreRuntime = NetCoreRuntime.FindAll()
                 .Where(x => x.Runtime == "Microsoft.NETCore.App")
                 .Where(x => x.Version.Major == 3 && x.Version.Minor == 1)
@@ -58,6 +60,7 @@ namespace ServiceControl.Infrastructure.RavenDB
                 LogsPath = logPath,
                 FrameworkVersion = highestUsableNetCoreRuntime.Version.ToString(),
                 ServerUrl = databaseUrl,
+                MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
             EmbeddedServer.Instance.StartServer(serverOptions);
             return new EmbeddedDatabase(expirationProcessTimerInSecond);

@@ -155,15 +155,19 @@ namespace ServiceControl.Audit.Infrastructure
 
         public async Task Stop()
         {
-            await reporter.Stop().ConfigureAwait(false);
+            if (reporter != null)
+            {
+                await reporter.Stop().ConfigureAwait(false);
+            }
+
             notifier.Dispose();
             if (bus != null)
             {
                 await bus.Stop().ConfigureAwait(false);
             }
 
+            documentStore?.Dispose();
 
-            documentStore.Dispose();
             WebApp?.Dispose();
             container.Dispose();
         }
