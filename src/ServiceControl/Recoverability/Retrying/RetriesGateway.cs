@@ -13,7 +13,6 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Indexes;
-    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
 
     class RetriesGateway
@@ -121,12 +120,17 @@ namespace ServiceControl.Recoverability
 
             log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
 
-            for (var i = 0; i < messageIds.Length; i++)
+            var commands = (
+                from id in messageIds
+                select (ICommandData)retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, id)
+            ).ToList();
+
+            var requestExecutor = store.GetRequestExecutor();
+
+            using (requestExecutor.ContextPool.AllocateOperationContext(out var context))
             {
-                //TODO:RAVEN5 We used to send these all to the server in a single batch
-                var operation = retryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
-                await store.Operations.SendAsync(
-                    operation).ConfigureAwait(false);
+                var command = new SingleNodeBatchCommand(store.Conventions, context, commands);
+                await requestExecutor.ExecuteAsync(command, context).ConfigureAwait(false);
             }
 
             await retryDocumentManager.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);

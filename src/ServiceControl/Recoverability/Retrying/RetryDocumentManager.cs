@@ -12,7 +12,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client.Documents.Session;
     using Raven.Client.Documents.Linq;
     using Newtonsoft.Json.Linq;
-
+    using Raven.Client.Documents.Commands.Batches;
 
     class RetryDocumentManager
     {
@@ -51,12 +51,11 @@ namespace ServiceControl.Recoverability
             return batchDocumentId;
         }
 
-        public PatchOperation CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
+        public PatchCommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
             var expireTime = DateTime.UtcNow + failedMessageRetentionPeriod;
 
-            // TODO: RAVEN5 - Should this still be done as a patch operation or can we create a patch-by-query
-            return new PatchOperation(
+            return new PatchCommandData(
                 FailedMessageRetry.MakeDocumentId(messageId),
                 null,
                 new PatchRequest
@@ -65,8 +64,8 @@ namespace ServiceControl.Recoverability
                     Values = new Dictionary<string, object>()
                 },
                 new PatchRequest
-            {
-                Script = $@"
+                {
+                    Script = $@"
 this.FailedMessageId = $failedMessageId
 this.RetryBatchId = $retryBatchId
 this[""@metadata""] = {{
@@ -75,12 +74,12 @@ this[""@metadata""] = {{
     ""@expires"" : ""{expireTime:O}""
 }}
 ",
-                Values = new Dictionary<string, object>
-                {
-                    ["failedMessageId"] = FailedMessage.MakeDocumentId(messageId),
-                    ["retryBatchId"] = batchDocumentId
-                }
-            });
+                    Values = new Dictionary<string, object>
+                    {
+                        ["failedMessageId"] = FailedMessage.MakeDocumentId(messageId),
+                        ["retryBatchId"] = batchDocumentId
+                    }
+                });
         }
 
         public virtual async Task MoveBatchToStaging(string batchDocumentId)
