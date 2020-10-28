@@ -45,7 +45,7 @@
                 }
 
                 var query = prequery
-                        //TODO:RAVEN5 missing transformenrs and such.
+                    //TODO:RAVEN5 missing transformenrs and such.
                     //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 
