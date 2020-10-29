@@ -154,7 +154,9 @@
             try
             {
                 SagaUpdatedMessage message;
-                using (var reader = new JsonTextReader(new StreamReader(new MemoryStream(context.Body))))
+                using (var memoryStream = Memory.Manager.GetStream(context.MessageId, context.Body, 0, context.Body.Length))
+                using (var streamReader = new StreamReader(memoryStream))
+                using (var reader = new JsonTextReader(streamReader))
                 {
                     message = sagaAuditSerializer.Deserialize<SagaUpdatedMessage>(reader);
                 }
