@@ -91,7 +91,7 @@
 
             async Task<string> StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
             {
-                using (var bodyStream = Memory.Manager.GetStream(body))
+                using (var bodyStream = Memory.Manager.GetStream(bodyId, body, 0, bodySize))
                 {
                     var bodyUrl = await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
                         .ConfigureAwait(false);
