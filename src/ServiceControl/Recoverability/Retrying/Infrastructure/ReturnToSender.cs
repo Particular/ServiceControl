@@ -88,6 +88,9 @@ namespace ServiceControl.Recoverability
             }
         }
 
+        // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
+        // furthermore call ToArray would neglect many of the benefits of the recyclable stream
+        // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
         static byte[] ReadFully(Stream input)
         {
             var buffer = new byte[16 * 1024];
