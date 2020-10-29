@@ -93,6 +93,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public int Port { get; set; }
         public int DatabaseMaintenancePort { get; set; }
+        public string RavenDBNetCoreRuntimeVersion => SettingsReader<string>.Read("RavenDBNetCoreRuntimeVersion");
 
         public string LicenseFileText { get; set; }
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");

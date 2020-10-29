@@ -23,6 +23,7 @@
   "StorageUrl": "http://localhost:8888/storage",
   "Port": 8888,
   "DatabaseMaintenancePort": 33334,
+  "RavenDBNetCoreRuntimeVersion": null,
   "LicenseFileText": null,
   "Hostname": "localhost",
   "VirtualDirectory": "",

@@ -82,6 +82,7 @@
 
         public int Port { get; set; }
         public int DatabaseMaintenancePort { get; set; }
+        public string RavenDBNetCoreRuntimeVersion => SettingsReader<string>.Read("RavenDBNetCoreRuntimeVersion");
 
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);

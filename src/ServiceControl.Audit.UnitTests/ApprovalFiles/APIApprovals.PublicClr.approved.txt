@@ -175,6 +175,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public int MaximumConcurrencyLevel { get; set; }
         public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
         public int Port { get; set; }
+        public string RavenDBNetCoreRuntimeVersion { get; }
         public string RootUrl { get; }
         public bool RunInMemory { get; set; }
         public string ServiceControlQueueAddress { get; set; }

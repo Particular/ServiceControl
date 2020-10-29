@@ -64,7 +64,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
-            embeddedDatabase = EmbeddedDatabase.Start(dbPath, Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), 5, databaseUrl);
+            embeddedDatabase = EmbeddedDatabase.Start(dbPath, Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), null, 5, databaseUrl);
 
             try
             {

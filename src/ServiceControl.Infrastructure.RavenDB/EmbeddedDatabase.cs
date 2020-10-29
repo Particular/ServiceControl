@@ -28,7 +28,7 @@ namespace ServiceControl.Infrastructure.RavenDB
         }
 
 
-        public static EmbeddedDatabase Start(string dbPath, string logPath, int expirationProcessTimerInSecond, string databaseUrl)
+        public static EmbeddedDatabase Start(string dbPath, string logPath, string specificRuntimeVersion, int expirationProcessTimerInSecond, string databaseUrl)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -58,7 +58,7 @@ namespace ServiceControl.Infrastructure.RavenDB
                 AcceptEula = true,
                 DataDirectory = dbPath,
                 LogsPath = logPath,
-                FrameworkVersion = highestUsableNetCoreRuntime.Version.ToString(),
+                FrameworkVersion = specificRuntimeVersion ?? highestUsableNetCoreRuntime.Version.ToString(),
                 ServerUrl = databaseUrl,
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
