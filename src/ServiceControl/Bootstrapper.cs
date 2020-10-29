@@ -205,7 +205,6 @@ Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
 Database Size:                      {DataSize()} bytes
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
-RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}
 -------------------------------------------------------------";
 

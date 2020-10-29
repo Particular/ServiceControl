@@ -36,17 +36,6 @@ namespace ServiceControl.Audit.Infrastructure
                 ArchiveAboveSize = 30 * megaByte
             };
 
-            var ravenFileTarget = new FileTarget
-            {
-                ArchiveEvery = FileArchivePeriod.Day,
-                FileName = Path.Combine(loggingSettings.LogPath, "ravenlog.${shortdate}.txt"),
-                ArchiveFileName = Path.Combine(loggingSettings.LogPath, "ravenlog.{#}.txt"),
-                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
-                Layout = simpleLayout,
-                MaxArchiveFiles = 14,
-                ArchiveAboveSize = 30 * megaByte
-            };
-
             var consoleTarget = new ColoredConsoleTarget
             {
                 Layout = simpleLayout,
@@ -58,16 +47,7 @@ namespace ServiceControl.Audit.Infrastructure
             // There lines don't appear to be necessary.  The rules seem to work without implicitly adding the targets?!?
             nlogConfig.AddTarget("console", consoleTarget);
             nlogConfig.AddTarget("debugger", fileTarget);
-            nlogConfig.AddTarget("raven", ravenFileTarget);
             nlogConfig.AddTarget("bitbucket", nullTarget);
-
-            // Only want to see raven errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget)); //Noise reduction - Only RavenDB errors on the console
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget)
-            {
-                Final = true
-            }); //Will swallow debug and above messages
 
             // Always want to see license logging regardless of default logging level
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));

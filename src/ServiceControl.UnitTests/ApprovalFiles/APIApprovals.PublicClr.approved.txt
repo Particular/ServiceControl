@@ -39,11 +39,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
 {
     public class LoggingSettings
     {
-        public LoggingSettings(string serviceName, NLog.LogLevel defaultLevel = null, NLog.LogLevel defaultRavenDBLevel = null, string logPath = null, bool logToConsole = True) { }
+        public LoggingSettings(string serviceName, NLog.LogLevel defaultLevel = null, string logPath = null, bool logToConsole = True) { }
         public string LogPath { get; }
         public bool LogToConsole { get; }
         public NLog.LogLevel LoggingLevel { get; }
-        public NLog.LogLevel RavenDBLogLevel { get; }
     }
     public class RemoteInstanceSetting
     {

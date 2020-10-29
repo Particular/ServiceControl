@@ -198,7 +198,6 @@ Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
 Database Size:                      {DataSize()} bytes
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
-RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}
 -------------------------------------------------------------";
 
