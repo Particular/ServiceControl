@@ -96,7 +96,13 @@
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
-            if (instance.Version < options.UpgradeInfo.CurrentMinimumVersion)
+            var option = options.UpgradeInfo.CanUpgradeFrom(instance.Version);
+            if (option == UpgradeOption.NotPossible)
+            {
+                logger.Error("Upgrade aborted. Upgrade in place to Version 5 is not possible. Please consult the upgrade guide.");
+                return false;
+            }
+            if (option == UpgradeOption.IntermediateUpgradeRequired)
             {
                 logger.Error($"Upgrade aborted. An interim upgrade to version {options.UpgradeInfo.RecommendedUpgradeVersion} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{options.UpgradeInfo.RecommendedUpgradeVersion}");
                 return false;

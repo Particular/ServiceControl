@@ -68,7 +68,8 @@
 
             AddNewAuditInstanceViewModel auditViewModel = null;
 
-            if (instance.Version < upgradeInfo.CurrentMinimumVersion)
+            var option = upgradeInfo.CanUpgradeFrom(instance.Version);
+            if (option == UpgradeOption.IntermediateUpgradeRequired)
             {
                 windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
                     "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
@@ -80,6 +81,16 @@
                     "<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install the latest version from https://particular.net/start-servicecontrol-download</Paragraph></ListItem>\r\n" +
                     "<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to the latest version of ServiceControl.</Paragraph></ListItem>\r\n" +
                     "</List>\r\n" +
+                    "</Section>",
+                    hideCancel: true);
+
+                return;
+            }
+            if (option == UpgradeOption.NotPossible)
+            {
+                windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
+                    "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
+                    "<Paragraph>Upgrade in place to Version 5 is not possible. Please consult the upgrade guide.</Paragraph>\r\n" +
                     "</Section>",
                     hideCancel: true);
 

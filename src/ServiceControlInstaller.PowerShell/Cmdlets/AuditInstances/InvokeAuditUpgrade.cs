@@ -1,3 +1,5 @@
+using ServiceControlInstaller.Engine.Configuration.ServiceControl;
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
@@ -34,9 +36,17 @@ namespace ServiceControlInstaller.PowerShell
                     break;
                 }
 
+                var options = new ServiceControlUpgradeOptions
+                {
+                    SkipQueueCreation = SkipQueueCreation
+                };
+
+                options.UpgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
+
+
                 instance.SkipQueueCreation = SkipQueueCreation;
 
-                if (!installer.Upgrade(instance))
+                if (!installer.Upgrade(instance, options))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} failed"), "UpgradeFailure", ErrorCategory.InvalidResult, null));
                 }

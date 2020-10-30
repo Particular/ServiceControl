@@ -3,6 +3,13 @@
     using System;
     using System.Linq;
 
+    public enum UpgradeOption
+    {
+        Possible,
+        IntermediateUpgradeRequired,
+        NotPossible,
+    }
+
     public class UpgradeInfo
     {
         internal static UpgradeInfo[] details =
@@ -48,6 +55,21 @@
         /// Minimum version instance must be to satisfy target version pre-conditions
         /// </summary>
         public Version CurrentMinimumVersion { get; }
+
+        /// <summary>
+        /// Returns true if the current version is suitable for upgrading to the target version.
+        /// </summary>
+        public UpgradeOption CanUpgradeFrom(Version currentVersion)
+        {
+            if (CurrentMinimumVersion.Major == 5 && currentVersion.Major < 5)
+            {
+                return UpgradeOption.NotPossible;
+            }
+
+            return currentVersion > CurrentMinimumVersion
+                ? UpgradeOption.Possible
+                : UpgradeOption.IntermediateUpgradeRequired;
+        }
 
         /// <summary>
         /// Version recommended for upgrade if instance version does not meet the CurrentMinimumVersion

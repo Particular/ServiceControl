@@ -50,6 +50,19 @@
             instance.Service.Refresh();
 
             var upgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
+
+            var option = upgradeInfo.CanUpgradeFrom(instance.Version);
+            if (option == UpgradeOption.NotPossible)
+            {
+                windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
+                    "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
+                    "<Paragraph>Upgrade in place to Version 5 is not possible. Please consult the upgrade guide.</Paragraph>\r\n" +
+                    "</Section>",
+                    hideCancel: true);
+
+                return;
+            }
+
             var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
 
             if (instance.Service.Status != ServiceControllerStatus.Stopped &&

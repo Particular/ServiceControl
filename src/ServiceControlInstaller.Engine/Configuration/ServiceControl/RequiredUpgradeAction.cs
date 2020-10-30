@@ -16,9 +16,9 @@
         {
             var upgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(target, instance.Version);
 
-            if (instance.Version < upgradeInfo.CurrentMinimumVersion)
+            if (upgradeInfo.CanUpgradeFrom(instance.Version) != UpgradeOption.Possible)
             {
-                // This is an older version
+                // This is intentional. The check is going to be performed again further down the line and shown to the user.
                 return RequiredUpgradeAction.Upgrade;
             }
 
