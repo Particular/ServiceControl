@@ -141,7 +141,7 @@ namespace ServiceControlInstaller.PowerShell
                 SkipQueueCreation = SkipQueueCreation
             };
 
-            options.UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
+            options.UpgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version);
 
             if (!installer.Upgrade(instance, options))
             {

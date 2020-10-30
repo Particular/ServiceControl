@@ -49,7 +49,7 @@
             var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
             instance.Service.Refresh();
 
-            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
+            var upgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
             var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
 
             if (instance.Service.Status != ServiceControllerStatus.Stopped &&

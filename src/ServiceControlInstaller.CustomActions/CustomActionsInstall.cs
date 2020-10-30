@@ -92,13 +92,13 @@
             {
                 if (zipInfo.Version > instance.Version)
                 {
-                    var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(zipInfo.Version, instance.Version);
+                    var upgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(zipInfo.Version, instance.Version);
 
                     options.UpgradeInfo = upgradeInfo;
 
                     if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
                     {
-                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ForwardErrorMessages.Name}'");
+                        logger.Warn($"Unattended upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ForwardErrorMessages.Name}'");
                         continue;
                     }
 
@@ -117,7 +117,7 @@
                             }
                             else
                             {
-                                logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.AuditRetentionPeriod.Name}'");
+                                logger.Warn($"Unattended upgrade {instance.Name} to {zipInfo.Version} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.AuditRetentionPeriod.Name}'");
                                 continue;
                             }
                         }
@@ -125,7 +125,7 @@
 
                     if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
                     {
-                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ErrorRetentionPeriod.Name}'");
+                        logger.Warn($"Unattended upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ErrorRetentionPeriod.Name}'");
                         continue;
                     }
 

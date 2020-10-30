@@ -14,7 +14,7 @@
     {
         public static RequiredUpgradeAction GetRequiredUpgradeAction(this ServiceControlInstance instance, Version target)
         {
-            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(target, instance.Version);
+            var upgradeInfo = UpgradeInfo.GetUpgradeInfoForTargetVersion(target, instance.Version);
 
             if (instance.Version < upgradeInfo.CurrentMinimumVersion)
             {
