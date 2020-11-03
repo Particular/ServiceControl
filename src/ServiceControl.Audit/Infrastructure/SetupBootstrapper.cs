@@ -101,7 +101,7 @@ namespace ServiceControl.Audit.Infrastructure
                     return false;
                 }
 
-                if (LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
+                if (!LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
                 {
                     log.Error(importErrorMessage);
                     return false;
