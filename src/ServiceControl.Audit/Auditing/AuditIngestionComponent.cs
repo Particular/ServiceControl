@@ -78,7 +78,7 @@
 
         Task OnCriticalError(string failure, Exception arg2)
         {
-            log.Debug($"OnCriticalError. '{failure}'", arg2);
+            log.Warn($"OnCriticalError. '{failure}'", arg2);
             return watchdog.OnFailure(failure);
         }
 
