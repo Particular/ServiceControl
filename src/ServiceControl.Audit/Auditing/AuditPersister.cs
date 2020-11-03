@@ -74,11 +74,19 @@
                             RecordKnownEndpoints(receivingEndpoint, knownEndpoints, processedMessage);
                         }
 
+                        if (Logger.IsDebugEnabled)
+                        {
+                            Logger.Debug($"Adding message for bulk storage");
+                        }
                         await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
                         storedContexts.Add(context);
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
+                        if (Logger.IsDebugEnabled)
+                        {
+                            Logger.Debug($"Adding message for bulk storage");
+                        }
                         await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
                         storedContexts.Add(context);
                     }
@@ -86,9 +94,17 @@
 
                 foreach (var endpoint in knownEndpoints.Values)
                 {
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.Debug($"Adding known endpoint for bulk storage");
+                    }
                     await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
                 }
 
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Performing bulk storage write");
+                }
                 await bulkInsert.DisposeAsync().ConfigureAwait(false);
             }
             catch (Exception e)
@@ -207,10 +223,18 @@
                     Id = $"ProcessedMessages/{context.Headers.ProcessingId()}"
                 };
 
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Emitting {commandsToEmit.Count} commands");
+                }
                 foreach (var commandToEmit in commandsToEmit)
                 {
                     await messageSession.Send(commandToEmit)
                         .ConfigureAwait(false);
+                }
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"{commandsToEmit.Count} commands emitted.");
                 }
 
                 context.Extensions.Set(auditMessage);
