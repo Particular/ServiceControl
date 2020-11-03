@@ -265,11 +265,18 @@ namespace ServiceControl.Audit.Auditing
                     enricher.Enrich(enricherContext);
                 }
 
-                bodyStorageEnricher.StoreAuditMessageBody(context.Body, context.Headers, messageData);
+                var processingStartedTicks =
+                    context.Headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue)
+                        ? DateTimeExtensions.ToUtcDateTime(processingStartedValue).Ticks
+                        : DateTime.UtcNow.Ticks;
+
+                var documentId = $"{processingStartedTicks}-{context.Headers.ProcessingId()}";
+
+                bodyStorageEnricher.StoreAuditMessageBody(documentId, context.Body, context.Headers, messageData);
 
                 var auditMessage = new ProcessedMessage(context.Headers, messageData)
                 {
-                    Id = $"ProcessedMessages/{context.Headers.ProcessingId()}"
+                    Id = $"ProcessedMessages/{documentId}"
                 };
 
                 foreach (var commandToEmit in commandsToEmit)

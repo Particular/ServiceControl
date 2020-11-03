@@ -25,7 +25,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
             var metadata = new ProcessedMessageData();
 
-            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            enricher.StoreAuditMessageBody("ID", body, new Dictionary<string, string>(), metadata);
 
             Assert.IsNull(metadata.Body);
         }
@@ -44,7 +44,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var metadata = new ProcessedMessageData();
             var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary"}};
 
-            enricher.StoreAuditMessageBody(body, headers, metadata);
+            enricher.StoreAuditMessageBody("ID", body, headers, metadata);
 
             Assert.IsNull(metadata.Body);
         }
@@ -63,7 +63,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new ProcessedMessageData();
 
-            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            enricher.StoreAuditMessageBody("ID", body, new Dictionary<string, string>(), metadata);
 
             Assert.AreEqual(body, metadata.Body);
         }
@@ -82,7 +82,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new ProcessedMessageData();
 
-            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            enricher.StoreAuditMessageBody("ID", body, new Dictionary<string, string>(), metadata);
 
             Assert.IsNull(metadata.Body);
         }
@@ -102,7 +102,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var metadata = new ProcessedMessageData();
             var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary"}};
 
-            enricher.StoreAuditMessageBody(body, headers, metadata);
+            enricher.StoreAuditMessageBody("ID", body, headers, metadata);
 
             Assert.IsNull(metadata.Body);
         }
@@ -121,7 +121,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new ProcessedMessageData();
 
-            enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            enricher.StoreAuditMessageBody("ID", body, new Dictionary<string, string>(), metadata);
 
             Assert.IsNull(metadata.Body);
         }
