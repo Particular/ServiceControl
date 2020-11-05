@@ -13,8 +13,9 @@ namespace ServiceControl.Infrastructure.RavenDB
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
+    using Raven.Client.ServerWide;
+    using Raven.Client.ServerWide.Operations;
 
     public class EmbeddedDatabase : IDisposable
     {
@@ -46,6 +47,9 @@ namespace ServiceControl.Infrastructure.RavenDB
             }
 
             commandLineArgs.Add($"--Server.MaxTimeForTaskToWaitForDatabaseToLoadInSec={(int)TimeSpan.FromDays(1).TotalSeconds}");
+            
+            // HINT: Needed for document compression
+            commandLineArgs.Add("Features.Availability=Experimental");
 
             var highestUsableNetCoreRuntime = NetCoreRuntime.FindAll()
                 .Where(x => x.Runtime == "Microsoft.NETCore.App")
@@ -67,17 +71,12 @@ namespace ServiceControl.Infrastructure.RavenDB
             return new EmbeddedDatabase(expirationProcessTimerInSecond);
         }
 
-        public async Task<IDocumentStore> PrepareDatabase(string name, params Assembly[] indexAssemblies)
+        public async Task<IDocumentStore> PrepareDatabase(DatabaseConfiguration config)
         {
-            return await PrepareDatabase(name, null, indexAssemblies).ConfigureAwait(false);
-        }
-
-        public async Task<IDocumentStore> PrepareDatabase(string name, Func<string, BlittableJsonReaderObject, string> findClrType = null, params Assembly[] indexAssemblies)
-        {
-            if (!preparedDocumentStores.TryGetValue(name, out var store))
+            if (!preparedDocumentStores.TryGetValue(config.Name, out var store))
             {
-                store = await InitializeDatabase(name, indexAssemblies, findClrType).ConfigureAwait(false);
-                preparedDocumentStores[name] = store;
+                store = await InitializeDatabase(config).ConfigureAwait(false);
+                preparedDocumentStores[config.Name] = store;
             }
             return store;
         }
@@ -94,25 +93,25 @@ namespace ServiceControl.Infrastructure.RavenDB
             }
         }
 
-        async Task<IDocumentStore> InitializeDatabase(string name, Assembly[] indexAssemblies,
-            Func<string, BlittableJsonReaderObject, string> findClrType)
+        async Task<IDocumentStore> InitializeDatabase(DatabaseConfiguration config)
         {
-            var dbOptions = new DatabaseOptions(name)
+            var dbOptions = new DatabaseOptions(config.Name)
             {
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
                 }
             };
-            if (findClrType != null)
+
+            if (config.FindClrType != null)
             {
-                dbOptions.Conventions.FindClrType += findClrType;
+                dbOptions.Conventions.FindClrType += config.FindClrType;
             }
 
             var documentStore =
                 await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions).ConfigureAwait(false);
 
-            foreach (var indexAssembly in indexAssemblies)
+            foreach (var indexAssembly in config.IndexAssemblies)
             {
                 await IndexCreation.CreateIndexesAsync(indexAssembly, documentStore).ConfigureAwait(false);
             }
@@ -128,7 +127,25 @@ namespace ServiceControl.Infrastructure.RavenDB
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
                 .ConfigureAwait(false);
 
+            if (config.EnableDocumentCompression)
+            {
+                await EnableDocumentCompression(documentStore, config.CollectionsToCompress)
+                .ConfigureAwait(false);
+            }
+
             return documentStore;
+        }
+
+        private async Task EnableDocumentCompression(IDocumentStore documentStore, IEnumerable<string> collectionsToCompress)
+        {
+            var record = await documentStore.Maintenance.Server.SendAsync(
+                new GetDatabaseRecordOperation(documentStore.Database)
+            ).ConfigureAwait(false);
+            
+            record.DocumentsCompression = new DocumentsCompressionConfiguration(true, collectionsToCompress.ToArray());
+
+            await documentStore.Maintenance.Server.SendAsync(new UpdateDatabaseOperation(record, record.Etag))
+                .ConfigureAwait(false);
         }
 
         public void Dispose()

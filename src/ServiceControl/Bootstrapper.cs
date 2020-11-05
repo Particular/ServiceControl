@@ -1,7 +1,3 @@
-using ServiceControl.Infrastructure.RavenDB;
-using ServiceControl.Infrastructure.RavenDB.Subscriptions;
-using ServiceControl.SagaAudit;
-
 namespace Particular.ServiceControl
 {
     using System;
@@ -21,6 +17,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Operations;
@@ -136,7 +133,7 @@ namespace Particular.ServiceControl
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            documentStore = await embeddedDatabase.PrepareDatabase("servicecontrol", LegacyDocumentConversion.ConventionsFindClrType, typeof(Bootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
+            documentStore = await embeddedDatabase.PrepareDatabase(new PrimaryInstanceDatabaseConfiguration()).ConfigureAwait(false);
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);

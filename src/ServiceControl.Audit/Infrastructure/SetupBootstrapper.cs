@@ -82,7 +82,7 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
 
-            var documentStore = await embeddedDatabase.PrepareDatabase("audit", typeof(SetupBootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
+            var documentStore = await embeddedDatabase.PrepareDatabase(new AuditDatabaseConfiguration()).ConfigureAwait(false);
             containerBuilder.Register(c => documentStore).ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();

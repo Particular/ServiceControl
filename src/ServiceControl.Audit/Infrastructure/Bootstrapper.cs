@@ -1,6 +1,5 @@
 using ServiceControl.Infrastructure;
 using ServiceControl.Infrastructure.RavenDB;
-using ServiceControl.SagaAudit;
 
 namespace ServiceControl.Audit.Infrastructure
 {
@@ -136,7 +135,7 @@ namespace ServiceControl.Audit.Infrastructure
         public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
-            documentStore = await embeddedDatabase.PrepareDatabase("audit", typeof(Bootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
+            documentStore = await embeddedDatabase.PrepareDatabase(new AuditDatabaseConfiguration()).ConfigureAwait(false);
 
             bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
