@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Infrastructure;
     using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
 
@@ -30,10 +31,13 @@
         {
             try
             {
+                logger.Debug("Ensure started. Start/stop semaphore acquiring");
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                logger.Debug("Ensure started. Start/stop semaphore acquired");
 
                 if (ingestionEndpoint != null)
                 {
+                    logger.Debug("Ensure started. Already started, skipping start up");
                     return; //Already started
                 }
 
@@ -43,16 +47,20 @@
 
                 rawConfiguration.CustomErrorHandlingPolicy(errorHandlingPolicy);
 
+                logger.Info("Ensure started. Infrastructure starting");
                 var startableRaw = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
                 await initialize(startableRaw).ConfigureAwait(false);
 
                 ingestionEndpoint = await startableRaw.Start()
                     .ConfigureAwait(false);
+                logger.Info("Ensure started. Infrastructure started");
             }
             finally
             {
+                logger.Debug("Ensure started. Start/stop semaphore releasing");
                 startStopSemaphore.Release();
+                logger.Debug("Ensure started. Start/stop semaphore released");
             }
         }
 
@@ -62,19 +70,26 @@
         {
             try
             {
+                logger.Info("Shutting down. Start/stop semaphore acquiring");
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                logger.Info("Shutting down. Start/stop semaphore acquired");
 
                 if (ingestionEndpoint == null)
                 {
+                    logger.Info("Shutting down. Already stopped, skipping shut down");
                     return; //Already stopped
                 }
                 var stoppable = ingestionEndpoint;
                 ingestionEndpoint = null;
+                logger.Info("Shutting down. Infrastructure shut down commencing");
                 await stoppable.Stop().ConfigureAwait(false);
+                logger.Info("Shutting down. Infrastructure shut down completed");
             }
             finally
             {
+                logger.Info("Shutting down. Start/stop semaphore releasing");
                 startStopSemaphore.Release();
+                logger.Info("Shutting down. Start/stop semaphore released");
             }
         }
 
@@ -86,5 +101,7 @@
         IErrorHandlingPolicy errorHandlingPolicy;
         Func<string, Exception, Task> onCriticalError;
         IReceivingRawEndpoint ingestionEndpoint;
+
+        static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
     }
 }
