@@ -76,7 +76,7 @@
 
                         if (Logger.IsDebugEnabled)
                         {
-                            Logger.Debug($"Adding message for bulk storage");
+                            Logger.Debug($"Adding audit message for bulk storage");
                         }
                         await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
                         storedContexts.Add(context);
@@ -85,7 +85,7 @@
                     {
                         if (Logger.IsDebugEnabled)
                         {
-                            Logger.Debug($"Adding message for bulk storage");
+                            Logger.Debug($"Adding SagaSnapshot message for bulk storage");
                         }
                         await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
                         storedContexts.Add(context);
