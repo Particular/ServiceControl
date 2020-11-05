@@ -1,5 +1,6 @@
 using System.IO;
 using NServiceBus.Logging;
+using Sparrow.Json;
 
 namespace ServiceControl.Infrastructure.RavenDB
 {
@@ -68,9 +69,14 @@ namespace ServiceControl.Infrastructure.RavenDB
 
         public async Task<IDocumentStore> PrepareDatabase(string name, params Assembly[] indexAssemblies)
         {
+            return await PrepareDatabase(name, null, indexAssemblies).ConfigureAwait(false);
+        }
+
+        public async Task<IDocumentStore> PrepareDatabase(string name, Func<string, BlittableJsonReaderObject, string> findClrType = null, params Assembly[] indexAssemblies)
+        {
             if (!preparedDocumentStores.TryGetValue(name, out var store))
             {
-                store = await InitializeDatabase(name, indexAssemblies).ConfigureAwait(false);
+                store = await InitializeDatabase(name, indexAssemblies, findClrType).ConfigureAwait(false);
                 preparedDocumentStores[name] = store;
             }
             return store;
@@ -88,7 +94,8 @@ namespace ServiceControl.Infrastructure.RavenDB
             }
         }
 
-        async Task<IDocumentStore> InitializeDatabase(string name, Assembly[] indexAssemblies)
+        async Task<IDocumentStore> InitializeDatabase(string name, Assembly[] indexAssemblies,
+            Func<string, BlittableJsonReaderObject, string> findClrType)
         {
             var dbOptions = new DatabaseOptions(name)
             {
@@ -97,6 +104,10 @@ namespace ServiceControl.Infrastructure.RavenDB
                     SaveEnumsAsIntegers = true
                 }
             };
+            if (findClrType != null)
+            {
+                dbOptions.Conventions.FindClrType += findClrType;
+            }
 
             var documentStore =
                 await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions).ConfigureAwait(false);

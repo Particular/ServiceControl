@@ -15,7 +15,9 @@
         protected override void PreInitialize(IDocumentStore documentStore)
         {
             base.PreInitialize(documentStore);
+            documentStore.Conventions.FindClrType += LegacyDocumentConversion.ConventionsFindClrType;
             LegacyDocumentConversion.Install(documentStore);
+
         }
 
         [TestCase("NServiceBus.Subscription, NServiceBus.Core")]

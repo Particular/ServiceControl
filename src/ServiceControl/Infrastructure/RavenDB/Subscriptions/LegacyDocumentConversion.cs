@@ -12,33 +12,31 @@
         {
             store.OnBeforeConversionToDocument += BeforeConversionToDocument;
             store.OnAfterConversionToEntity += StoreOnOnAfterConversionToEntity;
+        }
 
-            //TODO:RAVEN5 'move this' to EmbeddedDatabase InitializeDatabase. This is only relevant to main sc instance and uses type from SC.dll
-            // store.Conventions.FindClrType = (id, doc) =>
-            // {
-            //     if (doc.TryGet(Constants.Documents.Metadata.Key, out BlittableJsonReaderObject metadata) &&
-            //         metadata.TryGet(Constants.Documents.Metadata.RavenClrType, out string clrType))
-            //     {
-            //         // The CLR type cannot be assumed to be always there
-            //         if (clrType == null)
-            //         {
-            //             return null;
-            //         }
-            //
-            //         if (clrType.EndsWith(".Subscription, NServiceBus.Core"))
-            //         {
-            //             clrType = $"{typeof(Subscription).FullName}, {typeof(Subscription).Assembly.GetName().Name}";
-            //         }
-            //         else if (clrType.EndsWith(".Subscription, NServiceBus.RavenDB"))
-            //         {
-            //             clrType = $"{typeof(Subscription).FullName}, {typeof(Subscription).Assembly.GetName().Name}";
-            //         }
-            //
-            //         return clrType;
-            //     }
-            //
-            //     return null;
-            // };
+        public static string ConventionsFindClrType(string id, BlittableJsonReaderObject doc)
+        {
+            if (doc.TryGet(Constants.Documents.Metadata.Key, out BlittableJsonReaderObject metadata) && metadata.TryGet(Constants.Documents.Metadata.RavenClrType, out string clrType))
+            {
+                // The CLR type cannot be assumed to be always there
+                if (clrType == null)
+                {
+                    return null;
+                }
+
+                if (clrType.EndsWith(".Subscription, NServiceBus.Core"))
+                {
+                    clrType = $"{typeof(Subscription).FullName}, {typeof(Subscription).Assembly.GetName().Name}";
+                }
+                else if (clrType.EndsWith(".Subscription, NServiceBus.RavenDB"))
+                {
+                    clrType = $"{typeof(Subscription).FullName}, {typeof(Subscription).Assembly.GetName().Name}";
+                }
+
+                return clrType;
+            }
+
+            return null;
         }
 
         private static void StoreOnOnAfterConversionToEntity(object sender, AfterConversionToEntityEventArgs e)

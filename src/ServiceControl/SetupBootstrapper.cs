@@ -1,4 +1,5 @@
 using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 using ServiceControl.SagaAudit;
 
 namespace Particular.ServiceControl
@@ -58,7 +59,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
             containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = await embeddedDatabase.PrepareDatabase("servicecontrol",typeof(SetupBootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
+            var documentStore = await embeddedDatabase.PrepareDatabase("servicecontrol", LegacyDocumentConversion.ConventionsFindClrType, typeof(SetupBootstrapper).Assembly, typeof(SagaInfo).Assembly).ConfigureAwait(false);
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterAssemblyTypes(GetType().Assembly).AssignableTo<IAbstractIndexCreationTask>().As<IAbstractIndexCreationTask>();
@@ -79,7 +80,7 @@ namespace Particular.ServiceControl
                     log.Error(errorMessageForLicenseText);
                     return false;
                 }
-                
+
                 if (!LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
                 {
                     log.Error(importErrorMessage);
