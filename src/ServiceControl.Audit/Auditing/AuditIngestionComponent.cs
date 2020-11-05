@@ -55,7 +55,7 @@
             failedImporter = new ImportFailedAudits(documentStore, ingestor, rawEndpointFactory);
 
             watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, ingestionState.ReportError,
-                ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, log, "failed message ingestion");
+                ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, log, "audit message ingestion");
 
             channel = Channel.CreateBounded<MessageContext>(new BoundedChannelOptions(settings.MaximumConcurrencyLevel)
             {
@@ -78,6 +78,7 @@
 
         Task OnCriticalError(string failure, Exception arg2)
         {
+            log.Warn($"OnCriticalError. '{failure}'", arg2);
             return watchdog.OnFailure(failure);
         }
 

@@ -19,14 +19,26 @@
 
         public async Task Ingest(List<MessageContext> contexts)
         {
+            if (log.IsDebugEnabled)
+            {
+                log.Debug($"Ingesting {contexts.Count} message contexts");
+            }
             var stored = await auditPersister.Persist(contexts).ConfigureAwait(false);
 
             try
             {
                 if (settings.ForwardAuditMessages)
                 {
+                    if (log.IsDebugEnabled)
+                    {
+                        log.Debug($"Forwarding {contexts.Count} messages");
+                    }
                     await Forward(stored, settings.AuditLogQueue)
                         .ConfigureAwait(false);
+                    if (log.IsDebugEnabled)
+                    {
+                        log.Debug($"Forwarded messages");
+                    }
                 }
 
                 foreach (var context in stored)
@@ -36,6 +48,11 @@
             }
             catch (Exception e)
             {
+                if (log.IsDebugEnabled)
+                {
+                    log.Debug($"Forwarding messages failed");
+                }
+
                 // in case forwarding throws
                 foreach (var context in stored)
                 {
