@@ -1,4 +1,5 @@
-﻿using ServiceControl.Infrastructure;
+﻿using Raven.Client.Documents.BulkInsert;
+using ServiceControl.Infrastructure;
 
 namespace ServiceControl.Audit.Auditing
 {
@@ -117,16 +118,7 @@ namespace ServiceControl.Audit.Auditing
                     }
                 }
 
-                foreach (var endpoint in knownEndpoints.Values)
-                {
-                    await bulkInsert.StoreAsync(
-                        endpoint, 
-                        new MetadataAsDictionary(new Dictionary<string, object>
-                        {
-                            [Constants.Documents.Metadata.Expires] = endpoint.LastSeen.Add(auditRetentionPeriod).ToString("O")
-                        })
-                    ).ConfigureAwait(false);
-                }
+                await StoreKnownEndpoints(knownEndpoints, bulkInsert).ConfigureAwait(false);
 
                 using (bulkInsertCommitDurationMeter.Measure())
                 {
@@ -157,6 +149,29 @@ namespace ServiceControl.Audit.Auditing
             }
 
             return storedContexts;
+        }
+
+        async Task StoreKnownEndpoints(Dictionary<string, KnownEndpoint> knownEndpoints, BulkInsertOperation bulkInsert)
+        {
+            foreach (var endpoint in knownEndpoints)
+            {
+                if (endpointInfoPersistTimes.TryGetValue(endpoint.Key, out var timePersisted) 
+                    && timePersisted.AddSeconds(30) > DateTime.UtcNow)
+                {
+                    //Only store endpoint if it has not been stored in last 30 seconds
+                    continue;
+                }
+
+                await bulkInsert.StoreAsync(
+                    endpoint.Value,
+                    new MetadataAsDictionary(new Dictionary<string, object>
+                    {
+                        [Constants.Documents.Metadata.Expires] = endpoint.Value.LastSeen.Add(auditRetentionPeriod).ToString("O")
+                    })
+                ).ConfigureAwait(false);
+
+                endpointInfoPersistTimes[endpoint.Key] = DateTime.UtcNow;
+            }
         }
 
         MetadataAsDictionary GetExpirationMetadata()
@@ -297,6 +312,7 @@ namespace ServiceControl.Audit.Auditing
         readonly Meter bulkInsertCommitDurationMeter;
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        readonly Dictionary<string, DateTime> endpointInfoPersistTimes = new Dictionary<string, DateTime>();
         IMessageSession messageSession;
         static readonly RecyclableMemoryStreamManager memoryStreamManager = new RecyclableMemoryStreamManager();
         static ILog Logger = LogManager.GetLogger<AuditPersister>();
