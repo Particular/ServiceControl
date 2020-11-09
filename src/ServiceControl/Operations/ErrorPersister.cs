@@ -60,16 +60,17 @@
 
             var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-            await SaveToDb(message.Headers.UniqueId(), processingAttempt, groups)
+            var uniqueMessageId = message.Headers.UniqueId();
+            await SaveToDb(uniqueMessageId, processingAttempt, groups)
                 .ConfigureAwait(false);
 
             if (message.Body.Length > 0)
             {
-                using (var stream = new MemoryStream(message.Body))
+                using (var stream = Memory.Manager.GetStream(uniqueMessageId, message.Body, 0, message.Body.Length))
                 {
                     await store.Operations.SendAsync(
                         new PutAttachmentOperation(
-                            FailedMessage.MakeDocumentId(message.Headers.UniqueId()),
+                            FailedMessage.MakeDocumentId(uniqueMessageId),
                             "body",
                             stream,
                             (string)metadata["ContentType"])
