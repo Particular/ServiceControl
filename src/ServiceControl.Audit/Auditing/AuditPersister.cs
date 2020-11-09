@@ -87,7 +87,7 @@ namespace ServiceControl.Audit.Auditing
                             await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata())
                                 .ConfigureAwait(false);
 
-                            using (var stream = memoryStreamManager.GetStream(Guid.NewGuid(), processedMessage.Id, context.Body, 0, context.Body.Length))
+                            using (var stream = Memory.Manager.GetStream(Guid.NewGuid(), processedMessage.Id, context.Body, 0, context.Body.Length))
                             {
                                 if (processedMessage.MessageMetadata.ContentType != null)
                                 {
@@ -178,7 +178,7 @@ namespace ServiceControl.Audit.Auditing
         {
             return new MetadataAsDictionary
             {
-                [Raven.Client.Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
+                [Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
             };
         }
 
@@ -219,8 +219,8 @@ namespace ServiceControl.Audit.Auditing
             try
             {
                 SagaUpdatedMessage message;
-                using (var stream = memoryStreamManager.GetStream(Guid.NewGuid(), context.MessageId, context.Body, 0, context.Body.Length))
-                using (var streamReader = new StreamReader(stream))
+                using (var memoryStream = Memory.Manager.GetStream(context.MessageId, context.Body, 0, context.Body.Length))
+                using (var streamReader = new StreamReader(memoryStream))
                 using (var reader = new JsonTextReader(streamReader))
                 {
                     message = sagaAuditSerializer.Deserialize<SagaUpdatedMessage>(reader);
@@ -314,7 +314,6 @@ namespace ServiceControl.Audit.Auditing
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         readonly Dictionary<string, DateTime> endpointInfoPersistTimes = new Dictionary<string, DateTime>();
         IMessageSession messageSession;
-        static readonly RecyclableMemoryStreamManager memoryStreamManager = new RecyclableMemoryStreamManager();
         static ILog Logger = LogManager.GetLogger<AuditPersister>();
     }
 }
