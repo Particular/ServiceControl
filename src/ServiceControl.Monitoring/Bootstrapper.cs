@@ -68,6 +68,8 @@
 
             config.GetSettings().Set(settings);
 
+            config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
+
             config.UseSerialization<NewtonsoftSerializer>();
             config.UsePersistence<InMemoryPersistence>();
             config.SendFailedMessagesTo(settings.ErrorQueue);
