@@ -1,5 +1,3 @@
-using ServiceControl.Monitoring.Infrastructure.Settings;
-
 namespace ServiceControl.Monitoring
 {
     using System;
@@ -10,6 +8,7 @@ namespace ServiceControl.Monitoring
     using System.Threading.Tasks;
     using NLog;
     using Transports;
+    using ServiceControl.Monitoring.Infrastructure.Settings;
 
     //TODO: align names with SC and SC.Audit
     public class Settings
@@ -27,9 +26,9 @@ namespace ServiceControl.Monitoring
             HttpPort = SettingsReader<string>.Read("HttpPort");
             EndpointName = SettingsReader<string>.Read("EndpointName");
             EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("EndpointUptimeGracePeriod", "00:00:40"));
-            MaximumConcurrencyLevel = 10;
+            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 32);
         }
-        
+
         public string EndpointName
         {
             get { return endpointName ?? ServiceName; }
@@ -119,14 +118,14 @@ namespace ServiceControl.Monitoring
             {"NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"},
             {"ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"},
             {"ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"},
-            
+
             //ASQ
             {"NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues", "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ"},
             {"ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport, ServiceControl.Transports.AzureStorageQueues", "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ"},
 
             //ASB NetStandard
             {"ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus", "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"},
-            
+
             //ASB
             {"NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB"},
             {"ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB"},
