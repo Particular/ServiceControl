@@ -30,28 +30,32 @@
 
         private static async Task<List<Release>> GetVersionInformation()
         {
-            var handler = new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            };
-
             try
             {
-                using (var httpClient = new HttpClient(handler))
-                {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                // TODO: move this to some sort of configuration file/storage?
+                var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt").ConfigureAwait(false);
 
-                    // TODO: move this to some sort of configuration file/storage?
-                    var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt").ConfigureAwait(false);
-
-                    return JsonConvert.DeserializeObject<List<Release>>(json);
-                }
+                return JsonConvert.DeserializeObject<List<Release>>(json);
             }
             catch
             {
                 return null;
             }
         }
+
+        private static readonly HttpClient httpClient = new HttpClient(new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        })
+        {
+            DefaultRequestHeaders =
+            {
+                Accept =
+                {
+                    new MediaTypeWithQualityHeaderValue("application/json"),
+                }
+            }
+        };
 
         public class Release
         {
