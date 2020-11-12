@@ -47,7 +47,7 @@
                     return JsonConvert.DeserializeObject<List<Release>>(json);
                 }
             }
-            catch (Exception)
+            catch
             {
                 return null;
             }
