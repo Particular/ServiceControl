@@ -46,7 +46,7 @@ namespace ServiceControl.Monitoring
                 HttpPort = reader.Read<string>("Monitoring/HttpPort"),
                 EndpointName = reader.Read<string>("Monitoring/EndpointName"),
                 EndpointUptimeGracePeriod = TimeSpan.Parse(reader.Read("Monitoring/EndpointUptimeGracePeriod", "00:00:40")),
-                MaximumConcurrencyLevel = reader.Read<int>("Monitoring/MaximumConcurrencyLevel")
+                MaximumConcurrencyLevel = reader.Read<int>("Monitoring/MaximumConcurrencyLevel", 32)
             };
             return settings;
         }
