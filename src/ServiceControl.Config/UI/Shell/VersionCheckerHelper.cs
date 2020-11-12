@@ -13,33 +13,28 @@
     {
         public static async Task<Release> GetLatestRelease(string currentVersion)
         {
-            Version current = new Version(currentVersion);
-            List<Release> releases = await GetVersionInformation().ConfigureAwait(false);
+            var currentRelease = new Release(new Version(currentVersion));
 
-            if (releases != null)
-            {
-                Release topversion = releases.Select(t => (t.Version, t)).Max().t;
+            List<Release> allReleasesIncludingCurrent = await GetVersionInformation(currentRelease)
+                .ConfigureAwait(false);
 
-                if (topversion.Version > current)
-                    return topversion;
-            }
-
-            // we have no release available
-            return new Release(current);
+            return allReleasesIncludingCurrent.Select(t => (t.Version, t)).Max().t;
         }
 
-        private static async Task<List<Release>> GetVersionInformation()
+        private static async Task<List<Release>> GetVersionInformation(Release current)
         {
             try
             {
                 // TODO: move this to some sort of configuration file/storage?
                 var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt").ConfigureAwait(false);
 
-                return JsonConvert.DeserializeObject<List<Release>>(json);
+                var releases = JsonConvert.DeserializeObject<List<Release>>(json) ?? new List<Release>();
+                releases.Add(current);
+                return releases;
             }
             catch
             {
-                return null;
+                return new List<Release> { current };
             }
         }
 
