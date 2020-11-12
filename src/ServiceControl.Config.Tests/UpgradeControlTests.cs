@@ -11,12 +11,12 @@
         [Test, Explicit]
         public async Task GetUpgradeInfoForTargetVersionSameMajor()
         {
-            Version current = new Version("4.0.1");
+            Version current = new Version("4.13.3");
 
             var releaseDetails = await VersionCheckerHelper.GetLatestRelease(current.ToString()).ConfigureAwait(false);
 
             Assert.IsNotNull(releaseDetails, "Failed to get a release details");
-            Assert.IsTrue(current < releaseDetails.Version, "Got a lower version than current");
+            Assert.That(releaseDetails.Version, Is.GreaterThanOrEqualTo(current), "Got a lower version than current");
         }
     }
 }
