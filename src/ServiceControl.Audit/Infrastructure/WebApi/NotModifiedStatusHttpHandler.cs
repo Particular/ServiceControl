@@ -26,7 +26,7 @@
 
             if (ifNoneMatch || ifNotModifiedSince)
             {
-                return Get304ResponseMessage(responseHeaders, response.Content.Headers.LastModified, request);
+                return Get304ResponseMessage(responseHeaders, response.Content?.Headers?.LastModified, request);
             }
 
             return response;
@@ -47,19 +47,15 @@
             return lastModified <= ifModifiedSince;
         }
 
-
+        // currently lastModified is not supported without returning a content which would violate the HTTP spec
+        // it can be resurrected once ASP.NET Core is in place.
         static HttpResponseMessage Get304ResponseMessage(HttpResponseHeaders responseHeaders, DateTimeOffset? lastModified, HttpRequestMessage request)
         {
-            var response = request.CreateResponse(HttpStatusCode.NotModified, "");
+            var response = request.CreateResponse(HttpStatusCode.NotModified);
 
             if (responseHeaders.ETag.Tag != null)
             {
                 response.Headers.ETag = responseHeaders.ETag;
-            }
-
-            if (lastModified != null)
-            {
-                response.Content.Headers.LastModified = lastModified;
             }
 
             return response;
