@@ -16,10 +16,14 @@
             Version current = new Version(currentVersion);
             List<Release> releases = await GetVersionInformation().ConfigureAwait(false);
 
-            Release topversion = releases.Select(t => (t.Version, t)).Max().t;
-            
-            if (topversion.Version > current)
-                return topversion;
+            if (releases != null)
+            {
+                Release topversion = releases.Select(t => (t.Version, t)).Max().t;
+
+                if (topversion.Version > current)
+                    return topversion;
+            }
+
             // we have no release available
             return new Release(current);
         }
@@ -31,14 +35,21 @@
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
             };
 
-            using (var httpClient = new HttpClient(handler))
+            try
             {
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                
-                // TODO: move this to some sort of configuration file/storage?
-                var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt").ConfigureAwait(false);
+                using (var httpClient = new HttpClient(handler))
+                {
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                return JsonConvert.DeserializeObject<List<Release>>(json);
+                    // TODO: move this to some sort of configuration file/storage?
+                    var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt").ConfigureAwait(false);
+
+                    return JsonConvert.DeserializeObject<List<Release>>(json);
+                }
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
 
