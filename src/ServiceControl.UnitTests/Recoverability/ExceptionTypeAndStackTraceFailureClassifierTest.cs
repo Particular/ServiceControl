@@ -77,6 +77,23 @@
         }
 
         [Test]
+        public void Stack_with_source_code_path_starting_with_forward_slash_should_parse_correctly()
+        {
+            const string stackTrace = @"SomeException: Some error message
+at Custom.Handlers.MyHandler.Handle(MyMessage message, IMessageHandlerContext context) in /source/Handlers/MyHandler.cs:line 32
+at NServiceBus.InvokeHandlerTerminator.Terminate(IInvokeHandlerContext context)
+at NServiceBus.SagaAudit.AuditInvokedSagaBehavior.Invoke(IInvokeHandlerContext context, Func`1 next)
+at NServiceBus.SagaPersistenceBehavior.Invoke(IInvokeHandlerContext context, Func`2 next)";
+
+            var classifier = new ExceptionTypeAndStackTraceFailureClassifier();
+            var standardStackTrace = CreateFailureDetailsWithStackTrace(stackTrace);
+
+            var classification = classifier.ClassifyFailure(standardStackTrace);
+            Assert.AreEqual(@"exceptionType: Custom.Handlers.MyHandler.Handle(MyMessage message, IMessageHandlerContext context)", classification);
+        }
+
+
+        [Test]
         public void Standard_stack_trace_format_should_group_by_exception_type_and_first_stack_frame()
         {
             const string stackTrace = @"at System.Environment.GetStackTrace(Exception e)
