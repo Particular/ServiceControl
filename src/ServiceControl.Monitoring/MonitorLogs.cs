@@ -106,6 +106,6 @@ Selected Transport:					{settings.TransportType}
 
         const long MegaByte = 1073741824;
 
-        const string LogLevelKey = "Monitoring/LogLevel";
+        const string LogLevelKey = "LogLevel";
     }
 }
