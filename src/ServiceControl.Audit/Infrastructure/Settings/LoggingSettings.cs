@@ -25,8 +25,8 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
-            var levelText = SettingsReader<string>.Read("ServiceControl.Audit", key);
-            if (!string.IsNullOrWhiteSpace(levelText))
+            var levelText = SettingsReader<string>.Read(key);
+            if (string.IsNullOrWhiteSpace(levelText))
             {
                 return defaultLevel;
             }
