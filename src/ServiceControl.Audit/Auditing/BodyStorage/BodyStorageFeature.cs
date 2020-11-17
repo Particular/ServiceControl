@@ -26,7 +26,7 @@
                 this.settings = settings;
             }
 
-            public void StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, ProcessedMessageData metadata)
+            public void StoreAuditMessageBody(string documentId, byte[] body, IReadOnlyDictionary<string, string> headers, ProcessedMessageData metadata)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.ContentLength = bodySize;
@@ -38,7 +38,7 @@
                 var contentType = GetContentType(headers, "text/xml");
                 metadata.ContentType = contentType;
 
-                TryStoreBody(body, headers, metadata, bodySize, contentType);
+                TryStoreBody(documentId, body, headers, metadata, bodySize, contentType);
             }
 
             static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
@@ -51,10 +51,10 @@
                 return contentType;
             }
 
-            void TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, ProcessedMessageData metadata, int bodySize, string contentType)
+            void TryStoreBody(string documentId, byte[] body, IReadOnlyDictionary<string, string> headers,
+                ProcessedMessageData metadata, int bodySize, string contentType)
             {
-                var bodyId = headers.ProcessingId();
-                var bodyUrl = $"/messages/{bodyId}/body";
+                var bodyUrl = $"/messages/{documentId}/body";
                 var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;

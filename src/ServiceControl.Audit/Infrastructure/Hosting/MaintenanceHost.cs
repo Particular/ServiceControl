@@ -36,7 +36,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             logger.Info($"RavenDB is now accepting requests on {settings.StorageUrl}");
 
             embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
-            await embeddedDatabase.PrepareDatabase("audit").ConfigureAwait(false);
+            await embeddedDatabase.PrepareDatabase(new AuditDatabaseConfiguration()).ConfigureAwait(false);
         }
 
         public Action OnStopping { get; set; }

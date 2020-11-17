@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Audit.Monitoring;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -82,7 +83,7 @@
 
         async Task CreateKnownEndpoint(KnownEndpoint knownEndpoint, DateTime expiry)
         {
-            var store = await Database.PrepareDatabase("audit");
+            var store = await Database.PrepareDatabase(new AuditDatabaseConfiguration());
             using (var session = store.OpenAsyncSession())
             {
                 await session.StoreAsync(knownEndpoint);
@@ -94,7 +95,7 @@
 
         async Task<object> GetKnownEndpointExpiry(KnownEndpoint knownEndpoint)
         {
-            var store = await Database.PrepareDatabase("audit");
+            var store = await Database.PrepareDatabase(new AuditDatabaseConfiguration());
             using (var session = store.OpenAsyncSession())
             {
                 var loaded = await session.LoadAsync<KnownEndpoint>(knownEndpoint.Id);

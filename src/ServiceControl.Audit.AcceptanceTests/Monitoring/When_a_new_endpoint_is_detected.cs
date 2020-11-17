@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using Audit.Monitoring;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -41,7 +42,7 @@
                         return false;
                     }
 
-                    var store = Database.PrepareDatabase("audit").GetAwaiter().GetResult();
+                    var store = Database.PrepareDatabase(new AuditDatabaseConfiguration()).GetAwaiter().GetResult();
 
                     using (var session = store.OpenSession())
                     {

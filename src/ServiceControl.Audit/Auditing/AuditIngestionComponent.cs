@@ -117,10 +117,20 @@ namespace ServiceControl.Audit.Auditing
                 // will only enter here if there is something to read.
                 try
                 {
-                    // as long as there is something to read this will fetch up to MaximumConcurrency items
-                    while (channel.Reader.TryRead(out var context))
+
+                    for (var attempts = 0; attempts <= 3; attempts++)
                     {
-                        contexts.Add(context);
+                        // as long as there is something to read this will fetch up to MaximumConcurrency items
+                        while (channel.Reader.TryRead(out var context))
+                        {
+                            contexts.Add(context);
+                        }
+
+                        if (contexts.Count < settings.MaximumConcurrencyLevel)
+                        {
+                            await Task.Delay(5)
+                                .ConfigureAwait(false);
+                        }
                     }
 
                     batchSizeMeter.Mark(contexts.Count);
