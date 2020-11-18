@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EventLog.Definitions
+namespace ServiceControl.EventLog.Definitions
 {
     using Recoverability;
 
