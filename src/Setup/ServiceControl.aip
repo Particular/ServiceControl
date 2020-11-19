@@ -142,7 +142,7 @@
     <ROW Name="CUSTOMACTIONS_PATH" Path="..\ServiceControlInstaller.CustomActions\bin\Release\net40" Type="2" Content="0"/>
     <ROW Name="POSH_PATH" Path="..\ServiceControlInstaller.PowerShell\bin\Release\net40" Type="2" Content="0"/>
     <ROW Name="PROJECT_PATH" Path="." Type="2" Content="0"/>
-    <ROW Name="WPF_PATH" Path="..\ServiceControl.Config\bin\Release\net462" Type="2" Content="0"/>
+    <ROW Name="WPF_PATH" Path="..\ServiceControl.Config\bin\Release\net472" Type="2" Content="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="hq" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites"/>
@@ -319,6 +319,8 @@
     <ROW Feature_="ServiceControlManagment" Component_="Caliburn.Micro.Platform.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Caliburn.Micro.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="FluentValidation.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Ionic.Zip.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Ionic.Zip.dll_1"/>
     <ROW Feature_="ServiceControlManagment" Component_="Microsoft.WindowsAPICodePack.Shell.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Microsoft.WindowsAPICodePack.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Mindscape.Raygun4Net.dll"/>
@@ -379,11 +381,11 @@
     <ROW Action="AI_GetArpIconPath" Sequence="1401"/>
     <ROW Action="RemoveFromPSModuleEnvironmentVar" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="6402"/>
     <ROW Action="AddToPSModuleEnvironmentVar" Condition="( NOT Installed )" Sequence="6401"/>
-    <ROW Action="AI_AppSearchEx" Sequence="102"/>
-    <ROW Action="AI_DetectSoftware" Sequence="101"/>
+    <ROW Action="AI_DetectSoftware" Sequence="102"/>
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>
     <ROW Action="AI_ExtractFiles" Sequence="1399" Builds="DefaultBuild"/>
     <ROW Action="AI_DATA_SETTER" Sequence="1398"/>
+    <ROW Action="AI_AppSearchEx" Sequence="101"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
     <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="747"/>
@@ -393,9 +395,9 @@
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="103"/>
     <ROW Action="ExecuteAction" Sequence="1298" SeqType="0" MsiKey="ExecuteAction"/>
     <ROW Action="MaintenanceTypeDlg" Condition="AI_MAINT" Sequence="1250" SeqType="3" MsiKey="MaintenanceWelcomeDlg"/>
-    <ROW Action="AI_AppSearchEx" Sequence="102"/>
-    <ROW Action="AI_DetectSoftware" Sequence="101"/>
+    <ROW Action="AI_DetectSoftware" Sequence="102"/>
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>
+    <ROW Action="AI_AppSearchEx" Sequence="101"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
     <ROW Condition="( Version9X OR ( NOT VersionNT64 ) OR ( VersionNT64 AND ((VersionNT64 &lt;&gt; 600) OR (MsiNTProductType &lt;&gt; 1)) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT64Display]." DescriptionLocId="AI.LaunchCondition.NoSpecificNT64" IsPredefined="true" Builds="DefaultBuild"/>
@@ -425,8 +427,8 @@
     <ROW Registry="Publisher" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Publisher" Value="[Manufacturer]" Component_="AI_CustomARPName"/>
     <ROW Registry="URLInfoAbout" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLInfoAbout" Value="[ARPURLINFOABOUT]" Component_="AI_CustomARPName"/>
     <ROW Registry="URLUpdateInfo" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLUpdateInfo" Value="[ARPURLUPDATEINFO]" Component_="AI_CustomARPName"/>
-    <ROW Registry="UninstallPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallPath" Value="[AI_UNINSTALLER] /i [ProductCode]" Component_="AI_CustomARPName"/>
-    <ROW Registry="UninstallString" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallString" Value="[AI_UNINSTALLER] /i [ProductCode]" Component_="AI_CustomARPName"/>
+    <ROW Registry="UninstallPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallPath" Value="[AI_UNINSTALLER] /i [ProductCode] AI_UNINSTALLER_CTP=1" Component_="AI_CustomARPName"/>
+    <ROW Registry="UninstallString" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallString" Value="[AI_UNINSTALLER] /i [ProductCode] AI_UNINSTALLER_CTP=1" Component_="AI_CustomARPName"/>
     <ROW Registry="VersionMajor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMajor" Value="#1" Component_="AI_CustomARPName" VirtualValue="#"/>
     <ROW Registry="VersionMinor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMinor" Value="#6" Component_="AI_CustomARPName" VirtualValue="#"/>
     <ROW Registry="Version_1" Root="-1" Key="Software\ParticularSoftware\ServiceControl" Name="Version" Value="[ProductVersion]" Component_="REG_Version"/>
@@ -446,11 +448,11 @@
     <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqComponent">
-    <ROW PrereqKey="BB9062A4604BB61146D7C9AA49D" DisplayName=".NET Framework 4.6.2 (web installer)" SetupFileUrl="Prerequisites\.NET Framework 4.6.2\NDP462-KB3151802-Web.exe" Location="0" ExactSize="0" WinNTVersions="Windows Vista x86, Windows Server 2008 x86, Windows 7 RTM x86" WinNT64Versions="Windows Vista x64, Windows Server 2008 x64, Windows 7 RTM x64, Windows Server 2008 R2 RTM x64, Windows Server 2016 x64" Operator="1" Options="xymrR" TargetName=".NET Framework 4.6.2\NDP462-KB3151802-Web.exe"/>
-    <ATTRIBUTE name="PrereqsOrder" value="BB9062A4604BB61146D7C9AA49D"/>
+    <ROW PrereqKey="C676C2BD547E7A6181C255B343B7A" DisplayName=".NET Framework 4.7.2 (web installer)" SetupFileUrl="Prerequisites\.NET Framework 4.7.2\NDP472-KB4054531-Web.exe" Location="0" ExactSize="0" WinNTVersions="Windows Vista x86, Windows Server 2008 x86, Windows 7 RTM x86, Windows 10 version 1507 x86, Windows 10 version 1511 x86, Windows 10 version 1803 x86, Windows 10 version 1809 x86, Windows 10 version 1903 x86, Windows 10 version 1909 x86, Windows 10 version 2004 x86" WinNT64Versions="Windows Vista x64, Windows Server 2008 x64, Windows 7 RTM x64, Windows Server 2008 R2 RTM x64, Windows 10 version 1507 x64, Windows 10 version 1511 x64, Windows 10 version 1803 x64, Windows 10 version 1809 x64, Windows 10 version 1903 x64, Windows 10 version 1909 x64, Windows 10 version 2004 x64, Windows Server 2019 x64" Operator="1" NoUiComLine="/q /norestart" Options="xy" TargetName=".NET Framework 4.7.2\NDP472-KB4054531-Web.exe"/>
+    <ATTRIBUTE name="PrereqsOrder" value="C676C2BD547E7A6181C255B343B7A"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">
-    <ROW SearchKey="BB9062A4604BB61146D7C9AA49DRelease" Prereq="BB9062A4604BB61146D7C9AA49D" SearchType="9" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release" RefContent="G394253" Order="1" Property="PreReqSearch_BB9062A4604BB61146D7C9"/>
+    <ROW SearchKey="C676C2BD547E7A6181C255B343B7AReleas" Prereq="C676C2BD547E7A6181C255B343B7A" SearchType="9" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release" RefContent="G461813" Order="1" Property="PreReqSearch_C676C2BD547E7A6181C255"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.SynchronizedFolderComponent">
     <ROW Directory_="APPDIR" SourcePath="&lt;WPF_PATH&gt;" Feature="ServiceControlManagment" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store|\*|*.vshost.*" ExcludeFlags="6" FileAddOptions="4"/>
