@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.EventLog.Definitions
+namespace ServiceControl.EventLog.Definitions
 {
     using Recoverability;
 
@@ -6,7 +6,7 @@
     {
         public FailedMessageGroupArchivedDefinition()
         {
-            Description(m => $"Archived {m.MessagesCount} messages from group: {m.GroupName}");
+            Description(m => $"Deleted {m.MessagesCount} message(s) from group: {m.GroupName}");
             RelatesToGroup(m => m.GroupId);
         }
     }

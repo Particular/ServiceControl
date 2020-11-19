@@ -6,7 +6,7 @@
     {
         public FailedMessageArchivedDefinition()
         {
-            Description(m => "Failed message archived.");
+            Description(m => "Failed message deleted.");
 
             RelatesToMessage(m => m.FailedMessageId);
         }
