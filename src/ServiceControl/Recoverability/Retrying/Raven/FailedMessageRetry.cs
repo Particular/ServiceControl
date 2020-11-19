@@ -1,5 +1,7 @@
 namespace ServiceControl.Recoverability
 {
+    using System.Linq;
+
     public class FailedMessageRetry
     {
         public string Id { get; set; }
@@ -9,7 +11,7 @@ namespace ServiceControl.Recoverability
 
         public static string MakeDocumentId(string messageUniqueId)
         {
-            return CollectionName + "/" + messageUniqueId;
+            return CollectionName + "/" + messageUniqueId.Split('/').Last();
         }
 
         public const string CollectionName = "FailedMessageRetries";
