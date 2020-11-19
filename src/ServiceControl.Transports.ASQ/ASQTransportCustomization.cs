@@ -41,7 +41,7 @@
         {
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
-        
+
         static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
@@ -57,7 +57,6 @@
 
         static void ConfigureTransport(TransportExtensions<AzureStorageQueueTransport> transport, TransportSettings transportSettings)
         {
-            transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(transportSettings.ConnectionString);
 
