@@ -23,7 +23,7 @@ namespace Tests
                 CollectionAssert.IsNotEmpty(mainEntries, $"Expected a {deploymentPackage.ServiceName} folder in {deploymentPackage.FullName}");
 
                 CollectionAssert.IsEmpty(
-                    from mainEntry in mainEntries
+                    from mainEntry in mainEntries.Where(x => x.FullName.Contains("RavenDBServer") == false)
                     join entry in zip.Entries.Except(mainEntries) on mainEntry.Name equals entry.Name
                     where entry.Length != mainEntry.Length
                     select entry.FullName, 
