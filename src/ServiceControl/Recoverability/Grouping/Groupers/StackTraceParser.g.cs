@@ -14,7 +14,9 @@
 //
 #endregion
 
-namespace ServiceControl
+// ReSharper disable once CheckNamespace
+
+namespace ServiceControl.Recoverability
 {
     #region Imports
 
@@ -24,6 +26,8 @@ namespace ServiceControl
     using System.Text.RegularExpressions;
 
     #endregion
+
+    // ReSharper disable once PartialTypeWithSinglePart
 
     partial class StackTraceParser
     {
@@ -43,7 +47,9 @@ namespace ServiceControl
                 ( " + Space + @"+
                     ( # Microsoft .NET stack traces
                     \w+ " + Space + @"+
-                    (?<file> [a-z] \: .+? )
+                    (?<file> ( [a-z] \: # Windows rooted path starting with a drive letter
+                             | / )      # *nix rooted path starting with a forward-slash
+                             .+? )
                     \: \w+ " + Space + @"+
                     (?<line> [0-9]+ ) \p{P}?
                     | # Mono stack traces
@@ -76,6 +82,7 @@ namespace ServiceControl
             return Parse(text, (idx, len, txt) => txt,
                                (t, m) => new { Type = t, Method = m },
                                (pt, pn) => new KeyValuePair<string, string>(pt, pn),
+                               // ReSharper disable once PossibleMultipleEnumeration
                                (pl, ps) => new { List = pl, Items = ps },
                                (fn, ln) => new { File = fn, Line = ln },
                                (f, tm, p, fl) => selector(f, tm.Type, tm.Method, p.List, p.Items, fl.File, fl.Line));
