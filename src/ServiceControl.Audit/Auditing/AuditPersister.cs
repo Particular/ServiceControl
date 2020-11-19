@@ -16,6 +16,7 @@
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using Raven.Client.Document;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
@@ -43,10 +44,11 @@
             }
 
             var storedContexts = new List<MessageContext>(contexts.Count);
+            BulkInsertOperation bulkInsert = null;
             try
             {
                 // deliberately not using the using statement because we dispose async explicitly
-                var bulkInsert = store.BulkInsert(options: new BulkInsertOptions
+                bulkInsert = store.BulkInsert(options: new BulkInsertOptions
                 {
                     OverwriteExisting = true
                 });
@@ -100,12 +102,6 @@
                     }
                     await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
                 }
-
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"Performing bulk storage write");
-                }
-                await bulkInsert.DisposeAsync().ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -123,6 +119,16 @@
             }
             finally
             {
+                if (bulkInsert != null)
+                {
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.Debug($"Performing bulk session dispose");
+                    }
+
+                    await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                }
+
                 stopwatch.Stop();
                 if (Logger.IsDebugEnabled)
                 {
