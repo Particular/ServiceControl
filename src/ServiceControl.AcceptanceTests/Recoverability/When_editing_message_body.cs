@@ -11,7 +11,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using Raven.Abstractions.Extensions;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using TestSupport.EndpointTemplates;
