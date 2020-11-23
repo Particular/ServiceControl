@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="RavenDB.Client" Version="5.0.2" />
-    <PackageReference Include="RavenDB.Embedded" Version="5.0.2" />
+    <PackageReference Include="RavenDB.Client" Version="5.1.0" />
+    <PackageReference Include="RavenDB.Embedded" Version="5.1.0" />
     <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Include="NServiceBus" Version="7.4.2" />
   </ItemGroup>

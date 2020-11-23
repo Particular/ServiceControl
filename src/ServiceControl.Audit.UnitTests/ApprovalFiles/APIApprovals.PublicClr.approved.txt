@@ -1,3 +1,4 @@
+[assembly: System.Reflection.AssemblyMetadataAttribute("RepositoryUrl", "")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Audit.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Audit.UnitTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("ServiceControl.Loadtests.Reporter")]

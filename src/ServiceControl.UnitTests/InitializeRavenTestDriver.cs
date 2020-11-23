@@ -13,9 +13,9 @@ public class InitializeRavenTestDriver
     {
         var highestUsableNetCoreRuntime = NetCoreRuntime.FindAll()
             .Where(x => x.Runtime == "Microsoft.NETCore.App")
-            .Where(x => x.Version.Major == 3 && x.Version.Minor == 1)
+            .Where(x => x.Version.Major == 5 && x.Version.Minor == 0)
             .OrderByDescending(x => x.Version)
-            .FirstOrDefault() ?? throw new Exception("Could not find any .NET Core runtime 3.1.x");
+            .FirstOrDefault() ?? throw new Exception("Could not find any .NET runtime 5.0.x");
 
         RavenTestDriver.ConfigureServer(new TestServerOptions
         {
