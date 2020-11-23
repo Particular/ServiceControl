@@ -9,7 +9,7 @@
     {
         protected override void ProcessRecord()
         {
-            WriteObject(ServiceControlCoreTransports.All.Select(PsTransportInfo.FromTransport), true);
+            WriteObject(ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU).Select(PsTransportInfo.FromTransport), true);
         }
     }
 }
