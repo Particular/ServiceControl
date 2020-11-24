@@ -220,7 +220,7 @@ namespace ServiceControl.Recoverability
             var current = 0;
             foreach (var failedMessage in messages)
             {
-                transportOperations[current++] = ToTransportOperation(failedMessage, stagingId);
+                transportOperations[current++] = ToTransportOperation(session, failedMessage, stagingId);
 
                 if (!previousAttemptFailed)
                 {
@@ -366,8 +366,11 @@ namespace ServiceControl.Recoverability
         }
 
 
-        TransportOperation ToTransportOperation(FailedMessage message, string stagingId)
+        TransportOperation ToTransportOperation(IAsyncDocumentSession session, FailedMessage message,
+            string stagingId)
         {
+            var metadata = session.Advanced.GetMetadataFor(message);
+
             var attempt = message.ProcessingAttempts.Last();
 
             var headersToRetryWith = HeaderFilter.RemoveErrorMessageHeaders(attempt.Headers);
@@ -387,7 +390,16 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
             if (attempt.MessageMetadata.ContainsKey("ContentType")) //Message has body
             {
-                headersToRetryWith["ServiceControl.Retry.BodyId"] = message.UniqueMessageId;
+                if (metadata.TryGetValue("Version", out var version)
+                    && version == "5.0")
+                {
+                    headersToRetryWith["ServiceControl.Retry.BodyId"] = message.UniqueMessageId;
+                }
+                else
+                {
+                    //Legacy documents from ServiceControl 4 use different ID for the body
+                    headersToRetryWith["ServiceControl.Retry.LegacyBodyId"] = attempt.MessageId;
+                }
             }
 
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);

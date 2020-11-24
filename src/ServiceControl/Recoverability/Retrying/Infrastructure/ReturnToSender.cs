@@ -52,9 +52,32 @@ namespace ServiceControl.Recoverability
                 }
                 outgoingHeaders.Remove("ServiceControl.Retry.BodyId");
             }
+            else if (outgoingHeaders.TryGetValue("ServiceControl.Retry.LegacyBodyId", out var legacyBodyId))
+            {
+                using (var session = documentStore.OpenAsyncSession())
+                {
+                    var legacyAttachment = await session.Advanced.Attachments
+                        .GetAsync($"files/messagebodies/{legacyBodyId}", $"messagebodies/{legacyBodyId}")
+                        .ConfigureAwait(false);
+
+                    if (legacyAttachment == null)
+                    {
+                        Log.WarnFormat("{0}: Can't find message body in a failed message migrated from previous version of ServiceControl. Missing attachment", messageId);
+                    }
+                    else
+                    {
+                        body = ReadFully(legacyAttachment.Stream);
+                        if (Log.IsDebugEnabled)
+                        {
+                            Log.DebugFormat("{0}: Body size: {1} bytes", messageId, legacyAttachment.Details.Size);
+                        }
+                    }
+                }
+                outgoingHeaders.Remove("ServiceControl.Retry.LegacyBodyId");
+            }
             else
             {
-                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.BodyId", messageId);
+                Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.BodyId/LegacyBodyId", messageId);
             }
 
             var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body);
