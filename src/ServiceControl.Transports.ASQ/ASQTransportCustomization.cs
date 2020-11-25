@@ -57,6 +57,7 @@
 
         static void ConfigureTransport(TransportExtensions<AzureStorageQueueTransport> transport, TransportSettings transportSettings)
         {
+            transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(transportSettings.ConnectionString);
 

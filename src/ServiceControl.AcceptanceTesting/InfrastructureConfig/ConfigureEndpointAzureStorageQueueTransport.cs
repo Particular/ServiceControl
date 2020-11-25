@@ -16,6 +16,8 @@
                 .ConnectionString(ConnectionString)
                 .MessageInvisibleTime(TimeSpan.FromSeconds(30));
 
+            transportConfig.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
+
             transportConfig.DelayedDelivery().DisableTimeoutManager();
 
             var routingConfig = transportConfig.Routing();
