@@ -20,12 +20,37 @@
             }
             catch
             {
-                return false;
+                try
+                {
+                    return TryReadReleaseDateAttributeUsingMonoCecil(exe, out releaseDate);
+                }
+                catch
+                {
+                    return false;
+                }
             }
             finally
             {
                 AppDomain.Unload(tempDomain);
             }
+        }
+
+        static bool TryReadReleaseDateAttributeUsingMonoCecil(string exe, out DateTime releaseDate)
+        {
+            using (var assemblyDefinition = Mono.Cecil.AssemblyDefinition.ReadAssembly(exe))
+            {
+                var customAttribute = assemblyDefinition.CustomAttributes.SingleOrDefault(ca => ca.AttributeType.Name == "ReleaseDateAttribute");
+                var constructorArgument = customAttribute?.ConstructorArguments[0];
+                var dateString = (string)constructorArgument?.Value;
+                if (!string.IsNullOrWhiteSpace(dateString))
+                {
+                    releaseDate = DateTime.ParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    return true;
+                }
+            }
+
+            releaseDate = DateTime.MinValue;
+            return false;
         }
 
         class AssemblyReleaseDateReader : MarshalByRefObject
