@@ -120,6 +120,7 @@ namespace ServiceControl.Monitoring
             {"ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"},
 
             //ASQ
+            {"NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues", "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ"},
             {"NServiceBus.AzureStorageQueueTransport, NServiceBus.Transport.AzureStorageQueues", "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ"},
             {"ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport, ServiceControl.Transports.AzureStorageQueues", "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ"},
 
