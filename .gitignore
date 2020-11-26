@@ -97,3 +97,4 @@ src/scaffolding.config
 /src/ServiceControl.AcceptanceTests/.transport/
 /src/ServiceControl.MultiInstance.AcceptanceTests/.transport/
 /src/ServiceControl.Audit.AcceptanceTests/.transport
+/zip/
