@@ -131,6 +131,7 @@ namespace ServiceControl.Audit.Auditing
                 using (bulkInsertCommitDurationMeter.Measure())
                 {
                     await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                    bulkInsert = null;
                 }
             }
             catch (Exception e)
