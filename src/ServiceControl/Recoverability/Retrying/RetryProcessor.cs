@@ -229,7 +229,8 @@ namespace ServiceControl.Recoverability
 
                 // should not be done concurrently due to sessions not being thread safe
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
-                session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = DateTime.UtcNow + failedMessageRetentionPeriod;
+                var metadataDictionary = session.Advanced.GetMetadataFor(failedMessage);
+                metadataDictionary[Constants.Documents.Metadata.Expires] = DateTime.UtcNow + failedMessageRetentionPeriod;
             }
 
             await TryDispatch(transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
@@ -390,7 +391,7 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
             if (attempt.MessageMetadata.ContainsKey("ContentType")) //Message has body
             {
-                if (metadata.TryGetValue("Version", out var version)
+                if (metadata.TryGetValue("version", out var version)
                     && version == "5.0")
                 {
                     headersToRetryWith["ServiceControl.Retry.BodyId"] = message.UniqueMessageId;

@@ -116,7 +116,7 @@ this.{statusField} = $status;
 this.{failureGroupsField} = $failureGroups;
 this.{processingAttemptsField} = [$attempt];
 this.{uniqueMessageIdField} = $uniqueMessageId;
-this['@metadata'] = {{ '@collection': 'FailedMessages', '@version': '5.0' }} 
+this['@metadata'] = {{ '@collection': 'FailedMessages', 'version': '5.0' }} 
 ",
 
                     Values = new Dictionary<string, object>
