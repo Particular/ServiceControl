@@ -24,7 +24,8 @@
         [Test]
         public void PublicClr()
         {
-            var publicApi = ApiGenerator.GeneratePublicApi(typeof(Bootstrapper).Assembly);
+            var publicApi = ApiGenerator.GeneratePublicApi(typeof(Bootstrapper).Assembly, 
+                excludeAttributes: new string[] { "System.Reflection.AssemblyMetadataAttribute" });
             Approver.Verify(publicApi);
         }
 

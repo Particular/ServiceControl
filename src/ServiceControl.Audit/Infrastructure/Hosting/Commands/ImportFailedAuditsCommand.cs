@@ -25,7 +25,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
             using (var tokenSource = new CancellationTokenSource())
             {
                 var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
-                var embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
+                var embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.RavenBinFolder);
                 var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings, embeddedDatabase);
                 var busInstance = await bootstrapper.Start().ConfigureAwait(false);
                 var importer = busInstance.AuditIngestion;

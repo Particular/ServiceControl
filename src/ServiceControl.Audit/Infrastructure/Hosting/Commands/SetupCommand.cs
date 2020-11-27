@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
                 SkipQueueCreation = args.SkipQueueCreation
             };
             var loggingSettings = new LoggingSettings(settings.ServiceName);
-            var embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
+            var embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.RavenBinFolder);
 
             await new SetupBootstrapper(settings, loggingSettings, embeddedDatabase).Run(args.Username)
                 .ConfigureAwait(false);
