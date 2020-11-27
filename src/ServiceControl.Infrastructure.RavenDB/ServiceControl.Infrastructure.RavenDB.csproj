@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
@@ -18,4 +18,27 @@
     <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Include="NServiceBus" Version="7.4.4" />
   </ItemGroup>
+
+  <Target Name="DownloadRavenDB" AfterTargets="Build">
+    <PropertyGroup>
+      <DownloadCacheFolder>..\..\downloads\</DownloadCacheFolder>
+      <UnzipFolder>$(DownloadCacheFolder)Staging</UnzipFolder>
+      <RavenDownloadUrl>https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest</RavenDownloadUrl>
+    </PropertyGroup>
+
+    <Message Text="Downloading RavenDB package" Importance="high"/>
+    <DownloadFile
+      SourceUrl="$(RavenDownloadUrl)"
+      DestinationFolder="$(DownloadCacheFolder)"
+      SkipUnchangedFiles="true">
+      <Output TaskParameter="DownloadedFile" PropertyName="RavenZip" />
+    </DownloadFile>
+
+    <RemoveDir Directories="$(UnzipFolder)" />
+    <MakeDir Directories="$(UnzipFolder)" />
+    <Unzip ContinueOnError="true"
+           SourceFiles="$(RavenZip)"
+           DestinationFolder="$(UnzipFolder)" />
+  </Target>
+  
 </Project>

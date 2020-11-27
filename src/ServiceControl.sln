@@ -53,6 +53,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9D957EE6-69D7-4680-AB54-9E8839C6BDBC}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
+		DownloadRavenDB.targets = DownloadRavenDB.targets
 		..\GitVersion.yml = ..\GitVersion.yml
 	EndProjectSection
 EndProject
@@ -96,7 +97,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LicenseManagement", "ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj", "{FD1B9998-4B0C-4109-A3BC-0748F829F852}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.LoadTests.MetricsParser", "ServiceControl.LoadTests.MetricsParser\ServiceControl.LoadTests.MetricsParser.csproj", "{9F12D474-2863-4DA6-9C92-2AF70F4C6DFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LoadTests.MetricsParser", "ServiceControl.LoadTests.MetricsParser\ServiceControl.LoadTests.MetricsParser.csproj", "{9F12D474-2863-4DA6-9C92-2AF70F4C6DFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
