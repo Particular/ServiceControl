@@ -48,14 +48,11 @@ namespace ServiceControl.Infrastructure.RavenDB
 
             commandLineArgs.Add($"--Server.MaxTimeForTaskToWaitForDatabaseToLoadInSec={(int)TimeSpan.FromDays(1).TotalSeconds}");
             
-            // HINT: Needed for document compression
-            commandLineArgs.Add("Features.Availability=Experimental");
-
             var highestUsableNetCoreRuntime = NetCoreRuntime.FindAll()
                 .Where(x => x.Runtime == "Microsoft.NETCore.App")
-                .Where(x => x.Version.Major == 3 && x.Version.Minor == 1)
+                .Where(x => x.Version.Major == 5 && x.Version.Minor == 0)
                 .OrderByDescending(x => x.Version)
-                .FirstOrDefault() ?? throw new Exception("Could not find any .NET Core runtime 3.1.x");
+                .FirstOrDefault() ?? throw new Exception("Could not find any .NET runtime 5.0.x");
 
             var serverOptions = new ServerOptions
             {
@@ -108,6 +105,14 @@ namespace ServiceControl.Infrastructure.RavenDB
                 dbOptions.Conventions.FindClrType += config.FindClrType;
             }
 
+            if (config.EnableDocumentCompression)
+            {
+                dbOptions.DatabaseRecord.DocumentsCompression  = new DocumentsCompressionConfiguration(
+                    false,
+                    config.CollectionsToCompress.ToArray()
+                );
+            }
+
             var documentStore =
                 await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions).ConfigureAwait(false);
 
@@ -127,25 +132,7 @@ namespace ServiceControl.Infrastructure.RavenDB
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
                 .ConfigureAwait(false);
 
-            if (config.EnableDocumentCompression)
-            {
-                await EnableDocumentCompression(documentStore, config.CollectionsToCompress)
-                .ConfigureAwait(false);
-            }
-
             return documentStore;
-        }
-
-        private async Task EnableDocumentCompression(IDocumentStore documentStore, IEnumerable<string> collectionsToCompress)
-        {
-            var record = await documentStore.Maintenance.Server.SendAsync(
-                new GetDatabaseRecordOperation(documentStore.Database)
-            ).ConfigureAwait(false);
-            
-            record.DocumentsCompression = new DocumentsCompressionConfiguration(true, collectionsToCompress.ToArray());
-
-            await documentStore.Maintenance.Server.SendAsync(new UpdateDatabaseOperation(record, record.Etag))
-                .ConfigureAwait(false);
         }
 
         public void Dispose()

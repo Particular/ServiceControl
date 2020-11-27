@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <!-- Included to prevent a version conflict between RabbitMQ and RavenDB -->
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.1" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
   </ItemGroup>
 
 

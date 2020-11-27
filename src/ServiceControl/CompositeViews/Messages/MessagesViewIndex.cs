@@ -54,7 +54,7 @@ namespace ServiceControl.CompositeViews.Messages
 
             Index(x => x.Query, FieldIndexing.Search);
 
-            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
+            Analyze(x => x.Query, typeof(StandardAnalyzer).FullName);
         }
 
         public class SortAndFilterOptions

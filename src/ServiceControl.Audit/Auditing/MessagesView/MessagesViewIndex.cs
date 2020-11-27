@@ -28,7 +28,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                 };
 
             Index(x => x.Query, FieldIndexing.Search);
-            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
+            Analyze(x => x.Query, typeof(StandardAnalyzer).FullName);
         }
 
         public class Result
