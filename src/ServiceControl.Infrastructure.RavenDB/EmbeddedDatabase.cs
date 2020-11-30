@@ -54,22 +54,8 @@ namespace ServiceControl.Infrastructure.RavenDB
                 DataDirectory = dbPath,
                 LogsPath = logPath,
                 ServerUrl = databaseUrl,
-                //ServerDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenDBServer"),
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
-
-            var runtimeVersion = specificRuntimeVersion 
-                                 ?? NetCoreRuntime.FindAll()
-                                     .Where(x => x.Runtime == "Microsoft.NETCore.App")
-                                     .Where(x => x.Version.Major == 5 && x.Version.Minor == 0)
-                                     .OrderByDescending(x => x.Version)
-                                     .Select(x => x.Version.ToString())
-                                     .FirstOrDefault();
-
-            if (runtimeVersion != null)
-            {
-                serverOptions.FrameworkVersion = runtimeVersion;
-            }
 
             EmbeddedServer.Instance.StartServer(serverOptions);
             return new EmbeddedDatabase(expirationProcessTimerInSecond);
