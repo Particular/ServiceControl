@@ -49,9 +49,9 @@ docker build -f .\servicecontrol.sqlserver.audit.init-windows.dockerfile -t part
 docker build -f .\servicecontrol.sqlserver.monitoring-windows.dockerfile -t particular/servicecontrol/sql.monitoring ./../
 docker build -f .\servicecontrol.sqlserver.monitoring.init-windows.dockerfile -t particular/servicecontrol/sql.monitoring.init ./../
 
-docker build -f .\servicecontrol.sqs-windows.dockerfile -t particular/servicecontrol/sqs ./../
-docker build -f .\servicecontrol.sqs.init-windows.dockerfile -t particular/servicecontrol/sqs/init ./../
-docker build -f .\servicecontrol.sqs.audit-windows.dockerfile -t particular/servicecontrol/sqs/audit ./../
-docker build -f .\servicecontrol.sqs.audit.init-windows.dockerfile -t particular/servicecontrol/sqs/audit/init ./../
-docker build -f .\servicecontrol.sqs.monitoring-windows.dockerfile -t particular/servicecontrol/sqs/monitoring ./../
-docker build -f .\servicecontrol.sqs.monitoring.init-windows.dockerfile -t particular/servicecontrol/sqs/monitoring/init ./../
+docker build -f .\servicecontrol.amazonsqs-windows.dockerfile -t particular/servicecontrol/amazonsqs ./../
+docker build -f .\servicecontrol.amazonsqs.init-windows.dockerfile -t particular/servicecontrol/amazonsqs/init ./../
+docker build -f .\servicecontrol.amazonsqs.audit-windows.dockerfile -t particular/servicecontrol/amazonsqs/audit ./../
+docker build -f .\servicecontrol.amazonsqs.audit.init-windows.dockerfile -t particular/servicecontrol/amazonsqs/audit/init ./../
+docker build -f .\servicecontrol.amazonsqs.monitoring-windows.dockerfile -t particular/servicecontrol/amazonsqs/monitoring ./../
+docker build -f .\servicecontrol.amazonsqs.monitoring.init-windows.dockerfile -t particular/servicecontrol/amazonsqs/monitoring/init ./../
