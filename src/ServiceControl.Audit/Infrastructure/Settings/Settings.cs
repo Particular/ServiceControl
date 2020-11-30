@@ -41,7 +41,6 @@
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             DbPath = GetDbPath();
-            RavenBinFolder = SettingsReader<string>.Read("RavenDBBinaryFolder", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenDBServer"));
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
@@ -83,13 +82,10 @@
 
         public int Port { get; set; }
         public int DatabaseMaintenancePort { get; set; }
-        public string RavenDBNetCoreRuntimeVersion => SettingsReader<string>.Read("RavenDBNetCoreRuntimeVersion");
-
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
         public string TransportCustomizationType { get; set; }
-        public string RavenBinFolder { get; set; }
         public string DbPath { get; set; }
 
         public string AuditQueue { get; set; }

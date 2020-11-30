@@ -36,7 +36,7 @@ namespace Particular.ServiceControl.Hosting
             var logger = LogManager.GetLogger(typeof(MaintenanceHost));
             logger.Info($"RavenDB is now accepting requests on {settings.StorageUrl}");
 
-            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.RavenBinFolder);
+            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
             await embeddedDatabase.PrepareDatabase(new PrimaryInstanceDatabaseConfiguration()).ConfigureAwait(false);
         }
 

@@ -30,7 +30,7 @@ namespace ServiceControl.Infrastructure.RavenDB
         }
 
 
-        public static EmbeddedDatabase Start(string dbPath, string logPath, string specificRuntimeVersion, int expirationProcessTimerInSecond, string databaseUrl, string ravenBinaryPath)
+        public static EmbeddedDatabase Start(string dbPath, string logPath, int expirationProcessTimerInSecond, string databaseUrl)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -47,7 +47,6 @@ namespace ServiceControl.Infrastructure.RavenDB
             }
 
             commandLineArgs.Add($"--Server.MaxTimeForTaskToWaitForDatabaseToLoadInSec={(int)TimeSpan.FromDays(1).TotalSeconds}");
-
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs = commandLineArgs,
@@ -55,12 +54,9 @@ namespace ServiceControl.Infrastructure.RavenDB
                 DataDirectory = dbPath,
                 LogsPath = logPath,
                 ServerUrl = databaseUrl,
+                //ServerDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenDBServer"),
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
-            if (ravenBinaryPath != null)
-            {
-                serverOptions.ServerDirectory = ravenBinaryPath;
-            }
 
             var runtimeVersion = specificRuntimeVersion 
                                  ?? NetCoreRuntime.FindAll()

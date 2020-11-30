@@ -47,7 +47,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing");
-            RavenBinFolder = SettingsReader<string>.Read("RavenDBBinaryFolder", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenDBServer"));
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
@@ -94,8 +93,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public int Port { get; set; }
         public int DatabaseMaintenancePort { get; set; }
-        public string RavenDBNetCoreRuntimeVersion => SettingsReader<string>.Read("RavenDBNetCoreRuntimeVersion");
-
         public string LicenseFileText { get; set; }
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
@@ -117,7 +114,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
         public string TransportCustomizationType { get; set; }
-        public string RavenBinFolder { get; set; }
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }

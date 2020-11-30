@@ -80,7 +80,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
         public int Port { get; set; }
         public System.TimeSpan ProcessRetryBatchesFrequency { get; set; }
-        public string RavenDBNetCoreRuntimeVersion { get; }
         public ServiceBus.Management.Infrastructure.Settings.RemoteInstanceSetting[] RemoteInstances { get; set; }
         public int RetryHistoryDepth { get; set; }
         public string RootUrl { get; }

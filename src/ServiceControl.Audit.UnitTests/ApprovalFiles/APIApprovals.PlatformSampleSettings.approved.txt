@@ -21,7 +21,6 @@
   "StorageUrl": "http://localhost:8888/storage",
   "Port": 8888,
   "DatabaseMaintenancePort": 44445,
-  "RavenDBNetCoreRuntimeVersion": null,
   "Hostname": "localhost",
   "VirtualDirectory": "",
   "TransportCustomizationType": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",

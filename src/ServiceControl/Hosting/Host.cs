@@ -19,7 +19,7 @@ namespace Particular.ServiceControl.Hosting
 
             var loggingSettings = new LoggingSettings(ServiceName);
             var settings = new Settings(ServiceName);
-            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.RavenBinFolder);
+            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
             bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings, embeddedDatabase);
             await bootstrapper.Start().ConfigureAwait(false);
         }

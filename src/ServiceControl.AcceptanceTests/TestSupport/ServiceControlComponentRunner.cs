@@ -157,7 +157,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
-                embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.RavenBinFolder);
+                embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
 
                 bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, embeddedDatabase, builder =>
                 {

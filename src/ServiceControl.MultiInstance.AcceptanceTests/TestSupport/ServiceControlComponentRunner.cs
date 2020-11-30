@@ -67,7 +67,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var ravenBinaryPath = SettingsReader<string>.Read("ServiceControl", "RavenDBBinaryFolder",
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenDBServer"));
 
-            embeddedDatabase = EmbeddedDatabase.Start(dbPath, Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), null, 5, databaseUrl, ravenBinaryPath);
+            embeddedDatabase = EmbeddedDatabase.Start(dbPath, Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), 5, databaseUrl);
 
             try
             {

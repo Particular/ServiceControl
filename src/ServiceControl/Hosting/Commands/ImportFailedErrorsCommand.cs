@@ -26,7 +26,7 @@ namespace ServiceControl.Hosting.Commands
             var tokenSource = new CancellationTokenSource();
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
-            var embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.RavenBinFolder);
+            var embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings, embeddedDatabase);
             var instance = await bootstrapper.Start().ConfigureAwait(false);
             var errorIngestion = instance.ErrorIngestion;

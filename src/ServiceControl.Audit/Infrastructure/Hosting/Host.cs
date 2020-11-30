@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
 
             var loggingSettings = new LoggingSettings(ServiceName);
             var settings = new Settings.Settings(ServiceName);
-            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.RavenBinFolder);
+            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
             bootstrapper = new Bootstrapper(
                 ctx => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
                 settings, busConfiguration, loggingSettings, embeddedDatabase);

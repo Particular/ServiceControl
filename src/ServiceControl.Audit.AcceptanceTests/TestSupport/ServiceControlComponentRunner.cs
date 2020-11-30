@@ -151,7 +151,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             Directory.CreateDirectory(logPath);
             var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
 
-            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.RavenDBNetCoreRuntimeVersion, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.RavenBinFolder);
+            embeddedDatabase = EmbeddedDatabase.Start(settings.DbPath, loggingSettings.LogPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
 
             try
             {

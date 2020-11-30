@@ -32,7 +32,8 @@
         [Test]
         public void ServiceControlTransport()
         {
-            var serviceControlTransportApi = ApiGenerator.GeneratePublicApi(typeof(TransportSettings).Assembly);
+            var serviceControlTransportApi = ApiGenerator.GeneratePublicApi(typeof(TransportSettings).Assembly,
+                excludeAttributes: new string[] { "System.Reflection.AssemblyMetadataAttribute" });
             Approver.Verify(serviceControlTransportApi);
         }
 
