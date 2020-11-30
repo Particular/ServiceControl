@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using ServiceControl.Infrastructure;
-using ServiceControl.Transports.Msmq;
 
 namespace ServiceControl.LoadTests.AuditGenerator
 {
@@ -18,7 +17,6 @@ namespace ServiceControl.LoadTests.AuditGenerator
     {
         static readonly string QueueLengthProviderMsmqTransportCustomizationName = typeof(MsmqTransportCustomizationWithQueueLengthProvider).AssemblyQualifiedName;
 
-        static readonly Random random = new Random();
         const string DefaultDestination = "audit";
         static readonly string HostId = Guid.NewGuid().ToString();
         static readonly ConcurrentDictionary<string, int> QueueLengths = new ConcurrentDictionary<string, int>();
@@ -82,18 +80,19 @@ namespace ServiceControl.LoadTests.AuditGenerator
             var numberOfTasks = args.Length > 1 ? int.Parse(args[1]) : 5;
             var destination = args.Length > 2 ? args[2] : DefaultDestination;
 
-            var tasks = Enumerable.Range(1, numberOfTasks).Select(async _ =>
+            var tasks = Enumerable.Range(1, numberOfTasks).Select(async taskId =>
             {
+                var random = new Random(Environment.TickCount + taskId);
                 for (var i = 0; i < totalMessages / numberOfTasks; i++)
                 {
-                    await SendAuditMessage(endpoint, destination).ConfigureAwait(false);
+                    await SendAuditMessage(endpoint, destination, random).ConfigureAwait(false);
                 }
             }).ToArray();
 
             await Task.WhenAll(tasks);
         }
 
-        static Task SendAuditMessage(IMessageSession endpoint, string destination)
+        static Task SendAuditMessage(IMessageSession endpoint, string destination, Random random)
         {
             var ops = new SendOptions();
 
@@ -122,11 +121,12 @@ namespace ServiceControl.LoadTests.AuditGenerator
             var numberOfTasks = args.Length > 0 ? int.Parse(args[0]) : 5;
             var destination = args.Length > 1 ? args[1] : DefaultDestination;
 
-            var tasks = Enumerable.Range(1, numberOfTasks).Select(async _ =>
+            var tasks = Enumerable.Range(1, numberOfTasks).Select(async taskId =>
             {
+                var random = new Random(Environment.TickCount + taskId);
                 while (ct.IsCancellationRequested == false)
                 {
-                    await SendAuditMessage(endpoint, destination).ConfigureAwait(false);
+                    await SendAuditMessage(endpoint, destination, random).ConfigureAwait(false);
                 }
             }).ToArray();
 
@@ -188,6 +188,7 @@ namespace ServiceControl.LoadTests.AuditGenerator
 
             var senders = Enumerable.Range(0, maxSenderCount).Select(async taskNo =>
             {
+                var random = new Random(Environment.TickCount + taskNo);
                 while (ct.IsCancellationRequested == false)
                 {
                     try
@@ -196,7 +197,7 @@ namespace ServiceControl.LoadTests.AuditGenerator
 
                         if (allowed == 1)
                         {
-                            await SendAuditMessage(endpoint, destination).ConfigureAwait(false);
+                            await SendAuditMessage(endpoint, destination, random).ConfigureAwait(false);
                         }
                         else
                         {
@@ -263,12 +264,13 @@ namespace ServiceControl.LoadTests.AuditGenerator
 
             var senders = Enumerable.Range(0, maxSenderCount).Select(async taskNo =>
             {
+                var random = new Random(Environment.TickCount + taskNo);
                 while (ct.IsCancellationRequested == false)
                 {
                     try
                     {
                         await semaphore.WaitAsync(ct).ConfigureAwait(false);
-                        await SendAuditMessage(endpoint, destination).ConfigureAwait(false);
+                        await SendAuditMessage(endpoint, destination, random).ConfigureAwait(false);
                     }
                     catch
                     {
