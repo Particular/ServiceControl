@@ -47,12 +47,6 @@ namespace ServiceControl.Infrastructure.RavenDB
             }
 
             commandLineArgs.Add($"--Server.MaxTimeForTaskToWaitForDatabaseToLoadInSec={(int)TimeSpan.FromDays(1).TotalSeconds}");
-            
-            var highestUsableNetCoreRuntime = NetCoreRuntime.FindAll()
-                .Where(x => x.Runtime == "Microsoft.NETCore.App")
-                .Where(x => x.Version.Major == 5 && x.Version.Minor == 0)
-                .OrderByDescending(x => x.Version)
-                .FirstOrDefault() ?? throw new Exception("Could not find any .NET runtime 5.0.x");
 
             var serverOptions = new ServerOptions
             {
@@ -60,13 +54,25 @@ namespace ServiceControl.Infrastructure.RavenDB
                 AcceptEula = true,
                 DataDirectory = dbPath,
                 LogsPath = logPath,
-                FrameworkVersion = specificRuntimeVersion ?? highestUsableNetCoreRuntime.Version.ToString(),
                 ServerUrl = databaseUrl,
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
             if (ravenBinaryPath != null)
             {
                 serverOptions.ServerDirectory = ravenBinaryPath;
+            }
+
+            var runtimeVersion = specificRuntimeVersion 
+                                 ?? NetCoreRuntime.FindAll()
+                                     .Where(x => x.Runtime == "Microsoft.NETCore.App")
+                                     .Where(x => x.Version.Major == 5 && x.Version.Minor == 0)
+                                     .OrderByDescending(x => x.Version)
+                                     .Select(x => x.Version.ToString())
+                                     .FirstOrDefault();
+
+            if (runtimeVersion != null)
+            {
+                serverOptions.FrameworkVersion = runtimeVersion;
             }
 
             EmbeddedServer.Instance.StartServer(serverOptions);
