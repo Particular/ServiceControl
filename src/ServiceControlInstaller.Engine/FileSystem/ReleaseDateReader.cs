@@ -1,4 +1,8 @@
-﻿namespace ServiceControlInstaller.Engine.FileSystem
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
+
+namespace ServiceControlInstaller.Engine.FileSystem
 {
     using System;
     using System.Globalization;
@@ -10,39 +14,32 @@
         public static bool TryReadReleaseDateAttribute(string exe, out DateTime releaseDate)
         {
             releaseDate = DateTime.MinValue;
-            var tempDomain = AppDomain.CreateDomain("TemporaryAppDomain");
+
             try
             {
-                var loaderType = typeof(AssemblyReleaseDateReader);
-                var loader = (AssemblyReleaseDateReader)tempDomain.CreateInstanceFrom(Assembly.GetExecutingAssembly().Location, loaderType.FullName).Unwrap();
-                releaseDate = loader.GetReleaseDate(exe);
-                return true;
+                var runtimeAssemblies = Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll");
+
+                var allAssemblies = new List<string>();
+                allAssemblies.AddRange(runtimeAssemblies);
+                allAssemblies.Add(exe);
+
+                var resolver = new PathAssemblyResolver(allAssemblies.ToArray());
+                var mlc = new MetadataLoadContext(resolver);
+
+                using (mlc)
+                {
+                    var assembly = mlc.LoadFromAssemblyPath(exe);
+                    var myAttributeData = assembly.GetCustomAttributesData().SingleOrDefault(ca => ca.AttributeType.Name == "MyAttribute");
+
+                    var dateString = (string)myAttributeData?.ConstructorArguments[0].Value;
+                    releaseDate = DateTime.ParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                    return true;
+                }
             }
             catch
             {
                 return false;
-            }
-            finally
-            {
-                AppDomain.Unload(tempDomain);
-            }
-        }
-
-        class AssemblyReleaseDateReader : MarshalByRefObject
-        {
-            internal DateTime GetReleaseDate(string assemblyPath)
-            {
-                try
-                {
-                    var assembly = Assembly.ReflectionOnlyLoadFrom(assemblyPath);
-                    var releaseDateAttribute = assembly.GetCustomAttributesData().FirstOrDefault(p => p.Constructor?.ReflectedType?.Name == "ReleaseDateAttribute");
-                    var x = (string)releaseDateAttribute?.ConstructorArguments[0].Value;
-                    return DateTime.ParseExact(x, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                }
-                catch (Exception)
-                {
-                    return DateTime.MinValue;
-                }
             }
         }
     }
