@@ -5,7 +5,8 @@
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     internal struct HttpServiceConfigUrlAclKey
     {
-        [MarshalAs(UnmanagedType.LPWStr)] public string UrlPrefix;
+        [MarshalAs(UnmanagedType.LPWStr)]
+        public string UrlPrefix;
 
         public HttpServiceConfigUrlAclKey(string urlPrefix)
         {

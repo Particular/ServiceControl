@@ -3,7 +3,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
     using System;
 
     // See Compatibility.cs for version switching that isn't related to Settings
-
     public static class ServiceControlSettings
     {
         public static SettingInfo VirtualDirectory = new SettingInfo {Name = "ServiceControl/VirtualDirectory"};
@@ -31,7 +30,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static SettingInfo TransportType = new SettingInfo {Name = "ServiceControl/TransportType"};
         public static SettingInfo AuditQueue = new SettingInfo
         {
-            Name = "ServiceBus/AuditQueue", 
+            Name = "ServiceBus/AuditQueue",
             RemovedFrom = new Version(4, 0, 0)
         };
         public static SettingInfo ErrorQueue = new SettingInfo {Name = "ServiceBus/ErrorQueue"};

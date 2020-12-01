@@ -7,6 +7,6 @@
     internal struct LUID_AND_ATTRIBUTES
     {
         public LUID Luid;
-        public UInt32 Attributes;
+        public uint Attributes;
     }
 }

@@ -6,11 +6,15 @@ namespace ServiceControlInstaller.Engine.Api
 
     struct SERVICE_FAILURE_ACTIONS
     {
-        [MarshalAs(UnmanagedType.U4)] public UInt32 dwResetPeriod;
+        [MarshalAs(UnmanagedType.U4)]
+        public uint dwResetPeriod;
 
-        [MarshalAs(UnmanagedType.LPStr)] public String lpRebootMsg;
-        [MarshalAs(UnmanagedType.LPStr)] public String lpCommand;
-        [MarshalAs(UnmanagedType.U4)] public UInt32 cActions;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string lpRebootMsg;
+        [MarshalAs(UnmanagedType.LPStr)]
+        public string lpCommand;
+        [MarshalAs(UnmanagedType.U4)]
+        public uint cActions;
         public IntPtr lpsaActions;
     }
 
@@ -57,8 +61,10 @@ namespace ServiceControlInstaller.Engine.Api
 
     struct SC_ACTION
     {
-        [MarshalAs(UnmanagedType.U4)] public SC_ACTION_TYPE Type;
-        [MarshalAs(UnmanagedType.U4)] public UInt32 Delay;
+        [MarshalAs(UnmanagedType.U4)]
+        public SC_ACTION_TYPE Type;
+        [MarshalAs(UnmanagedType.U4)]
+        public uint Delay;
     }
 
 #pragma warning restore 169

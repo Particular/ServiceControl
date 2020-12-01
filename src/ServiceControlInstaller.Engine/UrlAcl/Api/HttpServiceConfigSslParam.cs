@@ -20,9 +20,11 @@
 
         public int DefaultRevocationUrlRetrievalTimeout;
 
-        [MarshalAs(UnmanagedType.LPWStr)] public string DefaultSslCtlIdentifier;
+        [MarshalAs(UnmanagedType.LPWStr)]
+        public string DefaultSslCtlIdentifier;
 
-        [MarshalAs(UnmanagedType.LPWStr)] public string DefaultSslCtlStoreName;
+        [MarshalAs(UnmanagedType.LPWStr)]
+        public string DefaultSslCtlStoreName;
 
         public uint DefaultFlags;
     }

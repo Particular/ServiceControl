@@ -58,7 +58,7 @@ namespace ServiceControlInstaller.Engine.Validation
                 }
             };
 
-            if(instance.ForwardAuditMessages)
+            if (instance.ForwardAuditMessages)
             {
                 queues.Add(new QueueInfo
                 {

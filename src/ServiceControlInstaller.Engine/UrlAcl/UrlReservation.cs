@@ -25,7 +25,7 @@
             {
                 HTTPS = matchResults.Groups["protocol"].Value.Equals("https", StringComparison.OrdinalIgnoreCase);
                 HostName = matchResults.Groups["hostname"].Value;
-                if (String.IsNullOrEmpty(matchResults.Groups["port"].Value))
+                if (string.IsNullOrEmpty(matchResults.Groups["port"].Value))
                 {
                     Port = HTTPS ? 443 : 80;
                 }
@@ -194,7 +194,7 @@
                     Marshal.SizeOf(inputConfigInfoSet),
                     IntPtr.Zero);
 
-                if (ErrorCode.AlreadyExists == retVal)
+                if (retVal == ErrorCode.AlreadyExists)
                 {
                     retVal = HttpApi.HttpDeleteServiceConfiguration(IntPtr.Zero,
                         HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
@@ -202,7 +202,7 @@
                         Marshal.SizeOf(inputConfigInfoSet),
                         IntPtr.Zero);
 
-                    if (ErrorCode.Success == retVal)
+                    if (retVal == ErrorCode.Success)
                     {
                         retVal = HttpApi.HttpSetServiceConfiguration(IntPtr.Zero,
                             HttpServiceConfigId.HttpServiceConfigUrlAclInfo,
@@ -231,7 +231,7 @@
         private static void FreeURL(string networkURL, string securityDescriptor)
         {
             var retVal = HttpApi.HttpInitialize(HttpApiConstants.Version1, HttpApiConstants.InitializeConfig, IntPtr.Zero);
-            if (ErrorCode.Success == retVal)
+            if (retVal == ErrorCode.Success)
             {
                 var urlAclKey = new HttpServiceConfigUrlAclKey(networkURL);
                 var urlAclParam = new HttpServiceConfigUrlAclParam(securityDescriptor);
@@ -255,7 +255,7 @@
                 HttpApi.HttpTerminate(HttpApiConstants.InitializeConfig, IntPtr.Zero);
             }
 
-            if (ErrorCode.Success != retVal)
+            if (retVal != ErrorCode.Success)
             {
                 throw new Win32Exception(Convert.ToInt32(retVal));
             }

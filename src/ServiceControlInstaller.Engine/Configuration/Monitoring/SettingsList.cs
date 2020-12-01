@@ -3,7 +3,6 @@ namespace ServiceControlInstaller.Engine.Configuration.Monitoring
     public static class SettingsList
     {
         //TODO : FIX UP Names
-
         public static SettingInfo Port = new SettingInfo {Name = "Monitoring/HttpPort"};
         public static SettingInfo HostName = new SettingInfo {Name = "Monitoring/HttpHostName"};
         public static SettingInfo LogPath = new SettingInfo {Name = "Monitoring/LogPath"};

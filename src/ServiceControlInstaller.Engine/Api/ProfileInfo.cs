@@ -8,11 +8,16 @@
     {
         public int dwSize;
         public int dwFlags;
-        [MarshalAs(UnmanagedType.LPTStr)] public String lpUserName;
-        [MarshalAs(UnmanagedType.LPTStr)] public String lpProfilePath;
-        [MarshalAs(UnmanagedType.LPTStr)] public String lpDefaultPath;
-        [MarshalAs(UnmanagedType.LPTStr)] public String lpServerName;
-        [MarshalAs(UnmanagedType.LPTStr)] public String lpPolicyPath;
+        [MarshalAs(UnmanagedType.LPTStr)]
+        public string lpUserName;
+        [MarshalAs(UnmanagedType.LPTStr)]
+        public string lpProfilePath;
+        [MarshalAs(UnmanagedType.LPTStr)]
+        public string lpDefaultPath;
+        [MarshalAs(UnmanagedType.LPTStr)]
+        public string lpServerName;
+        [MarshalAs(UnmanagedType.LPTStr)]
+        public string lpPolicyPath;
         public IntPtr hProfile;
     }
 }
