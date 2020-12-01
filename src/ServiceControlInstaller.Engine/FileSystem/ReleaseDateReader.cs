@@ -29,9 +29,9 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 using (mlc)
                 {
                     var assembly = mlc.LoadFromAssemblyPath(exe);
-                    var myAttributeData = assembly.GetCustomAttributesData().SingleOrDefault(ca => ca.AttributeType.Name == "ReleaseDateAttribute");
+                    var attributeData = assembly.GetCustomAttributesData().SingleOrDefault(ca => ca.AttributeType.Name == "ReleaseDateAttribute");
 
-                    var dateString = (string)myAttributeData?.ConstructorArguments[0].Value;
+                    var dateString = (string)attributeData?.ConstructorArguments[0].Value;
                     releaseDate = DateTime.ParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
                     return true;
