@@ -108,7 +108,7 @@ namespace ServiceControl.AcceptanceTests
         {
             var timeout = TimeSpan.FromSeconds(1);
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!SpinWait.SpinUntil(execute, timeout))
                 {
