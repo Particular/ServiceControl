@@ -1,11 +1,11 @@
 msbuild ../servicecontrol/ServiceControl.sln /t:Build /p:Configuration=Release
 
-docker build -f .\servicecontrol.azureservicebus-windows.dockerfile -t particular/servicecontrol/azuresericebus ./../
-docker build -f .\servicecontrol.azureservicebus.init-windows.dockerfile -t particular/servicecontrol/azuresericebus/init ./../
-docker build -f .\servicecontrol.azureservicebus.audit-windows.dockerfile -t particular/servicecontrol/azuresericebus/audit ./../
-docker build -f .\servicecontrol.azureservicebus.audit.init-windows.dockerfile -t particular/servicecontrol/azuresericebus/audit/init ./../
-docker build -f .\servicecontrol.azureservicebus.monitoring-windows.dockerfile -t particular/servicecontrol/azuresericebus/monitoring ./../
-docker build -f .\servicecontrol.azureservicebus.monitoring.init-windows.dockerfile -t particular/servicecontrol/azuresericebus/monitoring/init ./../
+docker build -f .\servicecontrol.azureservicebus-windows.dockerfile -t particular/servicecontrol/azureservicebus ./../
+docker build -f .\servicecontrol.azureservicebus.init-windows.dockerfile -t particular/servicecontrol/azureservicebus/init ./../
+docker build -f .\servicecontrol.azureservicebus.audit-windows.dockerfile -t particular/servicecontrol/azureservicebus/audit ./../
+docker build -f .\servicecontrol.azureservicebus.audit.init-windows.dockerfile -t particular/servicecontrol/azureservicebus/audit/init ./../
+docker build -f .\servicecontrol.azureservicebus.monitoring-windows.dockerfile -t particular/servicecontrol/azureservicebus/monitoring ./../
+docker build -f .\servicecontrol.azureservicebus.monitoring.init-windows.dockerfile -t particular/servicecontrol/azureservicebus/monitoring/init ./../
 
 # docker build -f .\servicecontrol.asb.endpoint -t particular/servicecontrol/asb/endpoint ./../
 # docker build -f .\servicecontrol.asb.endpoint.init -t particular/servicecontrol/asb/endpoint.init ./../
