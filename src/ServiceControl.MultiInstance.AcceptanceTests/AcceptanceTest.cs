@@ -8,8 +8,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
     using AcceptanceTesting;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -103,20 +101,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             {
                 File.Delete(transportAssembly);
             }
-        }
-
-        protected void ExecuteWhen(Func<bool> execute, Func<dynamic, Task> action, string instanceName = Settings.DEFAULT_SERVICE_NAME)
-        {
-            var timeout = TimeSpan.FromSeconds(1);
-
-            _ = Task.Run(async () =>
-            {
-                while (!SpinWait.SpinUntil(execute, timeout))
-                {
-                }
-
-                await action(Busses[instanceName].DomainEvents);
-            });
         }
 
         protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
