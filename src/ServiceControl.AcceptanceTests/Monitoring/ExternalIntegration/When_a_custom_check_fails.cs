@@ -27,7 +27,7 @@
                 }
             });
 
-            _ = ExecuteWhen(() => externalProcessorSubscribed, async domainEvents =>
+            ExecuteWhen(() => externalProcessorSubscribed, async domainEvents =>
             {
                 await domainEvents.Raise(new Contracts.CustomChecks.CustomCheckFailed
                 {
