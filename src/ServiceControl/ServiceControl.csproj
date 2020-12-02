@@ -42,6 +42,11 @@
     <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup Label="Transitive dependency that needs to be identical to the one used in ServiceControl-*">
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.6.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Remove="Hosting\Help.txt" />
     <EmbeddedResource Include="Hosting\Help.txt" />
