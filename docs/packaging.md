@@ -1,6 +1,6 @@
 # Packaging
 
-Each product is packaged into it's own versioned zip file in the `./zip` folder, and these are included in the installation package. When ServiceControl Management installs a new instance, it uses the files in these zips. Each zip contain two top-level folders
+Each product (ServiceControl, ServiceControl.Monitoring and ServiceControl.Audit),  is packaged into its own versioned zip file in the `./zip` folder. These zip files are included in the installation package. When ServiceControl Management installs a new instance, it uses the files in these zips. Each zip contain two top-level folders
 
 - `/Transports` contains a folder for each supported transport
 - `/<product>` contains the instance files specific to the type of instance
@@ -8,13 +8,13 @@ Each product is packaged into it's own versioned zip file in the `./zip` folder,
   - `/ServiceControl.Audit`
   - `/ServiceControl.Monitoring`
   
- When SCMU installs a product it unzips the main instance files, and the transport files into the same folder
+When ServiceControl Management Utility (SCMU) installs a product, it unzips the main instance files and the transport files into the same folder.
 
 ## Assembly Mismatches
 
 There can be an issue when the main instance folder and the selected transport each have a copy of the same assembly. This can happen when the transport package and the instance each reference the same dependency, but select different versions. At install time, one version or the other will be copied into the instance binary folder and things may break unexpectedly at runtime.
 
-To prevent this, there is a unit test (`DeploymentPackageTests.DuplicatAssemblyFileSizesShouldMatch` that tests the generate zip files to look for duplicated assemblies. If their file sizes match, then the test passes. If the file sizes do not match, then the test will fail with a message like the following.
+To prevent this, the unit test `DeploymentPackageTests.DuplicatAssemblyFileSizesShouldMatch` tests the generated zip files for duplicated assemblies. If their file sizes match, then the test passes. If the file sizes do not match, then the test will fail with a message:
 
 ```
   File sizes should match the ones in the ServiceControl.Audit folder. Check versions of dependencies.
