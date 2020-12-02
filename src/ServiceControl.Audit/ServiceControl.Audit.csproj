@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$(SolutionDir)TransitiveDependencies.Build.props" />
+
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -36,11 +38,6 @@
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.1.1" />
     <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Include="System.Threading.Channels" Version="4.7.1" />
-  </ItemGroup>
-
-  <ItemGroup Label="Transitive dependency that needs to be identical to the one used in ServiceControl-*">
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.6.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
   </ItemGroup>
 
   <ItemGroup>
