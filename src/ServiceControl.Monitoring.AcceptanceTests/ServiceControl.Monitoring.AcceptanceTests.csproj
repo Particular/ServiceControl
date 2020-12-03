@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.Transport.Msmq" Version="1.1.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.4.4" />
     <PackageReference Include="NServiceBus.Metrics" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Metrics.ServiceControl" Version="3.0.4" />
