@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace ServiceControlInstaller.PowerShell.UnitTests
 {
@@ -96,6 +97,29 @@ namespace ServiceControlInstaller.PowerShell.UnitTests
             {
                 Debug.WriteLine(result);
             }
+        }
+
+        [Test]
+        public void XXXX()
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                {"Name", "Test"},
+                {"Transport", "MSMQ"},
+                {"InstallPath", @"c:\install"},
+                {"DBPath", @"c:\db"},
+                {"LogPath", @"c:\logs"},
+                {"Port", "12"},
+                //{"AuditRetentionPeriod", "15.0:0:0"},
+                //{"ForwardAuditMessages", true},
+                {"ErrorRetentionPeriod", "15.0:0:0"},
+                {"DatabaseMaintenancePort", "2"},
+            };
+            
+            var results = new PsCmdletAssert().Invoke(typeof(NewServiceControlInstance), parameters);
+            Assert.IsNotNull(results);
+            Assert.AreEqual(1, results.Count);
+            Assert.AreEqual("expected", results[0]);
         }
     }
 }
