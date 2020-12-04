@@ -98,6 +98,11 @@ namespace ServiceControlInstaller.PowerShell
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
             }
 
+            if (Transport == TransportNames.MSMQ && !string.IsNullOrEmpty(ConnectionString))
+            {
+                throw new Exception($"MSMQ transport no longer uses a connectionString");
+            }
+
             if (TransportNames.IsDeprecated(Transport))
             {
                 WriteWarning($"The transport '{Transport.Replace(TransportNames.DeprecatedPrefix, string.Empty)}' is deprecated. Consult the corresponding upgrade guide for the selected transport on 'https://docs.particular.net'");
