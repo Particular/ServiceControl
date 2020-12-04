@@ -172,6 +172,10 @@ namespace ServiceControlInstaller.PowerShell
                         throw new Exception("Unknown error creating instance");
                     }
                 }
+                else
+                {
+                    throw new Exception("Installer not run successfully");
+                }
             }
             catch (Exception ex)
             {
