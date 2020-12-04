@@ -14,6 +14,11 @@
         {
             var fullKey = root + "/" + name;
 
+            if (EnvironmentVariableSettingsReader<T>.TryRead(root, name, out var environmentVariable))
+            {
+                return environmentVariable;
+            }
+
             if (ConfigurationManager.AppSettings[fullKey] != null)
             {
                 return (T)Convert.ChangeType(ConfigurationManager.AppSettings[fullKey], typeof(T));
