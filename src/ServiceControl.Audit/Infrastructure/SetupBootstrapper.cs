@@ -34,27 +34,32 @@ namespace ServiceControl.Audit.Infrastructure
             var transportCustomization = settings.LoadTransportCustomization();
             var factory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
 
-            var config = factory.CreateAuditIngestor(settings.AuditQueue, (context, dispatcher) => Task.CompletedTask);
+            // if audit queue is ("!disable") IngestAuditMessages will be false
+            if (settings.IngestAuditMessages)
+            {
+                var config = factory.CreateAuditIngestor(settings.AuditQueue, (context, dispatcher) => Task.CompletedTask);
 
-            if (settings.SkipQueueCreation)
-            {
-                log.Info("Skipping queue creation");
-            }
-            else
-            {
-                var additionalQueues = new List<string>
+                if (settings.SkipQueueCreation)
                 {
-                    $"{settings.ServiceName}.Errors"
-                };
-                if (settings.ForwardAuditMessages && settings.AuditLogQueue != null)
-                {
-                    additionalQueues.Add(settings.AuditLogQueue);
+                    log.Info("Skipping queue creation");
                 }
-                config.AutoCreateQueues(additionalQueues.ToArray(), username);
-            }
+                else
+                {
+                    var additionalQueues = new List<string>
+                    {
+                        $"{settings.ServiceName}.Errors"
+                    };
+                    if (settings.ForwardAuditMessages && settings.AuditLogQueue != null)
+                    {
+                        additionalQueues.Add(settings.AuditLogQueue);
+                    }
+                    config.AutoCreateQueues(additionalQueues.ToArray(), username);
 
-            //No need to start the raw endpoint to create queues
-            await RawEndpoint.Create(config).ConfigureAwait(false);
+                }
+
+                //No need to start the raw endpoint to create queues
+                await RawEndpoint.Create(config).ConfigureAwait(false);
+            }
 
             var configuration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = configuration.AssemblyScanner();
