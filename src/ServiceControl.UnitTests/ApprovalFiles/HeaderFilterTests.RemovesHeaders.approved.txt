@@ -15,6 +15,7 @@
   "NServiceBus.Version": "7.1.0",
   "NServiceBus.TimeSent": "2020-10-31 13:59:26:479745 Z",
   "NServiceBus.Timeout.RouteExpiredTimeoutTo": "Crm.PowerSupplySalesOrderManager.1.0@[dbo]@[Market.NServiceBus.Prod]",
+  "NServiceBus.Timeout.Expire": "2020-10-31 13,59,25,359877 Z",
   "NServiceBus.RelatedToTimeoutId": "2c6aa21f-7e73-4142-de86-08d87432ffe4",
   "NServiceBus.ProcessingMachine": "MACHINE",
   "NServiceBus.ProcessingEndpoint": "SeasNve.Market.Crm.PowerSupplySalesOrderManager.1.0",

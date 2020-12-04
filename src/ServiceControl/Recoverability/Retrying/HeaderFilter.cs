@@ -29,7 +29,6 @@
             "NServiceBus.FailedQ",
             "NServiceBus.TimeOfFailure",
             "NServiceBus.ExceptionInfo.",
-            "NServiceBus.Timeout.Expire",
             "ServiceControl.EditOf"
         };
     }
