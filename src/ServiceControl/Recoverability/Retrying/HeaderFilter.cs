@@ -1,16 +1,25 @@
 ﻿namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     static class HeaderFilter
     {
         public static Dictionary<string, string> RemoveErrorMessageHeaders(Dictionary<string, string> headers)
         {
-            var headersToRetryWith = headers
-                .Where(kv => !KeysToRemoveWhenRetryingAMessage.Contains(kv.Key))
-                .ToDictionary(kv => kv.Key, kv => kv.Value);
-
+            // still take a copy to preserve the old assumptions
+            var headersToRetryWith = new Dictionary<string, string>(headers);
+            foreach (var headerToRemove in KeysToRemoveWhenRetryingAMessage)
+            {
+                // iterate over original so that we are not running into modified collection problem
+                foreach (var keyValuePair in headers)
+                {
+                    if (keyValuePair.Key.StartsWith(headerToRemove, StringComparison.Ordinal))
+                    {
+                        headersToRetryWith.Remove(keyValuePair.Key);
+                    }
+                }
+            }
             return headersToRetryWith;
         }
 
@@ -19,12 +28,7 @@
             "NServiceBus.Retries",
             "NServiceBus.FailedQ",
             "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace",
-            "NServiceBus.ExceptionInfo.HelpLink",
-            "NServiceBus.ExceptionInfo.Message",
+            "NServiceBus.ExceptionInfo.",
             "ServiceControl.EditOf"
         };
     }
