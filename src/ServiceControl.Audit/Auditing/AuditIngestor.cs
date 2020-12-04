@@ -23,6 +23,7 @@
             {
                 log.Debug($"Ingesting {contexts.Count} message contexts");
             }
+
             var stored = await auditPersister.Persist(contexts).ConfigureAwait(false);
 
             try
@@ -50,14 +51,11 @@
             {
                 if (log.IsDebugEnabled)
                 {
-                    log.Debug($"Forwarding messages failed");
+                    log.Debug("Forwarding messages failed", e);
                 }
 
-                // in case forwarding throws
-                foreach (var context in stored)
-                {
-                    context.GetTaskCompletionSource().TrySetException(e);
-                }
+                // making sure to rethrow so that all messages get marked as failed
+                throw;
             }
         }
 

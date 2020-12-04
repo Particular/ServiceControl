@@ -87,7 +87,7 @@
                     {
                         if (Logger.IsDebugEnabled)
                         {
-                            Logger.Debug($"Adding SagaSnapshot message for bulk storage");
+                            Logger.Debug("Adding SagaSnapshot message for bulk storage");
                         }
                         await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
                         storedContexts.Add(context);
@@ -98,24 +98,20 @@
                 {
                     if (Logger.IsDebugEnabled)
                     {
-                        Logger.Debug($"Adding known endpoint for bulk storage");
+                        Logger.Debug("Adding known endpoint for bulk storage");
                     }
                     await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
             {
-                storedContexts.Clear();
-                // let's give up
-                foreach (var context in contexts)
-                {
-                    context.GetTaskCompletionSource().TrySetException(e);
-                }
-
                 if (Logger.IsDebugEnabled)
                 {
                     Logger.Debug("Bulk insertion failed", e);
                 }
+
+                // making sure to rethrow so that all messages get marked as failed
+                throw;
             }
             finally
             {
@@ -123,10 +119,24 @@
                 {
                     if (Logger.IsDebugEnabled)
                     {
-                        Logger.Debug($"Performing bulk session dispose");
+                        Logger.Debug("Performing bulk session dispose");
                     }
 
-                    await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                    try
+                    {
+                        // this can throw even though dispose is never supposed to throw
+                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception e)
+                    {
+                        if (Logger.IsDebugEnabled)
+                        {
+                            Logger.Debug("Bulk insertion dispose failed", e);
+                        }
+                        
+                        // making sure to rethrow so that all messages get marked as failed
+                        throw;
+                    }
                 }
 
                 stopwatch.Stop();
@@ -183,8 +193,8 @@
 
                 var sagaSnapshot = SagaSnapshotFactory.Create(message);
 
-                context.Extensions.Set(sagaSnapshot);
                 context.Extensions.Set("AuditType", "SagaSnapshot");
+                context.Extensions.Set(sagaSnapshot);
             }
             catch (Exception e)
             {
@@ -242,7 +252,6 @@
                     Logger.Debug($"{commandsToEmit.Count} commands emitted.");
                 }
 
-                context.Extensions.Set(auditMessage);
                 if (metadata.TryGetValue("SendingEndpoint", out var sendingEndpoint))
                 {
                     context.Extensions.Set("SendingEndpoint", (EndpointDetails)sendingEndpoint);
@@ -254,6 +263,7 @@
                 }
 
                 context.Extensions.Set("AuditType", "ProcessedMessage");
+                context.Extensions.Set(auditMessage);
             }
             catch (Exception e)
             {
