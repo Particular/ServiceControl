@@ -25,7 +25,15 @@
             "NServiceBus.ExceptionInfo.StackTrace",
             "NServiceBus.ExceptionInfo.HelpLink",
             "NServiceBus.ExceptionInfo.Message",
-            "ServiceControl.EditOf"
+            "ServiceControl.EditOf",
+            "NServiceBus.ExceptionInfo.Data.Message type",
+            "NServiceBus.ExceptionInfo.Data.Handler type",
+            "NServiceBus.ExceptionInfo.Data.Handler start time",
+            "NServiceBus.ExceptionInfo.Data.Handler failure time",
+            "NServiceBus.ExceptionInfo.Data.Message ID",
+            "NServiceBus.ExceptionInfo.Data.Transport message ID",
+            "NServiceBus.Retries.Timestamp",
+            "NServiceBus.Timeout.Expire"
         };
     }
 }
