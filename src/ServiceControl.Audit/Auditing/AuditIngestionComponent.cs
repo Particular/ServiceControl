@@ -112,6 +112,19 @@
 
                     await ingestor.Ingest(contexts).ConfigureAwait(false);
                 }
+                catch (Exception e) // show must go on
+                {
+                    if (log.IsInfoEnabled)
+                    {
+                        log.Info("Ingesting messages failed", e);
+                    }
+
+                    // signal all message handling tasks to terminate
+                    foreach (var context in contexts)
+                    {
+                        context.GetTaskCompletionSource().TrySetException(e);
+                    }
+                }
                 finally
                 {
                     contexts.Clear();
