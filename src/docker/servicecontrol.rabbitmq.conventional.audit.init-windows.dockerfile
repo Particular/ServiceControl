@@ -11,4 +11,8 @@ ENV "ServiceControl.Audit/Hostname"="*"
 ENV "ServiceControl.Audit/DBPath"="C:\\Data\\"
 ENV "ServiceControl.Audit/LogPath"="C:\\Logs\\"
 
+# Defaults
+ENV "ServiceControl.Audit/ForwardAuditMessages"="False"
+ENV "ServiceControl.Audit/AuditRetentionPeriod"="720"
+
 ENTRYPOINT ["ServiceControl.Audit.exe", "--setup"]
