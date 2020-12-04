@@ -11,6 +11,10 @@ ENV "ServiceControl/Hostname"="*"
 ENV "ServiceControl/DBPath"="C:\\Data\\"
 ENV "ServiceControl/LogPath"="C:\\Logs\\"
 
+# Defaults
+ENV "ServiceControl/ForwardErrorMessages"="False"
+ENV "ServiceControl/ErrorRetention"="15"
+
 EXPOSE 33333
 EXPOSE 33334
 
