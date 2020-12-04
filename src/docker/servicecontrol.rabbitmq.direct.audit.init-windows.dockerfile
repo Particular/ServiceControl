@@ -11,4 +11,8 @@ ENV "ServiceControl.Audit/Hostname"="*"
 ENV "ServiceControl.Audit/DBPath"="C:\\Data\\"
 ENV "ServiceControl.Audit/LogPath"="C:\\Logs\\"
 
+# Defaults
+ENV "ServiceControl/ForwardErrorMessages"="False"
+ENV "ServiceControl/ErrorRetention"="15"
+
 ENTRYPOINT ["ServiceControl.Audit.exe", "--portable", "--setup"]
