@@ -11,21 +11,25 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public MessagesViewIndex()
         {
             Map = messages => from message in messages
-                select new Result
-                {
-                    MessageId = message.MessageMetadata.MessageId,
-                    MessageType = message.MessageMetadata.MessageType,
-                    IsSystemMessage = message.MessageMetadata.IsSystemMessage,
-                    Status = message.MessageMetadata.IsRetried ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
-                    TimeSent = message.MessageMetadata.TimeSent,
-                    ProcessedAt = message.ProcessedAt,
-                    ReceivingEndpointName = message.MessageMetadata.ReceivingEndpoint != null ? message.MessageMetadata.ReceivingEndpoint.Name : null,
-                    CriticalTime = message.MessageMetadata.CriticalTime,
-                    ProcessingTime = message.MessageMetadata.ProcessingTime,
-                    DeliveryTime = message.MessageMetadata.DeliveryTime,
-                    Query = message.Headers.Select(x => x.Value).ToArray(),
-                    ConversationId = message.MessageMetadata.ConversationId
-                };
+                              let attachment = LoadAttachment(message, "body")
+                              let isBinaryContent = message.MessageMetadata.ContentType.Contains("binary")
+                              let bodyContent = !isBinaryContent ? attachment.GetContentAsString() : ""
+                              let bodyContentArray = isBinaryContent ? new string[0] : new[] { attachment.GetContentAsString() }
+                              select new Result
+                              {
+                                  MessageId = message.MessageMetadata.MessageId,
+                                  MessageType = message.MessageMetadata.MessageType,
+                                  IsSystemMessage = message.MessageMetadata.IsSystemMessage,
+                                  Status = message.MessageMetadata.IsRetried ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
+                                  TimeSent = message.MessageMetadata.TimeSent,
+                                  ProcessedAt = message.ProcessedAt,
+                                  ReceivingEndpointName = message.MessageMetadata.ReceivingEndpoint != null ? message.MessageMetadata.ReceivingEndpoint.Name : null,
+                                  CriticalTime = message.MessageMetadata.CriticalTime,
+                                  ProcessingTime = message.MessageMetadata.ProcessingTime,
+                                  DeliveryTime = message.MessageMetadata.DeliveryTime,
+                                  Query = message.Headers.Select(x => x.Value).Concat(bodyContentArray).ToArray(),
+                                  ConversationId = message.MessageMetadata.ConversationId
+                              };
 
             Index(x => x.Query, FieldIndexing.Search);
             Analyze(x => x.Query, typeof(StandardAnalyzer).FullName);

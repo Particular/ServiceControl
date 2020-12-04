@@ -127,12 +127,6 @@ namespace ServiceControl.Audit.Auditing
                 }
 
                 await StoreKnownEndpoints(knownEndpoints, bulkInsert).ConfigureAwait(false);
-
-                using (bulkInsertCommitDurationMeter.Measure())
-                {
-                    await bulkInsert.DisposeAsync().ConfigureAwait(false);
-                    bulkInsert = null;
-                }
             }
             catch (Exception e)
             {
@@ -156,7 +150,10 @@ namespace ServiceControl.Audit.Auditing
                     try
                     {
                         // this can throw even though dispose is never supposed to throw
-                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                        using (bulkInsertCommitDurationMeter.Measure())
+                        {
+                            await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                        }
                     }
                     catch (Exception e)
                     {

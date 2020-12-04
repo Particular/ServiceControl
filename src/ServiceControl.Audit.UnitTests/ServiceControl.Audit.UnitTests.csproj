@@ -25,4 +25,8 @@
     <PackageReference Include="RavenDB.TestDriver" Version="5.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="BodyStorage\" />
+  </ItemGroup>
+
 </Project>

@@ -1,9 +1,6 @@
 ﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
     using System.Collections.Generic;
-    using System.Text;
-    using Infrastructure;
-    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.Features;
 
@@ -21,11 +18,6 @@
 
         public class BodyStorageEnricher
         {
-            public BodyStorageEnricher(Settings settings)
-            {
-                this.settings = settings;
-            }
-
             public void StoreAuditMessageBody(string documentId, byte[] body, IReadOnlyDictionary<string, string> headers, ProcessedMessageData metadata)
             {
                 var bodySize = body?.Length ?? 0;
@@ -37,8 +29,7 @@
 
                 var contentType = GetContentType(headers, "text/xml");
                 metadata.ContentType = contentType;
-
-                TryStoreBody(documentId, body, headers, metadata, bodySize, contentType);
+                metadata.BodyUrl = $"/messages/{documentId}/body";
             }
 
             static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
@@ -50,27 +41,6 @@
 
                 return contentType;
             }
-
-            void TryStoreBody(string documentId, byte[] body, IReadOnlyDictionary<string, string> headers,
-                ProcessedMessageData metadata, int bodySize, string contentType)
-            {
-                var bodyUrl = $"/messages/{documentId}/body";
-                var isBinary = contentType.Contains("binary");
-                var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
-                var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
-
-                if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
-                {
-                    metadata.Body = Encoding.UTF8.GetString(body);
-                }
-
-                metadata.BodyUrl = bodyUrl;
-            }
-
-            Settings settings;
-
-            // large object heap starts above 85000 bytes and not above 85 KB!
-            internal const int LargeObjectHeapThreshold = 85 * 1000;
         }
     }
 }
