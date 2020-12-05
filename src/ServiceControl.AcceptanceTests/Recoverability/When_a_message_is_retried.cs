@@ -39,7 +39,9 @@
         static readonly List<string> HeadersThatShouldBeRemoved = new List<string>
         {
             "NServiceBus.Retries",
+            "NServiceBus.Retries.Timestamp",
             "NServiceBus.FailedQ",
+            "ServiceContro.EditOf",
             "NServiceBus.TimeOfFailure",
             "NServiceBus.ExceptionInfo.ExceptionType",
             "NServiceBus.ExceptionInfo.AuditMessage",
@@ -48,6 +50,7 @@
             "NServiceBus.ExceptionInfo.HelpLink",
             "NServiceBus.ExceptionInfo.Message",
             "NServiceBus.ExceptionInfo.InnerExceptionType",
+            "NServiceBus.ExceptionInfo.Data.Custom",
             "NServiceBus.ProcessingMachine",
             "NServiceBus.ProcessingEndpoint",
             "$.diagnostics.hostid",
