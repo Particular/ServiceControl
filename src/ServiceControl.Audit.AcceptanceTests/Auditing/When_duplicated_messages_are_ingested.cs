@@ -17,11 +17,6 @@
         [Test]
         public async Task Should_deduplicate()
         {
-            SetSettings = settings =>
-            {
-                settings.MaximumConcurrencyLevel = 1;
-            };
-
             var context = await Define<MyContext>()
                 .WithEndpoint<AnEndpoint>(b => b.When(async s =>
                 {
@@ -34,20 +29,21 @@
                     List<MessagesView> messages = result;
                     if (result)
                     {
-                        var trailingMessageIngested = messages.Any(m => m.MessageType.Contains(typeof(TrailingMessage).Name));
-
-                        if (trailingMessageIngested)
+                        // both message types need to be available to make sure there is no order dependency
+                        if (!messages.Any(m => m.MessageType.Contains(nameof(DuplicatedMessage))) ||
+                            !messages.Any(m => m.MessageType.Contains(nameof(TrailingMessage))))
                         {
-                            c.Messages = messages;
-                            return true;
+                            return false;
                         }
+                        c.Messages = messages;
+                        return true;
                     }
 
                     return false;
                 })
                 .Run();
 
-            var duplicatedMessageEntry = context.Messages.Count(m => m.MessageType.Contains(typeof(DuplicatedMessage).Name));
+            var duplicatedMessageEntry = context.Messages.Count(m => m.MessageType.Contains(nameof(DuplicatedMessage)));
 
             Assert.AreEqual(1, duplicatedMessageEntry, "Duplicated audit message should be de-duplicated on ingestion.");
         }
@@ -65,10 +61,14 @@
 
             class DuplicatingBehavior : Behavior<IAuditContext>
             {
-                public override async Task Invoke(IAuditContext context, Func<Task> next)
+                public override Task Invoke(IAuditContext context, Func<Task> next)
                 {
-                    await next();
-                    await next();
+                    if (context.Message.Headers[Headers.EnclosedMessageTypes].Contains(nameof(DuplicatedMessage)))
+                    {
+                        // create a few duplicate audit messages
+                        return Task.WhenAll(next(), next(), next(), next());
+                    }
+                    return next();
                 }
             }
 
@@ -97,7 +97,6 @@
 
         public class TrailingMessage : ICommand
         {
-
         }
     }
 }
