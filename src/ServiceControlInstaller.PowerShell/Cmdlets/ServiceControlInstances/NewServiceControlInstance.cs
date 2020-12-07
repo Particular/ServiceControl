@@ -152,13 +152,16 @@ namespace ServiceControlInstaller.PowerShell
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
                 SkipQueueCreation = SkipQueueCreation
             };
+            
+            var modulePath = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
+            var zipfolder = Path.Combine(modulePath, "..");
 
-            var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var logger = new PSLogger(Host);
-
             var installer = new UnattendServiceControlInstaller(logger, zipfolder);
             try
             {
+                logger.Info("Module root at " + modulePath);
+                logger.Info("Installer(s) path at " + zipfolder);
                 logger.Info("Installing Service Control instance...");
                 if (installer.Add(details, PromptToProceed))
                 {

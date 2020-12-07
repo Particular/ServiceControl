@@ -6,7 +6,6 @@
 	CLRVersion = '4.0'
 	DotNetFrameworkVersion = '4.0'
 	NestedModules = @('ServiceControlInstaller.PowerShell.DLL',  'ServiceControlMgmt.psm1')
-    PowerShellVersion = '3.0'
 	CompanyName = 'Particular Software'
 	Copyright = 'Particular Software, Copyright © 2015'
 	FunctionsToExport='*'
