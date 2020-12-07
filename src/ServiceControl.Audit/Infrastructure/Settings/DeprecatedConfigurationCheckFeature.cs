@@ -20,14 +20,18 @@
         {
             protected override Task OnStart(IMessageSession session)
             {
-                var config = XDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
-                var sections = config?.Element("configuration");
-
-                if (sections != null)
+                try
                 {
-                    LogIfAsbConfigSectionExists(sections);
-                    LogIfAsqConfigSectionExists(sections);
+                    var config = XDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
+                    var sections = config?.Element("configuration");
+
+                    if (sections != null)
+                    {
+                        LogIfAsbConfigSectionExists(sections);
+                        LogIfAsqConfigSectionExists(sections);
+                    }
                 }
+                catch { } // Fails if no app.config file is present. E.g. in docker images.
 
                 return Task.CompletedTask;
             }
