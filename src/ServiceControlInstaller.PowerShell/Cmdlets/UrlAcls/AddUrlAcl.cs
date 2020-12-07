@@ -41,7 +41,8 @@ namespace ServiceControlInstaller.PowerShell
             UrlReservation.Create(new UrlReservation(Url, sidList.ToArray()));
         }
 
-        [ValidateNotNullOrEmpty] [Parameter(Mandatory = true, Position = 1, HelpMessage = "The user or group to assign to this URLACL")]
+        [ValidateNotNullOrEmpty]
+        [Parameter(Mandatory = true, Position = 1, HelpMessage = "The user or group to assign to this URLACL")]
         public string[] Users;
     }
 }

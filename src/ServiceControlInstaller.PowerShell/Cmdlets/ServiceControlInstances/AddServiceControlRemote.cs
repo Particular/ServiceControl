@@ -15,7 +15,7 @@ namespace ServiceControlInstaller.PowerShell
 
         [ValidateNotNull]
         [ValidateUrl]
-        [ValidateCount(1, Int32.MaxValue)]
+        [ValidateCount(1, int.MaxValue)]
         [Parameter(Mandatory = true, Position = 1, ValueFromRemainingArguments = true, HelpMessage = "The api url of the remote instance")]
         public string[] RemoteInstanceAddress { get; set; }
 
