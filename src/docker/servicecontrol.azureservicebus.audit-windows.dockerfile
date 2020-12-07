@@ -13,7 +13,7 @@ ENV "ServiceControl.Audit/LogPath"="C:\\Logs\\"
 
 # Defaults
 ENV "ServiceControl.Audit/ForwardAuditMessages"="False"
-ENV "ServiceControl.Audit/AuditRetentionPeriod"="720"
+ENV "ServiceControl.Audit/AuditRetentionPeriod"="365"
 
 EXPOSE 44444
 EXPOSE 44445

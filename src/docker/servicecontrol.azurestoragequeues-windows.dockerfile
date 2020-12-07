@@ -13,7 +13,7 @@ ENV "ServiceControl/LogPath"="C:\\Logs\\"
 
 # Defaults
 ENV "ServiceControl/ForwardErrorMessages"="False"
-ENV "ServiceControl/ErrorRetention"="15"
+ENV "ServiceControl/ErrorRetentionPeriod"="15"
 
 EXPOSE 33333
 EXPOSE 33334
