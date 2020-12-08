@@ -1,3 +1,5 @@
+using System;
+
 namespace ServiceControlInstaller.PowerShell
 {
     using System.IO;
@@ -38,7 +40,12 @@ namespace ServiceControlInstaller.PowerShell
                     break;
                 }
 
-                WriteObject(installer.Delete(instance.Name, RemoveDB.ToBool(), RemoveLogs.ToBool()));
+                var success = installer.Delete(instance.Name, RemoveDB.ToBool(), RemoveLogs.ToBool());
+
+                if (!success)
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"Removal of {instance.Name} failed"), "RemovalFailure", ErrorCategory.InvalidResult, null));
+                }
             }
         }
     }

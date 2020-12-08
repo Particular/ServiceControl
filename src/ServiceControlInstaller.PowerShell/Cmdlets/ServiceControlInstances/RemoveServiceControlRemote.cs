@@ -33,7 +33,12 @@ namespace ServiceControlInstaller.PowerShell
                 return;
             }
 
-            WriteObject(installer.RemoveRemoteInstance(instance, RemoteInstanceAddress, logger));
+            var success = installer.RemoveRemoteInstance(instance, RemoteInstanceAddress, logger);
+
+            if (!success)
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception($"Removal of ServiceControl remote failed"), "RemoveRemoteFailure", ErrorCategory.InvalidResult, null));
+            }
         }
     }
 }
