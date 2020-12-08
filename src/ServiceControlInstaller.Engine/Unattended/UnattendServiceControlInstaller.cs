@@ -41,57 +41,52 @@
             }
 
             var instanceInstaller = details;
-            instanceInstaller.ReportCard = new ReportCard();
-            instanceInstaller.Version = ZipInfo.Version;
-
-            //Validation
-            instanceInstaller.Validate(promptToProceed);
-            if (instanceInstaller.ReportCard.HasErrors)
-            {
-                foreach (var error in instanceInstaller.ReportCard.Errors)
-                {
-                    logger.Error(error);
-                }
-
-                return false;
-            }
-
+            
             try
             {
-                instanceInstaller.CopyFiles(ZipInfo.FilePath);
-                instanceInstaller.WriteConfigurationFile();
-                instanceInstaller.RegisterUrlAcl();
-                instanceInstaller.SetupInstance();
-                instanceInstaller.RegisterService();
-                foreach (var warning in instanceInstaller.ReportCard.Warnings)
-                {
-                    logger.Warn(warning);
-                }
+                instanceInstaller.ReportCard = new ReportCard();
+                instanceInstaller.Version = ZipInfo.Version;
+
+                //Validation
+                instanceInstaller.Validate(promptToProceed);
 
                 if (instanceInstaller.ReportCard.HasErrors)
                 {
-                    foreach (var error in instanceInstaller.ReportCard.Errors)
-                    {
-                        logger.Error(error);
-                    }
-
                     return false;
                 }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex.Message);
-                return false;
-            }
 
-            //Post Installation
-            var instance = InstanceFinder.FindServiceControlInstance(instanceInstaller.Name);
-            if (!instance.TryStartService())
-            {
-                logger.Warn("The service failed to start");
-            }
+                try
+                {
+                    instanceInstaller.CopyFiles(ZipInfo.FilePath);
+                    instanceInstaller.WriteConfigurationFile();
+                    instanceInstaller.RegisterUrlAcl();
+                    instanceInstaller.SetupInstance();
+                    instanceInstaller.RegisterService();
 
-            return true;
+                    if (instanceInstaller.ReportCard.HasErrors)
+                    {
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex.Message);
+                    return false;
+                }
+
+                //Post Installation
+                var instance = InstanceFinder.FindServiceControlInstance(instanceInstaller.Name);
+                if (!instance.TryStartService())
+                {
+                    logger.Warn("The service failed to start");
+                }
+
+                return true;
+            }
+            finally
+            {
+                WriteWarningsAndErrorsToLog(instanceInstaller);
+            }
         }
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
@@ -373,7 +368,19 @@
             }
 
             return true;
+        }
+        
+        void WriteWarningsAndErrorsToLog(ServiceControlNewInstance instanceInstaller)
+        {
+            foreach (var warning in instanceInstaller.ReportCard.Warnings)
+            {
+                logger.Warn(warning);
+            }
 
+            foreach (var error in instanceInstaller.ReportCard.Errors)
+            {
+                logger.Error(error);
+            }
         }
     }
 }
