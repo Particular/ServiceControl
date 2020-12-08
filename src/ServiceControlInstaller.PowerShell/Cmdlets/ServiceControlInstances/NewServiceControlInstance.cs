@@ -154,7 +154,7 @@ namespace ServiceControlInstaller.PowerShell
             };
             
             var modulePath = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
-            var zipfolder = Path.Combine(modulePath, "..");
+            var zipfolder = ZipPath.Get(this);
 
             var logger = new PSLogger(Host);
             var installer = new UnattendServiceControlInstaller(logger, zipfolder);

@@ -1,7 +1,6 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
-    using System.IO;
     using System.Management.Automation;
     using Engine.Instances;
     using Engine.Unattended;
@@ -23,7 +22,7 @@ namespace ServiceControlInstaller.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = Path.Combine(Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path), "..");
+            var zipFolder = ZipPath.Get(this);
             var installer = new UnattendServiceControlInstaller(logger, zipFolder);
 
             var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(Name);
