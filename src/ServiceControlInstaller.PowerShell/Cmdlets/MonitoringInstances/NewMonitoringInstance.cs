@@ -117,7 +117,7 @@ namespace ServiceControlInstaller.PowerShell
                 SkipQueueCreation = SkipQueueCreation
             };
 
-            var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
+            var zipfolder = ZipPath.Get(this);
             var logger = new PSLogger(Host);
 
             var installer = new UnattendMonitoringInstaller(logger, zipfolder);

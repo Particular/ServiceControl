@@ -22,7 +22,7 @@ namespace ServiceControlInstaller.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
+            var zipFolder = ZipPath.Get(this);
             var installer = new UnattendMonitoringInstaller(logger, zipFolder);
 
             foreach (var name in Name)
