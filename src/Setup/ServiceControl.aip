@@ -432,7 +432,7 @@
     <ROW Registry="Version_1" Root="-1" Key="Software\ParticularSoftware\ServiceControl" Name="Version" Value="[ProductVersion]" Component_="REG_Version"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
-    <ROW Shortcut="ServiceControlManagementPowershell" Directory_="SHORTCUTDIR" Name="Servic~2|ServiceControl Management Powershell" Component_="AI_ExePath" Target="[SystemFolder]WindowsPowerShell\v1.0\powershell.exe" Arguments="-NoExit -ExecutionPolicy Bypass -File &quot;[APPDIR]ShortcutStartup.ps1&quot;" Hotkey="0" IconIndex="0" ShowCmd="1" CustomFlags="1"/>
+    <ROW Shortcut="ServiceControlManagementPowershell" Directory_="SHORTCUTDIR" Name="Servic~2|ServiceControl Management Powershell" Component_="AI_ExePath" Target="[SystemFolder]WindowsPowerShell\v1.0\powershell.exe" Arguments="-NoExit -ExecutionPolicy Bypass -File &quot;[MODULEDIR]ShortcutStartup.ps1&quot;" Hotkey="0" IconIndex="0" ShowCmd="1" CustomFlags="1"/>
     <ROW Shortcut="ServiceControlManagment" Directory_="SHORTCUTDIR" Name="Servic~3|ServiceControl Management" Component_="ServiceControlConfig.exe" Target="[#ServiceControlConfig.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="APPDIR"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiTextStyleComponent">
