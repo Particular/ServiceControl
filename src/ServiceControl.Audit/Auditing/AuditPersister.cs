@@ -142,7 +142,7 @@
                 stopwatch.Stop();
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.Debug($"Batch size {contexts.Count} took {stopwatch.ElapsedMilliseconds}");
+                    Logger.Debug($"Batch size {contexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
                 }
             }
 
