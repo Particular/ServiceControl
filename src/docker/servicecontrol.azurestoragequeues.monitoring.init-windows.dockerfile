@@ -7,5 +7,6 @@ ADD /ServiceControl.Monitoring/bin/Release/net462 .
 
 ENV "Monitoring/TransportType"="ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ"
 ENV "Monitoring/HttpHostName"="*"
+ENV "Monitoring/HttpPort"="33633"
 
 ENTRYPOINT ["ServiceControl.Monitoring.exe", "--portable", "--setup"]

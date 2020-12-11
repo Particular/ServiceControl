@@ -7,5 +7,6 @@ ADD /ServiceControl.Monitoring/bin/Release/net462 .
 
 ENV "Monitoring/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
 ENV "Monitoring/HttpHostName"="*"
+ENV "Monitoring/HttpPort"="33633"
 
 ENTRYPOINT ["ServiceControl.Monitoring.exe", "--portable", "--setup"]
