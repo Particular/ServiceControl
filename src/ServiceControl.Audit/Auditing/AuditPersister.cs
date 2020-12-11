@@ -50,7 +50,9 @@
                 // deliberately not using the using statement because we dispose async explicitly
                 bulkInsert = store.BulkInsert(options: new BulkInsertOptions
                 {
-                    OverwriteExisting = true
+                    OverwriteExisting = true,
+                    ChunkedBulkInsertOptions = null,
+                    BatchSize = contexts.Count
                 });
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
@@ -133,7 +135,7 @@
                         {
                             Logger.Debug("Bulk insertion dispose failed", e);
                         }
-                        
+
                         // making sure to rethrow so that all messages get marked as failed
                         throw;
                     }
