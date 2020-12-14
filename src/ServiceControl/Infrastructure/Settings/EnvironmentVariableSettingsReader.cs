@@ -21,8 +21,16 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public static bool TryRead(string root, string name, out T value)
         {
-            var fullKey = $"{root}/{name}";
+            if (TryReadVariable(out value, $"{root}/{name}")) return true;
+            // Azure container instance compatibility:
+            if (TryReadVariable(out value, $"{root}_{name}".Replace('.', '_'))) return true;
 
+            value = default;
+            return false;
+        }
+
+        private static bool TryReadVariable(out T value, string fullKey)
+        {
             var environmentValue = Environment.GetEnvironmentVariable(fullKey);
 
             if (environmentValue != null)
