@@ -1,7 +1,6 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
-    using System.IO;
     using System.Management.Automation;
     using Engine.Instances;
     using Engine.Unattended;
@@ -15,7 +14,7 @@ namespace ServiceControlInstaller.PowerShell
 
         [ValidateNotNull]
         [ValidateUrl]
-        [ValidateCount(1, Int32.MaxValue)]
+        [ValidateCount(1, int.MaxValue)]
         [Parameter(Mandatory = true, Position = 1, ValueFromRemainingArguments = true, HelpMessage = "The api url of the remote instance")]
         public string[] RemoteInstanceAddress { get; set; }
 
@@ -23,7 +22,7 @@ namespace ServiceControlInstaller.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
+            var zipFolder = ZipPath.Get(this);
             var installer = new UnattendServiceControlInstaller(logger, zipFolder);
 
             var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(Name);
@@ -33,7 +32,12 @@ namespace ServiceControlInstaller.PowerShell
                 return;
             }
 
-            WriteObject(installer.AddRemoteInstance(instance, RemoteInstanceAddress, logger));
+            var success = installer.AddRemoteInstance(instance, RemoteInstanceAddress, logger);
+            
+            if (!success)
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception($"Adding of ServiceControl remote failed"), "AddRemoteFailure", ErrorCategory.InvalidResult, null));
+            }
         }
     }
 }

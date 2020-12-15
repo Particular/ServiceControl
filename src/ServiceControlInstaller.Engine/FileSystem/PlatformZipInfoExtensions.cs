@@ -11,7 +11,7 @@
         {
             if (!zipInfo.Present)
             {
-                throw new FileNotFoundException($"No {zipInfo.Name} zip file found", zipInfo.FilePath);
+                throw new FileNotFoundException($"No Zip file found at: {zipInfo.FilePath}");
             }
 
             if (!ZipFile.CheckZip(zipInfo.FilePath))

@@ -23,7 +23,7 @@ namespace ServiceControlInstaller.PowerShell
         protected override void ProcessRecord()
         {
             var logger = new PSLogger(Host);
-            var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
+            var zipfolder = ZipPath.Get(this);
             var installer = new UnattendMonitoringInstaller(logger, zipfolder);
 
             foreach (var name in Name)

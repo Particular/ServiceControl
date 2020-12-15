@@ -145,7 +145,7 @@
                 ServiceControlQueueAddress = ServiceControlQueueAddress
             };
 
-            var zipfolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
+            var zipfolder = ZipPath.Get(this);
             var logger = new PSLogger(Host);
 
             var installer = new UnattendAuditInstaller(logger, zipfolder);

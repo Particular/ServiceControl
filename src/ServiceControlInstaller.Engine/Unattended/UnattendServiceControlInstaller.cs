@@ -41,57 +41,52 @@
             }
 
             var instanceInstaller = details;
-            instanceInstaller.ReportCard = new ReportCard();
-            instanceInstaller.Version = ZipInfo.Version;
-
-            //Validation
-            instanceInstaller.Validate(promptToProceed);
-            if (instanceInstaller.ReportCard.HasErrors)
-            {
-                foreach (var error in instanceInstaller.ReportCard.Errors)
-                {
-                    logger.Error(error);
-                }
-
-                return false;
-            }
-
+            
             try
             {
-                instanceInstaller.CopyFiles(ZipInfo.FilePath);
-                instanceInstaller.WriteConfigurationFile();
-                instanceInstaller.RegisterUrlAcl();
-                instanceInstaller.SetupInstance();
-                instanceInstaller.RegisterService();
-                foreach (var warning in instanceInstaller.ReportCard.Warnings)
-                {
-                    logger.Warn(warning);
-                }
+                instanceInstaller.ReportCard = new ReportCard();
+                instanceInstaller.Version = ZipInfo.Version;
+
+                //Validation
+                instanceInstaller.Validate(promptToProceed);
 
                 if (instanceInstaller.ReportCard.HasErrors)
                 {
-                    foreach (var error in instanceInstaller.ReportCard.Errors)
-                    {
-                        logger.Error(error);
-                    }
-
                     return false;
                 }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex.Message);
-                return false;
-            }
 
-            //Post Installation
-            var instance = InstanceFinder.FindServiceControlInstance(instanceInstaller.Name);
-            if (!instance.TryStartService())
-            {
-                logger.Warn("The service failed to start");
-            }
+                try
+                {
+                    instanceInstaller.CopyFiles(ZipInfo.FilePath);
+                    instanceInstaller.WriteConfigurationFile();
+                    instanceInstaller.RegisterUrlAcl();
+                    instanceInstaller.SetupInstance();
+                    instanceInstaller.RegisterService();
 
-            return true;
+                    if (instanceInstaller.ReportCard.HasErrors)
+                    {
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex.Message);
+                    return false;
+                }
+
+                //Post Installation
+                var instance = InstanceFinder.FindServiceControlInstance(instanceInstaller.Name);
+                if (!instance.TryStartService())
+                {
+                    logger.Warn("The service failed to start");
+                }
+
+                return true;
+            }
+            finally
+            {
+                WriteWarningsAndErrorsToLog(instanceInstaller.ReportCard);
+            }
         }
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
@@ -140,11 +135,6 @@
 
                 if (instance.ReportCard.HasErrors)
                 {
-                    foreach (var error in instance.ReportCard.Errors)
-                    {
-                        logger.Error(error);
-                    }
-
                     return false;
                 }
 
@@ -159,6 +149,10 @@
                 logger.Error("Upgrade Failed: {0}", ex.Message);
                 return false;
             }
+            finally
+            {
+                WriteWarningsAndErrorsToLog(instance.ReportCard);
+            }
 
             return true;
         }
@@ -169,11 +163,6 @@
             instance.ValidateChanges();
             if (instance.ReportCard.HasErrors)
             {
-                foreach (var error in instance.ReportCard.Errors)
-                {
-                    logger.Error(error);
-                }
-
                 return false;
             }
 
@@ -188,11 +177,6 @@
                 instance.ApplyConfigChange();
                 if (instance.ReportCard.HasErrors)
                 {
-                    foreach (var error in instance.ReportCard.Errors)
-                    {
-                        logger.Error(error);
-                    }
-
                     return false;
                 }
 
@@ -201,14 +185,18 @@
                     logger.Error("Service failed to start after changes - please check configuration for {0}", instance.Name);
                     return false;
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
                 logger.Error("Update failed: {0}", ex.Message);
                 return false;
             }
-
-            return true;
+            finally
+            {
+                WriteWarningsAndErrorsToLog(instance.ReportCard);
+            }
         }
 
         public bool Delete(string instanceName, bool removeDB, bool removeLogs)
@@ -238,18 +226,8 @@
                     instance.RemoveDataBaseFolder();
                 }
 
-                foreach (var warning in instance.ReportCard.Warnings)
-                {
-                    logger.Warn(warning);
-                }
-
                 if (instance.ReportCard.HasErrors)
                 {
-                    foreach (var error in instance.ReportCard.Errors)
-                    {
-                        logger.Error(error);
-                    }
-
                     return false;
                 }
             }
@@ -257,6 +235,10 @@
             {
                 logger.Error(ex.Message);
                 return false;
+            }
+            finally
+            {
+                WriteWarningsAndErrorsToLog(instance.ReportCard);
             }
 
             return true;
@@ -334,14 +316,23 @@
                     logger.Error("Service failed to start after adding remote instances - please check configuration for {0}", instance.Name);
                     return false;
                 }
+
+                if (instance.ReportCard.HasErrors)
+                {
+                    return false;
+                }
+                
+                return true;
             }
             catch (Exception ex)
             {
                 logger.Error("Adding remote instances Failed: {0}", ex.Message);
                 return false;
             }
-
-            return true;
+            finally
+            {
+                WriteWarningsAndErrorsToLog(instance.ReportCard);
+            }
         }
 
         public bool RemoveRemoteInstance(ServiceControlInstance instance, string[] remoteInstanceAddresses, ILogging log)
@@ -365,15 +356,36 @@
                     logger.Error("Service failed to start after removing remote instances - please check configuration for {0}", instance.Name);
                     return false;
                 }
+
+                if (instance.ReportCard.HasErrors)
+                {
+                    return false;
+                }
+
+                return true;
             }
             catch (Exception ex)
             {
                 logger.Error("Removing remote instances Failed: {0}", ex.Message);
                 return false;
             }
+            finally
+            {
+                WriteWarningsAndErrorsToLog(instance.ReportCard);
+            }
+        }
+        
+        void WriteWarningsAndErrorsToLog(ReportCard reportCard)
+        {
+            foreach (var warning in reportCard.Warnings)
+            {
+                logger.Warn(warning);
+            }
 
-            return true;
-
+            foreach (var error in reportCard.Errors)
+            {
+                logger.Error(error);
+            }
         }
     }
 }

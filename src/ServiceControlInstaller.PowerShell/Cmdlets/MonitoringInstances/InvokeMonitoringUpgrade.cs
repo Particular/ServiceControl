@@ -22,7 +22,7 @@ namespace ServiceControlInstaller.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
+            var zipFolder = ZipPath.Get(this);
             var installer = new UnattendMonitoringInstaller(logger, zipFolder);
 
             foreach (var name in Name)
@@ -43,7 +43,8 @@ namespace ServiceControlInstaller.PowerShell
             }
         }
 
-        [ValidateNotNullOrEmpty] [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
+        [ValidateNotNullOrEmpty] 
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
         public string[] Name;
     }
 }
