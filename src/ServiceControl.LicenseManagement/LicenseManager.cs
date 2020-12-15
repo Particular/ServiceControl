@@ -35,9 +35,10 @@
                 return false;
             }
 
-            if (license.IsEvaluationLicense)
+            // Not allowed to run setup within a docker container
+            if (IsDockerEnvironmentVariableSet() && license.IsEvaluationLicense)
             {
-                errorMessage = "Cannot run setup with a trial license";
+                errorMessage = "Cannot run ServiceControl in a container with a trial license";
                 return false;
             }
 
@@ -105,6 +106,13 @@
         static string GetMachineLevelLicenseLocation()
         {
             return LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
+        }
+
+        static bool IsDockerEnvironmentVariableSet()
+        {
+            var isDockerEnvironmentVariable = Environment.GetEnvironmentVariable("IsDocker");
+
+            return string.Equals("true", isDockerEnvironmentVariable, StringComparison.InvariantCultureIgnoreCase);
         }
 
         static bool TryDeserializeLicense(string licenseText, out License license)

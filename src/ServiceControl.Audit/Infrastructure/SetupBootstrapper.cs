@@ -112,13 +112,14 @@ namespace ServiceControl.Audit.Infrastructure
                     return false;
                 }
             }
-
-            // Validate license:
-            var license = LicenseManager.FindLicense();
-            if (!LicenseManager.IsLicenseValidForServiceControlInit(license, out var errorMessageForFoundLicense))
+            else
             {
-                log.Error(errorMessageForFoundLicense);
-                return false;
+                var license = LicenseManager.FindLicense();
+                if (!LicenseManager.IsLicenseValidForServiceControlInit(license, out var errorMessageForFoundLicense))
+                {
+                    log.Error(errorMessageForFoundLicense);
+                    return false;
+                }
             }
 
             return true;

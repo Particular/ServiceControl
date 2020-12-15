@@ -27,6 +27,7 @@ namespace ServiceControl.Monitoring
             EndpointName = SettingsReader<string>.Read("EndpointName");
             EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("EndpointUptimeGracePeriod", "00:00:40"));
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 32);
+            IsRunningInDocker = SettingsReader<bool>.Read("IsDocker", false);
         }
 
         public string EndpointName
@@ -51,6 +52,7 @@ namespace ServiceControl.Monitoring
         public string RootUrl => $"http://{HttpHostName}:{HttpPort}/";
         public int MaximumConcurrencyLevel { get; set; }
         public string LicenseFileText { get; set; }
+        public bool IsRunningInDocker { get; set; }
 
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe

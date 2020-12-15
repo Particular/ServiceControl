@@ -5,6 +5,8 @@ WORKDIR /servicecontrol.audit
 ADD /ServiceControl.Transports.SqlServer/bin/Release/net462 .
 ADD /ServiceControl.Audit/bin/Release/net462 .
 
+ENV "IsDocker"="true"
+
 ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
 ENV "ServiceControl.Audit/Hostname"="*"
 

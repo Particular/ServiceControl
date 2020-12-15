@@ -43,6 +43,7 @@
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
+            IsRunningInDocker = SettingsReader<bool>.Read("IsDocker", false);
         }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
@@ -169,6 +170,8 @@
         public string ServiceControlQueueAddress { get; set; }
 
         public TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
+
+        public bool IsRunningInDocker { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {

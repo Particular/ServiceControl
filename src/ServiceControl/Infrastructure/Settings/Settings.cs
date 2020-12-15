@@ -50,6 +50,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
+            IsRunningInDocker = SettingsReader<bool>.Read("IsDocker", false);
         }
 
         public bool AllowMessageEditing { get; set; }
@@ -188,6 +189,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public int DataSpaceRemainingThreshold { get; set; }
+
+        public bool IsRunningInDocker { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {

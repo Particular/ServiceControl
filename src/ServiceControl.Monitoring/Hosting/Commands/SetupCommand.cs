@@ -48,13 +48,14 @@ namespace ServiceControl.Monitoring
                     return false;
                 }
             }
-
-            // Validate license:
-            var license = LicenseManager.FindLicense();
-            if (!LicenseManager.IsLicenseValidForServiceControlInit(license, out var errorMessageForFoundLicense))
+            else
             {
-                Logger.Error(errorMessageForFoundLicense);
-                return false;
+                var license = LicenseManager.FindLicense();
+                if (!LicenseManager.IsLicenseValidForServiceControlInit(license, out var errorMessageForFoundLicense))
+                {
+                    Logger.Error(errorMessageForFoundLicense);
+                    return false;
+                }
             }
 
             return true;
