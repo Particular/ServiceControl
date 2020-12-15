@@ -9,4 +9,6 @@ ENV "Monitoring/TransportType"="ServiceControl.Transports.ASBS.ASBSTransportCust
 ENV "Monitoring/HttpHostName"="*"
 ENV "Monitoring/HttpPort"="33633"
 
+ENV "Monitoring/LogPath"="C:\\Data\\Logs\\"
+
 ENTRYPOINT ["ServiceControl.Monitoring.exe", "--portable", "--setup"]

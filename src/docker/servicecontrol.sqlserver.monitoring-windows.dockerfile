@@ -9,6 +9,8 @@ ENV "Monitoring/TransportType"="ServiceControl.Transports.SqlServer.SqlServerTra
 ENV "Monitoring/HttpHostName"="*"
 ENV "Monitoring/HttpPort"="33633"
 
+ENV "Monitoring/LogPath"="C:\\Data\\Logs\\"
+
 EXPOSE 33633
 
 ENTRYPOINT ["ServiceControl.Monitoring.exe", "--portable"]
