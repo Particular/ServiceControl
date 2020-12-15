@@ -5,7 +5,7 @@ WORKDIR /servicecontrol
 ADD /ServiceControl.Transports.ASBS/bin/Release/net462 .
 ADD /ServiceControl/bin/Release/net462 .
 
-ENV "IsDocker"="true"
+ENV "SERVICECONTROL_NO_TRIAL"="true"
 
 ENV "ServiceControl/TransportType"="ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"
 ENV "ServiceControl/Hostname"="*"

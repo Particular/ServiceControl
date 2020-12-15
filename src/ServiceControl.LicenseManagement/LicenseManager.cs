@@ -35,8 +35,8 @@
                 return false;
             }
 
-            // Not allowed to run setup within a docker container
-            if (IsDockerEnvironmentVariableSet() && license.IsEvaluationLicense)
+            // E.g. when within a docker container
+            if (MustBeNonTrialLicenseForSetup() && license.IsEvaluationLicense)
             {
                 errorMessage = "Cannot run ServiceControl in a container with a trial license";
                 return false;
@@ -108,9 +108,9 @@
             return LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
         }
 
-        static bool IsDockerEnvironmentVariableSet()
+        static bool MustBeNonTrialLicenseForSetup()
         {
-            var isDockerEnvironmentVariable = Environment.GetEnvironmentVariable("IsDocker");
+            var isDockerEnvironmentVariable = Environment.GetEnvironmentVariable("SERVICECONTROL_NO_TRIAL");
 
             return string.Equals("true", isDockerEnvironmentVariable, StringComparison.InvariantCultureIgnoreCase);
         }

@@ -5,7 +5,7 @@ WORKDIR /servicecontrol.audit
 ADD /ServiceControl.Transports.RabbitMQ/bin/Release/net462 .
 ADD /ServiceControl.Audit/bin/Release/net462 .
 
-ENV "IsDocker"="true"
+ENV "SERVICECONTROL_NO_TRIAL"="true"
 
 ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
 ENV "ServiceControl.Audit/Hostname"="*"
