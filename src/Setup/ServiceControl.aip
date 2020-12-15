@@ -319,8 +319,6 @@
     <ROW Feature_="ServiceControlManagment" Component_="Caliburn.Micro.Platform.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Caliburn.Micro.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="FluentValidation.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="Ionic.Zip.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="Ionic.Zip.dll_1"/>
     <ROW Feature_="ServiceControlManagment" Component_="Microsoft.WindowsAPICodePack.Shell.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Microsoft.WindowsAPICodePack.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Mindscape.Raygun4Net.dll"/>
