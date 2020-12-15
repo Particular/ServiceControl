@@ -24,14 +24,20 @@
         [Test]
         public void PublicClr()
         {
-            var publicApi = ApiGenerator.GeneratePublicApi(typeof(Bootstrapper).Assembly);
+            var publicApi = typeof(Bootstrapper).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
             Approver.Verify(publicApi);
         }
 
         [Test]
         public void ServiceControlTransport()
         {
-            var serviceControlTransportApi = ApiGenerator.GeneratePublicApi(typeof(TransportSettings).Assembly);
+            var serviceControlTransportApi = typeof(TransportSettings).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
             Approver.Verify(serviceControlTransportApi);
         }
 
@@ -58,7 +64,11 @@
             //Also Particular.PlatformSamples relies on it to specify the learning transport.
             var transportNamesType = typeof(TransportNames);
 
-            var publicTransportNames = ApiGenerator.GeneratePublicApi(transportNamesType.Assembly, new[] {transportNamesType});
+            var publicTransportNames = transportNamesType.Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                IncludeTypes = new[] { transportNamesType },
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
 
             Approver.Verify(publicTransportNames);
         }

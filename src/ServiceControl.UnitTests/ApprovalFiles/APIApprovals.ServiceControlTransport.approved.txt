@@ -1,4 +1,4 @@
-[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.2", FrameworkDisplayName=".NET Framework 4.6.2")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.6.2", FrameworkDisplayName=".NET Framework 4.6.2")]
 namespace ServiceControl.Transports
 {
     public class EndpointToQueueMapping
