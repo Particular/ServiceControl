@@ -8,7 +8,7 @@ ADD /ServiceControl/bin/Release/net462 .
 ENV "ServiceControl/TransportType"="ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB"
 ENV "ServiceControl/Hostname"="*"
 
-ENV "ServiceControl/DBPath"="C:\\Data\\"
-ENV "ServiceControl/LogPath"="C:\\Logs\\"
+ENV "ServiceControl/DBPath"="C:\\Data\\DB\\"
+ENV "ServiceControl/LogPath"="C:\\Data\\Logs\\"
 
 ENTRYPOINT ["ServiceControl.exe", "--portable", "--setup"]

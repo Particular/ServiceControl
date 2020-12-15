@@ -8,8 +8,8 @@ ADD /ServiceControl/bin/Release/net462 .
 ENV "ServiceControl/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
 ENV "ServiceControl/Hostname"="*"
 
-ENV "ServiceControl/DBPath"="C:\\Data\\"
-ENV "ServiceControl/LogPath"="C:\\Logs\\"
+ENV "ServiceControl/DBPath"="C:\\Data\\DB\\"
+ENV "ServiceControl/LogPath"="C:\\Data\\Logs\\"
 
 # Defaults
 ENV "ServiceControl/ForwardErrorMessages"="False"

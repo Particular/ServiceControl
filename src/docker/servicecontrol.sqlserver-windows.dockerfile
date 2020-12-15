@@ -8,8 +8,8 @@ ADD /ServiceControl/bin/Release/net462 .
 ENV "ServiceControl/TransportType"="ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
 ENV "ServiceControl/Hostname"="*"
 
-ENV "ServiceControl/DBPath"="C:\\Data\\"
-ENV "ServiceControl/LogPath"="C:\\Logs\\"
+ENV "ServiceControl/DBPath"="C:\\Data\\DB\\"
+ENV "ServiceControl/LogPath"="C:\\Data\\Logs\\"
 
 # Defaults
 ENV "ServiceControl/ForwardErrorMessages"="False"
