@@ -8,8 +8,8 @@ ADD /ServiceControl.Audit/bin/Release/net462 .
 ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"
 ENV "ServiceControl.Audit/Hostname"="*"
 
-ENV "ServiceControl.Audit/DBPath"="C:\\Data\\"
-ENV "ServiceControl.Audit/LogPath"="C:\\Logs\\"
+ENV "ServiceControl.Audit/DBPath"="C:\\Data\\DB\\"
+ENV "ServiceControl.Audit/LogPath"="C:\\Data\\Logs\\"
 
 # Defaults
 ENV "ServiceControl.Audit/ForwardAuditMessages"="False"
