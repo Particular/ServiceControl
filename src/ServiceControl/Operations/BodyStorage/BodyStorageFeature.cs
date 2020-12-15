@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
+    using Infrastructure;
     using System.Collections.Generic;
-    using System.IO;
     using System.Text;
     using System.Threading.Tasks;
     using NServiceBus;
@@ -77,7 +77,7 @@
 
             async Task<string> StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
             {
-                using (var bodyStream = new MemoryStream(body))
+                using (var bodyStream = Memory.Manager.GetStream(bodyId, body, 0, bodySize))
                 {
                     var bodyUrl = await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
                         .ConfigureAwait(false);
