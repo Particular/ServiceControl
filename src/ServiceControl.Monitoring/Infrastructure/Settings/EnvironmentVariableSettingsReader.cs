@@ -35,6 +35,7 @@ namespace ServiceControl.Monitoring.Infrastructure.Settings
 
             if (environmentValue != null)
             {
+                environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
                 value = (T)Convert.ChangeType(environmentValue, typeof(T));
                 return true;
             }
