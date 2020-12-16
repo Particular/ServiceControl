@@ -5,7 +5,7 @@ WORKDIR /servicecontrol.audit
 ADD /ServiceControl.Transports.SqlServer/bin/Release/net462 .
 ADD /ServiceControl.Audit/bin/Release/net462 .
 
-ENV "SERVICECONTROL_NO_TRIAL"="true"
+ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
 ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
 ENV "ServiceControl.Audit/Hostname"="*"

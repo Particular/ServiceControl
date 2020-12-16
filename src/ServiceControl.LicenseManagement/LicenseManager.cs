@@ -35,8 +35,8 @@
                 return false;
             }
 
-            // E.g. when within a docker container
-            if (MustBeNonTrialLicenseForSetup() && license.IsEvaluationLicense)
+            // E.g. Cannot set up a new instance of ServiceControl on a trial license when running in a docker container
+            if (IsRunningInDocker && license.IsEvaluationLicense)
             {
                 errorMessage = "Cannot run ServiceControl in a container with a trial license";
                 return false;
@@ -108,12 +108,7 @@
             return LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData);
         }
 
-        static bool MustBeNonTrialLicenseForSetup()
-        {
-            var isDockerEnvironmentVariable = Environment.GetEnvironmentVariable("SERVICECONTROL_NO_TRIAL");
-
-            return string.Equals("true", isDockerEnvironmentVariable, StringComparison.InvariantCultureIgnoreCase);
-        }
+        static bool IsRunningInDocker => bool.TryParse(Environment.GetEnvironmentVariable("SERVICECONTROL_RUNNING_IN_DOCKER"), out bool isDocker) && isDocker;
 
         static bool TryDeserializeLicense(string licenseText, out License license)
         {
