@@ -1,4 +1,4 @@
-msbuild ../servicecontrol/ServiceControl.sln /t:Build /p:Configuration=Release
+msbuild ../ServiceControl.sln /t:Build /p:Configuration=Release
 
 docker build -f .\servicecontrol.azureservicebus-windows.dockerfile -t particular/servicecontrol/azureservicebus ./../
 docker build -f .\servicecontrol.azureservicebus.init-windows.dockerfile -t particular/servicecontrol/azureservicebus/init ./../

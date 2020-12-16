@@ -5,6 +5,8 @@ WORKDIR /servicecontrol
 ADD /ServiceControl.Transports.SqlServer/bin/Release/net462 .
 ADD /ServiceControl/bin/Release/net462 .
 
+ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
+
 ENV "ServiceControl/TransportType"="ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
 ENV "ServiceControl/Hostname"="*"
 

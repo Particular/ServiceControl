@@ -5,6 +5,8 @@ WORKDIR /servicecontrol.monitoring
 ADD /ServiceControl.Transports.SQS/bin/Release/net462 .
 ADD /ServiceControl.Monitoring/bin/Release/net462 .
 
+ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
+
 ENV "Monitoring/TransportType"="ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS"
 ENV "Monitoring/HttpHostName"="*"
 ENV "Monitoring/HttpPort"="33633"

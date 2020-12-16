@@ -5,6 +5,8 @@ WORKDIR /servicecontrol.audit
 ADD /ServiceControl.Transports.ASBS/bin/Release/net462 .
 ADD /ServiceControl.Audit/bin/Release/net462 .
 
+ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
+
 ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"
 ENV "ServiceControl.Audit/Hostname"="*"
 
