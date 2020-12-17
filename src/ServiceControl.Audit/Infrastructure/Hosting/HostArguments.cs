@@ -44,6 +44,11 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                         };
                         executionMode = ExecutionMode.Maintenance;
                     }
+                },
+                {
+                    "p|portable",
+                    @"Internal use - runs as a console app, even non-interactively",
+                    s => { Portable = true; }
                 }
             };
 

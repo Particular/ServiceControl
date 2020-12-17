@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             new RavenBootstrapper().StartRaven(documentStore, settings, true);
 
-            if (Environment.UserInteractive)
+            if (args.Portable)
             {
                 Console.Out.WriteLine("RavenDB is now accepting requests on {0}", settings.StorageUrl);
                 Console.Out.WriteLine("RavenDB Maintenance Mode - Press Enter to exit");
@@ -26,10 +26,12 @@ namespace ServiceControl.Audit.Infrastructure
 
                 return;
             }
-
-            using (var service = new MaintenanceHost(settings, documentStore))
+            else
             {
-                service.Run();
+                using (var service = new MaintenanceHost(settings, documentStore))
+                {
+                    service.Run();
+                }
             }
         }
     }
