@@ -15,24 +15,20 @@ namespace Particular.ServiceControl
 
             new RavenBootstrapper().StartRaven(documentStore, settings, true);
 
-            if (args.Portable)
+            if (!args.RunAsWindowsService)
             {
                 Console.Out.WriteLine("RavenDB is now accepting requests on {0}", settings.StorageUrl);
-                Console.Out.WriteLine("RavenDB Maintenance Mode - Press Enter to exit");
-                while (Console.ReadKey().Key != ConsoleKey.Enter)
-                {
-                }
+                Console.Out.WriteLine("RavenDB Maintenance Mode - Press any key to exit");
+                Console.Read();
 
                 documentStore.Dispose();
 
                 return;
             }
-            else
+
+            using (var service = new MaintenanceHost(settings, documentStore))
             {
-                using (var service = new MaintenanceHost(settings, documentStore))
-                {
-                    service.Run();
-                }
+                service.Run();
             }
         }
     }
