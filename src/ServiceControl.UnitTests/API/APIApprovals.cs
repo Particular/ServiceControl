@@ -63,8 +63,11 @@
             //HINT: Those names are used in PowerShell scripts thus constitute a public api.
             //Also Particular.PlatformSamples relies on it to specify the learning transport.
             var transportNamesType = typeof(TransportNames);
-
-            var publicTransportNames = transportNamesType.Assembly.GeneratePublicApi(new ApiGeneratorOptions { IncludeTypes = new[] {transportNamesType}});
+            var publicTransportNames = transportNamesType.Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                IncludeTypes = new[] {transportNamesType},
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
 
             Approver.Verify(publicTransportNames);
         }
