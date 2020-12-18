@@ -26,7 +26,7 @@ namespace Tests
                     from mainEntry in mainEntries
                     join entry in zip.Entries.Except(mainEntries) on mainEntry.Name equals entry.Name
                     where entry.Length != mainEntry.Length
-                    select entry.FullName, 
+                    select entry.FullName,
                     $"File sizes should match the ones in the {deploymentPackage.ServiceName} folder. Check versions of dependencies.");
             }
         }

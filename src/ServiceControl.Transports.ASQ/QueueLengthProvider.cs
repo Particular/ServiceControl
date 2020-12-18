@@ -5,9 +5,9 @@
     using System.Threading.Tasks;
     using System.Collections.Concurrent;
     using System.Threading;
-    using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Queue;
     using NServiceBus.Logging;
+    using Azure.Storage.Queues;
+    using Azure.Storage.Queues.Models;
 
     class QueueLengthProvider : IProvideQueueLength
     {
@@ -20,14 +20,13 @@
         public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
         {
             var queueName = BackwardsCompatibleQueueNameSanitizer.Sanitize(queueToTrack.InputQueue);
-
-            var queueClient = CloudStorageAccount.Parse(connectionString).CreateCloudQueueClient();
+            var queueClient = new QueueClient(connectionString, queueName);
 
             var emptyQueueLength = new QueueLengthValue
             {
                 QueueName = queueName,
                 Length = 0,
-                QueueReference = queueClient.GetQueueReference(queueName)
+                QueueReference = queueClient
             };
 
             queueLengths.AddOrUpdate(queueToTrack, _ => emptyQueueLength, (_, existingQueueLength) => existingQueueLength);
@@ -79,9 +78,9 @@
             {
                 var queueReference = queueLength.QueueReference;
 
-                await queueReference.FetchAttributesAsync(token).ConfigureAwait(false);
+                QueueProperties properties = await queueReference.GetPropertiesAsync(token).ConfigureAwait(false);
 
-                queueLength.Length = queueReference.ApproximateMessageCount.GetValueOrDefault();
+                queueLength.Length = properties.ApproximateMessagesCount;
 
                 problematicQueuesNames.TryRemove(queueLength.QueueName, out _);
             }
@@ -131,7 +130,7 @@
         {
             public string QueueName;
             public volatile int Length;
-            public CloudQueue QueueReference;
+            public QueueClient QueueReference;
         }
     }
 }

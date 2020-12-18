@@ -41,7 +41,7 @@
         {
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
-        
+
         static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
