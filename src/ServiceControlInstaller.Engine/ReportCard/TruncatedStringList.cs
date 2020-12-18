@@ -4,7 +4,7 @@
     using System.Collections;
     using System.Collections.Generic;
 
-    class TruncatedStringList : IList<String>
+    class TruncatedStringList : IList<string>
     {
         public TruncatedStringList(int maxLengthsOfItems)
         {

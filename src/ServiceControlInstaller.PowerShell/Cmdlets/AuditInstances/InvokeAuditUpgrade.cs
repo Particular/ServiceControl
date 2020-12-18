@@ -43,7 +43,7 @@ namespace ServiceControlInstaller.PowerShell
             }
         }
 
-        [ValidateNotNullOrEmpty] 
+        [ValidateNotNullOrEmpty]
         [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
         public string[] Name;
     }

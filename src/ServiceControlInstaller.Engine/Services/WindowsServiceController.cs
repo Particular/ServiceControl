@@ -244,6 +244,7 @@
         {
             var imagePathRegex = new Regex("^\"{0,1}(?<PATH>.+" + Regex.Escape(exename) + ")\"{0,1}", RegexOptions.IgnoreCase);
             using (var servicesBaseKey = Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services"))
+            {
                 if (servicesBaseKey != null)
                 {
                     foreach (var serviceName in servicesBaseKey.GetSubKeyNames())
@@ -288,6 +289,7 @@
                         }
                     }
                 }
+            }
         }
 
 

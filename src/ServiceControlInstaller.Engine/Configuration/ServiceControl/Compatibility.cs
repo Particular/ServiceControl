@@ -3,7 +3,6 @@
     using System;
 
     // For Removing and Adding Setting use SettingsList.cs
-
     public static class Compatibility
     {
         public static CompatibilityInfo ForwardingQueuesAreOptional = new CompatibilityInfo {SupportedFrom = new Version(1, 29)};
