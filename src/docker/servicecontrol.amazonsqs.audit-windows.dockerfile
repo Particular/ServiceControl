@@ -2,8 +2,8 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2016
 
 WORKDIR /servicecontrol.audit
 
-ADD /ServiceControl.Transports.SQS/bin/Release/net462 .
-ADD /ServiceControl.Audit/bin/Release/net462 .
+ADD /ServiceControl.Transports.SQS/bin/Release/net472 .
+ADD /ServiceControl.Audit/bin/Release/net472 .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
