@@ -10,6 +10,7 @@ namespace ServiceBus.Management.Infrastructure
     using Raven.Client.Embedded;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure.RavenDB;
     using ServiceControl.Operations;
     using ServiceControl.Transports;
     using Settings;
@@ -27,7 +28,8 @@ namespace ServiceBus.Management.Infrastructure
             }
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            configuration.GetSettings().Set(documentStore);
+            // wrapping it in a non-disposable type to make sure settings clear doesn't dispose
+            configuration.GetSettings().Set(new EmbeddableDocumentStoreHolder(documentStore));
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
             transportCustomization.CustomizeServiceControlEndpoint(configuration, transportSettings);

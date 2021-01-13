@@ -11,6 +11,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using Raven.Client.Embedded;
+    using RavenDB;
     using Settings;
     using Transports;
 
@@ -29,7 +30,8 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.Pipeline.Register(typeof(FullTypeNameOnlyBehavior), "Remove asm qualified name from the message type header");
 
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            configuration.GetSettings().Set(documentStore);
+            // wrapping it in a non-disposable type to make sure settings clear doesn't dispose
+            configuration.GetSettings().Set(new EmbeddableDocumentStoreHolder(documentStore));
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
             configuration.SendOnly();
