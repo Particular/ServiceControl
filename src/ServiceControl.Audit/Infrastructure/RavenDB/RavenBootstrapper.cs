@@ -20,7 +20,7 @@
 
         public void Customize(EndpointConfiguration configuration)
         {
-            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStore>();
+            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStoreHolder>().DocumentStore;
             var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
 
             Settings = settings;
