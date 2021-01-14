@@ -10,7 +10,6 @@ docker build -f .\servicecontrol.azureservicebus.audit.init-windows.dockerfile -
 docker build -f .\servicecontrol.azureservicebus.monitoring-windows.dockerfile -t particular/servicecontrol.azureservicebus.monitoring-windows ./../
 docker build -f .\servicecontrol.azureservicebus.monitoring.init-windows.dockerfile -t particular/servicecontrol.azureservicebus.monitoring.init-windows ./../
 
-
 docker build -f .\servicecontrol.rabbitmq.conventional-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional-windows ./../
 docker build -f .\servicecontrol.rabbitmq.conventional.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.init-windows ./../
 docker build -f .\servicecontrol.rabbitmq.conventional.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.audit-windows ./../
