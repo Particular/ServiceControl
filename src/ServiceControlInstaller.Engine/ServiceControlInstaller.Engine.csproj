@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetZip" Version="1.15.0" />
-    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
+    <PackageReference Include="Particular.CodeRules" Version="0.8.0" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Reflection.MetadataLoadContext" Version="5.0.0" />
   </ItemGroup>
