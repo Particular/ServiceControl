@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.Raw" Version="3.2.2" />
-    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
+    <PackageReference Include="Particular.CodeRules" Version="0.8.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
