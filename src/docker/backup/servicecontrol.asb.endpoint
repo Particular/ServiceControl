@@ -2,8 +2,8 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2016
 
 WORKDIR /servicecontrol
 
-ADD /ServiceControl.Transports.ASB/bin/Release/net462 .
-ADD /ServiceControl/bin/Release/net462 .
+ADD /ServiceControl.Transports.ASB/bin/Release/net472 .
+ADD /ServiceControl/bin/Release/net472 .
 
 ENV "ServiceControl/TransportType"="ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB"
 ENV "ServiceControl/Hostname"="*"
