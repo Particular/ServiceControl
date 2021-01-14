@@ -25,6 +25,8 @@ How to build
 How to build and run Docker images
 ====================================
 
+NOTE: The following scripts are provided to ease development stages only. To run container images in production refer to the ones available on Docker Hub.
+
 Each combination of ServiceControl instance, transport, and topology has a dedicated dockerfile. Select the instance, transport, and topology you want to run and build the `init` container and the runtime container by executing the following commands (using RabbitMQ Conventional topology as an example) from within the `src\docker` folder:
 
 ```
