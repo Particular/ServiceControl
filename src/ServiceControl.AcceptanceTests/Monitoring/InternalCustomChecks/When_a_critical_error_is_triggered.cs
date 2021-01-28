@@ -46,13 +46,13 @@
                         return false;
                     }
 
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(Contracts.CustomChecks.CustomCheckFailed));
                     entry = result;
                     return result;
                 })
                 .Run();
 
-            
+
 
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/ServiceControl Primary Instance"), "Event log entry should be related to the Primary instance health Custom Check");
             Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")), "Event log entry should be related to the ServiceControl endpoint");

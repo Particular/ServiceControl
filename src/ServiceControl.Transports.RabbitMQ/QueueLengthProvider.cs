@@ -142,7 +142,7 @@
             {
                 var connectionConfiguration = ConnectionConfiguration.Create(connectionString, "ServiceControl.Monitoring");
 
-                var dbConnectionStringBuilder = new DbConnectionStringBuilder {ConnectionString = connectionString};
+                var dbConnectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
                 connectionFactory = new ConnectionFactory("ServiceControl.Monitoring",
                     connectionConfiguration,

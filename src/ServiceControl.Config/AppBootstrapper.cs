@@ -40,7 +40,7 @@
 
         void DisableRxUIDebuggerBreak()
         {
-            RxApp.DefaultExceptionHandler = Observer.Create(delegate(Exception ex)
+            RxApp.DefaultExceptionHandler = Observer.Create(delegate (Exception ex)
             {
                 RxApp.MainThreadScheduler.Schedule(() =>
                 {

@@ -71,7 +71,7 @@
                     }
 
                     await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
-                } 
+                }
                 while (!tokenSource.IsCancellationRequested);
             }
             catch (OperationCanceledException)
@@ -106,7 +106,7 @@
                     //if there is more events to dispatch we sleep for a bit and then we go again
                     await Task.Delay(1000, CancellationToken.None).ConfigureAwait(false);
                 }
-            } 
+            }
             while (!token.IsCancellationRequested && more);
         }
 

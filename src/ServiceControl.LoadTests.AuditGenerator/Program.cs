@@ -3,22 +3,22 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Messages;
     using Metrics;
     using NServiceBus;
     using NServiceBus.Support;
-    using Messages;
     using Transports;
 
     class Program
     {
         const string ConfigRoot = "AuditGenerator";
 
-        static void Main(string[] args)
+        static void Main()
         {
-            Start(args).GetAwaiter().GetResult();
+            Start().GetAwaiter().GetResult();
         }
 
-        static async Task Start(string[] args)
+        static async Task Start()
         {
             Metric.Config.WithReporting(r =>
             {
@@ -87,8 +87,10 @@
 
                         ops.SetDestination(destination);
 
-                        var auditMessage = new AuditMessage();
-                        auditMessage.Data = new byte[bodySize];
+                        var auditMessage = new AuditMessage
+                        {
+                            Data = new byte[bodySize]
+                        };
                         random.NextBytes(auditMessage.Data);
 
                         await endpointInstance.Send(auditMessage, ops).ConfigureAwait(false);

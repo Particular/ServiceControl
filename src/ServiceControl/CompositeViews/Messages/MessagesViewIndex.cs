@@ -14,44 +14,44 @@ namespace ServiceControl.CompositeViews.Messages
         public MessagesViewIndex()
         {
             AddMap<ProcessedMessage>(messages => from message in messages
-                select new SortAndFilterOptions
-                {
-                    MessageId = (string)message.MessageMetadata["MessageId"],
-                    MessageType = (string)message.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool)message.MessageMetadata["IsSystemMessage"],
-                    Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
-                    TimeSent = (DateTime)message.MessageMetadata["TimeSent"],
-                    ProcessedAt = message.ProcessedAt,
-                    ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
-                    Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] {string.Join(" ", message.Headers.Select(x => x.Value))}).ToArray(),
-                    ConversationId = (string)message.MessageMetadata["ConversationId"]
-                });
+                                                 select new SortAndFilterOptions
+                                                 {
+                                                     MessageId = (string)message.MessageMetadata["MessageId"],
+                                                     MessageType = (string)message.MessageMetadata["MessageType"],
+                                                     IsSystemMessage = (bool)message.MessageMetadata["IsSystemMessage"],
+                                                     Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
+                                                     TimeSent = (DateTime)message.MessageMetadata["TimeSent"],
+                                                     ProcessedAt = message.ProcessedAt,
+                                                     ReceivingEndpointName = ((EndpointDetails)message.MessageMetadata["ReceivingEndpoint"]).Name,
+                                                     CriticalTime = (TimeSpan?)message.MessageMetadata["CriticalTime"],
+                                                     ProcessingTime = (TimeSpan?)message.MessageMetadata["ProcessingTime"],
+                                                     DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
+                                                     Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
+                                                     ConversationId = (string)message.MessageMetadata["ConversationId"]
+                                                 });
 
             AddMap<FailedMessage>(messages => from message in messages
-                where message.Status != FailedMessageStatus.Resolved
-                let last = message.ProcessingAttempts.Last()
-                select new SortAndFilterOptions
-                {
-                    MessageId = last.MessageId,
-                    MessageType = (string)last.MessageMetadata["MessageType"],
-                    IsSystemMessage = (bool)last.MessageMetadata["IsSystemMessage"],
-                    Status = message.Status == FailedMessageStatus.Archived
-                        ? MessageStatus.ArchivedFailure
-                        : message.ProcessingAttempts.Count == 1
-                            ? MessageStatus.Failed
-                            : MessageStatus.RepeatedFailure,
-                    TimeSent = (DateTime)last.MessageMetadata["TimeSent"],
-                    ProcessedAt = last.AttemptedAt,
-                    ReceivingEndpointName = ((EndpointDetails)last.MessageMetadata["ReceivingEndpoint"]).Name,
-                    CriticalTime = (TimeSpan?)null,
-                    ProcessingTime = (TimeSpan?)null,
-                    DeliveryTime = (TimeSpan?)null,
-                    Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] {string.Join(" ", last.Headers.Select(x => x.Value))}).ToArray(),
-                    ConversationId = (string)last.MessageMetadata["ConversationId"]
-                });
+                                              where message.Status != FailedMessageStatus.Resolved
+                                              let last = message.ProcessingAttempts.Last()
+                                              select new SortAndFilterOptions
+                                              {
+                                                  MessageId = last.MessageId,
+                                                  MessageType = (string)last.MessageMetadata["MessageType"],
+                                                  IsSystemMessage = (bool)last.MessageMetadata["IsSystemMessage"],
+                                                  Status = message.Status == FailedMessageStatus.Archived
+                                                      ? MessageStatus.ArchivedFailure
+                                                      : message.ProcessingAttempts.Count == 1
+                                                          ? MessageStatus.Failed
+                                                          : MessageStatus.RepeatedFailure,
+                                                  TimeSent = (DateTime)last.MessageMetadata["TimeSent"],
+                                                  ProcessedAt = last.AttemptedAt,
+                                                  ReceivingEndpointName = ((EndpointDetails)last.MessageMetadata["ReceivingEndpoint"]).Name,
+                                                  CriticalTime = null,
+                                                  ProcessingTime = null,
+                                                  DeliveryTime = null,
+                                                  Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
+                                                  ConversationId = (string)last.MessageMetadata["ConversationId"]
+                                              });
 
             Index(x => x.Query, FieldIndexing.Analyzed);
 

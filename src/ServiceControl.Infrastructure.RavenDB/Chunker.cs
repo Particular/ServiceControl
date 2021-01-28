@@ -29,7 +29,7 @@
                 {
                     end = total - 1;
                 }
-            } 
+            }
             while (start < total && !token.IsCancellationRequested);
 
             return chunkCount;

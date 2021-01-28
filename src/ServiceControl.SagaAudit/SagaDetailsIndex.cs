@@ -8,13 +8,13 @@ namespace ServiceControl.SagaAudit
         public SagaDetailsIndex()
         {
             AddMap<SagaSnapshot>(docs => from doc in docs
-                select new
-                {
-                    doc.SagaId,
-                    Id = doc.SagaId,
-                    doc.SagaType,
-                    Changes = new[]
-                    {
+                                         select new
+                                         {
+                                             doc.SagaId,
+                                             Id = doc.SagaId,
+                                             doc.SagaType,
+                                             Changes = new[]
+                                             {
                         new SagaStateChange
                         {
                             Endpoint = doc.Endpoint,
@@ -26,32 +26,32 @@ namespace ServiceControl.SagaAudit
                             Status = doc.Status
                         }
                     }
-                });
+                                         });
 
             //Legacy so we still scan old sagahistories
             AddMap<SagaHistory>(docs => from doc in docs
-                select new
-                {
-                    doc.SagaId,
-                    Id = doc.SagaId,
-                    doc.SagaType,
-                    doc.Changes
-                }
+                                        select new
+                                        {
+                                            doc.SagaId,
+                                            Id = doc.SagaId,
+                                            doc.SagaType,
+                                            doc.Changes
+                                        }
             );
 
             Reduce = results => from result in results
-                group result by result.SagaId
+                                group result by result.SagaId
                 into g
-                let first = g.First()
-                select new SagaHistory
-                {
-                    Id = first.SagaId,
-                    SagaId = first.SagaId,
-                    SagaType = first.SagaType,
-                    Changes = g.SelectMany(x => x.Changes)
-                        .OrderByDescending(x => x.FinishTime)
-                        .ToList()
-                };
+                                let first = g.First()
+                                select new SagaHistory
+                                {
+                                    Id = first.SagaId,
+                                    SagaId = first.SagaId,
+                                    SagaType = first.SagaType,
+                                    Changes = g.SelectMany(x => x.Changes)
+                                        .OrderByDescending(x => x.FinishTime)
+                                        .ToList()
+                                };
         }
     }
 }

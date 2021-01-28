@@ -121,8 +121,7 @@
         /// <returns></returns>
         public bool ContainsKey(TKey key)
         {
-            TValue dummy;
-            return TryGetValue(key, out dummy);
+            return TryGetValue(key, out _);
         }
 
         /// <summary>

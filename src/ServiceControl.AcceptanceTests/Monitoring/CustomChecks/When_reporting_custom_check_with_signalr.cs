@@ -66,7 +66,7 @@
                     };
                 }
 
-                private void ConnectionOnReceived(string s)
+                void ConnectionOnReceived(string s)
                 {
                     if (s.IndexOf("\"EventLogItemAdded\"") > 0)
                     {
@@ -91,7 +91,7 @@
                     return Task.FromResult(0);
                 }
 
-                private readonly MyContext context;
+                readonly MyContext context;
                 Connection connection;
             }
         }
@@ -112,7 +112,9 @@
 
                 public override Task<CheckResult> PerformCheck()
                 {
+#pragma warning disable IDE0047 // Remove unnecessary parentheses
                     if ((Interlocked.Increment(ref counter) / 5) % 2 == 1)
+#pragma warning restore IDE0047 // Remove unnecessary parentheses
                     {
                         return Task.FromResult(CheckResult.Failed("fail!"));
                     }
@@ -120,7 +122,7 @@
                     return Task.FromResult(CheckResult.Pass);
                 }
 
-                private static int counter;
+                static int counter;
             }
         }
     }

@@ -10,7 +10,7 @@
     using ServiceControlInstaller.Engine.Accounts;
     using ServiceControlInstaller.Engine.Instances;
     using Validation;
-    
+
     public class SharedServiceControlEditorViewModel : RxScreen
     {
         protected SharedServiceControlEditorViewModel()
@@ -147,7 +147,7 @@
             var instanceCount = GetInstalledInstancesCount();
             var titleCaseName = CultureInfo.CurrentUICulture.TextInfo.ToTitleCase(suggestedName);
             var serviceBaseName = instanceCount == 0 ? "ServiceControl" : "ServiceControl-" + instanceCount;
-             
+
             if (!suggestedName.StartsWith("Particular.", StringComparison.InvariantCultureIgnoreCase))
             {
                 instanceName += "Particular.";

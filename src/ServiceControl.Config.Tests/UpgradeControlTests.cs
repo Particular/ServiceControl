@@ -12,7 +12,7 @@
         [Explicit]
         public async Task GetUpgradeInfoForTargetVersionSameMajor()
         {
-            Version current = new Version("4.13.3");
+            var current = new Version("4.13.3");
 
             var releaseDetails = await VersionCheckerHelper.GetLatestRelease(current.ToString()).ConfigureAwait(false);
 

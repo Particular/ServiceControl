@@ -157,17 +157,17 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private IDocumentStore store;
-        private bool abort;
+        IDocumentStore store;
+        bool abort;
         protected static string RetrySessionId = Guid.NewGuid().ToString();
 
-        private static RavenJObject defaultMetadata = RavenJObject.Parse($@"
+        static RavenJObject defaultMetadata = RavenJObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
                                     }}");
 
-        private static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
+        static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
     }

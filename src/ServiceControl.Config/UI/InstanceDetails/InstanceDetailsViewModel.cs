@@ -77,7 +77,7 @@
         public BaseService ServiceInstance { get; }
 
         public bool InMaintenanceMode =>
-            ServiceControlInstance?.InMaintenanceMode == true || 
+            ServiceControlInstance?.InMaintenanceMode == true ||
             ServiceControlAuditInstance?.InMaintenanceMode == true;
 
         public bool IsServiceControlInstance => ServiceInstance?.GetType() == typeof(ServiceControlInstance);
@@ -143,10 +143,7 @@
 
         public string InstanceTypeDisplayName => InstanceType.GetDescription();
 
-        public string InstanceTypeIcon
-        {
-            get { return InstanceType == InstanceType.Monitoring ? "MonitoringInstanceIcon" : "ServiceControlInstanceIcon"; }
-        }
+        public string InstanceTypeIcon => InstanceType == InstanceType.Monitoring ? "MonitoringInstanceIcon" : "ServiceControlInstanceIcon";
 
         public Version NewVersion { get; }
 

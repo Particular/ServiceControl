@@ -9,11 +9,11 @@
         public override Task<CheckResult> PerformCheck()
         {
             var failure = criticalErrorHolder.GetLastFailure();
-            return failure == null 
-                ? successResult 
+            return failure == null
+                ? successResult
                 : Task.FromResult(CheckResult.Failed(failure));
         }
-        
+
         public ErrorIngestionCustomCheck(State criticalErrorHolder)
             : base("Error Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {

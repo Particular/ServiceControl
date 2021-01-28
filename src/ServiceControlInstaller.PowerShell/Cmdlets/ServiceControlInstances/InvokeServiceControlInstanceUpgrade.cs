@@ -1,7 +1,6 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
-    using System.IO;
     using System.Management.Automation;
     using Engine.Configuration.ServiceControl;
     using Engine.Instances;
@@ -74,6 +73,7 @@ namespace ServiceControlInstaller.PowerShell
                 case RequiredUpgradeAction.SplitOutAudit:
                     PerformSplit(instance, logger, zipFolder);
                     break;
+                case RequiredUpgradeAction.ConvertToAudit:
                 default:
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} aborted. This instance cannot be upgraded."), "UpgradeFailure", ErrorCategory.InvalidResult, null));
                     break;

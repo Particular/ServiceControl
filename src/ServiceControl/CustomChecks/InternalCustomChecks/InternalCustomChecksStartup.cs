@@ -20,7 +20,7 @@
                 Host = hostInfo.DisplayName,
                 HostId = hostInfo.HostId,
                 Name = endpointName
-            };   
+            };
         }
 
         protected override Task OnStart(IMessageSession session)

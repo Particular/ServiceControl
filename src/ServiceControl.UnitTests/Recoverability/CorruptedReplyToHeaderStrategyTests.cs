@@ -95,7 +95,7 @@
             headers.AssertHeaderMissing("ServiceControl.OldReplyToAddress");
         }
 
-        private const string ServiceControlMachineName = nameof(ServiceControlMachineName);
-        private const string SendingMachineName = nameof(SendingMachineName);
+        const string ServiceControlMachineName = nameof(ServiceControlMachineName);
+        const string SendingMachineName = nameof(SendingMachineName);
     }
 }

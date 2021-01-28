@@ -6,10 +6,7 @@
 
     class MessageRedirect
     {
-        public Guid MessageRedirectId
-        {
-            get { return idCache.GetOrAdd(FromPhysicalAddress, DeterministicGuid.MakeId); }
-        }
+        public Guid MessageRedirectId => idCache.GetOrAdd(FromPhysicalAddress, DeterministicGuid.MakeId);
 
         public string FromPhysicalAddress { get; set; }
         public string ToPhysicalAddress { get; set; }

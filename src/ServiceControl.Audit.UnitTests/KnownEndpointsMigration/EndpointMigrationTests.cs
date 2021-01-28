@@ -16,8 +16,8 @@
         [Test]
         public async Task Should_disable_index_after_first_migration()
         {
-            Guid sendHostId = Guid.NewGuid();
-            Guid receiverHostId = Guid.NewGuid();
+            var sendHostId = Guid.NewGuid();
+            var receiverHostId = Guid.NewGuid();
 
             using (var store = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -55,8 +55,8 @@
         [Test]
         public async Task Should_delete_index_after_second_migration()
         {
-            Guid sendHostId = Guid.NewGuid();
-            Guid receiverHostId = Guid.NewGuid();
+            var sendHostId = Guid.NewGuid();
+            var receiverHostId = Guid.NewGuid();
 
             using (var store = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -94,8 +94,8 @@
         [Test]
         public async Task Should_migrate_endpoints_to_document_collection()
         {
-            Guid sendHostId = Guid.NewGuid();
-            Guid receiverHostId = Guid.NewGuid();
+            var sendHostId = Guid.NewGuid();
+            var receiverHostId = Guid.NewGuid();
 
             using (var store = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -138,8 +138,8 @@
         [Test]
         public async Task Should_migrate_idempotently()
         {
-            Guid sendHostId = Guid.NewGuid();
-            Guid receiverHostId = Guid.NewGuid();
+            var sendHostId = Guid.NewGuid();
+            var receiverHostId = Guid.NewGuid();
 
             using (var store = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -191,8 +191,8 @@
         [Test]
         public async Task Should_page_endpoints_migration()
         {
-            Guid sendHostId = Guid.NewGuid();
-            Guid receiverHostId = Guid.NewGuid();
+            var sendHostId = Guid.NewGuid();
+            var receiverHostId = Guid.NewGuid();
 
             using (var store = InMemoryStoreBuilder.GetInMemoryStore())
             {
@@ -235,8 +235,8 @@
         [Test]
         public async Task Should_noop_migration_if_no_index()
         {
-            Guid sendHostId = Guid.NewGuid();
-            Guid receiverHostId = Guid.NewGuid();
+            var sendHostId = Guid.NewGuid();
+            var receiverHostId = Guid.NewGuid();
 
             using (var store = InMemoryStoreBuilder.GetInMemoryStore())
             {

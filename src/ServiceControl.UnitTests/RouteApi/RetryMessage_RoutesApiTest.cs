@@ -130,10 +130,10 @@
             Assert.AreEqual("ResponseContent", await response.Content.ReadAsStringAsync());
         }
 
-        private TestApi testApi;
+        TestApi testApi;
 
-        private string localInstanceId;
-        private string remote1InstanceId;
+        string localInstanceId;
+        string remote1InstanceId;
 
         class InterceptingHandler : HttpClientHandler
         {
@@ -147,7 +147,7 @@
                 return Task.FromResult(interceptor(request));
             }
 
-            private Func<HttpRequestMessage, HttpResponseMessage> interceptor;
+            Func<HttpRequestMessage, HttpResponseMessage> interceptor;
         }
 
         class TestApi : RoutedApi<NoInput>
@@ -167,7 +167,7 @@
                 return Task.FromResult(localResponse(request));
             }
 
-            private Func<HttpRequestMessage, HttpResponseMessage> localResponse;
+            Func<HttpRequestMessage, HttpResponseMessage> localResponse;
         }
 
         class FakeController : ApiController

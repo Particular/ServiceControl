@@ -8,7 +8,7 @@
     using System.Text;
     using Api;
 
-    internal class Lsa
+    class Lsa
     {
         public static string[] GetPrivileges(string identity)
         {
@@ -192,6 +192,7 @@
             return lsaPrivileges;
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         const uint POLICY_VIEW_LOCAL_INFORMATION = 0x00000001;
         const uint POLICY_VIEW_AUDIT_INFORMATION = 0x00000002;
         const uint POLICY_GET_PRIVATE_INFORMATION = 0x00000004;
@@ -205,6 +206,7 @@
         const uint POLICY_SERVER_ADMIN = 0x00000400;
         const uint POLICY_LOOKUP_NAMES = 0x00000800;
         const uint POLICY_NOTIFICATION = 0x00001000;
+#pragma warning restore IDE0051 // Remove unused private members
 
         const int StatusSuccess = 0x0;
         const int StatusObjectNameNotFound = 0x00000002;

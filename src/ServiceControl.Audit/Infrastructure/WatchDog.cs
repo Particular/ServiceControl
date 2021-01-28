@@ -1,5 +1,5 @@
 ﻿namespace ServiceControl.Audit.Infrastructure
-{ 
+{
     using System;
     using System.Threading;
     using System.Threading.Tasks;

@@ -77,7 +77,7 @@
         [HttpPost]
         public async Task<HttpResponseMessage> RetryAllByEndpoint(string endpointName)
         {
-            await messageSession.SendLocal(new RequestRetryAll {Endpoint = endpointName})
+            await messageSession.SendLocal(new RequestRetryAll { Endpoint = endpointName })
                 .ConfigureAwait(false);
 
             return Request.CreateResponse(HttpStatusCode.Accepted);

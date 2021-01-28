@@ -3,7 +3,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct HttpServiceConfigUrlAclParam
+    struct HttpServiceConfigUrlAclParam
     {
         [MarshalAs(UnmanagedType.LPWStr)]
         public string StringSecurityDescriptor;

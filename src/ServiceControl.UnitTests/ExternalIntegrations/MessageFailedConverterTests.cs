@@ -93,7 +93,7 @@
             Assert.AreEqual("Beautiful Body", result.MessageDetails.Body);
         }
 
-        private class FailedMessageBuilder
+        class FailedMessageBuilder
         {
             public FailedMessageBuilder(FailedMessageStatus messageStatus)
             {
@@ -154,10 +154,10 @@
                 };
             }
 
-            private readonly FailedMessageStatus messageStatus;
+            readonly FailedMessageStatus messageStatus;
             string messageType = "SomeMessage";
             string contentType = "application/json";
-            private List<Action<FailedMessage.ProcessingAttempt>> processingAttempts = new List<Action<FailedMessage.ProcessingAttempt>>();
+            List<Action<FailedMessage.ProcessingAttempt>> processingAttempts = new List<Action<FailedMessage.ProcessingAttempt>>();
         }
     }
 }

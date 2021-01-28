@@ -12,7 +12,7 @@ namespace ServiceControl.Recoverability
         public Task Handle(PerformRetry message, IMessageHandlerContext context)
         {
             return context.SendLocal<RetryMessagesById>(m =>
-                m.MessageUniqueIds = new[] {message.FailedMessageId});
+                m.MessageUniqueIds = new[] { message.FailedMessageId });
         }
 
         public Task Handle(RegisterSuccessfulRetry message, IMessageHandlerContext context)

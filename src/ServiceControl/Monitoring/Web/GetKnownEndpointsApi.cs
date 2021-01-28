@@ -34,7 +34,7 @@
         {
             public bool Equals(KnownEndpointsView x, KnownEndpointsView y)
             {
-                return y != null && (x != null && x.Id.Equals(y.Id));
+                return y != null && x != null && x.Id.Equals(y.Id);
             }
 
             public int GetHashCode(KnownEndpointsView obj)

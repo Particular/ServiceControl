@@ -127,7 +127,7 @@
                 .ConfigureAwait(false);
         }
 
-        private InMemoryRetry GetOrCreate(RetryType retryType, string requestId)
+        InMemoryRetry GetOrCreate(RetryType retryType, string requestId)
         {
             var key = InMemoryRetry.MakeOperationId(requestId, retryType);
             return retryOperations.GetOrAdd(key, _ => new InMemoryRetry(requestId, retryType, domainEvents));

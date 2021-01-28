@@ -5,7 +5,7 @@
     using System.Text;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct LsaUnicodeString
+    struct LsaUnicodeString
     {
         internal LsaUnicodeString(string inputString)
         {

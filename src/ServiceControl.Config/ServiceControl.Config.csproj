@@ -25,7 +25,6 @@
     <PackageReference Include="FluentValidation" Version="9.4.0" />
     <PackageReference Include="Fody" Version="6.3.0" />
     <PackageReference Include="Mindscape.Raygun4Net" Version="5.12.0" />
-    <PackageReference Include="Particular.CodeRules" Version="0.8.0" PrivateAssets="All" />
     <PackageReference Include="PropertyChanged.Fody" Version="3.3.1" />
     <PackageReference Include="PropertyChanging.Fody" Version="1.30.1" />
     <PackageReference Include="reactiveui" Version="5.5.1" />
@@ -52,10 +51,6 @@
   <ItemGroup>
     <None Remove="Resources\**\*.*" />
     <Resource Include="Resources\**\*.*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\GlobalSuppressions.cs" Link="GlobalSuppressions.cs" />
   </ItemGroup>
 
   <Target Name="CopyZips" AfterTargets="Build">

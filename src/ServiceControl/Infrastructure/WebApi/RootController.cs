@@ -93,9 +93,9 @@
             return Ok(content);
         }
 
-        private readonly LoggingSettings loggingSettings;
+        readonly LoggingSettings loggingSettings;
 
-        private readonly ActiveLicense license;
+        readonly ActiveLicense license;
         readonly Settings settings;
 
         public class RootUrls

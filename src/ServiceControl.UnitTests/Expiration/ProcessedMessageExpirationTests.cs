@@ -265,6 +265,6 @@
             }
         }
 
-        private static int doctestrange = 999;
+        static int doctestrange = 999;
     }
 }

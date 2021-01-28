@@ -9,8 +9,8 @@ namespace ServiceControl.Audit.Infrastructure
         public static IEnumerable<Type> Implementing<T>(this IEnumerable<Type> types)
         {
             return from type in types
-                where typeof(T).IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface
-                select type;
+                   where typeof(T).IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface
+                   select type;
         }
     }
 }

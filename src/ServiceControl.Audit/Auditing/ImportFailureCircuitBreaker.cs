@@ -3,7 +3,6 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
 
     class ImportFailureCircuitBreaker : IDisposable
     {
@@ -29,7 +28,7 @@
             var result = Interlocked.Increment(ref failureCount);
             if (result > 50)
             {
-                Task.Run(() => onCriticalError("Failed to import too many times", lastException)).Ignore();
+                _ = Task.Run(() => onCriticalError("Failed to import too many times", lastException));
             }
         }
 

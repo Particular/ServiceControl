@@ -99,7 +99,7 @@ namespace ServiceControl.Recoverability
             logger.Info($"Archiving of group {message.GroupId} is complete. Waiting for index updates.");
             await archiveOperationManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType)
                 .ConfigureAwait(false);
-            if (!await documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, archiveOperation.ArchiveType, TimeSpan.FromMinutes(5))
+            if (!await documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 .ConfigureAwait(false))
             {
                 logger.Warn($"Archiving group {message.GroupId} completed but index not updated.");

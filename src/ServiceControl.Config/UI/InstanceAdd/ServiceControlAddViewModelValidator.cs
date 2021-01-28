@@ -10,7 +10,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
         {
             RuleFor(x => x.ConventionName)
                 .NotEmpty()
-                .When(x => x.SubmitAttempted && 
+                .When(x => x.SubmitAttempted &&
                            !x.IsServiceControlAuditExpanded &&
                            !x.IsServiceControlExpanded);
 

@@ -77,8 +77,8 @@
             foreach (var tableNamePair in tableNames)
             {
                 store(
-                    new[] 
-                    { 
+                    new[]
+                    {
                         new QueueLengthEntry
                         {
                             DateTicks = nowTicks,

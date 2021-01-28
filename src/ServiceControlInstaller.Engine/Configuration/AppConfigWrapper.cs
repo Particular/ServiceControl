@@ -8,7 +8,7 @@
     {
         public AppConfigWrapper(string configFilePath)
         {
-            var mapping = new ExeConfigurationFileMap {ExeConfigFilename = configFilePath};
+            var mapping = new ExeConfigurationFileMap { ExeConfigFilename = configFilePath };
             Config = ConfigurationManager.OpenMappedExeConfiguration(mapping, ConfigurationUserLevel.None);
         }
 

@@ -53,7 +53,7 @@
       <SQSTransportFolder>..\ServiceControl.Transports.SQS\$(OutputPath)\</SQSTransportFolder>
       <LearningTransportFolder>..\ServiceControl.Transports.Learning\$(OutputPath)\</LearningTransportFolder>
     </PropertyGroup>
-    
+
     <ItemGroup>
       <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb;Newtonsoft.Json.dll" />
 
@@ -100,7 +100,7 @@
       <SQSTransportFolder>..\ServiceControl.Transports.SQS\$(OutputPath)\</SQSTransportFolder>
       <LearningTransportFolder>..\ServiceControl.Transports.Learning\$(OutputPath)\</LearningTransportFolder>
     </PropertyGroup>
-    
+
     <ItemGroup>
       <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
 
@@ -147,7 +147,7 @@
       <SQSTransportFolder>..\ServiceControl.Transports.SQS\$(OutputPath)\</SQSTransportFolder>
       <LearningTransportFolder>..\ServiceControl.Transports.Learning\$(OutputPath)\</LearningTransportFolder>
     </PropertyGroup>
-    
+
     <ItemGroup>
       <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
 

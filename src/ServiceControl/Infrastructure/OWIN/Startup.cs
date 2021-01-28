@@ -56,7 +56,7 @@
             });
         }
 
-        private void ConfigureSignalR(IAppBuilder app)
+        void ConfigureSignalR(IAppBuilder app)
         {
             var resolver = new AutofacDependencyResolver(container);
 
@@ -77,7 +77,7 @@
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
         }
 
-        private readonly IContainer container;
+        readonly IContainer container;
     }
 
     class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
@@ -91,10 +91,10 @@
         {
             if (additionalAssembly != null)
             {
-                return new[] {Assembly.GetExecutingAssembly(), additionalAssembly};
+                return new[] { Assembly.GetExecutingAssembly(), additionalAssembly };
             }
 
-            return new[] {Assembly.GetExecutingAssembly()};
+            return new[] { Assembly.GetExecutingAssembly() };
         }
 
         readonly Assembly additionalAssembly;
@@ -127,7 +127,7 @@
             return base.GetServices(serviceType);
         }
 
-        private readonly IContainer container;
+        readonly IContainer container;
         static Type IEnumerableType = typeof(IEnumerable<>);
     }
 }

@@ -3,7 +3,7 @@ namespace Tests
     using System.Linq;
     using NUnit.Framework;
 
-    [TestFixtureSource(typeof(DeploymentPackage), "All")]
+    [TestFixtureSource(typeof(DeploymentPackage), nameof(DeploymentPackage.All))]
     public class DeploymentPackageTests
     {
         DeploymentPackage deploymentPackage;

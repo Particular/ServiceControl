@@ -3,7 +3,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct HttpServiceConfigUrlAclQuery
+    struct HttpServiceConfigUrlAclQuery
     {
         public HttpServiceConfigQueryType QueryDesc;
 

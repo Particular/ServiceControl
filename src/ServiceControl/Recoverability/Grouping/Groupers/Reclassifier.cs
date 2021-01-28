@@ -140,7 +140,7 @@
             }
         }
 
-        private bool abort;
+        bool abort;
 
         ILog logger = LogManager.GetLogger<Reclassifier>();
         const int BatchSize = 1000;

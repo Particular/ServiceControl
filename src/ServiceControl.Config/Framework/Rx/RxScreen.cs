@@ -73,7 +73,7 @@
 
         void IDeactivate.Deactivate(bool close)
         {
-            if (IsActive || IsInitialized && close)
+            if (IsActive || (IsInitialized && close))
             {
                 AttemptingDeactivation(this, new DeactivationEventArgs
                 {

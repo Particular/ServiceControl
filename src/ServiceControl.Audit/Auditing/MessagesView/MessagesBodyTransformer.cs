@@ -8,15 +8,15 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public MessagesBodyTransformer()
         {
             TransformResults = messages => from message in messages
-                let metadata = message.MessageMetadata
-                select new
-                {
-                    MessageId = metadata["MessageId"],
-                    Body = metadata["Body"],
-                    BodySize = (int)metadata["ContentLength"],
-                    ContentType = metadata["ContentType"],
-                    BodyNotStored = (bool)metadata["BodyNotStored"]
-                };
+                                           let metadata = message.MessageMetadata
+                                           select new
+                                           {
+                                               MessageId = metadata["MessageId"],
+                                               Body = metadata["Body"],
+                                               BodySize = (int)metadata["ContentLength"],
+                                               ContentType = metadata["ContentType"],
+                                               BodyNotStored = (bool)metadata["BodyNotStored"]
+                                           };
         }
 
         public class Result

@@ -44,13 +44,9 @@
         {
             base.OnApplyTemplate();
 
-            var slider = GetTemplateChild(SliderPartName) as Slider;
-            var downButton = GetTemplateChild("PART_SliderDown") as Button;
-            var upButton = GetTemplateChild("PART_SliderUp") as Button;
-
-            if (slider != null)
+            if (GetTemplateChild(SliderPartName) is Slider slider)
             {
-                if (downButton != null)
+                if (GetTemplateChild("PART_SliderDown") is Button downButton)
                 {
                     downButton.Click += (sender, args) =>
                     {
@@ -59,7 +55,7 @@
                     };
                 }
 
-                if (upButton != null)
+                if (GetTemplateChild("PART_SliderUp") is Button upButton)
                 {
                     upButton.Click += (sender, args) =>
                     {

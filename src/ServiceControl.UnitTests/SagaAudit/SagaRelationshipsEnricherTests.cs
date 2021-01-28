@@ -1,8 +1,7 @@
-﻿using System.Threading.Tasks;
-
-namespace ServiceControl.UnitTests.SagaAudit
+﻿namespace ServiceControl.UnitTests.SagaAudit
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
 

@@ -1,6 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.UrlAcl.Api
 {
-    internal enum ErrorCode : uint
+    enum ErrorCode : uint
     {
         Success = 0,
 

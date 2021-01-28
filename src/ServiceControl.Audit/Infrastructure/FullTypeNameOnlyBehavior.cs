@@ -22,6 +22,6 @@ namespace ServiceControl.Audit.Infrastructure
         }
 
         static string AssemblyFullName = typeof(FullTypeNameOnlyBehavior).Assembly.FullName;
-        static string[] Semicolon = {";"};
+        static string[] Semicolon = { ";" };
     }
 }

@@ -9,7 +9,7 @@
     {
         protected override QueryResult<IList<MessagesView>>[] GetData()
         {
-            return new[] {QueryResult<IList<MessagesView>>.Empty(), QueryResult<IList<MessagesView>>.Empty()};
+            return new[] { QueryResult<IList<MessagesView>>.Empty(), QueryResult<IList<MessagesView>>.Empty() };
         }
 
         [Test]

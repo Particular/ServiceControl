@@ -1,11 +1,11 @@
-﻿using NUnit.Framework;
-using ServiceControl.Infrastructure.DomainEvents;
-using ServiceControl.Monitoring;
-using System;
-using System.Threading.Tasks;
-
-namespace ServiceControl.UnitTests.Monitoring
+﻿namespace ServiceControl.UnitTests.Monitoring
 {
+    using System;
+    using System.Threading.Tasks;
+    using NUnit.Framework;
+    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Monitoring;
+
     class EndpointInstanceMonitoringTests
     {
         [Test]

@@ -20,12 +20,12 @@
         public void Start()
         {
             timer = new AsyncTimer(
-                Run, 
+                Run,
                 TimeSpan.Zero,
                 check.Interval ?? TimeSpan.MaxValue,
                 e => { /* Should not happen */ }
             );
-            
+
         }
 
         async Task<TimerJobExecutionResult> Run(CancellationToken arg)
@@ -59,7 +59,7 @@
                 Logger.Warn("Failed to update periodic check status.", ex);
             }
 
-            return check.Interval.HasValue 
+            return check.Interval.HasValue
                 ? TimerJobExecutionResult.ScheduleNextExecution
                 : TimerJobExecutionResult.DoNotContinueExecuting;
         }

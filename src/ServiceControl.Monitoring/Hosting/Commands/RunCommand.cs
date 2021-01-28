@@ -14,7 +14,7 @@ namespace ServiceControl.Monitoring
 
             if (runAsWindowsService)
             {
-                using (var service = new Host { Settings = settings, ServiceName = settings.ServiceName})
+                using (var service = new Host { Settings = settings, ServiceName = settings.ServiceName })
                 {
                     //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
                     //      until service reports it has stopped.

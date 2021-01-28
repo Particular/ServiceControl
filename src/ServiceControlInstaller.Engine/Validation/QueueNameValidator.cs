@@ -5,7 +5,7 @@ namespace ServiceControlInstaller.Engine.Validation
     using System.Linq;
     using Instances;
 
-    internal class QueueNameValidator
+    class QueueNameValidator
     {
         QueueNameValidator()
         {

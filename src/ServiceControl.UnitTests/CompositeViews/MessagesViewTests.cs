@@ -59,19 +59,19 @@
                 session.Store(new ProcessedMessage
                 {
                     Id = "1",
-                    MessageMetadata = new Dictionary<string, object> {{"CriticalTime", TimeSpan.FromSeconds(10)}}
+                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10) } }
                 });
 
                 session.Store(new ProcessedMessage
                 {
                     Id = "2",
-                    MessageMetadata = new Dictionary<string, object> {{"CriticalTime", TimeSpan.FromSeconds(20)}}
+                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20) } }
                 });
 
                 session.Store(new ProcessedMessage
                 {
                     Id = "3",
-                    MessageMetadata = new Dictionary<string, object> {{"CriticalTime", TimeSpan.FromSeconds(15)}}
+                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
                 });
 
                 session.Store(new FailedMessage
@@ -115,18 +115,18 @@
                 session.Store(new ProcessedMessage
                 {
                     Id = "1",
-                    MessageMetadata = new Dictionary<string, object> {{"TimeSent", DateTime.Today.AddSeconds(20)}}
+                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(20) } }
                 });
 
                 session.Store(new ProcessedMessage
                 {
                     Id = "2",
-                    MessageMetadata = new Dictionary<string, object> {{"TimeSent", DateTime.Today.AddSeconds(10)}}
+                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(10) } }
                 });
                 session.Store(new ProcessedMessage
                 {
                     Id = "3",
-                    MessageMetadata = new Dictionary<string, object> {{"TimeSent", DateTime.Today.AddDays(-1)}}
+                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddDays(-1) } }
                 });
                 session.SaveChanges();
             }

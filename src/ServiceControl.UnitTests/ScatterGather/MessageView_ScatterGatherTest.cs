@@ -32,7 +32,7 @@
         protected QueryResult<IList<MessagesView>> RemotePage(int page, int pageSize = PageSize)
             => GetPage(RemoteData(), RemoteInstanceId, RemoteETag, page, pageSize);
 
-        private QueryResult<IList<MessagesView>> GetPage(IEnumerable<MessagesView> source, string instanceId, string etag, int page, int pageSize)
+        QueryResult<IList<MessagesView>> GetPage(IEnumerable<MessagesView> source, string instanceId, string etag, int page, int pageSize)
         {
             var allResults = source.OrderBy(_ => Guid.NewGuid()).ToList();
             var pageOfResults = allResults.Skip((page - 1) * pageSize).Take(pageSize).ToList();

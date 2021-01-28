@@ -3,7 +3,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct HttpServiceConfigUrlAclSet
+    struct HttpServiceConfigUrlAclSet
     {
         public HttpServiceConfigUrlAclKey KeyDesc;
 

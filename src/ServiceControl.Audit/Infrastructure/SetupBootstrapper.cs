@@ -91,7 +91,7 @@ namespace ServiceControl.Audit.Infrastructure
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { },documentStore, configuration, false)
+                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { }, documentStore, configuration, false)
                     .ConfigureAwait(false);
             }
         }
@@ -136,9 +136,9 @@ namespace ServiceControl.Audit.Infrastructure
             return transportSettings;
         }
 
-        private readonly Settings.Settings settings;
+        readonly Settings.Settings settings;
 
-        private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
+        static ILog log = LogManager.GetLogger<SetupBootstrapper>();
         string[] excludeAssemblies;
     }
 }

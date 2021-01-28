@@ -1,6 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Services
 {
-    internal class WindowsServiceDetails
+    class WindowsServiceDetails
     {
         public string Name { get; set; }
 

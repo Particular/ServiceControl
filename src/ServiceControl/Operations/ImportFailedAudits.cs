@@ -8,11 +8,11 @@ namespace ServiceControl.Operations
         public FailedAuditImportIndex()
         {
             Map = docs => from cc in docs
-                select new FailedAuditImport
-                {
-                    Id = cc.Id,
-                    Message = cc.Message
-                };
+                          select new FailedAuditImport
+                          {
+                              Id = cc.Id,
+                              Message = cc.Message
+                          };
 
             DisableInMemoryIndexing = true;
         }

@@ -22,11 +22,11 @@
         [SetUp]
         public void Setup()
         {
-            settings = new Settings {EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5)};
+            settings = new Settings { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
             activityTracker = new EndpointInstanceActivityTracker(settings);
             processingTimeStore = new ProcessingTimeStore();
             endpointRegistry = new EndpointRegistry();
-            
+
             var messageTypeRegistry = new MessageTypeRegistry();
             var breakdownProviders = new IProvideBreakdown[]
             {
@@ -82,7 +82,7 @@
             var now = DateTime.UtcNow;
             var timestamp = now.Subtract(new TimeSpan(period.IntervalSize.Ticks * period.DelayedIntervals)); // now - 5 seconds
 
-            var samples = new[] 
+            var samples = new[]
             {
                 new RawMessage.Entry { DateTicks = timestamp.Ticks, Value = 5 },
                 new RawMessage.Entry { DateTicks = timestamp.Ticks, Value = 10 }

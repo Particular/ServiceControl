@@ -24,10 +24,7 @@
             AddMissingInstances();
         }
 
-        public BindableCollection<InstanceDetailsViewModel> OrderedInstances
-        {
-            get { return new BindableCollection<InstanceDetailsViewModel>(Instances.OrderBy(x => x.Name)); }
-        }
+        public BindableCollection<InstanceDetailsViewModel> OrderedInstances => new BindableCollection<InstanceDetailsViewModel>(Instances.OrderBy(x => x.Name));
 
         [AlsoNotifyFor(nameof(OrderedInstances))]
         IList<InstanceDetailsViewModel> Instances { get; }
@@ -81,7 +78,7 @@
         void AddMissingInstances()
         {
             var missingInstances = InstanceFinder.AllInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
-            
+
             foreach (var item in missingInstances)
             {
                 Instances.Add(instanceDetailsFunc(item));

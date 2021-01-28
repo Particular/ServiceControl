@@ -12,50 +12,50 @@ namespace ServiceControl.CompositeViews.Messages
         public MessagesViewTransformer()
         {
             TransformResults = messages => from message in messages
-                let metadata =
-                    message.ProcessingAttempts != null
-                        ? message.ProcessingAttempts.Last().MessageMetadata
-                        : message.MessageMetadata
-                let headers =
-                    message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().Headers : message.Headers
-                let processedAt =
-                    message.ProcessingAttempts != null
-                        ? message.ProcessingAttempts.Last().AttemptedAt
-                        : message.ProcessedAt
-                let status =
-                    message.ProcessingAttempts == null
-                        ? !(bool)message.MessageMetadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
-                        : message.Status == FailedMessageStatus.RetryIssued
-                            ? MessageStatus.RetryIssued
-                            : message.Status == FailedMessageStatus.Archived
-                                ? MessageStatus.ArchivedFailure
-                                : message.ProcessingAttempts.Count == 1
-                                    ? MessageStatus.Failed
-                                    : MessageStatus.RepeatedFailure
-                select new
-                {
-                    Id = message.UniqueMessageId,
-                    MessageId = metadata["MessageId"],
-                    MessageType = metadata["MessageType"],
-                    SendingEndpoint = metadata["SendingEndpoint"],
-                    ReceivingEndpoint = metadata["ReceivingEndpoint"],
-                    TimeSent = (DateTime?)metadata["TimeSent"],
-                    ProcessedAt = processedAt,
-                    CriticalTime = (TimeSpan)metadata["CriticalTime"],
-                    ProcessingTime = (TimeSpan)metadata["ProcessingTime"],
-                    DeliveryTime = (TimeSpan)metadata["DeliveryTime"],
-                    IsSystemMessage = (bool)metadata["IsSystemMessage"],
-                    ConversationId = metadata["ConversationId"],
-                    //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
-                    // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
-                    Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
-                    Status = status,
-                    MessageIntent = metadata["MessageIntent"],
-                    BodyUrl = metadata["BodyUrl"],
-                    BodySize = (int)metadata["ContentLength"],
-                    InvokedSagas = metadata["InvokedSagas"],
-                    OriginatesFromSaga = metadata["OriginatesFromSaga"]
-                };
+                                           let metadata =
+                                               message.ProcessingAttempts != null
+                                                   ? message.ProcessingAttempts.Last().MessageMetadata
+                                                   : message.MessageMetadata
+                                           let headers =
+                                               message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().Headers : message.Headers
+                                           let processedAt =
+                                               message.ProcessingAttempts != null
+                                                   ? message.ProcessingAttempts.Last().AttemptedAt
+                                                   : message.ProcessedAt
+                                           let status =
+                                               message.ProcessingAttempts == null
+                                                   ? !(bool)message.MessageMetadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
+                                                   : message.Status == FailedMessageStatus.RetryIssued
+                                                       ? MessageStatus.RetryIssued
+                                                       : message.Status == FailedMessageStatus.Archived
+                                                           ? MessageStatus.ArchivedFailure
+                                                           : message.ProcessingAttempts.Count == 1
+                                                               ? MessageStatus.Failed
+                                                               : MessageStatus.RepeatedFailure
+                                           select new
+                                           {
+                                               Id = message.UniqueMessageId,
+                                               MessageId = metadata["MessageId"],
+                                               MessageType = metadata["MessageType"],
+                                               SendingEndpoint = metadata["SendingEndpoint"],
+                                               ReceivingEndpoint = metadata["ReceivingEndpoint"],
+                                               TimeSent = (DateTime?)metadata["TimeSent"],
+                                               ProcessedAt = processedAt,
+                                               CriticalTime = (TimeSpan)metadata["CriticalTime"],
+                                               ProcessingTime = (TimeSpan)metadata["ProcessingTime"],
+                                               DeliveryTime = (TimeSpan)metadata["DeliveryTime"],
+                                               IsSystemMessage = (bool)metadata["IsSystemMessage"],
+                                               ConversationId = metadata["ConversationId"],
+                                               //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
+                                               // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
+                                               Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
+                                               Status = status,
+                                               MessageIntent = metadata["MessageIntent"],
+                                               BodyUrl = metadata["BodyUrl"],
+                                               BodySize = (int)metadata["ContentLength"],
+                                               InvokedSagas = metadata["InvokedSagas"],
+                                               OriginatesFromSaga = metadata["OriginatesFromSaga"]
+                                           };
         }
 
         public class Result

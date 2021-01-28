@@ -14,9 +14,10 @@
 
             var result = ActiveLicense.Find("ServiceControl", sources);
 
-            var detectedLicense = new DetectedLicense(result.Location, LicenseDetails.FromLicense(result.License));
-
-            detectedLicense.IsEvaluationLicense = string.Equals(result.Location, "Trial License", StringComparison.OrdinalIgnoreCase);
+            var detectedLicense = new DetectedLicense(result.Location, LicenseDetails.FromLicense(result.License))
+            {
+                IsEvaluationLicense = string.Equals(result.Location, "Trial License", StringComparison.OrdinalIgnoreCase)
+            };
 
             return detectedLicense;
         }

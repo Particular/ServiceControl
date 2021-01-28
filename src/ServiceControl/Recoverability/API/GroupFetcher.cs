@@ -56,8 +56,8 @@
         static UnacknowledgedRetryOperation[] MapAcksToOpenGroups(IList<FailureGroupView> groups, UnacknowledgedRetryOperation[] acks)
         {
             return (from g in groups
-                join unack in acks on g.Id equals unack.RequestId
-                select unack).ToArray();
+                    join unack in acks on g.Id equals unack.RequestId
+                    select unack).ToArray();
         }
 
         static Task<IList<FailureGroupView>> GetDBGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
@@ -194,7 +194,7 @@
                     OperationProgress = summary?.GetProgress().Percentage ?? 0.0,
                     OperationRemainingCount = summary?.GetProgress().MessagesRemaining,
                     OperationStartTime = summary?.Started,
-                    OperationCompletionTime = summary?.CompletionTime ?? (unacknowledged?.CompletionTime ?? historic?.CompletionTime),
+                    OperationCompletionTime = summary?.CompletionTime ?? unacknowledged?.CompletionTime ?? historic?.CompletionTime,
                     NeedUserAcknowledgement = unacknowledged != null
                 };
             });

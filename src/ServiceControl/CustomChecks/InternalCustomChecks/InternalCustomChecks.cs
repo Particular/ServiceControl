@@ -18,9 +18,9 @@
 
             // Register a startup task with all of the ICustomCheck instances in it
             context.RegisterStartupTask(b => new InternalCustomChecksStartup(
-                b.BuildAll<ICustomCheck>().ToList(), 
-                b.Build<CustomChecksStorage>(), 
-                b.Build<HostInformation>(), 
+                b.BuildAll<ICustomCheck>().ToList(),
+                b.Build<CustomChecksStorage>(),
+                b.Build<HostInformation>(),
                 context.Settings.EndpointName())
             );
         }

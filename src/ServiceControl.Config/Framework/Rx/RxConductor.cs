@@ -19,17 +19,17 @@
                 return;
             }
 
-            CloseStrategy.Execute(new[] {ActiveItem}, (canClose, items) =>
-            {
-                if (canClose)
-                {
-                    ChangeActiveItem(item, true);
-                }
-                else
-                {
-                    OnActivationProcessed(item, false);
-                }
-            });
+            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) =>
+              {
+                  if (canClose)
+                  {
+                      ChangeActiveItem(item, true);
+                  }
+                  else
+                  {
+                      OnActivationProcessed(item, false);
+                  }
+              });
         }
 
         public override void DeactivateItem(T item, bool close)
@@ -39,18 +39,18 @@
                 return;
             }
 
-            CloseStrategy.Execute(new[] {ActiveItem}, (canClose, items) =>
-            {
-                if (canClose)
-                {
-                    ChangeActiveItem(default, close);
-                }
-            });
+            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) =>
+              {
+                  if (canClose)
+                  {
+                      ChangeActiveItem(default, close);
+                  }
+              });
         }
 
         public override void CanClose(Action<bool> callback)
         {
-            CloseStrategy.Execute(new[] {ActiveItem}, (canClose, items) => callback(canClose));
+            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) => callback(canClose));
         }
 
         protected override void OnActivate()
@@ -65,7 +65,7 @@
 
         public override IEnumerable<T> GetChildren()
         {
-            return new[] {ActiveItem};
+            return new[] { ActiveItem };
         }
     }
 }

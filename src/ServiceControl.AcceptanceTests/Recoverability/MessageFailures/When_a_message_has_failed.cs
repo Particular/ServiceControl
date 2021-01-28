@@ -107,7 +107,7 @@
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == typeof(MessageFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.RelatedTo.Any(r => r.Contains(c.UniqueMessageId)) && e.EventType == nameof(Contracts.MessageFailures.MessageFailed));
                     entry = result;
                     return result;
                 })
@@ -251,7 +251,7 @@
                         return Task.FromResult(0);
                     }
 
-                    private void ConnectionOnReceived(string s)
+                    void ConnectionOnReceived(string s)
                     {
                         if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
                         {
@@ -260,8 +260,8 @@
                         }
                     }
 
-                    private MyContext context;
-                    private Connection connection;
+                    MyContext context;
+                    Connection connection;
                 }
             }
         }

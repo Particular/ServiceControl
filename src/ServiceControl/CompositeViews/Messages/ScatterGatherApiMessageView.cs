@@ -43,6 +43,6 @@ namespace ServiceControl.CompositeViews.Messages
             return combined;
         }
 
-        private IComparer<MessagesView> FinalOrder(HttpRequestMessage request) => MessageViewComparer.FromRequest(request);
+        IComparer<MessagesView> FinalOrder(HttpRequestMessage request) => MessageViewComparer.FromRequest(request);
     }
 }

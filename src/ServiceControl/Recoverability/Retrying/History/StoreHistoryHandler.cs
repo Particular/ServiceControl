@@ -51,7 +51,7 @@
             }
         }
 
-        private readonly IDocumentStore store;
-        private readonly Settings settings;
+        readonly IDocumentStore store;
+        readonly Settings settings;
     }
 }

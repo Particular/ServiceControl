@@ -4,7 +4,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct LsaObjectAttributes
+    struct LsaObjectAttributes
     {
         internal uint Length;
         internal IntPtr RootDirectory;

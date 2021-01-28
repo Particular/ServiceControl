@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
-    using System;
     using System.Linq;
 
     class SqlTable
@@ -44,7 +43,7 @@
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }
@@ -54,19 +53,19 @@
                 return true;
             }
 
-            if (obj.GetType() != this.GetType())
+            if (obj.GetType() != GetType())
             {
                 return false;
             }
 
-            return Equals((SqlTable) obj);
+            return Equals((SqlTable)obj);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                var hashCode = (QuotedName != null ? QuotedName.GetHashCode() : 0);
+                var hashCode = QuotedName != null ? QuotedName.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ (QuotedSchema != null ? QuotedSchema.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (QuotedCatalog != null ? QuotedCatalog.GetHashCode() : 0);
                 return hashCode;

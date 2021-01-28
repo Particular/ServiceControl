@@ -3,7 +3,6 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Infrastructure.DomainEvents;
     using MessageFailures;
     using NServiceBus.Logging;
@@ -87,7 +86,7 @@ namespace ServiceControl.Recoverability
                 }
 
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
-                Task.Run(StopInternal).Ignore();
+                _ = Task.Run(StopInternal);
             }
         }
 
@@ -115,7 +114,7 @@ namespace ServiceControl.Recoverability
                 var config = createEndpointConfiguration();
                 syncEvent = new TaskCompletionSource<bool>();
                 stopCompletionSource = new TaskCompletionSource<bool>();
-                registration = cancellationToken.Register(() => { Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None).Ignore(); });
+                registration = cancellationToken.Register(() => _ = Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None));
 
                 processor = await RawEndpoint.Start(config).ConfigureAwait(false);
 
@@ -163,7 +162,7 @@ namespace ServiceControl.Recoverability
             return StopInternal();
         }
 
-        private async Task StopInternal()
+        async Task StopInternal()
         {
             if (Log.IsDebugEnabled)
             {

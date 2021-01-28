@@ -84,7 +84,7 @@ namespace ServiceControl.Recoverability
 
             await OperationManager.Prepairing(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
-            await StageRetryByUniqueMessageIds(requestId, retryType, new[] {uniqueMessageId}, DateTime.UtcNow)
+            await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow)
                 .ConfigureAwait(false);
             await OperationManager.PreparedBatch(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
@@ -106,7 +106,7 @@ namespace ServiceControl.Recoverability
                 .ConfigureAwait(false);
         }
 
-        private async Task StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
+        async Task StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
@@ -172,7 +172,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private static string GetBatchName(int pageNum, int totalPages, string context)
+        static string GetBatchName(int pageNum, int totalPages, string context)
         {
             if (context == null)
             {
@@ -182,9 +182,9 @@ namespace ServiceControl.Recoverability
             return $"'{context}' batch {pageNum} of {totalPages}";
         }
 
-        private IDocumentStore store;
-        private RetryDocumentManager retryDocumentManager;
-        private ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
+        IDocumentStore store;
+        RetryDocumentManager retryDocumentManager;
+        ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
         const int BatchSize = 1000;
 
         static ILog log = LogManager.GetLogger(typeof(RetriesGateway));
@@ -242,11 +242,11 @@ namespace ServiceControl.Recoverability
         public FailedMessages_UniqueMessageIdAndTimeOfFailures()
         {
             TransformResults = failedMessages => from failedMessage in failedMessages
-                select new
-                {
-                    failedMessage.UniqueMessageId,
-                    LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
-                };
+                                                 select new
+                                                 {
+                                                     failedMessage.UniqueMessageId,
+                                                     LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
+                                                 };
         }
 
         public struct Result

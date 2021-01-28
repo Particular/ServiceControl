@@ -5,7 +5,7 @@ namespace ServiceControlInstaller.Engine.Validation
     using System.IO;
     using System.Linq;
 
-    internal class PathsValidator
+    class PathsValidator
     {
         public PathsValidator(IServicePaths instance)
         {

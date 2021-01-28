@@ -50,7 +50,7 @@
             instance.Service.Refresh();
 
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
-            var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
+            var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
 
             if (instance.Service.Status != ServiceControllerStatus.Stopped &&
                 !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",

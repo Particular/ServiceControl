@@ -29,9 +29,9 @@
                 await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync().ConfigureAwait(false);
 
                 return Request.CreateResponse(HttpStatusCode.OK, new FailedMessageRetriesCountReponse
-                    {
-                        Count = stats.TotalResults
-                    })
+                {
+                    Count = stats.TotalResults
+                })
                     .WithEtag(stats);
             }
         }

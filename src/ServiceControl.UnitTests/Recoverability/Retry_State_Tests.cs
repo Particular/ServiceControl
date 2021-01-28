@@ -156,13 +156,15 @@
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, "A", "B", "C");
 
-                var sender = new TestSender();
-                sender.Callback = operation =>
+                var sender = new TestSender
                 {
-                    //Always fails staging message B
-                    if (operation.Message.MessageId == "FailedMessages/B")
+                    Callback = operation =>
                     {
-                        throw new Exception("Simulated");
+                        //Always fails staging message B
+                        if (operation.Message.MessageId == "FailedMessages/B")
+                        {
+                            throw new Exception("Simulated");
+                        }
                     }
                 };
 
@@ -190,7 +192,7 @@
                         //Continue trying until there is no exception -> poison message is removed from the batch
                         c = true;
                     }
-                } 
+                }
                 while (c);
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -321,7 +323,7 @@
             return Task.FromResult(0);
         }
 
-        private bool progressToStaged;
+        bool progressToStaged;
     }
 
     class TestReturnToSenderDequeuer : ReturnToSenderDequeuer

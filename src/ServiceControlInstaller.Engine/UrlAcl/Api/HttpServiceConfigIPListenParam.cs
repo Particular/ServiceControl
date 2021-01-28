@@ -4,7 +4,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct HttpServiceConfigIPListenParam
+    struct HttpServiceConfigIPListenParam
     {
         public ushort AddressLength;
         public IntPtr Address;

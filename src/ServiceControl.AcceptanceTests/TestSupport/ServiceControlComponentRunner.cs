@@ -159,8 +159,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                         .AssignableTo<ApiController>()
                         .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
                         .AsSelf();
-                });
-                bootstrapper.HttpClientFactory = HttpClientFactory;
+                })
+                {
+                    HttpClientFactory = HttpClientFactory
+                };
             }
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))

@@ -3,7 +3,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct HttpServiceConfigSslSet
+    struct HttpServiceConfigSslSet
     {
         public HttpServiceConfigSslKey KeyDesc;
 

@@ -12,9 +12,9 @@
     class AuditIngestion
     {
         public AuditIngestion(
-            Func<MessageContext, IDispatchMessages, Task> onMessage, 
+            Func<MessageContext, IDispatchMessages, Task> onMessage,
             Func<IDispatchMessages, Task> initialize,
-            string inputEndpoint, 
+            string inputEndpoint,
             RawEndpointFactory rawEndpointFactory,
             IErrorHandlingPolicy errorHandlingPolicy,
             Func<string, Exception, Task> onCriticalError)

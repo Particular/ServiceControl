@@ -26,7 +26,7 @@
             {
                 return;
             }
-            
+
             if (!Uri.TryCreate(strVal, UriKind.Absolute, out var uri))
             {
                 throw new ArgumentException("Not a Uri");

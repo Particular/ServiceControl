@@ -1,6 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.UrlAcl.Api
 {
-    internal enum HttpServiceConfigQueryType
+    enum HttpServiceConfigQueryType
     {
         HttpServiceConfigQueryExact,
         HttpServiceConfigQueryNext,

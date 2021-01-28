@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Config.UI.Shell
 {
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -8,12 +7,13 @@
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
 
     public static class VersionCheckerHelper
     {
         public static async Task<Release> GetLatestRelease(string currentVersion)
         {
-            Version current = new Version(currentVersion);
+            var current = new Version(currentVersion);
             List<Release> releases = await GetVersionInformation().ConfigureAwait(false);
 
             if (releases != null)
@@ -21,14 +21,16 @@
                 Release topversion = releases.Select(t => (t.Version, t)).Max().t;
 
                 if (topversion.Version > current)
+                {
                     return topversion;
+                }
             }
 
             // we have no release available
             return new Release(current);
         }
 
-        private static async Task<List<Release>> GetVersionInformation()
+        static async Task<List<Release>> GetVersionInformation()
         {
             try
             {
@@ -43,7 +45,7 @@
             }
         }
 
-        private static readonly HttpClient httpClient = new HttpClient(new HttpClientHandler
+        static readonly HttpClient httpClient = new HttpClient(new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
         })

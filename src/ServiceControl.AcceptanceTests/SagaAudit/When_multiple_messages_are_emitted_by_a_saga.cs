@@ -23,7 +23,7 @@
             var context = await Define<MyContext>()
                 .WithEndpoint<SagaEndpoint>(b => b.When(async (bus, c) =>
                 {
-                    await bus.SendLocal(new MessageInitiatingSaga {Id = "Id"});
+                    await bus.SendLocal(new MessageInitiatingSaga { Id = "Id" });
                 }))
                 .Done(async c =>
                 {

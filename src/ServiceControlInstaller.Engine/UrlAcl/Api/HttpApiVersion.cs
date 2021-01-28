@@ -3,7 +3,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential, Pack = 2)]
-    internal struct HttpApiVersion
+    struct HttpApiVersion
     {
         public ushort Major;
         public ushort Minor;

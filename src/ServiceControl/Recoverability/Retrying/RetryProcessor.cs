@@ -35,7 +35,7 @@ namespace ServiceControl.Recoverability
             return await ForwardCurrentBatch(session, cancellationToken).ConfigureAwait(false) || await MoveStagedBatchesToForwardingBatch(session).ConfigureAwait(false);
         }
 
-        private async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session)
+        async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session)
         {
             try
             {
@@ -64,9 +64,9 @@ namespace ServiceControl.Recoverability
                     {
                         Log.Info($"Batch {stagingBatch.Id} with {stagedMessages} messages staged and {skippedMessages} skipped ready to be forwarded.");
                         await session.StoreAsync(new RetryBatchNowForwarding
-                            {
-                                RetryBatchId = stagingBatch.Id
-                            }, RetryBatchNowForwarding.Id)
+                        {
+                            RetryBatchId = stagingBatch.Id
+                        }, RetryBatchNowForwarding.Id)
                             .ConfigureAwait(false);
                     }
 
@@ -82,7 +82,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private async Task<bool> ForwardCurrentBatch(IAsyncDocumentSession session, CancellationToken cancellationToken)
+        async Task<bool> ForwardCurrentBatch(IAsyncDocumentSession session, CancellationToken cancellationToken)
         {
             if (Log.IsDebugEnabled)
             {

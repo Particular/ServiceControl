@@ -1,8 +1,8 @@
-﻿using System.Text;
-using System.Windows;
-
-namespace ServiceControl.Config.UI.MessageBox
+﻿namespace ServiceControl.Config.UI.MessageBox
 {
+    using System.Text;
+    using System.Windows;
+
     public partial class ReportCardView
     {
         public ReportCardView()
@@ -12,8 +12,8 @@ namespace ServiceControl.Config.UI.MessageBox
 
         void CopyClick(object sender, RoutedEventArgs e)
         {
-            ReportCardViewModel vm = (ReportCardViewModel)DataContext;
-            
+            var vm = (ReportCardViewModel)DataContext;
+
             var messages = new StringBuilder();
             messages.Append(vm.Title).Append(":");
             messages.AppendLine();

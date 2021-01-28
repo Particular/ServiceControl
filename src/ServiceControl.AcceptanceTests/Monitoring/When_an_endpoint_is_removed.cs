@@ -26,7 +26,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
                     return true;
                 })
                 .Run();
-            
+
             Assert.IsTrue(response.IsSuccessStatusCode);
             Assert.IsTrue(response.Content.Headers.Allow.Contains("DELETE"));
         }

@@ -56,7 +56,7 @@
             return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
         }
 
-        private string addressOfItself = "TODO";
+        string addressOfItself = "TODO";
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {

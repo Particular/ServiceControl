@@ -49,6 +49,7 @@
                 case ExecutionMode.Setup:
                     Commands.Add(typeof(SetupCommand));
                     break;
+                case ExecutionMode.Run:
                 default:
                     Commands.Add(typeof(RunCommand));
                     break;

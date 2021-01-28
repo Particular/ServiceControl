@@ -41,7 +41,7 @@
             }
 
             var instanceInstaller = details;
-            
+
             try
             {
                 instanceInstaller.ReportCard = new ReportCard();
@@ -321,7 +321,7 @@
                 {
                     return false;
                 }
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -374,7 +374,7 @@
                 WriteWarningsAndErrorsToLog(instance.ReportCard);
             }
         }
-        
+
         void WriteWarningsAndErrorsToLog(ReportCard reportCard)
         {
             foreach (var warning in reportCard.Warnings)

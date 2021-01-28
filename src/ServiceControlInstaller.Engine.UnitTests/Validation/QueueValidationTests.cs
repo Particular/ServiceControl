@@ -56,7 +56,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             var existingAudit = new Mock<IServiceControlAuditInstance>();
             existingAudit.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ));
             existingAudit.SetupGet(p => p.AuditQueue).Returns(@"audit");
-            
+
             var newInstance = new ServiceControlAuditNewInstance
             {
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
@@ -128,7 +128,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             Assert.That(ex.Message, Does.Contain(expectedError));
 
             expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
-            
+
             // with default names
             var defaultInstance = new ServiceControlNewInstance
             {
@@ -165,7 +165,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             Assert.That(ex.Message, Does.Contain(expectedError));
 
             expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
-            
+
             // with default names
             var defaultInstance = new ServiceControlNewInstance
             {

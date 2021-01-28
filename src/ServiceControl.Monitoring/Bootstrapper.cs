@@ -16,7 +16,6 @@
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using NServiceBus.Logging;
     using NServiceBus.Pipeline;
     using QueueLength;
     using ServiceBus.Management.Infrastructure.OWIN;
@@ -67,7 +66,7 @@
 
             config.DefineCriticalErrorAction(c =>
             {
-                this.onCriticalError(c);
+                onCriticalError(c);
                 return TaskEx.Completed;
             });
 
@@ -185,8 +184,6 @@
         EndpointConfiguration configuration;
         IContainer container;
         IEndpointInstance bus;
-
-        static ILog Logger = LogManager.GetLogger<Bootstrapper>();
     }
 
     class AllConstructorFinder : IConstructorFinder

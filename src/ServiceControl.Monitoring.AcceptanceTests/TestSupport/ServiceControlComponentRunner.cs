@@ -68,44 +68,46 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("Monitoring/TransportType", transportToUse.TypeName);
 
-            var settings = new Settings();
-            settings.EndpointName = instanceName;
-            settings.HttpPort = instancePort.ToString();
-            settings.TransportType = transportToUse.TypeName;
-            settings.ConnectionString = transportToUse.ConnectionString;
-            settings.HttpHostName = "localhost";
-            //MaximumConcurrencyLevel = 2,
-            //HttpDefaultConnectionLimit = int.MaxValue,
-            //RunInMemory = true,
-            settings.OnMessage = (id, headers, body, @continue) =>
-                {
-                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
-                    headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                    log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
-
-                    //Do not filter out CC, SA and HB messages as they can't be stamped
-                    if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
-                        && messageTypes.StartsWith("ServiceControl."))
+            var settings = new Settings
+            {
+                EndpointName = instanceName,
+                HttpPort = instancePort.ToString(),
+                TransportType = transportToUse.TypeName,
+                ConnectionString = transportToUse.ConnectionString,
+                HttpHostName = "localhost",
+                //MaximumConcurrencyLevel = 2,
+                //HttpDefaultConnectionLimit = int.MaxValue,
+                //RunInMemory = true,
+                OnMessage = (id, headers, body, @continue) =>
                     {
+                        var log = LogManager.GetLogger<ServiceControlComponentRunner>();
+                        headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+                        log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
+
+                        //Do not filter out CC, SA and HB messages as they can't be stamped
+                        if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
+                                && messageTypes.StartsWith("ServiceControl."))
+                        {
+                            return @continue();
+                        }
+
+                        //Do not filter out subscribe messages as they can't be stamped
+                        if (headers.TryGetValue(Headers.MessageIntent, out var intent)
+                                && intent == MessageIntentEnum.Subscribe.ToString())
+                        {
+                            return @continue();
+                        }
+
+                        var currentSession = context.TestRunId.ToString();
+                        if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
+                        {
+                            log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
+                            return Task.FromResult(0);
+                        }
+
                         return @continue();
                     }
-
-                    //Do not filter out subscribe messages as they can't be stamped
-                    if (headers.TryGetValue(Headers.MessageIntent, out var intent)
-                        && intent == MessageIntentEnum.Subscribe.ToString())
-                    {
-                        return @continue();
-                    }
-
-                    var currentSession = context.TestRunId.ToString();
-                    if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
-                    {
-                        log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                        return Task.FromResult(0);
-                    }
-
-                    return @continue();
-                };
+            };
 
             setSettings(settings);
             Settings = settings;
@@ -141,7 +143,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
                 //TODO: move in the logging settings
                 /*var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                
+
                 bootstrapper = new Bootstrapper(configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); }); */
 
                 bootstrapper = new Bootstrapper(ctx =>
@@ -156,7 +158,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
                 }, settings, configuration);
-                
+
                 //bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 

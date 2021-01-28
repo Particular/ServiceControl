@@ -15,6 +15,6 @@ namespace ServiceControl.AcceptanceTesting
             return handler;
         }
 
-        private readonly HttpMessageHandler handler;
+        readonly HttpMessageHandler handler;
     }
 }

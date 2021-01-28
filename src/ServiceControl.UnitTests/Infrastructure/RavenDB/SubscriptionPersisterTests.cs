@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.Extensibility;
-    using NServiceBus.Settings;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
@@ -17,8 +16,7 @@
         [Test]
         public async Task ShouldReturnSubscriptionsForOlderVersionsOfSameMessageType()
         {
-            var settings = new SettingsHolder();
-            var subscriptionPersister = new SubscriptionPersister(documentStore, settings, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
+            var subscriptionPersister = new SubscriptionPersister(documentStore, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
 
             var v1MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(1, 0, 0));
             var v2MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(2, 0, 0));
@@ -26,7 +24,7 @@
 
             await subscriptionPersister.Subscribe(v1Subscriber, v1MessageType, new ContextBag());
 
-            var foundSubscriptions = await subscriptionPersister.GetSubscriberAddressesForMessage(new[] {v2MessageType}, new ContextBag());
+            var foundSubscriptions = await subscriptionPersister.GetSubscriberAddressesForMessage(new[] { v2MessageType }, new ContextBag());
 
             var foundSubscriber = foundSubscriptions.Single();
             Assert.AreEqual(v1Subscriber.Endpoint, foundSubscriber.Endpoint);
@@ -36,8 +34,7 @@
         [Test]
         public async Task ShouldReturnSubscriptionsForNewerVersionsOfSameMessageType()
         {
-            var settings = new SettingsHolder();
-            var subscriptionPersister = new SubscriptionPersister(documentStore, settings, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
+            var subscriptionPersister = new SubscriptionPersister(documentStore, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
 
             var v1MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(1, 0, 0));
             var v2MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(2, 0, 0));
@@ -45,7 +42,7 @@
 
             await subscriptionPersister.Subscribe(v2Subscriber, v2MessageType, new ContextBag());
 
-            var foundSubscriptions = await subscriptionPersister.GetSubscriberAddressesForMessage(new[] {v1MessageType}, new ContextBag());
+            var foundSubscriptions = await subscriptionPersister.GetSubscriberAddressesForMessage(new[] { v1MessageType }, new ContextBag());
 
             var foundSubscriber = foundSubscriptions.Single();
             Assert.AreEqual(v2Subscriber.Endpoint, foundSubscriber.Endpoint);

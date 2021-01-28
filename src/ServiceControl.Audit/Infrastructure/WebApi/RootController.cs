@@ -80,7 +80,7 @@
             return Ok(content);
         }
 
-        private readonly LoggingSettings loggingSettings;
+        readonly LoggingSettings loggingSettings;
         readonly Settings settings;
 
         public class RootUrls

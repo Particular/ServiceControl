@@ -81,7 +81,7 @@ namespace ServiceControl.Transports.ASB
             return Task.CompletedTask;
         }
 
-        private void UpdateQueueLengthStore(ILookup<string, QueueDescription> queueData)
+        void UpdateQueueLengthStore(ILookup<string, QueueDescription> queueData)
         {
             var timestamp = DateTime.UtcNow.Ticks;
             foreach (var mapping in endpointQueueMappings)

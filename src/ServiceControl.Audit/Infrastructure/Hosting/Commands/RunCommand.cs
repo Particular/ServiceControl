@@ -10,7 +10,7 @@
         {
             if (args.RunAsWindowsService)
             {
-                using (var service = new Host {ServiceName = args.ServiceName})
+                using (var service = new Host { ServiceName = args.ServiceName })
                 {
                     //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
                     //      until service reports it has stopped.
@@ -26,7 +26,7 @@
 
         static async Task RunAsConsoleApp(HostArguments args)
         {
-            using (var service = new Host {ServiceName = args.ServiceName})
+            using (var service = new Host { ServiceName = args.ServiceName })
             {
                 var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 service.OnStopping = () =>

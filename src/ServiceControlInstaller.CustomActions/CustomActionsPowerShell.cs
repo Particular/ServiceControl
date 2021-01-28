@@ -4,7 +4,7 @@ namespace ServiceControlInstaller.CustomActions
     using System.Linq;
     using System.Runtime.InteropServices;
     using Microsoft.Deployment.WindowsInstaller;
-    
+
     public class CustomActionsPowerShell
     {
         const string PSModulePath = "PSMODULEPATH";
@@ -21,7 +21,7 @@ namespace ServiceControlInstaller.CustomActions
             {
                 appDir = appDir.Remove(appDir.Length - 1);
             }
-            
+
             var environmentVariable = Environment.GetEnvironmentVariable(PSModulePath, EnvironmentVariableTarget.Machine);
             if (environmentVariable != null)
             {

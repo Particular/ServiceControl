@@ -4,7 +4,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct LUID_AND_ATTRIBUTES
+    struct LUID_AND_ATTRIBUTES
     {
         public LUID Luid;
         public uint Attributes;

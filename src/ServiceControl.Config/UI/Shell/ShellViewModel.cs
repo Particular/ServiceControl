@@ -34,7 +34,7 @@
             LicenseStatusManager = licenseStatusManager;
             DisplayName = "ServiceControl Config";
             IsModal = false;
-            LoadAppVersion();            
+            LoadAppVersion();
             CopyrightInfo = $"{DateTime.Now.Year} © Particular Software";
             addInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
             addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
@@ -81,7 +81,7 @@
         public ICommand RefreshInstancesCmd { get; }
 
         public LicenseStatusManager LicenseStatusManager { get; private set; }
-        
+
         public bool UpdateAvailable { get; set; }
 
         public string AvailableUpgradeReleaseLink { get; set; }
@@ -96,7 +96,7 @@
             RefreshInstances();
         }
 
-        protected async override void OnActivate()
+        protected override async void OnActivate()
         {
             base.OnActivate();
 
@@ -143,14 +143,14 @@
             }
         }
 
-        private async Task CheckForUpdates()
+        async Task CheckForUpdates()
         {
             // Get the lates upgradble version based on the current version
             // get the json version file from https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt
             var shortAppVersion = AppVersion.Split('-').First();
-            
+
             var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(shortAppVersion).ConfigureAwait(false);
-            
+
             if (availableUpgradeRelease.Version.ToString() == shortAppVersion)
             {
                 UpdateAvailable = false;

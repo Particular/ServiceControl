@@ -1,6 +1,4 @@
-﻿using ServiceControl.Monitoring.Infrastructure.Settings;
-
-namespace ServiceControl.Monitoring
+﻿namespace ServiceControl.Monitoring
 {
     using System;
     using System.Diagnostics;
@@ -12,6 +10,7 @@ namespace ServiceControl.Monitoring
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
+    using ServiceControl.Monitoring.Infrastructure.Settings;
     using LogManager = NServiceBus.Logging.LogManager;
 
     static class MonitorLogs
@@ -58,7 +57,7 @@ Selected Transport:					{settings.TransportType}
             nlogConfig.AddTarget("null", nullTarget);
 
             //Suppress NSB license logging since this will have it's own
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.LicenseManager", LogLevel.Info, nullTarget) {Final = true});
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.LicenseManager", LogLevel.Info, nullTarget) { Final = true });
 
             // Always want to see license logging regardless of default logging level
             nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Monitoring.Licensing.*", LogLevel.Info, fileTarget));

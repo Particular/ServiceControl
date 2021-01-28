@@ -133,8 +133,8 @@
 
             Assert.AreEqual(3, nonEmptyIntervals.Length);
             Assert.AreEqual(4, timings[0].TotalMeasurements);
-            CollectionAssert.AreEqual(new double[] {4, 1, 1}, nonEmptyIntervals.Select(i => i.TotalValue));
-            CollectionAssert.AreEqual(new double[] {2, 1, 1}, nonEmptyIntervals.Select(i => i.TotalMeasurements));
+            CollectionAssert.AreEqual(new double[] { 4, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalValue));
+            CollectionAssert.AreEqual(new double[] { 2, 1, 1 }, nonEmptyIntervals.Select(i => i.TotalMeasurements));
         }
 
         [Test]

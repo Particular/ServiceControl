@@ -17,7 +17,7 @@ namespace ServiceControl.Monitoring
 
         public bool Equals(EndpointInstanceId other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }
@@ -39,7 +39,7 @@ namespace ServiceControl.Monitoring
         {
             unchecked
             {
-                var hashCode = (LogicalName != null ? LogicalName.GetHashCode() : 0);
+                var hashCode = LogicalName != null ? LogicalName.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ (HostName != null ? HostName.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ HostGuid.GetHashCode();
                 return hashCode;

@@ -16,7 +16,7 @@
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
-            connectionStringBuilder = new DbConnectionStringBuilder {ConnectionString = ConnectionString};
+            connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
 
             var transport = configuration.UseTransport<RabbitMQTransport>();
             transport.UseConventionalRoutingTopology();

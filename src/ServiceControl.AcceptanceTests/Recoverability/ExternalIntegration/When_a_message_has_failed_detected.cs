@@ -31,7 +31,7 @@
                     var options = new SendOptions();
                     options.SetHeader("AcceptanceTestRunId", c.TestRunId.ToString());
                     options.RouteToThisEndpoint();
-                    return bus.Send(new MyMessage {Body = "Faulty message"}, options);
+                    return bus.Send(new MyMessage { Body = "Faulty message" }, options);
                 }).DoNotFailOnErrorMessages())
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {

@@ -106,7 +106,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private readonly IBodyStorage bodyStorage;
+        readonly IBodyStorage bodyStorage;
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
     }
 }

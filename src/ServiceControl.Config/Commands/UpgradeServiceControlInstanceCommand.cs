@@ -60,7 +60,7 @@
             instance.Service.Refresh();
 
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
-            var upgradeOptions = new ServiceControlUpgradeOptions {UpgradeInfo = upgradeInfo};
+            var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
 
 
             var upgradeAction = instance.GetRequiredUpgradeAction(serviceControlInstaller.ZipInfo.Version);

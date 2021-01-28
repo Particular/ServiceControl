@@ -25,7 +25,7 @@
 
         public ICommand OpenUrl => new OpenURLCommand();
 
-        public ICommand BrowseForFile => new SelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] {new CommonFileDialogFilter("License File", "xml")});
+        public ICommand BrowseForFile => new SelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] { new CommonFileDialogFilter("License File", "xml") });
 
         public bool CanExtendTrial { get; set; }
 

@@ -10,10 +10,10 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
         public ExpiryEventLogItemsIndex()
         {
             Map = messages => from message in messages
-                select new
-                {
-                    LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
-                };
+                              select new
+                              {
+                                  LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                              };
 
             DisableInMemoryIndexing = true;
         }
