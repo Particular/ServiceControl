@@ -3,7 +3,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct HttpServiceConfigSslQuery
+    struct HttpServiceConfigSslQuery
     {
         public HttpServiceConfigQueryType QueryDesc;
 

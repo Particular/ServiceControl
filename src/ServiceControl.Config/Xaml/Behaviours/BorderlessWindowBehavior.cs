@@ -31,7 +31,7 @@
 
         void AddHwndHook()
         {
-            hwndSource = HwndSource.FromVisual(AssociatedObject) as HwndSource;
+            hwndSource = PresentationSource.FromVisual(AssociatedObject) as HwndSource;
             hwndSource.AddHook(HwndHook);
             hwnd = new WindowInteropHelper(AssociatedObject).Handle;
         }
@@ -58,30 +58,30 @@
                     break;
 
                 case NativeConstants.WM_NCPAINT:
-                {
-                    if (Environment.OSVersion.Version.Major >= 6)
                     {
-                        var m = new MARGINS
+                        if (Environment.OSVersion.Version.Major >= 6)
                         {
-                            bottomHeight = 1,
-                            leftWidth = 1,
-                            rightWidth = 1,
-                            topHeight = 1
-                        };
-                        UnsafeNativeMethods.DwmExtendFrameIntoClientArea(hwnd, ref m);
-                    }
+                            var m = new MARGINS
+                            {
+                                bottomHeight = 1,
+                                leftWidth = 1,
+                                rightWidth = 1,
+                                topHeight = 1
+                            };
+                            UnsafeNativeMethods.DwmExtendFrameIntoClientArea(hwnd, ref m);
+                        }
 
-                    handled = true;
-                }
+                        handled = true;
+                    }
                     break;
 
                 case NativeConstants.WM_NCACTIVATE:
-                {
-                    /* As per http://msdn.microsoft.com/en-us/library/ms632633(VS.85).aspx , "-1" lParam
-                     * "does not repaint the nonclient area to reflect the state change." */
-                    returnval = UnsafeNativeMethods.DefWindowProc(hWnd, message, wParam, new IntPtr(-1));
-                    handled = true;
-                }
+                    {
+                        /* As per http://msdn.microsoft.com/en-us/library/ms632633(VS.85).aspx , "-1" lParam
+                         * "does not repaint the nonclient area to reflect the state change." */
+                        returnval = UnsafeNativeMethods.DefWindowProc(hWnd, message, wParam, new IntPtr(-1));
+                        handled = true;
+                    }
                     break;
 
                 case NativeConstants.WM_GETMINMAXINFO:
@@ -171,6 +171,9 @@
                         handled = true;
                     }
 
+                    break;
+
+                default:
                     break;
             }
 

@@ -21,7 +21,7 @@
 
             var context = await Define<MyContext>()
                 .WithEndpoint<SagaAuditProcessorFake>()
-                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
                 .Done(async c =>
                 {
                     if (c.SagaId == Guid.Empty)

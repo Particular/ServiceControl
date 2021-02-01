@@ -39,7 +39,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected abstract Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, TIn input, string instanceId);
 
-        private async Task<HttpResponseMessage> RemoteCall(HttpRequestMessage currentRequest, string instanceId)
+        async Task<HttpResponseMessage> RemoteCall(HttpRequestMessage currentRequest, string instanceId)
         {
             var remoteUri = InstanceIdGenerator.ToApiUri(instanceId);
 

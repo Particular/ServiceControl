@@ -46,7 +46,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
             var metadata = new Dictionary<string, object>();
-            var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary"}};
+            var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary" } };
 
             await enricher.StoreAuditMessageBody(body, headers, metadata);
 
@@ -110,7 +110,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
-            var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary"}};
+            var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary" } };
 
             await enricher.StoreAuditMessageBody(body, headers, metadata);
 

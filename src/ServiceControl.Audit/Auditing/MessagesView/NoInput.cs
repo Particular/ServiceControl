@@ -2,7 +2,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 {
     class NoInput
     {
-        private NoInput()
+        NoInput()
         {
         }
 

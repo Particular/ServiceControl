@@ -146,7 +146,7 @@
             Assert.AreEqual(compareResult, comparer.Compare(lower, higher), "Should sort messages the other way around");
         }
 
-        private IComparer<MessagesView> GetComparerFromRequest(string sort, string direction)
+        IComparer<MessagesView> GetComparerFromRequest(string sort, string direction)
         {
             var queryStringParts = new List<string>();
 
@@ -166,18 +166,18 @@
             return MessageViewComparer.FromRequest(request);
         }
 
-        private const int ASCENDING = -1;
-        private const int DESCENDING = 1;
+        const int ASCENDING = -1;
+        const int DESCENDING = 1;
 
-        private static MessageStatus LowMessageStatus = (MessageStatus)1;
-        private static MessageStatus HighMessageStatus = (MessageStatus)2;
-        private static string LowMessageId = "a";
-        private static string HighMessageId = "b";
-        private static string LowMessageType = "A";
-        private static string HighMessageType = "B";
-        private static DateTime LowMessageSent = DateTime.UtcNow;
-        private static DateTime HighMessageSent = LowMessageSent.AddMilliseconds(1);
-        private static TimeSpan LowProcessingTime = TimeSpan.FromMilliseconds(5);
-        private static TimeSpan HighProcessingTime = TimeSpan.FromMilliseconds(6);
+        static MessageStatus LowMessageStatus = (MessageStatus)1;
+        static MessageStatus HighMessageStatus = (MessageStatus)2;
+        static string LowMessageId = "a";
+        static string HighMessageId = "b";
+        static string LowMessageType = "A";
+        static string HighMessageType = "B";
+        static DateTime LowMessageSent = DateTime.UtcNow;
+        static DateTime HighMessageSent = LowMessageSent.AddMilliseconds(1);
+        static TimeSpan LowProcessingTime = TimeSpan.FromMilliseconds(5);
+        static TimeSpan HighProcessingTime = TimeSpan.FromMilliseconds(6);
     }
 }

@@ -32,7 +32,7 @@
             }
         }
 
-        private DTO CreateMessages()
+        DTO CreateMessages()
         {
             return new DTO
             {
@@ -40,7 +40,7 @@
             };
         }
 
-        private class DTO
+        class DTO
         {
             public string MessageId { get; set; }
         }
@@ -63,7 +63,7 @@
             Thread.CurrentThread.CurrentUICulture = oldUICulture;
         }
 
-        private CultureInfo oldCulture;
-        private CultureInfo oldUICulture;
+        CultureInfo oldCulture;
+        CultureInfo oldUICulture;
     }
 }

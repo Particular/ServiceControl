@@ -28,6 +28,8 @@
                 case CriticalTimeMessageType:
                     criticalTimeStore.Store(message.Entries, instanceId, messageType);
                     break;
+                default:
+                    break;
             }
 
             return TaskEx.Completed;

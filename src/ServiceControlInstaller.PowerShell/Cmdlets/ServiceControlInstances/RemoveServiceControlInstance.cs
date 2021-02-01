@@ -1,11 +1,9 @@
-using System;
-
 namespace ServiceControlInstaller.PowerShell
 {
-    using System.IO;
+    using System;
     using System.Management.Automation;
-    using Engine.Instances;
-    using Engine.Unattended;
+    using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.Unattended;
 
     [Cmdlet(VerbsCommon.Remove, "ServiceControlInstance")]
     public class RemoveServiceControlInstance : PSCmdlet

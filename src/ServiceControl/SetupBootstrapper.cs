@@ -75,7 +75,7 @@ namespace Particular.ServiceControl
                     log.Error(errorMessageForLicenseText);
                     return false;
                 }
-                
+
                 if (!LicenseManager.TryImportLicenseFromText(settings.LicenseFileText, out var importErrorMessage))
                 {
                     log.Error(importErrorMessage);
@@ -106,9 +106,9 @@ namespace Particular.ServiceControl
             return transportSettings;
         }
 
-        private readonly Settings settings;
+        readonly Settings settings;
 
-        private static ILog log = LogManager.GetLogger<SetupBootstrapper>();
+        static ILog log = LogManager.GetLogger<SetupBootstrapper>();
         string[] excludeAssemblies;
     }
 }

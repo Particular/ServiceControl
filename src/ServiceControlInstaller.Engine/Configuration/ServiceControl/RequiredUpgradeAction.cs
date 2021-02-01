@@ -45,9 +45,9 @@
             return RequiredUpgradeAction.Upgrade;
         }
 
-        
 
-        private static Version VersionWhereAuditInstanceWasIntroduced = new Version(4, 0, 0);
+
+        static Version VersionWhereAuditInstanceWasIntroduced = new Version(4, 0, 0);
     }
 
 }

@@ -112,7 +112,7 @@
             var failedMessage = await CreateFailedMessage();
 
             var newBodyContent = Encoding.UTF8.GetBytes("new body content");
-            var newHeaders = new Dictionary<string, string> {{"someKey", "someValue"}};
+            var newHeaders = new Dictionary<string, string> { { "someKey", "someValue" } };
             var message = CreateEditMessage(failedMessage.UniqueMessageId, newBodyContent, newHeaders);
 
             var handlerContent = new TestableMessageHandlerContext();

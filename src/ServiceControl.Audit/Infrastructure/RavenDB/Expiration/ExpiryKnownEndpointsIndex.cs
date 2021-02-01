@@ -9,10 +9,10 @@
         public ExpiryKnownEndpointsIndex()
         {
             Map = knownEndpoints => from knownEndpoint in knownEndpoints
-                select new
-                {
-                    LastSeen = knownEndpoint.LastSeen.Ticks
-                };
+                                    select new
+                                    {
+                                        LastSeen = knownEndpoint.LastSeen.Ticks
+                                    };
 
             // we expect a lowish number of endpoints so that can run in memory
             DisableInMemoryIndexing = false;

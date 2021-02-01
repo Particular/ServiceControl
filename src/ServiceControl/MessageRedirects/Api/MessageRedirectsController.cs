@@ -206,9 +206,11 @@
 
         public class MessageRedirectRequest
         {
+#pragma warning disable IDE1006 // Naming Styles
             public string fromphysicaladdress { get; set; }
             public string tophysicaladdress { get; set; }
             public bool retryexisting { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
         }
     }
 }

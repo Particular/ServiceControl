@@ -27,7 +27,7 @@
                         else
                         {
                             if (thisChange == "Completed" //Completed overrides everything
-                                || thisChange == "New" && previousChange == "Updated") //New overrides Updated
+                                || (thisChange == "New" && previousChange == "Updated")) //New overrides Updated
                             {
                                 sagasChanges[id] = thisChange;
                             }

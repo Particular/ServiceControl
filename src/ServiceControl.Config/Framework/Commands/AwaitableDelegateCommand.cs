@@ -14,12 +14,7 @@
     {
         public AwaitableDelegateCommand(Func<T, Task> executeMethod, Func<T, bool> canExecuteMethod = null) : base(canExecuteMethod)
         {
-            if (executeMethod == null)
-            {
-                throw new ArgumentNullException(nameof(executeMethod), @"Execute Method cannot be null");
-            }
-
-            this.executeMethod = executeMethod;
+            this.executeMethod = executeMethod ?? throw new ArgumentNullException(nameof(executeMethod), @"Execute Method cannot be null");
         }
 
         bool System.Windows.Input.ICommand.CanExecute(object parameter)

@@ -302,7 +302,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             var configuration = ConfigurationManager.OpenExeConfiguration(Service.ExePath);
             var settings = configuration.AppSettings.Settings;
-            
+
             ApplySettingsChanges(settings);
 
             configuration.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", ConnectionString);
@@ -431,7 +431,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             ValidateConnectionString();
         }
-        
+
         public void UpgradeTransportSeam()
         {
             TransportPackage = ServiceControlCoreTransports.UpgradedTransportSeam(TransportPackage);

@@ -21,7 +21,7 @@
             return DeterministicGuidBuilder($"{data1}{data2}{data3}");
         }
 
-        private static Guid DeterministicGuidBuilder(string input)
+        static Guid DeterministicGuidBuilder(string input)
         {
             Guid g;
 

@@ -117,9 +117,9 @@
         }
 
         PerformanceCounter dlqPerformanceCounter;
-        private string categoryName;
-        private string counterName;
-        private string counterInstanceName;
+        string categoryName;
+        string counterName;
+        string counterInstanceName;
         bool runCheck;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));

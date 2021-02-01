@@ -67,7 +67,7 @@
             Assert.NotNull(response.Headers.GetValues("ETag").SingleOrDefault(), "Etag not set");
         }
 
-        private string addressOfAuditInstance = "TODO";
+        string addressOfAuditInstance = "TODO";
 
         class MyContext : ScenarioContext
         {

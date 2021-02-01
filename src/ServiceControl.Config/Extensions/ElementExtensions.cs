@@ -19,9 +19,8 @@
             for (var i = 0; i < childrenCount; i++)
             {
                 var child = VisualTreeHelper.GetChild(parent, i);
-                var childType = child as T;
 
-                if (childType == null)
+                if (!(child is T typedChild))
                 {
                     foundChild = TryFindChild<T>(child, childName);
                     if (foundChild != null)
@@ -33,13 +32,13 @@
                 {
                     if (child is FrameworkElement frameworkElement && frameworkElement.Name == childName)
                     {
-                        foundChild = (T)child;
+                        foundChild = typedChild;
                         break;
                     }
                 }
                 else
                 {
-                    foundChild = (T)child;
+                    foundChild = typedChild;
                     break;
                 }
             }
@@ -137,7 +136,7 @@
             {
                 return (T)Application.Current.Resources[key];
             }
-            return default(T);
+            return default;
         }
     }
 }

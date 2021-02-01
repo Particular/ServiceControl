@@ -111,7 +111,7 @@
                         { "failureGroups", serializedGroups },
                         { "attempt", serializedAttempt}
                     }
-                }, 
+                },
                 new ScriptedPatchRequest
                 {
                     Script = $@"this.{statusField} = status;

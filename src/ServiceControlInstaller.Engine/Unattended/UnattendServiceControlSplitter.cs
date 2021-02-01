@@ -55,7 +55,7 @@
             log.Info($"Upgrading existing instance {instance.Name}...");
             var serviceControlUpgradeOptions = new ServiceControlUpgradeOptions
             {
-                UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version), 
+                UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version),
                 RemoteUrl = newAuditInstance.Url
             };
 
@@ -69,7 +69,7 @@
             {
                 return Result.Failed("Unable to create new audit instance");
             }
-            
+
             return Result.Success;
         }
 

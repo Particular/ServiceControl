@@ -33,7 +33,7 @@ namespace ServiceControlInstaller.PowerShell
             }
 
             var success = installer.AddRemoteInstance(instance, RemoteInstanceAddress, logger);
-            
+
             if (!success)
             {
                 ThrowTerminatingError(new ErrorRecord(new Exception($"Adding of ServiceControl remote failed"), "AddRemoteFailure", ErrorCategory.InvalidResult, null));

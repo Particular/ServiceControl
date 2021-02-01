@@ -157,7 +157,7 @@ namespace ServiceControlInstaller.PowerShell
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
                 SkipQueueCreation = SkipQueueCreation
             };
-            
+
             var modulePath = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var zipfolder = ZipPath.Get(this);
 
@@ -183,7 +183,7 @@ namespace ServiceControlInstaller.PowerShell
                 else
                 {
                     var msg = "Installer did not run successfully.";
-                    
+
                     if (details.ReportCard?.HasErrors == true)
                     {
                         var errors = details.ReportCard.Errors.Select(e => e);
@@ -199,7 +199,7 @@ namespace ServiceControlInstaller.PowerShell
             }
         }
 
-        private bool PromptToProceed(PathInfo pathInfo)
+        bool PromptToProceed(PathInfo pathInfo)
         {
             if (!pathInfo.CheckIfEmpty)
             {

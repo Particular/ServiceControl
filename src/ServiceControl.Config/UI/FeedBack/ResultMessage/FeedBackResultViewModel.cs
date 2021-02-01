@@ -6,7 +6,9 @@
 
     class FeedBackResultViewModel : RxScreen
     {
+#pragma warning disable IDE0060 // Remove unused parameter
         public FeedBackResultViewModel(bool showSuccess = false)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             OK = Command.Create(() => TryClose(false));
         }

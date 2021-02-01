@@ -35,6 +35,6 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private IFailureClassifier[] classifiers;
+        IFailureClassifier[] classifiers;
     }
 }

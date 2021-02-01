@@ -32,7 +32,7 @@
                 .WithEndpoint<WithCustomCheck>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(CustomCheckFailed));
                     entry = result;
                     return result;
                 })
@@ -90,7 +90,7 @@
                         };
                     }
 
-                    private void ConnectionOnReceived(string s)
+                    void ConnectionOnReceived(string s)
                     {
                         if (s.IndexOf("\"CustomCheckFailed\"") > 0)
                         {
@@ -113,7 +113,7 @@
                         return Task.FromResult(0);
                     }
 
-                    private readonly MyContext context;
+                    readonly MyContext context;
                     Connection connection;
                 }
             }
@@ -145,7 +145,7 @@
                     return Task.FromResult(CheckResult.Pass);
                 }
 
-                private readonly MyContext context;
+                readonly MyContext context;
                 bool executed;
             }
         }

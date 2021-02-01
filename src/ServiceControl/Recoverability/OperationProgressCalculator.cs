@@ -14,6 +14,7 @@
                     return (numberOfMessagesForwarded + numberOfMessagesSkipped) / total;
                 case RetryState.Completed:
                     return 1.0;
+                case RetryState.Waiting:
                 default:
                     return 0.0;
             }
@@ -30,6 +31,7 @@
                 case ArchiveState.ArchiveFinalizing:
                 case ArchiveState.ArchiveCompleted:
                     return 1.0;
+                case ArchiveState.ArchiveStarted:
                 default:
                     return 0.0;
             }

@@ -64,10 +64,7 @@
 
         public string Url => $"http://{HostName}:{Port}/";
 
-        public string BrowsableUrl
-        {
-            get { throw new NotImplementedException("Not available until the instance is installed"); }
-        }
+        public string BrowsableUrl => throw new NotImplementedException("Not available until the instance is installed");
 
         public void CopyFiles(string zipFilePath)
         {

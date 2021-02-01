@@ -47,7 +47,7 @@
         [HttpDelete]
         public async Task<StatusCodeResult> Delete(Guid id)
         {
-            await messageSession.SendLocal(new DeleteCustomCheck {Id = id}).ConfigureAwait(false);
+            await messageSession.SendLocal(new DeleteCustomCheck { Id = id }).ConfigureAwait(false);
 
             return StatusCode(HttpStatusCode.Accepted);
         }

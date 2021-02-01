@@ -163,7 +163,7 @@
             var oldSettings = InstanceFinder.FindMonitoringInstance(Name);
             var fileSystemChanged = !string.Equals(oldSettings.LogPath, LogPath, StringComparison.OrdinalIgnoreCase);
 
-            var queueNamesChanged = !(string.Equals(oldSettings.ErrorQueue, ErrorQueue, StringComparison.OrdinalIgnoreCase));
+            var queueNamesChanged = !string.Equals(oldSettings.ErrorQueue, ErrorQueue, StringComparison.OrdinalIgnoreCase);
             RecreateUrlAcl(oldSettings);
 
             if (fileSystemChanged)
@@ -272,7 +272,7 @@
             File.Copy(sourcePath, $"{Service.ExePath}.config", true);
 
             // Populate the config with common settings even if they are defaults
-            // Will not clobber other settings in the config 
+            // Will not clobber other settings in the config
             AppConfig = new AppConfig(this);
             AppConfig.Save();
         }

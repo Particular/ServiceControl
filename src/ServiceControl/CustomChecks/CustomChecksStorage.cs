@@ -27,8 +27,8 @@
                     .ConfigureAwait(false);
 
                 if (customCheck == null ||
-                    customCheck.Status == Status.Fail && !hasFailed ||
-                    customCheck.Status == Status.Pass && hasFailed)
+                    (customCheck.Status == Status.Fail && !hasFailed) ||
+                    (customCheck.Status == Status.Pass && hasFailed))
                 {
                     if (customCheck == null)
                     {

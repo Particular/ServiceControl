@@ -131,7 +131,7 @@
 
             if (response.Headers.TryGetValues("Link", out var links))
             {
-                return links.Single().Split(new[] {", "}, StringSplitOptions.RemoveEmptyEntries);
+                return links.Single().Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
             }
 
             return new string[0];

@@ -88,7 +88,7 @@
             EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
         }
 #else
-        private Task WriteEvent(string message)
+        Task WriteEvent(string message)
         {
             EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
 

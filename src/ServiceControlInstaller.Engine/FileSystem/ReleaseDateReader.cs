@@ -1,13 +1,12 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-
-namespace ServiceControlInstaller.Engine.FileSystem
+﻿namespace ServiceControlInstaller.Engine.FileSystem
 {
     using System;
+    using System.Collections.Generic;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
 
     public class ReleaseDateReader
     {

@@ -161,8 +161,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
-                bootstrapper.HttpClientFactory = HttpClientFactory;
+                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); })
+                {
+                    HttpClientFactory = HttpClientFactory
+                };
             }
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))

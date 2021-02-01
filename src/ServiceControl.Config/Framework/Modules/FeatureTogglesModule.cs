@@ -33,13 +33,13 @@
             var featureToggles = e.Context.Resolve<FeatureToggles>();
 
             var featureProperties = from prop in instanceType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                let attribute = prop.GetCustomAttributes<FeatureToggleAttribute>().SingleOrDefault()
-                where attribute != null
-                select new
-                {
-                    attribute.Feature,
-                    Property = prop
-                };
+                                    let attribute = prop.GetCustomAttributes<FeatureToggleAttribute>().SingleOrDefault()
+                                    where attribute != null
+                                    select new
+                                    {
+                                        attribute.Feature,
+                                        Property = prop
+                                    };
 
             foreach (var featureProp in featureProperties)
             {

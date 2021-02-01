@@ -42,6 +42,6 @@
             timeSpan = input;
         }
 
-        private TimeSpan? timeSpan;
+        TimeSpan? timeSpan;
     }
 }

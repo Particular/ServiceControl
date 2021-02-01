@@ -69,9 +69,11 @@
 
         public class PendingRetryRequest
         {
+#pragma warning disable IDE1006 // Naming Styles
             public string queueaddress { get; set; }
             public string from { get; set; }
             public string to { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
         }
     }
 }

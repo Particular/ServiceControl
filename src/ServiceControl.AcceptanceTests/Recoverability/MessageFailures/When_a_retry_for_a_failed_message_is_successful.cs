@@ -72,7 +72,7 @@
                         return true;
                     }
 
-                    await IssueRetry(c, () => this.Post("/api/errors/retry", new List<string> {c.UniqueMessageId}));
+                    await IssueRetry(c, () => this.Post("/api/errors/retry", new List<string> { c.UniqueMessageId }));
 
                     return false;
                 })

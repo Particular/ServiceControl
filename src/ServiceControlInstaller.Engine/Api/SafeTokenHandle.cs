@@ -6,9 +6,9 @@ namespace ServiceControlInstaller.Engine.Api
     using System.Security;
     using Microsoft.Win32.SafeHandles;
 
-    internal class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
+    class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
-        private SafeTokenHandle() : base(true)
+        SafeTokenHandle() : base(true)
         {
         }
 
@@ -16,7 +16,7 @@ namespace ServiceControlInstaller.Engine.Api
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         [SuppressUnmanagedCodeSecurity]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool CloseHandle(IntPtr handle);
+        static extern bool CloseHandle(IntPtr handle);
 
         protected override bool ReleaseHandle()
         {

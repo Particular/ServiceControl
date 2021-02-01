@@ -44,7 +44,7 @@
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }
@@ -66,7 +66,7 @@
         {
             unchecked
             {
-                var hashCode = (EndpointName != null ? EndpointName.GetHashCode() : 0);
+                var hashCode = EndpointName != null ? EndpointName.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ (InstanceId != null ? InstanceId.GetHashCode() : 0);
                 return hashCode;
             }

@@ -8,10 +8,10 @@ namespace ServiceControl.Recoverability
         public FailedMessageRetries_ByBatch()
         {
             Map = docs => from doc in docs
-                select new
-                {
-                    doc.RetryBatchId
-                };
+                          select new
+                          {
+                              doc.RetryBatchId
+                          };
 
             DisableInMemoryIndexing = true;
         }

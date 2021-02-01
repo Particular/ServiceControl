@@ -15,7 +15,7 @@
             return new DefaultServerBase<Bootstrapper>().GetConfiguration(runDescriptor, endpointConfiguration, b =>
             {
                 b.DisableFeature<Audit>();
-                
+
                 configurationBuilderCustomization(b);
             });
         }

@@ -171,7 +171,7 @@
             }
         }
 
-        private bool PromptToProceed(PathInfo pathInfo)
+        bool PromptToProceed(PathInfo pathInfo)
         {
             if (!pathInfo.CheckIfEmpty)
             {

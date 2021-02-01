@@ -16,7 +16,7 @@
     [TestFixture]
     public class ReturnToSenderDequeuerTests
     {
-        private MessageContext CreateMessage(string id, Dictionary<string, string> headers)
+        MessageContext CreateMessage(string id, Dictionary<string, string> headers)
         {
             return new MessageContext(
                 id,

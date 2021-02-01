@@ -1,9 +1,8 @@
-﻿using System.Windows;
-
-namespace ServiceControl.Config.UI.Shell
+﻿namespace ServiceControl.Config.UI.Shell
 {
+    using System.Windows;
     using System.Windows.Controls.Primitives;
-    using Extensions;
+    using ServiceControl.Config.Extensions;
 
     /// <summary>
     /// Interaction logic for LicensePopupView.xaml
@@ -15,12 +14,12 @@ namespace ServiceControl.Config.UI.Shell
             InitializeComponent();
         }
 
-        private void OnCloseButtonClicked(object sender, RoutedEventArgs e)
+        void OnCloseButtonClicked(object sender, RoutedEventArgs e)
         {
             TryClosePopup();
         }
 
-        private void TryClosePopup()
+        void TryClosePopup()
         {
             var popup = this.TryFindParent<Popup>();
             if (popup != null)

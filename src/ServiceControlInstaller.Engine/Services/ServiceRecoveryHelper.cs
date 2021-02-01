@@ -6,7 +6,7 @@
     using System.Runtime.InteropServices;
     using Api;
 
-    internal class ServiceRecoveryHelper : IDisposable
+    class ServiceRecoveryHelper : IDisposable
     {
         ServiceRecoveryHelper()
         {
@@ -146,7 +146,9 @@
             }
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         void Dispose(bool disposing)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (!disposed)
             {

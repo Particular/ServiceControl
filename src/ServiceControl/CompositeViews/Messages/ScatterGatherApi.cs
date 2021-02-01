@@ -107,12 +107,12 @@ namespace ServiceControl.CompositeViews.Messages
 
         async Task<QueryResult<TOut>> RemoteCall(HttpRequestMessage currentRequest, Uri remoteUri, string instanceId)
         {
-            var fetched = await FetchAndParse(currentRequest, remoteUri, instanceId).ConfigureAwait(false);
+            var fetched = await FetchAndParse(currentRequest, remoteUri).ConfigureAwait(false);
             fetched.InstanceId = instanceId;
             return fetched;
         }
 
-        async Task<QueryResult<TOut>> FetchAndParse(HttpRequestMessage currentRequest, Uri remoteUri, string instanceId)
+        async Task<QueryResult<TOut>> FetchAndParse(HttpRequestMessage currentRequest, Uri remoteUri)
         {
             var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
             var httpClient = HttpClientFactory();

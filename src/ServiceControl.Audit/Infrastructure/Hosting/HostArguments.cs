@@ -21,7 +21,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             }
 
             var executionMode = ExecutionMode.Run;
-            Commands = new List<Type> {typeof(RunCommand)};
+            Commands = new List<Type> { typeof(RunCommand) };
             ServiceName = Settings.DEFAULT_SERVICE_NAME;
 
             var defaultOptions = new OptionSet
@@ -164,7 +164,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
         }
     }
 
-    internal enum ExecutionMode
+    enum ExecutionMode
     {
         RunInstallers,
         Run,

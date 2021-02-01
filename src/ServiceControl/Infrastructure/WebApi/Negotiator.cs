@@ -170,7 +170,7 @@ namespace ServiceControl.Infrastructure.WebApi
             return response;
         }
 
-        private static HttpResponseMessage WithHeader(this HttpResponseMessage response, string header, string value)
+        static HttpResponseMessage WithHeader(this HttpResponseMessage response, string header, string value)
         {
             response.Headers.Add(header, value);
             return response;

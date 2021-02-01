@@ -31,7 +31,7 @@
 
                 foreach (var id in request.uniquemessageids)
                 {
-                    await messageSession.SendLocal(new MarkPendingRetryAsResolved {FailedMessageId = id})
+                    await messageSession.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id })
                         .ConfigureAwait(false);
                 }
 
@@ -94,10 +94,12 @@
 
         public class ResolveRequest
         {
+#pragma warning disable IDE1006 // Naming Styles
             public string queueaddress { get; set; }
             public List<string> uniquemessageids { get; set; }
             public string from { get; set; }
             public string to { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
         }
     }
 }

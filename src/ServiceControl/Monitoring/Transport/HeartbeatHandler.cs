@@ -20,6 +20,6 @@
             return Task.FromResult(0);
         }
 
-        private EndpointInstanceMonitoring monitor;
+        EndpointInstanceMonitoring monitor;
     }
 }

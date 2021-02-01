@@ -70,7 +70,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             Assert.IsTrue(context.Failed);
         }
 
-        private class FaultyPublisher : IEventPublisher
+        class FaultyPublisher : IEventPublisher
         {
             public MyContext Context { get; set; }
 

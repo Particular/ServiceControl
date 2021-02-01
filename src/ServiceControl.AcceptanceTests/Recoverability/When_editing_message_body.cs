@@ -23,7 +23,7 @@
             var context = await Define<EditMessageContext>()
                 .WithEndpoint<EditedMessageReceiver>(e => e
                     .DoNotFailOnErrorMessages()
-                    .When(c => c.SendLocal(new EditMessage {SomeProperty = "StarTrek rocks"})))
+                    .When(c => c.SendLocal(new EditMessage { SomeProperty = "StarTrek rocks" })))
                 .Done(async ctx =>
                 {
                     if (string.IsNullOrWhiteSpace(ctx.UniqueMessageId))

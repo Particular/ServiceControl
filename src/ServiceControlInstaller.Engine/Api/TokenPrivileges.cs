@@ -3,7 +3,7 @@
     using System;
     using System.Runtime.InteropServices;
 
-    internal struct TokenPrivileges
+    struct TokenPrivileges
     {
 #pragma warning disable 169
         public uint PrivilegeCount;

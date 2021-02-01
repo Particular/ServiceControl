@@ -3,7 +3,7 @@
     using System;
     using System.Runtime.InteropServices;
 
-    internal static class HttpApi
+    static class HttpApi
     {
         [DllImport("httpapi.dll", SetLastError = true)]
         internal static extern ErrorCode HttpQueryServiceConfiguration(

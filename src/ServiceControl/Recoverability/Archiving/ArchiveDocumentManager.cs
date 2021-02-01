@@ -94,7 +94,7 @@
 
         public async Task ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
-            var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData {Key = documentId, Patches = patchRequest});
+            var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData { Key = documentId, Patches = patchRequest });
 
             if (patchCommands != null)
             {
@@ -105,7 +105,7 @@
             }
         }
 
-        public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, ArchiveType archiveType, TimeSpan timeToWait)
+        public async Task<bool> WaitForIndexUpdateOfArchiveOperation(IDocumentStore store, string requestId, TimeSpan timeToWait)
         {
             using (var session = store.OpenAsyncSession())
             {

@@ -11,7 +11,7 @@
     {
         protected override QueryResult<IList<MessagesView>>[] GetData()
         {
-            return new[] {LocalPage(1), RemotePage(1)};
+            return new[] { LocalPage(1), RemotePage(1) };
         }
 
         [Test]

@@ -142,7 +142,7 @@
             return CheckForCompletion();
         }
 
-        private async Task CheckForCompletion()
+        async Task CheckForCompletion()
         {
             if (NumberOfMessagesForwarded + NumberOfMessagesSkipped != TotalNumberOfMessages)
             {
@@ -199,7 +199,7 @@
             return RetryState != RetryState.Completed && RetryState != RetryState.Waiting;
         }
 
-        private readonly RetryType retryType;
+        readonly RetryType retryType;
 
         IDomainEvents domainEvents;
         static readonly ILog Log = LogManager.GetLogger(typeof(InMemoryRetry));

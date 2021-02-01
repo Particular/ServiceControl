@@ -4,7 +4,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using NServiceBus.Logging;
 
-    internal class CorruptedReplyToHeaderStrategy
+    class CorruptedReplyToHeaderStrategy
     {
         public CorruptedReplyToHeaderStrategy(string localMachineName)
         {
@@ -41,8 +41,8 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        private string localMachineName;
+        string localMachineName;
 
-        private static ILog log = LogManager.GetLogger(typeof(RetryProcessor));
+        static ILog log = LogManager.GetLogger(typeof(RetryProcessor));
     }
 }

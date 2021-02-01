@@ -1,8 +1,8 @@
-﻿using System.IO;
-using System.Management.Automation;
-
-namespace ServiceControlInstaller.PowerShell
+﻿namespace ServiceControlInstaller.PowerShell
 {
+    using System.IO;
+    using System.Management.Automation;
+
     class ZipPath
     {
         public static string Get(PSCmdlet instance)

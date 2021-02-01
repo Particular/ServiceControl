@@ -64,7 +64,7 @@
                     .ConfigureAwait(false);
             }
 
-            private EndpointInstanceMonitoring monitoring;
+            EndpointInstanceMonitoring monitoring;
         }
     }
 }

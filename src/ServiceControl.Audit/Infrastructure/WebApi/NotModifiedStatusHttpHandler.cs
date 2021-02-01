@@ -49,7 +49,9 @@
 
         // currently lastModified is not supported without returning a content which would violate the HTTP spec
         // it can be resurrected once ASP.NET Core is in place.
+#pragma warning disable IDE0060 // Remove unused parameter
         static HttpResponseMessage Get304ResponseMessage(HttpResponseHeaders responseHeaders, DateTimeOffset? lastModified, HttpRequestMessage request)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var response = request.CreateResponse(HttpStatusCode.NotModified);
 

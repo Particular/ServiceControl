@@ -58,10 +58,10 @@
         {
             if (additionalAssembly != null)
             {
-                return new[] {Assembly.GetExecutingAssembly(), additionalAssembly};
+                return new[] { Assembly.GetExecutingAssembly(), additionalAssembly };
             }
 
-            return new[] {Assembly.GetExecutingAssembly()};
+            return new[] { Assembly.GetExecutingAssembly() };
         }
 
         readonly Assembly additionalAssembly;

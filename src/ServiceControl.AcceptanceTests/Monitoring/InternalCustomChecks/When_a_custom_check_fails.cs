@@ -46,7 +46,7 @@
             await Define<MyContext>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(Contracts.CustomChecks.CustomCheckFailed));
                     entry = result;
                     return result;
                 })

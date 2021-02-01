@@ -42,7 +42,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
         }
 
-        private static string DefaultLogPathForInstance(string serviceName)
+        static string DefaultLogPathForInstance(string serviceName)
         {
             if (serviceName.Equals(Settings.DEFAULT_SERVICE_NAME, StringComparison.OrdinalIgnoreCase))
             {

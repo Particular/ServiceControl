@@ -5,7 +5,7 @@
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Transport;
-    
+
     class AuditImporter : Feature
     {
         public AuditImporter()

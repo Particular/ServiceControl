@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\GlobalSuppressions.cs" Link="GlobalSuppressions.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
 
@@ -28,7 +24,6 @@
     <PackageReference Include="NServiceBus.Autofac" Version="7.1.0" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
-    <PackageReference Include="Particular.CodeRules" Version="0.8.0" PrivateAssets="All" />
     <PackageReference Include="Particular.Licensing.Sources" Version="3.4.0" PrivateAssets="All" />
   </ItemGroup>
 

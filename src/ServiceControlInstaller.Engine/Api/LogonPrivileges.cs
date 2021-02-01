@@ -1,6 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Api
 {
-    internal class LogonPrivileges
+    class LogonPrivileges
     {
         public const string LogonAsAService = "SeServiceLogonRight";
     }

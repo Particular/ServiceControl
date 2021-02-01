@@ -37,9 +37,9 @@
                 var count = await query.CountAsync();
 
                 return Request.CreateResponse(HttpStatusCode.OK, new FailedErrorsCountReponse
-                    {
-                        Count = count
-                    })
+                {
+                    Count = count
+                })
                     .WithEtag(stats);
             }
         }

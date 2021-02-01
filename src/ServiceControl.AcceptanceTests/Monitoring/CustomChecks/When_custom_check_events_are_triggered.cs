@@ -26,7 +26,7 @@
                 .WithEndpoint<EndpointWithCustomCheck>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == typeof(CustomCheckFailed).Name);
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(Contracts.CustomChecks.CustomCheckFailed));
                     entry = result;
                     return result;
                 })
@@ -56,7 +56,9 @@
 
                 public override Task<CheckResult> PerformCheck()
                 {
+#pragma warning disable IDE0047 // Remove unnecessary parentheses
                     if ((Interlocked.Increment(ref counter) / 10) % 2 == 0)
+#pragma warning restore IDE0047 // Remove unnecessary parentheses
                     {
                         return Task.FromResult(CheckResult.Failed("fail!"));
                     }
@@ -64,7 +66,7 @@
                     return Task.FromResult(CheckResult.Pass);
                 }
 
-                private static int counter;
+                static int counter;
             }
         }
     }

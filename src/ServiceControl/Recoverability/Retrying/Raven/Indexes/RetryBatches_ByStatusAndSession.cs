@@ -8,11 +8,11 @@ namespace ServiceControl.Recoverability
         public RetryBatches_ByStatusAndSession()
         {
             Map = docs => from doc in docs
-                select new
-                {
-                    doc.RetrySessionId,
-                    doc.Status
-                };
+                          select new
+                          {
+                              doc.RetrySessionId,
+                              doc.Status
+                          };
 
             DisableInMemoryIndexing = true;
         }

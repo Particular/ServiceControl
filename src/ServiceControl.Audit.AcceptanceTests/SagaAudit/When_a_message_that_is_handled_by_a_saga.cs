@@ -101,7 +101,7 @@
 
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    return context.SendLocal(new UpdateSaga1 {MyId = message.Saga1Id});
+                    return context.SendLocal(new UpdateSaga1 { MyId = message.Saga1Id });
                 }
 
                 public Task Handle(CompleteSaga1 message, IMessageHandlerContext context)
@@ -114,7 +114,7 @@
 
                 public Task Handle(UpdateSaga1 message, IMessageHandlerContext context)
                 {
-                    return context.SendLocal(new CompleteSaga1 {MyId = message.MyId});
+                    return context.SendLocal(new CompleteSaga1 { MyId = message.MyId });
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga1Data> mapper)
@@ -136,7 +136,7 @@
 
                 public Task Handle(InitiateSaga message, IMessageHandlerContext context)
                 {
-                    return context.SendLocal(new UpdateSaga2 {MyId = message.Saga2Id});
+                    return context.SendLocal(new UpdateSaga2 { MyId = message.Saga2Id });
                 }
 
                 public Task Handle(CompleteSaga2 message, IMessageHandlerContext context)
@@ -149,7 +149,7 @@
 
                 public Task Handle(UpdateSaga2 message, IMessageHandlerContext context)
                 {
-                    return context.SendLocal(new CompleteSaga2 {MyId = message.MyId});
+                    return context.SendLocal(new CompleteSaga2 { MyId = message.MyId });
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga2Data> mapper)

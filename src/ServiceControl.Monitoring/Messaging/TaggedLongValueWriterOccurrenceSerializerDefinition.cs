@@ -126,6 +126,6 @@
 
         static readonly object[] NoMessages = new object[0];
 
-        private static UTF8Encoding TagDecoder = new UTF8Encoding(false);
+        static UTF8Encoding TagDecoder = new UTF8Encoding(false);
     }
 }

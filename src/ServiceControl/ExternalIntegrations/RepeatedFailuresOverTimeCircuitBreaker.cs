@@ -58,7 +58,7 @@ namespace NServiceBus
             }
         }
 
-        private readonly TimeSpan delayAfterFailure;
+        readonly TimeSpan delayAfterFailure;
 
         long failureCount;
         Exception lastException;

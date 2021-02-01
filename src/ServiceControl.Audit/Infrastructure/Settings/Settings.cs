@@ -72,10 +72,7 @@
             }
         }
 
-        public string DatabaseMaintenanceUrl
-        {
-            get { return $"http://{Hostname}:{DatabaseMaintenancePort}"; }
-        }
+        public string DatabaseMaintenanceUrl => $"http://{Hostname}:{DatabaseMaintenancePort}";
 
         public string ApiUrl => $"{RootUrl}api";
 
@@ -218,7 +215,7 @@
             return result;
         }
 
-        private string GetAuditLogQueue()
+        string GetAuditLogQueue()
         {
             if (AuditQueue == null)
             {
@@ -236,7 +233,7 @@
             return value;
         }
 
-        private string GetAuditQueue()
+        string GetAuditQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
@@ -257,7 +254,7 @@
             return value;
         }
 
-        private string GetDbPath()
+        string GetDbPath()
         {
             var host = Hostname;
             if (host == "*")
@@ -277,7 +274,7 @@
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }
 
-        private static bool GetForwardAuditMessages()
+        static bool GetForwardAuditMessages()
         {
             var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
             if (forwardAuditMessages.HasValue)
@@ -329,7 +326,7 @@
             throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
         }
 
-        private static string SanitiseFolderName(string folderName)
+        static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
         }

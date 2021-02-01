@@ -10,18 +10,18 @@ namespace ServiceControl.MessageFailures.Api
         public FailedMessageViewIndex()
         {
             Map = messages => from message in messages
-                let processingAttemptsLast = message.ProcessingAttempts.Last()
-                select new
-                {
-                    MessageId = processingAttemptsLast.MessageMetadata["MessageId"],
-                    MessageType = processingAttemptsLast.MessageMetadata["MessageType"],
-                    message.Status,
-                    TimeSent = (DateTime)processingAttemptsLast.MessageMetadata["TimeSent"],
-                    ReceivingEndpointName = ((EndpointDetails)processingAttemptsLast.MessageMetadata["ReceivingEndpoint"]).Name,
-                    QueueAddress = processingAttemptsLast.FailureDetails.AddressOfFailingEndpoint,
-                    processingAttemptsLast.FailureDetails.TimeOfFailure,
-                    LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
-                };
+                              let processingAttemptsLast = message.ProcessingAttempts.Last()
+                              select new
+                              {
+                                  MessageId = processingAttemptsLast.MessageMetadata["MessageId"],
+                                  MessageType = processingAttemptsLast.MessageMetadata["MessageType"],
+                                  message.Status,
+                                  TimeSent = (DateTime)processingAttemptsLast.MessageMetadata["TimeSent"],
+                                  ReceivingEndpointName = ((EndpointDetails)processingAttemptsLast.MessageMetadata["ReceivingEndpoint"]).Name,
+                                  QueueAddress = processingAttemptsLast.FailureDetails.AddressOfFailingEndpoint,
+                                  processingAttemptsLast.FailureDetails.TimeOfFailure,
+                                  LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                              };
 
             DisableInMemoryIndexing = true;
         }

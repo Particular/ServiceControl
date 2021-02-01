@@ -17,7 +17,7 @@
             MessagesView auditedMessage = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages", m => m.MessageId == c.MessageId);

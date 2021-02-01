@@ -7,7 +7,9 @@
 
     public static class Aggregator
     {
+#pragma warning disable IDE0060 // Remove unused parameter
         internal static MonitoredValues ToAverages<T>(List<IntervalsStore<T>.IntervalsBreakdown> intervals, HistoryPeriod period)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             Func<long, double> returnOneIfZero = x => x == 0 ? 1 : x;
 
@@ -22,7 +24,9 @@
             };
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         internal static MonitoredValues ToRoundedSumOfBreakdownAverages<T>(List<IntervalsStore<T>.IntervalsBreakdown> intervals, HistoryPeriod period)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             Func<long, double> returnOneIfZero = x => x == 0 ? 1 : x;
 

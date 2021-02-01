@@ -1,0 +1,4 @@
+[*.cs]
+
+# Justification: Usage is from test projects
+dotnet_diagnostic.CA2007.severity = none

@@ -61,7 +61,7 @@
                         Logger.Debug("No more records from EndpointsIndex to migrate.");
                         break;
                     }
-                     
+
                     previouslyDone += endpointsFromIndex.Count;
 
                     var knownEndpoints = endpointsFromIndex.Select(endpoint => new KnownEndpoint
@@ -87,7 +87,7 @@
                         await bulkInsert.DisposeAsync().ConfigureAwait(false);
                     }
                 }
-            } 
+            }
             while (true);
 
             Logger.Debug("EndpointsIndex entries migrated. Disabling EndpointsIndex.");

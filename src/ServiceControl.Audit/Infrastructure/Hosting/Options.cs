@@ -396,8 +396,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             }
 
             if (Array.IndexOf(Names, "<>") >= 0 &&
-                (Names.Length == 1 && OptionValueType != OptionValueType.None ||
-                 Names.Length > 1 && MaxValueCount > 1))
+                ((Names.Length == 1 && OptionValueType != OptionValueType.None) ||
+                 (Names.Length > 1 && MaxValueCount > 1)))
             {
                 throw new ArgumentException(
                     "The default option handler '<>' cannot require values.",
@@ -621,7 +621,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
     class OptionSet : KeyedCollection<string, Option>
     {
         public OptionSet()
-            : this(delegate(string f) { return f; })
+            : this(delegate (string f)
+            { return f; })
         {
         }
 
@@ -730,12 +731,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             public ActionOption(string prototype, string description, int count, Action<OptionValueCollection> action)
                 : base(prototype, description, count)
             {
-                if (action == null)
-                {
-                    throw new ArgumentNullException(nameof(action));
-                }
-
-                this.action = action;
+                this.action = action ?? throw new ArgumentNullException(nameof(action));
             }
 
             protected override void OnParseComplete(OptionContext c)
@@ -759,7 +755,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             }
 
             Option p = new ActionOption(prototype, description, 1,
-                delegate(OptionValueCollection v) { action(v[0]); });
+                delegate (OptionValueCollection v)
+                { action(v[0]); });
             base.Add(p);
             return this;
         }
@@ -777,7 +774,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             }
 
             Option p = new ActionOption(prototype, description, 2,
-                delegate(OptionValueCollection v) { action(v[0], v[1]); });
+                delegate (OptionValueCollection v)
+                { action(v[0], v[1]); });
             base.Add(p);
             return this;
         }
@@ -787,12 +785,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             public ActionOption(string prototype, string description, Action<T> action)
                 : base(prototype, description, 1)
             {
-                if (action == null)
-                {
-                    throw new ArgumentNullException(nameof(action));
-                }
-
-                this.action = action;
+                this.action = action ?? throw new ArgumentNullException(nameof(action));
             }
 
             protected override void OnParseComplete(OptionContext c)
@@ -808,12 +801,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             public ActionOption(string prototype, string description, OptionAction<TKey, TValue> action)
                 : base(prototype, description, 2)
             {
-                if (action == null)
-                {
-                    throw new ArgumentNullException(nameof(action));
-                }
-
-                this.action = action;
+                this.action = action ?? throw new ArgumentNullException(nameof(action));
             }
 
             protected override void OnParseComplete(OptionContext c)
@@ -852,33 +840,33 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
         }
 
 #if LINQ
-		public List<string> Parse (IEnumerable<string> arguments)
-		{
-			bool process = true;
-			OptionContext c = CreateOptionContext ();
-			c.OptionIndex = -1;
-			var def = GetOptionForName ("<>");
-			var unprocessed =
-				from argument in arguments
-				where ++c.OptionIndex >= 0 && (process || def != null)
-					? process
-						? argument == "--"
-							? (process = false)
-							: !Parse (argument, c)
-								? def != null
-									? Unprocessed (null, def, c, argument)
-									: true
-								: false
-						: def != null
-							? Unprocessed (null, def, c, argument)
-							: true
-					: true
-				select argument;
-			List<string> r = unprocessed.ToList ();
-			if (c.Option != null)
-				c.Option.Invoke (c);
-			return r;
-		}
+        public List<string> Parse (IEnumerable<string> arguments)
+        {
+            bool process = true;
+            OptionContext c = CreateOptionContext ();
+            c.OptionIndex = -1;
+            var def = GetOptionForName ("<>");
+            var unprocessed =
+                from argument in arguments
+                where ++c.OptionIndex >= 0 && (process || def != null)
+                    ? process
+                        ? argument == "--"
+                            ? (process = false)
+                            : !Parse (argument, c)
+                                ? def != null
+                                    ? Unprocessed (null, def, c, argument)
+                                    : true
+                                : false
+                        : def != null
+                            ? Unprocessed (null, def, c, argument)
+                            : true
+                    : true
+                select argument;
+            List<string> r = unprocessed.ToList ();
+            if (c.Option != null)
+                c.Option.Invoke (c);
+            return r;
+        }
 #else
         public List<string> Parse(IEnumerable<string> arguments)
         {
@@ -983,6 +971,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                     case OptionValueType.Required:
                         ParseValue(v, c);
                         break;
+                    default:
+                        break;
                 }
 
                 return true;
@@ -1078,13 +1068,13 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                         break;
                     case OptionValueType.Optional:
                     case OptionValueType.Required:
-                    {
-                        var v = n.Substring(i + 1);
-                        c.Option = p;
-                        c.OptionName = opt;
-                        ParseValue(v.Length != 0 ? v : null, c);
-                        return true;
-                    }
+                        {
+                            var v = n.Substring(i + 1);
+                            c.Option = p;
+                            c.OptionName = opt;
+                            ParseValue(v.Length != 0 ? v : null, c);
+                            return true;
+                        }
                     default:
                         throw new InvalidOperationException("Unknown OptionValueType: " + p.OptionValueType);
                 }
@@ -1236,7 +1226,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 do
                 {
                     start = description.IndexOf(nameStart[i], j);
-                } 
+                }
                 while (start >= 0 && j != 0 && description[j++ - 1] == '{');
 
                 if (start == -1)
@@ -1338,7 +1328,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 if (end < description.Length)
                 {
                     var c = description[end];
-                    if (c == '-' || char.IsWhiteSpace(c) && c != '\n')
+                    if (c == '-' || (char.IsWhiteSpace(c) && c != '\n'))
                     {
                         ++end;
                     }
@@ -1360,7 +1350,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 {
                     ++start;
                 }
-            } 
+            }
             while (end < description.Length);
 
             return lines;
@@ -1385,6 +1375,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                         break;
                     case '\n':
                         return i;
+                    default:
+                        break;
                 }
             }
 

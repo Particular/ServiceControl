@@ -30,7 +30,7 @@
             queueLengthStore = new QueueLengthStore();
             queueLengthProvider.Initialize(string.Empty, (entryDtos, dto) => queueLengthStore.Store(entryDtos.Select(e => ToEntry(e)).ToArray(), ToEndpointInputQueue(dto)));
 
-            var settings = new Settings {EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5)};
+            var settings = new Settings { EndpointUptimeGracePeriod = TimeSpan.FromMinutes(5) };
             activityTracker = new EndpointInstanceActivityTracker(settings);
 
             messageTypeRegistry = new MessageTypeRegistry();
@@ -104,11 +104,6 @@
 
             Report("Querying", histogram, TimeSpan.FromMilliseconds(150));
             Report("Reporters", reportFinalHistogram, TimeSpan.FromMilliseconds(20));
-        }
-
-        QueueLengthEntry ToEntryDto(RawMessage.Entry ei)
-        {
-            return new QueueLengthEntry {DateTicks = ei.DateTicks, Value = ei.Value};
         }
 
         [TestCase(10, 100, 100, 1000, 100, 1000)]

@@ -73,9 +73,9 @@ namespace ServiceControlInstaller.Engine
         int? DatabaseMaintenancePort { get; }
     }
 
-    public interface IServiceControlBaseInstance : IHttpInstance, 
-        IDatabaseMaintenanceSupport, 
-        IServiceInstance, 
+    public interface IServiceControlBaseInstance : IHttpInstance,
+        IDatabaseMaintenanceSupport,
+        IServiceInstance,
         IServiceControlPaths,
         IInstallable,
         ITransportConfig

@@ -22,7 +22,7 @@
             var response = new List<MessagesView>();
 
             //search for the message type
-            var searchString = typeof(MyMessage).Name;
+            var searchString = nameof(MyMessage);
 
             var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When(async (bus, c) =>

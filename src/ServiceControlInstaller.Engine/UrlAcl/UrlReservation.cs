@@ -133,7 +133,7 @@
                             Marshal.SizeOf(inputConfigInfoSet),
                             pOutputConfigInfo,
                             returnLength,
-                            out returnLength,
+                            out _,
                             IntPtr.Zero);
                     }
 
@@ -168,10 +168,10 @@
             }
 
             var sddl = GenerateSecurityDescriptor(urlReservation.securityIdentifiers);
-            reserveURL(urlReservation.Url, sddl);
+            ReserveUrl(urlReservation.Url, sddl);
         }
 
-        private static void reserveURL(string networkURL, string securityDescriptor)
+        static void ReserveUrl(string networkURL, string securityDescriptor)
         {
             var retVal = HttpApi.HttpInitialize(HttpApiConstants.Version1, HttpApiConstants.InitializeConfig, IntPtr.Zero);
             if (retVal == ErrorCode.Success)
@@ -228,7 +228,7 @@
             FreeURL(urlReservation.Url, securityDescriptor);
         }
 
-        private static void FreeURL(string networkURL, string securityDescriptor)
+        static void FreeURL(string networkURL, string securityDescriptor)
         {
             var retVal = HttpApi.HttpInitialize(HttpApiConstants.Version1, HttpApiConstants.InitializeConfig, IntPtr.Zero);
             if (retVal == ErrorCode.Success)
@@ -261,14 +261,14 @@
             }
         }
 
-        private static IEnumerable<SecurityIdentifier> SecurityIdentifiersFromSecurityDescriptor(string securityDescriptor)
+        static IEnumerable<SecurityIdentifier> SecurityIdentifiersFromSecurityDescriptor(string securityDescriptor)
         {
             var commonSecurityDescriptor = new CommonSecurityDescriptor(false, false, securityDescriptor);
             var discretionaryAcl = commonSecurityDescriptor.DiscretionaryAcl;
             return discretionaryAcl.Cast<CommonAce>().Select(ace => ace.SecurityIdentifier);
         }
 
-        private static DiscretionaryAcl GetDiscretionaryAcl(List<SecurityIdentifier> securityIdentifiers)
+        static DiscretionaryAcl GetDiscretionaryAcl(List<SecurityIdentifier> securityIdentifiers)
         {
             var discretionaryAcl = new DiscretionaryAcl(false, false, 16);
             foreach (var securityIdentifier in securityIdentifiers)
@@ -279,7 +279,7 @@
             return discretionaryAcl;
         }
 
-        private static CommonSecurityDescriptor GetSecurityDescriptor(List<SecurityIdentifier> securityIdentifiers)
+        static CommonSecurityDescriptor GetSecurityDescriptor(List<SecurityIdentifier> securityIdentifiers)
         {
             var discretionaryAcl = GetDiscretionaryAcl(securityIdentifiers);
             var securityDescriptor = new CommonSecurityDescriptor(false, false,
@@ -290,7 +290,7 @@
             return securityDescriptor;
         }
 
-        private static string GenerateSecurityDescriptor(List<SecurityIdentifier> securityIdentifiers)
+        static string GenerateSecurityDescriptor(List<SecurityIdentifier> securityIdentifiers)
         {
             return GetSecurityDescriptor(securityIdentifiers).GetSddlForm(AccessControlSections.Access);
         }

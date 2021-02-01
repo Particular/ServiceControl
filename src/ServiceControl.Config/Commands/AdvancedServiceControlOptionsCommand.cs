@@ -29,6 +29,7 @@ namespace ServiceControl.Config.Commands
                     return advancedOptionsModel(viewModel.ServiceControlInstance);
                 case InstanceType.ServiceControlAudit:
                     return advancedOptionsModel(viewModel.ServiceControlAuditInstance);
+                case InstanceType.Monitoring:
                 default:
                     throw new ArgumentOutOfRangeException();
             }

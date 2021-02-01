@@ -4,7 +4,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct HttpServiceConfigSslParam
+    struct HttpServiceConfigSslParam
     {
         public int SslHashLength;
 

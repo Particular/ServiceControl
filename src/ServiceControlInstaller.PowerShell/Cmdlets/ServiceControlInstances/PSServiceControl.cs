@@ -23,15 +23,15 @@
         public string ErrorQueue { get; set; }
         public string ErrorLogQueue { get; set; }
         public bool ForwardErrorMessages { get; set; }
-        
+
         public TimeSpan ErrorRetentionPeriod { get; set; }
 
         public string AuditQueue { get; set; }
-        
+
         public string AuditLogQueue { get; set; }
 
         public bool ForwardAuditMessages { get; set; }
-        
+
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public string ServiceAccount { get; set; }
@@ -69,9 +69,9 @@
                 {
                     if (string.IsNullOrEmpty(i.QueueAddress))
                     {
-                        return new { ApiUri = i.ApiUri };
+                        return new { i.ApiUri };
                     }
-                    return new { ApiUri = i.ApiUri, QueueAddress = i.QueueAddress};
+                    return new { i.ApiUri, i.QueueAddress };
                 }).ToArray()
             };
             return result;

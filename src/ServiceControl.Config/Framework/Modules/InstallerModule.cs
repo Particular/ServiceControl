@@ -109,7 +109,7 @@ namespace ServiceControl.Config.Framework.Modules
             {
                 return new ReportCard
                 {
-                    Errors = {"Service failed to stop"},
+                    Errors = { "Service failed to stop" },
                     Status = Status.Failed
                 };
             }
@@ -190,7 +190,7 @@ namespace ServiceControl.Config.Framework.Modules
             {
                 return new ReportCard
                 {
-                    Errors = {"Service failed to stop"},
+                    Errors = { "Service failed to stop" },
                     Status = Status.Failed
                 };
             }
@@ -332,7 +332,7 @@ namespace ServiceControl.Config.Framework.Modules
             {
                 return new ReportCard
                 {
-                    Errors = {"Service failed to stop"},
+                    Errors = { "Service failed to stop" },
                     Status = Status.Failed
                 };
             }
@@ -406,7 +406,7 @@ namespace ServiceControl.Config.Framework.Modules
             {
                 return new ReportCard
                 {
-                    Errors = {"Service failed to stop"},
+                    Errors = { "Service failed to stop" },
                     Status = Status.Failed
                 };
             }

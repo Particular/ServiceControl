@@ -68,7 +68,7 @@
         public void CheckPathsAreValid_ShouldThrow()
         {
             //Invalid path
-            var p = new PathsValidator(new ServiceControlNewInstance {InstallPath = @"?>c:\test\1\bin"});
+            var p = new PathsValidator(new ServiceControlNewInstance { InstallPath = @"?>c:\test\1\bin" });
 
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path is set to an invalid path"));
@@ -83,7 +83,7 @@
             Assert.That(ex.Message, Is.EqualTo("The install path is set to an invalid path"));
 
             //No Drive
-            p = new PathsValidator(new ServiceControlNewInstance {InstallPath = $@"{GetAnUnsedDriveLetter()}:\test\1\bin"});
+            p = new PathsValidator(new ServiceControlNewInstance { InstallPath = $@"{GetAnUnsedDriveLetter()}:\test\1\bin" });
             ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
             Assert.That(ex.Message, Is.EqualTo("The install path does not go to a supported drive"));
         }

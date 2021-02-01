@@ -96,8 +96,8 @@
                     context.UniqueId = DeterministicGuid.MakeId(messageId, "Error.SourceEndpoint").ToString();
                     context.FailureTimes = new[]
                     {
-                        new DateTime(2020, 09, 05, 13, 20, 00, 0, DateTimeKind.Utc), 
-                        new DateTime(2020, 09, 05, 12, 20, 00, 0, DateTimeKind.Utc), 
+                        new DateTime(2020, 09, 05, 13, 20, 00, 0, DateTimeKind.Utc),
+                        new DateTime(2020, 09, 05, 12, 20, 00, 0, DateTimeKind.Utc),
                     };
 
                     return new TransportOperations(GetMessages(context.UniqueId, context.FailureTimes).ToArray());

@@ -53,7 +53,7 @@
             }
         }
 
-        private static FailedMessageView Map(FailedMessage message, IAsyncDocumentSession session)
+        static FailedMessageView Map(FailedMessage message, IAsyncDocumentSession session)
         {
             var processingAttempt = message.ProcessingAttempts.Last();
 

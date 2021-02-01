@@ -18,11 +18,11 @@
     class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
     {
         public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings) :
-            this(store, settings, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
+            this(store, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
         {
         }
 
-        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
+        public SubscriptionPersister(IDocumentStore store, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
         {
             this.store = store;
             localClient = new SubscriptionClient
@@ -102,7 +102,7 @@
             return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct());
         }
 
-        private bool AddOrUpdateSubscription(MessageType messageType, Subscriber subscriber)
+        bool AddOrUpdateSubscription(MessageType messageType, Subscriber subscriber)
         {
             var key = FormatId(messageType);
 
@@ -133,7 +133,7 @@
             return true;
         }
 
-        private static SubscriptionClient CreateSubscriptionClient(Subscriber subscriber)
+        static SubscriptionClient CreateSubscriptionClient(Subscriber subscriber)
         {
             //When the subscriber is running V6 and UseLegacyMessageDrivenSubscriptionMode is enabled at the subscriber the 'subcriber.Endpoint' value is null
             var endpoint = subscriber.Endpoint ?? subscriber.TransportAddress.Split('@').First();
@@ -145,7 +145,7 @@
             return subscriptionClient;
         }
 
-        private async Task SaveSubscriptions()
+        async Task SaveSubscriptions()
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -156,24 +156,24 @@
             }
         }
 
-        private void UpdateLookup()
+        void UpdateLookup()
         {
             subscriptionsLookup = (from subscription in subscriptions.All.Values
-                from client in subscription.Subscribers
-                select new
-                {
-                    subscription.MessageType,
-                    Subscriber = new Subscriber(client.TransportAddress, client.Endpoint)
-                }).Union(from eventType in locallyHandledEventTypes
-                select new
-                {
-                    MessageType = eventType,
-                    Subscriber = new Subscriber(localClient.TransportAddress, localClient.Endpoint)
-                }
+                                   from client in subscription.Subscribers
+                                   select new
+                                   {
+                                       subscription.MessageType,
+                                       Subscriber = new Subscriber(client.TransportAddress, client.Endpoint)
+                                   }).Union(from eventType in locallyHandledEventTypes
+                                            select new
+                                            {
+                                                MessageType = eventType,
+                                                Subscriber = new Subscriber(localClient.TransportAddress, localClient.Endpoint)
+                                            }
             ).ToLookup(x => x.MessageType, x => x.Subscriber);
         }
 
-        private string FormatId(MessageType messageType)
+        string FormatId(MessageType messageType)
         {
             // use MD5 hash to get a 16-byte hash of the string
             var inputBytes = Encoding.Default.GetBytes($"{messageType.TypeName}/{messageType.Version.Major}");
@@ -187,7 +187,7 @@
             }
         }
 
-        private async Task SetSubscriptions(Subscriptions newSubscriptions)
+        async Task SetSubscriptions(Subscriptions newSubscriptions)
         {
             try
             {
@@ -203,10 +203,10 @@
             }
         }
 
-        private static Task<Subscriptions> LoadSubscriptions(IAsyncDocumentSession session)
+        static Task<Subscriptions> LoadSubscriptions(IAsyncDocumentSession session)
             => session.LoadAsync<Subscriptions>(Subscriptions.SingleDocumentId);
 
-        private static async Task<Subscriptions> MigrateSubscriptions(IAsyncDocumentSession session, SubscriptionClient localClient)
+        static async Task<Subscriptions> MigrateSubscriptions(IAsyncDocumentSession session, SubscriptionClient localClient)
         {
             logger.Info("Migrating subscriptions to new format");
 
@@ -230,15 +230,15 @@
             return subscriptions;
         }
 
-        private IDocumentStore store;
-        private SubscriptionClient localClient;
-        private Subscriptions subscriptions;
-        private ILookup<MessageType, Subscriber> subscriptionsLookup;
-        private MessageType[] locallyHandledEventTypes;
+        IDocumentStore store;
+        SubscriptionClient localClient;
+        Subscriptions subscriptions;
+        ILookup<MessageType, Subscriber> subscriptionsLookup;
+        MessageType[] locallyHandledEventTypes;
 
-        private SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
+        SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
 
-        private static ILog logger = LogManager.GetLogger<SubscriptionPersister>();
+        static ILog logger = LogManager.GetLogger<SubscriptionPersister>();
     }
 
     class Subscriptions

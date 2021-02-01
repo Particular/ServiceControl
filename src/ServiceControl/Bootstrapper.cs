@@ -37,12 +37,7 @@ namespace Particular.ServiceControl
         // Windows Service
         public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-
-            this.configuration = configuration;
+            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
             this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
@@ -66,7 +61,7 @@ namespace Particular.ServiceControl
             return httpClient;
         };
 
-        private void Initialize()
+        void Initialize()
         {
             RecordStartup(loggingSettings, configuration);
 
@@ -159,7 +154,7 @@ namespace Particular.ServiceControl
             container.Dispose();
         }
 
-        private TransportSettings MapSettings(Settings settings)
+        TransportSettings MapSettings(Settings settings)
         {
             var transportSettings = new TransportSettings
             {
@@ -172,7 +167,7 @@ namespace Particular.ServiceControl
             return transportSettings;
         }
 
-        private long DataSize()
+        long DataSize()
         {
             var datafilePath = Path.Combine(settings.DbPath, "data");
 
@@ -188,7 +183,7 @@ namespace Particular.ServiceControl
             }
         }
 
-        private void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
+        void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
             var startupMessage = $@"
@@ -236,16 +231,16 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
 
         public IDisposable WebApp;
         readonly Action<ContainerBuilder> additionalRegistrationActions;
-        private EndpointConfiguration configuration;
-        private LoggingSettings loggingSettings;
-        private EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        private ShutdownNotifier notifier = new ShutdownNotifier();
-        private Settings settings;
-        private IContainer container;
-        private BusInstance bus;
-        private TransportSettings transportSettings;
+        EndpointConfiguration configuration;
+        LoggingSettings loggingSettings;
+        EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
+        ShutdownNotifier notifier = new ShutdownNotifier();
+        Settings settings;
+        IContainer container;
+        BusInstance bus;
+        TransportSettings transportSettings;
         TransportCustomization transportCustomization;
-        private static HttpClient httpClient;
+        static HttpClient httpClient;
 
         class AllConstructorFinder : IConstructorFinder
         {

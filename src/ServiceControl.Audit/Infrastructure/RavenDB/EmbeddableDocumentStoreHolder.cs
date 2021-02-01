@@ -2,7 +2,7 @@
 {
     using Raven.Client.Embedded;
 
-    internal sealed class EmbeddableDocumentStoreHolder
+    sealed class EmbeddableDocumentStoreHolder
     {
         public EmbeddableDocumentStoreHolder(EmbeddableDocumentStore documentStore)
         {

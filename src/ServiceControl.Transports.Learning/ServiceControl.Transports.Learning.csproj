@@ -8,8 +8,4 @@
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Particular.CodeRules" Version="0.8.0" PrivateAssets="All" />
-  </ItemGroup>
-
 </Project>

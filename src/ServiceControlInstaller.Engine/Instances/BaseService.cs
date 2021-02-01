@@ -6,9 +6,9 @@
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading;
+    using Engine;
     using FileSystem;
     using Services;
-    using Engine;
     using TimeoutException = System.ServiceProcess.TimeoutException;
 
     public abstract class BaseService : IServiceInstance
@@ -107,7 +107,7 @@
                 if (Service.ExePath != null)
                 {
                     var process = Process.GetProcesses().FirstOrDefault(p => p.MainModule.FileName == Service.ExePath);
-                    return (process == null);
+                    return process == null;
                 }
             }
             catch

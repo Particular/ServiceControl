@@ -66,7 +66,7 @@
                 {
                     Thread.Sleep(1000);
                 }
-            } 
+            }
             while (stats.IsStale);
         }
 

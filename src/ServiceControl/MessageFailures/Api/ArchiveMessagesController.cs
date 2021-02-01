@@ -33,7 +33,7 @@
 
             foreach (var id in messageIds)
             {
-                var request = new ArchiveMessage {FailedMessageId = id};
+                var request = new ArchiveMessage { FailedMessageId = id };
 
                 await messageSession.SendLocal(request).ConfigureAwait(false);
             }

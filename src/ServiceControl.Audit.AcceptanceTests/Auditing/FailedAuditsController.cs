@@ -30,9 +30,9 @@
                 var count = await query.CountAsync();
 
                 return Request.CreateResponse(HttpStatusCode.OK, new FailedAuditsCountReponse
-                    {
-                        Count = count
-                    })
+                {
+                    Count = count
+                })
                     .WithEtag(stats);
             }
         }

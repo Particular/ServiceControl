@@ -8,7 +8,7 @@
 
         public string HostId { get; private set; }
         public long Audits => Interlocked.Read(ref audits);
-        
+
         public void AuditReceived(string hostId)
         {
             if (hostId != HostId)

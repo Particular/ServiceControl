@@ -44,7 +44,7 @@ namespace ServiceControl.Recoverability
                 }
             }
 
-            await context.SendLocal(new RetryMessagesById {MessageUniqueIds = messageIds.ToArray()})
+            await context.SendLocal(new RetryMessagesById { MessageUniqueIds = messageIds.ToArray() })
                 .ConfigureAwait(false);
         }
 
@@ -60,8 +60,8 @@ namespace ServiceControl.Recoverability
                 .ConfigureAwait(false);
         }
 
-        private readonly IDocumentStore store;
-        private readonly RetryDocumentManager manager;
-        static string[] fields = {"Id"};
+        readonly IDocumentStore store;
+        readonly RetryDocumentManager manager;
+        static string[] fields = { "Id" };
     }
 }

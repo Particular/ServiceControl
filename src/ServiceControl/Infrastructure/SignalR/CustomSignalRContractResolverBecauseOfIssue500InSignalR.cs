@@ -24,8 +24,8 @@
             return underscoreContractResolver.ResolveContract(type);
         }
 
-        private readonly Assembly assembly;
-        private readonly IContractResolver underscoreContractResolver;
-        private readonly IContractResolver defaultContractSerializer;
+        readonly Assembly assembly;
+        readonly IContractResolver underscoreContractResolver;
+        readonly IContractResolver defaultContractSerializer;
     }
 }

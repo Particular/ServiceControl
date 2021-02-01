@@ -82,7 +82,7 @@
 
         static void ConfigureTransport(TransportExtensions<SqsTransport> transport, TransportSettings transportSettings)
         {
-            var builder = new DbConnectionStringBuilder {ConnectionString = transportSettings.ConnectionString};
+            var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
 
             var alwaysLoadFromEnvironmentVariable = false;
             if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))

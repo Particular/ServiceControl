@@ -18,7 +18,7 @@
             await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null)
                 .ConfigureAwait(false);
 
-            await domainEvents.Raise(new CustomCheckDeleted {Id = message.Id})
+            await domainEvents.Raise(new CustomCheckDeleted { Id = message.Id })
                 .ConfigureAwait(false);
         }
 

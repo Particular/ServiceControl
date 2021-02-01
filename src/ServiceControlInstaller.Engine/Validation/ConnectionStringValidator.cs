@@ -44,12 +44,12 @@
 
         void CheckMsSqlConnectionString()
         {
-            string[] customKeys = {"Queue Schema", "Subscriptions Table"};
+            string[] customKeys = { "Queue Schema", "Subscriptions Table" };
 
             try
             {
                 //Check  validity of connection string. This will throw if invalid
-                var builder = new DbConnectionStringBuilder {ConnectionString = connectionString};
+                var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
                 //The NSB SQL Transport can have custom key/value pairs in the connection string
                 // that won't make sense to SQL. Remove these from the string we want to validate.
@@ -97,7 +97,7 @@
             }
         }
 
-        private string connectionString;
-        private string serviceAccount;
+        string connectionString;
+        string serviceAccount;
     }
 }

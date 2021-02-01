@@ -29,6 +29,6 @@
             log.DebugFormat("End {0} ({1}): {2}", context.Request.Method, context.Response.StatusCode, context.Request.Uri.ToString());
         }
 
-        private static ILog log = LogManager.GetLogger<LogApiCalls>();
+        static ILog log = LogManager.GetLogger<LogApiCalls>();
     }
 }

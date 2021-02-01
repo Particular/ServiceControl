@@ -23,7 +23,7 @@
 
             var instances = registry.GetForEndpointName("EndpointA");
 
-            CollectionAssert.AreEquivalent(new[] {instanceA}, instances);
+            CollectionAssert.AreEquivalent(new[] { instanceA }, instances);
         }
 
         [Test]
@@ -39,7 +39,7 @@
 
             var instances = registry.GetForEndpointName("EndpointA");
 
-            CollectionAssert.AreEquivalent(new[] {instanceA, instanceC}, instances);
+            CollectionAssert.AreEquivalent(new[] { instanceA, instanceC }, instances);
         }
 
         [Test]
@@ -53,7 +53,7 @@
 
             var endpoints = registry.GetGroupedByEndpointName();
 
-            CollectionAssert.AreEquivalent(new[] {"EndpointA", "EndpointB"}, endpoints.Keys);
+            CollectionAssert.AreEquivalent(new[] { "EndpointA", "EndpointB" }, endpoints.Keys);
         }
 
         [Test]
@@ -67,7 +67,7 @@
 
             var endpoints = registry.GetGroupedByEndpointName();
 
-            CollectionAssert.AreEquivalent(new[] {"EndpointA"}, endpoints.Keys);
+            CollectionAssert.AreEquivalent(new[] { "EndpointA" }, endpoints.Keys);
         }
 
         [Test]
@@ -121,7 +121,7 @@
 
             var instances = registry.GetForEndpointName("EndpointB");
 
-            CollectionAssert.AreEquivalent(new[] {instanceB1}, instances);
+            CollectionAssert.AreEquivalent(new[] { instanceB1 }, instances);
         }
 
         EndpointRegistry registry;

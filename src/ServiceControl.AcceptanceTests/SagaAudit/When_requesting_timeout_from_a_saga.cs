@@ -19,7 +19,7 @@
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage {Id = "Id"})))
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new StartSagaMessage { Id = "Id" })))
                 .Done(async c =>
                 {
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", sh => sh.Changes.Any(change => change.Status == SagaStateChangeStatus.Updated));

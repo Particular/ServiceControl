@@ -83,10 +83,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
         }
 
-        public string DatabaseMaintenanceUrl
-        {
-            get { return $"http://{Hostname}:{DatabaseMaintenancePort}"; }
-        }
+        public string DatabaseMaintenanceUrl => $"http://{Hostname}:{DatabaseMaintenancePort}";
 
         public string ApiUrl => $"{RootUrl}api";
 
@@ -214,7 +211,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return connectionStringSettings?.ConnectionString;
         }
 
-        private string GetErrorQueue()
+        string GetErrorQueue()
         {
             var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
 
@@ -235,7 +232,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return value;
         }
 
-        private string GetErrorLogQueue()
+        string GetErrorLogQueue()
         {
             if (ErrorQueue == null)
             {
@@ -253,7 +250,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return value;
         }
 
-        private string GetDbPath()
+        string GetDbPath()
         {
             var host = Hostname;
             if (host == "*")
@@ -273,7 +270,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return SettingsReader<string>.Read("DbPath", defaultPath);
         }
 
-        private static bool GetForwardErrorMessages()
+        static bool GetForwardErrorMessages()
         {
             var forwardErrorMessages = NullableSettingsReader<bool>.Read("ForwardErrorMessages");
             if (forwardErrorMessages.HasValue)
@@ -313,12 +310,12 @@ namespace ServiceBus.Management.Infrastructure.Settings
             throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
         }
 
-        private static string SanitiseFolderName(string folderName)
+        static string SanitiseFolderName(string folderName)
         {
             return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
         }
 
-        private TimeSpan GetEventRetentionPeriod()
+        TimeSpan GetEventRetentionPeriod()
         {
             var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
             if (valueRead != null)

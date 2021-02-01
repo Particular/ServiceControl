@@ -25,7 +25,7 @@ namespace Tests
         public string FullName => zipFile.FullName;
         public ZipArchive Open() => ZipFile.OpenRead(FullName);
 
-        static IEnumerable All = GetZipFolder()
+        public static IEnumerable All => GetZipFolder()
             .EnumerateFiles("*.zip")
             .Select(x => new DeploymentPackage(x));
 

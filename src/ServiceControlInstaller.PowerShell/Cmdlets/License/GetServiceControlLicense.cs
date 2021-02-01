@@ -21,7 +21,7 @@ namespace ServiceControlInstaller.PowerShell
                     new PSNoteProperty("UpgradeProtectionExpiration", license.Details.UpgradeProtectionExpiration),
                     new PSNoteProperty("TrialLicense", license.Details.IsExtendedTrial | license.Details.IsTrialLicense)
                 },
-                TypeNames = {"ServiceControlLicense.Information"}
+                TypeNames = { "ServiceControlLicense.Information" }
             };
             WriteObject(p);
         }

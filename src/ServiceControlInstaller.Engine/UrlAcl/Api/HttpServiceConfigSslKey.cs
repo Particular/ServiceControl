@@ -4,7 +4,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct HttpServiceConfigSslKey
+    struct HttpServiceConfigSslKey
     {
         /// <summary>
         /// Pointer to the port for the IP address.

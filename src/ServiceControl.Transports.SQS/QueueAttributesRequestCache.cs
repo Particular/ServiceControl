@@ -21,9 +21,9 @@
                 return attReq;
             }
 
-            var  queueUrl = await GetQueueUrl(queueName, token).ConfigureAwait(false);
+            var queueUrl = await GetQueueUrl(queueName, token).ConfigureAwait(false);
 
-            attReq = new GetQueueAttributesRequest {QueueUrl = queueUrl};
+            attReq = new GetQueueAttributesRequest { QueueUrl = queueUrl };
             attReq.AttributeNames.Add("ApproximateNumberOfMessages");
 
             cache[queueName] = attReq;

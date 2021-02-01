@@ -27,7 +27,7 @@
                 return StatusCode(HttpStatusCode.BadRequest);
             }
 
-            var request = new UnArchiveMessages {FailedMessageIds = ids};
+            var request = new UnArchiveMessages { FailedMessageIds = ids };
 
             await messageSession.SendLocal(request).ConfigureAwait(false);
 

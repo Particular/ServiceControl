@@ -49,7 +49,7 @@
             builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
             builder.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-            
+
             builder.RegisterComponents(r => { builder.GetSettings().Set("SC.ConfigureComponent", r); });
 
             builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);

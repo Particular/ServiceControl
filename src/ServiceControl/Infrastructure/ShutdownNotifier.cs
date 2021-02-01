@@ -25,7 +25,7 @@
             source.Token.Register(callback);
         }
 
-        private void ThrowIfDisposed()
+        void ThrowIfDisposed()
         {
             if (disposed)
             {
@@ -34,7 +34,7 @@
         }
 
         CancellationTokenSource source = new CancellationTokenSource();
-        private bool disposed;
-        private int disposeSignaled;
+        bool disposed;
+        int disposeSignaled;
     }
 }

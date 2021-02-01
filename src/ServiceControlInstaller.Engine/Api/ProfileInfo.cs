@@ -4,7 +4,7 @@
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ProfileInfo
+    struct ProfileInfo
     {
         public int dwSize;
         public int dwFlags;

@@ -35,6 +35,9 @@
                             case NotifyCollectionChangedAction.Reset:
                                 EnumerableExtensions.Apply(items.OfType<IChild>(), x => x.Parent = this);
                                 break;
+                            case NotifyCollectionChangedAction.Move:
+                            default:
+                                break;
                         }
                     };
                 }
@@ -75,13 +78,13 @@
                     }
                     else
                     {
-                        CloseStrategy.Execute(new[] {item}, (canClose, closable) =>
-                        {
-                            if (canClose)
-                            {
-                                CloseItemCore(item);
-                            }
-                        });
+                        CloseStrategy.Execute(new[] { item }, (canClose, closable) =>
+                          {
+                              if (canClose)
+                              {
+                                  CloseItemCore(item);
+                              }
+                          });
                     }
                 }
 
@@ -134,7 +137,7 @@
                                     var previous = next;
                                     next = DetermineNextItemToActivate(list, list.IndexOf(previous));
                                     list.Remove(previous);
-                                } 
+                                }
                                 while (closable.Contains(next));
 
                                 var previousActive = ActiveItem;
