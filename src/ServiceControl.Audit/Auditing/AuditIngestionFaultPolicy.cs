@@ -20,7 +20,7 @@
         public AuditIngestionFaultPolicy(IDocumentStore store, LoggingSettings settings, Func<FailedTransportMessage, object> messageBuilder, Func<string, Exception, Task> onCriticalError)
         {
             this.store = store;
-            this.logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
+            logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
             this.messageBuilder = messageBuilder;
 
             failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
@@ -100,7 +100,7 @@
             EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
         }
 #else
-        private Task WriteEvent(string message)
+        Task WriteEvent(string message)
         {
             EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
 
