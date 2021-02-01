@@ -1,2 +1,5 @@
 exclusions:
 - src/NServiceBus.snk
+- src/.editorconfig
+- src/.globalconfig
+- src/Directory.Build.props
