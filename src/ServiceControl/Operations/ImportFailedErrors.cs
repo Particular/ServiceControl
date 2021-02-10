@@ -33,25 +33,25 @@
                 using (var session = store.OpenAsyncSession())
                 {
                     var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-                    using (var ie = await session.Advanced.StreamAsync(query, token)
+                    using (var stream = await session.Advanced.StreamAsync(query, token)
                         .ConfigureAwait(false))
                     {
-                        while (!token.IsCancellationRequested && await ie.MoveNextAsync().ConfigureAwait(false))
+                        while (!token.IsCancellationRequested && await stream.MoveNextAsync().ConfigureAwait(false))
                         {
-                            FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
+                            var transportMessage = stream.Current.Document.Message;
                             try
                             {
-                                var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
                                 await errorIngestor.Ingest(messageContext).ConfigureAwait(false);
 
-                                await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
+                                await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, token)
                                     .ConfigureAwait(false);
                                 succeeded++;
 
                                 if (Logger.IsDebugEnabled)
                                 {
-                                    Logger.Debug($"Successfully re-imported failed error message {dto.Id}.");
+                                    Logger.Debug($"Successfully re-imported failed error message {transportMessage.Id}.");
                                 }
                             }
                             catch (OperationCanceledException)
@@ -60,7 +60,7 @@
                             }
                             catch (Exception e)
                             {
-                                Logger.Error($"Error while attempting to re-import failed error message {dto.Id}.", e);
+                                Logger.Error($"Error while attempting to re-import failed error message {transportMessage.Id}.", e);
                                 failed++;
                             }
                         }
@@ -80,13 +80,13 @@
             }
         }
 
-        IDocumentStore store;
-        ErrorIngestor errorIngestor;
-        RawEndpointFactory rawEndpointFactory;
+        readonly IDocumentStore store;
+        readonly ErrorIngestor errorIngestor;
+        readonly RawEndpointFactory rawEndpointFactory;
 
-        static TransportTransaction EmptyTransaction = new TransportTransaction();
-        static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
-        static ContextBag EmptyContextBag = new ContextBag();
+        static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
+        static readonly CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
+        static readonly ContextBag EmptyContextBag = new ContextBag();
         static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedErrors));
     }
 }
