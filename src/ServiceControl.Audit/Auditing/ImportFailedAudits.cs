@@ -10,7 +10,6 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Raven.Client;
-    using Raven.Client.Indexes;
 
     class ImportFailedAudits
     {
@@ -21,77 +20,77 @@ namespace ServiceControl.Audit.Auditing
             this.rawEndpointFactory = rawEndpointFactory;
         }
 
-        public Task Run(CancellationToken tokenSource)
-        {
-            source = tokenSource;
-            return Run<FailedAuditImport, FailedAuditImportIndex>(source);
-        }
-
-        async Task Run<T, I>(CancellationToken token) where I : AbstractIndexCreationTask, new()
+        public async Task Run(CancellationToken token)
         {
             var config = rawEndpointFactory.CreateFailedAuditsSender("ImportFailedAudits");
             var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
 
             await auditIngestor.Initialize(endpoint).ConfigureAwait(false);
 
-            var succeeded = 0;
-            var failed = 0;
-            using (var session = store.OpenAsyncSession())
+            try
             {
-                var query = session.Query<T, I>();
-                using (var ie = await session.Advanced.StreamAsync(query, token)
-                    .ConfigureAwait(false))
+                var succeeded = 0;
+                var failed = 0;
+                using (var session = store.OpenAsyncSession())
                 {
-                    while (!token.IsCancellationRequested && await ie.MoveNextAsync().ConfigureAwait(false))
+                    var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
+                    using (var stream = await session.Advanced.StreamAsync(query, token)
+                        .ConfigureAwait(false))
                     {
-                        FailedTransportMessage dto = ((dynamic)ie.Current.Document).Message;
-                        try
+                        while (!token.IsCancellationRequested && await stream.MoveNextAsync().ConfigureAwait(false))
                         {
-                            var messageContext = new MessageContext(dto.Id, dto.Headers, dto.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
-                            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                            messageContext.SetTaskCompletionSource(taskCompletionSource);
-
-                            await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
-
-                            await taskCompletionSource.Task.ConfigureAwait(false);
-
-                            await store.AsyncDatabaseCommands.DeleteAsync(ie.Current.Key, null, token)
-                                .ConfigureAwait(false);
-                            succeeded++;
-                            if (Logger.IsDebugEnabled)
+                            FailedTransportMessage transportMessage = stream.Current.Document.Message;
+                            try
                             {
-                                Logger.Debug($"Successfully re-imported failed audit message {dto.Id}.");
+                                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                                var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                                messageContext.SetTaskCompletionSource(taskCompletionSource);
+
+                                await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
+
+                                await taskCompletionSource.Task.ConfigureAwait(false);
+
+                                await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, token)
+                                    .ConfigureAwait(false);
+                                succeeded++;
+                                if (Logger.IsDebugEnabled)
+                                {
+                                    Logger.Debug($"Successfully re-imported failed audit message {transportMessage.Id}.");
+                                }
                             }
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            // no-op
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Error($"Error while attempting to re-import failed audit message {dto.Id}.", e);
-                            failed++;
+                            catch (OperationCanceledException)
+                            {
+                                // no-op
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.Error($"Error while attempting to re-import failed audit message {transportMessage.Id}.", e);
+                                failed++;
+                            }
                         }
                     }
                 }
+
+                Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");
+
+                if (failed > 0)
+                {
+                    Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.");
+                }
             }
-
-            Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");
-
-            if (failed > 0)
+            finally
             {
-                Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.");
+                await endpoint.Stop().ConfigureAwait(false);
             }
         }
 
-        IDocumentStore store;
-        AuditIngestor auditIngestor;
-        RawEndpointFactory rawEndpointFactory;
-        CancellationToken source;
+        readonly IDocumentStore store;
+        readonly AuditIngestor auditIngestor;
+        readonly RawEndpointFactory rawEndpointFactory;
 
-        static TransportTransaction EmptyTransaction = new TransportTransaction();
-        static CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
-        static ContextBag EmptyContextBag = new ContextBag();
+        static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
+        static readonly CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
+        static readonly ContextBag EmptyContextBag = new ContextBag();
         static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedAudits));
     }
 }
