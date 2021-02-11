@@ -24,7 +24,7 @@ namespace ServiceControl.Audit.Auditing
         public Task Run(CancellationToken tokenSource)
         {
             source = tokenSource;
-            return Task.Run(() => Run<FailedAuditImport, FailedAuditImportIndex>(source));
+            return Run<FailedAuditImport, FailedAuditImportIndex>(source);
         }
 
         async Task Run<T, I>(CancellationToken token) where I : AbstractIndexCreationTask, new()
