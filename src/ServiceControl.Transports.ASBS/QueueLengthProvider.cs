@@ -62,9 +62,9 @@ namespace ServiceControl.Transports.ASBS
 
                         Logger.DebugFormat("Retrieved details of {0} queues", queues.Count);
 
-                        var queuesLookup = new ConcurrentDictionary<string, QueueDescription>(queues, StringComparer.InvariantCultureIgnoreCase);
+                        var queuesLookup = new ConcurrentDictionary<string, QueueRuntimeInfo>(queues, StringComparer.InvariantCultureIgnoreCase);
 
-                        await UpdateAllQueueLengths(queuesLookup, token).ConfigureAwait(false);
+                        UpdateAllQueueLengths(queuesLookup);
                     }
                     catch (OperationCanceledException)
                     {
@@ -80,20 +80,21 @@ namespace ServiceControl.Transports.ASBS
             return Task.CompletedTask;
         }
 
-        async Task<Dictionary<string, QueueDescription>> GetQueueList(CancellationToken token)
+        async Task<Dictionary<string, QueueRuntimeInfo>> GetQueueList(CancellationToken token)
         {
             var pageSize = 100; //This is the maximal page size for GetQueueAsync
             var pageNo = 0;
 
-            var queues = new List<QueueDescription>();
+            var queues = new List<QueueRuntimeInfo>();
 
             while (true)
             {
-                var page = await managementClient.GetQueuesAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: token).ConfigureAwait(false);
+                //var page = await managementClient.GetQueuesAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: token).ConfigureAwait(false);
+                var pages = await managementClient.GetQueuesRuntimeInfoAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: token).ConfigureAwait(false);
 
-                queues.AddRange(page);
+                queues.AddRange(pages);
 
-                if (page.Count < pageSize)
+                if (pages.Count < pageSize)
                 {
                     break;
                 }
@@ -104,14 +105,20 @@ namespace ServiceControl.Transports.ASBS
             return queues.ToDictionary(q => q.Path, q => q);
         }
 
-        Task UpdateAllQueueLengths(ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token) => Task.WhenAll(endpointQueueMappings.Select(eq => UpdateQueueLength(eq, queues, token)));
+        void UpdateAllQueueLengths(ConcurrentDictionary<string, QueueRuntimeInfo> queues)
+        {
+            foreach (var eq in endpointQueueMappings)
+            {
+                UpdateQueueLength(eq, queues);
+            }
+        }
 
-        async Task UpdateQueueLength(KeyValuePair<string, string> monitoredEndpoint, ConcurrentDictionary<string, QueueDescription> queues, CancellationToken token)
+        void UpdateQueueLength(KeyValuePair<string, string> monitoredEndpoint, ConcurrentDictionary<string, QueueRuntimeInfo> queues)
         {
             var endpointName = monitoredEndpoint.Value;
             var queueName = monitoredEndpoint.Key;
 
-            if (!queues.TryGetValue(queueName, out _))
+            if (!queues.TryGetValue(queueName, out var runtimeInfo))
             {
                 return;
             }
@@ -121,7 +128,7 @@ namespace ServiceControl.Transports.ASBS
                 new QueueLengthEntry
                 {
                     DateTicks =  DateTime.UtcNow.Ticks,
-                    Value = (await managementClient.GetQueueRuntimeInfoAsync(queueName, token).ConfigureAwait(false)).MessageCountDetails.ActiveMessageCount
+                    Value = runtimeInfo.MessageCountDetails.ActiveMessageCount
                 }
             };
 
