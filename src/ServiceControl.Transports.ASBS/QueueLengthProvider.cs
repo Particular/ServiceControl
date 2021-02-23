@@ -58,13 +58,11 @@ namespace ServiceControl.Transports.ASBS
 
                         Logger.DebugFormat("Querying management client.");
 
-                        var queues = await GetQueueList(token).ConfigureAwait(false);
+                        var queueRuntimeInfos = await GetQueueList(token).ConfigureAwait(false);
 
-                        Logger.DebugFormat("Retrieved details of {0} queues", queues.Count);
+                        Logger.DebugFormat("Retrieved details of {0} queues", queueRuntimeInfos.Count);
 
-                        var queuesLookup = new ConcurrentDictionary<string, QueueRuntimeInfo>(queues, StringComparer.InvariantCultureIgnoreCase);
-
-                        UpdateAllQueueLengths(queuesLookup);
+                        UpdateAllQueueLengths(queueRuntimeInfos);
                     }
                     catch (OperationCanceledException)
                     {
@@ -80,21 +78,24 @@ namespace ServiceControl.Transports.ASBS
             return Task.CompletedTask;
         }
 
-        async Task<Dictionary<string, QueueRuntimeInfo>> GetQueueList(CancellationToken token)
+        async Task<IReadOnlyDictionary<string, QueueRuntimeInfo>> GetQueueList(CancellationToken token)
         {
-            var pageSize = 100; //This is the maximal page size for GetQueueAsync
+            const int pageSize = 100; //This is the maximal page size for GetQueueAsync
             var pageNo = 0;
 
-            var queues = new List<QueueRuntimeInfo>();
+            var queuePathToRuntimeInfo = new Dictionary<string, QueueRuntimeInfo>(StringComparer.InvariantCultureIgnoreCase);
 
             while (true)
             {
-                //var page = await managementClient.GetQueuesAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: token).ConfigureAwait(false);
-                var pages = await managementClient.GetQueuesRuntimeInfoAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: token).ConfigureAwait(false);
+                var pageOfQueueRuntimeInfo = await managementClient.GetQueuesRuntimeInfoAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: token)
+                    .ConfigureAwait(false);
 
-                queues.AddRange(pages);
+                foreach (var queueRuntimeInfo in pageOfQueueRuntimeInfo)
+                {
+                    queuePathToRuntimeInfo.Add(queueRuntimeInfo.Path, queueRuntimeInfo);
+                }
 
-                if (pages.Count < pageSize)
+                if (pageOfQueueRuntimeInfo.Count < pageSize)
                 {
                     break;
                 }
@@ -102,10 +103,10 @@ namespace ServiceControl.Transports.ASBS
                 pageNo++;
             }
 
-            return queues.ToDictionary(q => q.Path, q => q);
+            return queuePathToRuntimeInfo;
         }
 
-        void UpdateAllQueueLengths(ConcurrentDictionary<string, QueueRuntimeInfo> queues)
+        void UpdateAllQueueLengths(IReadOnlyDictionary<string, QueueRuntimeInfo> queues)
         {
             foreach (var eq in endpointQueueMappings)
             {
@@ -113,7 +114,7 @@ namespace ServiceControl.Transports.ASBS
             }
         }
 
-        void UpdateQueueLength(KeyValuePair<string, string> monitoredEndpoint, ConcurrentDictionary<string, QueueRuntimeInfo> queues)
+        void UpdateQueueLength(KeyValuePair<string, string> monitoredEndpoint, IReadOnlyDictionary<string, QueueRuntimeInfo> queues)
         {
             var endpointName = monitoredEndpoint.Value;
             var queueName = monitoredEndpoint.Key;
