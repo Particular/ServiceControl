@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.2" />
     <PackageReference Include="Microsoft.Data.SqlClient.SNI" Version="2.1.1" />
     <PackageReference Include="NServiceBus.Transport.SqlServer" Version="6.2.0" />
   </ItemGroup>
