@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Monitoring.Licensing
 {
-    using System;
     using NServiceBus.Logging;
     using Particular.Licensing;
 
@@ -12,11 +11,9 @@
         public void Refresh()
         {
             Logger.Debug("Checking License Status");
-            var sources = new LicenseSource[]
-            {
-                new LicenseSourceFilePath(LicenseFileLocationResolver.GetPathFor(Environment.SpecialFolder.CommonApplicationData))
-            };
-            var result = ActiveLicense.Find("ServiceControl", sources);
+
+            var sources = LicenseSource.GetStandardLicenseSources();
+            var result = ActiveLicense.Find("ServiceControl", sources.ToArray());
 
             if (result.License.HasExpired())
             {

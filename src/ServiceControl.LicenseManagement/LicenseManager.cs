@@ -7,12 +7,8 @@
     {
         public static DetectedLicense FindLicense()
         {
-            var sources = new LicenseSource[]
-            {
-                new LicenseSourceFilePath(GetMachineLevelLicenseLocation())
-            };
-
-            var result = ActiveLicense.Find("ServiceControl", sources);
+            var sources = LicenseSource.GetStandardLicenseSources();
+            var result = ActiveLicense.Find("ServiceControl", sources.ToArray());
 
             var detectedLicense = new DetectedLicense(result.Location, LicenseDetails.FromLicense(result.License))
             {
