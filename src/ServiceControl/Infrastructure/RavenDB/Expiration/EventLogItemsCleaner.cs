@@ -9,6 +9,7 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Database;
 
     static class EventLogItemsCleaner
@@ -17,6 +18,8 @@
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
+            var indexName = new ExpiryEventLogItemsIndex().IndexName;
+
             try
             {
                 var query = new IndexQuery
@@ -39,7 +42,7 @@
                         }
                     }
                 };
-                var indexName = new ExpiryEventLogItemsIndex().IndexName;
+
                 database.Query(indexName, query, token,
                     (doc, commands) =>
                     {
@@ -54,6 +57,11 @@
                             Key = id
                         });
                     }, items);
+            }
+            catch (IndexDisabledException ex)
+            {
+                logger.Warn($"Unable to cleanup event log items. The index ${indexName} was disabled.", ex);
+                return;
             }
             catch (OperationCanceledException)
             {

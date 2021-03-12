@@ -9,6 +9,7 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Database;
     using Raven.Json.Linq;
     using ServiceControl.Infrastructure.RavenDB;
@@ -21,6 +22,7 @@
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
             var itemsAndAttachements = Tuple.Create(items, attachments);
+            var indexName = new ExpiryProcessedMessageIndex().IndexName;
 
             try
             {
@@ -46,7 +48,6 @@
                         }
                     }
                 };
-                var indexName = new ExpiryProcessedMessageIndex().IndexName;
                 database.Query(indexName, query, token,
                     (doc, state) =>
                     {
@@ -66,6 +67,11 @@
                             state.Item2.Add(bodyId);
                         }
                     }, itemsAndAttachements);
+            }
+            catch (IndexDisabledException ex)
+            {
+                logger.Warn($"Unable to cleanup audit messages. The index ${indexName} was disabled.", ex);
+                return;
             }
             catch (OperationCanceledException)
             {

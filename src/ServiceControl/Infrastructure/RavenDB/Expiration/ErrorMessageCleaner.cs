@@ -9,6 +9,7 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Database;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -21,6 +22,7 @@
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
             var failedRetryItems = new List<ICommandData>(deletionBatchSize);
+            var indexName = new ExpiryErrorMessageIndex().IndexName;
 
             var itemsAndAttachements = new
             {
@@ -53,7 +55,6 @@
                     }
                 };
 
-                var indexName = new ExpiryErrorMessageIndex().IndexName;
                 database.Query(indexName, query, token,
                     (doc, state) =>
                     {
@@ -76,6 +77,11 @@
                         var bodyid = doc.Value<string>("ProcessingAttempts[0].MessageId");
                         state.attachments.Add(bodyid);
                     }, itemsAndAttachements);
+            }
+            catch (IndexDisabledException ex)
+            {
+                logger.Warn($"Unable to cleanup error messages. The index ${indexName} was disabled.", ex);
+                return;
             }
             catch (OperationCanceledException)
             {

@@ -10,6 +10,7 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Database;
 
     public static class SagaHistoryCleaner
@@ -18,6 +19,8 @@
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
+            var indexName = new ExpirySagaAuditIndex().IndexName;
+
             try
             {
                 var query = new IndexQuery
@@ -40,7 +43,7 @@
                         }
                     }
                 };
-                var indexName = new ExpirySagaAuditIndex().IndexName;
+
                 database.Query(indexName, query, token,
                     (doc, commands) =>
                     {
@@ -55,6 +58,11 @@
                             Key = id
                         });
                     }, items);
+            }
+            catch (IndexDisabledException ex)
+            {
+                logger.Warn($"Unable to cleanup saga history. The index ${indexName} was disabled.", ex);
+                return;
             }
             catch (OperationCanceledException)
             {
