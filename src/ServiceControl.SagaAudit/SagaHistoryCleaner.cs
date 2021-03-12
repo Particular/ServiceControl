@@ -61,7 +61,7 @@
             }
             catch (IndexDisabledException ex)
             {
-                logger.Warn($"Unable to cleanup saga history. The index ${indexName} was disabled.", ex);
+                logger.Error($"Unable to cleanup saga history. The index ${indexName} was disabled.", ex);
                 return;
             }
             catch (OperationCanceledException)

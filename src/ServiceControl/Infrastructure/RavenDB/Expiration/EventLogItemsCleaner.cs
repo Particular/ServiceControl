@@ -60,7 +60,7 @@
             }
             catch (IndexDisabledException ex)
             {
-                logger.Warn($"Unable to cleanup event log items. The index ${indexName} was disabled.", ex);
+                logger.Error($"Unable to cleanup event log items. The index ${indexName} was disabled.", ex);
                 return;
             }
             catch (OperationCanceledException)

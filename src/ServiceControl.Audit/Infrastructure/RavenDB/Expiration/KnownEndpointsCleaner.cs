@@ -61,7 +61,7 @@
             }
             catch (IndexDisabledException ex)
             {
-                logger.Warn($"Unable to cleanup known endpoints. The index ${indexName} was disabled.", ex);
+                logger.Error($"Unable to cleanup known endpoints. The index ${indexName} was disabled.", ex);
                 return;
             }
             catch (OperationCanceledException)

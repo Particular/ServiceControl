@@ -70,7 +70,7 @@
             }
             catch (IndexDisabledException ex)
             {
-                logger.Warn($"Unable to cleanup audit messages. The index ${indexName} was disabled.", ex);
+                logger.Error($"Unable to cleanup audit messages. The index ${indexName} was disabled.", ex);
                 return;
             }
             catch (OperationCanceledException)
