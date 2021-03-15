@@ -9,6 +9,7 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Database;
     using Raven.Json.Linq;
 
@@ -20,6 +21,7 @@
             var items = new List<ICommandData>(deletionBatchSize);
             var attachments = new List<string>(deletionBatchSize);
             var itemsAndAttachements = Tuple.Create(items, attachments);
+            var indexName = new ExpiryProcessedMessageIndex().IndexName;
 
             try
             {
@@ -45,7 +47,7 @@
                         }
                     }
                 };
-                var indexName = new ExpiryProcessedMessageIndex().IndexName;
+
                 database.Query(indexName, query, token,
                     (doc, state) =>
                     {
@@ -66,6 +68,11 @@
                         }
                     }, itemsAndAttachements);
             }
+            catch (IndexDisabledException ex)
+            {
+                logger.Error($"Unable to cleanup audit messages. The index ${indexName} was disabled.", ex);
+                return;
+            }
             catch (OperationCanceledException)
             {
                 logger.Info("Cleanup operation cancelled");
@@ -76,7 +83,6 @@
             {
                 return;
             }
-
 
             var deletedAuditDocuments = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {

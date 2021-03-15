@@ -9,6 +9,7 @@
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Database;
     using ServiceControl.Infrastructure.RavenDB;
 
@@ -18,6 +19,7 @@
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
+            var indexName = new ExpiryKnownEndpointsIndex().IndexName;
 
             try
             {
@@ -42,7 +44,6 @@
                     }
                 };
 
-                var indexName = new ExpiryKnownEndpointsIndex().IndexName;
                 database.Query(indexName, query, token,
                     (doc, state) =>
                     {
@@ -57,6 +58,11 @@
                             Key = id
                         });
                     }, items);
+            }
+            catch (IndexDisabledException ex)
+            {
+                logger.Error($"Unable to cleanup known endpoints. The index ${indexName} was disabled.", ex);
+                return;
             }
             catch (OperationCanceledException)
             {
