@@ -62,6 +62,8 @@
             transport.ConnectionString(transportSettings.ConnectionString);
 
             transport.MessageInvisibleTime(TimeSpan.FromMinutes(1));
+
+            transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
         public override IProvideQueueLength CreateQueueLengthProvider()
