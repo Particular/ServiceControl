@@ -24,7 +24,8 @@
 
         public override void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
-            CustomizeEndpoint(endpointConfiguration, transportSettings);
+            var transport = CustomizeEndpoint(endpointConfiguration, transportSettings);
+            transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
         public override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -35,6 +36,7 @@
         public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings);
+            //Do not ConfigurePubSub for send-only endpoint
         }
 
         public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -42,10 +44,11 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
+        static TransportExtensions<AzureStorageQueueTransport> CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
             ConfigureTransport(transport, transportSettings);
+            return transport;
         }
 
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
@@ -62,8 +65,6 @@
             transport.ConnectionString(transportSettings.ConnectionString);
 
             transport.MessageInvisibleTime(TimeSpan.FromMinutes(1));
-
-            transport.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
         public override IProvideQueueLength CreateQueueLengthProvider()
