@@ -60,9 +60,17 @@
 
         static void ConfigureTransport(TransportExtensions<AzureStorageQueueTransport> transport, TransportSettings transportSettings)
         {
+            var connectionString = transportSettings.ConnectionString
+                .RemoveCustomConnectionStringParts(out var subscriptionTableName);
+
             transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
-            transport.ConnectionString(transportSettings.ConnectionString);
+            transport.ConnectionString(connectionString);
+
+            if (!string.IsNullOrEmpty(subscriptionTableName))
+            {
+                transport.SubscriptionTableName(subscriptionTableName);
+            }
 
             transport.MessageInvisibleTime(TimeSpan.FromMinutes(1));
         }
