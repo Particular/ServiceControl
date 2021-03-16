@@ -8,19 +8,19 @@
             connectionString
                 .RemoveCustomConnectionStringPart(SubscriptionsTableName, out subscriptionTable);
 
-        static string RemoveCustomConnectionStringPart(this string connectionString, string partName, out string schema)
+        static string RemoveCustomConnectionStringPart(this string connectionString, string partName, out string value)
         {
             var builder = new DbConnectionStringBuilder
             {
                 ConnectionString = connectionString
             };
 
-            if (builder.TryGetValue(partName, out var customSchema))
+            if (builder.TryGetValue(partName, out var partValue))
             {
                 builder.Remove(partName);
             }
 
-            schema = (string)customSchema;
+            value = (string)partValue;
 
             return builder.ConnectionString;
         }
