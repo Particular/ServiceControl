@@ -13,7 +13,7 @@
     {
         public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> storeDto)
         {
-            this.connectionString = connectionString;
+            this.connectionString = connectionString.RemoveCustomConnectionStringParts(out _);
             store = storeDto;
         }
 
