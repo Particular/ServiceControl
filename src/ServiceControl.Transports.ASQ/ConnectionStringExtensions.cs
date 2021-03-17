@@ -1,30 +1,37 @@
 ﻿namespace ServiceControl.Transports.ASQ
 {
-    using System.Data.Common;
+    using System.Collections.Generic;
+    using System.Text.RegularExpressions;
 
     static class ConnectionStringExtensions
     {
-        public static string RemoveCustomConnectionStringParts(this string connectionString, out string subscriptionTable) =>
-            connectionString
-                .RemoveCustomConnectionStringPart(SubscriptionsTableName, out subscriptionTable);
-
-        static string RemoveCustomConnectionStringPart(this string connectionString, string partName, out string value)
+        // using DbConnectionStringBuilder would escape account key and lead to troubles
+        public static string RemoveCustomConnectionStringParts(this string connectionString, out string subscriptionTable)
         {
-            var builder = new DbConnectionStringBuilder
-            {
-                ConnectionString = connectionString
-            };
+            subscriptionTable = null;
 
-            if (builder.TryGetValue(partName, out var partValue))
+            var parts = new List<string>();
+            var groups = ConnectionStringRegex.Matches(connectionString);
+            foreach (Match match in groups)
             {
-                builder.Remove(partName);
+                switch (match.Groups[2].Value)
+                {
+                    case SubscriptionsTableName:
+                        subscriptionTable = match.Groups[3].Value;
+                        break;
+                    default:
+                        parts.Add(match.Value);
+                        break;
+                }
             }
-
-            value = (string)partValue;
-
-            return builder.ConnectionString;
+            return string.Join(";", parts);
         }
 
+
+
         const string SubscriptionsTableName = "Subscriptions Table";
+
+        static readonly Regex ConnectionStringRegex =
+            new Regex(@"(?<key>[^=;]+)=(?<val>[^;]+(,\d+)?)", RegexOptions.Compiled);
     }
 }
