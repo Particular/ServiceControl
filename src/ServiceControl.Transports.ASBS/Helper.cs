@@ -17,8 +17,10 @@
 
         public static void ConfigureNameShorteners(this TransportExtensions<AzureServiceBusTransport> transport)
         {
+#pragma warning disable 618
             transport.SubscriptionNameShortener(n => n.Length > MaxEntityName ? MD5DeterministicNameBuilder.Build(n) : n);
             transport.RuleNameShortener(n => n.Length > MaxEntityName ? MD5DeterministicNameBuilder.Build(n) : n);
+#pragma warning restore 618
         }
 
         const int MaxEntityName = 50;
