@@ -93,11 +93,17 @@
 
             if (deletionCount == 0)
             {
-                logger.Info("No expired saga history documents found");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug("No expired saga history documents found");
+                }
             }
             else
             {
-                logger.Info($"Deleted {deletionCount} expired saga history documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Deleted {deletionCount} expired saga history documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
         }
 

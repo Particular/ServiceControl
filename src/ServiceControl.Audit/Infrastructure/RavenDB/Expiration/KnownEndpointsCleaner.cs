@@ -94,11 +94,17 @@
 
             if (deleteKnownEndpointDocuments == 0)
             {
-                logger.Info("No expired known endpoints documents found");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug("No expired known endpoints documents found");
+                }
             }
             else
             {
-                logger.Info($"Deleted {deleteKnownEndpointDocuments} expired known endpoint documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Deleted {deleteKnownEndpointDocuments} expired known endpoint documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
         }
 
