@@ -28,6 +28,7 @@
     <PackageReference Include="PropertyChanged.Fody" Version="3.3.3" />
     <PackageReference Include="PropertyChanging.Fody" Version="1.30.2" />
     <PackageReference Include="reactiveui" Version="13.2.2" />
+    <PackageReference Include="ReactiveUI.WPF" Version="13.2.2" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="Validar.Fody" Version="1.9.0" />
     <PackageReference Include="Windows7APICodePack-Shell" Version="1.1.0" />
