@@ -2,28 +2,22 @@
 {
     using System;
     using Caliburn.Micro;
-    using PropertyChanging;
     using ReactiveUI;
+    using PropertyChangingDoNotNotify = PropertyChanging.DoNotNotifyAttribute;
+    using PropertyChangedDoNotNotify = PropertyChanged.DoNotNotifyAttribute;
 
     public class RxPropertyChanged : ReactiveObject, INotifyPropertyChangedEx
     {
-        [DoNotNotify]
-        [PropertyChanged.DoNotNotify]
-        [Obsolete("Use SuppressChangeNotifications() instead.", true)]
+        [PropertyChangingDoNotNotify]
+        [PropertyChangedDoNotNotify]
         bool INotifyPropertyChangedEx.IsNotifying
         {
             get { throw new NotSupportedException("Use SuppressChangeNotifications() instead."); }
             set { throw new NotSupportedException("Use SuppressChangeNotifications() instead."); }
         }
 
-        public void NotifyOfPropertyChange(string propertyName)
-        {
-            raisePropertyChanged(propertyName);
-        }
+        public void NotifyOfPropertyChange(string propertyName) => this.RaisePropertyChanged(propertyName);
 
-        void INotifyPropertyChangedEx.Refresh()
-        {
-            raisePropertyChanged(string.Empty);
-        }
+        void INotifyPropertyChangedEx.Refresh() => this.RaisePropertyChanged(string.Empty);
     }
 }
