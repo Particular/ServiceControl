@@ -63,8 +63,8 @@
 
         public virtual void OnSelectedTransportChanged()
         {
-            ServiceControl?.OnSelectedTransportChanged();
-            ServiceControlAudit?.OnSelectedTransportChanged();
+            ServiceControl?.SelectedTransportChanged();
+            ServiceControlAudit?.SelectedTransportChanged();
             NotifyOfPropertyChange(nameof(ConnectionString));
         }
 
@@ -147,7 +147,8 @@
             ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
         }
 
-        public void OnSelectedTransportChanged()
+        // Deliberately not using the OnMethod syntax. The owning viewmodel forwards selected transport changed events manually
+        public void SelectedTransportChanged()
         {
             NotifyOfPropertyChange(nameof(ErrorQueueName));
             NotifyOfPropertyChange(nameof(ErrorForwardingQueueName));
@@ -229,7 +230,8 @@
             AuditRetention = AuditRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
         }
 
-        public void OnSelectedTransportChanged()
+        // Deliberately not using the OnMethod syntax. The owning viewmodel forwards selected transport changed events manually
+        public void SelectedTransportChanged()
         {
             NotifyOfPropertyChange(nameof(AuditQueueName));
             NotifyOfPropertyChange(nameof(AuditForwardingQueueName));
