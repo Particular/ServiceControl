@@ -44,8 +44,7 @@
                     }
                 };
 
-                database.Query(indexName, query, token,
-                    (doc, commands) =>
+                database.Query(indexName, query, (doc, commands) =>
                     {
                         var id = doc.Value<string>("__document_id");
                         if (string.IsNullOrEmpty(id))
@@ -57,7 +56,8 @@
                         {
                             Key = id
                         });
-                    }, items);
+                    },
+                    items, token);
             }
             catch (IndexDisabledException ex)
             {
