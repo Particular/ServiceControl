@@ -48,8 +48,7 @@
                         }
                     }
                 };
-                database.Query(indexName, query, token,
-                    (doc, state) =>
+                database.Query(indexName, query, (doc, state) =>
                     {
                         var id = doc.Value<string>("__document_id");
                         if (string.IsNullOrEmpty(id))
@@ -66,7 +65,8 @@
                         {
                             state.Item2.Add(bodyId);
                         }
-                    }, itemsAndAttachements);
+                    },
+                    itemsAndAttachements, token);
             }
             catch (IndexDisabledException ex)
             {

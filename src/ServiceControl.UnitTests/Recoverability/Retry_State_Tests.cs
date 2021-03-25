@@ -333,7 +333,7 @@
         {
         }
 
-        public override Task Run(string forwardingBatchId, Predicate<MessageContext> filter, CancellationToken cancellationToken, int? expectedMessageCount = null)
+        public override Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);
         }
