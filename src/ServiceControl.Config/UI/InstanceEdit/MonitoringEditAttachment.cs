@@ -24,7 +24,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             var validationTemplate = new ValidationTemplate(viewModel);
             viewModel.ValidationTemplate = validationTemplate;
 
-            viewModel.Save = new ReactiveCommand().DoAsync(Save);
+            viewModel.Save = ReactiveCommand.CreateFromTask(Save);
             viewModel.Cancel = Command.Create(() =>
             {
                 viewModel.TryClose(false);
@@ -37,7 +37,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             return viewModel != null && !viewModel.InProgress;
         }
 
-        async Task Save(object arg)
+        async Task Save()
         {
             viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())

@@ -25,7 +25,7 @@
             var validationTemplate = new ValidationTemplate(viewModel);
             viewModel.ValidationTemplate = validationTemplate;
 
-            viewModel.Save = new ReactiveCommand().DoAsync(Add);
+            viewModel.Save = ReactiveCommand.CreateFromTask(Add);
             viewModel.Cancel = Command.Create(() =>
             {
                 viewModel.TryClose(false);
@@ -38,7 +38,7 @@
             return viewModel != null && !viewModel.InProgress;
         }
 
-        async Task Add(object arg)
+        async Task Add()
         {
             viewModel.SubmitAttempted = true;
             if (!viewModel.ValidationTemplate.Validate())

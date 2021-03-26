@@ -24,10 +24,10 @@
                 viewModel.TryClose(false);
             });
 
-            viewModel.Continue = new ReactiveCommand().DoAction(Continue);
+            viewModel.Continue = ReactiveCommand.Create(Continue);
         }
 
-        void Continue(object arg)
+        void Continue()
         {
             viewModel.SubmitAttempted = true;
 
