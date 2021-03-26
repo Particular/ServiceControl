@@ -155,11 +155,17 @@
 
             if (deletedFailedMessage + deletedAttachments + deletedFailedMessageRetry == 0)
             {
-                logger.Info("No expired error documents found");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug("No expired error documents found");
+                }
             }
             else
             {
-                logger.Info($"Deleted {deletedFailedMessage} expired error documents and {deletedAttachments} message body attachments. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Deleted {deletedFailedMessage} expired error documents and {deletedAttachments} message body attachments. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
         }
 

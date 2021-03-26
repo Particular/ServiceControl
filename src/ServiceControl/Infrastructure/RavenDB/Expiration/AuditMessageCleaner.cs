@@ -129,11 +129,17 @@
 
             if (deletedAttachments + deletedAuditDocuments == 0)
             {
-                logger.Info("No expired audit documents found");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug("No expired audit documents found");
+                }
             }
             else
             {
-                logger.Info($"Deleted {deletedAuditDocuments} expired audit documents and {deletedAttachments} message body attachments. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Deleted {deletedAuditDocuments} expired audit documents and {deletedAttachments} message body attachments. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
         }
 

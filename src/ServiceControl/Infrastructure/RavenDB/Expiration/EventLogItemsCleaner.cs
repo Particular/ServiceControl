@@ -93,11 +93,17 @@
 
             if (deletionCount == 0)
             {
-                logger.Info("No expired event log documents found");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug("No expired event log documents found");
+                }
             }
             else
             {
-                logger.Info($"Deleted {deletionCount} expired event log documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Deleted {deletionCount} expired event log documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
         }
 
