@@ -41,6 +41,7 @@
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
+                DocumentIds = failedMessages.Select(x => x.UniqueMessageId).ToArray(),
                 MessagesCount = failedMessages.Length
             }).ConfigureAwait(false);
         }
