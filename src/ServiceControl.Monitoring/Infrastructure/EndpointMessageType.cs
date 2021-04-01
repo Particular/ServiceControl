@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure
 {
-    public class EndpointMessageType
+    public readonly struct EndpointMessageType
     {
         public EndpointMessageType(string endpointName, string messageType)
         {
@@ -11,26 +11,15 @@
         public string EndpointName { get; }
         public string MessageType { get; }
 
-        public static EndpointMessageType Unknown(string endpointName)
-        {
-            return new EndpointMessageType(endpointName, string.Empty);
-        }
+        public static EndpointMessageType Unknown(string endpointName) => new EndpointMessageType(endpointName, string.Empty);
 
-        protected bool Equals(EndpointMessageType other)
-        {
-            return string.Equals(EndpointName, other.EndpointName) && string.Equals(MessageType, other.MessageType);
-        }
+        bool Equals(EndpointMessageType other) => string.Equals(EndpointName, other.EndpointName) && string.Equals(MessageType, other.MessageType);
 
         public override bool Equals(object obj)
         {
             if (obj is null)
             {
                 return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
             }
 
             if (obj.GetType() != GetType())
