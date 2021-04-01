@@ -15,27 +15,8 @@
 
         bool Equals(EndpointMessageType other) => string.Equals(EndpointName, other.EndpointName) && string.Equals(MessageType, other.MessageType);
 
-        public override bool Equals(object obj)
-        {
-            if (obj is null)
-            {
-                return false;
-            }
+        public override bool Equals(object obj) => obj is EndpointMessageType messageType && Equals(messageType);
 
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((EndpointMessageType)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return ((EndpointName != null ? EndpointName.GetHashCode() : 0) * 397) ^ (MessageType != null ? MessageType.GetHashCode() : 0);
-            }
-        }
+        public override int GetHashCode() => (EndpointName, MessageType).GetHashCode();
     }
 }

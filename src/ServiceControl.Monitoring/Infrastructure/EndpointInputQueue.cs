@@ -15,27 +15,8 @@
 
         public bool Equals(EndpointInputQueue other) => string.Equals(EndpointName, other.EndpointName) && string.Equals(InputQueue, other.InputQueue);
 
-        public override bool Equals(object obj)
-        {
-            if (obj is null)
-            {
-                return false;
-            }
+        public override bool Equals(object obj) => obj is EndpointInputQueue inputQueue && Equals(inputQueue);
 
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((EndpointInputQueue)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return ((EndpointName != null ? EndpointName.GetHashCode() : 0) * 397) ^ (InputQueue != null ? InputQueue.GetHashCode() : 0);
-            }
-        }
+        public override int GetHashCode() => (EndpointName, InputQueue).GetHashCode();
     }
 }
