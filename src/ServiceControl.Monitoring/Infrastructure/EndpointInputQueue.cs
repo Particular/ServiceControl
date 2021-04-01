@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class EndpointInputQueue : IEquatable<EndpointInputQueue>
+    public readonly struct EndpointInputQueue : IEquatable<EndpointInputQueue>
     {
         public EndpointInputQueue(string endpointName, string inputQueue)
         {
@@ -13,31 +13,13 @@
         public string EndpointName { get; }
         public string InputQueue { get; }
 
-        public bool Equals(EndpointInputQueue other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return string.Equals(EndpointName, other.EndpointName) && string.Equals(InputQueue, other.InputQueue);
-        }
+        public bool Equals(EndpointInputQueue other) => string.Equals(EndpointName, other.EndpointName) && string.Equals(InputQueue, other.InputQueue);
 
         public override bool Equals(object obj)
         {
             if (obj is null)
             {
                 return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
             }
 
             if (obj.GetType() != GetType())
