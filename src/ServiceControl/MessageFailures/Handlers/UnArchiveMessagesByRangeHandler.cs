@@ -51,7 +51,7 @@ if(this.Status === archivedStatus) {
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
-                DocumentIds = patchedDocumentIds.Select(x => x.Document).ToArray(),
+                DocumentIds = patchedDocumentIds.Select(x => FailedMessage.GetMessageIdFromDocumentId(x.Document)).ToArray(),
                 MessagesCount = patchedDocumentIds.Length
             }).ConfigureAwait(false);
         }

@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus;
@@ -92,6 +93,12 @@ namespace ServiceControl.Recoverability
                     if (nextBatch != null)
                     {
                         logger.Info($"Archiving of {nextBatch.DocumentIds.Count} messages from group {message.GroupId} completed");
+
+                        if (archiveOperation.FailedMessagesIds == null)
+                        {
+                            archiveOperation.FailedMessagesIds = new string[] { };
+                        }
+                        archiveOperation.FailedMessagesIds.Concat(nextBatch.DocumentIds.ToArray());
                     }
                 }
             }
@@ -114,7 +121,8 @@ namespace ServiceControl.Recoverability
             {
                 GroupId = message.GroupId,
                 GroupName = archiveOperation.GroupName,
-                MessagesCount = archiveOperation.TotalNumberOfMessages
+                MessagesCount = archiveOperation.TotalNumberOfMessages,
+                FailedMessagesIds = archiveOperation.FailedMessagesIds
             }).ConfigureAwait(false);
         }
 

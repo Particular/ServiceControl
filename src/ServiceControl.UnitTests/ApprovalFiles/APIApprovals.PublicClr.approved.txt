@@ -343,6 +343,7 @@ namespace ServiceControl.Contracts.MessageFailures
     public class FailedMessagesUnArchived
     {
         public FailedMessagesUnArchived() { }
+        public string[] DocumentIds { get; set; }
         public int MessagesCount { get; set; }
     }
     public class MarkMessageFailureResolvedByRetry : NServiceBus.ICommand, NServiceBus.IMessage
@@ -1176,6 +1177,7 @@ namespace ServiceControl.Recoverability
     public class FailedMessageGroupArchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public FailedMessageGroupArchived() { }
+        public string[] FailedMessagesIds { get; set; }
         public string GroupId { get; set; }
         public string GroupName { get; set; }
         public int MessagesCount { get; set; }
