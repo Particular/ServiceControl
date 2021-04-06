@@ -5,15 +5,24 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
     using Raven.Client;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ErrorIngestion
     {
-        public ErrorIngestion(ErrorIngestor errorIngestor, string errorQueue, RawEndpointFactory rawEndpointFactory, IDocumentStore documentStore, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError)
+        public ErrorIngestion(
+            Func<MessageContext, Task> onMessage,
+            Func<IDispatchMessages, Task> initialize,
+            string errorQueue,
+            RawEndpointFactory rawEndpointFactory,
+            IDocumentStore documentStore,
+            LoggingSettings loggingSettings,
+            Func<string, Exception, Task> onCriticalError)
         {
-            this.errorIngestor = errorIngestor;
+            this.onMessage = onMessage;
+            this.initialize = initialize;
             this.errorQueue = errorQueue;
             this.rawEndpointFactory = rawEndpointFactory;
             this.onCriticalError = onCriticalError;
@@ -33,7 +42,7 @@
 
                 var rawConfiguration = rawEndpointFactory.CreateErrorIngestor(
                     errorQueue,
-                    (messageContext, dispatcher) => errorIngestor.Ingest(messageContext));
+                    (messageContext, dispatcher) => onMessage(messageContext));
 
                 rawConfiguration.Settings.Set("onCriticalErrorAction", (Func<ICriticalErrorContext, Task>)OnCriticalErrorAction);
 
@@ -41,7 +50,7 @@
 
                 var startableRaw = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
-                await errorIngestor.Initialize(startableRaw).ConfigureAwait(false);
+                await initialize(startableRaw).ConfigureAwait(false);
 
                 ingestionEndpoint = await startableRaw.Start()
                     .ConfigureAwait(false);
@@ -75,12 +84,12 @@
         }
 
         SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
-        ErrorIngestor errorIngestor;
+        Func<MessageContext, Task> onMessage;
+        Func<IDispatchMessages, Task> initialize;
         string errorQueue;
         RawEndpointFactory rawEndpointFactory;
         Func<string, Exception, Task> onCriticalError;
         SatelliteImportFailuresHandler importFailuresHandler;
-
         IReceivingRawEndpoint ingestionEndpoint;
     }
 }

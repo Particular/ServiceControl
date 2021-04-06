@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
@@ -19,45 +20,78 @@
             this.errorLogQueue = errorLogQueue;
         }
 
-        public async Task Ingest(MessageContext message)
+        public async Task Ingest(List<MessageContext> contexts)
         {
-            if (log.IsDebugEnabled)
+            var stored = await errorPersister.Persist(contexts)
+                .ConfigureAwait(false);
+
+            try
             {
-                message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                log.Debug($"Ingesting error message {message.MessageId} (original message id: {originalMessageId ?? string.Empty})");
+                var announcerTasks = new List<Task>(stored.Count);
+                foreach (var context in stored)
+                {
+                    announcerTasks.Add(failedMessageAnnouncer.Announce(context.Headers, context.Extensions.Get<FailureDetails>()));
+                }
+
+                await Task.WhenAll(announcerTasks).ConfigureAwait(false);
+
+                if (forwardErrorMessages)
+                {
+                    if (log.IsDebugEnabled)
+                    {
+                        log.Debug($"Forwarding {contexts.Count} messages");
+                    }
+                    await Forward(stored).ConfigureAwait(false);
+                    if (log.IsDebugEnabled)
+                    {
+                        log.Debug($"Forwarded messages");
+                    }
+                }
+
+                foreach (var context in stored)
+                {
+                    context.GetTaskCompletionSource().TrySetResult(true);
+                }
             }
-
-            var failureDetails = await errorPersister.Persist(message)
-                .ConfigureAwait(false);
-
-            await failedMessageAnnouncer.Announce(message.Headers, failureDetails)
-                .ConfigureAwait(false);
-
-            if (forwardErrorMessages)
+            catch (Exception e)
             {
-                await Forward(message).ConfigureAwait(false);
+                if (log.IsDebugEnabled)
+                {
+                    log.Debug("Forwarding messages failed", e);
+                }
+
+                // making sure to rethrow so that all messages get marked as failed
+                throw;
             }
         }
 
-        Task Forward(MessageContext messageContext)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts)
         {
-            var outgoingMessage = new OutgoingMessage(
-                messageContext.MessageId,
-                messageContext.Headers,
-                messageContext.Body);
+            var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
+            var index = 0;
+            MessageContext anyContext = null;
+            foreach (var messageContext in messageContexts)
+            {
+                anyContext = messageContext;
+                var outgoingMessage = new OutgoingMessage(
+                    messageContext.MessageId,
+                    messageContext.Headers,
+                    messageContext.Body);
 
-            // Forwarded messages should last as long as possible
-            outgoingMessage.Headers.Remove(Headers.TimeToBeReceived);
+                // Forwarded messages should last as long as possible
+                outgoingMessage.Headers.Remove(NServiceBus.Headers.TimeToBeReceived);
 
-            var transportOperations = new TransportOperations(
-                new TransportOperation(outgoingMessage, new UnicastAddressTag(errorLogQueue))
-            );
+                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(errorLogQueue));
+                index++;
+            }
 
-            return dispatcher.Dispatch(
-                transportOperations,
-                messageContext.TransportTransaction,
-                messageContext.Extensions
-            );
+            return anyContext != null
+                ? dispatcher.Dispatch(
+                    new TransportOperations(transportOperations),
+                    anyContext.TransportTransaction,
+                    anyContext.Extensions
+                )
+                : Task.CompletedTask;
         }
 
         public async Task Initialize(IDispatchMessages dispatcher)

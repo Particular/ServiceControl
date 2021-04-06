@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Extensibility;
@@ -43,7 +44,7 @@
                             {
                                 var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
 
-                                await errorIngestor.Ingest(messageContext).ConfigureAwait(false);
+                                await errorIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
 
                                 await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, token)
                                     .ConfigureAwait(false);

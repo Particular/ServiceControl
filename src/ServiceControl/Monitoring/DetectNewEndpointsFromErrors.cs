@@ -56,10 +56,9 @@
                     return;
                 }
 
-                if(monitoring.IsNewInstance(endpointDetails))
+                if (monitoring.IsNewInstance(endpointDetails))
                 {
-                    // maybe just add the endpoint details?
-                    // context.KnownEndpoints.Add();
+                    context.Add(endpointDetails);
                 }
             }
 
