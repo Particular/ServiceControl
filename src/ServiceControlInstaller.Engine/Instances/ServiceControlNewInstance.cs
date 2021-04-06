@@ -225,7 +225,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+                var baseUrl = $"http://+:{DatabaseMaintenancePort}/";
                 return baseUrl;
             }
         }

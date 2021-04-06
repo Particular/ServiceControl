@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.PowerShell
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.Management.Automation;
     using Engine.Instances;
