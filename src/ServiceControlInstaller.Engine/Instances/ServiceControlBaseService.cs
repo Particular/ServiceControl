@@ -66,6 +66,9 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
+        //This is an old aclurl registration for embedded RavenDB instance that includes the hostname.
+        //We need that to make sure we can clean-up old registration when removing instances created
+        //using pre 4.17 versions of ServiceControl.
         public string LegacyAclMaintenanceUrl
         {
             get
