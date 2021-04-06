@@ -7,8 +7,7 @@
         public override Task Execute(HostArguments args)
         {
             var bootstrapper = new MaintenanceBootstrapper();
-            bootstrapper.Run(args);
-            return Task.CompletedTask;
+            return bootstrapper.Run(args);
         }
     }
 }

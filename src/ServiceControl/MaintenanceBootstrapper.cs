@@ -1,6 +1,8 @@
 namespace Particular.ServiceControl
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using Hosting;
     using Raven.Client.Embedded;
@@ -8,27 +10,31 @@ namespace Particular.ServiceControl
 
     class MaintenanceBootstrapper
     {
-        public void Run(HostArguments args)
+        public async Task Run(HostArguments args)
         {
             var settings = new Settings(args.ServiceName);
             var documentStore = new EmbeddableDocumentStore();
 
             new RavenBootstrapper().StartRaven(documentStore, settings, true);
 
-            if (!args.RunAsWindowsService)
+            if (args.RunAsWindowsService)
             {
-                Console.Out.WriteLine("RavenDB is now accepting requests on {0}", settings.StorageUrl);
-                Console.Out.WriteLine("RavenDB Maintenance Mode - Press any key to exit");
-                Console.Read();
-
-                documentStore.Dispose();
-
-                return;
+                using (var service = new MaintenanceHost(settings, documentStore))
+                {
+                    service.Run();
+                }
             }
-
-            using (var service = new MaintenanceHost(settings, documentStore))
+            else
             {
-                service.Run();
+                await Console.Out.WriteLineAsync($"RavenDB is now accepting requests on {settings.StorageUrl}").ConfigureAwait(false);
+                await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit").ConfigureAwait(false);
+
+                using (var cts = new CancellationTokenSource())
+                {
+                    Console.CancelKeyPress += (sender, eventArgs) => cts.Cancel();
+                    await Task.Delay(-1, cts.Token).ConfigureAwait(false);
+                }
+                documentStore.Dispose();
             }
         }
     }
