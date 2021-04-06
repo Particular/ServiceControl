@@ -94,6 +94,8 @@
 
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
             IndexCreation.CreateIndexes(typeof(SagaSnapshot).Assembly, documentStore);
+
+            new RavenHealthReporter().Start(documentStore);
         }
 
         static string ReadAllTextWithoutLocking(string path)
