@@ -28,12 +28,19 @@ namespace ServiceControl.Audit.Infrastructure
                 await Console.Out.WriteLineAsync($"RavenDB is now accepting requests on {settings.StorageUrl}").ConfigureAwait(false);
                 await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit").ConfigureAwait(false);
 
-                using (var cts = new CancellationTokenSource())
+                var closing = new AutoResetEvent(false);
+
+                Console.CancelKeyPress += (sender, eventArgs) =>
                 {
-                    Console.CancelKeyPress += (sender, eventArgs) => cts.Cancel();
-                    await Task.Delay(-1, cts.Token).ConfigureAwait(false);
-                }
+                    eventArgs.Cancel = true;
+                    closing.Set();
+                };
+
+                closing.WaitOne();
+
+                await Console.Out.WriteLineAsync("Disposing RavenDB document store (this might take a while)...").ConfigureAwait(false);
                 documentStore.Dispose();
+                await Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
             }
         }
     }
