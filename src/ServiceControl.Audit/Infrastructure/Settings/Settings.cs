@@ -36,7 +36,7 @@
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);
             DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 44445);
-            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 32);
+            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 2);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             DbPath = GetDbPath();
