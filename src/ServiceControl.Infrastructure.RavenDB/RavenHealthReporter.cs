@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NServiceBus.Logging;
@@ -12,30 +14,47 @@ public class RavenHealthReporter
         {
             while (!cancellationToken.IsCancellationRequested)
             {
+                var report = new StringBuilder();
+
                 var statistics = documentStore.DatabaseCommands.GetStatistics();
-                _log.Info($"CountOfStaleIndexesExcludingDisabledAndAbandoned:  {statistics.CountOfStaleIndexesExcludingDisabledAndAbandoned}");
 
-                foreach (var indexStats in statistics.Indexes)
+                report.AppendLine("Report:");
+                report.AppendLine($"CountOfStaleIndexesExcludingDisabledAndAbandoned:  {statistics.CountOfStaleIndexesExcludingDisabledAndAbandoned}");
+
+                var indexes = statistics.Indexes.OrderBy(x => x.Name);
+
+                foreach (var indexStats in indexes)
                 {
-                    _log.Info($"Index [{Truncate(indexStats.Name, 30),-30}] IndexingLag: {indexStats.IndexingLag,7}, IsInvalidIndex: {indexStats.IsInvalidIndex,-5}, LastIndexedTimestamp:{indexStats.LastIndexedTimestamp:s}, LastIndexingTime:{indexStats.LastIndexingTime:s}, Priority: {indexStats.Priority}");
+                    //var indexLag = unchecked((uint?)indexStats.IndexingLag);
+                    var indexLag = indexStats.IndexingLag;
+                    report.AppendLine($"Index [{Truncate(indexStats.Name, 30),-30}] Stale: {statistics.StaleIndexes.Contains(indexStats.Name),-5}, Lag: {indexLag,9:n0}, Valid: {indexStats.IsInvalidIndex,-5}, LastIndexed: {indexStats.LastIndexedTimestamp:u}, LastIndexing: {indexStats.LastIndexingTime:u}, Priority: {indexStats.Priority}");
+
+                    if (indexLag > IndexLagThresholdError)
+                    {
+                        _log.Error($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above {IndexLagThresholdError:n0}, consider starting the instance in maintenance mode to ensure index can recover.");
+                    }
+                    else if (indexLag > IndexLagThresholdWarning)
+                    {
+                        _log.Warn($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above {IndexLagThresholdWarning:n0}, please start the instance in maintenance mode to ensure index can recover.");
+                    }
                 }
 
-                _log.Info($"Stale index count:  {statistics.StaleIndexes.Length}");
-
-                foreach (var staleIndexName in statistics.StaleIndexes)
-                {
-                    _log.Info($"Index [{staleIndexName}] is stale");
-                }
-
-                _log.Info($"Index error count:  {statistics.Errors.Length}");
+                report.AppendLine($"Stale index count:  {statistics.StaleIndexes.Length}");
+                report.AppendLine($"Index error count:  {statistics.Errors.Length}");
                 foreach (var indexError in statistics.Errors)
                 {
-                    _log.Info($"Index [{indexError.IndexName}] error: {indexError.Error} (Action: {indexError.Action},  Doc: {indexError.Document}, At: {indexError.Timestamp})");
+                    report.AppendLine($"Index [{indexError.IndexName}] error: {indexError.Error} (Action: {indexError.Action},  Doc: {indexError.Document}, At: {indexError.Timestamp})");
                 }
+
+                _log.Debug(report.ToString());
+
                 await Task.Delay(_interval, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
+        {
+        }
+        catch when (documentStore.WasDisposed)
         {
         }
     }
@@ -50,6 +69,8 @@ public class RavenHealthReporter
         return value.Length <= maxLength ? value : value.Substring(0, maxLength - 1) + "…";
     }
 
+    const uint IndexLagThresholdWarning = 10000;
+    const uint IndexLagThresholdError = 100000;
     static TimeSpan _interval = TimeSpan.FromMinutes(15);
     static ILog _log = LogManager.GetLogger<RavenHealthReporter>();
 }
