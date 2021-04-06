@@ -85,11 +85,11 @@
             }
         }
 
-        class FailOnceEnricher : ErrorImportEnricher
+        class FailOnceEnricher : IEnrichImportedErrorMessages
         {
             public MyContext Context { get; set; }
 
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public void Enrich(ErrorEnricherContext context)
             {
                 if (!Context.FailedImport)
                 {
@@ -98,7 +98,6 @@
                 }
 
                 TestContext.WriteLine("Message processed correctly");
-                return Task.CompletedTask;
             }
         }
 
