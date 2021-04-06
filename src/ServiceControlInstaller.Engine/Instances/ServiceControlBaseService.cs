@@ -217,9 +217,9 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveUrlAcl()
         {
-            bool IsServiceControlAclUrl(UrlReservation r) => 
-                r.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) || 
-                r.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase) || 
+            bool IsServiceControlAclUrl(UrlReservation r) =>
+                r.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) ||
+                r.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase) ||
                 r.Url.StartsWith(LegacyAclMaintenanceUrl, StringComparison.OrdinalIgnoreCase);
 
             foreach (var urlReservation in UrlReservation.GetAll().Where(IsServiceControlAclUrl))
