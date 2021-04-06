@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class EndpointInputQueue : IEquatable<EndpointInputQueue>
+    public readonly struct EndpointInputQueue : IEquatable<EndpointInputQueue>
     {
         public EndpointInputQueue(string endpointName, string inputQueue)
         {
@@ -13,47 +13,10 @@
         public string EndpointName { get; }
         public string InputQueue { get; }
 
-        public bool Equals(EndpointInputQueue other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
+        public bool Equals(EndpointInputQueue other) => string.Equals(EndpointName, other.EndpointName) && string.Equals(InputQueue, other.InputQueue);
 
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
+        public override bool Equals(object obj) => obj is EndpointInputQueue inputQueue && Equals(inputQueue);
 
-            return string.Equals(EndpointName, other.EndpointName) && string.Equals(InputQueue, other.InputQueue);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((EndpointInputQueue)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return ((EndpointName != null ? EndpointName.GetHashCode() : 0) * 397) ^ (InputQueue != null ? InputQueue.GetHashCode() : 0);
-            }
-        }
+        public override int GetHashCode() => (EndpointName, InputQueue).GetHashCode();
     }
 }
