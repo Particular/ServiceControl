@@ -174,13 +174,42 @@ namespace Particular.ServiceControl
             try
             {
                 var info = new FileInfo(datafilePath);
-
                 return info.Length;
             }
-            catch (Exception)
+            catch
             {
-                return 0;
+                return -1;
             }
+        }
+
+        long FolderSize()
+        {
+            try
+            {
+                var dir = new DirectoryInfo(settings.DbPath);
+                var dirSize = DirSize(dir);
+                return dirSize;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long DirSize(DirectoryInfo d)
+        {
+            long size = 0;
+            FileInfo[] fis = d.GetFiles();
+            foreach (FileInfo fi in fis)
+            {
+                size += fi.Length;
+            }
+            DirectoryInfo[] dis = d.GetDirectories();
+            foreach (DirectoryInfo di in dis)
+            {
+                size += DirSize(di);
+            }
+            return size;
         }
 
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
@@ -193,7 +222,8 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
-Database Size:                      {DataSize()} bytes
+Database Size:                      {DataSize():n0} bytes
+Database Folder Size:               {FolderSize():n0} bytes
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}

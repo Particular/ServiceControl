@@ -168,6 +168,36 @@ namespace ServiceControl.Audit.Infrastructure
             }
         }
 
+        long FolderSize()
+        {
+            try
+            {
+                var dir = new DirectoryInfo(settings.DbPath);
+                var dirSize = DirSize(dir);
+                return dirSize;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long DirSize(DirectoryInfo d)
+        {
+            long size = 0;
+            FileInfo[] fis = d.GetFiles();
+            foreach (FileInfo fi in fis)
+            {
+                size += fi.Length;
+            }
+            DirectoryInfo[] dis = d.GetDirectories();
+            foreach (DirectoryInfo di in dis)
+            {
+                size += DirSize(di);
+            }
+            return size;
+        }
+
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
@@ -176,7 +206,8 @@ namespace ServiceControl.Audit.Infrastructure
 ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
-Database Size:                      {DataSize()} bytes
+Database Size:                      {DataSize():n0} bytes
+Database Folder Size:               {FolderSize():n0} bytes
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}
