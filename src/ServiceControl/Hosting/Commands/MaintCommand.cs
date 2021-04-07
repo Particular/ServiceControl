@@ -7,11 +7,6 @@
 
     class MaintCommand : AbstractCommand
     {
-        public override Task Execute(HostArguments args)
-        {
-            var bootstrapper = new MaintenanceBootstrapper();
-            bootstrapper.Run(args);
-            return Task.CompletedTask;
-        }
+        public override Task Execute(HostArguments args) => MaintenanceBootstrapper.Run(args);
     }
 }

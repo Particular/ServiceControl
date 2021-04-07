@@ -1,33 +1,49 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System;
+    using System.Threading.Tasks;
     using Hosting;
     using Raven.Client.Embedded;
     using RavenDB;
 
-    class MaintenanceBootstrapper
+    static class MaintenanceBootstrapper
     {
-        public void Run(HostArguments args)
+        public static async Task Run(HostArguments args)
         {
             var settings = new Settings.Settings(args.ServiceName);
-            var documentStore = new EmbeddableDocumentStore();
-
-            new RavenBootstrapper().StartRaven(documentStore, settings, true);
-
-            if (!args.RunAsWindowsService)
+            using (var documentStore = new EmbeddableDocumentStore())
             {
-                Console.Out.WriteLine("RavenDB is now accepting requests on {0}", settings.StorageUrl);
-                Console.Out.WriteLine("RavenDB Maintenance Mode - Press any key to exit");
-                Console.Read();
+                new RavenBootstrapper().StartRaven(documentStore, settings, true);
 
-                documentStore.Dispose();
+                if (args.RunAsWindowsService)
+                {
+                    using (var service = new MaintenanceHost(settings))
+                    {
+                        service.Run();
+                    }
+                }
+                else
+                {
+                    await Console.Out.WriteLineAsync($"RavenDB is now accepting requests on {settings.StorageUrl}")
+                        .ConfigureAwait(false);
+                    await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit")
+                        .ConfigureAwait(false);
 
-                return;
-            }
+                    var taskCompletionSource =
+                        new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            using (var service = new MaintenanceHost(settings, documentStore))
-            {
-                service.Run();
+                    Console.CancelKeyPress += (sender, eventArgs) =>
+                    {
+                        eventArgs.Cancel = true;
+                        taskCompletionSource.TrySetResult(true);
+                    };
+
+                    await taskCompletionSource.Task.ConfigureAwait(false);
+
+                    await Console.Out.WriteLineAsync("Disposing RavenDB document store (this might take a while)...")
+                        .ConfigureAwait(false);
+                }
+                await Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
             }
         }
     }
