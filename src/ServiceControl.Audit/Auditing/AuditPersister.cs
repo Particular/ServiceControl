@@ -139,6 +139,10 @@
                         // making sure to rethrow so that all messages get marked as failed
                         throw;
                     }
+                    finally
+                    {
+                        stopwatch.Stop();
+                    }
                 }
 
                 stopwatch.Stop();
