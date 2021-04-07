@@ -25,8 +25,8 @@ public class RavenHealthReporter
 
                 foreach (var indexStats in indexes)
                 {
-                    //var indexLag = unchecked((uint?)indexStats.IndexingLag);
-                    var indexLag = indexStats.IndexingLag;
+                    var indexLag = indexStats.IndexingLag.GetValueOrDefault();
+                    indexLag = Math.Abs(indexLag);
                     report.AppendLine($"Index [{Truncate(indexStats.Name, 30),-30}] Stale: {statistics.StaleIndexes.Contains(indexStats.Name),-5}, Lag: {indexLag,9:n0}, Valid: {indexStats.IsInvalidIndex,-5}, LastIndexed: {indexStats.LastIndexedTimestamp:u}, LastIndexing: {indexStats.LastIndexingTime:u}, Priority: {indexStats.Priority}");
 
                     if (indexLag > IndexLagThresholdError)
@@ -66,7 +66,7 @@ public class RavenHealthReporter
             return value;
         }
 
-        return value.Length <= maxLength ? value : value.Substring(0, maxLength - 1) + "…";
+        return value.Length <= maxLength ? value : value.Substring(0, maxLength - 1) + "â€¦";
     }
 
     const uint IndexLagThresholdWarning = 10000;
