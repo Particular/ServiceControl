@@ -60,13 +60,6 @@
             BulkInsertOperation bulkInsert = null;
             try
             {
-                // deliberately not using the using statement because we dispose async explicitly
-                bulkInsert = store.BulkInsert(options: new BulkInsertOptions
-                {
-                    OverwriteExisting = true,
-                    ChunkedBulkInsertOptions = null,
-                    BatchSize = contexts.Count
-                });
                 var tasks = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
@@ -93,18 +86,22 @@
                     }
                 }
 
-                // not really interested in the batch results since a batch is atomic
-                await bulkInsert.DatabaseCommands.BatchAsync(commands)
-                    .ConfigureAwait(false);
-
                 foreach (var endpoint in knownEndpoints.Values)
                 {
                     if (Logger.IsDebugEnabled)
                     {
-                        Logger.Debug("Adding known endpoint for bulk storage");
+                        Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
                     }
-                    await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
+
+                    commands.Add(new PutCommandData
+                    {
+                        Document = RavenJObject.FromObject(endpoint), Etag = null, Key = endpoint.Id.ToString()
+                    });
                 }
+
+                // not really interested in the batch results since a batch is atomic
+                await store.AsyncDatabaseCommands.BatchAsync(commands)
+                    .ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -118,30 +115,6 @@
             }
             finally
             {
-                if (bulkInsert != null)
-                {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug("Performing bulk session dispose");
-                    }
-
-                    try
-                    {
-                        // this can throw even though dispose is never supposed to throw
-                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
-                    }
-                    catch (Exception e)
-                    {
-                        if (Logger.IsDebugEnabled)
-                        {
-                            Logger.Debug("Bulk insertion dispose failed", e);
-                        }
-
-                        // making sure to rethrow so that all messages get marked as failed
-                        throw;
-                    }
-                }
-
                 stopwatch.Stop();
                 if (Logger.IsDebugEnabled)
                 {
