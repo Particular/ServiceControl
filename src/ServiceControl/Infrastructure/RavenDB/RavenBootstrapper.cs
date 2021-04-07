@@ -1,10 +1,18 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB
+﻿using System;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Raven.Client.Embedded;
+
+namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Linq;
     using System.Runtime.Serialization;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Audit.Monitoring;
     using Monitoring;
     using NServiceBus;
@@ -99,6 +107,14 @@
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
 
             documentStore.Initialize();
+
+            if (!maintenanceMode)
+            {
+                documentStore.ThrowWhenIndexErrors();
+                // Only purge endpoints when not in maintenance mode
+                PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
+                documentStore.WaitUntilNoStaleIndexes();
+            }
 
             Logger.Info("Index creation started");
 
