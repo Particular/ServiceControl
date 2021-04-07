@@ -17,12 +17,9 @@
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
-    using Raven.Client.Connection;
-    using Raven.Client.Document;
     using Raven.Imports.Newtonsoft.Json;
     using Raven.Json.Linq;
     using Recoverability;
-    using SagaAudit;
     using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
     class ErrorPersister
@@ -57,7 +54,6 @@
             }
 
             var storedContexts = new List<MessageContext>(contexts.Count);
-            BulkInsertOperation bulkInsert = null;
             try
             {
                 var tasks = new List<Task>(contexts.Count);
