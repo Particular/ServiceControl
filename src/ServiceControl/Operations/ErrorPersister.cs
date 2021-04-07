@@ -29,10 +29,16 @@
             Serializer = JsonExtensions.CreateDefaultJsonSerializer();
             Serializer.TypeNameHandling = TypeNameHandling.Auto;
 
-            JObjectMetadata = RavenJObject.Parse($@"
+            FailedMessageMetadata = RavenJObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
+                                    }}");
+
+            KnownEndpointMetadata = RavenJObject.Parse($@"
+                                    {{
+                                        ""Raven-Entity-Name"": ""{KnownEndpoint.CollectionName}"",
+                                        ""Raven-Clr-Type"": ""{typeof(KnownEndpoint).AssemblyQualifiedName}""
                                     }}");
         }
 
@@ -89,10 +95,7 @@
                         Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
                     }
 
-                    commands.Add(new PutCommandData
-                    {
-                        Document = RavenJObject.FromObject(endpoint), Etag = null, Key = endpoint.Id.ToString()
-                    });
+                    commands.Add(CreateKnownEndpointsPutCommand(endpoint));
                 }
 
                 // not really interested in the batch results since a batch is atomic
@@ -120,6 +123,15 @@
 
             return storedContexts;
         }
+
+        static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) =>
+            new PutCommandData
+            {
+                Document = RavenJObject.FromObject(endpoint),
+                Etag = null,
+                Key = endpoint.Id.ToString(),
+                Metadata = KnownEndpointMetadata
+            };
 
         async Task ProcessMessage(MessageContext context)
         {
@@ -161,7 +173,7 @@
 
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-                var patchCommand = CreatePatchCommand(context.Headers.UniqueId(), processingAttempt, groups);
+                var patchCommand = CreateFailedMessagesPatchCommand(context.Headers.UniqueId(), processingAttempt, groups);
 
                 context.Extensions.Set(patchCommand);
                 context.Extensions.Set(failureDetails);
@@ -178,7 +190,7 @@
             }
         }
 
-        ICommandData CreatePatchCommand(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt,
+        ICommandData CreateFailedMessagesPatchCommand(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt,
             List<FailedMessage.FailureGroup> groups)
         {
             var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
@@ -223,7 +235,7 @@
                         {"uniqueMessageId", uniqueMessageId}
                     }
                 },
-                Metadata = JObjectMetadata
+                Metadata = FailedMessageMetadata
             };
         }
 
@@ -246,7 +258,8 @@
         BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
         IDocumentStore store;
-        static RavenJObject JObjectMetadata;
+        static RavenJObject FailedMessageMetadata;
+        static RavenJObject KnownEndpointMetadata;
         static JsonSerializer Serializer;
         static ILog Logger = LogManager.GetLogger<ErrorPersister>();
     }
