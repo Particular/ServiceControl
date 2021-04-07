@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Infrastructure
     using System;
     using System.Collections.Concurrent;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -16,6 +17,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
+    using ByteSizeLib;
     using Microsoft.Owin.Hosting;
     using Monitoring;
     using NServiceBus;
@@ -168,15 +170,48 @@ namespace ServiceControl.Audit.Infrastructure
             }
         }
 
+        long FolderSize()
+        {
+            try
+            {
+                var dir = new DirectoryInfo(settings.DbPath);
+                var dirSize = DirSize(dir);
+                return dirSize;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long DirSize(DirectoryInfo d)
+        {
+            long size = 0;
+            FileInfo[] fis = d.GetFiles();
+            foreach (FileInfo fi in fis)
+            {
+                size += fi.Length;
+            }
+            DirectoryInfo[] dis = d.GetDirectories();
+            foreach (DirectoryInfo di in dis)
+            {
+                size += DirSize(di);
+            }
+            return size;
+        }
+
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
+            var dataSize = DataSize();
+            var folderSize = FolderSize();
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
-Database Size:                      {DataSize()} bytes
+Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
+Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}

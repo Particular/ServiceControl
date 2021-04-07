@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using System.Collections.Concurrent;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -14,6 +15,7 @@ namespace Particular.ServiceControl
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
+    using ByteSizeLib;
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
@@ -174,18 +176,49 @@ namespace Particular.ServiceControl
             try
             {
                 var info = new FileInfo(datafilePath);
-
                 return info.Length;
             }
-            catch (Exception)
+            catch
             {
-                return 0;
+                return -1;
             }
+        }
+
+        long FolderSize()
+        {
+            try
+            {
+                var dir = new DirectoryInfo(settings.DbPath);
+                var dirSize = DirSize(dir);
+                return dirSize;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long DirSize(DirectoryInfo d)
+        {
+            long size = 0;
+            FileInfo[] fis = d.GetFiles();
+            foreach (FileInfo fi in fis)
+            {
+                size += fi.Length;
+            }
+            DirectoryInfo[] dis = d.GetDirectories();
+            foreach (DirectoryInfo di in dis)
+            {
+                size += DirSize(di);
+            }
+            return size;
         }
 
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
+            var dataSize = DataSize();
+            var folderSize = FolderSize();
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Version:             {version}
@@ -193,7 +226,8 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
-Database Size:                      {DataSize()} bytes
+Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
+Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}
