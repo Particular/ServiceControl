@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
-    using Humanizer;
+    using ByteSizeLib;
     using Microsoft.Owin.Hosting;
     using Monitoring;
     using NServiceBus;
@@ -210,8 +210,8 @@ namespace ServiceControl.Audit.Infrastructure
 ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
-Database Size:                      {dataSize:n0} bytes ({dataSize.Bytes().ToString("#.##", CultureInfo.InvariantCulture)})
-Database Folder Size:               {folderSize:n0} bytes ({folderSize.Bytes().ToString("#.##", CultureInfo.InvariantCulture)})
+Database Size:                      {dataSize:n0} bytes ({ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)})
+Database Folder Size:               {folderSize:n0} bytes ({ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)})
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}

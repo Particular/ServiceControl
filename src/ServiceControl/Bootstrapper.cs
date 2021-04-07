@@ -15,6 +15,7 @@ namespace Particular.ServiceControl
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
+    using ByteSizeLib;
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
@@ -23,7 +24,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
-    using Humanizer;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -226,8 +226,8 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
-Database Size:                      {dataSize:n0} bytes ({dataSize.Bytes().ToString("#.##", CultureInfo.InvariantCulture)})
-Database Folder Size:               {folderSize:n0} bytes ({folderSize.Bytes().ToString("#.##", CultureInfo.InvariantCulture)})
+Database Size:                      {dataSize:n0} bytes ({ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)})
+Database Folder Size:               {folderSize:n0} bytes ({ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)})
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}
