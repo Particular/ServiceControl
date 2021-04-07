@@ -100,7 +100,7 @@
                 {
                     if (Logger.IsDebugEnabled)
                     {
-                        Logger.Debug("Adding known endpoint for bulk storage");
+                        Logger.Debug($"Adding known endpoint '{endpoint.Name}' for bulk storage");
                     }
                     await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
                 }
