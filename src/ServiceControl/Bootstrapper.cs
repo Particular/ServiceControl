@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using System.Collections.Concurrent;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -22,6 +23,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
+    using Humanizer;
     using Microsoft.Owin.Hosting;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -215,6 +217,8 @@ namespace Particular.ServiceControl
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
+            var dataSize = DataSize();
+            var folderSize = FolderSize();
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Version:             {version}
@@ -222,8 +226,8 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
-Database Size:                      {DataSize():n0} bytes
-Database Folder Size:               {FolderSize():n0} bytes
+Database Size:                      {dataSize:n0} bytes ({dataSize.Bytes().ToString("#.##", CultureInfo.InvariantCulture)})
+Database Folder Size:               {folderSize:n0} bytes ({folderSize.Bytes().ToString("#.##", CultureInfo.InvariantCulture)})
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}

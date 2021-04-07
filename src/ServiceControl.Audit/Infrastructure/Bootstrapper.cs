@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Infrastructure
     using System;
     using System.Collections.Concurrent;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -16,6 +17,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
+    using Humanizer;
     using Microsoft.Owin.Hosting;
     using Monitoring;
     using NServiceBus;
@@ -201,13 +203,15 @@ namespace ServiceControl.Audit.Infrastructure
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
+            var dataSize = DataSize();
+            var folderSize = FolderSize();
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
-Database Size:                      {DataSize():n0} bytes
-Database Folder Size:               {FolderSize():n0} bytes
+Database Size:                      {dataSize:n0} bytes ({dataSize.Bytes().ToString("#.##", CultureInfo.InvariantCulture)})
+Database Folder Size:               {folderSize:n0} bytes ({folderSize.Bytes().ToString("#.##", CultureInfo.InvariantCulture)})
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}
