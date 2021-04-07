@@ -70,7 +70,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+                var baseUrl = $"http://+:{DatabaseMaintenancePort}/";
                 return baseUrl;
             }
         }
@@ -208,8 +208,17 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void RemoveUrlAcl()
         {
-            foreach (var urlReservation in UrlReservation.GetAll().Where(p => p.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) ||
-                                                                              p.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase)))
+            //This is an old aclurl registration for embedded RavenDB instance that includes the hostname.
+            //We need that to make sure we can clean-up old registration when removing instances created
+            //using pre 4.17 versions of ServiceControl.
+            var legacyAclMaintenanceUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+
+            bool IsServiceControlAclUrl(UrlReservation r) =>
+                r.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) ||
+                r.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase) ||
+                r.Url.StartsWith(legacyAclMaintenanceUrl, StringComparison.OrdinalIgnoreCase);
+
+            foreach (var urlReservation in UrlReservation.GetAll().Where(IsServiceControlAclUrl))
             {
                 try
                 {
