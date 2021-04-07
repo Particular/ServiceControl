@@ -210,8 +210,8 @@ namespace ServiceControl.Audit.Infrastructure
 ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
-Database Size:                      {dataSize:n0} bytes ({ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)})
-Database Folder Size:               {folderSize:n0} bytes ({ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)})
+Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
+Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}

@@ -226,8 +226,8 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
-Database Size:                      {dataSize:n0} bytes ({ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)})
-Database Folder Size:               {folderSize:n0} bytes ({ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)})
+Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
+Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportCustomizationType}
