@@ -9,7 +9,7 @@
         Task<StreamResult> TryFetch(string bodyId);
     }
 
-    struct StreamResult
+    class StreamResult
     {
         public bool HasResult;
         public Stream Stream;
