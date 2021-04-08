@@ -170,10 +170,10 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             public int StoredBodySize { get; set; }
 
-            public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
             {
                 StoredBodySize = bodySize;
-                return Task.FromResult(default(string));
+                return Task.CompletedTask;
             }
 
             public Task<StreamResult> TryFetch(string bodyId)

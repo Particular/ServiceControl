@@ -5,7 +5,7 @@
 
     interface IBodyStorage
     {
-        Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
+        Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream);
         Task<StreamResult> TryFetch(string bodyId);
     }
 

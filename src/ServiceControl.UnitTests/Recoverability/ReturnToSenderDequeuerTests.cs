@@ -156,7 +156,7 @@
 
         class FakeBodyStorage : IBodyStorage
         {
-            public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
             {
                 throw new NotImplementedException();
             }

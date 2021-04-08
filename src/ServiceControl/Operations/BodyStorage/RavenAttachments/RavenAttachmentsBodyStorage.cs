@@ -1,9 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
-    using System;
     using System.IO;
-    using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client;
     using Raven.Json.Linq;
@@ -12,18 +9,17 @@
     {
         public IDocumentStore DocumentStore { get; set; }
 
-        public async Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            await DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream, new RavenJObject
+            return DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream,
+                new RavenJObject
 #pragma warning restore 618
-            {
-                {"ContentType", contentType},
-                {"ContentLength", bodySize}
-            }).ConfigureAwait(false);
-
-            return $"/messages/{bodyId}/body";
+                {
+                    {"ContentType", contentType},
+                    {"ContentLength", bodySize}
+                });
         }
 
         public async Task<StreamResult> TryFetch(string bodyId)
