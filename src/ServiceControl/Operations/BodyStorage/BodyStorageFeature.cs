@@ -65,12 +65,14 @@
                 var isBinary = contentType.Contains("binary");
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-                var bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                    .ConfigureAwait(false);
-
                 if (avoidsLargeObjectHeap && !isBinary)
                 {
                     metadata.Add("Body", Encoding.UTF8.GetString(body));
+                }
+                else
+                {
+                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
+                        .ConfigureAwait(false);
                 }
 
                 metadata.Add("BodyUrl", bodyUrl);
