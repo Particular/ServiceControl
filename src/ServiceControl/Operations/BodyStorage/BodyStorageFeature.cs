@@ -32,7 +32,7 @@
                 this.bodyStorage = bodyStorage;
             }
 
-            public async Task StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public async ValueTask StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.Add("ContentLength", bodySize);
@@ -58,7 +58,7 @@
                 return contentType;
             }
 
-            async Task StoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
+            async ValueTask StoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
                 var bodyId = headers.MessageId();
                 var isBinary = contentType.Contains("binary");
