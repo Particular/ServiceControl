@@ -3,6 +3,7 @@
     using System;
     using System.Text;
     using System.Threading;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client.Embedded;
     using Raven.Database;
@@ -29,7 +30,7 @@
                 text.AppendLine("Detected RavenDB index errors, please start maintenance mode and resolve the following issues:");
                 foreach (var indexError in statistics.Errors)
                 {
-                    text.AppendLine($"Index [{indexError.IndexName}] error: {indexError.Error} (Action: {indexError.Action},  Doc: {indexError.Document}, At: {indexError.Timestamp})");
+                    text.AppendLine($"- Index [{indexError.IndexName}] error: {indexError.Error} (Action: {indexError.Action},  Doc: {indexError.Document}, At: {indexError.Timestamp})");
                 }
                 throw new Exception(text.ToString());
             }
@@ -39,19 +40,27 @@
         {
             var interval = TimeSpan.FromMinutes(1);
             var next = DateTime.MinValue;
-            int staleIndexes;
+            string[] staleIndexes;
 
-            while ((staleIndexes = documentStore.DatabaseCommands.GetStatistics().StaleIndexes.Length) > 0)
+            // Check for the number of stale indexes every second, but report only an update only every 1 minutes
+            while ((staleIndexes = documentStore.DatabaseCommands.GetStatistics().StaleIndexes).Length > 0)
             {
                 var now = DateTime.UtcNow;
                 if (next < now)
                 {
-                    Console.WriteLine($"Stale indexes detected ({staleIndexes}), will delay starting until all indexes are non-stale. DO NOT KILL THIS PROCESS! Operation can run for a very long time!");
+                    var text = new StringBuilder();
+                    text.AppendLine("Stale indexes detected, delaying start until all indexes are non-stale. DO NOT KILL THIS PROCESS! Operation can run for a very long time!");
+                    foreach (var staleIndex in staleIndexes)
+                    {
+                        text.AppendLine($"- {staleIndex}");
+                    }
+                    Log.Warn(text.ToString());
                     next = now + interval;
                 }
-
                 Thread.Sleep(1000);
             }
         }
+
+        static ILog Log = LogManager.GetLogger(typeof(Extensions).Namespace);
     }
 }
