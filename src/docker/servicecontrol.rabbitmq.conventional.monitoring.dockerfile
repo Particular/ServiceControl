@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/framework/runtime:4.7.2-windowsservercore-ltsc2016
+FROM mcr.microsoft.com/dotnet/framework/runtime:4.7.2
 
 WORKDIR /servicecontrol.monitoring
 
