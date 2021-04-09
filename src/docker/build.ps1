@@ -1,7 +1,6 @@
 #
 # This file is for local developer testing only. This is not used by the build server.
 #
-msbuild ../ServiceControl.sln /t:Build /p:Configuration=Release
 
 docker build -f .\servicecontrol.azureservicebus.dockerfile -t particular.azurecr.io/servicecontrol.azureservicebus ./../
 docker build -f .\servicecontrol.azureservicebus.audit.dockerfile -t particular.azurecr.io/servicecontrol.azureservicebus.audit ./../
