@@ -69,7 +69,7 @@
             {
                 var bodyId = headers.MessageId();
                 var storedInBodyStorage = false;
-                var bodyUrl = string.Format(BodyUrlFormatString, body);
+                var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
                 var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;

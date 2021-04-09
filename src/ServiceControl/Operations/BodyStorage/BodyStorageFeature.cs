@@ -61,7 +61,7 @@
             async ValueTask StoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
                 var bodyId = headers.MessageId();
-                var bodyUrl = string.Format(BodyUrlFormatString, body);
+                var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
                 var isBinary = contentType.Contains("binary");
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
