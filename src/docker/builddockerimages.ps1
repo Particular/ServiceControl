@@ -3,26 +3,26 @@
 #
 msbuild ../ServiceControl.sln /t:Build /p:Configuration=Release
 
-docker build -f .\servicecontrol.azureservicebus-windows.dockerfile -t particular/servicecontrol.azureservicebus-windows ./../
-docker build -f .\servicecontrol.azureservicebus.audit-windows.dockerfile -t particular/servicecontrol.azureservicebus.audit-windows ./../
-docker build -f .\servicecontrol.azureservicebus.monitoring-windows.dockerfile -t particular/servicecontrol.azureservicebus.monitoring-windows ./../
+docker build -f .\servicecontrol.azureservicebus.dockerfile -t particular/servicecontrol.azureservicebus ./../
+docker build -f .\servicecontrol.azureservicebus.audit.dockerfile -t particular/servicecontrol.azureservicebus.audit ./../
+docker build -f .\servicecontrol.azureservicebus.monitoring.dockerfile -t particular/servicecontrol.azureservicebus.monitoring ./../
 
-docker build -f .\servicecontrol.rabbitmq.conventional-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional-windows ./../
-docker build -f .\servicecontrol.rabbitmq.conventional.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.audit-windows ./../
-docker build -f .\servicecontrol.rabbitmq.conventional.monitoring-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.monitoring-windows ./../
+docker build -f .\servicecontrol.rabbitmq.conventional.dockerfile -t particular/servicecontrol.rabbitmq.conventional ./../
+docker build -f .\servicecontrol.rabbitmq.conventional.audit.dockerfile -t particular/servicecontrol.rabbitmq.conventional.audit ./../
+docker build -f .\servicecontrol.rabbitmq.conventional.monitoring.dockerfile -t particular/servicecontrol.rabbitmq.conventional.monitoring ./../
 
-docker build -f .\servicecontrol.rabbitmq.direct-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct-windows ./../
-docker build -f .\servicecontrol.rabbitmq.direct.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct.audit-windows ./../
-docker build -f .\servicecontrol.rabbitmq.direct.monitoring-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct.monitoring-windows ./../
+docker build -f .\servicecontrol.rabbitmq.direct.dockerfile -t particular/servicecontrol.rabbitmq.direct ./../
+docker build -f .\servicecontrol.rabbitmq.direct.audit.dockerfile -t particular/servicecontrol.rabbitmq.direct.audit ./../
+docker build -f .\servicecontrol.rabbitmq.direct.monitoring.dockerfile -t particular/servicecontrol.rabbitmq.direct.monitoring ./../
 
-docker build -f .\servicecontrol.azurestoragequeues-windows.dockerfile -t particular/servicecontrol.azurestoragequeues-windows ./../
-docker build -f .\servicecontrol.azurestoragequeues.audit-windows.dockerfile -t particular/servicecontrol.azurestoragequeues.audit-windows ./../
-docker build -f .\servicecontrol.azurestoragequeues.monitoring-windows.dockerfile -t particular/servicecontrol.azurestoragequeues.monitoring-windows ./../
+docker build -f .\servicecontrol.azurestoragequeues.dockerfile -t particular/servicecontrol.azurestoragequeues ./../
+docker build -f .\servicecontrol.azurestoragequeues.audit.dockerfile -t particular/servicecontrol.azurestoragequeues.audit ./../
+docker build -f .\servicecontrol.azurestoragequeues.monitoring.dockerfile -t particular/servicecontrol.azurestoragequeues.monitoring ./../
 
-docker build -f .\servicecontrol.sqlserver-windows.dockerfile -t particular/servicecontrol.sql-windows ./../
-docker build -f .\servicecontrol.sqlserver.audit-windows.dockerfile -t particular/servicecontrol.sql.audit-windows ./../
-docker build -f .\servicecontrol.sqlserver.monitoring-windows.dockerfile -t particular/servicecontrol.sql.monitoring-windows ./../
+docker build -f .\servicecontrol.sqlserver.dockerfile -t particular/servicecontrol.sql ./../
+docker build -f .\servicecontrol.sqlserver.audit.dockerfile -t particular/servicecontrol.sql.audit ./../
+docker build -f .\servicecontrol.sqlserver.monitoring.dockerfile -t particular/servicecontrol.sql.monitoring ./../
 
-docker build -f .\servicecontrol.amazonsqs-windows.dockerfile -t particular/servicecontrol.amazonsqs-windows ./../
-docker build -f .\servicecontrol.amazonsqs.audit-windows.dockerfile -t particular/servicecontrol.amazonsqs.audit-windows ./../
-docker build -f .\servicecontrol.amazonsqs.monitoring-windows.dockerfile -t particular/servicecontrol.amazonsqs.monitoring-windows ./../
+docker build -f .\servicecontrol.amazonsqs.dockerfile -t particular/servicecontrol.amazonsqs ./../
+docker build -f .\servicecontrol.amazonsqs.audit.dockerfile -t particular/servicecontrol.amazonsqs.audit ./../
+docker build -f .\servicecontrol.amazonsqs.monitoring.dockerfile -t particular/servicecontrol.amazonsqs.monitoring ./../
