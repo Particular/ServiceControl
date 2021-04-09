@@ -2,8 +2,8 @@
 # This file is for local developer testing only. This is not used by the build server.
 #
 
-docker build -f .\servicecontrol.azureservicebus.dockerfile -t particular.azurecr.io/servicecontrol.azureservicebus ./../
-docker build -f .\servicecontrol.azureservicebus.audit.dockerfile -t particular.azurecr.io/servicecontrol.azureservicebus.audit ./../
+docker build -f .\servicecontrol.azureservicebus.dockerfile            -t particular.azurecr.io/servicecontrol.azureservicebus ./../
+docker build -f .\servicecontrol.azureservicebus.audit.dockerfile      -t particular.azurecr.io/servicecontrol.azureservicebus.audit ./../
 docker build -f .\servicecontrol.azureservicebus.monitoring.dockerfile -t particular.azurecr.io/servicecontrol.azureservicebus.monitoring ./../
 
 # docker build -f .\servicecontrol.rabbitmq.conventional.dockerfile -t particular.azurecr.io/servicecontrol.rabbitmq.conventional ./../
