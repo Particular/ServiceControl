@@ -16,7 +16,7 @@
             : base(nameof(CheckRavenDBIndexLag), "Storage", TimeSpan.FromMinutes(5))
         {
             _store = store;
-            LogPath = settings.LogPath;
+            LogPath = settings?.LogPath;
         }
 
         public override Task<CheckResult> PerformCheck()

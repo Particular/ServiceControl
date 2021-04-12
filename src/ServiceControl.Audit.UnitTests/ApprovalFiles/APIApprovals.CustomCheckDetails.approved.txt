@@ -1,3 +1,4 @@
 ServiceControl Health: Audit Message Ingestion Process
 ServiceControl.Audit Health: Audit Message Ingestion
+Storage: CheckRavenDBIndexLag
 Storage space: ServiceControl.Audit database
