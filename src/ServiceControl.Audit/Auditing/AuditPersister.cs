@@ -17,16 +17,24 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Document;
+    using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers)
+        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers,
+            Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter, Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
+
+            this.ingestedAuditMeter = ingestedAuditMeter;
+            this.ingestedSagaAuditMeter = ingestedSagaAuditMeter;
+            this.auditBulkInsertDurationMeter = auditBulkInsertDurationMeter;
+            this.sagaAuditBulkInsertDurationMeter = sagaAuditBulkInsertDurationMeter;
+            this.bulkInsertCommitDurationMeter = bulkInsertCommitDurationMeter;
         }
 
         public void Initialize(IMessageSession messageSession)
@@ -82,8 +90,14 @@
                         {
                             Logger.Debug($"Adding audit message for bulk storage");
                         }
-                        await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
+
+                        using (auditBulkInsertDurationMeter.Measure())
+                        {
+                            await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
+                        }
+
                         storedContexts.Add(context);
+                        ingestedAuditMeter.Mark();
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
                     {
@@ -91,8 +105,14 @@
                         {
                             Logger.Debug("Adding SagaSnapshot message for bulk storage");
                         }
-                        await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
+
+                        using (sagaAuditBulkInsertDurationMeter.Measure())
+                        {
+                            await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
+                        }
+
                         storedContexts.Add(context);
+                        ingestedSagaAuditMeter.Mark();
                     }
                 }
 
@@ -127,7 +147,10 @@
                     try
                     {
                         // this can throw even though dispose is never supposed to throw
-                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                        using (bulkInsertCommitDurationMeter.Measure())
+                        {
+                            await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -279,6 +302,12 @@
                 context.GetTaskCompletionSource().TrySetException(e);
             }
         }
+
+        readonly Counter ingestedAuditMeter;
+        readonly Counter ingestedSagaAuditMeter;
+        readonly Meter auditBulkInsertDurationMeter;
+        readonly Meter sagaAuditBulkInsertDurationMeter;
+        readonly Meter bulkInsertCommitDurationMeter;
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
