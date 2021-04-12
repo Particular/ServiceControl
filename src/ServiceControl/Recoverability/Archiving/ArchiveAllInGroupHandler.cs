@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
@@ -96,9 +97,13 @@ namespace ServiceControl.Recoverability
 
                         if (archiveOperation.FailedMessagesIds == null)
                         {
-                            archiveOperation.FailedMessagesIds = new string[] { };
+                            archiveOperation.FailedMessagesIds = new List<string>();
+                            archiveOperation.FailedMessagesIds = nextBatch.DocumentIds.Select(x => x.Replace("FailedMessages/", "")).ToList();
                         }
-                        archiveOperation.FailedMessagesIds.Concat(nextBatch.DocumentIds.ToArray());
+                        else
+                        {
+                            archiveOperation.FailedMessagesIds.AddRange(nextBatch.DocumentIds.Select(x => x.Replace("FailedMessages/", "")).ToList());
+                        }
                     }
                 }
             }
@@ -122,7 +127,7 @@ namespace ServiceControl.Recoverability
                 GroupId = message.GroupId,
                 GroupName = archiveOperation.GroupName,
                 MessagesCount = archiveOperation.TotalNumberOfMessages,
-                FailedMessagesIds = archiveOperation.FailedMessagesIds
+                FailedMessagesIds = archiveOperation.FailedMessagesIds.ToArray()
             }).ConfigureAwait(false);
         }
 

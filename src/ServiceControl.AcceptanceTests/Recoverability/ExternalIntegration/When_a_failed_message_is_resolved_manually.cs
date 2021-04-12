@@ -14,8 +14,9 @@
     using TestSupport;
     using TestSupport.EndpointTemplates;
     using Newtonsoft.Json;
+    using System.Collections.Generic;
 
-    class When_a_group_is_archived : AcceptanceTest
+    class When_a_failed_message_is_resolved_manually : AcceptanceTest
     {
         [Test]
         public async Task Should_publish_notification()
@@ -33,59 +34,53 @@
                 {
                     await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
                         .ConfigureAwait(false);
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
-                        .ConfigureAwait(false);
                 }).DoNotFailOnErrorMessages())
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
-                    await bus.Subscribe<FailedMessageGroupArchived>();
+                    await bus.Subscribe<MessageFailureResolvedManually>();
 
                     if (c.HasNativePubSubSupport)
                     {
                         c.ExternalProcessorSubscribed = true;
                     }
                 }))
-                .Do("WaitUntilGroupesContainsFaildMessages", async ctx =>
+                .Do("WaitUntilErrorsContainsFaildMessage", async ctx =>
                 {
-                    if (ctx.FirstMessageId == null || ctx.SecondMessageId == null)
+                    if (ctx.FailedMessageId == null)
                     {
                         return false;
                     }
 
-                    // Don't retry until the message has been added to a group
-                    var groups = await this.TryGetMany<FailedMessage.FailureGroup>("/api/recoverability/groups/");
-                    if (!groups)
+                    FailedMessage failedMessage = await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}");
+                    if (failedMessage == null)
                     {
                         return false;
                     }
 
-                    ctx.GroupId = groups.Items[0].Id;
                     return true;
                 })
-                .Do("WaitUntilGroupContainsBothMessages", async ctx =>
+                .Do("ResolveManually", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
-                    return failedMessages && failedMessages.Items.Count == 2;
+                    ctx.AboutToSendRetry = true;
+                    ctx.FailProcessing = false;
+                    await this.Patch<object>($"/api/pendingretries/resolve", new
+                    {
+                        uniquemessageids = new List<string>
+                        {
+                            ctx.FailedMessageId
+                        }
+                    });
                 })
-                .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
-                .Do("EnsureFirstArchived", async ctx =>
+                .Do("EnsureResolved", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FirstMessageId}",
-                        e => e.Status == FailedMessageStatus.Archived);
-                })
-                .Do("EnsureSecondArchived", async ctx =>
-                {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.SecondMessageId}",
-                        e => e.Status == FailedMessageStatus.Archived);
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}",
+                        e => e.Status == FailedMessageStatus.Resolved);
                 })
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<FailedMessageGroupArchived>(context.Event);
-            Assert.IsTrue(Array.IndexOf(deserializedEvent.FailedMessagesIds, context.FirstMessageId) > -1);
-            Assert.IsTrue(deserializedEvent.MessagesCount == 2);
-            Assert.IsNotNull(deserializedEvent.FailedMessagesIds);
-            Assert.IsNotNull(deserializedEvent.MessagesCount);
+            var deserializedEvent = JsonConvert.DeserializeObject<MessageFailureResolvedManually>(context.Event);
+            Assert.IsTrue(deserializedEvent.FailedMessageId == context.FailedMessageId);
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -112,11 +107,7 @@
 
                     if (message.MessageNumber == 1)
                     {
-                        Context.FirstMessageId = uniqueMessageId;
-                    }
-                    else
-                    {
-                        Context.SecondMessageId = uniqueMessageId;
+                        Context.FailedMessageId = uniqueMessageId;
                     }
 
                     if (Context.FailProcessing)
@@ -136,15 +127,15 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
-                    routing.RouteToEndpoint(typeof(FailedMessageGroupArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
-                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessageGroupArchived>(Settings.DEFAULT_SERVICE_NAME); });
+                    routing.RouteToEndpoint(typeof(MessageFailureResolvedManually).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailureResolvedManually>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
-            public class FailureHandler : IHandleMessages<FailedMessageGroupArchived>
+            public class FailureHandler : IHandleMessages<MessageFailureResolvedManually>
             {
                 public MyContext Context { get; set; }
 
-                public Task Handle(FailedMessageGroupArchived message, IMessageHandlerContext context)
+                public Task Handle(MessageFailureResolvedManually message, IMessageHandlerContext context)
                 {
                     var serializedMessage = JsonConvert.SerializeObject(message);
                     Context.Event = serializedMessage;
@@ -161,14 +152,14 @@
 
         public class MyContext : ScenarioContext, ISequenceContext
         {
-            public string FirstMessageId { get; set; }
-            public string SecondMessageId { get; set; }
+            public string FailedMessageId { get; set; }
             public string GroupId { get; set; }
             public bool FailProcessing { get; set; } = true;
             public int Step { get; set; }
             public bool ExternalProcessorSubscribed { get; set; }
             public string Event { get; set; }
             public bool EventDelivered { get; set; }
+            public bool AboutToSendRetry { get; internal set; }
         }
     }
 }

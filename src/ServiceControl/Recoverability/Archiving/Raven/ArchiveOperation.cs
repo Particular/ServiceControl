@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Generic;
 
     class ArchiveOperation // raven
     {
@@ -13,7 +14,7 @@
         public DateTime Started { get; set; }
         public int NumberOfBatches { get; set; }
         public int CurrentBatch { get; set; }
-        public string[] FailedMessagesIds { get; set; }
+        public List<string> FailedMessagesIds { get; set; }
 
         public static string MakeId(string requestId, ArchiveType archiveType)
         {
