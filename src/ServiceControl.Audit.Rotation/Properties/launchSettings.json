@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ServiceControl.Audit.Rotation": {
+      "commandName": "Project",
+      "commandLineArgs": "print"
+    }
+  }
+}
