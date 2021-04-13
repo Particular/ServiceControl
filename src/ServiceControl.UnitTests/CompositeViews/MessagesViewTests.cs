@@ -6,10 +6,12 @@
     using Contracts.Operations;
     using MessageAuditing;
     using MessageFailures;
+    using NServiceBus;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.SagaAudit;
 
     [TestFixture]
     public class MessagesViewTests
@@ -242,6 +244,53 @@
             }
         }
 
+        [Test]
+        public void Check_if_diagnostic_headers_are_present()
+        {
+            using (var session = documentStore.OpenSession())
+            {
+                session.Store(new ProcessedMessage
+                {
+                    Id = "1",
+                    MessageMetadata = new Dictionary<string, object> {
+                        { "CriticalTime", TimeSpan.FromSeconds(10) },
+                        { "MessageId", "1" },
+                        { "MessageType", ""},
+                        { "SendingEndpoint", ""},
+                        { "ReceivingEndpoint", new EndpointDetails{ Name = "ReceivingEndpoint"} },
+                        { "TimeSent", DateTime.UtcNow},
+                        { "ProcessingTime", TimeSpan.FromSeconds(10)},
+                        { "DeliveryTime", TimeSpan.FromSeconds(10)},
+                        { "IsSystemMessage", false},
+                        { "ConversationId", ""},
+                        { "MessageIntent", MessageIntentEnum.Send},
+                        { "BodyUrl", ""},
+                        { "ContentLength", 50},
+                        { "InvokedSagas", new List<SagaInfo>()},
+                        { "OriginatesFromSaga", ""}
+                    },
+                    Headers = {
+                        { "$.diagnostics.originating.hostid", "41c0fe1e45d50ae9b333e37ddba3d4bf" },
+                        { "$.diagnostics.hostdisplayname", "ZOLDER" },
+                        { "$.diagnostics.hostid", "7460bf52c24aa8316c2100565eacdd97" },
+                        { "ramon","is cool :-)"}
+                    }
+                });
+
+                session.SaveChanges();
+            }
+
+            documentStore.WaitForIndexing();
+
+            using (var session = documentStore.OpenSession())
+            {
+                var result = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToList();
+
+                Assert.AreEqual(4, result[0].Headers.Count());
+            }
+        }
 
         [SetUp]
         public void SetUp()
