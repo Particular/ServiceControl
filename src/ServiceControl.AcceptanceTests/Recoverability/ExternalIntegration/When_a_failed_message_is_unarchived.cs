@@ -76,9 +76,8 @@
                 .Run();
 
             var deserializedEvent = JsonConvert.DeserializeObject<FailedMessagesUnArchived>(context.Event);
-            Assert.IsTrue(Array.IndexOf(deserializedEvent.FailedMessagesIds, context.FailedMessageId) > -1);
             Assert.IsNotNull(deserializedEvent.FailedMessagesIds);
-            Assert.IsNotNull(deserializedEvent.MessagesCount);
+            CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId);
         }
 
         public class Receiver : EndpointConfigurationBuilder

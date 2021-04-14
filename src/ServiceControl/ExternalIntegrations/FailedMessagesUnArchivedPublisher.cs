@@ -21,7 +21,6 @@ namespace ServiceControl.ExternalIntegrations
         {
             return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessagesUnArchived
             {
-                MessagesCount = r.MessagesCount,
                 FailedMessagesIds = r.MessageIds
             }));
         }

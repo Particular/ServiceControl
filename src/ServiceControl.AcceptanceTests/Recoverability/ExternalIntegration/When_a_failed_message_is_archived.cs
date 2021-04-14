@@ -36,7 +36,7 @@
                 }).DoNotFailOnErrorMessages())
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
-                    await bus.Subscribe<FailedMessageArchived>();
+                    await bus.Subscribe<FailedMessagesArchived>();
 
                     if (c.HasNativePubSubSupport)
                     {
@@ -65,8 +65,8 @@
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<FailedMessageArchived>(context.Event);
-            Assert.IsTrue(deserializedEvent.FailedMessageId == context.FailedMessageId);
+            var deserializedEvent = JsonConvert.DeserializeObject<FailedMessagesArchived>(context.Event);
+            CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId);
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -113,15 +113,15 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
-                    routing.RouteToEndpoint(typeof(FailedMessageArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
-                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessageArchived>(Settings.DEFAULT_SERVICE_NAME); });
+                    routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesArchived>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
-            public class FailureHandler : IHandleMessages<FailedMessageArchived>
+            public class FailureHandler : IHandleMessages<FailedMessagesArchived>
             {
                 public MyContext Context { get; set; }
 
-                public Task Handle(FailedMessageArchived message, IMessageHandlerContext context)
+                public Task Handle(FailedMessagesArchived message, IMessageHandlerContext context)
                 {
                     var serializedMessage = JsonConvert.SerializeObject(message);
                     Context.Event = serializedMessage;

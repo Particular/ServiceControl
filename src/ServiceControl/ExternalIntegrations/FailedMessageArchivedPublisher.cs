@@ -19,9 +19,9 @@ namespace ServiceControl.ExternalIntegrations
 
         protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessageArchived
+            return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessagesArchived
             {
-                FailedMessageId = r.FailedMessageId.ToString()
+                FailedMessagesIds = new[] { r.FailedMessageId.ToString() }
             }));
         }
 

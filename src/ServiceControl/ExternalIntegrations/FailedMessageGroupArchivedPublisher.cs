@@ -18,9 +18,10 @@ namespace ServiceControl.ExternalIntegrations
 
         protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessageGroupArchived
+            return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessagesArchived
             {
-                FailedMessagesIds = r.FailedMessagesIds
+                // cleanup FailedMessages/ publish guids without document collection name
+                FailedMessagesIds = r.FailedMessagesIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
             }));
         }
 

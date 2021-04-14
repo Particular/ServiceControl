@@ -38,7 +38,7 @@
                 }).DoNotFailOnErrorMessages())
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
-                    await bus.Subscribe<FailedMessageGroupArchived>();
+                    await bus.Subscribe<FailedMessagesArchived>();
 
                     if (c.HasNativePubSubSupport)
                     {
@@ -81,11 +81,9 @@
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<FailedMessageGroupArchived>(context.Event);
-            Assert.IsTrue(Array.IndexOf(deserializedEvent.FailedMessagesIds, context.FirstMessageId) > -1);
-            Assert.IsTrue(deserializedEvent.MessagesCount == 2);
+            var deserializedEvent = JsonConvert.DeserializeObject<FailedMessagesArchived>(context.Event);
             Assert.IsNotNull(deserializedEvent.FailedMessagesIds);
-            Assert.IsNotNull(deserializedEvent.MessagesCount);
+            CollectionAssert.AreEquivalent(deserializedEvent.FailedMessagesIds, new[] { context.FirstMessageId, context.SecondMessageId });
         }
 
         public class Receiver : EndpointConfigurationBuilder
@@ -136,15 +134,15 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureTransport().Routing();
-                    routing.RouteToEndpoint(typeof(FailedMessageGroupArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
-                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessageGroupArchived>(Settings.DEFAULT_SERVICE_NAME); });
+                    routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesArchived>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
-            public class FailureHandler : IHandleMessages<FailedMessageGroupArchived>
+            public class FailureHandler : IHandleMessages<FailedMessagesArchived>
             {
                 public MyContext Context { get; set; }
 
-                public Task Handle(FailedMessageGroupArchived message, IMessageHandlerContext context)
+                public Task Handle(FailedMessagesArchived message, IMessageHandlerContext context)
                 {
                     var serializedMessage = JsonConvert.SerializeObject(message);
                     Context.Event = serializedMessage;
