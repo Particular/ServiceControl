@@ -6,15 +6,12 @@ namespace ServiceControl.ExternalIntegrations
     using Raven.Client;
     using ServiceControl.Recoverability;
 
-    class FailedMessageGroupArchivedPublisher : EventPublisher<FailedMessageGroupArchived, FailedMessageGroupArchivedPublisher.DispatchContext>
+    class FailedMessageGroupBatchArchivedPublisher : EventPublisher<FailedMessageGroupBatchArchived, FailedMessageGroupBatchArchivedPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(FailedMessageGroupArchived @event)
+        protected override DispatchContext CreateDispatchRequest(FailedMessageGroupBatchArchived @event)
         {
             return new DispatchContext
             {
-                GroupId = @event.GroupId,
-                GroupName = @event.GroupName,
-                MessagesCount = @event.MessagesCount,
                 FailedMessagesIds = @event.FailedMessagesIds
             };
         }
@@ -23,18 +20,12 @@ namespace ServiceControl.ExternalIntegrations
         {
             return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessageGroupArchived
             {
-                GroupId = r.GroupId,
-                GroupName = r.GroupName,
-                MessagesCount = r.MessagesCount,
                 FailedMessagesIds = r.FailedMessagesIds
             }));
         }
 
         public class DispatchContext
         {
-            public string GroupId { get; set; }
-            public string GroupName { get; set; }
-            public int MessagesCount { get; set; }
             public string[] FailedMessagesIds { get; set; }
         }
     }

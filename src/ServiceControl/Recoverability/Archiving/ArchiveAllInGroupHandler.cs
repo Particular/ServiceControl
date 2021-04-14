@@ -91,19 +91,14 @@ namespace ServiceControl.Recoverability
                     await batchSession.SaveChangesAsync()
                         .ConfigureAwait(false);
 
+                    await domainEvents.Raise(new FailedMessageGroupBatchArchived
+                    {
+                        FailedMessagesIds = nextBatch.DocumentIds.ToArray()
+                    }).ConfigureAwait(false);
+
                     if (nextBatch != null)
                     {
                         logger.Info($"Archiving of {nextBatch.DocumentIds.Count} messages from group {message.GroupId} completed");
-
-                        if (archiveOperation.FailedMessagesIds == null)
-                        {
-                            archiveOperation.FailedMessagesIds = new List<string>();
-                            archiveOperation.FailedMessagesIds = nextBatch.DocumentIds.Select(x => x.Replace("FailedMessages/", "")).ToList();
-                        }
-                        else
-                        {
-                            archiveOperation.FailedMessagesIds.AddRange(nextBatch.DocumentIds.Select(x => x.Replace("FailedMessages/", "")).ToList());
-                        }
                     }
                 }
             }
@@ -127,7 +122,6 @@ namespace ServiceControl.Recoverability
                 GroupId = message.GroupId,
                 GroupName = archiveOperation.GroupName,
                 MessagesCount = archiveOperation.TotalNumberOfMessages,
-                FailedMessagesIds = archiveOperation.FailedMessagesIds.ToArray()
             }).ConfigureAwait(false);
         }
 
