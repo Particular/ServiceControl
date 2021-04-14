@@ -82,6 +82,7 @@
         public int DatabaseMaintenancePort { get; set; }
 
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
+        public bool PrintMetrics => SettingsReader<bool>.Read("PrintMetrics");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 

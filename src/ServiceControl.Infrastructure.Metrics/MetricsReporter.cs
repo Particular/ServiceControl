@@ -44,6 +44,10 @@
 
         public Task Stop()
         {
+            if (tokenSource == null)
+            {
+                return Task.CompletedTask;
+            }
             tokenSource.Cancel();
             return task;
         }

@@ -142,7 +142,10 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
-            reporter.Start();
+            if (settings.PrintMetrics)
+            {
+                reporter.Start();
+            }
             return bus;
         }
 
