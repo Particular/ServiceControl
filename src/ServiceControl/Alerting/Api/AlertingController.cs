@@ -60,6 +60,20 @@
             }
         }
 
+        [Route("alerting/send-test-email")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> SendTestEmail()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var settings = await session.LoadAsync<AlertingSettings>(DocumentId).ConfigureAwait(false);
+
+                //TODO: generate email
+
+                return new HttpResponseMessage(HttpStatusCode.Accepted);
+            }
+        }
+
         static async Task<AlertingSettings> LoadSettings(IAsyncDocumentSession session)
         {
             var settings = await session.LoadAsync<AlertingSettings>(DocumentId).ConfigureAwait(false);
