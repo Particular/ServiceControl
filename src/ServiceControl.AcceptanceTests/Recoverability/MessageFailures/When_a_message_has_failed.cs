@@ -7,7 +7,6 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
-    using Contracts.MessageFailures;
     using Contracts.Operations;
     using EventLog;
     using Infrastructure;
