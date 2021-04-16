@@ -63,6 +63,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool RunInMemory { get; set; }
 
+        public Action<IDocumentStore> InitializeStore { get; set; }
+
+        public string EmailDropFolder { get; set; }
+
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
