@@ -110,6 +110,8 @@
                 // Only purge endpoints when not in maintenance mode
                 PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
             }
+
+            settings.InitializeStore?.Invoke(documentStore);
         }
 
         static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)

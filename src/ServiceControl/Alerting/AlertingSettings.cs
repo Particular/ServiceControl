@@ -2,6 +2,8 @@
 {
     public class AlertingSettings
     {
+        public const string SingleDocumentId = "AlertingSettings/All";
+
         public string Id { get; set; }
 
         public string SmtpServer { get; set; }

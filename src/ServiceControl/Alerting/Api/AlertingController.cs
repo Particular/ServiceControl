@@ -66,7 +66,7 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var settings = await session.LoadAsync<AlertingSettings>(SingleDocumentId).ConfigureAwait(false);
+                var settings = await session.LoadAsync<AlertingSettings>(AlertingSettings.SingleDocumentId).ConfigureAwait(false);
 
                 //TODO: generate email
 
@@ -76,7 +76,7 @@
 
         static async Task<AlertingSettings> LoadSettings(IAsyncDocumentSession session)
         {
-            var settings = await session.LoadAsync<AlertingSettings>(SingleDocumentId).ConfigureAwait(false);
+            var settings = await session.LoadAsync<AlertingSettings>(AlertingSettings.SingleDocumentId).ConfigureAwait(false);
 
             if (settings == null)
             {
@@ -84,7 +84,7 @@
                 {
                     AlertingEnabled = true,
                     AuthenticationEnabled = false,
-                    Id = SingleDocumentId
+                    Id = AlertingSettings.SingleDocumentId
                 };
 
                 await session.StoreAsync(settings).ConfigureAwait(false);
@@ -94,6 +94,5 @@
         }
 
         IDocumentStore store;
-        const string SingleDocumentId = "AlertingSettings/All";
     }
 }
