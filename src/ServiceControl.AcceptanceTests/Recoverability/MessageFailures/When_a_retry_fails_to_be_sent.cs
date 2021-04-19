@@ -142,7 +142,7 @@
 
         public class FakeReturnToSender : ReturnToSender
         {
-            public FakeReturnToSender(IBodyStorage bodyStorage, MyContext myContext) : base(bodyStorage)
+            public FakeReturnToSender(IBodyStorage bodyStorage, MyContext myContext) : base(bodyStorage, null)
             {
                 this.myContext = myContext;
             }

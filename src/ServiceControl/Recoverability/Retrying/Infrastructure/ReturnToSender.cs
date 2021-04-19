@@ -2,22 +2,29 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
+    using CompositeViews.Messages;
+    using MessageFailures;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Operations.BodyStorage;
+    using Raven.Client;
+    using Raven.Json.Linq;
 
     class ReturnToSender
     {
-        public ReturnToSender(IBodyStorage bodyStorage)
+        public ReturnToSender(IBodyStorage bodyStorage, IDocumentStore documentStore)
         {
+            this.documentStore = documentStore;
             this.bodyStorage = bodyStorage;
         }
 
         public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender)
         {
-            var body = new byte[0];
+            byte[] body = new byte[0];
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
@@ -30,23 +37,51 @@ namespace ServiceControl.Recoverability
 
             if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
             {
-                var result = await bodyStorage.TryFetch(attemptMessageId)
-                    .ConfigureAwait(false);
-                if (result.HasResult)
+                if (outgoingHeaders.Remove("ServiceControl.Retry.HasAttachment"))
                 {
-                    using (result.Stream)
+                    var result = await bodyStorage.TryFetch(attemptMessageId)
+                        .ConfigureAwait(false);
+                    if (result.HasResult)
                     {
-                        body = ReadFully(result.Stream);
-                    }
+                        using (result.Stream)
+                        {
+                            body = ReadFully(result.Stream);
+                        }
 
-                    if (Log.IsDebugEnabled)
+                        if (Log.IsDebugEnabled)
+                        {
+                            Log.DebugFormat("{0}: Body size: {1} bytes retrieved from attachment store", messageId, body.LongLength);
+                        }
+                    }
+                    else
                     {
-                        Log.DebugFormat("{0}: Body size: {1} bytes", messageId, body.LongLength);
+                        Log.WarnFormat("{0}: Message Body not found in attachment store for attempt Id {1}", messageId, attemptMessageId);
                     }
                 }
                 else
                 {
-                    Log.WarnFormat("{0}: Message Body not found for attempt Id {1}", messageId, attemptMessageId);
+                    string documentId = FailedMessage.MakeDocumentId(outgoingHeaders["ServiceControl.Retry.UniqueMessageId"]);
+                    var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
+                        transformer: MessagesBodyTransformer.Name).ConfigureAwait(false);
+                    var loadResult = results.Results.SingleOrDefault();
+
+                    if (loadResult != null)
+                    {
+                        string resultBody = ((loadResult["$values"] as RavenJArray)?.SingleOrDefault() as RavenJObject)?.ToObject<MessagesBodyTransformer.Result>()?.Body;
+                        if (resultBody != null)
+                        {
+                            body = Encoding.UTF8.GetBytes(resultBody);
+                        }
+
+                        if (Log.IsDebugEnabled)
+                        {
+                            Log.DebugFormat("{0}: Body size: {1} bytes retrieved from index", messageId, body.LongLength);
+                        }
+                    }
+                    else
+                    {
+                        Log.WarnFormat("{0}: Message Body not found on index for attempt Id {1}", messageId, attemptMessageId);
+                    }
                 }
 
                 outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
@@ -108,5 +143,6 @@ namespace ServiceControl.Recoverability
 
         readonly IBodyStorage bodyStorage;
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
+        readonly IDocumentStore documentStore;
     }
 }
