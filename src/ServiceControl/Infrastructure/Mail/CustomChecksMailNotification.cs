@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.Mail
 {
+    using System.Net;
     using System.Net.Mail;
     using System.Threading.Tasks;
     using Alerting;
@@ -45,11 +46,17 @@
                     DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory
                 };
             }
-            return new SmtpClient(settings.SmtpServer, settings.SmtpPort ?? 25)
+
+            var smtpClient = new SmtpClient(settings.SmtpServer, settings.SmtpPort ?? 25)
             {
                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                EnableSsl = settings.EnableSSL
+                EnableSsl = settings.EnableSSL,
             };
+            if (settings.AuthenticationEnabled)
+            {
+                smtpClient.Credentials = new NetworkCredential(settings.AuthenticationAccount, settings.AuthenticationPassword);
+            }
+            return smtpClient;
         }
 
         public async Task Handle(CustomCheckSucceeded domainEvent)
