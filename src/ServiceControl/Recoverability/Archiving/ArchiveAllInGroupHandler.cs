@@ -91,10 +91,14 @@ namespace ServiceControl.Recoverability
                     await batchSession.SaveChangesAsync()
                         .ConfigureAwait(false);
 
-                    await domainEvents.Raise(new FailedMessageGroupBatchArchived
+                    if (nextBatch != null)
                     {
-                        FailedMessagesIds = nextBatch.DocumentIds.ToArray()
-                    }).ConfigureAwait(false);
+                        await domainEvents.Raise(new FailedMessageGroupBatchArchived
+                        {
+                            // cleanup FailedMessages/ publish guids without document collection name
+                            FailedMessagesIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
+                        }).ConfigureAwait(false);
+                    }
 
                     if (nextBatch != null)
                     {

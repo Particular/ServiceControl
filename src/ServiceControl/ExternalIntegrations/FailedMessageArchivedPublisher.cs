@@ -1,6 +1,5 @@
 namespace ServiceControl.ExternalIntegrations
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -13,7 +12,7 @@ namespace ServiceControl.ExternalIntegrations
         {
             return new DispatchContext
             {
-                FailedMessageId = new Guid(@event.FailedMessageId)
+                FailedMessageId = @event.FailedMessageId
             };
         }
 
@@ -21,13 +20,13 @@ namespace ServiceControl.ExternalIntegrations
         {
             return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessagesArchived
             {
-                FailedMessagesIds = new[] { r.FailedMessageId.ToString() }
+                FailedMessagesIds = new[] { r.FailedMessageId }
             }));
         }
 
         public class DispatchContext
         {
-            public Guid FailedMessageId { get; set; }
+            public string FailedMessageId { get; set; }
         }
     }
 }

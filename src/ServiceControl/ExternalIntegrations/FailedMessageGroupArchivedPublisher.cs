@@ -20,8 +20,7 @@ namespace ServiceControl.ExternalIntegrations
         {
             return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessagesArchived
             {
-                // cleanup FailedMessages/ publish guids without document collection name
-                FailedMessagesIds = r.FailedMessagesIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
+                FailedMessagesIds = r.FailedMessagesIds
             }));
         }
 

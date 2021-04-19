@@ -1177,10 +1177,14 @@ namespace ServiceControl.Recoverability
     public class FailedMessageGroupArchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public FailedMessageGroupArchived() { }
-        public string[] FailedMessagesIds { get; set; }
         public string GroupId { get; set; }
         public string GroupName { get; set; }
         public int MessagesCount { get; set; }
+    }
+    public class FailedMessageGroupBatchArchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public FailedMessageGroupBatchArchived() { }
+        public string[] FailedMessagesIds { get; set; }
     }
     public class FailedMessageRetries : NServiceBus.Features.Feature
     {
