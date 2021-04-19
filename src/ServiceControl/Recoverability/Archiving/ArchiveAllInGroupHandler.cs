@@ -95,7 +95,7 @@ namespace ServiceControl.Recoverability
                     {
                         await domainEvents.Raise(new FailedMessageGroupBatchArchived
                         {
-                            // cleanup FailedMessages/ publish guids without document collection name
+                            // Remove `FailedMessages/` prefix and publish pure GUIDs without Raven collection name
                             FailedMessagesIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
                         }).ConfigureAwait(false);
                     }
