@@ -62,13 +62,13 @@
             CollectionAssert.AreEquivalent(context.FailureTimes, attempts.Select(a => a.AttemptedAt));
         }
 
-        class CounterEnricher : ErrorImportEnricher
+        class CounterEnricher : IEnrichImportedErrorMessages
         {
             public MyContext Context { get; set; }
 
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public void Enrich(ErrorEnricherContext context)
             {
-                if (headers.TryGetValue("Counter", out var counter))
+                if (context.Headers.TryGetValue("Counter", out var counter))
                 {
                     Context.OnMessage(counter);
                 }
@@ -76,8 +76,6 @@
                 {
                     Console.WriteLine("No Counter header found");
                 }
-
-                return Task.FromResult(0);
             }
         }
 

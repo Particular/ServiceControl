@@ -1,14 +1,19 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using BodyStorage;
     using Contracts.Operations;
     using Infrastructure;
     using MessageFailures;
+    using Monitoring;
     using NServiceBus;
+    using NServiceBus.Logging;
     using NServiceBus.Transport;
+    using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
@@ -24,10 +29,16 @@
             Serializer = JsonExtensions.CreateDefaultJsonSerializer();
             Serializer.TypeNameHandling = TypeNameHandling.Auto;
 
-            JObjectMetadata = RavenJObject.Parse($@"
+            FailedMessageMetadata = RavenJObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
+                                    }}");
+
+            KnownEndpointMetadata = RavenJObject.Parse($@"
+                                    {{
+                                        ""Raven-Entity-Name"": ""{KnownEndpoint.CollectionName}"",
+                                        ""Raven-Clr-Type"": ""{typeof(KnownEndpoint).AssemblyQualifiedName}""
                                     }}");
         }
 
@@ -39,102 +50,217 @@
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
-        public async Task<FailureDetails> Persist(MessageContext message)
+        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts)
         {
-            if (!message.Headers.TryGetValue(Headers.MessageId, out var messageId))
+            var stopwatch = Stopwatch.StartNew();
+
+            if (Logger.IsDebugEnabled)
             {
-                messageId = DeterministicGuid.MakeId(message.MessageId).ToString();
+                Logger.Debug($"Batch size {contexts.Count}");
             }
 
-            var metadata = new ConcurrentDictionary<string, object>
+            var storedContexts = new List<MessageContext>(contexts.Count);
+            try
             {
-                ["MessageId"] = messageId,
-                ["MessageIntent"] = message.Headers.MessageIntent()
-            };
+                var tasks = new List<Task>(contexts.Count);
+                foreach (var context in contexts)
+                {
+                    tasks.Add(ProcessMessage(context));
+                }
 
-            var enricherTasks = new List<Task>(enrichers.Length);
-            foreach (var enricher in enrichers)
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                var commands = new List<ICommandData>(contexts.Count);
+                var knownEndpoints = new Dictionary<string, KnownEndpoint>();
+                foreach (var context in contexts)
+                {
+                    if (!context.Extensions.TryGet<ICommandData>(out var command))
+                    {
+                        continue;
+                    }
+
+                    commands.Add(command);
+                    storedContexts.Add(context);
+
+                    foreach (var endpointDetail in context.Extensions.Get<IEnumerable<EndpointDetails>>())
+                    {
+                        RecordKnownEndpoints(endpointDetail, knownEndpoints);
+                    }
+                }
+
+                foreach (var endpoint in knownEndpoints.Values)
+                {
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
+                    }
+
+                    commands.Add(CreateKnownEndpointsPutCommand(endpoint));
+                }
+
+                // not really interested in the batch results since a batch is atomic
+                await store.AsyncDatabaseCommands.BatchAsync(commands)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception e)
             {
-                enricherTasks.Add(enricher.Enrich(message.Headers, metadata));
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug("Bulk insertion failed", e);
+                }
+
+                // making sure to rethrow so that all messages get marked as failed
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Batch size {contexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
 
-            await Task.WhenAll(enricherTasks)
-                .ConfigureAwait(false);
-
-            await bodyStorageEnricher.StoreErrorMessageBody(message.Body, message.Headers, metadata)
-                .ConfigureAwait(false);
-
-            var failureDetails = failedMessageFactory.ParseFailureDetails(message.Headers);
-
-            var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
-                message.Headers,
-                new Dictionary<string, object>(metadata),
-                failureDetails);
-
-            var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
-
-            await SaveToDb(message.Headers.UniqueId(), processingAttempt, groups)
-                .ConfigureAwait(false);
-
-            return failureDetails;
+            return storedContexts;
         }
 
-        Task SaveToDb(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt, List<FailedMessage.FailureGroup> groups)
+        static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) =>
+            new PutCommandData
+            {
+                Document = RavenJObject.FromObject(endpoint),
+                Etag = null,
+                Key = endpoint.Id.ToString(),
+                Metadata = KnownEndpointMetadata
+            };
+
+        async Task ProcessMessage(MessageContext context)
+        {
+            // TODO optimize
+            if (Logger.IsDebugEnabled)
+            {
+                context.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+                Logger.Debug($"Ingesting error message {context.MessageId} (original message id: {originalMessageId ?? string.Empty})");
+            }
+
+            if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
+            {
+                messageId = DeterministicGuid.MakeId(context.MessageId).ToString();
+            }
+
+            try
+            {
+                var metadata = new ConcurrentDictionary<string, object>
+                {
+                    ["MessageId"] = messageId,
+                    ["MessageIntent"] = context.Headers.MessageIntent()
+                };
+
+                var enricherContext = new ErrorEnricherContext(context.Headers, metadata);
+                foreach (var enricher in enrichers)
+                {
+                    enricher.Enrich(enricherContext);
+                }
+
+                await bodyStorageEnricher.StoreErrorMessageBody(context.Body, context.Headers, metadata)
+                    .ConfigureAwait(false);
+
+                var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);
+
+                var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
+                    context.Headers,
+                    new Dictionary<string, object>(metadata),
+                    failureDetails);
+
+                var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
+
+                var patchCommand = CreateFailedMessagesPatchCommand(context.Headers.UniqueId(), processingAttempt, groups);
+
+                context.Extensions.Set(patchCommand);
+                context.Extensions.Set(failureDetails);
+                context.Extensions.Set(enricherContext.NewEndpoints);
+            }
+            catch (Exception e)
+            {
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Processing of message '{messageId}' failed.", e);
+                }
+
+                context.GetTaskCompletionSource().TrySetException(e);
+            }
+        }
+
+        ICommandData CreateFailedMessagesPatchCommand(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt,
+            List<FailedMessage.FailureGroup> groups)
         {
             var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
-
-            var attemptedAtField = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
-            var processingAttemptsField = nameof(FailedMessage.ProcessingAttempts);
-            var statusField = nameof(FailedMessage.Status);
-            var failureGroupsField = nameof(FailedMessage.FailureGroups);
-            var uniqueMessageIdField = nameof(FailedMessage.UniqueMessageId);
 
             var serializedGroups = RavenJToken.FromObject(groups);
             var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
 
-            return store.AsyncDatabaseCommands.PatchAsync(documentId,
-                new ScriptedPatchRequest
+            return new ScriptedPatchCommandData
+            {
+                Key = documentId,
+                Patch = new ScriptedPatchRequest
                 {
-                    Script = $@"this.{statusField} = status;
-                                this.{failureGroupsField} = failureGroups;
+                    Script = $@"this.{nameof(FailedMessage.Status)} = status;
+                                this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
 
-                                var duplicateIndex = _.findIndex(this.{processingAttemptsField}, function(a){{ 
-                                    return a.{attemptedAtField} === attempt.{attemptedAtField};
+                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{ 
+                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
                                 }});
 
                                 if(duplicateIndex === -1){{
-                                    this.{processingAttemptsField} = _.union(this.{processingAttemptsField}, [attempt]);
+                                    this.{nameof(FailedMessage.ProcessingAttempts)} = _.union(this.{nameof(FailedMessage.ProcessingAttempts)}, [attempt]);
                                 }}",
                     Values = new Dictionary<string, object>
                     {
-                        { "status", (int)FailedMessageStatus.Unresolved },
-                        { "failureGroups", serializedGroups },
-                        { "attempt", serializedAttempt}
-                    }
+                        {"status", (int)FailedMessageStatus.Unresolved},
+                        {"failureGroups", serializedGroups},
+                        {"attempt", serializedAttempt}
+                    },
                 },
-                new ScriptedPatchRequest
+                PatchIfMissing = new ScriptedPatchRequest
                 {
-                    Script = $@"this.{statusField} = status;
-                                this.{failureGroupsField} = failureGroups;
-                                this.{processingAttemptsField} = [attempt];
-                                this.{uniqueMessageIdField} = uniqueMessageId;
+                    Script = $@"this.{nameof(FailedMessage.Status)} = status;
+                                this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
+                                this.{nameof(FailedMessage.ProcessingAttempts)} = [attempt];
+                                this.{nameof(FailedMessage.UniqueMessageId)} = uniqueMessageId;
                              ",
                     Values = new Dictionary<string, object>
                     {
-                        { "status", (int)FailedMessageStatus.Unresolved },
-                        { "failureGroups", serializedGroups },
-                        { "attempt", serializedAttempt},
-                        { "uniqueMessageId", uniqueMessageId }
+                        {"status", (int)FailedMessageStatus.Unresolved},
+                        {"failureGroups", serializedGroups},
+                        {"attempt", serializedAttempt},
+                        {"uniqueMessageId", uniqueMessageId}
                     }
                 },
-                JObjectMetadata);
+                Metadata = FailedMessageMetadata
+            };
+        }
+
+        static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints)
+        {
+            var uniqueEndpointId = $"{observedEndpoint.Name}{observedEndpoint.HostId}";
+            if (!observedEndpoints.TryGetValue(uniqueEndpointId, out KnownEndpoint _))
+            {
+                observedEndpoints.Add(uniqueEndpointId, new KnownEndpoint
+                {
+                    Id = DeterministicGuid.MakeId(observedEndpoint.Name, observedEndpoint.HostId.ToString()),
+                    EndpointDetails = observedEndpoint,
+                    HostDisplayName = observedEndpoint.Host,
+                    Monitored = false
+                });
+            }
         }
 
         IEnrichImportedErrorMessages[] enrichers;
         BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
         IDocumentStore store;
-        static RavenJObject JObjectMetadata;
+        static RavenJObject FailedMessageMetadata;
+        static RavenJObject KnownEndpointMetadata;
         static JsonSerializer Serializer;
+        static ILog Logger = LogManager.GetLogger<ErrorPersister>();
     }
 }

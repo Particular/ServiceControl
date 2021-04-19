@@ -100,7 +100,7 @@
                 {
                     if (Logger.IsDebugEnabled)
                     {
-                        Logger.Debug("Adding known endpoint for bulk storage");
+                        Logger.Debug($"Adding known endpoint '{endpoint.Name}' for bulk storage");
                     }
                     await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
                 }
@@ -138,6 +138,10 @@
 
                         // making sure to rethrow so that all messages get marked as failed
                         throw;
+                    }
+                    finally
+                    {
+                        stopwatch.Stop();
                     }
                 }
 

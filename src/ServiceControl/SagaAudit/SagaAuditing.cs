@@ -8,23 +8,16 @@
 
     public class SagaAuditing : Feature
     {
-        public SagaAuditing()
-        {
-            EnableByDefault();
-        }
+        public SagaAuditing() => EnableByDefault();
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.Container.ConfigureComponent<SagaRelationshipsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        internal class SagaRelationshipsEnricher : ErrorImportEnricher
+        internal class SagaRelationshipsEnricher : IEnrichImportedErrorMessages
         {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
-                InvokedSagasParser.Parse(headers, metadata);
-                return Task.CompletedTask;
-            }
+            public void Enrich(ErrorEnricherContext context) => InvokedSagasParser.Parse(context.Headers, context.Metadata);
         }
     }
 }

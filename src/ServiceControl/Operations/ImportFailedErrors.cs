@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Extensibility;
@@ -42,8 +43,12 @@
                             try
                             {
                                 var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                                var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                                messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                                await errorIngestor.Ingest(messageContext).ConfigureAwait(false);
+                                await errorIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
+
+                                await taskCompletionSource.Task.ConfigureAwait(false);
 
                                 await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, token)
                                     .ConfigureAwait(false);

@@ -1,18 +1,13 @@
 ﻿namespace ServiceControl.Contracts.Operations
 {
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using ServiceControl.Operations;
 
     public class DefaultEnrichers : Feature
     {
-        public DefaultEnrichers()
-        {
-            EnableByDefault();
-        }
+        public DefaultEnrichers() => EnableByDefault();
 
         protected override void Setup(FeatureConfigurationContext context)
         {
@@ -21,76 +16,61 @@
             context.Container.ConfigureComponent<ProcessingStatisticsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class MessageTypeEnricher : ErrorImportEnricher
+        class MessageTypeEnricher : IEnrichImportedErrorMessages
         {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            static readonly char[] EnclosedMessageTypeSeparator = { ',' };
+
+            public void Enrich(ErrorEnricherContext context)
             {
                 var isSystemMessage = false;
                 string messageType = null;
 
-                if (headers.ContainsKey(Headers.ControlMessageHeader))
+                if (context.Headers.ContainsKey(Headers.ControlMessageHeader))
                 {
                     isSystemMessage = true;
                 }
 
-                if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var enclosedMessageTypes))
+                if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var enclosedMessageTypes))
                 {
                     messageType = GetMessageType(enclosedMessageTypes);
                     isSystemMessage = DetectSystemMessage(messageType);
-                    metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
+                    context.Metadata.Add("SearchableMessageType", messageType.Replace(".", " ").Replace("+", " "));
                 }
 
-                metadata.Add("IsSystemMessage", isSystemMessage);
-                metadata.Add("MessageType", messageType);
-
-                return Task.CompletedTask;
+                context.Metadata.Add("IsSystemMessage", isSystemMessage);
+                context.Metadata.Add("MessageType", messageType);
             }
 
-            bool DetectSystemMessage(string messageTypeString)
-            {
-                return messageTypeString.Contains("NServiceBus.Scheduling.Messages.ScheduledTask");
-            }
+            static bool DetectSystemMessage(string messageTypeString) => messageTypeString.Contains("NServiceBus.Scheduling.Messages.ScheduledTask");
 
-            string GetMessageType(string messageTypeString)
+            static string GetMessageType(string messageTypeString) => !messageTypeString.Contains(",") ? messageTypeString : messageTypeString.Split(EnclosedMessageTypeSeparator).First();
+        }
+
+        class EnrichWithTrackingIds : IEnrichImportedErrorMessages
+        {
+            public void Enrich(ErrorEnricherContext context)
             {
-                if (!messageTypeString.Contains(","))
+                if (context.Headers.TryGetValue(Headers.ConversationId, out var conversationId))
                 {
-                    return messageTypeString;
+                    context.Metadata.Add("ConversationId", conversationId);
                 }
 
-                return messageTypeString.Split(',').First();
+                if (context.Headers.TryGetValue(Headers.RelatedTo, out var relatedToId))
+                {
+                    context.Metadata.Add("RelatedToId", relatedToId);
+                }
             }
         }
 
-        class EnrichWithTrackingIds : ErrorImportEnricher
+        class ProcessingStatisticsEnricher : IEnrichImportedErrorMessages
         {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public void Enrich(ErrorEnricherContext context)
             {
-                if (headers.TryGetValue(Headers.ConversationId, out var conversationId))
-                {
-                    metadata.Add("ConversationId", conversationId);
-                }
-
-                if (headers.TryGetValue(Headers.RelatedTo, out var relatedToId))
-                {
-                    metadata.Add("RelatedToId", relatedToId);
-                }
-
-                return Task.CompletedTask;
-            }
-        }
-
-        class ProcessingStatisticsEnricher : ErrorImportEnricher
-        {
-            public override Task Enrich(IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
-            {
-                if (headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
+                if (context.Headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
                 {
                     var timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                    metadata.Add("TimeSent", timeSent);
+                    context.Metadata.Add("TimeSent", timeSent);
                 }
-
-                return Task.CompletedTask;
             }
         }
     }

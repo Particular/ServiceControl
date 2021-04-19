@@ -37,6 +37,13 @@ namespace ServiceControl.Monitoring
             await Update(stats).ConfigureAwait(false);
         }
 
+        public bool IsNewInstance(EndpointDetails newEndpointDetails)
+        {
+            var endpointInstanceId = newEndpointDetails.ToInstanceId();
+
+            return endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents));
+        }
+
         public async Task EndpointDetected(EndpointDetails newEndpointDetails)
         {
             var endpointInstanceId = newEndpointDetails.ToInstanceId();

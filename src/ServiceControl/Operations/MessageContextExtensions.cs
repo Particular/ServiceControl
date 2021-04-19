@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Auditing
+﻿namespace ServiceControl.Operations
 {
     using System.Threading.Tasks;
     using NServiceBus.Transport;
@@ -9,6 +9,6 @@
 
         public static void SetTaskCompletionSource(this MessageContext context, TaskCompletionSource<bool> value) => context.Extensions.Set(TaskCompletionSourceKey, value);
 
-        const string TaskCompletionSourceKey = "ServiceControl.Audit.TaskCompletionSource";
+        const string TaskCompletionSourceKey = "ServiceControl.TaskCompletionSource";
     }
 }

@@ -970,6 +970,7 @@ namespace ServiceControl.Monitoring
     }
     public class KnownEndpoint
     {
+        public const string CollectionName = "KnownEndpoints";
         public KnownEndpoint() { }
         public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
         public bool HasTemporaryId { get; set; }
