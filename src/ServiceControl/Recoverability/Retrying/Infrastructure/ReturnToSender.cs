@@ -71,11 +71,11 @@ namespace ServiceControl.Recoverability
                         if (resultBody != null)
                         {
                             body = Encoding.UTF8.GetBytes(resultBody);
-                        }
 
-                        if (Log.IsDebugEnabled)
-                        {
-                            Log.DebugFormat("{0}: Body size: {1} bytes retrieved from index", messageId, body.LongLength);
+                            if (Log.IsDebugEnabled)
+                            {
+                                Log.DebugFormat("{0}: Body size: {1} bytes retrieved from index", messageId, body.LongLength);
+                            }
                         }
                     }
                     else
