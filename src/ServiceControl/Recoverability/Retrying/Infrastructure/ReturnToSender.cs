@@ -24,7 +24,7 @@ namespace ServiceControl.Recoverability
 
         public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender)
         {
-            byte[] body = new byte[0];
+            byte[] body = null;
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
@@ -91,7 +91,7 @@ namespace ServiceControl.Recoverability
                 Log.WarnFormat("{0}: Can't find message body. Missing header ServiceControl.Retry.Attempt.MessageId", messageId);
             }
 
-            var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body);
+            var outgoingMessage = new OutgoingMessage(messageId, outgoingHeaders, body ?? EmptyBody);
 
             var destination = outgoingHeaders["ServiceControl.TargetEndpointAddress"];
             if (Log.IsDebugEnabled)
@@ -141,6 +141,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
+        static readonly byte[] EmptyBody = new byte[0];
         readonly IBodyStorage bodyStorage;
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
         readonly IDocumentStore documentStore;
