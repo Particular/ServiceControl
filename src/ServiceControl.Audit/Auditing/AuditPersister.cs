@@ -247,7 +247,7 @@
 
             try
             {
-                var metadata = new ConcurrentDictionary<string, object>
+                var metadata = new Dictionary<string, object>
                 {
                     ["MessageId"] = messageId,
                     ["MessageIntent"] = context.Headers.MessageIntent()
