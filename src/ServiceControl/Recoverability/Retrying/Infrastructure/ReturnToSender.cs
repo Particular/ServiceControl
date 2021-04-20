@@ -24,11 +24,11 @@ namespace ServiceControl.Recoverability
 
         public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender)
         {
-            byte[] body = null;
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
 
+            byte[] body = null;
             var messageId = message.MessageId;
             if (Log.IsDebugEnabled)
             {
@@ -39,49 +39,13 @@ namespace ServiceControl.Recoverability
             {
                 if (outgoingHeaders.Remove("ServiceControl.Retry.HasAttachment"))
                 {
-                    var result = await bodyStorage.TryFetch(attemptMessageId)
+                    body = await FetchFromBodyStore(attemptMessageId, messageId)
                         .ConfigureAwait(false);
-                    if (result.HasResult)
-                    {
-                        using (result.Stream)
-                        {
-                            body = ReadFully(result.Stream);
-                        }
-
-                        if (Log.IsDebugEnabled)
-                        {
-                            Log.DebugFormat("{0}: Body size: {1} bytes retrieved from attachment store", messageId, body.LongLength);
-                        }
-                    }
-                    else
-                    {
-                        Log.WarnFormat("{0}: Message Body not found in attachment store for attempt Id {1}", messageId, attemptMessageId);
-                    }
                 }
                 else
                 {
-                    string documentId = FailedMessage.MakeDocumentId(outgoingHeaders["ServiceControl.Retry.UniqueMessageId"]);
-                    var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
-                        transformer: MessagesBodyTransformer.Name).ConfigureAwait(false);
-                    var loadResult = results.Results.SingleOrDefault();
-
-                    if (loadResult != null)
-                    {
-                        string resultBody = ((loadResult["$values"] as RavenJArray)?.SingleOrDefault() as RavenJObject)?.ToObject<MessagesBodyTransformer.Result>()?.Body;
-                        if (resultBody != null)
-                        {
-                            body = Encoding.UTF8.GetBytes(resultBody);
-
-                            if (Log.IsDebugEnabled)
-                            {
-                                Log.DebugFormat("{0}: Body size: {1} bytes retrieved from index", messageId, body.LongLength);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Log.WarnFormat("{0}: Message Body not found on index for attempt Id {1}", messageId, attemptMessageId);
-                    }
+                    body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId)
+                        .ConfigureAwait(false);
                 }
 
                 outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
@@ -121,6 +85,57 @@ namespace ServiceControl.Recoverability
             {
                 Log.DebugFormat("{0}: Forwarded message to {1}", messageId, retryTo);
             }
+        }
+
+        async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId)
+        {
+            byte[] body = null;
+            string documentId = FailedMessage.MakeDocumentId(outgoingHeaders["ServiceControl.Retry.UniqueMessageId"]);
+            var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
+                transformer: MessagesBodyTransformer.Name).ConfigureAwait(false);
+
+            string resultBody = ((results.Results?.SingleOrDefault()?["$values"] as RavenJArray)?.SingleOrDefault() as RavenJObject)
+                ?.ToObject<MessagesBodyTransformer.Result>()?.Body;
+
+            if (resultBody != null)
+            {
+                body = Encoding.UTF8.GetBytes(resultBody);
+
+                if (Log.IsDebugEnabled)
+                {
+                    Log.DebugFormat("{0}: Body size: {1} bytes retrieved from index", messageId, body.LongLength);
+                }
+            }
+            else
+            {
+                Log.WarnFormat("{0}: Message Body not found on index for attempt Id {1}", messageId, attemptMessageId);
+            }
+            return body;
+        }
+
+        async Task<byte[]> FetchFromBodyStore(string attemptMessageId, string messageId)
+        {
+            byte[] body = null;
+            var result = await bodyStorage.TryFetch(attemptMessageId)
+                .ConfigureAwait(false);
+            if (result.HasResult)
+            {
+                using (result.Stream)
+                {
+                    body = ReadFully(result.Stream);
+                }
+
+                if (Log.IsDebugEnabled)
+                {
+                    Log.DebugFormat("{0}: Body size: {1} bytes retrieved from attachment store", messageId, body.LongLength);
+                }
+            }
+            else
+            {
+                Log.WarnFormat("{0}: Message Body not found in attachment store for attempt Id {1}", messageId,
+                    attemptMessageId);
+            }
+            return body;
         }
 
         // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
