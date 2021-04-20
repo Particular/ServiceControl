@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -122,7 +123,12 @@ namespace ServiceControl.Recoverability
             {
                 using (result.Stream)
                 {
-                    body = ReadFully(result.Stream);
+                    // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
+                    // furthermore call ToArray would neglect many of the benefits of the recyclable stream
+                    // RavenDB always returns a memory stream so there is no need to pretent we need to do buffered reads since the memory is anyway fully allocated already
+                    // this assumption might change when the database is upgraded but right now this is the most memory efficient way to do things
+                    // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
+                    body = ((MemoryStream)result.Stream).ToArray();
                 }
 
                 if (Log.IsDebugEnabled)
@@ -136,24 +142,6 @@ namespace ServiceControl.Recoverability
                     attemptMessageId);
             }
             return body;
-        }
-
-        // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
-        // furthermore call ToArray would neglect many of the benefits of the recyclable stream
-        // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
-        static byte[] ReadFully(Stream input)
-        {
-            var buffer = new byte[16 * 1024];
-            using (var ms = new MemoryStream())
-            {
-                int read;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-
-                return ms.ToArray();
-            }
         }
 
         static readonly byte[] EmptyBody = new byte[0];
