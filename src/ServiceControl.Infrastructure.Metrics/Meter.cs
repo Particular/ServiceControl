@@ -7,6 +7,7 @@
     public class Meter
     {
         readonly string name;
+        readonly Func<bool> enabled;
         readonly float scale;
         readonly long[] eventsPerSecond;
         readonly long[] sumPerSecond;
@@ -15,9 +16,10 @@
         readonly long[] movingAverageEpochs;
         long epoch;
 
-        public Meter(string name, float scale = 1)
+        internal Meter(string name, Func<bool> enabled, float scale = 1)
         {
             this.name = name;
+            this.enabled = enabled;
             this.scale = scale;
             eventsPerSecond = new long[2];
             sumPerSecond = new long[2];
@@ -27,17 +29,17 @@
             epoch = DateTime.Now.Minute;
         }
 
-        public Measurement Measure()
-        {
-            return new Measurement(this);
-        }
+        public Measurement Measure() => new Measurement(this, enabled());
 
         public void Mark(long value)
         {
+            if (!enabled())
+            {
+                return;
+            }
             var ticks = Stopwatch.GetTimestamp();
             var currentEpoch = ticks / Stopwatch.Frequency;
             var bucketTierIndex = currentEpoch % 2;
-
 
             if (InterlockedExchangeIfGreaterThan(ref epoch, currentEpoch, currentEpoch, out var previousEpoch))
             {

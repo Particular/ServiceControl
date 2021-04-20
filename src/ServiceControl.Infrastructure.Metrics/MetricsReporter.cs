@@ -34,6 +34,11 @@
 
         void Print()
         {
+            if (!metrics.Enabled)
+            {
+                return;
+            }
+
             var values = metrics.GetMeterValues();
             foreach (var metricSet in values)
             {
