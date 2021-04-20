@@ -8,6 +8,8 @@
     using Contracts;
     using ServiceControl.MessageFailures;
     using Newtonsoft.Json;
+    using TestSupport.EndpointTemplates;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class When_a_failed_message_is_archived : When_a_message_failed
     {
@@ -32,24 +34,49 @@
                 }))
                 .Do("WaitUntilErrorsContainsFailedMessage", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ErrorSender.FailedMessageId}",
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}",
                         e => e.Status == FailedMessageStatus.Unresolved);
                 })
                 .Do("WaitForExternalProcessorToSubscribe", ctx => Task.FromResult(ctx.ExternalProcessorSubscribed))
                 .Do("Archive", async ctx =>
                 {
-                    await this.Post<object>($"/api/errors/{ErrorSender.FailedMessageId}/archive");
+                    await this.Post<object>($"/api/errors/{ctx.FailedMessageId}/archive");
                 })
                 .Do("EnsureMessageIsArchived", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ErrorSender.FailedMessageId}",
+                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}",
                         e => e.Status == FailedMessageStatus.Archived);
                 })
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
             var deserializedEvent = JsonConvert.DeserializeObject<FailedMessagesArchived>(context.Event);
-            CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, ErrorSender.FailedMessageId);
+            CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId.ToString());
+        }
+
+        public class ExternalProcessor : EndpointConfigurationBuilder
+        {
+            public ExternalProcessor()
+            {
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    var routing = c.ConfigureTransport().Routing();
+                    routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
+                }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesArchived>(Settings.DEFAULT_SERVICE_NAME); });
+            }
+
+            public class FailureHandler : IHandleMessages<FailedMessagesArchived>
+            {
+                public Context Context { get; set; }
+
+                public Task Handle(FailedMessagesArchived message, IMessageHandlerContext context)
+                {
+                    var serializedMessage = JsonConvert.SerializeObject(message);
+                    Context.Event = serializedMessage;
+                    Context.EventDelivered = true;
+                    return Task.FromResult(0);
+                }
+            }
         }
     }
 }
