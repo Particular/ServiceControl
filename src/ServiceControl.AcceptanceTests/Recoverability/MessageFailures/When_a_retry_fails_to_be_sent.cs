@@ -12,6 +12,7 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Operations.BodyStorage;
+    using Raven.Client;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
@@ -25,8 +26,7 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IBodyStorage>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
-
+            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IBodyStorage>(), b.Build<IDocumentStore>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
 
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
@@ -142,7 +142,7 @@
 
         public class FakeReturnToSender : ReturnToSender
         {
-            public FakeReturnToSender(IBodyStorage bodyStorage, MyContext myContext) : base(bodyStorage, null)
+            public FakeReturnToSender(IBodyStorage bodyStorage, IDocumentStore documentStore, MyContext myContext) : base(bodyStorage, documentStore)
             {
                 this.myContext = myContext;
             }
