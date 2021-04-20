@@ -135,16 +135,16 @@
 
         async Task ProcessMessage(MessageContext context)
         {
-            // TODO optimize
-            if (Logger.IsDebugEnabled)
-            {
-                context.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                Logger.Debug($"Ingesting error message {context.MessageId} (original message id: {originalMessageId ?? string.Empty})");
-            }
-
+            bool isOriginalMessageId = true;
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
                 messageId = DeterministicGuid.MakeId(context.MessageId).ToString();
+                isOriginalMessageId = false;
+            }
+
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Ingesting error message {context.MessageId} (original message id: {(isOriginalMessageId ? messageId : string.Empty)})");
             }
 
             try
@@ -206,7 +206,7 @@
                     Script = $@"this.{nameof(FailedMessage.Status)} = status;
                                 this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
 
-                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{ 
+                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{
                                     return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
                                 }});
 
