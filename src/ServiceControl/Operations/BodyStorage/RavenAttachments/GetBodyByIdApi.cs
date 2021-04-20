@@ -5,7 +5,6 @@
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Raven.Abstractions.Data;
     using Raven.Client;
 
     class GetBodyByIdApi : RoutedApi<string>
@@ -47,6 +46,7 @@
                 content.Headers.ContentLength = result.BodySize;
                 response.Headers.ETag = new EntityTagHeaderValue($"\"{result.Etag}\"");
                 response.Content = content;
+                return response;
             }
 
             return request.CreateResponse(HttpStatusCode.NotFound);
@@ -70,6 +70,11 @@
                 if (message.BodyNotStored && message.Body == null)
                 {
                     return request.CreateResponse(HttpStatusCode.NoContent);
+                }
+
+                if (message.Body == null)
+                {
+                    return request.CreateResponse(HttpStatusCode.NotFound);
                 }
 
                 var response = request.CreateResponse(HttpStatusCode.OK);

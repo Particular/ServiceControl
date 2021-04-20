@@ -55,6 +55,30 @@
                 "Exception message should be captured");
         }
 
+        [Theory]
+        [TestCase(false)]
+        [TestCase(true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        public async Task Should_be_imported_and_body_via_the_rest_api(bool largeMessage)
+        {
+            HttpResponseMessage result = null;
+
+            var myMessage = new MyMessage
+            {
+                Content = largeMessage ? new string('a', 86 * 1024) : "Small"
+            };
+
+            await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(myMessage)).DoNotFailOnErrorMessages())
+                .Done(async c =>
+                {
+                    result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
+                    return result.IsSuccessStatusCode;
+                })
+                .Run();
+
+            Assert.AreEqual($"{{\"Content\":\"{myMessage.Content}\"}}", await result.Content.ReadAsStringAsync());
+        }
+
         [Test]
         public async Task Should_be_listed_in_the_error_list()
         {
@@ -225,7 +249,6 @@
                     context.RegisterStartupTask(b => b.Build<SignalRStarter>());
                 }
 
-
                 class SignalRStarter : FeatureStartupTask
                 {
                     public SignalRStarter(MyContext context)
@@ -326,6 +349,7 @@
 
         public class MyMessage : ICommand
         {
+            public string Content { get; set; }
         }
 
         public class MyContext : ScenarioContext
