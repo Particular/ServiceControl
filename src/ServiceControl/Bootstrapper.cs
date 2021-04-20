@@ -19,6 +19,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Operations;
@@ -90,6 +91,13 @@ namespace Particular.ServiceControl
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
+            var metrics = new Metrics
+            {
+                Enabled = settings.PrintMetrics
+            };
+            reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
+            containerBuilder.RegisterInstance(metrics).ExternallyOwned();
+
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
@@ -139,12 +147,16 @@ namespace Particular.ServiceControl
             }
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
-
+            reporter.Start();
             return bus;
         }
 
         public async Task Stop()
         {
+            if (reporter != null)
+            {
+                await reporter.Stop().ConfigureAwait(false);
+            }
             notifier.Dispose();
             if (bus != null)
             {
@@ -275,6 +287,8 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
         static HttpClient httpClient;
+        MetricsReporter reporter;
+        static ILog metricsLog = LogManager.GetLogger("Metrics");
 
         class AllConstructorFinder : IConstructorFinder
         {
