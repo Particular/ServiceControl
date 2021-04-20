@@ -1,19 +1,21 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Settings;
     using ServiceBus.Management.Infrastructure.Settings;
     using NUnit.Framework;
-    using ServiceControl.Contracts;
+    using Contracts;
     using ServiceControl.MessageFailures;
     using TestSupport;
     using TestSupport.EndpointTemplates;
     using Newtonsoft.Json;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_failed_message_is_archived : AcceptanceTest
     {
@@ -22,18 +24,13 @@
         {
             CustomConfiguration = config => config.OnEndpointSubscribed<MyContext>((s, ctx) =>
             {
-                if (s.SubscriberReturnAddress.IndexOf("ExternalProcessor", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    ctx.ExternalProcessorSubscribed = true;
-                }
+                ctx.ExternalProcessorSubscribed = s.SubscriberReturnAddress.Contains("ExternalProcessor");
             });
 
+            var uniqueMessageId = Infrastructure.DeterministicGuid.MakeId(ErrorSender.MessageId, nameof(ErrorSender)).ToString();
+
             var context = await Define<MyContext>()
-                .WithEndpoint<Receiver>(b => b.When(c => c.ExternalProcessorSubscribed, async bus =>
-                {
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
-                        .ConfigureAwait(false);
-                }).DoNotFailOnErrorMessages())
+                .WithEndpoint<ErrorSender>(b => b.When(session => Task.CompletedTask).DoNotFailOnErrorMessages())
                 .WithEndpoint<ExternalProcessor>(b => b.When(async (bus, c) =>
                 {
                     await bus.Subscribe<FailedMessagesArchived>();
@@ -43,35 +40,30 @@
                         c.ExternalProcessorSubscribed = true;
                     }
                 }))
-                .Do("WaitUntilErrorsContainsFaildMessage", async ctx =>
+                .Do("WaitUntilErrorsContainsFailedMessage", async ctx =>
                 {
-                    if (ctx.FailedMessageId == null)
-                    {
-                        return false;
-                    }
-
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}",
+                    return await this.TryGet<FailedMessage>($"/api/errors/{uniqueMessageId}",
                         e => e.Status == FailedMessageStatus.Unresolved);
                 })
                 .Do("Archive", async ctx =>
                 {
-                    await this.Post<object>($"/api/errors/{ctx.FailedMessageId}/archive");
+                    await this.Post<object>($"/api/errors/{uniqueMessageId}/archive");
                 })
                 .Do("EnsureMessageIsArchived", async ctx =>
                 {
-                    return await this.TryGet<FailedMessage>($"/api/errors/{ctx.FailedMessageId}",
+                    return await this.TryGet<FailedMessage>($"/api/errors/{uniqueMessageId}",
                         e => e.Status == FailedMessageStatus.Archived);
                 })
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
             var deserializedEvent = JsonConvert.DeserializeObject<FailedMessagesArchived>(context.Event);
-            CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId);
+            CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, uniqueMessageId);
         }
 
-        public class Receiver : EndpointConfigurationBuilder
+        public class ErrorSender : EndpointConfigurationBuilder
         {
-            public Receiver()
+            public ErrorSender()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
@@ -80,30 +72,35 @@
                 });
             }
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            class SendFailedMessages : DispatchRawMessages<MyContext>
             {
-                public MyContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
-
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                protected override TransportOperations CreateMessage(MyContext context)
                 {
-                    var messageId = context.MessageId.Replace(@"\", "-");
+                    var errorAddress = new UnicastAddressTag("error");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
+                    return new TransportOperations(new TransportOperation(CreateTransportMessage(), errorAddress));
+                }
 
-                    if (message.MessageNumber == 1)
+                OutgoingMessage CreateTransportMessage()
+                {
+                    var date = new DateTime(2015, 9, 20, 0, 0, 0);
+                    var msg = new OutgoingMessage(MessageId, new Dictionary<string, string>
                     {
-                        Context.FailedMessageId = uniqueMessageId;
-                    }
-
-                    if (Context.FailProcessing)
-                    {
-                        throw new Exception("Simulated exception");
-                    }
-
-                    return Task.FromResult(0);
+                        {Headers.MessageId, MessageId},
+                        {"NServiceBus.ExceptionInfo.ExceptionType", "System.Exception"},
+                        {"NServiceBus.ExceptionInfo.Message", "An error occurred"},
+                        {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},
+                        {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(ErrorSender))},
+                        {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
+                        {"NServiceBus.ProcessingEndpoint", nameof(ErrorSender)},
+                        {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
+                        {Headers.EnclosedMessageTypes, $"MessageThatWillFail"}
+                    }, new byte[0]);
+                    return msg;
                 }
             }
+
+            public static string MessageId = "014b048-2b7b-4f94-8eda-d5be0fe50e93";
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder
@@ -131,16 +128,8 @@
             }
         }
 
-        public class MyMessage : ICommand
-        {
-            public int MessageNumber { get; set; }
-        }
-
         public class MyContext : ScenarioContext, ISequenceContext
         {
-            public string FailedMessageId { get; set; }
-            public string GroupId { get; set; }
-            public bool FailProcessing { get; set; } = true;
             public int Step { get; set; }
             public bool ExternalProcessorSubscribed { get; set; }
             public string Event { get; set; }
