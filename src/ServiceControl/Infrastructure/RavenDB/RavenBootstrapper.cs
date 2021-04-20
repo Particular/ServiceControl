@@ -103,7 +103,6 @@
             if (!maintenanceMode)
             {
                 documentStore.ThrowWhenIndexErrors();
-                documentStore.WaitUntilNoStaleIndexes();
             }
 
             Logger.Info("Index creation started");

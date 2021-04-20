@@ -35,32 +35,5 @@
                 throw new Exception(text.ToString());
             }
         }
-
-        public static void WaitUntilNoStaleIndexes(this EmbeddableDocumentStore documentStore)
-        {
-            var interval = TimeSpan.FromMinutes(1);
-            var next = DateTime.MinValue;
-            string[] staleIndexes;
-
-            // Check for the number of stale indexes every second, but report only an update only every 1 minutes
-            while ((staleIndexes = documentStore.DatabaseCommands.GetStatistics().StaleIndexes).Length > 0)
-            {
-                var now = DateTime.UtcNow;
-                if (next < now)
-                {
-                    var text = new StringBuilder();
-                    text.AppendLine("Stale indexes detected, delaying start until all indexes are non-stale. DO NOT KILL THIS PROCESS! Operation can run for a very long time!");
-                    foreach (var staleIndex in staleIndexes)
-                    {
-                        text.AppendLine($"- {staleIndex}");
-                    }
-                    Log.Warn(text.ToString());
-                    next = now + interval;
-                }
-                Thread.Sleep(1000);
-            }
-        }
-
-        static ILog Log = LogManager.GetLogger(typeof(Extensions).Namespace);
     }
 }
