@@ -77,7 +77,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 },
                 {
                     "p|portable",
-                    @"Internal use - runs as a console app, even non-interactively",
+                    @"Runs as a console app, even non-interactively",
                     s => { Portable = true; }
                 }
             };
@@ -86,7 +86,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             {
                 {
                     "p|portable",
-                    @"Internal use - runs as a console app, even non-interactively",
+                    @"Runs as a console app, even non-interactively",
                     s => { Portable = true; }
                 }
             };

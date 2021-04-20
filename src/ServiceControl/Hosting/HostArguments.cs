@@ -48,7 +48,7 @@ namespace Particular.ServiceControl.Hosting
                 },
                 {
                     "p|portable",
-                    @"Internal use - runs as a console app, even non-interactively",
+                    @"Runs as a console app, even non-interactively",
                     s => { Portable = true; }
                 }
             };
@@ -78,7 +78,7 @@ namespace Particular.ServiceControl.Hosting
                 },
                 {
                     "p|portable",
-                    @"Internal use - runs as a console app, even non-interactively",
+                    @"Runs as a console app, even non-interactively",
                     s => { Portable = true; }
                 }
             };
@@ -87,7 +87,7 @@ namespace Particular.ServiceControl.Hosting
             {
                 {
                     "p|portable",
-                    @"Internal use - runs as a console app, even non-interactively",
+                    @"Runs as a console app, even non-interactively",
                     s => { Portable = true; }
                 }
             };
