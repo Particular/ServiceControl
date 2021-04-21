@@ -68,6 +68,11 @@
 
         static void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexStats[] indexes)
         {
+            if (!_log.IsDebugEnabled)
+            {
+                return;
+            }
+
             var report = new StringBuilder();
             report.AppendLine("Internal RavenDB index health report:");
 
