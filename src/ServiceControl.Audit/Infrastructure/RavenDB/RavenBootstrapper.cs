@@ -91,6 +91,11 @@
 
             documentStore.Initialize();
 
+            if (!maintenanceMode)
+            {
+                documentStore.ThrowWhenIndexErrors();
+            }
+
             Logger.Info("Index creation started");
 
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
