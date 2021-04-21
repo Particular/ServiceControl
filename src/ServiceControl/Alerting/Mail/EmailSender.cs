@@ -8,11 +8,13 @@
     {
         public static Task Send(AlertingSettings settings, string subject, string body, string emailDropFolder = null)
         {
-            var client = CreateSmtpClient(settings, emailDropFolder);
-
-            var mailMessage = new MailMessage(settings.From, settings.To, subject, body);
-
-            return client.SendMailAsync(mailMessage);
+            using (var client = CreateSmtpClient(settings, emailDropFolder))
+            {
+                using (var mailMessage = new MailMessage(settings.From, settings.To, subject, body))
+                {
+                    return client.SendMailAsync(mailMessage);
+                }
+            }
         }
 
         static SmtpClient CreateSmtpClient(AlertingSettings settings, string emailDropFolder)
