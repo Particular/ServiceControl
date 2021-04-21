@@ -13,7 +13,7 @@
     class CheckRavenDBIndexLag : CustomCheck
     {
         public CheckRavenDBIndexLag(IDocumentStore store, LoggingSettings settings)
-            : base(nameof(CheckRavenDBIndexLag), "Storage", TimeSpan.FromMinutes(5))
+            : base("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
         {
             _store = store;
             LogPath = settings?.LogPath;

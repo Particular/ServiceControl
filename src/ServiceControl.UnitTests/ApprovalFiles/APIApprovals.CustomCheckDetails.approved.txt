@@ -3,5 +3,5 @@ Health: ServiceControl Remotes
 ServiceControl Health: Audit Message Ingestion
 ServiceControl Health: Error Message Ingestion
 ServiceControl Health: Error Message Ingestion Process
-Storage: CheckRavenDBIndexLag
+ServiceControl Health: Error Database Index Lag
 Storage space: ServiceControl database
