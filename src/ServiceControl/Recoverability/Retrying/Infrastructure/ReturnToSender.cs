@@ -38,14 +38,14 @@ namespace ServiceControl.Recoverability
 
             if (outgoingHeaders.TryGetValue("ServiceControl.Retry.Attempt.MessageId", out var attemptMessageId))
             {
-                if (outgoingHeaders.Remove("ServiceControl.Retry.HasAttachment"))
+                if (outgoingHeaders.Remove("ServiceControl.Retry.BodyOnFailedMessage"))
                 {
-                    body = await FetchFromBodyStore(attemptMessageId, messageId)
+                    body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId)
                         .ConfigureAwait(false);
                 }
                 else
                 {
-                    body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId)
+                    body = await FetchFromBodyStore(attemptMessageId, messageId)
                         .ConfigureAwait(false);
                 }
 

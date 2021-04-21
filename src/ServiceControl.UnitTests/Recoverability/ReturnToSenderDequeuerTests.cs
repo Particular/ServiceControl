@@ -39,7 +39,6 @@
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
-                ["ServiceControl.Retry.HasAttachment"] = null
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
@@ -59,7 +58,6 @@
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
                 ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
-                ["ServiceControl.Retry.HasAttachment"] = null
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
@@ -80,6 +78,7 @@
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
                 ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
                 ["ServiceControl.Retry.UniqueMessageId"] = "MessageBodyId",
+                ["ServiceControl.Retry.BodyOnFailedMessage"] = null
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
@@ -128,7 +127,6 @@
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
                 ["ServiceControl.RetryTo"] = "Proxy",
-                ["ServiceControl.Retry.HasAttachment"] = null
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
@@ -148,7 +146,6 @@
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
-                ["ServiceControl.Retry.HasAttachment"] = null
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
@@ -169,7 +166,6 @@
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
                 ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
-                ["ServiceControl.Retry.HasAttachment"] = null
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
