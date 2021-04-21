@@ -7,13 +7,13 @@
     public class Counter
     {
         readonly string name;
-        readonly Func<bool> enabled;
+        readonly bool enabled;
         readonly int[] eventsPerSecond;
         readonly int[] movingAverage;
         readonly long[] movingAverageEpochs;
         long epoch;
 
-        internal Counter(string name, Func<bool> enabled)
+        internal Counter(string name, bool enabled)
         {
             this.name = name;
             this.enabled = enabled;
@@ -25,7 +25,7 @@
 
         public void Mark()
         {
-            if (!enabled())
+            if (!enabled)
             {
                 return;
             }

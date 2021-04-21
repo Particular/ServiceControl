@@ -7,7 +7,7 @@
     public class Meter
     {
         readonly string name;
-        readonly Func<bool> enabled;
+        readonly bool enabled;
         readonly float scale;
         readonly long[] eventsPerSecond;
         readonly long[] sumPerSecond;
@@ -16,7 +16,7 @@
         readonly long[] movingAverageEpochs;
         long epoch;
 
-        internal Meter(string name, Func<bool> enabled, float scale = 1)
+        internal Meter(string name, bool enabled, float scale = 1)
         {
             this.name = name;
             this.enabled = enabled;
@@ -29,11 +29,11 @@
             epoch = DateTime.Now.Minute;
         }
 
-        public Measurement Measure() => new Measurement(this, enabled());
+        public Measurement Measure() => new Measurement(this, enabled);
 
         public void Mark(long value)
         {
-            if (!enabled())
+            if (!enabled)
             {
                 return;
             }

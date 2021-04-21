@@ -14,7 +14,7 @@
         {
             if (!counters.TryGetValue(name, out var meter))
             {
-                meter = new Counter(name, () => Enabled);
+                meter = new Counter(name, Enabled);
                 counters[name] = meter;
             }
 
@@ -25,7 +25,7 @@
         {
             if (!meters.TryGetValue(name, out var meter))
             {
-                meter = new Meter(name, () => Enabled, scale);
+                meter = new Meter(name, Enabled, scale);
                 meters[name] = meter;
             }
 
