@@ -56,6 +56,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
+        public bool DisableExternalIntegrationsPublishing { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
