@@ -7,14 +7,16 @@
     public class Counter
     {
         readonly string name;
+        readonly bool enabled;
         readonly int[] eventsPerSecond;
         readonly int[] movingAverage;
         readonly long[] movingAverageEpochs;
         long epoch;
 
-        public Counter(string name)
+        internal Counter(string name, bool enabled)
         {
             this.name = name;
+            this.enabled = enabled;
             eventsPerSecond = new int[2];
             movingAverage = new int[300];
             movingAverageEpochs = new long[300];
@@ -23,10 +25,13 @@
 
         public void Mark()
         {
+            if (!enabled)
+            {
+                return;
+            }
             var ticks = Stopwatch.GetTimestamp();
             var currentEpoch = ticks / Stopwatch.Frequency;
             var bucketTierIndex = currentEpoch % 2;
-
 
             if (InterlockedExchangeIfGreaterThan(ref epoch, currentEpoch, currentEpoch, out var previousEpoch))
             {

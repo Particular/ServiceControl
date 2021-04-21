@@ -74,6 +74,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int MaximumConcurrencyLevel { get; set; }
         public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
         public int Port { get; set; }
+        public bool PrintMetrics { get; }
         public System.TimeSpan ProcessRetryBatchesFrequency { get; set; }
         public ServiceBus.Management.Infrastructure.Settings.RemoteInstanceSetting[] RemoteInstances { get; set; }
         public int RetryHistoryDepth { get; set; }

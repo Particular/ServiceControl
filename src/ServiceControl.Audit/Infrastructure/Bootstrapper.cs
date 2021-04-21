@@ -84,7 +84,10 @@ namespace ServiceControl.Audit.Infrastructure
             var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
             containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
-            var metrics = new Metrics();
+            var metrics = new Metrics
+            {
+                Enabled = settings.PrintMetrics
+            };
             reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
             containerBuilder.RegisterInstance(metrics).ExternallyOwned();
 
@@ -142,10 +145,7 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
-            if (settings.PrintMetrics)
-            {
-                reporter.Start();
-            }
+            reporter.Start();
             return bus;
         }
 
