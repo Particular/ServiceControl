@@ -96,7 +96,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Config.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LicenseManagement", "ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj", "{FD1B9998-4B0C-4109-A3BC-0748F829F852}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Infrastructure.Metrics", "ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj", "{56422C80-6A26-46B4-AF5C-84AF08BAB1D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructure.Metrics", "ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj", "{56422C80-6A26-46B4-AF5C-84AF08BAB1D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
