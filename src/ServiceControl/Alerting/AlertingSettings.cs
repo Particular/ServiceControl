@@ -19,7 +19,9 @@
         public bool EnableSSL { get; set; }
 
         public bool AlertingEnabled { get; set; }
+
         public string To { get; set; }
+
         public string From { get; set; }
     }
 }

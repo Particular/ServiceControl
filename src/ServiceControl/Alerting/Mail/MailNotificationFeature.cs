@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.Mail
+﻿namespace ServiceControl.Alerting.Mail
 {
     using NServiceBus;
     using NServiceBus.Features;

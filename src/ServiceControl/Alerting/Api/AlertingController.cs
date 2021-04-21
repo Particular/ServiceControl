@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Alerting.Api
 {
+    using System;
     using System.Net;
     using System.Net.Http;
     using System.Text;
@@ -7,15 +8,13 @@
     using System.Web.Http;
     using System.Web.Http.Results;
     using Infrastructure.SignalR;
+    using Mail;
     using Newtonsoft.Json;
     using Raven.Client;
 
     public class AlertingController : ApiController
     {
-        public AlertingController(IDocumentStore store)
-        {
-            this.store = store;
-        }
+        public AlertingController(IDocumentStore store) => this.store = store;
 
         [Route("alerting")]
         [HttpGet]
@@ -37,6 +36,22 @@
             }
         }
 
+        [Route("alerting/toggle-email-notifications")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> ToggleEmailNotifications(ToggleEmailNotifications request)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var settings = await LoadSettings(session).ConfigureAwait(false);
+
+                settings.AlertingEnabled = request.Enabled;
+
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+
         [Route("alerting")]
         [HttpPost]
         public async Task<HttpResponseMessage> UpdateSettings(UpdateAlertingSettingsRequest request)
@@ -45,8 +60,6 @@
             {
                 var settings = await LoadSettings(session).ConfigureAwait(false);
 
-                settings.AlertingEnabled = request.AlertingEnabled;
-
                 settings.SmtpServer = request.SmtpServer;
                 settings.SmtpPort = request.SmtpPort;
 
@@ -54,13 +67,16 @@
                 settings.AuthenticationPassword = request.AuthorizationPassword;
                 settings.EnableSSL = request.EnableSSL;
 
+                settings.From = request.From;
+                settings.To = request.To;
+
                 await session.SaveChangesAsync().ConfigureAwait(false);
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
         }
 
-        [Route("alerting/send-test-email")]
+        [Route("alerting/test-email-notifications")]
         [HttpPost]
         public async Task<HttpResponseMessage> SendTestEmail()
         {
@@ -68,7 +84,22 @@
             {
                 var settings = await session.LoadAsync<AlertingSettings>(AlertingSettings.SingleDocumentId).ConfigureAwait(false);
 
-                //TODO: generate email
+                try
+                {
+                    await EmailSender.Send(
+                            settings,
+                            "Test notification",
+                            "This is a test notification body.")
+                        .ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                    {
+                        Content = new StringContent($"{e.Message} {e.InnerException?.Message}"),
+                        ReasonPhrase = "Error sending test email notification"
+                    };
+                }
 
                 return new HttpResponseMessage(HttpStatusCode.Accepted);
             }
