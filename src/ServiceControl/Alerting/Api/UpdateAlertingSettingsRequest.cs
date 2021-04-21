@@ -19,7 +19,10 @@
         [JsonProperty(PropertyName = "enable_ssl")]
         public bool EnableSSL { get; set; }
 
-        [JsonProperty(PropertyName = "alerting_enabled")]
-        public bool AlertingEnabled { get; set; }
+        [JsonProperty(PropertyName = "from")]
+        public string From { get; set; }
+
+        [JsonProperty(PropertyName = "to")]
+        public string To { get; set; }
     }
 }
