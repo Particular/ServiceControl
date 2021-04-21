@@ -50,6 +50,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
+            DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
         }
 
         public bool AllowMessageEditing { get; set; }
@@ -61,6 +62,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
+
+        public bool DisableExternalIntegrationsPublishing { get; set; }
 
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
