@@ -26,7 +26,9 @@
 
             CreateDiagnosticsLogEntry(statistics, indexes);
 
-            var indexCountWithTooMuchLag = CheckAndReportIndexesWithTooMuchIndexLag(statistics, indexes);
+            CheckAndReportIndexErrors(statistics);
+
+            var indexCountWithTooMuchLag = CheckAndReportIndexesWithTooMuchIndexLag(indexes);
 
             if (indexCountWithTooMuchLag > 0)
             {
@@ -36,7 +38,7 @@
             return CheckResult.Pass;
         }
 
-        static int CheckAndReportIndexesWithTooMuchIndexLag(DatabaseStatistics statistics, IndexStats[] indexes)
+        static int CheckAndReportIndexesWithTooMuchIndexLag(IndexStats[] indexes)
         {
             int indexCountWithTooMuchLag = 0;
 
@@ -58,12 +60,15 @@
                 }
             }
 
+            return indexCountWithTooMuchLag;
+        }
+
+        static void CheckAndReportIndexErrors(DatabaseStatistics statistics)
+        {
             foreach (var indexError in statistics.Errors)
             {
                 _log.Error($"Index [{indexError.IndexName}] Error: {indexError.Error} (Action: {indexError.Action},  Doc: {indexError.Document}, At: {indexError.Timestamp})");
             }
-
-            return indexCountWithTooMuchLag;
         }
 
         static void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexStats[] indexes)
