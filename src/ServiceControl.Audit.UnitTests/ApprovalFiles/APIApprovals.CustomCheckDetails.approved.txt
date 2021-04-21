@@ -1,4 +1,4 @@
 ServiceControl Health: Audit Message Ingestion Process
-ServiceControl.Audit Health: Audit Message Ingestion
 ServiceControl.Audit Health: Audit Database Index Lag
+ServiceControl.Audit Health: Audit Message Ingestion
 Storage space: ServiceControl.Audit database
