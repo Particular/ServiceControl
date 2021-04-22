@@ -11,7 +11,7 @@
     using TestSupport.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class When_a_failed_message_is_archived : When_a_message_failed
+    class When_a_failed_message_is_archived : ExternalIntegrationAcceptanceTest
     {
         [Test]
         public async Task Should_publish_notification()

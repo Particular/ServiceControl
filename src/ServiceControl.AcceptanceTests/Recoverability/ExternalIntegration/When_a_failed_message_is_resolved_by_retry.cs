@@ -12,7 +12,7 @@
     using TestSupport.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class When_a_failed_message_is_resolved_by_retry : When_a_message_failed
+    class When_a_failed_message_is_resolved_by_retry : ExternalIntegrationAcceptanceTest
     {
         [Test]
         public async Task Should_publish_notification()

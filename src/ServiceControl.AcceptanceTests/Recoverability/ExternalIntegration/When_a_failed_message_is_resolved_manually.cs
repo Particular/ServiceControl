@@ -13,7 +13,7 @@
     using Newtonsoft.Json;
     using System.Collections.Generic;
 
-    class When_a_failed_message_is_resolved_manually : When_a_message_failed
+    class When_a_failed_message_is_resolved_manually : ExternalIntegrationAcceptanceTest
     {
         [Test]
         public async Task Should_publish_notification()

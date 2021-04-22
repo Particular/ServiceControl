@@ -12,7 +12,7 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    abstract class When_a_message_failed : AcceptanceTest
+    abstract class ExternalIntegrationAcceptanceTest : AcceptanceTest
     {
         public class ErrorSender : EndpointConfigurationBuilder
         {

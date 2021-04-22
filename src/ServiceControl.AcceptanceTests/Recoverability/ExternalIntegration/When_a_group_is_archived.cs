@@ -12,7 +12,7 @@
     using TestSupport.EndpointTemplates;
     using Newtonsoft.Json;
 
-    class When_a_group_is_archived : When_a_message_failed
+    class When_a_group_is_archived : ExternalIntegrationAcceptanceTest
     {
         [Test]
         public async Task Should_publish_notification()

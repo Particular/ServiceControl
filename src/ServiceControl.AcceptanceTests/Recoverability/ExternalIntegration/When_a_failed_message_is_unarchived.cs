@@ -13,7 +13,7 @@
     using Newtonsoft.Json;
     using System.Collections.Generic;
 
-    class When_a_failed_message_is_unarchived : When_a_message_failed
+    class When_a_failed_message_is_unarchived : ExternalIntegrationAcceptanceTest
     {
         [Test]
         public async Task Should_publish_notification()
