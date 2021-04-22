@@ -9,6 +9,7 @@
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
+    using ServiceControl.Infrastructure.RavenDB;
     using ServiceControl.SagaAudit;
     using Settings;
 
