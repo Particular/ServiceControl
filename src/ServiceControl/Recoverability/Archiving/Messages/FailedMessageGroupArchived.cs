@@ -9,4 +9,9 @@ namespace ServiceControl.Recoverability
         public string GroupName { get; set; }
         public int MessagesCount { get; set; }
     }
+
+    public class FailedMessageGroupBatchArchived : IDomainEvent, IUserInterfaceEvent
+    {
+        public string[] FailedMessagesIds { get; set; }
+    }
 }

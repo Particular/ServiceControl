@@ -1,6 +1,8 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus;
@@ -91,6 +93,15 @@ namespace ServiceControl.Recoverability
 
                     if (nextBatch != null)
                     {
+                        await domainEvents.Raise(new FailedMessageGroupBatchArchived
+                        {
+                            // Remove `FailedMessages/` prefix and publish pure GUIDs without Raven collection name
+                            FailedMessagesIds = nextBatch.DocumentIds.Select(id => id.Replace("FailedMessages/", "")).ToArray()
+                        }).ConfigureAwait(false);
+                    }
+
+                    if (nextBatch != null)
+                    {
                         logger.Info($"Archiving of {nextBatch.DocumentIds.Count} messages from group {message.GroupId} completed");
                     }
                 }
@@ -114,7 +125,7 @@ namespace ServiceControl.Recoverability
             {
                 GroupId = message.GroupId,
                 GroupName = archiveOperation.GroupName,
-                MessagesCount = archiveOperation.TotalNumberOfMessages
+                MessagesCount = archiveOperation.TotalNumberOfMessages,
             }).ConfigureAwait(false);
         }
 

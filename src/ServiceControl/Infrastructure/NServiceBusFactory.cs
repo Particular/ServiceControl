@@ -9,6 +9,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus.Features;
     using Raven.Client.Embedded;
     using ServiceControl.CustomChecks;
+    using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.RavenDB;
     using ServiceControl.Operations;
@@ -43,6 +44,11 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<TimeoutManager>();
             configuration.DisableFeature<Outbox>();
             configuration.DisableFeature<Sagas>();
+
+            if (settings.DisableExternalIntegrationsPublishing)
+            {
+                configuration.DisableFeature<ExternalIntegrationsFeature>();
+            }
 
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));

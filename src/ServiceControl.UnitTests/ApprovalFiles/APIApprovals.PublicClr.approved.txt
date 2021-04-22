@@ -56,6 +56,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
+        public bool DisableExternalIntegrationsPublishing { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
@@ -343,6 +344,7 @@ namespace ServiceControl.Contracts.MessageFailures
     public class FailedMessagesUnArchived
     {
         public FailedMessagesUnArchived() { }
+        public string[] DocumentIds { get; set; }
         public int MessagesCount { get; set; }
     }
     public class MarkMessageFailureResolvedByRetry : NServiceBus.ICommand, NServiceBus.IMessage
@@ -1179,6 +1181,11 @@ namespace ServiceControl.Recoverability
         public string GroupId { get; set; }
         public string GroupName { get; set; }
         public int MessagesCount { get; set; }
+    }
+    public class FailedMessageGroupBatchArchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public FailedMessageGroupBatchArchived() { }
+        public string[] FailedMessagesIds { get; set; }
     }
     public class FailedMessageRetries : NServiceBus.Features.Feature
     {

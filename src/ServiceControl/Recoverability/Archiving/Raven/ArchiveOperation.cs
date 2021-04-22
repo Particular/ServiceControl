@@ -13,7 +13,6 @@
         public DateTime Started { get; set; }
         public int NumberOfBatches { get; set; }
         public int CurrentBatch { get; set; }
-
         public static string MakeId(string requestId, ArchiveType archiveType)
         {
             return $"ArchiveOperations/{(int)archiveType}/{requestId}";

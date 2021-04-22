@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System.Globalization;
+    using System.Linq;
     using System.Threading.Tasks;
     using Api;
     using Contracts.MessageFailures;
@@ -50,6 +51,7 @@ if(this.Status === archivedStatus) {
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
+                DocumentIds = patchedDocumentIds.Select(x => FailedMessage.GetMessageIdFromDocumentId(x.Document)).ToArray(),
                 MessagesCount = patchedDocumentIds.Length
             }).ConfigureAwait(false);
         }

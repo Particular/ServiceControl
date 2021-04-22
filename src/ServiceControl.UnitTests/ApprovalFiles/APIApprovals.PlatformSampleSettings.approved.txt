@@ -15,6 +15,7 @@
   "RunInMemory": false,
   "ValidateConfiguration": true,
   "ExternalIntegrationsDispatchingBatchSize": 100,
+  "DisableExternalIntegrationsPublishing": false,
   "DisableRavenDBPerformanceCounters": true,
   "SkipQueueCreation": false,
   "RunCleanupBundle": false,
