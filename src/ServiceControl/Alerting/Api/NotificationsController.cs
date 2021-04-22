@@ -12,20 +12,20 @@
     using Newtonsoft.Json;
     using Raven.Client;
 
-    public class AlertingController : ApiController
+    public class NotificationsController : ApiController
     {
-        public AlertingController(IDocumentStore store) => this.store = store;
+        public NotificationsController(IDocumentStore store) => this.store = store;
 
-        [Route("alerting")]
+        [Route("notifications/email")]
         [HttpGet]
-        public async Task<JsonResult<AlertingSettings>> GetAlertingSettings(HttpRequestMessage request)
+        public async Task<JsonResult<EmailNotifications>> GetAlertingSettings(HttpRequestMessage request)
         {
             using (var session = store.OpenAsyncSession())
             {
                 var settings = await LoadSettings(session).ConfigureAwait(false);
 
-                return new JsonResult<AlertingSettings>(
-                    settings,
+                return new JsonResult<EmailNotifications>(
+                    settings.Email,
                     new JsonSerializerSettings
                     {
                         NullValueHandling = NullValueHandling.Include,
@@ -36,7 +36,7 @@
             }
         }
 
-        [Route("alerting/toggle-email-notifications")]
+        [Route("notifications/email/toggle")]
         [HttpPost]
         public async Task<HttpResponseMessage> ToggleEmailNotifications(ToggleEmailNotifications request)
         {
@@ -44,7 +44,7 @@
             {
                 var settings = await LoadSettings(session).ConfigureAwait(false);
 
-                settings.AlertingEnabled = request.Enabled;
+                settings.Email.Enabled = request.Enabled;
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
@@ -52,7 +52,7 @@
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
 
-        [Route("alerting")]
+        [Route("notifications/email")]
         [HttpPost]
         public async Task<HttpResponseMessage> UpdateSettings(UpdateAlertingSettingsRequest request)
         {
@@ -60,15 +60,17 @@
             {
                 var settings = await LoadSettings(session).ConfigureAwait(false);
 
-                settings.SmtpServer = request.SmtpServer;
-                settings.SmtpPort = request.SmtpPort;
+                var emailSettings = settings.Email;
 
-                settings.AuthenticationAccount = request.AuthorizationAccount;
-                settings.AuthenticationPassword = request.AuthorizationPassword;
-                settings.EnableSSL = request.EnableSSL;
+                emailSettings.SmtpServer = request.SmtpServer;
+                emailSettings.SmtpPort = request.SmtpPort;
 
-                settings.From = request.From;
-                settings.To = request.To;
+                emailSettings.AuthenticationAccount = request.AuthorizationAccount;
+                emailSettings.AuthenticationPassword = request.AuthorizationPassword;
+                emailSettings.EnableSSL = request.EnableSSL;
+
+                emailSettings.From = request.From;
+                emailSettings.To = request.To;
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
 
@@ -76,18 +78,18 @@
             }
         }
 
-        [Route("alerting/test-email-notifications")]
+        [Route("notifications/email/test")]
         [HttpPost]
         public async Task<HttpResponseMessage> SendTestEmail()
         {
             using (var session = store.OpenAsyncSession())
             {
-                var settings = await session.LoadAsync<AlertingSettings>(AlertingSettings.SingleDocumentId).ConfigureAwait(false);
+                var settings = await session.LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId).ConfigureAwait(false);
 
                 try
                 {
                     await EmailSender.Send(
-                            settings,
+                            settings.Email,
                             "Test notification",
                             "This is a test notification body.")
                         .ConfigureAwait(false);
@@ -105,17 +107,15 @@
             }
         }
 
-        static async Task<AlertingSettings> LoadSettings(IAsyncDocumentSession session)
+        static async Task<NotificationsSettings> LoadSettings(IAsyncDocumentSession session)
         {
-            var settings = await session.LoadAsync<AlertingSettings>(AlertingSettings.SingleDocumentId).ConfigureAwait(false);
+            var settings = await session.LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId).ConfigureAwait(false);
 
             if (settings == null)
             {
-                settings = new AlertingSettings
+                settings = new NotificationsSettings
                 {
-                    AlertingEnabled = true,
-                    AuthenticationEnabled = false,
-                    Id = AlertingSettings.SingleDocumentId
+                    Id = NotificationsSettings.SingleDocumentId
                 };
 
                 await session.StoreAsync(settings).ConfigureAwait(false);

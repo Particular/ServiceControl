@@ -31,15 +31,18 @@
                 {
                     using (var session = store.OpenSession())
                     {
-                        var alertingSettings = new AlertingSettings
+                        var notificationsSettings = new NotificationsSettings
                         {
-                            AlertingEnabled = true,
-                            From = "YouServiceControl@particular.net",
-                            To = "WhoeverMightBeConcerned@particular.net",
-                            Id = AlertingSettings.SingleDocumentId
+                            Id = NotificationsSettings.SingleDocumentId,
+                            Email = new EmailNotifications
+                            {
+                                Enabled = true,
+                                From = "YouServiceControl@particular.net",
+                                To = "WhoeverMightBeConcerned@particular.net",
+                            }
                         };
 
-                        session.Store(alertingSettings);
+                        session.Store(notificationsSettings);
 
                         session.SaveChanges();
                     }
