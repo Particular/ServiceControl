@@ -9,7 +9,6 @@
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
-    using ServiceControl.Infrastructure.RavenDB;
     using ServiceControl.SagaAudit;
     using Settings;
 
@@ -90,11 +89,6 @@
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
 
             documentStore.Initialize();
-
-            if (!maintenanceMode)
-            {
-                documentStore.ThrowWhenIndexErrors();
-            }
 
             Logger.Info("Index creation started");
 
