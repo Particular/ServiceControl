@@ -21,13 +21,13 @@
         public async Task Handle(CustomCheckFailed domainEvent)
         {
             var settings = await LoadSettings().ConfigureAwait(false);
-            if (settings == null || !settings.AlertingEnabled)
+            if (settings == null || !settings.Email.Enabled)
             {
                 return;
             }
 
             await EmailSender.Send(
-                    settings,
+                    settings.Email,
                 "Health check failed",
                 $"Health check {domainEvent.Category}: {domainEvent.CustomCheckId} failed at {domainEvent.FailedAt}. Failure reason {domainEvent.FailureReason}",
                     emailDropFolder)
@@ -37,24 +37,24 @@
         public async Task Handle(CustomCheckSucceeded domainEvent)
         {
             var settings = await LoadSettings().ConfigureAwait(false);
-            if (settings == null || !settings.AlertingEnabled)
+            if (settings == null || !settings.Email.Enabled)
             {
                 return;
             }
 
             await EmailSender.Send(
-                    settings,
+                    settings.Email,
                     "Health check succeeded",
                     $"Health check {domainEvent.Category}: {domainEvent.CustomCheckId} succeeded at {domainEvent.SucceededAt}.",
                     emailDropFolder)
                 .ConfigureAwait(false);
         }
 
-        async Task<AlertingSettings> LoadSettings()
+        async Task<NotificationsSettings> LoadSettings()
         {
             using (var session = store.OpenAsyncSession())
             {
-                return await session.LoadAsync<AlertingSettings>(AlertingSettings.SingleDocumentId).ConfigureAwait(false);
+                return await session.LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId).ConfigureAwait(false);
             }
         }
     }
