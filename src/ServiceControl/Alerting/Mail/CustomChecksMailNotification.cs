@@ -12,6 +12,7 @@
         readonly IDocumentStore store;
         readonly string emailDropFolder;
         readonly string instanceName;
+        string instanceAddress;
 
         public CustomChecksMailNotification(IDocumentStore store, Settings settings)
         {
@@ -19,6 +20,7 @@
 
             emailDropFolder = settings.EmailDropFolder;
             instanceName = settings.ServiceName;
+            instanceAddress = settings.ApiUrl;
         }
 
         public async Task Handle(CustomCheckFailed domainEvent)
@@ -30,7 +32,8 @@
             }
 
             var subject = $"[{instanceName}] Health check failed";
-            var body = $"Health check {domainEvent.Category}: {domainEvent.CustomCheckId} failed at {domainEvent.FailedAt}. Failure reason {domainEvent.FailureReason}";
+            var body = $@"Service Control instance: {instanceName} at {instanceAddress}.
+Health check {domainEvent.Category}: {domainEvent.CustomCheckId} failed at {domainEvent.FailedAt}. Failure reason {domainEvent.FailureReason}";
 
             await EmailSender.Send(notificationsSettings.Email, subject, body, emailDropFolder).ConfigureAwait(false);
         }
@@ -44,7 +47,8 @@
             }
 
             var subject = $"[{instanceName}] Health check succeeded";
-            var body = $"Health check {domainEvent.Category}: {domainEvent.CustomCheckId} succeeded at {domainEvent.SucceededAt}.";
+            var body = $@"Service Control instance: {instanceName} at {instanceAddress}.
+Health check {domainEvent.Category}: {domainEvent.CustomCheckId} succeeded at {domainEvent.SucceededAt}.";
 
             await EmailSender.Send(notificationsSettings.Email, subject, body, emailDropFolder).ConfigureAwait(false);
         }
