@@ -71,7 +71,7 @@
             Assert.AreEqual("X-Receiver: WhoeverMightBeConcerned@particular.net", emailText[1]);
             Assert.AreEqual("From: YouServiceControl@particular.net", emailText[3]);
             Assert.AreEqual("To: WhoeverMightBeConcerned@particular.net", emailText[4]);
-            Assert.AreEqual("Subject: Health check failed", emailText[6]);
+            Assert.AreEqual("Subject: [Particular.ServiceControl] Health check failed", emailText[6]);
         }
 
         public class MyContext : ScenarioContext
