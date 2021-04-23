@@ -170,6 +170,7 @@ namespace ServiceControl.CompositeViews.Messages
     public class MessagesBodyTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewTransformer.Result>
     {
         public MessagesBodyTransformer() { }
+        public static string Name { get; }
         public class Result
         {
             public Result() { }

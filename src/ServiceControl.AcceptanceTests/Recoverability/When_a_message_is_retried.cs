@@ -2,11 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.MessageMutator;
+    using NServiceBus.Pipeline;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -36,6 +37,34 @@
             CollectionAssert.DoesNotContain(HeadersThatShouldBeRemoved, context.Headers.Keys);
         }
 
+        [Theory]
+        [TestCase(false)]
+        [TestCase(true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        public async Task Should_work_with_various_body_size(bool largeMessageBodies)
+        {
+            string content = $"{{\"Content\":\"{(largeMessageBodies ? new string('a', 86 * 1024) : "Small")}\"}}";
+            byte[] buffer = Encoding.UTF8.GetBytes(content);
+
+            var context = await Define<TestContext>(c =>
+                {
+                    c.BodyToSend = buffer;
+                })
+                .WithEndpoint<VerifyHeader>()
+                .Done(async x =>
+                {
+                    if (!x.RetryIssued && await this.TryGetMany<FailedMessageView>("/api/errors"))
+                    {
+                        x.RetryIssued = true;
+                        await this.Post<object>("/api/errors/retry/all");
+                    }
+
+                    return x.Done;
+                })
+                .Run();
+
+            CollectionAssert.AreEqual(context.BodyToSend, context.BodyReceived);
+        }
+
         static readonly List<string> HeadersThatShouldBeRemoved = new List<string>
         {
             "NServiceBus.Retries",
@@ -62,6 +91,8 @@
             public bool RetryIssued { get; set; }
             public bool Done { get; set; }
             public Dictionary<string, string> Headers { get; set; }
+            public byte[] BodyReceived { get; set; }
+            public byte[] BodyToSend { get; set; } = new byte[0];
         }
 
         class VerifyHeader : EndpointConfigurationBuilder
@@ -69,8 +100,7 @@
             public VerifyHeader()
             {
                 EndpointSetup<DefaultServer>(
-                    (c, r) => c.RegisterMessageMutator(new CaptureHeaders((TestContext)r.ScenarioContext))
-                );
+                    (c, r) => c.Pipeline.Register(new CaptureIncomingMessage((TestContext)r.ScenarioContext), "Captures the incoming message"));
             }
 
             class FakeSender : DispatchRawMessages<TestContext>
@@ -80,7 +110,8 @@
                     var messageId = Guid.NewGuid().ToString();
                     var headers = new Dictionary<string, string>
                     {
-                        [Headers.MessageId] = messageId
+                        [Headers.MessageId] = messageId,
+                        [Headers.EnclosedMessageTypes] = typeof(MyMessage).FullName
                     };
 
                     foreach (var headerKey in HeadersThatShouldBeRemoved)
@@ -92,27 +123,33 @@
                     headers["$.diagnostics.hostid"] = Guid.NewGuid().ToString();
                     headers["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
 
-                    var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
+                    var outgoingMessage = new OutgoingMessage(messageId, headers, context.BodyToSend);
 
                     return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
             }
 
-            class CaptureHeaders : IMutateIncomingTransportMessages
+            class CaptureIncomingMessage : Behavior<ITransportReceiveContext>
             {
-                public CaptureHeaders(TestContext context)
+                public CaptureIncomingMessage(TestContext context)
                 {
                     testContext = context;
                 }
 
-                public Task MutateIncoming(MutateIncomingTransportMessageContext context)
+                public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
                 {
-                    testContext.Headers = context.Headers;
+                    testContext.Headers = context.Message.Headers;
+                    testContext.BodyReceived = context.Message.Body;
                     testContext.Done = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 TestContext testContext;
+            }
+
+            class MyMessage : ICommand
+            {
+                public string Content { get; set; }
             }
         }
     }

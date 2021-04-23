@@ -7,9 +7,11 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using MessageFailures;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Recoverability;
 
@@ -36,18 +38,18 @@
             var headers = new Dictionary<string, string>
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
-                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint"
+                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender)
                 .ConfigureAwait(false);
 
             Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"));
         }
 
         [Test]
-        public async Task It_fetches_the_body_if_provided()
+        public async Task It_fetches_the_body_from_storage_if_provided()
         {
             var sender = new FakeSender();
 
@@ -55,14 +57,64 @@
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
-                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId"
+                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender)
                 .ConfigureAwait(false);
 
             Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
+        }
+
+        [Test]
+        public async Task It_fetches_the_body_from_index_if_provided()
+        {
+            var sender = new FakeSender();
+
+            var headers = new Dictionary<string, string>
+            {
+                ["ServiceControl.Retry.StagingId"] = "SomeId",
+                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
+                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
+                ["ServiceControl.Retry.UniqueMessageId"] = "MessageBodyId",
+                ["ServiceControl.Retry.BodyOnFailedMessage"] = null
+            };
+            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
+
+            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            {
+                using (var session = documentStore.OpenAsyncSession())
+                {
+                    await session.StoreAsync(new FailedMessage
+                    {
+                        Id = FailedMessage.MakeDocumentId("MessageBodyId"),
+                        ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                        {
+                            new FailedMessage.ProcessingAttempt
+                            {
+                                MessageId = "MessageBodyId",
+                                MessageMetadata = new Dictionary<string, object>
+                                {
+                                    { "Body", "MessageBodyId" }
+                                }
+                            }
+                        }
+                    });
+
+                    await session.SaveChangesAsync();
+                }
+
+                var transformer = new MessagesBodyTransformer();
+                await transformer.ExecuteAsync(documentStore);
+
+                documentStore.WaitForIndexing();
+
+                await new ReturnToSender(null, documentStore).HandleMessage(message, sender)
+                    .ConfigureAwait(false);
+
+                Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
+            }
         }
 
         [Test]
@@ -74,11 +126,11 @@
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
-                ["ServiceControl.RetryTo"] = "Proxy"
+                ["ServiceControl.RetryTo"] = "Proxy",
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender)
                 .ConfigureAwait(false);
 
             Assert.AreEqual("Proxy", sender.Destination);
@@ -93,11 +145,11 @@
             var headers = new Dictionary<string, string>
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
-                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint"
+                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender)
                 .ConfigureAwait(false);
 
             Assert.AreEqual("TargetEndpoint", sender.Destination);
@@ -113,13 +165,13 @@
             {
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
-                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId"
+                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
             try
             {
-                await new ReturnToSender(new FakeBodyStorage()).HandleMessage(message, sender)
+                await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender)
                     .ConfigureAwait(false);
             }
             catch (Exception)
@@ -156,7 +208,7 @@
 
         class FakeBodyStorage : IBodyStorage
         {
-            public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
             {
                 throw new NotImplementedException();
             }

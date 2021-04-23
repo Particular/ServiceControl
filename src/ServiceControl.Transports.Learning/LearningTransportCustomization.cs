@@ -52,6 +52,7 @@
             var transport = endpointConfig.UseTransport<LearningTransport>();
             transport.StorageDirectory(Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString));
             transport.Transactions(transportTransactionMode);
+            transport.NoPayloadSizeRestriction();
         }
 
         static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
@@ -59,6 +60,7 @@
             var transport = endpointConfig.UseTransport<LearningTransport>();
             transport.StorageDirectory(Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString));
             transport.Transactions(transportTransactionMode);
+            transport.NoPayloadSizeRestriction();
         }
     }
 }

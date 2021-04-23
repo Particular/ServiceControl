@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading.Tasks;
     using BodyStorage;
     using Contracts.Operations;
     using Infrastructure;
+    using Infrastructure.Metrics;
     using MessageFailures;
     using Monitoring;
     using NServiceBus;
@@ -42,11 +42,14 @@
                                     }}");
         }
 
-        public ErrorPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers)
+        public ErrorPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers,
+            Counter ingestedCounter, Meter bulkInsertDurationMeter)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
+            this.ingestedCounter = ingestedCounter;
+            this.bulkInsertDurationMeter = bulkInsertDurationMeter;
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
@@ -81,6 +84,7 @@
 
                     commands.Add(command);
                     storedContexts.Add(context);
+                    ingestedCounter.Mark();
 
                     foreach (var endpointDetail in context.Extensions.Get<IEnumerable<EndpointDetails>>())
                     {
@@ -98,9 +102,12 @@
                     commands.Add(CreateKnownEndpointsPutCommand(endpoint));
                 }
 
-                // not really interested in the batch results since a batch is atomic
-                await store.AsyncDatabaseCommands.BatchAsync(commands)
-                    .ConfigureAwait(false);
+                using (bulkInsertDurationMeter.Measure())
+                {
+                    // not really interested in the batch results since a batch is atomic
+                    await store.AsyncDatabaseCommands.BatchAsync(commands)
+                        .ConfigureAwait(false);
+                }
             }
             catch (Exception e)
             {
@@ -135,21 +142,21 @@
 
         async Task ProcessMessage(MessageContext context)
         {
-            // TODO optimize
-            if (Logger.IsDebugEnabled)
-            {
-                context.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                Logger.Debug($"Ingesting error message {context.MessageId} (original message id: {originalMessageId ?? string.Empty})");
-            }
-
+            bool isOriginalMessageId = true;
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
                 messageId = DeterministicGuid.MakeId(context.MessageId).ToString();
+                isOriginalMessageId = false;
+            }
+
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Ingesting error message {context.MessageId} (original message id: {(isOriginalMessageId ? messageId : string.Empty)})");
             }
 
             try
             {
-                var metadata = new ConcurrentDictionary<string, object>
+                var metadata = new Dictionary<string, object>
                 {
                     ["MessageId"] = messageId,
                     ["MessageIntent"] = context.Headers.MessageIntent()
@@ -206,7 +213,7 @@
                     Script = $@"this.{nameof(FailedMessage.Status)} = status;
                                 this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
 
-                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{ 
+                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{
                                     return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
                                 }});
 
@@ -255,6 +262,8 @@
         }
 
         IEnrichImportedErrorMessages[] enrichers;
+        readonly Counter ingestedCounter;
+        readonly Meter bulkInsertDurationMeter;
         BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
         IDocumentStore store;

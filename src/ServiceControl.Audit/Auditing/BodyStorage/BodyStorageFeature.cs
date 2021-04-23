@@ -35,7 +35,7 @@
                 this.settings = settings;
             }
 
-            public async Task StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public async ValueTask StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
             {
                 var bodySize = body?.Length ?? 0;
                 metadata.Add("ContentLength", bodySize);
@@ -65,11 +65,11 @@
                 return contentType;
             }
 
-            async Task<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
+            async ValueTask<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
             {
                 var bodyId = headers.MessageId();
                 var storedInBodyStorage = false;
-                var bodyUrl = $"/messages/{bodyId}/body";
+                var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
                 var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
@@ -80,7 +80,7 @@
                 }
                 else if (isBelowMaxSize)
                 {
-                    bodyUrl = await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
+                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
                         .ConfigureAwait(false);
                     storedInBodyStorage = true;
                 }
@@ -89,13 +89,12 @@
                 return storedInBodyStorage;
             }
 
-            async Task<string> StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
+            async Task StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
             {
                 using (var bodyStream = Memory.Manager.GetStream(bodyId, body, 0, bodySize))
                 {
-                    var bodyUrl = await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
+                    await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
                         .ConfigureAwait(false);
-                    return bodyUrl;
                 }
             }
 
@@ -104,6 +103,7 @@
 
             // large object heap starts above 85000 bytes and not above 85 KB!
             internal const int LargeObjectHeapThreshold = 85 * 1000;
+            internal const string BodyUrlFormatString = "/messages/{0}/body";
         }
     }
 }

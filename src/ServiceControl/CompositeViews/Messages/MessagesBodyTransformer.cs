@@ -22,6 +22,21 @@ namespace ServiceControl.CompositeViews.Messages
                                            };
         }
 
+        public static string Name
+        {
+            get
+            {
+                if (transformerName == null)
+                {
+                    transformerName = new MessagesBodyTransformer().TransformerName;
+                }
+
+                return transformerName;
+            }
+        }
+
+        static string transformerName;
+
         public class Result
         {
             public string MessageId { get; set; }

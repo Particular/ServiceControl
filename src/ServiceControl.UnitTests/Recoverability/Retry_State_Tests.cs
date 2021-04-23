@@ -82,7 +82,7 @@
                     DocumentStore = documentStore
                 };
 
-                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -101,7 +101,7 @@
                     };
                     await documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                    processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                     await processor.ProcessBatches(session, CancellationToken.None);
                     await session.SaveChangesAsync();
@@ -129,7 +129,7 @@
                     DocumentStore = documentStore
                 };
 
-                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint");
+                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenAsyncSession())
@@ -173,7 +173,7 @@
                     DocumentStore = documentStore
                 };
 
-                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage), documentStore, domainEvents, "TestEndpoint");
+                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
 
                 bool c;
@@ -219,7 +219,7 @@
                     DocumentStore = documentStore
                 };
 
-                var returnToSender = new ReturnToSender(bodyStorage);
+                var returnToSender = new ReturnToSender(bodyStorage, documentStore);
 
                 var sender = new TestSender();
 

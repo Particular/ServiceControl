@@ -27,10 +27,15 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
             var metadata = new Dictionary<string, object>();
 
-            await enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            var headers = new Dictionary<string, string>
+            {
+                { Headers.MessageId, "someid" }
+            };
+            await enricher.StoreAuditMessageBody(body, headers, metadata);
 
             Assert.AreEqual(0, fakeStorage.StoredBodySize, "Body should be removed if above threshold");
             Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
         }
 
         [Test]
@@ -46,12 +51,17 @@ namespace ServiceControl.UnitTests.BodyStorage
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
             var metadata = new Dictionary<string, object>();
-            var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary" } };
+            var headers = new Dictionary<string, string>
+            {
+                { Headers.ContentType, "application/binary" },
+                { Headers.MessageId, "someid" }
+            };
 
             await enricher.StoreAuditMessageBody(body, headers, metadata);
 
             Assert.AreEqual(0, fakeStorage.StoredBodySize, "Body should be removed if above threshold");
             Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
         }
 
         [Test]
@@ -69,10 +79,15 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
-            await enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            var headers = new Dictionary<string, string>
+            {
+                { Headers.MessageId, "someid" }
+            };
+            await enricher.StoreAuditMessageBody(body, headers, metadata);
 
             Assert.AreEqual(body, metadata["Body"], "Body should be stored if below threshold");
             Assert.AreEqual(0, fakeStorage.StoredBodySize);
+            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
         }
 
         [Test]
@@ -90,10 +105,15 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
-            await enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            var headers = new Dictionary<string, string>
+            {
+                { Headers.MessageId, "someid" }
+            };
+            await enricher.StoreAuditMessageBody(body, headers, metadata);
 
             Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
             Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
         }
 
         [Test]
@@ -110,12 +130,17 @@ namespace ServiceControl.UnitTests.BodyStorage
             var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
-            var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary" } };
+            var headers = new Dictionary<string, string>
+            {
+                { Headers.ContentType, "application/binary" },
+                { Headers.MessageId, "someid" }
+            };
 
             await enricher.StoreAuditMessageBody(body, headers, metadata);
 
             Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
             Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
         }
 
         [Test]
@@ -133,20 +158,22 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
-            await enricher.StoreAuditMessageBody(body, new Dictionary<string, string>(), metadata);
+            var headers = new Dictionary<string, string> { { Headers.MessageId, "someid" } };
+            await enricher.StoreAuditMessageBody(body, headers, metadata);
 
             Assert.AreEqual(expectedBodySize, fakeStorage.StoredBodySize, "Body should be stored if below threshold");
             Assert.IsFalse(metadata.ContainsKey("Body"));
+            Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
         }
 
         class FakeBodyStorage : IBodyStorage
         {
             public int StoredBodySize { get; set; }
 
-            public Task<string> Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
+            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
             {
                 StoredBodySize = bodySize;
-                return Task.FromResult(default(string));
+                return Task.CompletedTask;
             }
 
             public Task<StreamResult> TryFetch(string bodyId)
