@@ -42,13 +42,12 @@
             {
                 DeliveryMethod = SmtpDeliveryMethod.Network,
                 EnableSsl = settings.EnableSSL,
+                Timeout = defaultTimeout
             };
             if (string.IsNullOrWhiteSpace(settings.AuthenticationAccount) == false)
             {
                 smtpClient.Credentials = new NetworkCredential(settings.AuthenticationAccount, settings.AuthenticationPassword);
             }
-
-            smtpClient.Timeout = defaultTimeout;
 
             return smtpClient;
         }
