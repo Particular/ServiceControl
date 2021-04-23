@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Alerting.Mail
+﻿namespace ServiceControl.Notifications.Mail
 {
     using System;
     using System.Net;

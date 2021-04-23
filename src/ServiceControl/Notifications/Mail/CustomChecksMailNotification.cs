@@ -1,7 +1,6 @@
-﻿namespace ServiceControl.Alerting.Mail
+﻿namespace ServiceControl.Notifications.Mail
 {
     using System.Threading.Tasks;
-    using Alerting;
     using Contracts.CustomChecks;
     using Infrastructure.DomainEvents;
     using Raven.Client;
