@@ -12,13 +12,16 @@ namespace ServiceControl.UnitTests.BodyStorage
     [TestFixture]
     public class BodyStorageEnricherTests
     {
+        const int MinBodySizeAboveLOHThreshold = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+        const int MaxBodySizeBelowLOHThreshold = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold - 1;
+
         [Test]
-        public async Task Should_store_body_in_storage_when_binary()
+        public async Task Should_store_body_in_storage_when_binary_and_below_LOH_threshold()
         {
             var fakeStorage = new FakeBodyStorage();
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var expectedBodySize = MinBodySizeAboveLOHThreshold;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
             var headers = new Dictionary<string, string> { { Headers.ContentType, "application/binary" } };
@@ -30,12 +33,12 @@ namespace ServiceControl.UnitTests.BodyStorage
         }
 
         [Test]
-        public async Task Should_store_body_in_metadata_when_below_large_object_heap_and_not_binary()
+        public async Task Should_store_body_in_metadata_when_not_binary_and_below_LOH_threshold()
         {
             var fakeStorage = new FakeBodyStorage();
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold - 1;
+            var expectedBodySize = MaxBodySizeBelowLOHThreshold;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
@@ -46,12 +49,12 @@ namespace ServiceControl.UnitTests.BodyStorage
         }
 
         [Test]
-        public async Task Should_store_body_in_storage_when_above_large_object_heap_and_not_binary()
+        public async Task Should_store_body_in_storage_when_not_binary_and_above_LOH_threshold()
         {
             var fakeStorage = new FakeBodyStorage();
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var expectedBodySize = MinBodySizeAboveLOHThreshold;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
