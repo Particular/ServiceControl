@@ -21,7 +21,7 @@
             var statistics = _store.DatabaseCommands.GetStatistics();
             var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
 
-            if (statistics.Errors.Length <= 0)
+            if (statistics.Errors.Length == 0)
             {
                 return CheckResult.Pass;
             }
