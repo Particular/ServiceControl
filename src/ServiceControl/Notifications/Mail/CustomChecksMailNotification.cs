@@ -51,14 +51,18 @@ Health check {domainEvent.Category}: {domainEvent.CustomCheckId} succeeded at {d
                 return;
             }
 
-            try
-            {
-                await EmailSender.Send(notificationsSettings.Email, subject, body, emailDropFolder).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                log.Warn("Failure sending email notification.", e);
-            }
+            _ = Task.Run(async () =>
+              {
+                  try
+                  {
+                      await EmailSender.Send(notificationsSettings.Email, subject, body, emailDropFolder)
+                          .ConfigureAwait(false);
+                  }
+                  catch (Exception e)
+                  {
+                      log.Warn("Failure sending email notification.", e);
+                  }
+              });
         }
 
         async Task<NotificationsSettings> LoadSettings()
