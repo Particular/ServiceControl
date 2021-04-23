@@ -28,7 +28,7 @@
 
             // try to fetch from body
             var bodyStorageResponse = await TryFetchFromStorage(request, messageId).ConfigureAwait(false);
-            // if found return, if not the result from the index takes precedence to by backward compatible
+            // if found return, if not the result from the index takes precedence to be backward compatible
             return bodyStorageResponse.IsSuccessStatusCode ? bodyStorageResponse : indexResponse;
         }
 
