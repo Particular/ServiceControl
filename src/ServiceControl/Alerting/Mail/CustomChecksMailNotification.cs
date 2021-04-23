@@ -11,43 +11,42 @@
     {
         readonly IDocumentStore store;
         readonly string emailDropFolder;
+        readonly string instanceName;
 
         public CustomChecksMailNotification(IDocumentStore store, Settings settings)
         {
             this.store = store;
+
             emailDropFolder = settings.EmailDropFolder;
+            instanceName = settings.ServiceName;
         }
 
         public async Task Handle(CustomCheckFailed domainEvent)
         {
-            var settings = await LoadSettings().ConfigureAwait(false);
-            if (settings == null || !settings.Email.Enabled)
+            var notificationsSettings = await LoadSettings().ConfigureAwait(false);
+            if (notificationsSettings == null || !notificationsSettings.Email.Enabled)
             {
                 return;
             }
 
-            await EmailSender.Send(
-                    settings.Email,
-                "Health check failed",
-                $"Health check {domainEvent.Category}: {domainEvent.CustomCheckId} failed at {domainEvent.FailedAt}. Failure reason {domainEvent.FailureReason}",
-                    emailDropFolder)
-                .ConfigureAwait(false);
+            var subject = $"[{instanceName}] Health check failed";
+            var body = $"Health check {domainEvent.Category}: {domainEvent.CustomCheckId} failed at {domainEvent.FailedAt}. Failure reason {domainEvent.FailureReason}";
+
+            await EmailSender.Send(notificationsSettings.Email, subject, body, emailDropFolder).ConfigureAwait(false);
         }
 
         public async Task Handle(CustomCheckSucceeded domainEvent)
         {
-            var settings = await LoadSettings().ConfigureAwait(false);
-            if (settings == null || !settings.Email.Enabled)
+            var notificationsSettings = await LoadSettings().ConfigureAwait(false);
+            if (notificationsSettings == null || !notificationsSettings.Email.Enabled)
             {
                 return;
             }
 
-            await EmailSender.Send(
-                    settings.Email,
-                    "Health check succeeded",
-                    $"Health check {domainEvent.Category}: {domainEvent.CustomCheckId} succeeded at {domainEvent.SucceededAt}.",
-                    emailDropFolder)
-                .ConfigureAwait(false);
+            var subject = $"[{instanceName}] Health check succeeded";
+            var body = $"Health check {domainEvent.Category}: {domainEvent.CustomCheckId} succeeded at {domainEvent.SucceededAt}.";
+
+            await EmailSender.Send(notificationsSettings.Email, subject, body, emailDropFolder).ConfigureAwait(false);
         }
 
         async Task<NotificationsSettings> LoadSettings()
