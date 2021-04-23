@@ -84,7 +84,7 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var settings = await session.LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId).ConfigureAwait(false);
+                var settings = await LoadSettings(session).ConfigureAwait(false);
 
                 try
                 {
