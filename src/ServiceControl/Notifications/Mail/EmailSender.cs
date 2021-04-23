@@ -8,7 +8,7 @@
 
     class EmailSender
     {
-        public static Task Send(EmailNotifications settings, string subject, string body, string emailDropFolder = null)
+        public static async Task Send(EmailNotifications settings, string subject, string body, string emailDropFolder = null)
         {
             try
             {
@@ -16,7 +16,7 @@
                 {
                     using (var mailMessage = new MailMessage(settings.From, settings.To, subject, body))
                     {
-                        return client.SendMailAsync(mailMessage);
+                        await client.SendMailAsync(mailMessage).ConfigureAwait(false);
                     }
                 }
             }
