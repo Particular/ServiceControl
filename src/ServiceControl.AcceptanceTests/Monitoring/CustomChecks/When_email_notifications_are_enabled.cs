@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Alerting;
+    using Notifications;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;

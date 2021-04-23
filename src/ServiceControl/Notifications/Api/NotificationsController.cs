@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Alerting.Api
+﻿namespace ServiceControl.Notifications.Api
 {
     using System;
     using System.Net;

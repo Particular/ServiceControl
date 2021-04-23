@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Alerting
+﻿namespace ServiceControl.Notifications
 {
     public class NotificationsSettings
     {
