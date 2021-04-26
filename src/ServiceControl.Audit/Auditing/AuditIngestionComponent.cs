@@ -155,7 +155,7 @@
             // will fall out here when writer is completed
         }
 
-        public Task ImportFailedAudits(CancellationToken cancellationToken)
+        public Task ImportFailedAudits(CancellationToken cancellationToken = default)
         {
             return failedImporter.Run(cancellationToken);
         }

@@ -70,15 +70,15 @@
             return poller;
         }
 
-        Task FetchQueueSizes(CancellationToken token) => Task.WhenAll(queueLengths.Select(kvp => FetchLength(kvp.Value, token)));
+        Task FetchQueueSizes(CancellationToken cancellationToken) => Task.WhenAll(queueLengths.Select(kvp => FetchLength(kvp.Value, cancellationToken)));
 
-        async Task FetchLength(QueueLengthValue queueLength, CancellationToken token)
+        async Task FetchLength(QueueLengthValue queueLength, CancellationToken cancellationToken)
         {
             try
             {
                 var queueReference = queueLength.QueueReference;
 
-                QueueProperties properties = await queueReference.GetPropertiesAsync(token).ConfigureAwait(false);
+                QueueProperties properties = await queueReference.GetPropertiesAsync(cancellationToken).ConfigureAwait(false);
 
                 queueLength.Length = properties.ApproximateMessagesCount;
 

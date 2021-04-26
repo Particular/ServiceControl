@@ -27,7 +27,7 @@
             this.onCriticalError = onCriticalError;
         }
 
-        public async Task EnsureStarted(CancellationToken cancellationToken)
+        public async Task EnsureStarted(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -66,7 +66,7 @@
 
         Task OnCriticalErrorAction(ICriticalErrorContext ctx) => onCriticalError(ctx.Error, ctx.Exception);
 
-        public async Task EnsureStopped(CancellationToken cancellationToken)
+        public async Task EnsureStopped(CancellationToken cancellationToken = default)
         {
             try
             {

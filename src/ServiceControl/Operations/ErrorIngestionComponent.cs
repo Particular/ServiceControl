@@ -100,7 +100,7 @@
             await ingestionWorker.ConfigureAwait(false);
         }
 
-        public Task ImportFailedErrors(CancellationToken cancellationToken)
+        public Task ImportFailedErrors(CancellationToken cancellationToken = default)
         {
             return failedImporter.Run(cancellationToken);
         }

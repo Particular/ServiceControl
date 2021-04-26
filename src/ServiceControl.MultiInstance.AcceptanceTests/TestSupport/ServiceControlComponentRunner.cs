@@ -434,7 +434,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 this.portsToHttpMessageHandlers = portsToHttpMessageHandlers;
             }
 
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
             {
                 var delegatingHandler = portsToHttpMessageHandlers[request.RequestUri.Port];
                 InnerHandler = delegatingHandler;

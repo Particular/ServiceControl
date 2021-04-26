@@ -39,9 +39,9 @@
 
         [Route("failedaudits/import")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken token)
+        public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken cancellationToken = default)
         {
-            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             await auditIngestion.ImportFailedAudits(tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
         }

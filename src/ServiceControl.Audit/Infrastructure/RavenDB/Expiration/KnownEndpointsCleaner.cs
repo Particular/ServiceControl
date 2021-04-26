@@ -15,7 +15,7 @@
 
     static class KnownEndpointsCleaner
     {
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken token)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken cancellationToken = default)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
@@ -57,7 +57,7 @@
                             Key = id
                         });
                     },
-                    items, token);
+                    items, cancellationToken);
             }
             catch (IndexDisabledException ex)
             {
@@ -70,7 +70,7 @@
                 return;
             }
 
-            if (token.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
@@ -89,7 +89,7 @@
                 }
 
                 return results.Count(x => x.Deleted == true);
-            }, items, database, token);
+            }, items, database, cancellationToken);
 
 
             if (deleteKnownEndpointDocuments == 0)

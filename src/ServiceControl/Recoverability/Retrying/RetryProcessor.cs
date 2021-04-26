@@ -30,7 +30,7 @@ namespace ServiceControl.Recoverability
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
 
-        public async Task<bool> ProcessBatches(IAsyncDocumentSession session, CancellationToken cancellationToken)
+        public async Task<bool> ProcessBatches(IAsyncDocumentSession session, CancellationToken cancellationToken = default)
         {
             return await ForwardCurrentBatch(session, cancellationToken).ConfigureAwait(false) || await MoveStagedBatchesToForwardingBatch(session).ConfigureAwait(false);
         }

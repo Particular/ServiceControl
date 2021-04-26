@@ -96,7 +96,7 @@ namespace ServiceControl.Recoverability
             return RawEndpoint.Create(config);
         }
 
-        public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken)
+        public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
         {
             IReceivingRawEndpoint processor = null;
             CancellationTokenRegistration? registration = null;

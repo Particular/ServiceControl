@@ -16,7 +16,7 @@
 
     static class ErrorMessageCleaner
     {
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken token)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken cancellationToken = default)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
@@ -76,7 +76,7 @@
                         var bodyid = doc.Value<string>("ProcessingAttempts[0].MessageId");
                         state.attachments.Add(bodyid);
                     },
-                    itemsAndAttachements, token);
+                    itemsAndAttachements, cancellationToken);
             }
             catch (IndexDisabledException ex)
             {
@@ -89,7 +89,7 @@
                 return;
             }
 
-            if (token.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
@@ -108,7 +108,7 @@
                 }
 
                 return results.Count(x => x.Deleted == true);
-            }, failedRetryItems, database, token);
+            }, failedRetryItems, database, cancellationToken);
 
             var deletedAttachments = Chunker.ExecuteInChunks(attachments.Count, (atts, db, s, e) =>
             {
@@ -135,7 +135,7 @@
                 }
 
                 return deleted;
-            }, attachments, database, token);
+            }, attachments, database, cancellationToken);
 
             var deletedFailedMessage = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
@@ -151,7 +151,7 @@
                 }
 
                 return results.Count(x => x.Deleted == true);
-            }, items, database, token);
+            }, items, database, cancellationToken);
 
             if (deletedFailedMessage + deletedAttachments + deletedFailedMessageRetry == 0)
             {

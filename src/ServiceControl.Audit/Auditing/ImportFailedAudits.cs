@@ -20,7 +20,7 @@ namespace ServiceControl.Audit.Auditing
             this.rawEndpointFactory = rawEndpointFactory;
         }
 
-        public async Task Run(CancellationToken token)
+        public async Task Run(CancellationToken cancellationToken = default)
         {
             var config = rawEndpointFactory.CreateFailedAuditsSender("ImportFailedAudits");
             var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
@@ -34,10 +34,10 @@ namespace ServiceControl.Audit.Auditing
                 using (var session = store.OpenAsyncSession())
                 {
                     var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                    using (var stream = await session.Advanced.StreamAsync(query, token)
+                    using (var stream = await session.Advanced.StreamAsync(query, cancellationToken)
                         .ConfigureAwait(false))
                     {
-                        while (!token.IsCancellationRequested && await stream.MoveNextAsync().ConfigureAwait(false))
+                        while (!cancellationToken.IsCancellationRequested && await stream.MoveNextAsync().ConfigureAwait(false))
                         {
                             FailedTransportMessage transportMessage = stream.Current.Document.Message;
                             try
@@ -50,7 +50,7 @@ namespace ServiceControl.Audit.Auditing
 
                                 await taskCompletionSource.Task.ConfigureAwait(false);
 
-                                await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, token)
+                                await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, cancellationToken)
                                     .ConfigureAwait(false);
                                 succeeded++;
                                 if (Logger.IsDebugEnabled)

@@ -113,14 +113,14 @@
             }
         }
 
-        Task FetchQueueSizes(QueueAttributesRequestCache cache, IAmazonSQS client, CancellationToken token) => Task.WhenAll(sizes.Select(kvp => FetchLength(kvp.Key, client, cache, token)));
+        Task FetchQueueSizes(QueueAttributesRequestCache cache, IAmazonSQS client, CancellationToken cancellationToken) => Task.WhenAll(sizes.Select(kvp => FetchLength(kvp.Key, client, cache, cancellationToken)));
 
-        async Task FetchLength(string queue, IAmazonSQS client, QueueAttributesRequestCache cache, CancellationToken token)
+        async Task FetchLength(string queue, IAmazonSQS client, QueueAttributesRequestCache cache, CancellationToken cancellationToken)
         {
             try
             {
-                var attReq = await cache.GetQueueAttributesRequest(queue, token).ConfigureAwait(false);
-                var response = await client.GetQueueAttributesAsync(attReq, token).ConfigureAwait(false);
+                var attReq = await cache.GetQueueAttributesRequest(queue, cancellationToken).ConfigureAwait(false);
+                var response = await client.GetQueueAttributesAsync(attReq, cancellationToken).ConfigureAwait(false);
                 sizes[queue] = response.ApproximateNumberOfMessages;
             }
             catch (OperationCanceledException)

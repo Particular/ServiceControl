@@ -96,7 +96,7 @@
             return poller;
         }
 
-        async Task QueryTableSizes(CancellationToken token)
+        async Task QueryTableSizes(CancellationToken cancellationToken)
         {
             var chunks = tableSizes
                 .Select((i, index) => new
@@ -110,26 +110,26 @@
 
             using (var connection = new SqlConnection(connectionString))
             {
-                await connection.OpenAsync(token).ConfigureAwait(false);
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (var chunk in chunks)
                 {
-                    await UpdateChunk(connection, chunk, token).ConfigureAwait(false);
+                    await UpdateChunk(connection, chunk, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
 
-        async Task UpdateChunk(SqlConnection connection, KeyValuePair<SqlTable, int>[] chunk, CancellationToken token)
+        async Task UpdateChunk(SqlConnection connection, KeyValuePair<SqlTable, int>[] chunk, CancellationToken cancellationToken)
         {
             var query = string.Join(Environment.NewLine, chunk.Select(c => BuildQueueLengthQuery(c.Key)).ToArray());
 
             using (var command = new SqlCommand(query, connection))
             {
-                using (var reader = await command.ExecuteReaderAsync(token).ConfigureAwait(false))
+                using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                 {
                     foreach (var chunkPair in chunk)
                     {
-                        await reader.ReadAsync(token).ConfigureAwait(false);
+                        await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                         var queueLength = reader.GetInt32(0);
 
@@ -142,7 +142,7 @@
                             tableSizes.TryUpdate(chunkPair.Key, queueLength, chunkPair.Value);
                         }
 
-                        await reader.NextResultAsync(token).ConfigureAwait(false);
+                        await reader.NextResultAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

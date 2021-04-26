@@ -90,7 +90,7 @@
             }
         }
 
-        async Task DispatchEvents(CancellationToken token)
+        async Task DispatchEvents(CancellationToken cancellationToken)
         {
             bool more;
 
@@ -101,13 +101,13 @@
 
                 circuitBreaker.Success();
 
-                if (more && !token.IsCancellationRequested)
+                if (more && !cancellationToken.IsCancellationRequested)
                 {
                     //if there is more events to dispatch we sleep for a bit and then we go again
                     await Task.Delay(1000, CancellationToken.None).ConfigureAwait(false);
                 }
             }
-            while (!token.IsCancellationRequested && more);
+            while (!cancellationToken.IsCancellationRequested && more);
         }
 
         async Task<bool> TryDispatchEventBatch()

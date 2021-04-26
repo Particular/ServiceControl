@@ -6,7 +6,7 @@ namespace ServiceControl.Audit.Infrastructure.Extensions
 
     static class WaitHandleExtensions
     {
-        public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken)
+        public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken = default)
         {
             RegisteredWaitHandle registeredHandle = null;
             var tokenRegistration = default(CancellationTokenRegistration);
@@ -31,12 +31,12 @@ namespace ServiceControl.Audit.Infrastructure.Extensions
             }
         }
 
-        public static Task<bool> WaitOneAsync(this WaitHandle handle, TimeSpan timeout, CancellationToken cancellationToken)
+        public static Task<bool> WaitOneAsync(this WaitHandle handle, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             return handle.WaitOneAsync((int)timeout.TotalMilliseconds, cancellationToken);
         }
 
-        public static Task<bool> WaitOneAsync(this WaitHandle handle, CancellationToken cancellationToken)
+        public static Task<bool> WaitOneAsync(this WaitHandle handle, CancellationToken cancellationToken = default)
         {
             return handle.WaitOneAsync(Timeout.Infinite, cancellationToken);
         }

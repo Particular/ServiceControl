@@ -16,7 +16,7 @@
 
     static class AuditMessageCleaner
     {
-        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken token)
+        public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken cancellationToken = default)
         {
             var stopwatch = Stopwatch.StartNew();
             var items = new List<ICommandData>(deletionBatchSize);
@@ -66,7 +66,7 @@
                             state.Item2.Add(bodyId);
                         }
                     },
-                    itemsAndAttachements, token);
+                    itemsAndAttachements, cancellationToken);
             }
             catch (IndexDisabledException ex)
             {
@@ -79,7 +79,7 @@
                 return;
             }
 
-            if (token.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
@@ -98,7 +98,7 @@
                 }
 
                 return results.Count(x => x.Deleted == true);
-            }, items, database, token);
+            }, items, database, cancellationToken);
 
             var deletedAttachments = Chunker.ExecuteInChunks(attachments.Count, (att, db, s, e) =>
             {
@@ -125,7 +125,7 @@
                 }
 
                 return deleted;
-            }, attachments, database, token);
+            }, attachments, database, cancellationToken);
 
             if (deletedAttachments + deletedAuditDocuments == 0)
             {
