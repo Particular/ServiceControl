@@ -11,6 +11,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.RavenDB;
+    using ServiceControl.Notifications.Mail;
     using ServiceControl.Operations;
     using ServiceControl.Transports;
     using Settings;
@@ -48,6 +49,8 @@ namespace ServiceBus.Management.Infrastructure
             recoverability.Immediate(c => c.NumberOfRetries(3));
             recoverability.Delayed(c => c.NumberOfRetries(0));
             configuration.SendFailedMessagesTo($"{endpointName}.Errors");
+
+            recoverability.CustomPolicy(EmailNotificationThrottlingBehavior.RecoverabilityPolicy);
 
             configuration.UseSerialization<NewtonsoftSerializer>();
 
