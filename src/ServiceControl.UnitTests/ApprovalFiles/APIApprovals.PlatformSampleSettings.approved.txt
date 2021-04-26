@@ -51,5 +51,6 @@
   "MaximumConcurrencyLevel": 10,
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],
-  "DataSpaceRemainingThreshold": 20
+  "DataSpaceRemainingThreshold": 20,
+  "EnableFullTextSearchOnBodies": true
 }
