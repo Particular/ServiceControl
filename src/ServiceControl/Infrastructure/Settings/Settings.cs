@@ -47,6 +47,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing");
+            NotificationsFilter = SettingsReader<string>.Read("NotificationsFilter");
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
@@ -54,6 +55,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
         }
+
+        public string NotificationsFilter { get; set; }
 
         public bool AllowMessageEditing { get; set; }
 

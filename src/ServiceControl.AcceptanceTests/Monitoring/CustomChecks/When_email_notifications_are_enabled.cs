@@ -26,6 +26,7 @@
 
             SetSettings = settings =>
             {
+                settings.NotificationsFilter = "MyCustomCheckId#Other custom check";
                 settings.EmailDropFolder = emailDropPath;
                 settings.InitializeStore = store =>
                 {
