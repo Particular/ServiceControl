@@ -38,5 +38,8 @@
         public Dictionary<string, string> Headers { get; set; }
 
         public DateTime ProcessedAt { get; set; }
+
+        // non-indexed body when the body is stored on the document
+        public string Body { get; set; }
     }
 }

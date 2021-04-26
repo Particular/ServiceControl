@@ -35,23 +35,23 @@
                 this.settings = settings;
             }
 
-            public async ValueTask StoreAuditMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public async ValueTask StoreAuditMessageBody(byte[] body, ProcessedMessage processedMessage)
             {
                 var bodySize = body?.Length ?? 0;
-                metadata.Add("ContentLength", bodySize);
+                processedMessage.MessageMetadata.Add("ContentLength", bodySize);
                 if (bodySize == 0)
                 {
                     return;
                 }
 
-                var contentType = GetContentType(headers, "text/xml");
-                metadata.Add("ContentType", contentType);
+                var contentType = GetContentType(processedMessage.Headers, "text/xml");
+                processedMessage.MessageMetadata.Add("ContentType", contentType);
 
-                var stored = await TryStoreBody(body, headers, metadata, bodySize, contentType)
+                var stored = await TryStoreBody(body, processedMessage, bodySize, contentType)
                     .ConfigureAwait(false);
                 if (!stored)
                 {
-                    metadata.Add("BodyNotStored", true);
+                    processedMessage.MessageMetadata.Add("BodyNotStored", true);
                 }
             }
 
@@ -65,9 +65,9 @@
                 return contentType;
             }
 
-            async ValueTask<bool> TryStoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
+            async ValueTask<bool> TryStoreBody(byte[] body, ProcessedMessage processedMessage, int bodySize, string contentType)
             {
-                var bodyId = headers.MessageId();
+                var bodyId = processedMessage.Headers.MessageId();
                 var storedInBodyStorage = false;
                 var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
                 var isBinary = contentType.Contains("binary");
@@ -76,7 +76,14 @@
 
                 if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
                 {
-                    metadata.Add("Body", Encoding.UTF8.GetString(body));
+                    if (settings.EnableFullTextSearchOnBodies)
+                    {
+                        processedMessage.MessageMetadata.Add("Body", Encoding.UTF8.GetString(body));
+                    }
+                    else
+                    {
+                        processedMessage.Body = Encoding.UTF8.GetString(body);
+                    }
                 }
                 else if (isBelowMaxSize)
                 {
@@ -85,7 +92,7 @@
                     storedInBodyStorage = true;
                 }
 
-                metadata.Add("BodyUrl", bodyUrl);
+                processedMessage.MessageMetadata.Add("BodyUrl", bodyUrl);
                 return storedInBodyStorage;
             }
 
