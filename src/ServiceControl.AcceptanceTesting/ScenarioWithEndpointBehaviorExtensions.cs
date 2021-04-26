@@ -98,11 +98,11 @@
 
             public override string Name => "ServiceControlClient";
 
-            public override Task Start(CancellationToken token) => Task.FromResult(0);
+            public override Task Start(CancellationToken cancellationToken = default) => Task.FromResult(0);
 
-            public override Task ComponentsStarted(CancellationToken token)
+            public override Task ComponentsStarted(CancellationToken cancellationToken = default)
             {
-                tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+                tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 checkTask = Task.Run(async () =>
                 {
                     try

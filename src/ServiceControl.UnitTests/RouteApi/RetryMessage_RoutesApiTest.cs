@@ -142,7 +142,7 @@
                 this.interceptor = interceptor;
             }
 
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(interceptor(request));
             }

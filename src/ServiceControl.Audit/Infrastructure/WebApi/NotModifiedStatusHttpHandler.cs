@@ -9,7 +9,7 @@
 
     class NotModifiedStatusHttpHandler : DelegatingHandler
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
         {
             var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 

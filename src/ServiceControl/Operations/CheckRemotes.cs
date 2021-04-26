@@ -63,11 +63,11 @@
             }
         }
 
-        static async Task CheckSuccessStatusCode(HttpClient client, RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken token)
+        static async Task CheckSuccessStatusCode(HttpClient client, RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken cancellationToken)
         {
             try
             {
-                var response = await client.GetAsync(remoteSettings.ApiUri, token).ConfigureAwait(false);
+                var response = await client.GetAsync(remoteSettings.ApiUri, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException e)

@@ -56,7 +56,7 @@
         }
 
 
-        static async Task GenerateMessages(string destination, QueueInfo queueInfo, CancellationToken token)
+        static async Task GenerateMessages(string destination, QueueInfo queueInfo, CancellationToken cancellationToken)
         {
             var throttle = new SemaphoreSlim(SettingsReader<int>.Read(ConfigRoot, "ConcurrentSends", 32));
             var bodySize = SettingsReader<int>.Read(ConfigRoot, "BodySize", 0);
@@ -65,9 +65,9 @@
 
             var sendMeter = Metric.Meter(destination, Unit.Custom("audits"));
 
-            while (!token.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                await throttle.WaitAsync(token).ConfigureAwait(false);
+                await throttle.WaitAsync(cancellationToken).ConfigureAwait(false);
                 // We don't need to wait for this task
                 var sendTask = Task.Run(async () =>
                 {
@@ -105,7 +105,7 @@
                     {
                         throttle.Release();
                     }
-                }, token);
+                }, cancellationToken);
             }
         }
 

@@ -155,11 +155,11 @@
                 return timer.Stop();
             }
 
-            async Task<TimerJobExecutionResult> Process(CancellationToken token)
+            async Task<TimerJobExecutionResult> Process(CancellationToken cancellationToken)
             {
                 using (var session = store.OpenAsyncSession())
                 {
-                    var batchesProcessed = await processor.ProcessBatches(session, token).ConfigureAwait(false);
+                    var batchesProcessed = await processor.ProcessBatches(session, cancellationToken).ConfigureAwait(false);
                     await session.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
                     return batchesProcessed ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
                 }

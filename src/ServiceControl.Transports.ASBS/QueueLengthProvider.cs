@@ -78,7 +78,7 @@ namespace ServiceControl.Transports.ASBS
             return Task.CompletedTask;
         }
 
-        async Task<IReadOnlyDictionary<string, QueueRuntimeInfo>> GetQueueList(CancellationToken token)
+        async Task<IReadOnlyDictionary<string, QueueRuntimeInfo>> GetQueueList(CancellationToken cancellationToken)
         {
             const int pageSize = 100; //This is the maximal page size for GetQueueAsync
             var pageNo = 0;
@@ -87,7 +87,7 @@ namespace ServiceControl.Transports.ASBS
 
             while (true)
             {
-                var pageOfQueueRuntimeInfo = await managementClient.GetQueuesRuntimeInfoAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: token)
+                var pageOfQueueRuntimeInfo = await managementClient.GetQueuesRuntimeInfoAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
                 foreach (var queueRuntimeInfo in pageOfQueueRuntimeInfo)

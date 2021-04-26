@@ -8,7 +8,7 @@
 
     public static class Extensions
     {
-        public static void Query<TState>(this DocumentDatabase db, string index, IndexQuery query, Action<RavenJObject, TState> onItem, TState state, CancellationToken cancellationToken)
+        public static void Query<TState>(this DocumentDatabase db, string index, IndexQuery query, Action<RavenJObject, TState> onItem, TState state, CancellationToken cancellationToken = default)
         {
             var results = db.Queries.Query(index, query, cancellationToken);
             foreach (var doc in results.Results)

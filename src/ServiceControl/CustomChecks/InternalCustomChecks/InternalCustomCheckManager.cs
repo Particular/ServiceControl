@@ -28,7 +28,7 @@
 
         }
 
-        async Task<TimerJobExecutionResult> Run(CancellationToken arg)
+        async Task<TimerJobExecutionResult> Run(CancellationToken cancellationToken)
         {
             CheckResult result;
             try

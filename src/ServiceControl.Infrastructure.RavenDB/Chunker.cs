@@ -5,7 +5,7 @@
 
     public static class Chunker
     {
-        public static int ExecuteInChunks<T1, T2>(int total, Func<T1, T2, int, int, int> action, T1 t1, T2 t2, CancellationToken token)
+        public static int ExecuteInChunks<T1, T2>(int total, Func<T1, T2, int, int, int> action, T1 t1, T2 t2, CancellationToken cancellationToken = default)
         {
             if (total == 0)
             {
@@ -30,7 +30,7 @@
                     end = total - 1;
                 }
             }
-            while (start < total && !token.IsCancellationRequested);
+            while (start < total && !cancellationToken.IsCancellationRequested);
 
             return chunkCount;
         }

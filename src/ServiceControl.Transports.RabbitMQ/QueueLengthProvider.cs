@@ -83,7 +83,7 @@
             }
         }
 
-        async Task FetchQueueLengths(CancellationToken token)
+        async Task FetchQueueLengths(CancellationToken cancellationToken)
         {
             foreach (var endpointQueuePair in endpointQueues)
             {
@@ -101,7 +101,7 @@
                     {
                         Logger.Warn($"Error querying queue length for {queueName}", e);
                     }
-                }, token).ConfigureAwait(false);
+                }, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -153,7 +153,7 @@
                     null); // value would come from config API in actual transport
             }
 
-            public async Task Execute(Action<IModel> action, CancellationToken token)
+            public async Task Execute(Action<IModel> action, CancellationToken cancellationToken = default)
             {
                 try
                 {
@@ -165,7 +165,7 @@
                     //Connection implements reconnection logic
                     while (connection.IsOpen == false)
                     {
-                        await Task.Delay(ReconnectionDelay, token).ConfigureAwait(false);
+                        await Task.Delay(ReconnectionDelay, cancellationToken).ConfigureAwait(false);
                     }
 
                     if (model == null || model.IsClosed)

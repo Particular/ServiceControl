@@ -46,21 +46,21 @@
 
         [Route("failederrors/import")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken token)
+        public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken cancellationToken = default)
         {
-            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             await importFailedAudits.Value.ImportFailedErrors(tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         [Route("failederrors/forcecleanerrors")]
         [HttpPost]
-        public Task<HttpResponseMessage> ForceErrorMessageCleanerRun(CancellationToken token)
+        public Task<HttpResponseMessage> ForceErrorMessageCleanerRun(CancellationToken cancellationToken = default)
         {
             new ExpiryErrorMessageIndex().Execute(store);
             WaitForIndexes(store);
 
-            ErrorMessageCleaner.Clean(1000, ((EmbeddableDocumentStore)store).DocumentDatabase, DateTime.Now, token);
+            ErrorMessageCleaner.Clean(1000, ((EmbeddableDocumentStore)store).DocumentDatabase, DateTime.Now, cancellationToken);
             WaitForIndexes(store);
 
             return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK));
