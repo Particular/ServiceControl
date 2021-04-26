@@ -47,11 +47,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing");
+            NotificationsFilter = SettingsReader<string>.Read("NotificationsFilter");
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
         }
+
+        public string NotificationsFilter { get; set; }
 
         public bool AllowMessageEditing { get; set; }
 

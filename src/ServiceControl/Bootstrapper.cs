@@ -252,6 +252,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.MaximumConcurrencyLevel,
                     settings.Port,
                     settings.ProcessRetryBatchesFrequency,
+                    settings.NotificationsFilter,
                     settings.RemoteInstances,
                     settings.RetryHistoryDepth,
                     settings.RunInMemory,
