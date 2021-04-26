@@ -41,9 +41,9 @@
                 }
 
                 store.WaitForIndexing();
-                KnownEndpointsCleaner.Clean(25, store.DocumentDatabase, DateTime.UtcNow.Subtract(TimeSpan.FromHours(5)), CancellationToken.None);
+                KnownEndpointsCleaner.Clean(25, store.DocumentDatabase, DateTime.UtcNow.Subtract(TimeSpan.FromHours(5)));
                 store.WaitForIndexing();
-                KnownEndpointsCleaner.Clean(25, store.DocumentDatabase, DateTime.UtcNow.Subtract(TimeSpan.FromHours(5)), CancellationToken.None);
+                KnownEndpointsCleaner.Clean(25, store.DocumentDatabase, DateTime.UtcNow.Subtract(TimeSpan.FromHours(5)));
 
                 store.WaitForIndexing();
 

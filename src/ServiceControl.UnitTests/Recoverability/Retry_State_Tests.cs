@@ -88,7 +88,7 @@
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    await processor.ProcessBatches(session, CancellationToken.None); // mark ready
+                    await processor.ProcessBatches(session); // mark ready
                     await session.SaveChangesAsync();
 
 
@@ -103,7 +103,7 @@
 
                     processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
-                    await processor.ProcessBatches(session, CancellationToken.None);
+                    await processor.ProcessBatches(session);
                     await session.SaveChangesAsync();
                 }
 
@@ -134,10 +134,10 @@
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    await processor.ProcessBatches(session, CancellationToken.None); // mark ready
+                    await processor.ProcessBatches(session); // mark ready
                     await session.SaveChangesAsync();
 
-                    await processor.ProcessBatches(session, CancellationToken.None);
+                    await processor.ProcessBatches(session);
                     await session.SaveChangesAsync();
                 }
 
@@ -183,7 +183,7 @@
                     {
                         using (var session = documentStore.OpenAsyncSession())
                         {
-                            c = await processor.ProcessBatches(session, CancellationToken.None);
+                            c = await processor.ProcessBatches(session);
                             await session.SaveChangesAsync();
                         }
                     }
@@ -229,10 +229,10 @@
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    await processor.ProcessBatches(session, CancellationToken.None); // mark ready
+                    await processor.ProcessBatches(session); // mark ready
                     await session.SaveChangesAsync();
 
-                    await processor.ProcessBatches(session, CancellationToken.None);
+                    await processor.ProcessBatches(session);
                     await session.SaveChangesAsync();
                 }
 

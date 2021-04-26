@@ -19,7 +19,7 @@
                 startList.Add(s);
                 endList.Add(e);
                 return 1;
-            }, starts, ends, CancellationToken.None);
+            }, starts, ends);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(499, ends[0]);
@@ -46,7 +46,7 @@
                 startList.Add(s);
                 endList.Add(e);
                 return 1;
-            }, starts, ends, CancellationToken.None);
+            }, starts, ends);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(0, ends[0]);
@@ -67,7 +67,7 @@
                 startList.Add(s);
                 endList.Add(e);
                 return 1;
-            }, starts, ends, CancellationToken.None);
+            }, starts, ends);
 
             Assert.AreEqual(0, starts[0]);
             Assert.AreEqual(499, ends[0]);
