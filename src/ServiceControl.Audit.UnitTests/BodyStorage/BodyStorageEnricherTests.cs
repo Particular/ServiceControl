@@ -21,7 +21,8 @@ namespace ServiceControl.UnitTests.BodyStorage
             var maxBodySizeToStore = 20000;
             var settings = new Settings
             {
-                MaxBodySizeToStore = maxBodySizeToStore
+                MaxBodySizeToStore = maxBodySizeToStore,
+                EnableFullTextSearchOnBodies = true
             };
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
@@ -51,7 +52,8 @@ namespace ServiceControl.UnitTests.BodyStorage
             var maxBodySizeToStore = 20000;
             var settings = new Settings
             {
-                MaxBodySizeToStore = maxBodySizeToStore
+                MaxBodySizeToStore = maxBodySizeToStore,
+                EnableFullTextSearchOnBodies = true
             };
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
@@ -81,7 +83,8 @@ namespace ServiceControl.UnitTests.BodyStorage
             var maxBodySizeToStore = 100000;
             var settings = new Settings
             {
-                MaxBodySizeToStore = maxBodySizeToStore
+                MaxBodySizeToStore = maxBodySizeToStore,
+                EnableFullTextSearchOnBodies = true
             };
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
@@ -144,7 +147,8 @@ namespace ServiceControl.UnitTests.BodyStorage
             var maxBodySizeToStore = 100000;
             var settings = new Settings
             {
-                MaxBodySizeToStore = maxBodySizeToStore
+                MaxBodySizeToStore = maxBodySizeToStore,
+                EnableFullTextSearchOnBodies = true
             };
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
@@ -175,7 +179,8 @@ namespace ServiceControl.UnitTests.BodyStorage
             var maxBodySizeToStore = 100000;
             var settings = new Settings
             {
-                MaxBodySizeToStore = maxBodySizeToStore
+                MaxBodySizeToStore = maxBodySizeToStore,
+                EnableFullTextSearchOnBodies = true
             };
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
@@ -206,7 +211,8 @@ namespace ServiceControl.UnitTests.BodyStorage
             var maxBodySizeToStore = 100000;
             var settings = new Settings
             {
-                MaxBodySizeToStore = maxBodySizeToStore
+                MaxBodySizeToStore = maxBodySizeToStore,
+                EnableFullTextSearchOnBodies = true
             };
 
             var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
