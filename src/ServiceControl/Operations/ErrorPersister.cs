@@ -168,15 +168,15 @@
                     enricher.Enrich(enricherContext);
                 }
 
-                await bodyStorageEnricher.StoreErrorMessageBody(context.Body, context.Headers, metadata)
-                    .ConfigureAwait(false);
-
                 var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);
 
                 var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                     context.Headers,
                     new Dictionary<string, object>(metadata),
                     failureDetails);
+
+                await bodyStorageEnricher.StoreErrorMessageBody(context.Body, processingAttempt)
+                    .ConfigureAwait(false);
 
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 

@@ -51,6 +51,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
+            EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
         }
 
         public bool AllowMessageEditing { get; set; }
@@ -129,7 +130,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
-
         public int ExpirationProcessTimerInSeconds
         {
             get
@@ -189,6 +189,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public int DataSpaceRemainingThreshold { get; set; }
+
+        public bool EnableFullTextSearchOnBodies { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {

@@ -45,6 +45,7 @@
             public FailureDetails FailureDetails { get; set; }
             public DateTime AttemptedAt { get; set; }
             public string MessageId { get; set; }
+            public string Body { get; set; }
             public Dictionary<string, string> Headers { get; set; }
         }
 
