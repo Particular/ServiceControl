@@ -31,6 +31,7 @@ namespace ServiceControl.Audit.Auditing
     {
         public ProcessedMessage() { }
         public ProcessedMessage(System.Collections.Generic.Dictionary<string, string> headers, System.Collections.Generic.Dictionary<string, object> metadata) { }
+        public string Body { get; set; }
         public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
         public string Id { get; set; }
         public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
@@ -174,6 +175,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
+        public bool EnableFullTextSearchOnBodies { get; set; }
         public int ExpirationProcessBatchSize { get; }
         public int ExpirationProcessTimerInSeconds { get; }
         public bool ExposeRavenDB { get; }
