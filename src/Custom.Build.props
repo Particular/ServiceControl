@@ -3,6 +3,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>	
     <GenerateDocumentationFile>false</GenerateDocumentationFile>	
+    <ParticularAnalyzersVersion Condition="'$(ParticularAnalyzersVersion)' == ''">0.9.0</ParticularAnalyzersVersion>
   </PropertyGroup>
 
   <ItemGroup>	
