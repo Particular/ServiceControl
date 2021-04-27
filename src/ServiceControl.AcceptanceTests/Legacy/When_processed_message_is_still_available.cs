@@ -57,7 +57,7 @@
             byte[] body = null;
 
             var context = await Define<MyContext>()
-                .WithEndpoint<EndpointToPleaseAcceptanceTestFramework>()
+                .WithEndpoint<Endpoint>()
                 .Done(async c =>
                 {
                     var result = await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id", m => m.MessageId == messageId);
@@ -81,9 +81,9 @@
             Assert.AreEqual("Some Content", bodyAsString);
         }
 
-        public class EndpointToPleaseAcceptanceTestFramework : EndpointConfigurationBuilder
+        public class Endpoint : EndpointConfigurationBuilder
         {
-            public EndpointToPleaseAcceptanceTestFramework()
+            public Endpoint()
             {
                 EndpointSetup<DefaultServer>();
             }
