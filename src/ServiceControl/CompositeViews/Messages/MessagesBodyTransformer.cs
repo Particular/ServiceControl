@@ -10,16 +10,16 @@ namespace ServiceControl.CompositeViews.Messages
         public MessagesBodyTransformer()
         {
             TransformResults = messages => from message in messages
-                                           let attempt = message.ProcessingAttempts != null
-                                               ? message.ProcessingAttempts.Last()
-                                               : new FailedMessage.ProcessingAttempt()
                                            let metadata = message.ProcessingAttempts != null
                                                ? message.ProcessingAttempts.Last().MessageMetadata
                                                : message.MessageMetadata
+                                           let body = message.ProcessingAttempts != null
+                                               ? message.ProcessingAttempts.Last().Body
+                                               : metadata["Body"]
                                            select new
                                            {
                                                MessageId = metadata["MessageId"],
-                                               Body = !string.IsNullOrEmpty(attempt.Body) ? attempt.Body : metadata["Body"],
+                                               Body = body,
                                                BodySize = (int)metadata["ContentLength"],
                                                ContentType = metadata["ContentType"],
                                                BodyNotStored = (bool)metadata["BodyNotStored"]
