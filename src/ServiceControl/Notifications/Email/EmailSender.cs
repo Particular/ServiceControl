@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Notifications.Mail
+﻿namespace ServiceControl.Notifications.Email
 {
     using System;
     using System.Net;
@@ -41,7 +41,7 @@
             var smtpClient = new SmtpClient(settings.SmtpServer, settings.SmtpPort ?? 25)
             {
                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                EnableSsl = settings.EnableSSL,
+                EnableSsl = settings.EnableTLS,
                 Timeout = defaultTimeout
             };
             if (string.IsNullOrWhiteSpace(settings.AuthenticationAccount) == false)

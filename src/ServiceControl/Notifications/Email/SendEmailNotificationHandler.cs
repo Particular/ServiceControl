@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Notifications.Mail
+﻿namespace ServiceControl.Notifications.Email
 {
     using System;
     using System.Threading.Tasks;

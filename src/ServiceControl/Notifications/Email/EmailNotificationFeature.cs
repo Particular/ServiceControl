@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Notifications.Mail
+﻿namespace ServiceControl.Notifications.Email
 {
     using NServiceBus;
     using NServiceBus.Features;

@@ -12,7 +12,7 @@
 
         public string AuthenticationPassword { get; set; }
 
-        public bool EnableSSL { get; set; }
+        public bool EnableTLS { get; set; }
 
         public string To { get; set; }
 
