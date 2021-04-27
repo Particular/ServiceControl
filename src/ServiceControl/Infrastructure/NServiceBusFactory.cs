@@ -87,6 +87,9 @@ namespace ServiceBus.Management.Infrastructure
 
             var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
 
+            // RavenDB is initialized using INeedInitialization and therefore is setup and ready here
+            await settings.StoreInitializer(documentStore).ConfigureAwait(false);
+
             var builder = new ContainerBuilder();
 
             builder.RegisterInstance(endpointInstance).As<IMessageSession>();
