@@ -60,7 +60,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool AllowMessageEditing { get; set; }
 
-        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (_, __, ___, next) => next();
+        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
+        public Func<IDocumentStore, Task> StoreInitializer { get; set; } = _ => Task.CompletedTask;
 
         public Func<IDocumentStore, Task> StoreInitializer { get; set; } = _ => Task.CompletedTask;
 
