@@ -37,37 +37,55 @@
                 return;
             }
 
-            if (throttlingState.Throttling())
-            {
-                log.Warn("Email notification throttled.");
-            }
+            var hasSemaphore = false;
 
             try
             {
-                await throttlingState.Wait().ConfigureAwait(false);
+                while (hasSemaphore == false)
+                {
+                    if (throttlingState.IsThrottling())
+                    {
+                        log.Warn("Email notifications throttled");
+                        return;
+                    }
+
+                    hasSemaphore = await throttlingState.Semaphore.WaitAsync(spinDelay).ConfigureAwait(false);
+                }
 
                 await EmailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder)
                     .ConfigureAwait(false);
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
-                var shouldRetry = throttlingState.RegisterFailure(message.FailureNumber);
-
-                if (shouldRetry)
+                if (message.IsFailure)
                 {
+                    throttlingState.ThrottlingOn();
+
+                    await Task.Delay(throttlingDelay).ConfigureAwait(false);
+
+                    throttlingState.ThrottlingOff();
+
                     throw new EmailNotificationException(e);
                 }
-
-                log.Warn("Throttling email notification due to sending error.", e);
+                else
+                {
+                    log.Warn("Email notification throttled.");
+                }
             }
             finally
             {
-                throttlingState.Release();
+                if (hasSemaphore)
+                {
+                    throttlingState.Semaphore.Release();
+                }
             }
         }
 
-        static ILog log = LogManager.GetLogger<SendEmailNotificationHandler>();
         string emailDropFolder;
+
+        static ILog log = LogManager.GetLogger<SendEmailNotificationHandler>();
+        static TimeSpan spinDelay = TimeSpan.FromSeconds(1);
+        static TimeSpan throttlingDelay = TimeSpan.FromMinutes(1);
 
         public static RecoverabilityAction RecoverabilityPolicy(RecoverabilityConfig config, ErrorContext context)
         {
