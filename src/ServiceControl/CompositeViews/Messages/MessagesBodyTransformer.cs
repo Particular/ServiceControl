@@ -14,7 +14,7 @@ namespace ServiceControl.CompositeViews.Messages
                                                ? message.ProcessingAttempts.Last().MessageMetadata
                                                : message.MessageMetadata
                                            let body = message.ProcessingAttempts != null
-                                               ? message.ProcessingAttempts.Last().Body
+                                               ? message.ProcessingAttempts.Last().Body ?? metadata["Body"]
                                                : metadata["Body"]
                                            select new
                                            {
