@@ -11,7 +11,7 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.RavenDB;
-    using ServiceControl.Notifications.Mail;
+    using ServiceControl.Notifications.Email;
     using ServiceControl.Operations;
     using ServiceControl.Transports;
     using Settings;

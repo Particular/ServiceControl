@@ -995,7 +995,7 @@ namespace ServiceControl.Notifications.Api
         public NotificationsController(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("notifications/email")]
-        public System.Threading.Tasks.Task<System.Web.Http.Results.JsonResult<ServiceControl.Notifications.EmailNotifications>> GetAlertingSettings(System.Net.Http.HttpRequestMessage request) { }
+        public System.Threading.Tasks.Task<System.Web.Http.Results.JsonResult<ServiceControl.Notifications.EmailNotifications>> GetEmailNotificationsSettings(System.Net.Http.HttpRequestMessage request) { }
         [System.Web.Http.HttpPost]
         [System.Web.Http.Route("notifications/email/test")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SendTestEmail() { }
@@ -1004,7 +1004,7 @@ namespace ServiceControl.Notifications.Api
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ToggleEmailNotifications(ServiceControl.Notifications.Api.ToggleEmailNotifications request) { }
         [System.Web.Http.HttpPost]
         [System.Web.Http.Route("notifications/email")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> UpdateSettings(ServiceControl.Notifications.Api.UpdateAlertingSettingsRequest request) { }
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> UpdateSettings(ServiceControl.Notifications.Api.UpdateEmailNotificationsSettingsRequest request) { }
     }
     public class ToggleEmailNotifications
     {
@@ -1012,15 +1012,15 @@ namespace ServiceControl.Notifications.Api
         [Newtonsoft.Json.JsonProperty(PropertyName="enabled")]
         public bool Enabled { get; set; }
     }
-    public class UpdateAlertingSettingsRequest
+    public class UpdateEmailNotificationsSettingsRequest
     {
-        public UpdateAlertingSettingsRequest() { }
+        public UpdateEmailNotificationsSettingsRequest() { }
         [Newtonsoft.Json.JsonProperty(PropertyName="authorization_account")]
         public string AuthorizationAccount { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="authorization_password")]
         public string AuthorizationPassword { get; set; }
-        [Newtonsoft.Json.JsonProperty(PropertyName="enable_ssl")]
-        public bool EnableSSL { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="enable_tls")]
+        public bool EnableTLS { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="from")]
         public string From { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="smtp_port")]
@@ -1038,7 +1038,7 @@ namespace ServiceControl.Notifications
         public EmailNotifications() { }
         public string AuthenticationAccount { get; set; }
         public string AuthenticationPassword { get; set; }
-        public bool EnableSSL { get; set; }
+        public bool EnableTLS { get; set; }
         public bool Enabled { get; set; }
         public string From { get; set; }
         public int? SmtpPort { get; set; }

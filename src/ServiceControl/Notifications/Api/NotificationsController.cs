@@ -7,8 +7,8 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Results;
+    using Email;
     using Infrastructure.SignalR;
-    using Mail;
     using Newtonsoft.Json;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -23,7 +23,7 @@
 
         [Route("notifications/email")]
         [HttpGet]
-        public async Task<JsonResult<EmailNotifications>> GetAlertingSettings(HttpRequestMessage request)
+        public async Task<JsonResult<EmailNotifications>> GetEmailNotificationsSettings(HttpRequestMessage request)
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -59,7 +59,7 @@
 
         [Route("notifications/email")]
         [HttpPost]
-        public async Task<HttpResponseMessage> UpdateSettings(UpdateAlertingSettingsRequest request)
+        public async Task<HttpResponseMessage> UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -72,7 +72,7 @@
 
                 emailSettings.AuthenticationAccount = request.AuthorizationAccount;
                 emailSettings.AuthenticationPassword = request.AuthorizationPassword;
-                emailSettings.EnableSSL = request.EnableSSL;
+                emailSettings.EnableTLS = request.EnableTLS;
 
                 emailSettings.From = request.From;
                 emailSettings.To = request.To;

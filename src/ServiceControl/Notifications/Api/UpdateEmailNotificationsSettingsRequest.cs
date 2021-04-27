@@ -2,7 +2,7 @@
 {
     using Newtonsoft.Json;
 
-    public class UpdateAlertingSettingsRequest
+    public class UpdateEmailNotificationsSettingsRequest
     {
         [JsonProperty(PropertyName = "smtp_server")]
         public string SmtpServer { get; set; }
@@ -16,8 +16,8 @@
         [JsonProperty(PropertyName = "authorization_password")]
         public string AuthorizationPassword { get; set; }
 
-        [JsonProperty(PropertyName = "enable_ssl")]
-        public bool EnableSSL { get; set; }
+        [JsonProperty(PropertyName = "enable_tls")]
+        public bool EnableTLS { get; set; }
 
         [JsonProperty(PropertyName = "from")]
         public string From { get; set; }
