@@ -992,7 +992,7 @@ namespace ServiceControl.Notifications.Api
 {
     public class NotificationsController : System.Web.Http.ApiController
     {
-        public NotificationsController(Raven.Client.IDocumentStore store) { }
+        public NotificationsController(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("notifications/email")]
         public System.Threading.Tasks.Task<System.Web.Http.Results.JsonResult<ServiceControl.Notifications.EmailNotifications>> GetAlertingSettings(System.Net.Http.HttpRequestMessage request) { }
@@ -1055,16 +1055,27 @@ namespace ServiceControl.Notifications
 }
 namespace ServiceControl.Notifications.Mail
 {
+    public class EmailThrottlingState
+    {
+        public EmailThrottlingState() { }
+        public string RetriedMessageId { get; set; }
+        public System.Threading.SemaphoreSlim Semaphore { get; }
+        public bool IsThrottling() { }
+        public void ThrottlingOff() { }
+        public void ThrottlingOn() { }
+    }
     public class SendEmailNotification : NServiceBus.ICommand, NServiceBus.IMessage
     {
         public SendEmailNotification() { }
         public string Body { get; set; }
+        public bool IsFailure { get; set; }
         public string Subject { get; set; }
     }
     public class SendEmailNotificationHandler : NServiceBus.IHandleMessages<ServiceControl.Notifications.Mail.SendEmailNotification>
     {
-        public SendEmailNotificationHandler(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
+        public SendEmailNotificationHandler(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings, ServiceControl.Notifications.Mail.EmailThrottlingState throttlingState) { }
         public System.Threading.Tasks.Task Handle(ServiceControl.Notifications.Mail.SendEmailNotification message, NServiceBus.IMessageHandlerContext context) { }
+        public static NServiceBus.RecoverabilityAction RecoverabilityPolicy(NServiceBus.RecoverabilityConfig config, NServiceBus.Transport.ErrorContext context) { }
     }
 }
 namespace ServiceControl.Operations
