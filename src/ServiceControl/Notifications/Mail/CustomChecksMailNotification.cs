@@ -47,10 +47,12 @@
             {
                 return messageSession.SendLocal(new SendEmailNotification
                 {
-                    FailureNumber = throttlingState.NextFailure(),
-                    Subject = $"[{instanceName}] Health check failed",
-                    Body = $@"Service Control instance: {instanceName} at {instanceAddress}.
-Health check {domainEvent.Category}: {domainEvent.CustomCheckId} failed at {domainEvent.FailedAt}. Failure reason {domainEvent.FailureReason}"
+                    Subject = $"[{instanceName}] health check failed",
+                    Body = $@"{domainEvent.Category} check for ServiceControl instance {instanceName} at {instanceAddress}.
+
+{domainEvent.CustomCheckId} failed on {domainEvent.FailedAt}. 
+
+{domainEvent.FailureReason}"
                 });
             }
 
@@ -63,9 +65,10 @@ Health check {domainEvent.Category}: {domainEvent.CustomCheckId} failed at {doma
             {
                 return messageSession.SendLocal(new SendEmailNotification
                 {
-                    Subject = $"[{instanceName}] Health check succeeded",
-                    Body = $@"Service Control instance: {instanceName} at {instanceAddress}.
-Health check {domainEvent.Category}: {domainEvent.CustomCheckId} succeeded at {domainEvent.SucceededAt}."
+                    Subject = $"[{instanceName}] health check succeeded",
+                    Body = $@"{domainEvent.Category} check for ServiceControl instance {instanceName} at {instanceAddress}.
+
+{domainEvent.CustomCheckId} succeeded on {domainEvent.SucceededAt}."
                 });
             }
 
