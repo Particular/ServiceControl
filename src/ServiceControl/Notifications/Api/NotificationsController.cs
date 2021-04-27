@@ -11,10 +11,15 @@
     using Mail;
     using Newtonsoft.Json;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     public class NotificationsController : ApiController
     {
-        public NotificationsController(IDocumentStore store) => this.store = store;
+        public NotificationsController(IDocumentStore store, Settings settings)
+        {
+            this.store = store;
+            instanceName = settings.ServiceName;
+        }
 
         [Route("notifications/email")]
         [HttpGet]
@@ -90,8 +95,8 @@
                 {
                     await EmailSender.Send(
                             settings.Email,
-                            "Test notification",
-                            "This is a test notification body.")
+                            $"[{instanceName}] health check notification check successful",
+                            $"[{instanceName}] health check notification check successful.")
                         .ConfigureAwait(false);
                 }
                 catch (Exception e)
@@ -125,5 +130,6 @@
         }
 
         IDocumentStore store;
+        string instanceName;
     }
 }
