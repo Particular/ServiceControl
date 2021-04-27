@@ -1045,6 +1045,31 @@ namespace ServiceControl.Notifications.Api
         public string To { get; set; }
     }
 }
+namespace ServiceControl.Notifications.Email
+{
+    public class EmailThrottlingState
+    {
+        public EmailThrottlingState() { }
+        public string RetriedMessageId { get; set; }
+        public System.Threading.SemaphoreSlim Semaphore { get; }
+        public bool IsThrottling() { }
+        public void ThrottlingOff() { }
+        public void ThrottlingOn() { }
+    }
+    public class SendEmailNotification : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public SendEmailNotification() { }
+        public string Body { get; set; }
+        public bool IsFailure { get; set; }
+        public string Subject { get; set; }
+    }
+    public class SendEmailNotificationHandler : NServiceBus.IHandleMessages<ServiceControl.Notifications.Email.SendEmailNotification>
+    {
+        public SendEmailNotificationHandler(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings, ServiceControl.Notifications.Email.EmailThrottlingState throttlingState) { }
+        public System.Threading.Tasks.Task Handle(ServiceControl.Notifications.Email.SendEmailNotification message, NServiceBus.IMessageHandlerContext context) { }
+        public static NServiceBus.RecoverabilityAction RecoverabilityPolicy(NServiceBus.RecoverabilityConfig config, NServiceBus.Transport.ErrorContext context) { }
+    }
+}
 namespace ServiceControl.Notifications
 {
     public class EmailNotifications
@@ -1065,31 +1090,6 @@ namespace ServiceControl.Notifications
         public NotificationsSettings() { }
         public ServiceControl.Notifications.EmailNotifications Email { get; set; }
         public string Id { get; set; }
-    }
-}
-namespace ServiceControl.Notifications.Mail
-{
-    public class EmailThrottlingState
-    {
-        public EmailThrottlingState() { }
-        public string RetriedMessageId { get; set; }
-        public System.Threading.SemaphoreSlim Semaphore { get; }
-        public bool IsThrottling() { }
-        public void ThrottlingOff() { }
-        public void ThrottlingOn() { }
-    }
-    public class SendEmailNotification : NServiceBus.ICommand, NServiceBus.IMessage
-    {
-        public SendEmailNotification() { }
-        public string Body { get; set; }
-        public bool IsFailure { get; set; }
-        public string Subject { get; set; }
-    }
-    public class SendEmailNotificationHandler : NServiceBus.IHandleMessages<ServiceControl.Notifications.Mail.SendEmailNotification>
-    {
-        public SendEmailNotificationHandler(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings, ServiceControl.Notifications.Mail.EmailThrottlingState throttlingState) { }
-        public System.Threading.Tasks.Task Handle(ServiceControl.Notifications.Mail.SendEmailNotification message, NServiceBus.IMessageHandlerContext context) { }
-        public static NServiceBus.RecoverabilityAction RecoverabilityPolicy(NServiceBus.RecoverabilityConfig config, NServiceBus.Transport.ErrorContext context) { }
     }
 }
 namespace ServiceControl.Operations
