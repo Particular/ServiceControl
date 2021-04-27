@@ -8,6 +8,6 @@
 
         public string Body { get; set; }
 
-        public int? FailureNumber { get; set; }
+        public bool IsFailure { get; set; }
     }
 }

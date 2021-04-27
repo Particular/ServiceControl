@@ -11,7 +11,6 @@
     class CustomChecksMailNotification : IDomainHandler<CustomCheckFailed>, IDomainHandler<CustomCheckSucceeded>
     {
         readonly IMessageSession messageSession;
-        readonly EmailThrottlingState throttlingState;
         readonly string instanceName;
         string instanceAddress;
         string[] serviceControlHealthCustomCheckIds = {
@@ -27,10 +26,9 @@
             "Error Message Ingestion"
         };
 
-        public CustomChecksMailNotification(IMessageSession messageSession, Settings settings, EmailThrottlingState throttlingState)
+        public CustomChecksMailNotification(IMessageSession messageSession, Settings settings)
         {
             this.messageSession = messageSession;
-            this.throttlingState = throttlingState;
 
             instanceName = settings.ServiceName;
             instanceAddress = settings.ApiUrl;
@@ -47,6 +45,7 @@
             {
                 return messageSession.SendLocal(new SendEmailNotification
                 {
+                    IsFailure = true,
                     Subject = $"[{instanceName}] health check failed",
                     Body = $@"{domainEvent.Category} check for ServiceControl instance {instanceName} at {instanceAddress}.
 
@@ -65,6 +64,7 @@
             {
                 return messageSession.SendLocal(new SendEmailNotification
                 {
+                    IsFailure = false,
                     Subject = $"[{instanceName}] health check succeeded",
                     Body = $@"{domainEvent.Category} check for ServiceControl instance {instanceName} at {instanceAddress}.
 

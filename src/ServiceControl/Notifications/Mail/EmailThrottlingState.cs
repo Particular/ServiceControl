@@ -1,49 +1,15 @@
 ﻿namespace ServiceControl.Notifications.Mail
 {
-    using System;
     using System.Threading;
-    using System.Threading.Tasks;
 
     public class EmailThrottlingState
     {
-        SemaphoreSlim semaphore = new SemaphoreSlim(1);
-        int latestFailureNumber = 0;
-        DateTime? lastSendError;
+        public SemaphoreSlim Semaphore = new SemaphoreSlim(1);
+        bool throttling;
 
-        public async Task<int> NextFailure()
-        {
-            try
-            {
-                await semaphore.WaitAsync().ConfigureAwait(false);
+        public bool IsThrottling() => Volatile.Read(ref throttling);
 
-                return ++latestFailureNumber;
-            }
-            finally
-            {
-                semaphore.Release(1);
-            }
-        }
-
-        public Task Wait() => semaphore.WaitAsync();
-
-        public void Release() => semaphore.Release(1);
-
-        public async bool Throttling()
-        {
-
-        }
-        public async Task RegisterSendError()
-        {
-            try
-            {
-                await semaphore.WaitAsync().ConfigureAwait(false);
-
-                lastSendError = DateTime.UtcNow;
-            }
-            finally
-            {
-                semaphore.Release(1);
-            }
-        }
+        public void ThrottlingOn() => Volatile.Write(ref throttling, true);
+        public void ThrottlingOff() => Volatile.Write(ref throttling, false);
     }
 }
