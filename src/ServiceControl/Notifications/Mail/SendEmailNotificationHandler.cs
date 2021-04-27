@@ -45,11 +45,17 @@
                 {
                     if (throttlingState.IsThrottling())
                     {
-                        log.Warn("Email notifications throttled");
+                        log.Warn("Email notification throttled");
                         return;
                     }
 
                     hasSemaphore = await throttlingState.Semaphore.WaitAsync(spinDelay).ConfigureAwait(false);
+                }
+
+                if (context.MessageId == throttlingState.RetriedMessageId)
+                {
+                    message.Body +=
+                        "\n\nWARNING: Your SMTP server was temporarily unavailable. Make sure to check ServicePulse for a full list of health check notifications.";
                 }
 
                 await EmailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder)
@@ -64,6 +70,8 @@
                     await Task.Delay(throttlingDelay).ConfigureAwait(false);
 
                     throttlingState.ThrottlingOff();
+
+                    throttlingState.RetriedMessageId = context.MessageId;
 
                     throw new EmailNotificationException(e);
                 }
