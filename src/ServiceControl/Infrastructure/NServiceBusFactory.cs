@@ -50,7 +50,7 @@ namespace ServiceBus.Management.Infrastructure
             recoverability.Delayed(c => c.NumberOfRetries(0));
             configuration.SendFailedMessagesTo($"{endpointName}.Errors");
 
-            recoverability.CustomPolicy(EmailNotificationThrottlingBehavior.RecoverabilityPolicy);
+            recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);
 
             configuration.UseSerialization<NewtonsoftSerializer>();
 
