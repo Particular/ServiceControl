@@ -19,12 +19,12 @@
             // setting it even if it is the default
             SetSettings = settings => settings.EnableFullTextSearchOnBodies = true;
 
-            var searchString = "42";
+            var searchString = "forty-two";
 
             var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
                 {
-                    Something = "Somewhere in the body is the answer to all of the questions. 42"
+                    Something = "Somewhere in the body is the answer to all of the questions. forty-two"
                 })))
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .Done(async c =>
@@ -51,12 +51,12 @@
         {
             SetSettings = settings => settings.EnableFullTextSearchOnBodies = false;
 
-            var searchString = "42";
+            var searchString = "forty-two";
 
             var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
                 {
-                    Something = "Somewhere in the body is the answer to all of the questions. 42"
+                    Something = "Somewhere in the body is the answer to all of the questions. forty-two"
                 })))
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .Done(async c =>
@@ -107,8 +107,6 @@
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext Context { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
