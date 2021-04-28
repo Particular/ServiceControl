@@ -3,13 +3,15 @@
     using System;
     using System.IO;
     using System.Threading.Tasks;
+    using CustomChecks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class CheckFreeDiskSpace : CustomCheck
     {
-        public CheckFreeDiskSpace(Settings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
+        public CheckFreeDiskSpace(Settings settings) : base("ServiceControl database", CustomCheckCategories.ServiceControlHealth, TimeSpan.FromMinutes(5))
         {
             dataPath = settings.DbPath;
             percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;

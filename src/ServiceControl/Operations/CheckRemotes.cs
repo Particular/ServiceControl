@@ -6,12 +6,14 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using CustomChecks;
     using NServiceBus.CustomChecks;
     using ServiceBus.Management.Infrastructure.Settings;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class CheckRemotes : CustomCheck
     {
-        public CheckRemotes(Settings settings, Func<HttpClient> httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
+        public CheckRemotes(Settings settings, Func<HttpClient> httpClientFactory) : base("ServiceControl Remotes", CustomCheckCategories.ServiceControlHealth, TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
             remoteInstanceSetting = settings.RemoteInstances;

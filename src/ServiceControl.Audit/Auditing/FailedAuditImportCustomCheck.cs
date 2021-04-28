@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Auditing
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -9,7 +10,7 @@ namespace ServiceControl.Audit.Auditing
     class FailedAuditImportCustomCheck : CustomCheck
     {
         public FailedAuditImportCustomCheck(IDocumentStore store)
-            : base("Audit Message Ingestion", "ServiceControl.Audit Health", TimeSpan.FromHours(1))
+            : base("Audit Message Ingestion", CustomCheckCategories.ServiceControlAuditHealth, TimeSpan.FromHours(1))
         {
             this.store = store;
         }

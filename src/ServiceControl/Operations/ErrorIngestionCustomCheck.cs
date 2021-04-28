@@ -2,7 +2,9 @@
 {
     using System;
     using System.Threading.Tasks;
+    using CustomChecks;
     using NServiceBus.CustomChecks;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class ErrorIngestionCustomCheck : CustomCheck
     {
@@ -15,7 +17,7 @@
         }
 
         public ErrorIngestionCustomCheck(State criticalErrorHolder)
-            : base("Error Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
+            : base("Error Message Ingestion Process", CustomCheckCategories.ServiceControlHealth, TimeSpan.FromSeconds(5))
         {
             this.criticalErrorHolder = criticalErrorHolder;
         }

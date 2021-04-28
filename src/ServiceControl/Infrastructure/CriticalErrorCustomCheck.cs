@@ -2,15 +2,17 @@ namespace ServiceControl.Operations
 {
     using System;
     using System.Threading.Tasks;
+    using CustomChecks;
     using NServiceBus;
     using NServiceBus.CustomChecks;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class CriticalErrorCustomCheck : CustomCheck
     {
         static volatile string recentFailure;
 
         public CriticalErrorCustomCheck()
-            : base("ServiceControl Primary Instance", "Health", TimeSpan.FromSeconds(60))
+            : base("ServiceControl Primary Instance", CustomCheckCategories.ServiceControlHealth, TimeSpan.FromSeconds(60))
         {
         }
 

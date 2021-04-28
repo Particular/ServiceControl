@@ -2,14 +2,16 @@
 {
     using System;
     using System.Threading.Tasks;
+    using CustomChecks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class FailedErrorImportCustomCheck : CustomCheck
     {
         public FailedErrorImportCustomCheck(IDocumentStore store)
-            : base("Error Message Ingestion", "ServiceControl Health", TimeSpan.FromHours(1))
+            : base("Error Message Ingestion", CustomCheckCategories.ServiceControlHealth, TimeSpan.FromHours(1))
         {
             this.store = store;
         }

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus.CustomChecks;
 
     class AuditIngestionCustomCheck : CustomCheck
@@ -15,7 +16,7 @@
         }
 
         public AuditIngestionCustomCheck(State criticalErrorHolder)
-            : base("Audit Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
+            : base("Audit Message Ingestion Process", CustomCheckCategories.ServiceControlAuditHealth, TimeSpan.FromSeconds(5))
         {
             this.criticalErrorHolder = criticalErrorHolder;
         }

@@ -11,7 +11,7 @@
     public class CheckDeadLetterQueue : CustomCheck
     {
         public CheckDeadLetterQueue(TransportSettings settings) :
-            base("Dead Letter Queue", "Transport", TimeSpan.FromHours(1))
+            base("Dead Letter Queue", CustomChecksCategories.ServiceControlTransportHealth, TimeSpan.FromHours(1))
         {
             runCheck = settings.RunCustomChecks;
             if (!runCheck)
