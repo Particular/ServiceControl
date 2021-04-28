@@ -10,7 +10,7 @@ namespace ServiceControl.Audit.Auditing
     class FailedAuditImportCustomCheck : CustomCheck
     {
         public FailedAuditImportCustomCheck(IDocumentStore store)
-            : base("Audit Message Ingestion", CustomCheckCategories.ServiceControlAuditHealth, TimeSpan.FromHours(1))
+            : base("Audit Message Ingestion", CustomChecksCategories.ServiceControlAuditHealth, TimeSpan.FromHours(1))
         {
             this.store = store;
         }

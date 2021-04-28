@@ -12,7 +12,7 @@ namespace ServiceControl.Operations
         static volatile string recentFailure;
 
         public CriticalErrorCustomCheck()
-            : base("ServiceControl Primary Instance", CustomCheckCategories.ServiceControlHealth, TimeSpan.FromSeconds(60))
+            : base("ServiceControl Primary Instance", CustomChecksCategories.ServiceControlHealth, TimeSpan.FromSeconds(60))
         {
         }
 

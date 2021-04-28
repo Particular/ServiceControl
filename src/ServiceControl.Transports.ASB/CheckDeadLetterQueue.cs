@@ -12,14 +12,18 @@
         {
             Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
 
-            var transportConnectionString = settings.ConnectionString;
-            namespaceManager = NamespaceManager.CreateFromConnectionString(transportConnectionString);
+            connectionString = settings.ConnectionString;
             stagingQueue = $"{settings.EndpointName}.staging";
             runCheck = settings.RunCustomChecks;
         }
 
         public override Task<CheckResult> PerformCheck()
         {
+            if (namespaceManager == null)
+            {
+                namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
+            }
+
             if (!runCheck)
             {
                 return CheckResult.Pass;
@@ -45,6 +49,7 @@
         NamespaceManager namespaceManager;
         string stagingQueue;
         bool runCheck;
+        string connectionString;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
     }

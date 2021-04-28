@@ -71,6 +71,17 @@
             );
         }
 
+        [Test]
+        public void VerifyCustomCheckCategory()
+        {
+            var customChecks = GetCustomChecks().ToArray();
+            var category = CustomChecksCategories.ServiceControlAuditHealth;
+
+            var categoriesMatch = customChecks.All(cc => cc.Category == category);
+
+            Assert.IsTrue(categoriesMatch, $"All ServiceControl Audit custom checks should belong to {category} category");
+        }
+
         static IEnumerable<ICustomCheck> GetCustomChecks()
         {
             var settings = (object)new Settings();

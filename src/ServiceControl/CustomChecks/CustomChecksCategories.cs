@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
-    public static class CustomCheckCategories
+    public static class CustomChecksCategories
     {
         public static string ServiceControlHealth = "ServiceControl Health";
     }

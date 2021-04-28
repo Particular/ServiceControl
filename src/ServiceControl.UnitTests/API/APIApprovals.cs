@@ -1,9 +1,10 @@
-﻿namespace ServiceControl.UnitTests.API
+namespace ServiceControl.UnitTests.API
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Reflection;
     using System.Web.Http.Controllers;
     using System.Web.Http.Hosting;
     using System.Web.Http.Routing;
@@ -99,12 +100,38 @@
             );
         }
 
+        [Test]
+        public void VerifyCustomCheckCategory()
+        {
+            var customChecks = GetCustomChecks().ToArray();
+            var category = CustomChecks.CustomChecksCategories.ServiceControlHealth;
+
+            var categoriesMatch = customChecks.All(cc => cc.Category == category);
+
+            Assert.IsTrue(categoriesMatch, $"All ServiceControl custom checks should belong to {category} category");
+        }
+
+        [Test]
+        public void VerifyTransportCustomCheckCategory()
+        {
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var transportAssemblies = assemblies
+                .Where(a => a.FullName.StartsWith("ServiceControl.Transports"))
+                .ToArray();
+
+            var customChecks = GetCustomChecks(transportAssemblies).ToArray();
+            var category = CustomChecks.CustomChecksCategories.ServiceControlHealth;
+
+            var categoriesMatch = customChecks.All(cc => cc.Category == category);
+
+            Assert.IsTrue(categoriesMatch, $"All ServiceControl custom checks should belong to {category} category");
+        }
+
         static IEnumerable<ICustomCheck> GetCustomChecks()
         {
             var settings = (object)new Settings();
 
             var serviceControlTypes = typeof(Bootstrapper).Assembly
-                .GetTypes()
                 .Where(t => t.IsAbstract == false);
 
             var customCheckTypes = serviceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t));

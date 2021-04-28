@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Audit.Infrastructure
 {
-    public class CustomCheckCategories
+    public class CustomChecksCategories
     {
         public static string ServiceControlAuditHealth = "ServiceControl Audit Health";
     }

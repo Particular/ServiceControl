@@ -17,7 +17,7 @@
         }
 
         public ErrorIngestionCustomCheck(State criticalErrorHolder)
-            : base("Error Message Ingestion Process", CustomCheckCategories.ServiceControlHealth, TimeSpan.FromSeconds(5))
+            : base("Error Message Ingestion Process", CustomChecksCategories.ServiceControlHealth, TimeSpan.FromSeconds(5))
         {
             this.criticalErrorHolder = criticalErrorHolder;
         }
