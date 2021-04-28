@@ -87,6 +87,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
         public string StorageUrl { get; }
+        public System.Func<Raven.Client.IDocumentStore, System.Threading.Tasks.Task> StoreInitializer { get; set; }
         public System.TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
         public string TransportCustomizationType { get; set; }
@@ -483,6 +484,10 @@ namespace ServiceControl.CustomChecks
     {
         public CustomCheckDeleted() { }
         public System.Guid Id { get; set; }
+    }
+    public static class CustomChecksCategories
+    {
+        public static string ServiceControlHealth;
     }
     public class CustomChecksIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.CustomChecks.CustomCheck>
     {

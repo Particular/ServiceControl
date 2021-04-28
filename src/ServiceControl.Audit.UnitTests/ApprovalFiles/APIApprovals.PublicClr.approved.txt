@@ -130,6 +130,14 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         }
     }
 }
+namespace ServiceControl.Audit.Infrastructure
+{
+    public class CustomChecksCategories
+    {
+        public static string ServiceControlAuditHealth;
+        public CustomChecksCategories() { }
+    }
+}
 namespace ServiceControl.Audit.Infrastructure.Installers
 {
     public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething

@@ -1,3 +1,3 @@
-ServiceControl Health: Audit Message Ingestion Process
-ServiceControl.Audit Health: Audit Message Ingestion
-Storage space: ServiceControl.Audit database
+ServiceControl Audit Health: Audit Message Ingestion
+ServiceControl Audit Health: Audit Message Ingestion Process
+ServiceControl Audit Health: ServiceControl.Audit database

@@ -75,7 +75,7 @@
         public void VerifyCustomCheckCategory()
         {
             var customChecks = GetCustomChecks().ToArray();
-            var category = CustomChecksCategories.ServiceControlAuditHealth;
+            var category = "ServiceControl Audit Health";
 
             var categoriesMatch = customChecks.All(cc => cc.Category == category);
 

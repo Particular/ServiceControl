@@ -30,7 +30,7 @@
                 .ToArray();
 
             var customChecks = GetCustomChecks(transportAssemblies).ToArray();
-            var category = CustomChecksCategories.ServiceControlTransportHealth;
+            var category = "ServiceControl Transport Health";
 
             var categoriesMatch = customChecks.All(cc => cc.Category == category);
 
