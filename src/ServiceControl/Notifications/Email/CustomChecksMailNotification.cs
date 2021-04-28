@@ -37,7 +37,7 @@
 
         public Task Handle(CustomCheckFailed domainEvent)
         {
-            if (IsHealthCheck(domainEvent.CustomCheckId))
+            if (IsHealthCheck(domainEvent.Category))
             {
                 if (throttlingState.IsThrottling())
                 {
@@ -62,7 +62,7 @@
 
         public Task Handle(CustomCheckSucceeded domainEvent)
         {
-            if (IsHealthCheck(domainEvent.CustomCheckId))
+            if (IsHealthCheck(domainEvent.Category))
             {
                 if (throttlingState.IsThrottling())
                 {
@@ -83,7 +83,7 @@
             return Task.CompletedTask;
         }
 
-        bool IsHealthCheck(string checkId) => healthCheckCategories.Any(id => string.Equals(id, checkId, StringComparison.InvariantCultureIgnoreCase));
+        bool IsHealthCheck(string categoryId) => healthCheckCategories.Any(id => string.Equals(id, categoryId, StringComparison.InvariantCultureIgnoreCase));
 
         static ILog log = LogManager.GetLogger<CustomChecksMailNotification>();
     }
