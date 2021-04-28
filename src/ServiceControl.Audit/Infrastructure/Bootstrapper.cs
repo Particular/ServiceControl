@@ -250,6 +250,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.Port,
                     settings.RunInMemory,
                     settings.SkipQueueCreation,
+                    settings.EnableFullTextSearchOnBodies,
                     settings.TransportCustomizationType
                 },
                 LoggingSettings = loggingSettings
