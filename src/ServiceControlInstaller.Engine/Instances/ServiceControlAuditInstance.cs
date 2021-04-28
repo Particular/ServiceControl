@@ -37,6 +37,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, AuditRetentionPeriod.ToString(), Version);
             settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue, Version);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
+            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
         }
 
         protected override AppConfig CreateAppConfig()
@@ -77,6 +78,8 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 AuditLogQueue = AppConfig.Read(AuditInstanceSettingsList.AuditLogQueue, $"{AuditQueue}.log");
             }
+
+            EnableFullTextSearchOnBodies = AppConfig.Read(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, true);
         }
 
         public override void RunQueueCreation()

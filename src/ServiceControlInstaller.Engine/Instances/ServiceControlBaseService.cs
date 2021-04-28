@@ -91,6 +91,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string ConnectionString { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public bool SkipQueueCreation { get; set; }
+        public bool EnableFullTextSearchOnBodies { get; set; }
 
         protected abstract string BaseServiceName { get; }
 

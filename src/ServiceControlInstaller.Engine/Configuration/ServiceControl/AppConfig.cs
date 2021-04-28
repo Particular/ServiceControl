@@ -31,6 +31,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             settings.Set(ServiceControlSettings.ErrorLogQueue, details.ForwardErrorMessages ? details.ErrorLogQueue : null);
             settings.Set(ServiceControlSettings.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(ServiceControlSettings.ErrorRetentionPeriod, details.ErrorRetentionPeriod.ToString(), version);
+            settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, details.EnableFullTextSearchOnBodies.ToString(), version);
             settings.Set(ServiceControlSettings.RemoteInstances, RemoteInstanceConverter.ToJson(details.RemoteInstances), version);
 
             // Retired settings
@@ -118,6 +119,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, details.ForwardAuditMessages ? details.AuditLogQueue : null);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
             settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, details.ServiceControlQueueAddress);
+            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, details.EnableFullTextSearchOnBodies.ToString(), version);
 
             // Add Settings for performance tuning
             // See https://github.com/Particular/ServiceControl/issues/655

@@ -52,6 +52,23 @@
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
             var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
 
+            if (!instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.EnableFullTextSearchOnBodies.Name))
+            {
+                var dialogResult = windowManager.ShowYesNoCancelDialog(
+                    "INPUT REQUIRED - FULL TEXT SEARCH ON MESSAGE BODIES",
+                    "It is possible to disable full text search support for message bodies.", "Do you want to continue to support full text search for message bodies?", "YES", "NO");
+                if (dialogResult.HasValue)
+                {
+                    upgradeOptions.EnableFullTextSearchOnBodies = dialogResult.Value;
+                }
+                else
+                {
+                    //Dialog was cancelled
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+                    return;
+                }
+            }
+
             if (instance.Service.Status != ServiceControllerStatus.Stopped &&
                 !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
                     $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",

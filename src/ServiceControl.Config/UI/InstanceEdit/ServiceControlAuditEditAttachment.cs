@@ -70,6 +70,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.AuditQueue = viewModel.ServiceControlAudit.AuditQueueName;
             instance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;
             instance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
+            instance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
             instance.TransportPackage = viewModel.SelectedTransport;
             instance.ConnectionString = viewModel.ConnectionString;
 

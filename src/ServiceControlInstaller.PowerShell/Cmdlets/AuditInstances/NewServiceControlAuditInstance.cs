@@ -85,6 +85,9 @@
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Specify whether to enable full text search on audit messages.")]
+        public SwitchParameter EnableFullTextSearchOnBodies { get; set; } = true;
+
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
 
@@ -141,7 +144,8 @@
                 ConnectionString = ConnectionString,
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
                 SkipQueueCreation = SkipQueueCreation,
-                ServiceControlQueueAddress = ServiceControlQueueAddress
+                ServiceControlQueueAddress = ServiceControlQueueAddress,
+                EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies,
             };
 
             var zipfolder = ZipPath.Get(this);

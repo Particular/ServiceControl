@@ -6,6 +6,7 @@ namespace ServiceControlInstaller.Engine.Instances
     public class ServiceControlUpgradeOptions
     {
         public bool? OverrideEnableErrorForwarding { get; set; }
+        public bool? EnableFullTextSearchOnBodies { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }
         public TimeSpan? AuditRetentionPeriod { get; set; }
         public int? MaintenancePort { get; set; }
@@ -13,11 +14,34 @@ namespace ServiceControlInstaller.Engine.Instances
         public UpgradeInfo UpgradeInfo { get; set; }
         public string RemoteUrl { get; set; }
 
-        public void ApplyChangesToInstance(ServiceControlInstance instance)
+        public void ApplyChangesToInstance(ServiceControlBaseService instance)
         {
+            if (EnableFullTextSearchOnBodies.HasValue)
+            {
+                instance.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies.Value;
+            }
+
+            ApplyChangesTo(instance as ServiceControlInstance);
+            ApplyChangesTo(instance as ServiceControlAuditInstance);
+
+            instance.ApplyConfigChange();
+        }
+
+        void ApplyChangesTo(ServiceControlInstance instance)
+        {
+            if (instance == null)
+            {
+                return;
+            }
+
             if (OverrideEnableErrorForwarding.HasValue)
             {
                 instance.ForwardErrorMessages = OverrideEnableErrorForwarding.Value;
+            }
+
+            if (EnableFullTextSearchOnBodies.HasValue)
+            {
+                instance.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies.Value;
             }
 
             if (ErrorRetentionPeriod.HasValue)
@@ -41,8 +65,14 @@ namespace ServiceControlInstaller.Engine.Instances
             }
 
             instance.SkipQueueCreation = SkipQueueCreation;
+        }
 
-            instance.ApplyConfigChange();
+        void ApplyChangesTo(ServiceControlAuditInstance instance)
+        {
+            if (instance == null)
+            {
+                return;
+            }
         }
     }
 }

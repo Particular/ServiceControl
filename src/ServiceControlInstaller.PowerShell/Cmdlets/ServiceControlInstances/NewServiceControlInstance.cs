@@ -88,6 +88,9 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Specify whether to enable full text search on error messages.")]
+        public SwitchParameter EnableFullTextSearchOnBodies { get; set; } = true;
+
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
 
@@ -155,7 +158,8 @@ namespace ServiceControlInstaller.PowerShell
                 ErrorRetentionPeriod = ErrorRetentionPeriod,
                 ConnectionString = ConnectionString,
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
-                SkipQueueCreation = SkipQueueCreation
+                SkipQueueCreation = SkipQueueCreation,
+                EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies,
             };
 
             var modulePath = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);

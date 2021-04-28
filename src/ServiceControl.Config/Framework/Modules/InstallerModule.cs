@@ -28,11 +28,6 @@ namespace ServiceControl.Config.Framework.Modules
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             ZipInfo = ServiceControlZipInfo.Find(appDirectory);
         }
-
-        protected override void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
-        {
-            upgradeOptions.ApplyChangesToInstance((ServiceControlInstance)instance);
-        }
     }
 
     public class ServiceControlAuditInstanceInstaller : ServiceControlInstallerBase
@@ -41,11 +36,6 @@ namespace ServiceControl.Config.Framework.Modules
         {
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             ZipInfo = ServiceControlAuditZipInfo.Find(appDirectory);
-        }
-
-        protected override void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
-        {
-            //No op. We don't have anything to upgrade yet.
         }
     }
 
@@ -140,6 +130,7 @@ namespace ServiceControl.Config.Framework.Modules
 
         protected virtual void UpgradeOptions(ServiceControlUpgradeOptions upgradeOptions, ServiceControlBaseService instance)
         {
+            upgradeOptions.ApplyChangesToInstance(instance);
         }
 
         internal ReportCard Update(ServiceControlBaseService instance, bool startService)

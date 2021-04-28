@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -61,7 +62,6 @@
 
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
             var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
-
 
             var upgradeAction = instance.GetRequiredUpgradeAction(serviceControlInstaller.ZipInfo.Version);
             var shouldInstallAudit = upgradeAction == RequiredUpgradeAction.SplitOutAudit;
@@ -192,10 +192,31 @@
                 }
             }
 
+            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.EnableFullTextSearchOnBodies.Name))
+            {
+                var dialogResult = windowManager.ShowYesNoCancelDialog(
+                    "INPUT REQUIRED - FULL TEXT SEARCH ON MESSAGE BODIES",
+                    "It is possible to disable full text search support for message bodies.", "Do you want to continue to support full text search for message bodies?", "YES", "NO");
+                if (dialogResult.HasValue)
+                {
+                    upgradeOptions.EnableFullTextSearchOnBodies = dialogResult.Value;
+                }
+                else
+                {
+                    //Dialog was cancelled
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+                    return;
+                }
+            }
+
             if (shouldInstallAudit)
             {
                 auditViewModel = auditUpgradeViewModelFactory(instance.Name);
                 auditViewModel.ServiceControlAudit.SetupServiceAccount(instance);
+
+                auditViewModel.ServiceControlAudit.EnableFullTextSearchOnBodies =
+                    auditViewModel.ServiceControlAudit.EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p =>
+                        p.Value == upgradeOptions.EnableFullTextSearchOnBodies);
 
                 if (windowManager.ShowInnerDialog(auditViewModel) != true)
                 {
@@ -249,6 +270,7 @@
                 DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber),
                 ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
                 ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
+                EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value,
 
                 //Copy from existing ServiceControl instance
                 AuditLogQueue = instance.AuditLogQueue,

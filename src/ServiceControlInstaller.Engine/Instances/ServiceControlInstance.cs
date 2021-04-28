@@ -135,6 +135,8 @@ namespace ServiceControlInstaller.Engine.Instances
             {
                 RemoteInstances = RemoteInstanceConverter.FromJson(remoteInstancesString);
             }
+
+            EnableFullTextSearchOnBodies = AppConfig.Read(ServiceControlSettings.EnableFullTextSearchOnBodies, true);
         }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
@@ -162,6 +164,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.ErrorQueue, ErrorQueue);
             settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
+            settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
 
             if (RemoteInstances != null)
             {

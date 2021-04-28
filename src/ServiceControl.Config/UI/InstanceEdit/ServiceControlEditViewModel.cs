@@ -30,6 +30,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.ForwardErrorMessages = ServiceControl.ErrorForwarding.Value;
             instance.ConnectionString = ConnectionString;
             instance.DatabaseMaintenancePort = Convert.ToInt32(ServiceControl.DatabaseMaintenancePortNumber);
+            instance.EnableFullTextSearchOnBodies = ServiceControl.EnableFullTextSearchOnBodies.Value;
         }
     }
 }

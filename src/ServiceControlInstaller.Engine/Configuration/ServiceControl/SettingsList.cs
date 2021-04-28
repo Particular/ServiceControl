@@ -70,5 +70,11 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "ServiceControl/RemoteInstances",
             SupportedFrom = new Version(1, 47, 0)
         };
+
+        public static SettingInfo EnableFullTextSearchOnBodies = new SettingInfo
+        {
+            Name = "ServiceControl/EnableFullTextSearchOnBodies",
+            SupportedFrom = new Version(4, 17, 0)
+        };
     }
 }

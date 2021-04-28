@@ -12,6 +12,8 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Specify whether to enable full text search on audit messages.")]
+        public SwitchParameter EnableFullTextSearchOnBodies { get; set; } = true;
 
         protected override void BeginProcessing()
         {
@@ -35,6 +37,7 @@ namespace ServiceControlInstaller.PowerShell
                 }
 
                 instance.SkipQueueCreation = SkipQueueCreation;
+                instance.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
 
                 if (!installer.Upgrade(instance))
                 {

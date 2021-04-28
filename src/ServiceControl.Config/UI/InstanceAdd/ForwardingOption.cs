@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.UI.SharedInstanceEditor
+﻿namespace ServiceControl.Config.UI.InstanceAdd
 {
     public class ForwardingOption
     {

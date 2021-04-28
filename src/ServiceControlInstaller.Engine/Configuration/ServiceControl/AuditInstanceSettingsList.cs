@@ -1,5 +1,7 @@
 namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
+    using System;
+
     public static class AuditInstanceSettingsList
     {
         public static readonly SettingInfo Port = new SettingInfo { Name = "ServiceControl.Audit/Port" };
@@ -14,5 +16,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static readonly SettingInfo AuditRetentionPeriod = new SettingInfo { Name = "ServiceControl.Audit/AuditRetentionPeriod" };
         public static readonly SettingInfo MaintenanceMode = new SettingInfo { Name = "ServiceControl.Audit/MaintenanceMode" };
         public static readonly SettingInfo ServiceControlQueueAddress = new SettingInfo { Name = "ServiceControl.Audit/ServiceControlQueueAddress" };
+        public static readonly SettingInfo EnableFullTextSearchOnBodies = new SettingInfo { Name = "ServiceControl.Audit/EnableFullTextSearchOnBodies", SupportedFrom = new Version(4, 17, 0) };
     }
 }
