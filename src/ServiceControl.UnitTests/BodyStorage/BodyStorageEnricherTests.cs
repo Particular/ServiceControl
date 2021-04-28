@@ -59,7 +59,7 @@ namespace ServiceControl.UnitTests.BodyStorage
         }
 
         [Test]
-        public async Task Should_store_body_in_metadata_when_full_text_disabled_and_not_binary_and_below_LOH_threshold()
+        public async Task Should_store_body_in_non_indexed_metadata_when_full_text_disabled_and_not_binary_and_below_LOH_threshold()
         {
             var fakeStorage = new FakeBodyStorage();
             var settings = new Settings
