@@ -8,16 +8,19 @@
     {
         public static void ApplyConnectionString(this TransportExtensions<RabbitMQTransport> transport, string connectionString)
         {
-            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-            if (builder.GetBooleanValue("DisableRemoteCertificateValidation"))
+            if (!connectionString.StartsWith("amqp", StringComparison.InvariantCultureIgnoreCase))
             {
-                transport.DisableRemoteCertificateValidation();
-            }
+                var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
-            if (builder.GetBooleanValue("UseExternalAuthMechanism"))
-            {
-                transport.UseExternalAuthMechanism();
+                if (builder.GetBooleanValue("DisableRemoteCertificateValidation"))
+                {
+                    transport.DisableRemoteCertificateValidation();
+                }
+
+                if (builder.GetBooleanValue("UseExternalAuthMechanism"))
+                {
+                    transport.UseExternalAuthMechanism();
+                }
             }
 
             transport.ConnectionString(connectionString);
