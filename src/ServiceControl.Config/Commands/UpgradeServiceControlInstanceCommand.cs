@@ -213,10 +213,7 @@
             {
                 auditViewModel = auditUpgradeViewModelFactory(instance.Name);
                 auditViewModel.ServiceControlAudit.SetupServiceAccount(instance);
-
-                auditViewModel.ServiceControlAudit.EnableFullTextSearchOnBodies =
-                    auditViewModel.ServiceControlAudit.EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p =>
-                        p.Value == upgradeOptions.EnableFullTextSearchOnBodies);
+                auditViewModel.ServiceControlAudit.SetFullTextSearchOnBodies(upgradeOptions.EnableFullTextSearchOnBodies);
 
                 if (windowManager.ShowInnerDialog(auditViewModel) != true)
                 {

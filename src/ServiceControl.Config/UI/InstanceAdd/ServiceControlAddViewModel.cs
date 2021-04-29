@@ -262,6 +262,10 @@
 
         public EnableFullTextSearchOnBodiesOption EnableFullTextSearchOnBodies { get; set; }
 
+        public void SetFullTextSearchOnBodies(bool? enabled) =>
+            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions
+                .FirstOrDefault(p => p.Value == enabled);
+
         protected void UpdateAuditRetention(TimeSpan value)
         {
             AuditRetention = AuditRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
