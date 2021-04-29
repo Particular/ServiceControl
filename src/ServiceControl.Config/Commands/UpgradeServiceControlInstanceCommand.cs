@@ -195,7 +195,7 @@
             {
                 var dialogResult = windowManager.ShowYesNoCancelDialog(
                     "INPUT REQUIRED - FULL TEXT SEARCH ON MESSAGE BODIES",
-                    "It is possible to disable full text search support for message bodies.", "Do you want to continue to support full text search for message bodies?", "YES", "NO");
+                    "ServiceControl indexes message bodies to enable searching for messages by their contents in ServiceInsight. This has a performance impact on the ServiceControl instance and the feature can be disabled if it is not required.", "Do you want to continue to support full text search for message bodies?", "YES", "NO");
                 if (dialogResult.HasValue)
                 {
                     upgradeOptions.EnableFullTextSearchOnBodies = dialogResult.Value;
