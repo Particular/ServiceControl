@@ -54,6 +54,7 @@
             {
                 UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version),
                 RemoteUrl = newAuditInstance.Url,
+                EnableFullTextSearchOnBodies = options.EnableFullTextSearchOnBodies
             };
 
             if (!serviceControlInstaller.Upgrade(instance, serviceControlUpgradeOptions))
