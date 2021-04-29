@@ -4,7 +4,6 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using AcceptanceTesting;
     using Notifications;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -27,7 +26,7 @@
             {
                 settings.NotificationsFilter = "MyCustomCheckId#Other custom check";
                 settings.EmailDropFolder = emailDropPath;
-                settings.InitializeStore = store =>
+                settings.StoreInitializer = store =>
                 {
                     using (var session = store.OpenSession())
                     {
@@ -46,6 +45,8 @@
 
                         session.SaveChanges();
                     }
+
+                    return Task.CompletedTask;
                 };
             };
 

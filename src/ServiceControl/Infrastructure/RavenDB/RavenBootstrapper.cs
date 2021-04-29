@@ -111,7 +111,7 @@
                 PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
             }
 
-            settings.InitializeStore?.Invoke(documentStore);
+            settings.StoreInitializer?.Invoke(documentStore);
         }
 
         static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)

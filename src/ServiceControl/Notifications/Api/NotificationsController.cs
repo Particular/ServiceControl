@@ -9,7 +9,6 @@
     using System.Web.Http.Results;
     using Email;
     using Infrastructure.SignalR;
-    using Infrastructure.WebApi;
     using Newtonsoft.Json;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -102,9 +101,9 @@
                 }
                 catch (Exception e)
                 {
-                    log
                     return new HttpResponseMessage(HttpStatusCode.InternalServerError)
                     {
+                        Content = new StringContent($"{e.Message} {e.InnerException?.Message}"),
                         ReasonPhrase = "Error sending test email notification"
                     };
                 }
