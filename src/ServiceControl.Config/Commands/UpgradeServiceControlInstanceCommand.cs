@@ -119,32 +119,6 @@
                         upgradeOptions.AuditRetentionPeriod = TimeSpan.FromHours(i);
                     }
                 }
-
-                // No setting to migrate so display dialog
-                if (!upgradeOptions.AuditRetentionPeriod.HasValue)
-                {
-                    var viewModel = new SliderDialogViewModel("INPUT REQUIRED - DATABASE RETENTION",
-                        "Service Control periodically purges audit messages from the database.",
-                        "AUDIT RETENTION PERIOD",
-                        "Please specify the age at which these records should be removed",
-                        TimeSpanUnits.Hours,
-                        SettingConstants.AuditRetentionPeriodMinInHours,
-                        SettingConstants.AuditRetentionPeriodMaxInHours,
-                        1,
-                        24,
-                        SettingConstants.AuditRetentionPeriodDefaultInHoursForUI);
-
-                    if (windowManager.ShowSliderDialog(viewModel))
-                    {
-                        upgradeOptions.AuditRetentionPeriod = viewModel.Period;
-                    }
-                    else
-                    {
-                        //Dialog was cancelled
-                        await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
-                        return;
-                    }
-                }
             }
 
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ErrorRetentionPeriod.Name))
