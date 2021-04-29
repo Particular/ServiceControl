@@ -14,7 +14,6 @@
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
-    [RunOnAllTransports]
     class When_email_notifications_are_enabled : AcceptanceTest
     {
         [Test]
@@ -62,9 +61,7 @@
                 })
                 .Run();
 
-
-
-            Assert.True(emails.Length > 0);
+            CollectionAssert.IsNotEmpty(emails);
 
             var emailText = File.ReadAllLines(emails[0]);
 
