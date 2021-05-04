@@ -41,8 +41,8 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Specify whether to enable full text search on error messages.")]
-        public SwitchParameter EnableFullTextSearchOnBodies { get; set; } = true;
+        [Parameter(Mandatory = false, HelpMessage = "Disable full text search on error messages.")]
+        public SwitchParameter DisableFullTextSearchOnBodies { get; set; } = true;
 
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
@@ -97,7 +97,7 @@ namespace ServiceControlInstaller.PowerShell
                 Port = Port.GetValueOrDefault(),
                 DatabaseMaintenancePort = DatabaseMaintenancePort.GetValueOrDefault(),
                 ServiceAccountPassword = ServiceAccountPassword,
-                EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies
+                DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies
             };
 
             var result = serviceControlSplitter.Split(instance, options, PromptToProceed);
@@ -143,7 +143,7 @@ namespace ServiceControlInstaller.PowerShell
             var options = new ServiceControlUpgradeOptions
             {
                 SkipQueueCreation = SkipQueueCreation,
-                EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies,
+                DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies,
                 UpgradeInfo =
                     UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version),
             };

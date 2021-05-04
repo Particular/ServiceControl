@@ -54,7 +54,7 @@
             {
                 UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version),
                 RemoteUrl = newAuditInstance.Url,
-                EnableFullTextSearchOnBodies = options.EnableFullTextSearchOnBodies
+                DisableFullTextSearchOnBodies = options.DisableFullTextSearchOnBodies
             };
 
             if (!serviceControlInstaller.Upgrade(instance, serviceControlUpgradeOptions))
@@ -152,7 +152,7 @@
             public string LogPath { get; set; }
             public int Port { get; set; }
             public int DatabaseMaintenancePort { get; set; }
-            public bool EnableFullTextSearchOnBodies { get; set; }
+            public bool DisableFullTextSearchOnBodies { get; set; }
 
             public string ServiceAccountPassword { get; set; }
 
@@ -163,7 +163,10 @@
                 instance.LogPath = LogPath;
                 instance.Port = Port;
                 instance.DatabaseMaintenancePort = DatabaseMaintenancePort;
-                instance.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
+                if (DisableFullTextSearchOnBodies)
+                {
+                    instance.EnableFullTextSearchOnBodies = false;
+                }
 
                 if (!string.IsNullOrWhiteSpace(ServiceAccountPassword))
                 {
