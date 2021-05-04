@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
-    using Microsoft.IO;
     using NServiceBus;
     using NServiceBus.Features;
     using RavenAttachments;
