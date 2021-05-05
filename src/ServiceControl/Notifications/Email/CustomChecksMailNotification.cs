@@ -38,7 +38,7 @@
 
             if (string.IsNullOrWhiteSpace(settings.NotificationsFilter) == false)
             {
-                serviceControlHealthCustomCheckIds = settings.NotificationsFilter.Split(new[] { '#' }, StringSplitOptions.RemoveEmptyEntries);
+                serviceControlHealthCustomCheckIds = NotificationsFilterParser.Parse(settings.NotificationsFilter);
             }
         }
 

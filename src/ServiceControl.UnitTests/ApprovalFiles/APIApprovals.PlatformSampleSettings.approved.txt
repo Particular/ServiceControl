@@ -26,7 +26,6 @@
     "Target": {}
   },
   "RunInMemory": false,
-  "InitializeStore": null,
   "EmailDropFolder": null,
   "ValidateConfiguration": true,
   "ExternalIntegrationsDispatchingBatchSize": 100,

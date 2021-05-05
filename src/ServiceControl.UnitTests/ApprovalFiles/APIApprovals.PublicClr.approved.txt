@@ -73,7 +73,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string Hostname { get; }
         public int HttpDefaultConnectionLimit { get; set; }
         public bool IngestErrorMessages { get; set; }
-        public System.Action<Raven.Client.IDocumentStore> InitializeStore { get; set; }
         public string LicenseFileText { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
         public string NotificationsFilter { get; set; }
@@ -1050,6 +1049,7 @@ namespace ServiceControl.Notifications.Email
     public class EmailThrottlingState
     {
         public EmailThrottlingState() { }
+        public System.Threading.CancellationTokenSource CancellationTokenSource { get; }
         public string RetriedMessageId { get; set; }
         public System.Threading.SemaphoreSlim Semaphore { get; }
         public bool IsThrottling() { }
@@ -1060,7 +1060,7 @@ namespace ServiceControl.Notifications.Email
     {
         public SendEmailNotification() { }
         public string Body { get; set; }
-        public bool IsFailure { get; set; }
+        public bool FailureNotification { get; set; }
         public string Subject { get; set; }
     }
     public class SendEmailNotificationHandler : NServiceBus.IHandleMessages<ServiceControl.Notifications.Email.SendEmailNotification>
