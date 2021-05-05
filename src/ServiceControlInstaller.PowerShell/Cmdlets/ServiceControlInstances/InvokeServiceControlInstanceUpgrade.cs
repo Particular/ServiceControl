@@ -42,7 +42,7 @@ namespace ServiceControlInstaller.PowerShell
         public SwitchParameter SkipQueueCreation { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Disable full text search on error messages.")]
-        public SwitchParameter DisableFullTextSearchOnBodies { get; set; } = true;
+        public SwitchParameter DisableFullTextSearchOnBodies { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
