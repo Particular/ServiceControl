@@ -13,11 +13,9 @@
             try
             {
                 using (var client = CreateSmtpClient(settings, emailDropFolder))
+                using (var mailMessage = new MailMessage(settings.From, settings.To, subject, body))
                 {
-                    using (var mailMessage = new MailMessage(settings.From, settings.To, subject, body))
-                    {
-                        await client.SendMailAsync(mailMessage).ConfigureAwait(false);
-                    }
+                    await client.SendMailAsync(mailMessage).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
