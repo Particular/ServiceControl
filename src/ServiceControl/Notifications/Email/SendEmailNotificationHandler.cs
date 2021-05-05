@@ -27,8 +27,12 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                notifications = await session.LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId)
-                    .ConfigureAwait(false);
+                using (session.Advanced.DocumentStore.AggressivelyCacheFor(cacheTimeout))
+                {
+                    notifications = await session
+                        .LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId)
+                        .ConfigureAwait(false);
+                }
             }
 
             if (notifications == null || !notifications.Email.Enabled)
@@ -96,6 +100,7 @@
         static ILog log = LogManager.GetLogger<SendEmailNotificationHandler>();
         static TimeSpan spinDelay = TimeSpan.FromSeconds(1);
         static TimeSpan throttlingDelay = TimeSpan.FromSeconds(30);
+        static TimeSpan cacheTimeout = TimeSpan.FromMinutes(5);
 
         public static RecoverabilityAction RecoverabilityPolicy(RecoverabilityConfig config, ErrorContext context)
         {
