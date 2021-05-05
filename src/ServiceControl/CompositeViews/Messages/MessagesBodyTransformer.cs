@@ -1,21 +1,25 @@
 namespace ServiceControl.CompositeViews.Messages
 {
+    using System.Collections.Generic;
     using System.Linq;
+    using MessageFailures;
     using Raven.Client.Indexes;
 
-    public class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
+    public class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesBodyTransformer.Input>
     {
         public MessagesBodyTransformer()
         {
             TransformResults = messages => from message in messages
-                                           let metadata =
-                                               message.ProcessingAttempts != null
-                                                   ? message.ProcessingAttempts.Last().MessageMetadata
-                                                   : message.MessageMetadata
+                                           let metadata = message.ProcessingAttempts != null
+                                               ? message.ProcessingAttempts.Last().MessageMetadata
+                                               : message.MessageMetadata
+                                           let body = message.ProcessingAttempts != null
+                                               ? message.ProcessingAttempts.Last().Body ?? metadata["Body"]
+                                               : metadata["Body"]
                                            select new
                                            {
                                                MessageId = metadata["MessageId"],
-                                               Body = metadata["Body"],
+                                               Body = body,
                                                BodySize = (int)metadata["ContentLength"],
                                                ContentType = metadata["ContentType"],
                                                BodyNotStored = (bool)metadata["BodyNotStored"]
@@ -36,6 +40,12 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         static string transformerName;
+
+        public class Input
+        {
+            public Dictionary<string, object> MessageMetadata { get; set; }
+            public List<FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
+        }
 
         public class Result
         {

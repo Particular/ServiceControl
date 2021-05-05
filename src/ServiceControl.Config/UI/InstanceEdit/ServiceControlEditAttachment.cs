@@ -71,6 +71,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.ErrorQueue = viewModel.ServiceControl.ErrorQueueName;
             instance.ErrorLogQueue = viewModel.ServiceControl.ErrorForwardingQueueName;
             instance.ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod;
+            instance.EnableFullTextSearchOnBodies = viewModel.ServiceControl.EnableFullTextSearchOnBodies.Value;
             instance.TransportPackage = viewModel.SelectedTransport;
             instance.ConnectionString = viewModel.ConnectionString;
 

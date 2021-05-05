@@ -108,6 +108,19 @@
                     Value = false
                 }
             };
+            EnableFullTextSearchOnBodiesOptions = new[]
+            {
+                new EnableFullTextSearchOnBodiesOption
+                {
+                    Name = "On",
+                    Value = true
+                },
+                new EnableFullTextSearchOnBodiesOption
+                {
+                    Name = "Off",
+                    Value = false
+                }
+            };
             ErrorRetention = SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI;
             Description = "ServiceControl Service";
             HostName = "localhost";
@@ -117,6 +130,7 @@
             UseSystemAccount = true;
             PortNumber = "33333";
             DatabaseMaintenancePortNumber = "33334";
+            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
         }
 
         public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
@@ -141,6 +155,10 @@
         public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
 
         public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; }
+
+        public IEnumerable<EnableFullTextSearchOnBodiesOption> EnableFullTextSearchOnBodiesOptions { get; }
+
+        public EnableFullTextSearchOnBodiesOption EnableFullTextSearchOnBodies { get; set; }
 
         protected void UpdateErrorRetention(TimeSpan value)
         {
@@ -171,6 +189,7 @@
             ErrorForwarding = ErrorForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardErrorMessages);
             ErrorForwardingQueueName = instance.ErrorLogQueue;
             UpdateErrorRetention(instance.ErrorRetentionPeriod);
+            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p => p.Value == instance.EnableFullTextSearchOnBodies);
         }
     }
 
@@ -191,6 +210,19 @@
                     Value = false
                 }
             };
+            EnableFullTextSearchOnBodiesOptions = new[]
+            {
+                new EnableFullTextSearchOnBodiesOption
+                {
+                    Name = "On",
+                    Value = true
+                },
+                new EnableFullTextSearchOnBodiesOption
+                {
+                    Name = "Off",
+                    Value = false
+                }
+            };
             AuditRetention = SettingConstants.AuditRetentionPeriodDefaultInHoursForUI;
             Description = "ServiceControl Audit";
             HostName = "localhost";
@@ -200,6 +232,7 @@
             UseSystemAccount = true;
             PortNumber = "44444";
             DatabaseMaintenancePortNumber = "44445";
+            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
         }
 
         public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInHours;
@@ -224,6 +257,14 @@
         public string AuditForwardingWarning => AuditForwarding != null && AuditForwarding.Value ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
 
         public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
+
+        public IEnumerable<EnableFullTextSearchOnBodiesOption> EnableFullTextSearchOnBodiesOptions { get; }
+
+        public EnableFullTextSearchOnBodiesOption EnableFullTextSearchOnBodies { get; set; }
+
+        public void SetFullTextSearchOnBodies(bool? enabled) =>
+            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions
+                .FirstOrDefault(p => p.Value == enabled);
 
         protected void UpdateAuditRetention(TimeSpan value)
         {
@@ -262,6 +303,7 @@
             AuditQueueName = instance.AuditQueue;
             AuditForwarding = AuditForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardAuditMessages);
             UpdateAuditRetention(instance.AuditRetentionPeriod);
+            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p => p.Value == instance.EnableFullTextSearchOnBodies);
         }
     }
 }

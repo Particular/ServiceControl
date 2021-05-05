@@ -262,18 +262,18 @@
 
                 var processingStartedTicks =
                     context.Headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue)
-                        ? DateTimeExtensions.ToUtcDateTime(processingStartedValue).Ticks
-                        : DateTime.UtcNow.Ticks;
+                        ? DateTimeExtensions.ToUtcDateTime(processingStartedValue).Ticks.ToString()
+                        : DateTime.UtcNow.Ticks.ToString();
 
                 var documentId = $"{processingStartedTicks}-{context.Headers.ProcessingId()}";
-
-                await bodyStorageEnricher.StoreAuditMessageBody(context.Body, context.Headers, metadata)
-                    .ConfigureAwait(false);
 
                 var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
                 {
                     Id = $"ProcessedMessages/{documentId}"
                 };
+
+                await bodyStorageEnricher.StoreAuditMessageBody(context.Body, auditMessage)
+                    .ConfigureAwait(false);
 
                 if (Logger.IsDebugEnabled)
                 {

@@ -80,6 +80,7 @@ namespace ServiceControlInstaller.Engine
         IInstallable,
         ITransportConfig
     {
+        bool EnableFullTextSearchOnBodies { get; }
     }
 
     public interface IServiceControlAuditInstance : IServiceControlBaseInstance

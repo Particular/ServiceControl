@@ -1,9 +1,10 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
+    using System.Collections.Generic;
     using System.Linq;
     using Raven.Client.Indexes;
 
-    class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
+    class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesBodyTransformer.Input>
     {
         public MessagesBodyTransformer()
         {
@@ -12,11 +13,17 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                                            select new
                                            {
                                                MessageId = metadata["MessageId"],
-                                               Body = metadata["Body"],
+                                               Body = !string.IsNullOrEmpty(message.Body) ? message.Body : metadata["Body"],
                                                BodySize = (int)metadata["ContentLength"],
                                                ContentType = metadata["ContentType"],
                                                BodyNotStored = (bool)metadata["BodyNotStored"]
                                            };
+        }
+
+        public class Input
+        {
+            public string Body { get; set; }
+            public Dictionary<string, object> MessageMetadata { get; set; }
         }
 
         public class Result

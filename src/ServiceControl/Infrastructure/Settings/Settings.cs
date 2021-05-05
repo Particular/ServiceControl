@@ -10,6 +10,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus.Logging;
+    using Raven.Client;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Transports;
 
@@ -51,11 +52,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
+            EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
         }
 
         public bool AllowMessageEditing { get; set; }
 
-        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
+        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (_, __, ___, next) => next();
+
+        public Func<IDocumentStore, Task> StoreInitializer { get; set; } = _ => Task.CompletedTask;
 
         public bool RunInMemory { get; set; }
 
@@ -129,7 +133,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
-
         public int ExpirationProcessTimerInSeconds
         {
             get
@@ -189,6 +192,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public int DataSpaceRemainingThreshold { get; set; }
+
+        public bool EnableFullTextSearchOnBodies { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {

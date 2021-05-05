@@ -72,7 +72,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 ConnectionString = viewModel.ConnectionString,
                 ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod,
                 ServiceAccount = viewModel.ServiceControl.ServiceAccount,
-                ServiceAccountPwd = viewModel.ServiceControl.Password
+                ServiceAccountPwd = viewModel.ServiceControl.Password,
+                EnableFullTextSearchOnBodies = viewModel.ServiceControl.EnableFullTextSearchOnBodies.Value
             };
 
             var auditNewInstance = new ServiceControlAuditNewInstance
@@ -94,7 +95,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod,
                 ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
                 ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
-                ServiceControlQueueAddress = serviceControlNewInstance.Name
+                ServiceControlQueueAddress = serviceControlNewInstance.Name,
+                EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value
             };
 
             serviceControlNewInstance.AddRemoteInstance(auditNewInstance.Url);

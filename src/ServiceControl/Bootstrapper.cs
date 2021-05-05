@@ -268,6 +268,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.RetryHistoryDepth,
                     settings.RunInMemory,
                     settings.SkipQueueCreation,
+                    settings.EnableFullTextSearchOnBodies,
                     settings.TransportCustomizationType,
                     settings.AllowMessageEditing
                 },

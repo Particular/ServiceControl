@@ -262,7 +262,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public bool SkipQueueCreation { get; set; }
-
+        public bool EnableFullTextSearchOnBodies { get; set; }
 
         [XmlIgnore]
         public Version Version { get; set; }

@@ -40,6 +40,8 @@
 
         public object[] RemoteInstances { get; set; }
 
+        public bool EnableFullTextSearchOnBodies { get; set; }
+
         public static PsServiceControl FromInstance(ServiceControlInstance instance)
         {
             var result = new PsServiceControl
@@ -64,6 +66,7 @@
                 ForwardAuditMessages = instance.ForwardAuditMessages,
                 AuditRetentionPeriod = instance.AuditRetentionPeriod,
                 ErrorRetentionPeriod = instance.ErrorRetentionPeriod,
+                EnableFullTextSearchOnBodies = instance.EnableFullTextSearchOnBodies,
                 RemoteInstances = instance.RemoteInstances.Select<RemoteInstanceSetting, object>(i =>
                 {
                     if (string.IsNullOrEmpty(i.QueueAddress))

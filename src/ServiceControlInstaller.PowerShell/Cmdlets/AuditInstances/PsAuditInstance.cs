@@ -30,6 +30,8 @@
 
         public string ServiceControlQueueAddress { get; set; }
 
+        public bool EnableFullTextSearchOnBodies { get; set; }
+
         public static PsAuditInstance FromInstance(ServiceControlAuditInstance instance)
             => new PsAuditInstance
             {
@@ -49,7 +51,8 @@
                 ServiceAccount = instance.ServiceAccount,
                 Version = instance.Version,
                 AuditRetentionPeriod = instance.AuditRetentionPeriod,
-                ServiceControlQueueAddress = instance.ServiceControlQueueAddress
+                ServiceControlQueueAddress = instance.ServiceControlQueueAddress,
+                EnableFullTextSearchOnBodies = instance.EnableFullTextSearchOnBodies,
             };
     }
 }

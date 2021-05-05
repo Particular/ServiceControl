@@ -12,13 +12,11 @@
         UnattendServiceControlInstaller serviceControlInstaller;
         UnattendAuditInstaller auditInstaller;
 
-
         public UnattendServiceControlSplitter(ILogging loggingInstance, string deploymentCachePath)
         {
             log = loggingInstance;
             serviceControlInstaller = new UnattendServiceControlInstaller(loggingInstance, deploymentCachePath);
             auditInstaller = new UnattendAuditInstaller(loggingInstance, deploymentCachePath);
-
         }
 
         public Result Split(ServiceControlInstance instance, Options options, Func<PathInfo, bool> pathToProceed)
@@ -41,7 +39,6 @@
                 return result;
             }
 
-
             log.Info("Gathering details for new audit instance...");
             var newAuditInstance = CreateSplitOutAuditInstance(instance);
             options.ApplyTo(newAuditInstance);
@@ -56,7 +53,8 @@
             var serviceControlUpgradeOptions = new ServiceControlUpgradeOptions
             {
                 UpgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version),
-                RemoteUrl = newAuditInstance.Url
+                RemoteUrl = newAuditInstance.Url,
+                DisableFullTextSearchOnBodies = options.DisableFullTextSearchOnBodies
             };
 
             if (!serviceControlInstaller.Upgrade(instance, serviceControlUpgradeOptions))
@@ -142,7 +140,8 @@
                 ServiceAccountPwd = source.ServiceAccountPwd,
                 DisplayName = $"{source.Service.DisplayName}.Audit",
                 ServiceDescription = $"{source.Service.Description} (Audit)",
-                ServiceControlQueueAddress = source.Name
+                ServiceControlQueueAddress = source.Name,
+                EnableFullTextSearchOnBodies = source.EnableFullTextSearchOnBodies,
             };
         }
 
@@ -153,6 +152,7 @@
             public string LogPath { get; set; }
             public int Port { get; set; }
             public int DatabaseMaintenancePort { get; set; }
+            public bool DisableFullTextSearchOnBodies { get; set; }
 
             public string ServiceAccountPassword { get; set; }
 
@@ -163,6 +163,10 @@
                 instance.LogPath = LogPath;
                 instance.Port = Port;
                 instance.DatabaseMaintenancePort = DatabaseMaintenancePort;
+                if (DisableFullTextSearchOnBodies)
+                {
+                    instance.EnableFullTextSearchOnBodies = false;
+                }
 
                 if (!string.IsNullOrWhiteSpace(ServiceAccountPassword))
                 {

@@ -7,6 +7,8 @@
     using NServiceBus;
     using NServiceBus.Features;
     using RavenAttachments;
+    using ServiceBus.Management.Infrastructure.Settings;
+    using ProcessingAttempt = MessageFailures.FailedMessage.ProcessingAttempt;
 
     class BodyStorageFeature : Feature
     {
@@ -27,24 +29,25 @@
 
         public class BodyStorageEnricher
         {
-            public BodyStorageEnricher(IBodyStorage bodyStorage)
+            public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
             {
+                this.settings = settings;
                 this.bodyStorage = bodyStorage;
             }
 
-            public async ValueTask StoreErrorMessageBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata)
+            public async ValueTask StoreErrorMessageBody(byte[] body, ProcessingAttempt processingAttempt)
             {
                 var bodySize = body?.Length ?? 0;
-                metadata.Add("ContentLength", bodySize);
+                processingAttempt.MessageMetadata.Add("ContentLength", bodySize);
                 if (bodySize == 0)
                 {
                     return;
                 }
 
-                var contentType = GetContentType(headers, "text/xml");
-                metadata.Add("ContentType", contentType);
+                var contentType = GetContentType(processingAttempt.Headers, "text/xml");
+                processingAttempt.MessageMetadata.Add("ContentType", contentType);
 
-                await StoreBody(body, headers, metadata, bodySize, contentType)
+                await StoreBody(body, processingAttempt, bodySize, contentType)
                     .ConfigureAwait(false);
             }
 
@@ -58,16 +61,23 @@
                 return contentType;
             }
 
-            async ValueTask StoreBody(byte[] body, IReadOnlyDictionary<string, string> headers, IDictionary<string, object> metadata, int bodySize, string contentType)
+            async ValueTask StoreBody(byte[] body, ProcessingAttempt processingAttempt, int bodySize, string contentType)
             {
-                var bodyId = headers.MessageId();
+                var bodyId = processingAttempt.Headers.MessageId();
                 var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
                 var isBinary = contentType.Contains("binary");
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
                 if (avoidsLargeObjectHeap && !isBinary)
                 {
-                    metadata.Add("Body", Encoding.UTF8.GetString(body));
+                    if (settings.EnableFullTextSearchOnBodies)
+                    {
+                        processingAttempt.MessageMetadata.Add("Body", Encoding.UTF8.GetString(body));
+                    }
+                    else
+                    {
+                        processingAttempt.Body = Encoding.UTF8.GetString(body);
+                    }
                 }
                 else
                 {
@@ -75,7 +85,7 @@
                         .ConfigureAwait(false);
                 }
 
-                metadata.Add("BodyUrl", bodyUrl);
+                processingAttempt.MessageMetadata.Add("BodyUrl", bodyUrl);
             }
 
             async Task StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
@@ -87,7 +97,9 @@
                 }
             }
 
-            IBodyStorage bodyStorage;
+            readonly IBodyStorage bodyStorage;
+            readonly Settings settings;
+
             // large object heap starts above 85000 bytes and not above 85 KB!
             internal const int LargeObjectHeapThreshold = 85 * 1000;
             internal const string BodyUrlFormatString = "/messages/{0}/body";
