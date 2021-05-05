@@ -37,6 +37,8 @@
                 return;
             }
 
+            var cancellationToken = throttlingState.CancellationTokenSource.Token;
+
             var hasSemaphore = false;
 
             try
@@ -49,7 +51,7 @@
                         return;
                     }
 
-                    hasSemaphore = await throttlingState.Semaphore.WaitAsync(spinDelay).ConfigureAwait(false);
+                    hasSemaphore = await throttlingState.Semaphore.WaitAsync(spinDelay, cancellationToken).ConfigureAwait(false);
                 }
 
                 if (context.MessageId == throttlingState.RetriedMessageId)
@@ -67,7 +69,7 @@
                 {
                     throttlingState.ThrottlingOn();
 
-                    await Task.Delay(throttlingDelay).ConfigureAwait(false);
+                    await Task.Delay(throttlingDelay, cancellationToken).ConfigureAwait(false);
 
                     throttlingState.ThrottlingOff();
 
