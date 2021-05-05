@@ -95,7 +95,7 @@
 
         static ILog log = LogManager.GetLogger<SendEmailNotificationHandler>();
         static TimeSpan spinDelay = TimeSpan.FromSeconds(1);
-        static TimeSpan throttlingDelay = TimeSpan.FromMinutes(1);
+        static TimeSpan throttlingDelay = TimeSpan.FromSeconds(30);
 
         public static RecoverabilityAction RecoverabilityPolicy(RecoverabilityConfig config, ErrorContext context)
         {
