@@ -58,8 +58,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string DbPath { get; set; }
         public bool DisableExternalIntegrationsPublishing { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
-        public bool EnableFullTextSearchOnBodies { get; set; }
         public string EmailDropFolder { get; set; }
+        public bool EnableFullTextSearchOnBodies { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
         public System.TimeSpan ErrorRetentionPeriod { get; }

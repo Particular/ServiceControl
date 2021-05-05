@@ -64,8 +64,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public Func<IDocumentStore, Task> StoreInitializer { get; set; } = _ => Task.CompletedTask;
 
-        public Func<IDocumentStore, Task> StoreInitializer { get; set; } = _ => Task.CompletedTask;
-
         public bool RunInMemory { get; set; }
 
         public string EmailDropFolder { get; set; }
