@@ -54,7 +54,7 @@
 
                 return messageSession.SendLocal(new SendEmailNotification
                 {
-                    IsFailure = true,
+                    FailureNotification = true,
                     Subject = $"[{instanceName}] health check failed",
                     Body = $@"{domainEvent.Category} check for ServiceControl instance {instanceName} at {instanceAddress}.
 
@@ -79,7 +79,7 @@
 
                 return messageSession.SendLocal(new SendEmailNotification
                 {
-                    IsFailure = false,
+                    FailureNotification = false,
                     Subject = $"[{instanceName}] health check succeeded",
                     Body = $@"{domainEvent.Category} check for ServiceControl instance {instanceName} at {instanceAddress}.
 

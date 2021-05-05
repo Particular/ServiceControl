@@ -65,7 +65,7 @@
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
-                if (message.IsFailure)
+                if (message.FailureNotification)
                 {
                     throttlingState.ThrottlingOn();
 
@@ -79,7 +79,7 @@
                 }
                 else
                 {
-                    log.Warn("Email notification throttled.");
+                    log.Warn("Success notification skipped due to throttling.");
                 }
             }
             finally

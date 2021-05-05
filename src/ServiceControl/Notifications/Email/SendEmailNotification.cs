@@ -8,6 +8,6 @@
 
         public string Body { get; set; }
 
-        public bool IsFailure { get; set; }
+        public bool FailureNotification { get; set; }
     }
 }
