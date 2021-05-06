@@ -47,6 +47,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing");
+            NotificationsFilter = SettingsReader<string>.Read("NotificationsFilter");
             RemoteInstances = GetRemoteInstances();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
@@ -55,13 +56,17 @@ namespace ServiceBus.Management.Infrastructure.Settings
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
         }
 
+        public string NotificationsFilter { get; set; }
+
         public bool AllowMessageEditing { get; set; }
 
-        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (_, __, ___, next) => next();
+        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
         public Func<IDocumentStore, Task> StoreInitializer { get; set; } = _ => Task.CompletedTask;
 
         public bool RunInMemory { get; set; }
+
+        public string EmailDropFolder { get; set; }
 
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 

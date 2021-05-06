@@ -58,6 +58,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string DbPath { get; set; }
         public bool DisableExternalIntegrationsPublishing { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
+        public string EmailDropFolder { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
@@ -74,6 +75,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool IngestErrorMessages { get; set; }
         public string LicenseFileText { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
+        public string NotificationsFilter { get; set; }
         public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
         public int Port { get; set; }
         public bool PrintMetrics { get; }
@@ -997,6 +999,97 @@ namespace ServiceControl.Monitoring
         public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
         public string HostDisplayName { get; set; }
         public System.Guid Id { get; set; }
+    }
+}
+namespace ServiceControl.Notifications.Api
+{
+    public class NotificationsController : System.Web.Http.ApiController
+    {
+        public NotificationsController(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("notifications/email")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.JsonResult<ServiceControl.Notifications.EmailNotifications>> GetEmailNotificationsSettings(System.Net.Http.HttpRequestMessage request) { }
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("notifications/email/test")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SendTestEmail() { }
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("notifications/email/toggle")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ToggleEmailNotifications(ServiceControl.Notifications.Api.ToggleEmailNotifications request) { }
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("notifications/email")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> UpdateSettings(ServiceControl.Notifications.Api.UpdateEmailNotificationsSettingsRequest request) { }
+    }
+    public class ToggleEmailNotifications
+    {
+        public ToggleEmailNotifications() { }
+        [Newtonsoft.Json.JsonProperty(PropertyName="enabled")]
+        public bool Enabled { get; set; }
+    }
+    public class UpdateEmailNotificationsSettingsRequest
+    {
+        public UpdateEmailNotificationsSettingsRequest() { }
+        [Newtonsoft.Json.JsonProperty(PropertyName="authorization_account")]
+        public string AuthorizationAccount { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="authorization_password")]
+        public string AuthorizationPassword { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="enable_tls")]
+        public bool EnableTLS { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="from")]
+        public string From { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="smtp_port")]
+        public int SmtpPort { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="smtp_server")]
+        public string SmtpServer { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="to")]
+        public string To { get; set; }
+    }
+}
+namespace ServiceControl.Notifications.Email
+{
+    public class EmailThrottlingState
+    {
+        public EmailThrottlingState() { }
+        public System.Threading.CancellationTokenSource CancellationTokenSource { get; }
+        public string RetriedMessageId { get; set; }
+        public System.Threading.SemaphoreSlim Semaphore { get; }
+        public bool IsThrottling() { }
+        public void ThrottlingOff() { }
+        public void ThrottlingOn() { }
+    }
+    public class SendEmailNotification : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public SendEmailNotification() { }
+        public string Body { get; set; }
+        public bool FailureNotification { get; set; }
+        public string Subject { get; set; }
+    }
+    public class SendEmailNotificationHandler : NServiceBus.IHandleMessages<ServiceControl.Notifications.Email.SendEmailNotification>
+    {
+        public SendEmailNotificationHandler(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings, ServiceControl.Notifications.Email.EmailThrottlingState throttlingState) { }
+        public System.Threading.Tasks.Task Handle(ServiceControl.Notifications.Email.SendEmailNotification message, NServiceBus.IMessageHandlerContext context) { }
+        public static NServiceBus.RecoverabilityAction RecoverabilityPolicy(NServiceBus.RecoverabilityConfig config, NServiceBus.Transport.ErrorContext context) { }
+    }
+}
+namespace ServiceControl.Notifications
+{
+    public class EmailNotifications
+    {
+        public EmailNotifications() { }
+        public string AuthenticationAccount { get; set; }
+        public string AuthenticationPassword { get; set; }
+        public bool EnableTLS { get; set; }
+        public bool Enabled { get; set; }
+        public string From { get; set; }
+        public int? SmtpPort { get; set; }
+        public string SmtpServer { get; set; }
+        public string To { get; set; }
+    }
+    public class NotificationsSettings
+    {
+        public const string SingleDocumentId = "NotificationsSettings/All";
+        public NotificationsSettings() { }
+        public ServiceControl.Notifications.EmailNotifications Email { get; set; }
+        public string Id { get; set; }
     }
 }
 namespace ServiceControl.Operations

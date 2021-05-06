@@ -1,4 +1,5 @@
 {
+  "NotificationsFilter": null,
   "AllowMessageEditing": false,
   "OnMessage": {
     "Method": {
@@ -25,6 +26,7 @@
     "Target": {}
   },
   "RunInMemory": false,
+  "EmailDropFolder": null,
   "ValidateConfiguration": true,
   "ExternalIntegrationsDispatchingBatchSize": 100,
   "DisableExternalIntegrationsPublishing": false,
