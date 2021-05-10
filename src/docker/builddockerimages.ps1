@@ -3,6 +3,8 @@
 #
 msbuild ../ServiceControl.sln /t:Build /p:Configuration=Release
 
+& $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchWindowsEngine
+
 docker build -f .\servicecontrol.azureservicebus-windows.dockerfile -t particular/servicecontrol.azureservicebus-windows ./../
 docker build -f .\servicecontrol.azureservicebus.init-windows.dockerfile -t particular/servicecontrol.azureservicebus.init-windows ./../
 docker build -f .\servicecontrol.azureservicebus.audit-windows.dockerfile -t particular/servicecontrol.azureservicebus.audit-windows ./../
