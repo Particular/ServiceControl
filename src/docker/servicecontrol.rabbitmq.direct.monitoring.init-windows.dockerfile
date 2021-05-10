@@ -13,4 +13,6 @@ ENV "Monitoring/HttpPort"="33633"
 
 ENV "Monitoring/LogPath"="C:\\Data\\Logs\\"
 
+VOLUME [ "C:/Data" ]
+
 ENTRYPOINT ["ServiceControl.Monitoring.exe", "--portable", "--setup"]

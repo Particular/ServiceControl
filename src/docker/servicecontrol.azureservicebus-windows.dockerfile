@@ -20,4 +20,6 @@ ENV "ServiceControl/ErrorRetentionPeriod"="15"
 EXPOSE 33333
 EXPOSE 33334
 
+VOLUME [ "C:/Data" ]
+
 ENTRYPOINT ["ServiceControl.exe", "--portable"]
