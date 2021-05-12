@@ -1,12 +1,14 @@
 <Project>
 
   <PropertyGroup>
-    <IsPackable>false</IsPackable>	
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>	
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Remove after upgrading to NServiceBus 8.x -->
+    <ParticularAnalyzersVersion>0.9.0</ParticularAnalyzersVersion>
   </PropertyGroup>
 
-  <ItemGroup>	
-    <PackageReference Include="Particular.Packaging" Version="1.1.0" PrivateAssets="All" />	
-  </ItemGroup>	
+  <ItemGroup>
+    <PackageReference Include="Particular.Packaging" Version="1.1.0" PrivateAssets="All" />
+  </ItemGroup>
 
 </Project> 
