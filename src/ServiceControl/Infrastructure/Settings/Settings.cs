@@ -53,6 +53,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
+            EnableV3IntegrationEvents = SettingsReader<bool>.Read("EnableV3IntegrationEvents", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
         }
 
@@ -73,6 +74,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
         public bool DisableExternalIntegrationsPublishing { get; set; }
+        public bool EnableV3IntegrationEvents { get; set; }
 
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
