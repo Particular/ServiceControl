@@ -2,7 +2,6 @@ namespace ServiceControl.ExternalIntegrations
 {
     using NServiceBus;
     using NServiceBus.Features;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class ExternalIntegrationsFeature : Feature
     {
@@ -24,14 +23,8 @@ namespace ServiceControl.ExternalIntegrations
 
             context.Container.ConfigureComponent<IntegrationEventWriter>(DependencyLifecycle.SingleInstance);
 
-            //This should be removed in the next major version when we make the switch to ServiceControl.Contracts ver 3.0
-            var serviceControlSettings = context.Settings.Get<Settings>("ServiceControl.Settings");
-
-            if (serviceControlSettings.EnableV3IntegrationEvents == false)
-            {
-                context.Pipeline.Register(new FallbackToOldContractTypes(),
-                    "Overrides ServiceControl.Contracts ver 3.0 assembly identifier with ver 1.0 assembly identifier.");
-            }
+            context.Pipeline.Register(new RemoveVersionInformationBehavior(),
+                "Removes version information from ServiceControl.Contracts messages");
         }
     }
 }
