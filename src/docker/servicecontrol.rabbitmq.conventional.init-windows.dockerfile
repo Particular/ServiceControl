@@ -17,4 +17,6 @@ ENV "ServiceControl/LogPath"="C:\\Data\\Logs\\"
 ENV "ServiceControl/ForwardErrorMessages"="False"
 ENV "ServiceControl/ErrorRetentionPeriod"="15"
 
+VOLUME [ "C:/Data" ]
+
 ENTRYPOINT ["ServiceControl.exe", "--setup"]

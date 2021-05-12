@@ -20,4 +20,6 @@ ENV "ServiceControl.Audit/AuditRetentionPeriod"="365"
 EXPOSE 44444
 EXPOSE 44445
 
+VOLUME [ "C:/Data" ]
+
 ENTRYPOINT ["ServiceControl.Audit.exe", "--portable"]

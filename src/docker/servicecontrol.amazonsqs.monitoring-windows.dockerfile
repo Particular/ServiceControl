@@ -15,4 +15,6 @@ ENV "Monitoring/LogPath"="C:\\Data\\Logs\\"
 
 EXPOSE 33633
 
+VOLUME [ "C:/Data" ]
+
 ENTRYPOINT ["ServiceControl.Monitoring.exe", "--portable"]
