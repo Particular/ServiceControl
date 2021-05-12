@@ -8,7 +8,6 @@
     {
         public override Task Invoke(IOutgoingPhysicalMessageContext context, Func<Task> next)
         {
-
             if (context.Headers.TryGetValue(EnclosedTypesHeaderName, out var qualifiedTypeName)
                 && qualifiedTypeName.EndsWith(ContractsAssemblyIdentifier, StringComparison.OrdinalIgnoreCase))
             {
