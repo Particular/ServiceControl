@@ -60,7 +60,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public string EmailDropFolder { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
-        public bool EnableV3IntegrationEvents { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
         public System.TimeSpan ErrorRetentionPeriod { get; }
@@ -556,9 +555,9 @@ namespace ServiceControl.EventLog
 }
 namespace ServiceControl.ExternalIntegrations
 {
-    public class FallbackToOldContractTypes : NServiceBus.Pipeline.Behavior<NServiceBus.Pipeline.IOutgoingPhysicalMessageContext>
+    public class RemoveVersionInformationBehavior : NServiceBus.Pipeline.Behavior<NServiceBus.Pipeline.IOutgoingPhysicalMessageContext>
     {
-        public FallbackToOldContractTypes() { }
+        public RemoveVersionInformationBehavior() { }
         public override System.Threading.Tasks.Task Invoke(NServiceBus.Pipeline.IOutgoingPhysicalMessageContext context, System.Func<System.Threading.Tasks.Task> next) { }
     }
 }

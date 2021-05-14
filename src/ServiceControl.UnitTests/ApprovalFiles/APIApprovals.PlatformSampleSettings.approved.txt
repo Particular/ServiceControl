@@ -30,7 +30,6 @@
   "ValidateConfiguration": true,
   "ExternalIntegrationsDispatchingBatchSize": 100,
   "DisableExternalIntegrationsPublishing": false,
-  "EnableV3IntegrationEvents": false,
   "DisableRavenDBPerformanceCounters": true,
   "SkipQueueCreation": false,
   "RunCleanupBundle": false,
