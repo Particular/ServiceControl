@@ -115,7 +115,6 @@ namespace ServiceControl.Recoverability
                 logger.Warn($"Archiving group {message.GroupId} completed but index not updated.");
             }
 
-            logger.Info($"Archiving of group {message.GroupId} completed");
             await archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType)
                 .ConfigureAwait(false);
             await documentManager.RemoveArchiveOperation(store, archiveOperation).ConfigureAwait(false);
@@ -126,6 +125,8 @@ namespace ServiceControl.Recoverability
                 GroupName = archiveOperation.GroupName,
                 MessagesCount = archiveOperation.TotalNumberOfMessages,
             }).ConfigureAwait(false);
+
+            logger.Info($"Archiving of group {message.GroupId} completed");
         }
 
         IDocumentStore store;
