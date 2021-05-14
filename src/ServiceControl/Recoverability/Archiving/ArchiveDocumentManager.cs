@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using MessageFailures;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -142,6 +143,8 @@
                     .ConfigureAwait(false);
                 await session.SaveChangesAsync()
                     .ConfigureAwait(false);
+
+                logger.Info($"Removing ArchiveOperation {archiveOperation.Id} completed");
             }
         }
 
@@ -160,5 +163,7 @@
             public string GroupName { get; set; }
             public int NumberOfMessagesInGroup { get; set; }
         }
+
+        static ILog logger = LogManager.GetLogger<ArchiveDocumentManager>();
     }
 }
