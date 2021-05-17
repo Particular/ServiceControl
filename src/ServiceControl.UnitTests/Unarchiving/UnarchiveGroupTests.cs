@@ -49,7 +49,7 @@
                 var handler = new UnarchiveAllInGroupHandler(documentStore,
                     new FakeDomainEvents(),
                     new UnarchiveDocumentManager(),
-                    new UnarchivingManager(domainEvents),
+                    new UnarchivingManager(domainEvents, new OperationsManager()),
                     new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();
@@ -109,7 +109,7 @@
                 var handler = new UnarchiveAllInGroupHandler(documentStore,
                     new FakeDomainEvents(),
                     new UnarchiveDocumentManager(),
-                    new UnarchivingManager(domainEvents),
+                    new UnarchivingManager(domainEvents, new OperationsManager()),
                     new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();

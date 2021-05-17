@@ -14,6 +14,10 @@
         {
             context.Container.ConfigureComponent<ArchivingManager>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<ArchiveDocumentManager>(DependencyLifecycle.SingleInstance);
+
+            context.Container.ConfigureComponent<OperationsManager>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<UnarchivingManager>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<UnarchiveDocumentManager>(DependencyLifecycle.SingleInstance);
         }
     }
 }

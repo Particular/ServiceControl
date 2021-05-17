@@ -8,37 +8,33 @@
 
     class UnarchivingManager
     {
-        public UnarchivingManager(IDomainEvents domainEvents)
+        public UnarchivingManager(IDomainEvents domainEvents, OperationsManager operationsManager)
         {
             this.domainEvents = domainEvents;
+            this.operationsManager = operationsManager;
         }
 
         public bool IsUnarchiveInProgressFor(string requestId)
         {
-            return unarchiveOperations.Keys.Any(key => key.EndsWith($"/{requestId}"));
+            return operationsManager.UnarchiveOperations.Keys.Any(key => key.EndsWith($"/{requestId}"));
         }
 
         internal IEnumerable<InMemoryUnarchive> GetUnarchivalOperations()
         {
-            return unarchiveOperations.Values;
+            return operationsManager.UnarchiveOperations.Values;
         }
 
         public bool IsOperationInProgressFor(string requestId, ArchiveType archiveType)
         {
-            if (!unarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType), out var summary))
-            {
-                return false;
-            }
-
-            return summary.ArchiveState != ArchiveState.ArchiveCompleted;
+            return operationsManager.IsOperationInProgressFor(requestId, archiveType);
         }
 
         InMemoryUnarchive GetOrCreate(ArchiveType archiveType, string requestId)
         {
-            if (!unarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType), out var summary))
+            if (!operationsManager.UnarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType), out var summary))
             {
                 summary = new InMemoryUnarchive(requestId, archiveType, domainEvents);
-                unarchiveOperations[InMemoryUnarchive.MakeId(requestId, archiveType)] = summary;
+                operationsManager.UnarchiveOperations[InMemoryUnarchive.MakeId(requestId, archiveType)] = summary;
             }
 
             return summary;
@@ -74,7 +70,7 @@
 
         public InMemoryUnarchive GetStatusForUnarchiveOperation(string requestId, ArchiveType archiveType)
         {
-            unarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType), out var summary);
+            operationsManager.UnarchiveOperations.TryGetValue(InMemoryUnarchive.MakeId(requestId, archiveType), out var summary);
 
             return summary;
         }
@@ -105,11 +101,10 @@
 
         void RemoveUnarchiveOperation(string requestId, ArchiveType archiveType)
         {
-            unarchiveOperations.Remove(InMemoryUnarchive.MakeId(requestId, archiveType));
+            operationsManager.UnarchiveOperations.Remove(InMemoryUnarchive.MakeId(requestId, archiveType));
         }
 
         IDomainEvents domainEvents;
-
-        Dictionary<string, InMemoryUnarchive> unarchiveOperations = new Dictionary<string, InMemoryUnarchive>();
+        OperationsManager operationsManager;
     }
 }

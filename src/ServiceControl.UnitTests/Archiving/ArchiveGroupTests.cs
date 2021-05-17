@@ -49,7 +49,7 @@
                 var handler = new ArchiveAllInGroupHandler(documentStore,
                     new FakeDomainEvents(),
                     new ArchiveDocumentManager(),
-                    new ArchivingManager(domainEvents),
+                    new ArchivingManager(domainEvents, new OperationsManager()),
                     new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();
@@ -109,7 +109,7 @@
                 var handler = new ArchiveAllInGroupHandler(documentStore,
                     new FakeDomainEvents(),
                     new ArchiveDocumentManager(),
-                    new ArchivingManager(domainEvents),
+                    new ArchivingManager(domainEvents, new OperationsManager()),
                     new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();

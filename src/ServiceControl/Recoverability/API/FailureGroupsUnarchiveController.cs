@@ -18,7 +18,7 @@
 
         [Route("recoverability/groups/{groupId}/errors/unarchive")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ArchiveGroupErrors(string groupId)
+        public async Task<HttpResponseMessage> UnarchiveGroupErrors(string groupId)
         {
             if (string.IsNullOrWhiteSpace(groupId))
             {
