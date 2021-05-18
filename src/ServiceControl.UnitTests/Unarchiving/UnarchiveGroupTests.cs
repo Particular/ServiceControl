@@ -9,36 +9,36 @@
     using ServiceControl.Recoverability;
 
     [TestFixture]
-    public class ArchiveGroupTests
+    public class UnarchiveGroupTests
     {
         [Test]
-        public async Task ArchiveGroup_skips_over_empty_batches_but_still_completes()
+        public async Task UnarchiveGroup_skips_over_empty_batches_but_still_completes()
         {
             // Arrange
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
                 var groupId = "TestGroup";
-                var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
+                var previousUnarchiveBatchId = UnarchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    await session.StoreAsync(previousArchiveBatch)
+                    var previousUnarchiveBatch = new UnarchiveBatch { Id = previousUnarchiveBatchId };
+                    await session.StoreAsync(previousUnarchiveBatch)
                         .ConfigureAwait(false);
 
-                    var previousArchiveOperation = new ArchiveOperation
+                    var previousUnarchiveOperation = new UnarchiveOperation
                     {
-                        Id = ArchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
+                        Id = UnarchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
                         RequestId = groupId,
                         ArchiveType = ArchiveType.FailureGroup,
                         TotalNumberOfMessages = 2,
-                        NumberOfMessagesArchived = 0,
+                        NumberOfMessagesUnarchived = 2,
                         Started = DateTime.Now,
                         GroupName = "Test Group",
                         NumberOfBatches = 3,
                         CurrentBatch = 0
                     };
-                    await session.StoreAsync(previousArchiveOperation)
+                    await session.StoreAsync(previousUnarchiveOperation)
                         .ConfigureAwait(false);
 
                     await session.SaveChangesAsync()
@@ -46,14 +46,14 @@
                 }
 
                 var domainEvents = new DomainEvents();
-                var handler = new ArchiveAllInGroupHandler(documentStore,
+                var handler = new UnarchiveAllInGroupHandler(documentStore,
                     new FakeDomainEvents(),
-                    new ArchiveDocumentManager(),
-                    new ArchivingManager(domainEvents, new OperationsManager()),
+                    new UnarchiveDocumentManager(),
+                    new UnarchivingManager(domainEvents, new OperationsManager()),
                     new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();
-                var message = new ArchiveAllInGroup { GroupId = groupId };
+                var message = new UnarchiveAllInGroup { GroupId = groupId };
 
                 // Act
                 await handler.Handle(message, context)
@@ -62,43 +62,43 @@
                 // Assert
                 using (var session = documentStore.OpenSession())
                 {
-                    var loadedBatch = session.Load<ArchiveBatch>(previousArchiveBatchId);
+                    var loadedBatch = session.Load<UnarchiveBatch>(previousUnarchiveBatchId);
                     Assert.IsNull(loadedBatch);
                 }
             }
         }
 
         [Test]
-        public async Task ArchiveGroup_GetGroupDetails_doesnt_fail_with_invalid_groupId()
+        public async Task UnarchiveGroup_GetGroupDetails_doesnt_fail_with_invalid_groupId()
         {
             // Arrange
             using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
             {
-                var failureGroupsViewIndex = new FailureGroupsViewIndex();
+                var failureGroupsViewIndex = new ArchivedGroupsViewIndex();
                 await failureGroupsViewIndex.ExecuteAsync(documentStore);
 
                 var groupId = "TestGroup";
-                var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
+                var previousUnarchiveBatchId = UnarchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    await session.StoreAsync(previousArchiveBatch)
+                    var previousUnarchiveBatch = new UnarchiveBatch { Id = previousUnarchiveBatchId };
+                    await session.StoreAsync(previousUnarchiveBatch)
                         .ConfigureAwait(false);
 
-                    var previousArchiveOperation = new ArchiveOperation
+                    var previousUnarchiveOperation = new UnarchiveOperation
                     {
-                        Id = ArchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
+                        Id = UnarchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
                         RequestId = groupId,
                         ArchiveType = ArchiveType.FailureGroup,
                         TotalNumberOfMessages = 2,
-                        NumberOfMessagesArchived = 0,
+                        NumberOfMessagesUnarchived = 0,
                         Started = DateTime.Now,
                         GroupName = "Test Group",
                         NumberOfBatches = 3,
                         CurrentBatch = 0
                     };
-                    await session.StoreAsync(previousArchiveOperation)
+                    await session.StoreAsync(previousUnarchiveOperation)
                         .ConfigureAwait(false);
 
                     await session.SaveChangesAsync()
@@ -106,14 +106,14 @@
                 }
 
                 var domainEvents = new DomainEvents();
-                var handler = new ArchiveAllInGroupHandler(documentStore,
+                var handler = new UnarchiveAllInGroupHandler(documentStore,
                     new FakeDomainEvents(),
-                    new ArchiveDocumentManager(),
-                    new ArchivingManager(domainEvents, new OperationsManager()),
+                    new UnarchiveDocumentManager(),
+                    new UnarchivingManager(domainEvents, new OperationsManager()),
                     new RetryingManager(domainEvents));
 
                 var context = new TestableMessageHandlerContext();
-                var message = new ArchiveAllInGroup { GroupId = groupId + "Invalid" };
+                var message = new UnarchiveAllInGroup { GroupId = groupId + "Invalid" };
 
                 // Act
                 // Assert

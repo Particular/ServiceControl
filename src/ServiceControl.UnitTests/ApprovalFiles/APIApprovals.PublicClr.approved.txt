@@ -1168,6 +1168,12 @@ namespace ServiceControl.Recoverability.API
         [System.Web.Http.Route("recoverability/groups/{groupId}/errors/retry")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ArchiveGroupErrors(string groupId) { }
     }
+    public class FailureGroupsUnarchiveController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("recoverability/groups/{groupId}/errors/unarchive")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> UnarchiveGroupErrors(string groupId) { }
+    }
     public class UnacknowledgedGroupsController : System.Web.Http.ApiController
     {
         [System.Web.Http.HttpDelete]
@@ -1297,6 +1303,18 @@ namespace ServiceControl.Recoverability
     {
         public FailedMessageGroupBatchArchived() { }
         public string[] FailedMessagesIds { get; set; }
+    }
+    public class FailedMessageGroupBatchUnarchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public FailedMessageGroupBatchUnarchived() { }
+        public string[] FailedMessagesIds { get; set; }
+    }
+    public class FailedMessageGroupUnarchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public FailedMessageGroupUnarchived() { }
+        public string GroupId { get; set; }
+        public string GroupName { get; set; }
+        public int MessagesCount { get; set; }
     }
     public class FailedMessageRetries : NServiceBus.Features.Feature
     {
@@ -1599,6 +1617,51 @@ namespace ServiceControl.Recoverability
         public string RequestId { get; set; }
         public ServiceControl.Recoverability.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
+    }
+    public class UnarchiveOperationBatchCompleted : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public UnarchiveOperationBatchCompleted() { }
+        public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
+        public System.DateTime Last { get; set; }
+        public ServiceControl.Recoverability.UnarchiveProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public class UnarchiveOperationCompleted : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public UnarchiveOperationCompleted() { }
+        public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
+        public System.DateTime CompletionTime { get; set; }
+        public string GroupName { get; set; }
+        public System.DateTime Last { get; set; }
+        public ServiceControl.Recoverability.UnarchiveProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public class UnarchiveOperationFinalizing : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public UnarchiveOperationFinalizing() { }
+        public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
+        public System.DateTime Last { get; set; }
+        public ServiceControl.Recoverability.UnarchiveProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public class UnarchiveOperationStarting : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public UnarchiveOperationStarting() { }
+        public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
+        public ServiceControl.Recoverability.UnarchiveProgress Progress { get; set; }
+        public string RequestId { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+    public struct UnarchiveProgress
+    {
+        public UnarchiveProgress(double roundedPercentage, int totalNumberOfMessages, int numberOfMessagesUnarchived, int remaining) { }
+        public int MessagesRemaining { get; set; }
+        public int NumberOfMessagesUnarchived { get; set; }
+        public double Percentage { get; set; }
+        public int TotalNumberOfMessages { get; set; }
     }
 }
 namespace ServiceControl.Recoverability.Retrying
