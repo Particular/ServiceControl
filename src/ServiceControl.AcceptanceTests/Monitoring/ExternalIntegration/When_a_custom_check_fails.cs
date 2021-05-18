@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts;
@@ -58,6 +59,9 @@
                 .Run();
 
             Assert.IsTrue(context.CustomCheckFailedReceived);
+
+            var enclosedType = context.IntegrationEventHeaders[Headers.EnclosedMessageTypes];
+            Assert.AreEqual("ServiceControl.Contracts.CustomCheckFailed, ServiceControl.Contracts", enclosedType);
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder
@@ -81,6 +85,7 @@
                 public Task Handle(CustomCheckFailed message, IMessageHandlerContext context)
                 {
                     Context.CustomCheckFailedReceived = true;
+                    Context.IntegrationEventHeaders = context.MessageHeaders;
                     return Task.FromResult(0);
                 }
             }
@@ -89,6 +94,7 @@
         public class MyContext : ScenarioContext
         {
             public bool CustomCheckFailedReceived { get; set; }
+            public IReadOnlyDictionary<string, string> IntegrationEventHeaders { get; set; }
         }
     }
 }

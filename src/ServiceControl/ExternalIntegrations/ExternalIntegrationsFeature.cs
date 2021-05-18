@@ -22,6 +22,9 @@ namespace ServiceControl.ExternalIntegrations
             }
 
             context.Container.ConfigureComponent<IntegrationEventWriter>(DependencyLifecycle.SingleInstance);
+
+            context.Pipeline.Register(new RemoveVersionInformationBehavior(),
+                "Removes version information from ServiceControl.Contracts messages");
         }
     }
 }

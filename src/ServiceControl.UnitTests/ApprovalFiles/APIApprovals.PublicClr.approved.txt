@@ -553,6 +553,14 @@ namespace ServiceControl.EventLog
         Info = 3,
     }
 }
+namespace ServiceControl.ExternalIntegrations
+{
+    public class RemoveVersionInformationBehavior : NServiceBus.Pipeline.Behavior<NServiceBus.Pipeline.IOutgoingPhysicalMessageContext>
+    {
+        public RemoveVersionInformationBehavior() { }
+        public override System.Threading.Tasks.Task Invoke(NServiceBus.Pipeline.IOutgoingPhysicalMessageContext context, System.Func<System.Threading.Tasks.Task> next) { }
+    }
+}
 namespace ServiceControl.HeartbeatMonitoring
 {
     public enum Status
