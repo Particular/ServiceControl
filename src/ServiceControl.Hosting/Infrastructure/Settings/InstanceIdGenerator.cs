@@ -4,7 +4,7 @@
     using System.Text;
 
     // NOTE: This class implements a version of https://en.wikipedia.org/wiki/Base64#URL_applications
-    static class InstanceIdGenerator
+    public static class InstanceIdGenerator
     {
         /// <summary>
         /// Converts a string to a base64 encoded string using UTF8

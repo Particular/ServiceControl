@@ -1,8 +1,6 @@
 namespace ServiceControl.Operations
 {
-    using System.Threading.Tasks;
-
-    interface IEnrichImportedErrorMessages
+    public interface IEnrichImportedErrorMessages
     {
         void Enrich(ErrorEnricherContext context);
     }

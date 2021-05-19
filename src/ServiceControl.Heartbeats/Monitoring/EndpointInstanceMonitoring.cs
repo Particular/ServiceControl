@@ -11,7 +11,7 @@ namespace ServiceControl.Monitoring
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
 
-    class EndpointInstanceMonitoring
+    public class EndpointInstanceMonitoring
     {
         public EndpointInstanceMonitoring(IDomainEvents domainEvents)
         {

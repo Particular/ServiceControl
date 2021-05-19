@@ -102,6 +102,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Heartbeats",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Hosting", "ServiceControl.Hosting\ServiceControl.Hosting.csproj", "{48BED869-EFA1-4468-B869-588D77406C45}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Recoverability", "ServiceControl.Recoverability\ServiceControl.Recoverability.csproj", "{382ACF41-2651-4D0D-B46B-8620DF9B77B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -272,6 +274,10 @@ Global
 		{48BED869-EFA1-4468-B869-588D77406C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48BED869-EFA1-4468-B869-588D77406C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48BED869-EFA1-4468-B869-588D77406C45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{382ACF41-2651-4D0D-B46B-8620DF9B77B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{382ACF41-2651-4D0D-B46B-8620DF9B77B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{382ACF41-2651-4D0D-B46B-8620DF9B77B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{382ACF41-2651-4D0D-B46B-8620DF9B77B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

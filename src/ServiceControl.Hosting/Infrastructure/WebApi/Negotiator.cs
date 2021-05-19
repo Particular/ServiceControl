@@ -12,7 +12,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using Raven.Client;
     using QueryResult = CompositeViews.Messages.QueryResult;
 
-    static class Negotiator
+    public static class Negotiator
     {
         public static HttpResponseMessage FromModel(HttpRequestMessage request, object value, HttpStatusCode statusCode = HttpStatusCode.OK)
         {

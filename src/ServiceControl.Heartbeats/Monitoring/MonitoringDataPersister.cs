@@ -10,7 +10,7 @@
     using Infrastructure.DomainEvents;
     using Raven.Client;
 
-    class MonitoringDataPersister :
+    public class MonitoringDataPersister :
         IDomainHandler<EndpointDetected>,
         IDomainHandler<HeartbeatingEndpointDetected>,
         IDomainHandler<MonitoringEnabledForEndpoint>,

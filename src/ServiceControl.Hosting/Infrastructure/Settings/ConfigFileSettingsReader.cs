@@ -3,7 +3,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System;
     using System.Configuration;
 
-    static class ConfigFileSettingsReader<T>
+    public static class ConfigFileSettingsReader<T>
     {
         public static T Read(string name, T defaultValue = default)
         {

@@ -4,7 +4,7 @@
     using System.Linq;
     using Contracts.Operations;
 
-    class ErrorEnricherContext
+    public class ErrorEnricherContext
     {
         List<EndpointDetails> newEndpoints;
 

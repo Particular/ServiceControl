@@ -16,11 +16,11 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    interface IApi
+    public interface IApi
     {
     }
 
-    class ApisModule : Module
+    public class ApisModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
@@ -82,7 +82,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected abstract Task<QueryResult<TOut>> LocalQuery(HttpRequestMessage request, TIn input);
 
-        internal QueryResult<TOut> AggregateResults(HttpRequestMessage request, QueryResult<TOut>[] results)
+        public QueryResult<TOut> AggregateResults(HttpRequestMessage request, QueryResult<TOut>[] results)
         {
             var combinedResults = ProcessResults(request, results);
 

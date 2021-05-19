@@ -6,11 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Hosting\ServiceControl.Hosting.csproj" />
-    <ProjectReference Include="..\ServiceControl.Recoverability\ServiceControl.Recoverability.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="7.4.6" />
   </ItemGroup>
 
 </Project>
