@@ -7,7 +7,7 @@
     using Operations;
     using ServiceControl.Contracts.Operations;
 
-    class DetectNewEndpointsFromErrors : Feature
+    public class DetectNewEndpointsFromErrors : Feature
     {
         public DetectNewEndpointsFromErrors()
         {

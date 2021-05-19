@@ -8,7 +8,7 @@
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class InMemoryMonitoring : Feature
+    public class InMemoryMonitoring : Feature
     {
         public InMemoryMonitoring()
         {

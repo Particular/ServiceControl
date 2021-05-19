@@ -8,7 +8,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Autofac;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
     using Newtonsoft.Json;
@@ -19,19 +18,6 @@ namespace ServiceControl.CompositeViews.Messages
     public interface IApi
     {
     }
-
-    public class ApisModule : Module
-    {
-        protected override void Load(ContainerBuilder builder)
-        {
-            builder.RegisterAssemblyTypes(ThisAssembly)
-                .AssignableTo<IApi>()
-                .AsSelf()
-                .AsImplementedInterfaces()
-                .PropertiesAutowired();
-        }
-    }
-
 
     // used to hoist the static jsonSerializer field across the generic instances
     public abstract class ScatterGatherApiBase

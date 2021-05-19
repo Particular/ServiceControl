@@ -18,13 +18,19 @@
 
     class Startup
     {
-        public Startup(IContainer container)
+        public Startup(IContainer container, List<Assembly> assemblies)
         {
             this.container = container;
+            this.assemblies = assemblies;
         }
 
         public void Configuration(IAppBuilder app, Assembly additionalAssembly = null)
         {
+            if (additionalAssembly != null)
+            {
+                assemblies.Add(additionalAssembly);
+            }
+
             app.Map("/api", b =>
             {
                 b.Use<BodyUrlRouteFix>();
@@ -35,10 +41,10 @@
                 ConfigureSignalR(b);
 
                 var config = new HttpConfiguration();
-                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
+                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(assemblies));
                 config.MapHttpAttributeRoutes();
 
-                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
+                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(assemblies));
 
                 var jsonMediaTypeFormatter = config.Formatters.JsonFormatter;
                 jsonMediaTypeFormatter.SerializerSettings = JsonNetSerializerSettings.CreateDefault();
@@ -78,26 +84,16 @@
         }
 
         readonly IContainer container;
+        readonly List<Assembly> assemblies;
     }
 
     class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
     {
-        public OnlyExecutingAssemblyResolver(Assembly additionalAssembly)
-        {
-            this.additionalAssembly = additionalAssembly;
-        }
+        public OnlyExecutingAssemblyResolver(List<Assembly> assemblies) => this.assemblies = assemblies;
 
-        public override ICollection<Assembly> GetAssemblies()
-        {
-            if (additionalAssembly != null)
-            {
-                return new[] { Assembly.GetExecutingAssembly(), additionalAssembly };
-            }
+        public override ICollection<Assembly> GetAssemblies() => assemblies;
 
-            return new[] { Assembly.GetExecutingAssembly() };
-        }
-
-        readonly Assembly additionalAssembly;
+        readonly List<Assembly> assemblies;
     }
 
     class AutofacDependencyResolver : DefaultDependencyResolver

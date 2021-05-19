@@ -2,6 +2,7 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -16,11 +17,11 @@ namespace Particular.ServiceControl
     using Autofac.Core.Activators.Reflection;
     using Autofac.Features.ResolveAnything;
     using ByteSizeLib;
-    using global::ServiceControl.CompositeViews.Messages;
     using global::ServiceControl.Infrastructure;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.MessageFailures.Api;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
@@ -80,6 +81,7 @@ namespace Particular.ServiceControl
             var containerBuilder = new ContainerBuilder();
 
             containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
+            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(KnownEndpoint).Assembly && type.GetInterfaces().Any() == false));
 
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
@@ -105,25 +107,27 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
+            containerBuilder.RegisterModule<HeartbeatsApisModule>();
             containerBuilder.Register(c => bus.Bus);
 
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
             containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
             containerBuilder.RegisterType<ErrorIngestionComponent>().SingleInstance();
 
-            RegisterInternalWebApiControllers(containerBuilder);
+            RegisterAssemblyInternalWebApiControllers(containerBuilder, Assembly.GetExecutingAssembly());
+            RegisterAssemblyInternalWebApiControllers(containerBuilder, typeof(KnownEndpoint).Assembly);
 
             additionalRegistrationActions?.Invoke(containerBuilder);
 
             container = containerBuilder.Build();
-            Startup = new Startup(container);
+            Startup = new Startup(container, new List<Assembly> { Assembly.GetExecutingAssembly(), typeof(KnownEndpoint).Assembly });
 
             domainEvents.SetContainer(container);
         }
 
-        static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
+        static void RegisterAssemblyInternalWebApiControllers(ContainerBuilder containerBuilder, Assembly assembly)
         {
-            var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
+            var controllerTypes = assembly.DefinedTypes
                 .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
 
             foreach (var controllerType in controllerTypes)
