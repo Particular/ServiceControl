@@ -34,12 +34,12 @@ namespace ServiceControl.CompositeViews.Messages
 
 
     // used to hoist the static jsonSerializer field across the generic instances
-    abstract class ScatterGatherApiBase
+    public abstract class ScatterGatherApiBase
     {
         protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
     }
 
-    abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
+    public abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
         protected ScatterGatherApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory)

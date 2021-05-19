@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Hosting\ServiceControl.Hosting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus" Version="7.4.6" />
+  </ItemGroup>
+
+</Project>
