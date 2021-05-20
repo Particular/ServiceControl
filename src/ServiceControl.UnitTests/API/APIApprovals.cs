@@ -14,7 +14,10 @@
     using Particular.ServiceControl.Licensing;
     using PublicApiGenerator;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Monitoring;
+    using ServiceControl.Operations;
     using ServiceControlInstaller.Engine.Instances;
     using Transports;
 
@@ -25,6 +28,36 @@
         public void PublicClr()
         {
             var publicApi = typeof(Bootstrapper).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrHeartbeats()
+        {
+            var publicApi = typeof(KnownEndpoint).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrHosting()
+        {
+            var publicApi = typeof(DomainEvents).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrRecoverability()
+        {
+            var publicApi = typeof(IEnrichImportedErrorMessages).Assembly.GeneratePublicApi(new ApiGeneratorOptions
             {
                 ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
             });

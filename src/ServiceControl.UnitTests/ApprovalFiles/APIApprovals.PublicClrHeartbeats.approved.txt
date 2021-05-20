@@ -1,0 +1,240 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+namespace ServiceControl.Audit.Monitoring
+{
+    public class DisableEndpointMonitoring : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public DisableEndpointMonitoring() { }
+        public System.Guid EndpointId { get; set; }
+    }
+    public class EnableEndpointMonitoring : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public EnableEndpointMonitoring() { }
+        public System.Guid EndpointId { get; set; }
+    }
+    public class KnownEndpointIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Monitoring.KnownEndpoint>
+    {
+        public KnownEndpointIndex() { }
+    }
+}
+namespace ServiceControl.CompositeViews.Endpoints
+{
+    public class EndpointsView
+    {
+        public EndpointsView() { }
+        public ServiceControl.CompositeViews.Endpoints.HeartbeatInformation HeartbeatInformation { get; set; }
+        public string HostDisplayName { get; set; }
+        public System.Guid Id { get; set; }
+        public bool IsSendingHeartbeats { get; set; }
+        public bool MonitorHeartbeat { get; set; }
+        public bool Monitored { get; set; }
+        public string Name { get; set; }
+    }
+    public class HeartbeatInformation
+    {
+        public HeartbeatInformation() { }
+        public System.DateTime LastReportAt { get; set; }
+        public ServiceControl.HeartbeatMonitoring.Status ReportedStatus { get; set; }
+    }
+}
+namespace ServiceControl.Contracts.EndpointControl
+{
+    public class EndpointDetected : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public EndpointDetected() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+    }
+    public class EndpointStarted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public EndpointStarted() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
+        public System.DateTime StartedAt { get; set; }
+    }
+    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage
+    {
+        public NewEndpointDetected() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+    }
+    public class RegisterNewEndpoint : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public RegisterNewEndpoint() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+    }
+}
+namespace ServiceControl.Contracts.HeartbeatMonitoring
+{
+    public class EndpointFailedToHeartbeat : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public EndpointFailedToHeartbeat() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public System.DateTime LastReceivedAt { get; set; }
+    }
+    public class EndpointHeartbeatRestored : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public EndpointHeartbeatRestored() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public System.DateTime RestoredAt { get; set; }
+    }
+    public class HeartbeatMonitoringDisabled : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public HeartbeatMonitoringDisabled() { }
+        public System.Guid EndpointInstanceId { get; set; }
+    }
+    public class HeartbeatMonitoringEnabled : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public HeartbeatMonitoringEnabled() { }
+        public System.Guid EndpointInstanceId { get; set; }
+    }
+    public class HeartbeatingEndpointDetected : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public HeartbeatingEndpointDetected() { }
+        public System.DateTime DetectedAt { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+    }
+}
+namespace ServiceControl.EndpointControl.Contracts
+{
+    public class MonitoringDisabledForEndpoint : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public MonitoringDisabledForEndpoint() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public System.Guid EndpointInstanceId { get; set; }
+    }
+    public class MonitoringEnabledForEndpoint : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public MonitoringEnabledForEndpoint() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public System.Guid EndpointInstanceId { get; set; }
+    }
+}
+namespace ServiceControl.EndpointControl.Handlers
+{
+    public class DetectNewEndpointsFromErrors : NServiceBus.Features.Feature
+    {
+        public DetectNewEndpointsFromErrors() { }
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+}
+namespace ServiceControl.HeartbeatMonitoring
+{
+    public enum Status
+    {
+        Beating = 0,
+        Dead = 1,
+    }
+}
+namespace ServiceControl.MessageFailures.Api
+{
+    public class HeartbeatsApisModule : Autofac.Module
+    {
+        public HeartbeatsApisModule() { }
+        protected override void Load(Autofac.ContainerBuilder builder) { }
+    }
+}
+namespace ServiceControl.Monitoring
+{
+    public class EndpointInstanceId : System.IEquatable<ServiceControl.Monitoring.EndpointInstanceId>
+    {
+        public readonly System.Guid HostGuid;
+        public readonly string HostName;
+        public readonly string LogicalName;
+        public EndpointInstanceId(string logicalName, string hostName, System.Guid hostGuid) { }
+        public System.Guid UniqueId { get; }
+        public bool Equals(ServiceControl.Monitoring.EndpointInstanceId other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+    }
+    public class EndpointInstanceMonitoring
+    {
+        public EndpointInstanceMonitoring(ServiceControl.Infrastructure.DomainEvents.IDomainEvents domainEvents) { }
+        public System.Threading.Tasks.Task CheckEndpoints(System.DateTime threshold) { }
+        public System.Threading.Tasks.Task DetectEndpointFromHeartbeatStartup(ServiceControl.Contracts.Operations.EndpointDetails newEndpointDetails, System.DateTime startedAt) { }
+        public void DetectEndpointFromPersistentStore(ServiceControl.Contracts.Operations.EndpointDetails endpointDetails, bool monitored) { }
+        public System.Threading.Tasks.Task DisableMonitoring(System.Guid id) { }
+        public System.Threading.Tasks.Task EnableMonitoring(System.Guid id) { }
+        public System.Threading.Tasks.Task EndpointDetected(ServiceControl.Contracts.Operations.EndpointDetails newEndpointDetails) { }
+        public ServiceControl.CompositeViews.Endpoints.EndpointsView[] GetEndpoints() { }
+        public System.Collections.Generic.List<ServiceControl.Monitoring.KnownEndpointsView> GetKnownEndpoints() { }
+        public ServiceControl.Monitoring.EndpointMonitoringStats GetStats() { }
+        public bool HasEndpoint(System.Guid endpointId) { }
+        public bool IsMonitored(System.Guid id) { }
+        public bool IsNewInstance(ServiceControl.Contracts.Operations.EndpointDetails newEndpointDetails) { }
+        public void RecordHeartbeat(ServiceControl.Monitoring.EndpointInstanceId endpointInstanceId, System.DateTime timestamp) { }
+        public void RemoveEndpoint(System.Guid endpointId) { }
+    }
+    public class EndpointMonitoringStats
+    {
+        public EndpointMonitoringStats() { }
+        public int Active { get; }
+        public int Failing { get; }
+        public void RecordActive() { }
+        public void RecordFailing() { }
+    }
+    public class EndpointUpdateModel
+    {
+        public EndpointUpdateModel() { }
+        public bool MonitorHeartbeat { get; set; }
+    }
+    public class EndpointsMonitoringController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpDelete]
+        [System.Web.Http.Route("endpoints/{endpointId}")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> DeleteEndpoint(System.Guid endpointId) { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("endpoints")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.CompositeViews.Endpoints.EndpointsView[]> Endpoints() { }
+        [System.Web.Http.HttpPatch]
+        [System.Web.Http.Route("endpoints/{endpointId}")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Foo(System.Guid endpointId, ServiceControl.Monitoring.EndpointUpdateModel data) { }
+        [System.Web.Http.HttpOptions]
+        [System.Web.Http.Route("endpoints")]
+        public System.Net.Http.HttpResponseMessage GetSupportedOperations() { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("heartbeats/stats")]
+        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.Monitoring.EndpointMonitoringStats> HeartbeatStats() { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("endpoints/known")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> KnownEndpoints() { }
+    }
+    public enum HeartbeatStatus
+    {
+        Unknown = 0,
+        Alive = 1,
+        Dead = 2,
+    }
+    public class InMemoryMonitoring : NServiceBus.Features.Feature
+    {
+        public InMemoryMonitoring() { }
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+    public class KnownEndpoint
+    {
+        public const string CollectionName = "KnownEndpoints";
+        public KnownEndpoint() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
+        public bool HasTemporaryId { get; set; }
+        public string HostDisplayName { get; set; }
+        public System.Guid Id { get; set; }
+        public bool Monitored { get; set; }
+    }
+    public class KnownEndpointsView
+    {
+        public KnownEndpointsView() { }
+        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
+        public string HostDisplayName { get; set; }
+        public System.Guid Id { get; set; }
+    }
+    public class MonitoringDataPersister : ServiceControl.Infrastructure.DomainEvents.IDomainHandler<ServiceControl.Contracts.EndpointControl.EndpointDetected>, ServiceControl.Infrastructure.DomainEvents.IDomainHandler<ServiceControl.Contracts.HeartbeatMonitoring.HeartbeatingEndpointDetected>, ServiceControl.Infrastructure.DomainEvents.IDomainHandler<ServiceControl.EndpointControl.Contracts.MonitoringDisabledForEndpoint>, ServiceControl.Infrastructure.DomainEvents.IDomainHandler<ServiceControl.EndpointControl.Contracts.MonitoringEnabledForEndpoint>
+    {
+        public MonitoringDataPersister(Raven.Client.IDocumentStore store, ServiceControl.Monitoring.EndpointInstanceMonitoring monitoring) { }
+        public System.Threading.Tasks.Task Handle(ServiceControl.Contracts.EndpointControl.EndpointDetected domainEvent) { }
+        public System.Threading.Tasks.Task Handle(ServiceControl.Contracts.HeartbeatMonitoring.HeartbeatingEndpointDetected domainEvent) { }
+        public System.Threading.Tasks.Task Handle(ServiceControl.EndpointControl.Contracts.MonitoringDisabledForEndpoint domainEvent) { }
+        public System.Threading.Tasks.Task Handle(ServiceControl.EndpointControl.Contracts.MonitoringEnabledForEndpoint domainEvent) { }
+        public System.Threading.Tasks.Task UpdateEndpointMonitoring(ServiceControl.Contracts.Operations.EndpointDetails endpoint, bool isMonitored) { }
+        public System.Threading.Tasks.Task WarmupMonitoringFromPersistence() { }
+    }
+}

@@ -1,0 +1,25 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+namespace ServiceControl.Contracts.Operations
+{
+    public class EndpointDetailsParser
+    {
+        public EndpointDetailsParser() { }
+        public static ServiceControl.Contracts.Operations.EndpointDetails ReceivingEndpoint(System.Collections.Generic.IReadOnlyDictionary<string, string> headers) { }
+        public static ServiceControl.Contracts.Operations.EndpointDetails SendingEndpoint(System.Collections.Generic.IReadOnlyDictionary<string, string> headers) { }
+    }
+}
+namespace ServiceControl.Operations
+{
+    public class ErrorEnricherContext
+    {
+        public ErrorEnricherContext(System.Collections.Generic.IReadOnlyDictionary<string, string> headers, System.Collections.Generic.IDictionary<string, object> metadata) { }
+        public System.Collections.Generic.IReadOnlyDictionary<string, string> Headers { get; }
+        public System.Collections.Generic.IDictionary<string, object> Metadata { get; }
+        public System.Collections.Generic.IEnumerable<ServiceControl.Contracts.Operations.EndpointDetails> NewEndpoints { get; }
+        public void Add(ServiceControl.Contracts.Operations.EndpointDetails endpointDetails) { }
+    }
+    public interface IEnrichImportedErrorMessages
+    {
+        void Enrich(ServiceControl.Operations.ErrorEnricherContext context);
+    }
+}

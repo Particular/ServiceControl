@@ -1,0 +1,224 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+namespace ServiceBus.Management.Infrastructure.Settings
+{
+    public static class ConfigFileSettingsReader<T>
+    {
+        public static T Read(string name, T defaultValue = default) { }
+        public static T Read(string root, string name, T defaultValue = default) { }
+        public static bool TryRead(string root, string name, out T value) { }
+    }
+    public class RemoteInstanceSetting
+    {
+        public RemoteInstanceSetting() { }
+        [Newtonsoft.Json.JsonIgnore]
+        public System.Uri ApiAsUri { get; }
+        public string ApiUri { get; set; }
+    }
+    public class Settings
+    {
+        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
+        public const string Disabled = "!disable";
+        public Settings(string serviceName = null) { }
+        public bool AllowMessageEditing { get; set; }
+        public string ApiUrl { get; }
+        public System.TimeSpan? AuditRetentionPeriod { get; }
+        public int DataSpaceRemainingThreshold { get; set; }
+        public int DatabaseMaintenancePort { get; set; }
+        public string DatabaseMaintenanceUrl { get; }
+        public string DbPath { get; set; }
+        public bool DisableExternalIntegrationsPublishing { get; set; }
+        public bool DisableRavenDBPerformanceCounters { get; set; }
+        public string EmailDropFolder { get; set; }
+        public bool EnableFullTextSearchOnBodies { get; set; }
+        public string ErrorLogQueue { get; set; }
+        public string ErrorQueue { get; set; }
+        public System.TimeSpan ErrorRetentionPeriod { get; }
+        public System.TimeSpan EventsRetentionPeriod { get; }
+        public int ExpirationProcessBatchSize { get; }
+        public int ExpirationProcessTimerInSeconds { get; }
+        public bool ExposeRavenDB { get; }
+        public int ExternalIntegrationsDispatchingBatchSize { get; }
+        public bool ForwardErrorMessages { get; set; }
+        public System.TimeSpan HeartbeatGracePeriod { get; }
+        public string Hostname { get; }
+        public int HttpDefaultConnectionLimit { get; set; }
+        public bool IngestErrorMessages { get; set; }
+        public string LicenseFileText { get; set; }
+        public int MaximumConcurrencyLevel { get; set; }
+        public string NotificationsFilter { get; set; }
+        public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
+        public int Port { get; set; }
+        public bool PrintMetrics { get; }
+        public System.TimeSpan ProcessRetryBatchesFrequency { get; set; }
+        public ServiceBus.Management.Infrastructure.Settings.RemoteInstanceSetting[] RemoteInstances { get; set; }
+        public int RetryHistoryDepth { get; set; }
+        public string RootUrl { get; }
+        public bool RunCleanupBundle { get; set; }
+        public bool RunInMemory { get; set; }
+        public bool RunRetryProcessor { get; set; }
+        public string ServiceName { get; }
+        public bool SkipQueueCreation { get; set; }
+        public string StorageUrl { get; }
+        public System.Func<Raven.Client.IDocumentStore, System.Threading.Tasks.Task> StoreInitializer { get; set; }
+        public System.TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
+        public string TransportConnectionString { get; set; }
+        public string TransportCustomizationType { get; set; }
+        public bool ValidateConfiguration { get; }
+        public string VirtualDirectory { get; }
+        public string GetConnectionString() { }
+        public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
+    }
+    public class SettingsReader<T>
+    {
+        public SettingsReader() { }
+        public static T Read(string name, T defaultValue = default) { }
+        public static T Read(string root, string name, T defaultValue = default) { }
+    }
+}
+namespace ServiceControl.CompositeViews.Messages
+{
+    public interface IApi { }
+    public class NoInput
+    {
+        public static readonly ServiceControl.CompositeViews.Messages.NoInput Instance;
+    }
+    public class QueryResult
+    {
+        protected QueryResult(object results, ServiceControl.CompositeViews.Messages.QueryStatsInfo queryStatsInfo) { }
+        public object DynamicResults { get; }
+        public string InstanceId { get; set; }
+        public ServiceControl.CompositeViews.Messages.QueryStatsInfo QueryStats { get; }
+    }
+    public class QueryResult<TOut> : ServiceControl.CompositeViews.Messages.QueryResult
+        where TOut :  class
+    {
+        public QueryResult(TOut results, ServiceControl.CompositeViews.Messages.QueryStatsInfo queryStatsInfo) { }
+        public TOut Results { get; }
+        public static ServiceControl.CompositeViews.Messages.QueryResult<TOut> Empty() { }
+    }
+    public struct QueryStatsInfo
+    {
+        public readonly string ETag;
+        public readonly int HighestTotalCountOfAllTheInstances;
+        public readonly int TotalCount;
+        public static readonly ServiceControl.CompositeViews.Messages.QueryStatsInfo Zero;
+        public QueryStatsInfo(string eTag, int totalCount, int? highestTotalCountOfAllTheInstances = default) { }
+    }
+    public static class RequestExtensions
+    {
+        public static System.Uri RedirectToRemoteUri(this System.Net.Http.HttpRequestMessage request, System.Uri remoteUri) { }
+    }
+    public abstract class ScatterGatherApiBase
+    {
+        protected static Newtonsoft.Json.JsonSerializer jsonSerializer;
+        protected ScatterGatherApiBase() { }
+    }
+    public abstract class ScatterGatherApi<TIn, TOut> : ServiceControl.CompositeViews.Messages.ScatterGatherApiBase, ServiceControl.CompositeViews.Messages.IApi
+        where TOut :  class
+    {
+        protected ScatterGatherApi(Raven.Client.IDocumentStore documentStore, ServiceBus.Management.Infrastructure.Settings.Settings settings, System.Func<System.Net.Http.HttpClient> httpClientFactory) { }
+        protected System.Func<System.Net.Http.HttpClient> HttpClientFactory { get; }
+        protected ServiceBus.Management.Infrastructure.Settings.Settings Settings { get; }
+        protected Raven.Client.IDocumentStore Store { get; }
+        public ServiceControl.CompositeViews.Messages.QueryResult<TOut> AggregateResults(System.Net.Http.HttpRequestMessage request, ServiceControl.CompositeViews.Messages.QueryResult<>[] results) { }
+        protected virtual ServiceControl.CompositeViews.Messages.QueryStatsInfo AggregateStats(System.Collections.Generic.IEnumerable<ServiceControl.CompositeViews.Messages.QueryResult<TOut>> results, TOut processedResults) { }
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Execute(System.Web.Http.ApiController controller, TIn input) { }
+        protected abstract System.Threading.Tasks.Task<ServiceControl.CompositeViews.Messages.QueryResult<TOut>> LocalQuery(System.Net.Http.HttpRequestMessage request, TIn input);
+        protected abstract TOut ProcessResults(System.Net.Http.HttpRequestMessage request, ServiceControl.CompositeViews.Messages.QueryResult<>[] results);
+    }
+}
+namespace ServiceControl.Contracts.Operations
+{
+    public class EndpointDetails
+    {
+        public EndpointDetails() { }
+        public string Host { get; set; }
+        public System.Guid HostId { get; set; }
+        public string Name { get; set; }
+    }
+}
+namespace ServiceControl.Infrastructure
+{
+    public class AsyncTimer
+    {
+        public AsyncTimer(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
+        public System.Threading.Tasks.Task Stop() { }
+    }
+    public static class DeterministicGuid
+    {
+        public static System.Guid MakeId(string data) { }
+        public static System.Guid MakeId(string data1, string data2) { }
+        public static System.Guid MakeId(string data1, string data2, string data3) { }
+    }
+    public static class DictionaryExtensions
+    {
+        public static void CheckIfKeyExists(string key, System.Collections.Generic.IReadOnlyDictionary<string, string> headers, System.Action<string> actionToInvokeWhenKeyIsFound) { }
+    }
+    public enum TimerJobExecutionResult
+    {
+        ScheduleNextExecution = 0,
+        ExecuteImmediately = 1,
+        DoNotContinueExecuting = 2,
+    }
+}
+namespace ServiceControl.Infrastructure.DomainEvents
+{
+    public class DomainEvents : ServiceControl.Infrastructure.DomainEvents.IDomainEvents
+    {
+        public DomainEvents() { }
+        public System.Threading.Tasks.Task Raise<T>(T domainEvent)
+            where T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent { }
+        public void SetContainer(Autofac.IContainer container) { }
+    }
+    public interface IDomainEvent { }
+    public interface IDomainEvents
+    {
+        System.Threading.Tasks.Task Raise<T>(T domainEvent)
+            where T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent;
+    }
+    public interface IDomainHandler<in T>
+        where in T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        System.Threading.Tasks.Task Handle(T domainEvent);
+    }
+}
+namespace ServiceControl.Infrastructure.Settings
+{
+    public static class InstanceIdGenerator
+    {
+        public static string FromApiUrl(string apiUrl) { }
+        public static System.Uri ToApiUri(string instanceId) { }
+        public static string ToApiUrl(string instanceId) { }
+    }
+}
+namespace ServiceControl.Infrastructure.SignalR
+{
+    public interface IUserInterfaceEvent { }
+    public class UnderscoreMappingResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
+    {
+        public UnderscoreMappingResolver() { }
+        protected override string ResolvePropertyName(string propertyName) { }
+    }
+}
+namespace ServiceControl.Infrastructure.WebApi
+{
+    public class JsonNetSerializerSettings
+    {
+        public JsonNetSerializerSettings() { }
+        public static Newtonsoft.Json.JsonSerializerSettings CreateDefault() { }
+    }
+    public static class Negotiator
+    {
+        public static System.Net.Http.HttpResponseMessage FromModel(System.Net.Http.HttpRequestMessage request, object value, System.Net.HttpStatusCode statusCode = 200) { }
+        public static System.Net.Http.HttpResponseMessage FromQueryResult(System.Net.Http.HttpRequestMessage request, ServiceControl.CompositeViews.Messages.QueryResult queryResult, System.Net.HttpStatusCode statusCode = 200) { }
+        public static System.Net.Http.HttpResponseMessage WithDeterministicEtag(this System.Net.Http.HttpResponseMessage response, string data) { }
+        public static System.Net.Http.HttpResponseMessage WithEtag(this System.Net.Http.HttpResponseMessage response, Raven.Abstractions.Data.Etag etag) { }
+        public static System.Net.Http.HttpResponseMessage WithEtag(this System.Net.Http.HttpResponseMessage response, Raven.Client.RavenQueryStatistics stats) { }
+        public static System.Net.Http.HttpResponseMessage WithPagingLinks(this System.Net.Http.HttpResponseMessage response, int totalResults, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Net.Http.HttpResponseMessage WithPagingLinks(this System.Net.Http.HttpResponseMessage response, int totalResults, int highestTotalCountOfAllInstances, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Net.Http.HttpResponseMessage WithPagingLinksAndTotalCount(this System.Net.Http.HttpResponseMessage response, int totalCount, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Net.Http.HttpResponseMessage WithPagingLinksAndTotalCount(this System.Net.Http.HttpResponseMessage response, int totalCount, int highestTotalCountOfAllInstances, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Net.Http.HttpResponseMessage WithReasonPhrase(this System.Net.Http.HttpResponseMessage response, string reasonPhrase) { }
+        public static System.Net.Http.HttpResponseMessage WithTotalCount(this System.Net.Http.HttpResponseMessage response, int total) { }
+    }
+}

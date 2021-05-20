@@ -35,107 +35,6 @@ namespace ServiceBus.Management.Infrastructure.Installers
         protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
     }
 }
-namespace ServiceBus.Management.Infrastructure.Settings
-{
-    public class RemoteInstanceSetting
-    {
-        public RemoteInstanceSetting() { }
-        [Newtonsoft.Json.JsonIgnore]
-        public System.Uri ApiAsUri { get; }
-        public string ApiUri { get; set; }
-    }
-    public class Settings
-    {
-        public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
-        public const string Disabled = "!disable";
-        public Settings(string serviceName = null) { }
-        public bool AllowMessageEditing { get; set; }
-        public string ApiUrl { get; }
-        public System.TimeSpan? AuditRetentionPeriod { get; }
-        public int DataSpaceRemainingThreshold { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
-        public string DatabaseMaintenanceUrl { get; }
-        public string DbPath { get; set; }
-        public bool DisableExternalIntegrationsPublishing { get; set; }
-        public bool DisableRavenDBPerformanceCounters { get; set; }
-        public string EmailDropFolder { get; set; }
-        public bool EnableFullTextSearchOnBodies { get; set; }
-        public string ErrorLogQueue { get; set; }
-        public string ErrorQueue { get; set; }
-        public System.TimeSpan ErrorRetentionPeriod { get; }
-        public System.TimeSpan EventsRetentionPeriod { get; }
-        public int ExpirationProcessBatchSize { get; }
-        public int ExpirationProcessTimerInSeconds { get; }
-        public bool ExposeRavenDB { get; }
-        public int ExternalIntegrationsDispatchingBatchSize { get; }
-        public bool ForwardErrorMessages { get; set; }
-        public System.TimeSpan HeartbeatGracePeriod { get; }
-        public string Hostname { get; }
-        public int HttpDefaultConnectionLimit { get; set; }
-        public bool IngestErrorMessages { get; set; }
-        public string LicenseFileText { get; set; }
-        public int MaximumConcurrencyLevel { get; set; }
-        public string NotificationsFilter { get; set; }
-        public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
-        public int Port { get; set; }
-        public bool PrintMetrics { get; }
-        public System.TimeSpan ProcessRetryBatchesFrequency { get; set; }
-        public ServiceBus.Management.Infrastructure.Settings.RemoteInstanceSetting[] RemoteInstances { get; set; }
-        public int RetryHistoryDepth { get; set; }
-        public string RootUrl { get; }
-        public bool RunCleanupBundle { get; set; }
-        public bool RunInMemory { get; set; }
-        public bool RunRetryProcessor { get; set; }
-        public string ServiceName { get; }
-        public bool SkipQueueCreation { get; set; }
-        public string StorageUrl { get; }
-        public System.Func<Raven.Client.IDocumentStore, System.Threading.Tasks.Task> StoreInitializer { get; set; }
-        public System.TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
-        public string TransportConnectionString { get; set; }
-        public string TransportCustomizationType { get; set; }
-        public bool ValidateConfiguration { get; }
-        public string VirtualDirectory { get; }
-        public string GetConnectionString() { }
-        public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
-    }
-}
-namespace ServiceControl.Audit.Monitoring
-{
-    public class DisableEndpointMonitoring : NServiceBus.ICommand, NServiceBus.IMessage
-    {
-        public DisableEndpointMonitoring() { }
-        public System.Guid EndpointId { get; set; }
-    }
-    public class EnableEndpointMonitoring : NServiceBus.ICommand, NServiceBus.IMessage
-    {
-        public EnableEndpointMonitoring() { }
-        public System.Guid EndpointId { get; set; }
-    }
-    public class KnownEndpointIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Monitoring.KnownEndpoint>
-    {
-        public KnownEndpointIndex() { }
-    }
-}
-namespace ServiceControl.CompositeViews.Endpoints
-{
-    public class EndpointsView
-    {
-        public EndpointsView() { }
-        public ServiceControl.CompositeViews.Endpoints.HeartbeatInformation HeartbeatInformation { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
-        public bool IsSendingHeartbeats { get; set; }
-        public bool MonitorHeartbeat { get; set; }
-        public bool Monitored { get; set; }
-        public string Name { get; set; }
-    }
-    public class HeartbeatInformation
-    {
-        public HeartbeatInformation() { }
-        public System.DateTime LastReportAt { get; set; }
-        public ServiceControl.HeartbeatMonitoring.Status ReportedStatus { get; set; }
-    }
-}
 namespace ServiceControl.CompositeViews.Messages
 {
     public class GetMessagesByConversationController : System.Web.Http.ApiController
@@ -253,7 +152,7 @@ namespace ServiceControl.CompositeViews.Messages
 }
 namespace ServiceControl.Contracts.CustomChecks
 {
-    public class CustomCheckFailed : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class CustomCheckFailed : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public CustomCheckFailed() { }
         public string Category { get; set; }
@@ -263,7 +162,7 @@ namespace ServiceControl.Contracts.CustomChecks
         public System.Guid Id { get; set; }
         public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
     }
-    public class CustomCheckSucceeded
+    public class CustomCheckSucceeded : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public CustomCheckSucceeded() { }
         public string Category { get; set; }
@@ -271,33 +170,6 @@ namespace ServiceControl.Contracts.CustomChecks
         public System.Guid Id { get; set; }
         public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
         public System.DateTime SucceededAt { get; set; }
-    }
-}
-namespace ServiceControl.Contracts.EndpointControl
-{
-    public class EndpointDetected
-    {
-        public EndpointDetected() { }
-        public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
-    }
-    public class EndpointStarted
-    {
-        public EndpointStarted() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public System.DateTime StartedAt { get; set; }
-    }
-    public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage
-    {
-        public NewEndpointDetected() { }
-        public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
-    }
-    public class RegisterNewEndpoint : NServiceBus.ICommand, NServiceBus.IMessage
-    {
-        public RegisterNewEndpoint() { }
-        public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
     }
 }
 namespace ServiceControl.Contracts.EventLog
@@ -313,46 +185,14 @@ namespace ServiceControl.Contracts.EventLog
         public ServiceControl.EventLog.Severity Severity { get; set; }
     }
 }
-namespace ServiceControl.Contracts.HeartbeatMonitoring
-{
-    public class EndpointFailedToHeartbeat
-    {
-        public EndpointFailedToHeartbeat() { }
-        public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
-        public System.DateTime LastReceivedAt { get; set; }
-    }
-    public class EndpointHeartbeatRestored
-    {
-        public EndpointHeartbeatRestored() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
-        public System.DateTime RestoredAt { get; set; }
-    }
-    public class HeartbeatMonitoringDisabled
-    {
-        public HeartbeatMonitoringDisabled() { }
-        public System.Guid EndpointInstanceId { get; set; }
-    }
-    public class HeartbeatMonitoringEnabled
-    {
-        public HeartbeatMonitoringEnabled() { }
-        public System.Guid EndpointInstanceId { get; set; }
-    }
-    public class HeartbeatingEndpointDetected
-    {
-        public HeartbeatingEndpointDetected() { }
-        public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
-    }
-}
 namespace ServiceControl.Contracts.MessageFailures
 {
-    public class FailedMessageArchived
+    public class FailedMessageArchived : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public FailedMessageArchived() { }
         public string FailedMessageId { get; set; }
     }
-    public class FailedMessagesUnArchived
+    public class FailedMessagesUnArchived : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public FailedMessagesUnArchived() { }
         public string[] DocumentIds { get; set; }
@@ -364,7 +204,7 @@ namespace ServiceControl.Contracts.MessageFailures
         public string[] AlternativeFailedMessageIds { get; set; }
         public string FailedMessageId { get; set; }
     }
-    public class MessageFailed : NServiceBus.IMessage, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class MessageFailed : NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageFailed() { }
         public string EndpointId { get; set; }
@@ -372,18 +212,18 @@ namespace ServiceControl.Contracts.MessageFailures
         public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
         public bool RepeatedFailure { get; set; }
     }
-    public class MessageFailureResolvedByRetry : NServiceBus.IMessage, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class MessageFailureResolvedByRetry : NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }
         public string FailedMessageId { get; set; }
     }
-    public class MessageFailureResolvedManually
+    public class MessageFailureResolvedManually : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public MessageFailureResolvedManually() { }
         public string FailedMessageId { get; set; }
     }
-    public class MessageFailuresUpdated : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class MessageFailuresUpdated : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageFailuresUpdated() { }
         public int ArchivedTotal { get; set; }
@@ -391,7 +231,7 @@ namespace ServiceControl.Contracts.MessageFailures
         public int Total { get; set; }
         public int UnresolvedTotal { get; set; }
     }
-    public class MessageSubmittedForRetry : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class MessageSubmittedForRetry : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageSubmittedForRetry() { }
         public string FailedMessageId { get; set; }
@@ -399,7 +239,7 @@ namespace ServiceControl.Contracts.MessageFailures
 }
 namespace ServiceControl.Contracts.MessageRedirects
 {
-    public class MessageRedirectChanged
+    public class MessageRedirectChanged : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public MessageRedirectChanged() { }
         public string FromPhysicalAddress { get; set; }
@@ -407,14 +247,14 @@ namespace ServiceControl.Contracts.MessageRedirects
         public string PreviousToPhysicalAddress { get; set; }
         public string ToPhysicalAddress { get; set; }
     }
-    public class MessageRedirectCreated : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class MessageRedirectCreated : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public MessageRedirectCreated() { }
         public string FromPhysicalAddress { get; set; }
         public System.Guid MessageRedirectId { get; set; }
         public string ToPhysicalAddress { get; set; }
     }
-    public class MessageRedirectRemoved
+    public class MessageRedirectRemoved : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public MessageRedirectRemoved() { }
         public string FromPhysicalAddress { get; set; }
@@ -428,13 +268,6 @@ namespace ServiceControl.Contracts.Operations
     {
         public DefaultEnrichers() { }
         protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
-    public class EndpointDetails
-    {
-        public EndpointDetails() { }
-        public string Host { get; set; }
-        public System.Guid HostId { get; set; }
-        public string Name { get; set; }
     }
     public class EndpointHeartbeatReceived
     {
@@ -490,7 +323,7 @@ namespace ServiceControl.CustomChecks
         [System.Web.Http.Route("customchecks/{id}")]
         public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Delete(System.Guid id) { }
     }
-    public class CustomCheckDeleted
+    public class CustomCheckDeleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public CustomCheckDeleted() { }
         public System.Guid Id { get; set; }
@@ -499,7 +332,7 @@ namespace ServiceControl.CustomChecks
     {
         public CustomChecksIndex() { }
     }
-    public class CustomChecksUpdated : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class CustomChecksUpdated : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public CustomChecksUpdated() { }
         public int Failed { get; set; }
@@ -509,21 +342,6 @@ namespace ServiceControl.CustomChecks
     {
         Fail = 0,
         Pass = 1,
-    }
-}
-namespace ServiceControl.EndpointControl.Contracts
-{
-    public class MonitoringDisabledForEndpoint
-    {
-        public MonitoringDisabledForEndpoint() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
-        public System.Guid EndpointInstanceId { get; set; }
-    }
-    public class MonitoringEnabledForEndpoint
-    {
-        public MonitoringEnabledForEndpoint() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
-        public System.Guid EndpointInstanceId { get; set; }
     }
 }
 namespace ServiceControl.EventLog
@@ -561,14 +379,6 @@ namespace ServiceControl.ExternalIntegrations
         public override System.Threading.Tasks.Task Invoke(NServiceBus.Pipeline.IOutgoingPhysicalMessageContext context, System.Func<System.Threading.Tasks.Task> next) { }
     }
 }
-namespace ServiceControl.HeartbeatMonitoring
-{
-    public enum Status
-    {
-        Beating = 0,
-        Dead = 1,
-    }
-}
 namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     [System.ComponentModel.Composition.ExportMetadata("Bundle", "customDocumentExpiration")]
@@ -600,7 +410,6 @@ namespace ServiceControl.Infrastructure.SignalR
         public object Message { get; set; }
         public System.Collections.Generic.List<string> Types { get; set; }
     }
-    public interface IUserInterfaceEvent { }
 }
 namespace ServiceControl.Infrastructure.WebApi
 {
@@ -672,6 +481,11 @@ namespace ServiceControl.MessageAuditing
 }
 namespace ServiceControl.MessageFailures.Api
 {
+    public class ApisModule : Autofac.Module
+    {
+        public ApisModule() { }
+        protected override void Load(Autofac.ContainerBuilder builder) { }
+    }
     public class ArchiveMessagesController : System.Web.Http.ApiController
     {
         public ArchiveMessagesController(NServiceBus.IMessageSession session, Raven.Client.IDocumentStore store) { }
@@ -904,7 +718,7 @@ namespace ServiceControl.MessageFailures
 }
 namespace ServiceControl.MessageFailures.InternalMessages
 {
-    public class ReclassificationOfErrorMessageComplete
+    public class ReclassificationOfErrorMessageComplete : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public ReclassificationOfErrorMessageComplete() { }
         public int NumberofMessageReclassified { get; set; }
@@ -936,77 +750,6 @@ namespace ServiceControl.MessageRedirects.Api
             public bool retryexisting { get; set; }
             public string tophysicaladdress { get; set; }
         }
-    }
-}
-namespace ServiceControl.Monitoring
-{
-    public class EndpointInstanceId : System.IEquatable<ServiceControl.Monitoring.EndpointInstanceId>
-    {
-        public readonly System.Guid HostGuid;
-        public readonly string HostName;
-        public readonly string LogicalName;
-        public EndpointInstanceId(string logicalName, string hostName, System.Guid hostGuid) { }
-        public System.Guid UniqueId { get; }
-        public bool Equals(ServiceControl.Monitoring.EndpointInstanceId other) { }
-        public override bool Equals(object obj) { }
-        public override int GetHashCode() { }
-    }
-    public class EndpointMonitoringStats
-    {
-        public EndpointMonitoringStats() { }
-        public int Active { get; }
-        public int Failing { get; }
-        public void RecordActive() { }
-        public void RecordFailing() { }
-    }
-    public class EndpointUpdateModel
-    {
-        public EndpointUpdateModel() { }
-        public bool MonitorHeartbeat { get; set; }
-    }
-    public class EndpointsMonitoringController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpDelete]
-        [System.Web.Http.Route("endpoints/{endpointId}")]
-        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> DeleteEndpoint(System.Guid endpointId) { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("endpoints")]
-        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.CompositeViews.Endpoints.EndpointsView[]> Endpoints() { }
-        [System.Web.Http.HttpPatch]
-        [System.Web.Http.Route("endpoints/{endpointId}")]
-        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Foo(System.Guid endpointId, ServiceControl.Monitoring.EndpointUpdateModel data) { }
-        [System.Web.Http.HttpOptions]
-        [System.Web.Http.Route("endpoints")]
-        public System.Net.Http.HttpResponseMessage GetSupportedOperations() { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("heartbeats/stats")]
-        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.Monitoring.EndpointMonitoringStats> HeartbeatStats() { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("endpoints/known")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> KnownEndpoints() { }
-    }
-    public enum HeartbeatStatus
-    {
-        Unknown = 0,
-        Alive = 1,
-        Dead = 2,
-    }
-    public class KnownEndpoint
-    {
-        public const string CollectionName = "KnownEndpoints";
-        public KnownEndpoint() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public bool HasTemporaryId { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
-        public bool Monitored { get; set; }
-    }
-    public class KnownEndpointsView
-    {
-        public KnownEndpointsView() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
     }
 }
 namespace ServiceControl.Notifications.Api
@@ -1183,7 +926,7 @@ namespace ServiceControl.Recoverability.API
 }
 namespace ServiceControl.Recoverability
 {
-    public class ArchiveOperationBatchCompleted : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class ArchiveOperationBatchCompleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public ArchiveOperationBatchCompleted() { }
         public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
@@ -1192,7 +935,7 @@ namespace ServiceControl.Recoverability
         public string RequestId { get; set; }
         public System.DateTime StartTime { get; set; }
     }
-    public class ArchiveOperationCompleted : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class ArchiveOperationCompleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public ArchiveOperationCompleted() { }
         public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
@@ -1203,7 +946,7 @@ namespace ServiceControl.Recoverability
         public string RequestId { get; set; }
         public System.DateTime StartTime { get; set; }
     }
-    public class ArchiveOperationFinalizing : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class ArchiveOperationFinalizing : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public ArchiveOperationFinalizing() { }
         public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
@@ -1212,7 +955,7 @@ namespace ServiceControl.Recoverability
         public string RequestId { get; set; }
         public System.DateTime StartTime { get; set; }
     }
-    public class ArchiveOperationStarting : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class ArchiveOperationStarting : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public ArchiveOperationStarting() { }
         public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
@@ -1292,24 +1035,24 @@ namespace ServiceControl.Recoverability
         public FailedMessageClassification() { }
         protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
     }
-    public class FailedMessageGroupArchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class FailedMessageGroupArchived : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public FailedMessageGroupArchived() { }
         public string GroupId { get; set; }
         public string GroupName { get; set; }
         public int MessagesCount { get; set; }
     }
-    public class FailedMessageGroupBatchArchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class FailedMessageGroupBatchArchived : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public FailedMessageGroupBatchArchived() { }
         public string[] FailedMessagesIds { get; set; }
     }
-    public class FailedMessageGroupBatchUnarchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class FailedMessageGroupBatchUnarchived : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public FailedMessageGroupBatchUnarchived() { }
         public string[] FailedMessagesIds { get; set; }
     }
-    public class FailedMessageGroupUnarchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class FailedMessageGroupUnarchived : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public FailedMessageGroupUnarchived() { }
         public string GroupId { get; set; }
@@ -1395,7 +1138,7 @@ namespace ServiceControl.Recoverability
         string Name { get; }
         string ClassifyFailure(ServiceControl.Recoverability.ClassifiableMessageDetails failureDetails);
     }
-    public class MessageFailedInStaging
+    public class MessageFailedInStaging : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public MessageFailedInStaging() { }
         public string UniqueMessageId { get; set; }
@@ -1407,14 +1150,14 @@ namespace ServiceControl.Recoverability
         public string Name { get; }
         public string ClassifyFailure(ServiceControl.Recoverability.ClassifiableMessageDetails failureDetails) { }
     }
-    public class MessagesSubmittedForRetry
+    public class MessagesSubmittedForRetry : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public MessagesSubmittedForRetry() { }
         public string Context { get; set; }
         public string[] FailedMessageIds { get; set; }
         public int NumberOfFailedMessages { get; set; }
     }
-    public class MessagesSubmittedForRetryFailed
+    public class MessagesSubmittedForRetryFailed : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         public MessagesSubmittedForRetryFailed() { }
         public string Destination { get; set; }
@@ -1517,7 +1260,7 @@ namespace ServiceControl.Recoverability
         public string QueueAddress { get; set; }
         public ServiceControl.MessageFailures.FailedMessageStatus Status { get; set; }
     }
-    public class RetryMessagesForwarded : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class RetryMessagesForwarded : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public RetryMessagesForwarded() { }
         public bool IsFailed { get; set; }
@@ -1527,7 +1270,7 @@ namespace ServiceControl.Recoverability
         public System.DateTime StartTime { get; set; }
         public int TotalNumberOfMessages { get; set; }
     }
-    public class RetryOperationCompleted : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class RetryOperationCompleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public RetryOperationCompleted() { }
         public string Classifier { get; set; }
@@ -1541,7 +1284,7 @@ namespace ServiceControl.Recoverability
         public ServiceControl.Recoverability.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
     }
-    public class RetryOperationForwarding : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class RetryOperationForwarding : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public RetryOperationForwarding() { }
         public bool IsFailed { get; set; }
@@ -1551,7 +1294,7 @@ namespace ServiceControl.Recoverability
         public System.DateTime StartTime { get; set; }
         public int TotalNumberOfMessages { get; set; }
     }
-    public class RetryOperationPreparing : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class RetryOperationPreparing : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public RetryOperationPreparing() { }
         public bool IsFailed { get; set; }
@@ -1561,7 +1304,7 @@ namespace ServiceControl.Recoverability
         public System.DateTime StartTime { get; set; }
         public int TotalNumberOfMessages { get; set; }
     }
-    public class RetryOperationWaiting : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class RetryOperationWaiting : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public RetryOperationWaiting() { }
         public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
@@ -1618,7 +1361,7 @@ namespace ServiceControl.Recoverability
         public ServiceControl.Recoverability.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
     }
-    public class UnarchiveOperationBatchCompleted : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class UnarchiveOperationBatchCompleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public UnarchiveOperationBatchCompleted() { }
         public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
@@ -1627,7 +1370,7 @@ namespace ServiceControl.Recoverability
         public string RequestId { get; set; }
         public System.DateTime StartTime { get; set; }
     }
-    public class UnarchiveOperationCompleted : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class UnarchiveOperationCompleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public UnarchiveOperationCompleted() { }
         public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
@@ -1638,7 +1381,7 @@ namespace ServiceControl.Recoverability
         public string RequestId { get; set; }
         public System.DateTime StartTime { get; set; }
     }
-    public class UnarchiveOperationFinalizing : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class UnarchiveOperationFinalizing : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public UnarchiveOperationFinalizing() { }
         public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
@@ -1647,7 +1390,7 @@ namespace ServiceControl.Recoverability
         public string RequestId { get; set; }
         public System.DateTime StartTime { get; set; }
     }
-    public class UnarchiveOperationStarting : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    public class UnarchiveOperationStarting : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public UnarchiveOperationStarting() { }
         public ServiceControl.Recoverability.ArchiveType ArchiveType { get; set; }
@@ -1666,7 +1409,7 @@ namespace ServiceControl.Recoverability
 }
 namespace ServiceControl.Recoverability.Retrying
 {
-    public class StoreHistoryHandler
+    public class StoreHistoryHandler : ServiceControl.Infrastructure.DomainEvents.IDomainHandler<ServiceControl.Recoverability.RetryOperationCompleted>
     {
         public StoreHistoryHandler(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
         public System.Threading.Tasks.Task Handle(ServiceControl.Recoverability.RetryOperationCompleted message) { }
