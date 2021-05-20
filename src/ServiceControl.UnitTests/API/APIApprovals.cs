@@ -7,6 +7,7 @@
     using System.Web.Http.Controllers;
     using System.Web.Http.Hosting;
     using System.Web.Http.Routing;
+    using CustomChecks;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -58,6 +59,16 @@
         public void PublicClrRecoverability()
         {
             var publicApi = typeof(IEnrichImportedErrorMessages).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrCustomChecks()
+        {
+            var publicApi = typeof(CustomChecksFeature).Assembly.GeneratePublicApi(new ApiGeneratorOptions
             {
                 ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
             });

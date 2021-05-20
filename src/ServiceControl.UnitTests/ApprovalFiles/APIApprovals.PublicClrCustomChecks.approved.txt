@@ -1,0 +1,81 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+namespace ServiceControl.Contracts.CustomChecks
+{
+    public class CustomCheckFailed : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public CustomCheckFailed() { }
+        public string Category { get; set; }
+        public string CustomCheckId { get; set; }
+        public System.DateTime FailedAt { get; set; }
+        public string FailureReason { get; set; }
+        public System.Guid Id { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
+    }
+    public class CustomCheckSucceeded : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public CustomCheckSucceeded() { }
+        public string Category { get; set; }
+        public string CustomCheckId { get; set; }
+        public System.Guid Id { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
+        public System.DateTime SucceededAt { get; set; }
+    }
+}
+namespace ServiceControl.CustomChecks
+{
+    public class CustomCheck
+    {
+        public CustomCheck() { }
+        public string Category { get; set; }
+        public string CustomCheckId { get; set; }
+        public string FailureReason { get; set; }
+        public System.Guid Id { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
+        public System.DateTime ReportedAt { get; set; }
+        public ServiceControl.CustomChecks.Status Status { get; set; }
+    }
+    public class CustomCheckController : System.Web.Http.ApiController
+    {
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("customchecks")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CustomChecks(string status = null) { }
+        [System.Web.Http.HttpDelete]
+        [System.Web.Http.Route("customchecks/{id}")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.StatusCodeResult> Delete(System.Guid id) { }
+    }
+    public class CustomCheckDeleted : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public CustomCheckDeleted() { }
+        public System.Guid Id { get; set; }
+    }
+    public class CustomChecksApisModule : Autofac.Module
+    {
+        public CustomChecksApisModule() { }
+        protected override void Load(Autofac.ContainerBuilder builder) { }
+    }
+    public class CustomChecksFeature : NServiceBus.Features.Feature
+    {
+        public CustomChecksFeature() { }
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+    public class CustomChecksIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.CustomChecks.CustomCheck>
+    {
+        public CustomChecksIndex() { }
+    }
+    public class CustomChecksUpdated : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public CustomChecksUpdated() { }
+        public int Failed { get; set; }
+        public System.DateTime RaisedAt { get; set; }
+    }
+    public class InternalCustomChecks : NServiceBus.Features.Feature
+    {
+        public InternalCustomChecks() { }
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+    public enum Status
+    {
+        Fail = 0,
+        Pass = 1,
+    }
+}

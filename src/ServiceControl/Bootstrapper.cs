@@ -30,6 +30,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
@@ -81,7 +82,6 @@ namespace Particular.ServiceControl
             var containerBuilder = new ContainerBuilder();
 
             containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(KnownEndpoint).Assembly && type.GetInterfaces().Any() == false));
 
             var domainEvents = new DomainEvents();
             containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
@@ -107,7 +107,6 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
             containerBuilder.RegisterModule<ApisModule>();
-            containerBuilder.RegisterModule<HeartbeatsApisModule>();
             containerBuilder.Register(c => bus.Bus);
 
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
@@ -115,12 +114,25 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterType<ErrorIngestionComponent>().SingleInstance();
 
             RegisterAssemblyInternalWebApiControllers(containerBuilder, Assembly.GetExecutingAssembly());
-            RegisterAssemblyInternalWebApiControllers(containerBuilder, typeof(KnownEndpoint).Assembly);
+
+            settings.Components.ForEach(ci =>
+            {
+                containerBuilder.RegisterModule(ci.ApiModule);
+                containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == ci.Assembly && type.GetInterfaces().Any() == false));
+
+                RegisterAssemblyInternalWebApiControllers(containerBuilder, ci.Assembly);
+            });
 
             additionalRegistrationActions?.Invoke(containerBuilder);
 
             container = containerBuilder.Build();
-            Startup = new Startup(container, new List<Assembly> { Assembly.GetExecutingAssembly(), typeof(KnownEndpoint).Assembly });
+
+            var apiAssemblies = new List<Assembly>(settings.Components.Select(ci => ci.Assembly))
+            {
+                Assembly.GetExecutingAssembly()
+            };
+
+            Startup = new Startup(container, apiAssemblies);
 
             domainEvents.SetContainer(container);
         }

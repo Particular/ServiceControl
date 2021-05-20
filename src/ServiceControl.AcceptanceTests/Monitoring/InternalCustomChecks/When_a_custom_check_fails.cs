@@ -10,6 +10,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
+    using Particular.ServiceControl;
     using ServiceControl.CustomChecks;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
@@ -32,8 +33,9 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var allServiceControlTypes = typeof(InternalCustomChecks).Assembly.GetTypes();
-            var allTypesExcludingBuiltInCustomChecks = allServiceControlTypes.Where(t => !t.GetInterfaces().Contains(typeof(ICustomCheck)));
+            var allServiceControlAndInternalCustomChecksTypes = typeof(InternalCustomChecks).Assembly.GetTypes()
+                .Union(typeof(Bootstrapper).Assembly.GetTypes()).ToArray();
+            var allTypesExcludingBuiltInCustomChecks = allServiceControlAndInternalCustomChecksTypes.Where(t => !t.GetInterfaces().Contains(typeof(ICustomCheck)));
             var customChecksUnderTest = new[] { typeof(FailingCustomCheck) };
 
             CustomConfiguration = config =>

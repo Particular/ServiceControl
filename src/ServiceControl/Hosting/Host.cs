@@ -22,7 +22,8 @@
 
             var settings = new Settings(ServiceName)
             {
-                RunCleanupBundle = true
+                RunCleanupBundle = true,
+                Components = Components.All
             };
             bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
             bootstrapper.Start().GetAwaiter().GetResult();

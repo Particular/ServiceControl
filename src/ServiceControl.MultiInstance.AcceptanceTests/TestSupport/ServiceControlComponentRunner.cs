@@ -23,6 +23,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.ServiceControl;
+    using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
 
@@ -106,6 +107,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                         ApiUri = $"http://localhost:{auditInstanceApiPort}/api" // evil assumption for now
                     }
                 },
+                Components = Components.All,
                 OnMessage = (id, headers, body, @continue) =>
                 {
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();

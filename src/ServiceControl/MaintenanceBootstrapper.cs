@@ -1,11 +1,9 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using System.Threading;
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using Hosting;
-    using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -13,7 +11,11 @@ namespace Particular.ServiceControl
     {
         public static async Task Run(HostArguments args)
         {
-            var settings = new Settings(args.ServiceName);
+            var settings = new Settings(args.ServiceName)
+            {
+                Components = Components.All
+            };
+
             using (var documentStore = new EmbeddableDocumentStore())
             {
                 new RavenBootstrapper().StartRaven(documentStore, settings, true);

@@ -10,7 +10,8 @@
         {
             await new SetupBootstrapper(new Settings(args.ServiceName)
             {
-                SkipQueueCreation = args.SkipQueueCreation
+                SkipQueueCreation = args.SkipQueueCreation,
+                Components = Components.All
             }).Run(args.Username)
                 .ConfigureAwait(false);
         }

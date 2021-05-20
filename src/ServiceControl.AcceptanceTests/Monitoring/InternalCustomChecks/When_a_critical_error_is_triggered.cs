@@ -13,14 +13,16 @@
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Operations;
+    using Particular.ServiceControl;
     using ServiceControl.CustomChecks;
 
     [TestFixture]
     [RunOnAllTransports]
     class When_a_critical_error_is_triggered : AcceptanceTest
     {
-        static Type[] allServiceControlTypes = typeof(InternalCustomChecks).Assembly.GetTypes();
-        static IEnumerable<Type> allTypesExcludingBuiltInCustomChecks = allServiceControlTypes.Where(t => !t.GetInterfaces().Contains(typeof(ICustomCheck)));
+        static Type[] allServiceControlAndInternalCustomChecksTypes = typeof(InternalCustomChecks).Assembly.GetTypes()
+            .Union(typeof(Bootstrapper).Assembly.GetTypes()).ToArray();
+        static IEnumerable<Type> allTypesExcludingBuiltInCustomChecks = allServiceControlAndInternalCustomChecksTypes.Where(t => !t.GetInterfaces().Contains(typeof(ICustomCheck)));
         static Type[] customChecksUnderTest = { typeof(CriticalErrorCustomCheck) };
         static IEnumerable<Type> typesToScan = allTypesExcludingBuiltInCustomChecks.Concat(customChecksUnderTest);
 

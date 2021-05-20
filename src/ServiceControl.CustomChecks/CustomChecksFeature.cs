@@ -6,7 +6,7 @@
     using NServiceBus.Features;
     using Raven.Client;
 
-    class CustomChecksFeature : Feature
+    public class CustomChecksFeature : Feature
     {
         public CustomChecksFeature()
         {

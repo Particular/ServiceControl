@@ -200,6 +200,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
+        public ComponentInfo[] Components { get; set; }
+
         public TransportCustomization LoadTransportCustomization()
         {
             try
