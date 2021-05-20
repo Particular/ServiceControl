@@ -219,27 +219,6 @@ namespace ServiceControl.Infrastructure.Extensions
                 .Take(maxResultsPerPage);
         }
 
-        public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request)
-        {
-            var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
-            if (maxResultsPerPage < 1)
-            {
-                maxResultsPerPage = 50;
-            }
-
-            var page = request.GetQueryStringValue("page", 1);
-
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            var skipResults = (page - 1) * maxResultsPerPage;
-
-            return source.Skip(skipResults)
-                .Take(maxResultsPerPage);
-        }
-
         public static IRavenQueryable<TSource> Sort<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request,
             Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
             where TSource : MessagesViewIndex.SortAndFilterOptions

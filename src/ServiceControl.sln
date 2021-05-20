@@ -98,11 +98,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LicenseManag
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructure.Metrics", "ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj", "{56422C80-6A26-46B4-AF5C-84AF08BAB1D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Heartbeats", "ServiceControl.Heartbeats\ServiceControl.Heartbeats.csproj", "{AFCA92C2-BA03-4B08-BE3F-E68E6037BC36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Heartbeats", "ServiceControl.Heartbeats\ServiceControl.Heartbeats.csproj", "{AFCA92C2-BA03-4B08-BE3F-E68E6037BC36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Hosting", "ServiceControl.Hosting\ServiceControl.Hosting.csproj", "{48BED869-EFA1-4468-B869-588D77406C45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Hosting", "ServiceControl.Hosting\ServiceControl.Hosting.csproj", "{48BED869-EFA1-4468-B869-588D77406C45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Recoverability", "ServiceControl.Recoverability\ServiceControl.Recoverability.csproj", "{382ACF41-2651-4D0D-B46B-8620DF9B77B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Recoverability", "ServiceControl.Recoverability\ServiceControl.Recoverability.csproj", "{382ACF41-2651-4D0D-B46B-8620DF9B77B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.CustomChecks", "ServiceControl.CustomChecks\ServiceControl.CustomChecks.csproj", "{F79B7211-D0B1-428F-8AF0-C0C05382D7DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -278,6 +280,10 @@ Global
 		{382ACF41-2651-4D0D-B46B-8620DF9B77B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{382ACF41-2651-4D0D-B46B-8620DF9B77B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{382ACF41-2651-4D0D-B46B-8620DF9B77B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F79B7211-D0B1-428F-8AF0-C0C05382D7DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F79B7211-D0B1-428F-8AF0-C0C05382D7DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F79B7211-D0B1-428F-8AF0-C0C05382D7DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F79B7211-D0B1-428F-8AF0-C0C05382D7DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

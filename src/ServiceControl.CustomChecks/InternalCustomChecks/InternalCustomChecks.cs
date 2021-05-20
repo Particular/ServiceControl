@@ -6,7 +6,7 @@
     using NServiceBus.Features;
     using NServiceBus.Hosting;
 
-    class InternalCustomChecks : Feature
+    public class InternalCustomChecks : Feature
     {
         protected override void Setup(FeatureConfigurationContext context)
         {

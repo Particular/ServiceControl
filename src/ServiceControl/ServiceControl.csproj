@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.CustomChecks\ServiceControl.CustomChecks.csproj" />
     <ProjectReference Include="..\ServiceControl.Heartbeats\ServiceControl.Heartbeats.csproj" />
     <ProjectReference Include="..\ServiceControl.Hosting\ServiceControl.Hosting.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
