@@ -16,7 +16,6 @@
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
     <ProjectReference Include="..\ServiceControl.Recoverability\ServiceControl.Recoverability.csproj" />
     <ProjectReference Include="..\ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
