@@ -5,7 +5,6 @@
     using System.Diagnostics;
     using System.Threading.Tasks;
     using BodyStorage;
-    using Contracts.Operations;
     using Infrastructure;
     using Infrastructure.Metrics;
     using MessageFailures;
@@ -33,12 +32,6 @@
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
-                                    }}");
-
-            KnownEndpointMetadata = RavenJObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{KnownEndpoint.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(KnownEndpoint).AssemblyQualifiedName}""
                                     }}");
         }
 
@@ -74,7 +67,6 @@
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 var commands = new List<ICommandData>(contexts.Count);
-                var knownEndpoints = new Dictionary<string, KnownEndpoint>();
                 foreach (var context in contexts)
                 {
                     if (!context.Extensions.TryGet<ICommandData>(out var command))
@@ -85,21 +77,6 @@
                     commands.Add(command);
                     storedContexts.Add(context);
                     ingestedCounter.Mark();
-
-                    foreach (var endpointDetail in context.Extensions.Get<IEnumerable<EndpointDetails>>())
-                    {
-                        RecordKnownEndpoints(endpointDetail, knownEndpoints);
-                    }
-                }
-
-                foreach (var endpoint in knownEndpoints.Values)
-                {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
-                    }
-
-                    commands.Add(CreateKnownEndpointsPutCommand(endpoint));
                 }
 
                 using (bulkInsertDurationMeter.Measure())
@@ -130,15 +107,6 @@
 
             return storedContexts;
         }
-
-        static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) =>
-            new PutCommandData
-            {
-                Document = RavenJObject.FromObject(endpoint),
-                Etag = null,
-                Key = endpoint.Id.ToString(),
-                Metadata = KnownEndpointMetadata
-            };
 
         async Task ProcessMessage(MessageContext context)
         {
@@ -184,7 +152,6 @@
 
                 context.Extensions.Set(patchCommand);
                 context.Extensions.Set(failureDetails);
-                context.Extensions.Set(enricherContext.NewEndpoints);
             }
             catch (Exception e)
             {
@@ -246,21 +213,6 @@
             };
         }
 
-        static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints)
-        {
-            var uniqueEndpointId = $"{observedEndpoint.Name}{observedEndpoint.HostId}";
-            if (!observedEndpoints.TryGetValue(uniqueEndpointId, out KnownEndpoint _))
-            {
-                observedEndpoints.Add(uniqueEndpointId, new KnownEndpoint
-                {
-                    Id = DeterministicGuid.MakeId(observedEndpoint.Name, observedEndpoint.HostId.ToString()),
-                    EndpointDetails = observedEndpoint,
-                    HostDisplayName = observedEndpoint.Host,
-                    Monitored = false
-                });
-            }
-        }
-
         IEnrichImportedErrorMessages[] enrichers;
         readonly Counter ingestedCounter;
         readonly Meter bulkInsertDurationMeter;
@@ -268,7 +220,6 @@
         FailedMessageFactory failedMessageFactory;
         IDocumentStore store;
         static RavenJObject FailedMessageMetadata;
-        static RavenJObject KnownEndpointMetadata;
         static JsonSerializer Serializer;
         static ILog Logger = LogManager.GetLogger<ErrorPersister>();
     }

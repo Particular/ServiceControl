@@ -1,15 +1,13 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
-    using System;
-    using Monitoring;
     using NServiceBus;
     using NServiceBus.Features;
     using Operations;
     using ServiceControl.Contracts.Operations;
 
-    public class DetectNewEndpointsFromErrors : Feature
+    public class ExtractSenderAndReceiverDetailsFromErrors : Feature
     {
-        public DetectNewEndpointsFromErrors()
+        public ExtractSenderAndReceiverDetailsFromErrors()
         {
             EnableByDefault();
         }
@@ -21,11 +19,6 @@
 
         class DetectNewEndpointsFromErrorImportsEnricher : IEnrichImportedErrorMessages
         {
-            public DetectNewEndpointsFromErrorImportsEnricher(EndpointInstanceMonitoring monitoring)
-            {
-                this.monitoring = monitoring;
-            }
-
             public void Enrich(ErrorEnricherContext context)
             {
                 var sendingEndpoint = EndpointDetailsParser.SendingEndpoint(context.Headers);
@@ -34,7 +27,6 @@
                 // have the relevant information via the headers, which were added in v4.
                 if (sendingEndpoint != null)
                 {
-                    TryAddEndpoint(sendingEndpoint, context);
                     context.Metadata.Add("SendingEndpoint", sendingEndpoint);
                 }
 
@@ -44,25 +36,8 @@
                 if (receivingEndpoint != null)
                 {
                     context.Metadata.Add("ReceivingEndpoint", receivingEndpoint);
-                    TryAddEndpoint(receivingEndpoint, context);
                 }
             }
-
-            void TryAddEndpoint(EndpointDetails endpointDetails, ErrorEnricherContext context)
-            {
-                // for backwards compat with version before 4_5 we might not have a hostid
-                if (endpointDetails.HostId == Guid.Empty)
-                {
-                    return;
-                }
-
-                if (monitoring.IsNewInstance(endpointDetails))
-                {
-                    context.Add(endpointDetails);
-                }
-            }
-
-            EndpointInstanceMonitoring monitoring;
         }
     }
 }

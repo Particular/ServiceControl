@@ -1,6 +1,6 @@
 namespace ServiceControl.Operations
 {
-    public interface IEnrichImportedErrorMessages
+    interface IEnrichImportedErrorMessages
     {
         void Enrich(ErrorEnricherContext context);
     }

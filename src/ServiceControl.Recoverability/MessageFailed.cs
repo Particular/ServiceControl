@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
+    using System.Collections.Generic;
     using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
     using NServiceBus;
@@ -11,5 +12,7 @@
         public FailureDetails FailureDetails { get; set; }
         public string FailedMessageId { get; set; }
         public bool RepeatedFailure { get; set; }
+        public EndpointDetails SendingEndpoint { get; set; }
+        public EndpointDetails ReceivingEndpoint { get; set; }
     }
 }

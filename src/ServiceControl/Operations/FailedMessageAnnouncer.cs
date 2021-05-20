@@ -24,7 +24,9 @@
                     FailureDetails = failureDetails,
                     EndpointId = failingEndpointId,
                     FailedMessageId = failedMessageId,
-                    RepeatedFailure = true
+                    RepeatedFailure = true,
+                    SendingEndpoint = EndpointDetailsParser.SendingEndpoint(headers),
+                    ReceivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(headers)
                 });
             }
 
@@ -32,7 +34,9 @@
             {
                 FailureDetails = failureDetails,
                 EndpointId = failingEndpointId,
-                FailedMessageId = headers.UniqueId()
+                FailedMessageId = headers.UniqueId(),
+                SendingEndpoint = EndpointDetailsParser.SendingEndpoint(headers),
+                ReceivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(headers)
             });
         }
 

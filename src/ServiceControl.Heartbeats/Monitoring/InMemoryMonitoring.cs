@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Heartbeats.Monitoring;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
@@ -25,6 +26,8 @@
                 instances.GracePeriod = settings.HeartbeatGracePeriod;
                 return instances;
             });
+
+            context.Container.ConfigureComponent<MessageFailedHandler>(DependencyLifecycle.SingleInstance);
         }
 
         static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
