@@ -25,7 +25,7 @@ namespace Particular.ServiceControl.Hosting
 {
     public static class Components
     {
-        public static readonly ServiceBus.Management.Infrastructure.Settings.ComponentInfo[] All;
+        public static readonly ServiceControl.Hosting.ServiceControlComponent[] All;
     }
 }
 namespace ServiceBus.Management.Infrastructure.Installers

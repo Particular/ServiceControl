@@ -105,7 +105,7 @@
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
             IndexCreation.CreateIndexes(typeof(SagaAudit.SagaSnapshot).Assembly, documentStore);
 
-            settings.Components.ForEach(c => IndexCreation.CreateIndexes(c.Assembly, documentStore));
+            settings.Components.ForEach(c => IndexCreation.CreateIndexes(c.GetAssembly(), documentStore));
 
             if (!maintenanceMode)
             {

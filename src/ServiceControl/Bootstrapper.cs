@@ -117,17 +117,18 @@ namespace Particular.ServiceControl
 
             settings.Components.ForEach(ci =>
             {
-                containerBuilder.RegisterModule(new ApisModule(ci.Assembly));
-                containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == ci.Assembly && type.GetInterfaces().Any() == false));
+                var componentAssembly = ci.GetAssembly();
+                containerBuilder.RegisterModule(new ApisModule(componentAssembly));
+                containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == componentAssembly && type.GetInterfaces().Any() == false));
 
-                RegisterAssemblyInternalWebApiControllers(containerBuilder, ci.Assembly);
+                RegisterAssemblyInternalWebApiControllers(containerBuilder, componentAssembly);
             });
 
             additionalRegistrationActions?.Invoke(containerBuilder);
 
             container = containerBuilder.Build();
 
-            var apiAssemblies = new List<Assembly>(settings.Components.Select(ci => ci.Assembly))
+            var apiAssemblies = new List<Assembly>(settings.Components.Select(ci => ci.GetAssembly()))
             {
                 Assembly.GetExecutingAssembly()
             };

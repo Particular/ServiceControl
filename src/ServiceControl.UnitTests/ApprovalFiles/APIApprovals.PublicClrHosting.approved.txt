@@ -1,11 +1,6 @@
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
 namespace ServiceBus.Management.Infrastructure.Settings
 {
-    public class ComponentInfo
-    {
-        public ComponentInfo(System.Reflection.Assembly assembly) { }
-        public System.Reflection.Assembly Assembly { get; }
-    }
     public static class ConfigFileSettingsReader<T>
     {
         public static T Read(string name, T defaultValue = default) { }
@@ -27,7 +22,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool AllowMessageEditing { get; set; }
         public string ApiUrl { get; }
         public System.TimeSpan? AuditRetentionPeriod { get; }
-        public ServiceBus.Management.Infrastructure.Settings.ComponentInfo[] Components { get; set; }
+        public ServiceControl.Hosting.ServiceControlComponent[] Components { get; set; }
         public int DataSpaceRemainingThreshold { get; set; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
@@ -141,6 +136,14 @@ namespace ServiceControl.Contracts.Operations
         public string Host { get; set; }
         public System.Guid HostId { get; set; }
         public string Name { get; set; }
+    }
+}
+namespace ServiceControl.Hosting
+{
+    public abstract class ServiceControlComponent
+    {
+        protected ServiceControlComponent() { }
+        public System.Reflection.Assembly GetAssembly() { }
     }
 }
 namespace ServiceControl.Infrastructure

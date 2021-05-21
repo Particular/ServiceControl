@@ -11,6 +11,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using NLog.Common;
     using NServiceBus.Logging;
     using Raven.Client;
+    using ServiceControl.Hosting;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Transports;
 
@@ -200,7 +201,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
-        public ComponentInfo[] Components { get; set; }
+        public ServiceControlComponent[] Components { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {

@@ -16,6 +16,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CustomChecks;
+    using Heartbeats;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -275,8 +276,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var excludedAssemblies = new[]
             {
                 Path.GetFileName(typeof(RetryingFeature).Assembly.CodeBase),
-                Path.GetFileName(typeof(InMemoryMonitoring).Assembly.CodeBase),
-                Path.GetFileName(typeof(CustomChecksFeature).Assembly.CodeBase),
+                Path.GetFileName(new HeartbeatsServiceControlComponent().GetAssembly().CodeBase),
+                Path.GetFileName(new CustomChecksServiceControlComponent().GetAssembly().CodeBase),
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
             scanner.ExcludeAssemblies(excludedAssemblies);

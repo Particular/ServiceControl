@@ -118,6 +118,13 @@ namespace ServiceControl.HeartbeatMonitoring
         Dead = 1,
     }
 }
+namespace ServiceControl.Heartbeats
+{
+    public class HeartbeatsServiceControlComponent : ServiceControl.Hosting.ServiceControlComponent
+    {
+        public HeartbeatsServiceControlComponent() { }
+    }
+}
 namespace ServiceControl.Monitoring
 {
     public class EndpointInstanceId : System.IEquatable<ServiceControl.Monitoring.EndpointInstanceId>

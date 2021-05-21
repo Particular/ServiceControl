@@ -57,6 +57,10 @@ namespace ServiceControl.CustomChecks
     {
         public CustomChecksIndex() { }
     }
+    public class CustomChecksServiceControlComponent : ServiceControl.Hosting.ServiceControlComponent
+    {
+        public CustomChecksServiceControlComponent() { }
+    }
     public class CustomChecksUpdated : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public CustomChecksUpdated() { }
