@@ -12,7 +12,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
             this.customServiceControlSettings = customServiceControlSettings;
@@ -39,6 +39,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         ServiceControlComponentRunner runner;
         Action<Settings> customServiceControlSettings;
-        Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
     }
 }

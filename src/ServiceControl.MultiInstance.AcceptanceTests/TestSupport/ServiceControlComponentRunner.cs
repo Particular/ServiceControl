@@ -32,7 +32,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {
             this.customServiceControlSettings = customServiceControlSettings;
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
@@ -149,7 +149,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var scanner = configuration.AssemblyScanner();
             var excludedAssemblies = new[]
             {
-                Path.GetFileName(typeof(ServiceControl.Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
+                Path.GetFileName(typeof(Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
             scanner.ExcludeAssemblies(excludedAssemblies);
@@ -224,7 +224,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
-            var settings = new ServiceControl.Audit.Infrastructure.Settings.Settings(instanceName)
+            var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
@@ -301,14 +301,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customAuditEndpointConfiguration(configuration);
 
-            ServiceControl.Audit.Infrastructure.Bootstrapper bootstrapper;
+            Audit.Infrastructure.Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new ServiceControl.Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new ServiceControl.Audit.Infrastructure.Bootstrapper(ctx =>
+                var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
+                bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -344,7 +344,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new ServiceControl.Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
                     .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
@@ -431,7 +431,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
-        Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
 
         class ForwardingHandler : DelegatingHandler
