@@ -1,25 +1,32 @@
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
-namespace ServiceControl.Contracts.Operations
+namespace ServiceControl.Contracts.MessageFailures
 {
-    public class EndpointDetailsParser
+    public class MessageFailed : NServiceBus.IMessage, ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
-        public EndpointDetailsParser() { }
-        public static ServiceControl.Contracts.Operations.EndpointDetails ReceivingEndpoint(System.Collections.Generic.IReadOnlyDictionary<string, string> headers) { }
-        public static ServiceControl.Contracts.Operations.EndpointDetails SendingEndpoint(System.Collections.Generic.IReadOnlyDictionary<string, string> headers) { }
+        public MessageFailed() { }
+        public string EndpointId { get; set; }
+        public string FailedMessageId { get; set; }
+        public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails ReceivingEndpoint { get; set; }
+        public bool RepeatedFailure { get; set; }
+        public ServiceControl.Contracts.Operations.EndpointDetails SendingEndpoint { get; set; }
     }
 }
-namespace ServiceControl.Operations
+namespace ServiceControl.Contracts.Operations
 {
-    public class ErrorEnricherContext
+    public class ExceptionDetails
     {
-        public ErrorEnricherContext(System.Collections.Generic.IReadOnlyDictionary<string, string> headers, System.Collections.Generic.IDictionary<string, object> metadata) { }
-        public System.Collections.Generic.IReadOnlyDictionary<string, string> Headers { get; }
-        public System.Collections.Generic.IDictionary<string, object> Metadata { get; }
-        public System.Collections.Generic.IEnumerable<ServiceControl.Contracts.Operations.EndpointDetails> NewEndpoints { get; }
-        public void Add(ServiceControl.Contracts.Operations.EndpointDetails endpointDetails) { }
+        public ExceptionDetails() { }
+        public string ExceptionType { get; set; }
+        public string Message { get; set; }
+        public string Source { get; set; }
+        public string StackTrace { get; set; }
     }
-    public interface IEnrichImportedErrorMessages
+    public class FailureDetails
     {
-        void Enrich(ServiceControl.Operations.ErrorEnricherContext context);
+        public FailureDetails() { }
+        public string AddressOfFailingEndpoint { get; set; }
+        public ServiceControl.Contracts.Operations.ExceptionDetails Exception { get; set; }
+        public System.DateTime TimeOfFailure { get; set; }
     }
 }

@@ -66,5 +66,6 @@
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],
   "DataSpaceRemainingThreshold": 20,
-  "EnableFullTextSearchOnBodies": true
+  "EnableFullTextSearchOnBodies": true,
+  "Components": null
 }

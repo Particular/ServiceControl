@@ -7,6 +7,7 @@
     using System.Web.Http.Controllers;
     using System.Web.Http.Hosting;
     using System.Web.Http.Routing;
+    using Contracts;
     using CustomChecks;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
@@ -18,7 +19,6 @@
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Monitoring;
-    using ServiceControl.Operations;
     using ServiceControlInstaller.Engine.Instances;
     using Transports;
 
@@ -58,7 +58,7 @@
         [Test]
         public void PublicClrRecoverability()
         {
-            var publicApi = typeof(IEnrichImportedErrorMessages).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            var publicApi = typeof(Contracts.MessageFailures.MessageFailed).Assembly.GeneratePublicApi(new ApiGeneratorOptions
             {
                 ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
             });

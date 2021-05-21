@@ -110,14 +110,6 @@ namespace ServiceControl.EndpointControl.Contracts
         public System.Guid EndpointInstanceId { get; set; }
     }
 }
-namespace ServiceControl.EndpointControl.Handlers
-{
-    public class DetectNewEndpointsFromErrors : NServiceBus.Features.Feature
-    {
-        public DetectNewEndpointsFromErrors() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
-}
 namespace ServiceControl.HeartbeatMonitoring
 {
     public enum Status

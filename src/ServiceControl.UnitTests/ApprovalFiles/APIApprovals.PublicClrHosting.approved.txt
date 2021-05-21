@@ -1,6 +1,12 @@
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
 namespace ServiceBus.Management.Infrastructure.Settings
 {
+    public class ComponentInfo
+    {
+        public ComponentInfo(System.Reflection.Assembly assembly, Autofac.Module apiModule) { }
+        public Autofac.Module ApiModule { get; }
+        public System.Reflection.Assembly Assembly { get; }
+    }
     public static class ConfigFileSettingsReader<T>
     {
         public static T Read(string name, T defaultValue = default) { }
@@ -22,6 +28,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool AllowMessageEditing { get; set; }
         public string ApiUrl { get; }
         public System.TimeSpan? AuditRetentionPeriod { get; }
+        public ServiceBus.Management.Infrastructure.Settings.ComponentInfo[] Components { get; set; }
         public int DataSpaceRemainingThreshold { get; set; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
@@ -180,6 +187,13 @@ namespace ServiceControl.Infrastructure.DomainEvents
         where in T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
     {
         System.Threading.Tasks.Task Handle(T domainEvent);
+    }
+}
+namespace ServiceControl.Infrastructure.Extensions
+{
+    public static class RavenQueryableExtensions
+    {
+        public static Raven.Client.Linq.IRavenQueryable<TSource> Paging<TSource>(this Raven.Client.Linq.IRavenQueryable<TSource> source, System.Net.Http.HttpRequestMessage request) { }
     }
 }
 namespace ServiceControl.Infrastructure.Settings
