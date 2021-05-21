@@ -15,6 +15,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using CustomChecks;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -26,6 +27,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Monitoring;
+    using ServiceControl.Recoverability;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
@@ -271,7 +274,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var scanner = configuration.AssemblyScanner();
             var excludedAssemblies = new[]
             {
-                Path.GetFileName(typeof(Settings).Assembly.CodeBase),
+                Path.GetFileName(typeof(RetryingFeature).Assembly.CodeBase),
+                Path.GetFileName(typeof(InMemoryMonitoring).Assembly.CodeBase),
+                Path.GetFileName(typeof(CustomChecksFeature).Assembly.CodeBase),
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
             scanner.ExcludeAssemblies(excludedAssemblies);
