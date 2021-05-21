@@ -118,14 +118,6 @@ namespace ServiceControl.HeartbeatMonitoring
         Dead = 1,
     }
 }
-namespace ServiceControl.MessageFailures.Api
-{
-    public class HeartbeatsApisModule : Autofac.Module
-    {
-        public HeartbeatsApisModule() { }
-        protected override void Load(Autofac.ContainerBuilder builder) { }
-    }
-}
 namespace ServiceControl.Monitoring
 {
     public class EndpointInstanceId : System.IEquatable<ServiceControl.Monitoring.EndpointInstanceId>

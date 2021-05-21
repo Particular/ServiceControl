@@ -410,7 +410,7 @@ namespace ServiceControl.MessageFailures.Api
 {
     public class ApisModule : Autofac.Module
     {
-        public ApisModule() { }
+        public ApisModule(System.Reflection.Assembly assembly = null) { }
         protected override void Load(Autofac.ContainerBuilder builder) { }
     }
     public class ArchiveMessagesController : System.Web.Http.ApiController

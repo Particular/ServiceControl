@@ -3,8 +3,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 {
     public class ComponentInfo
     {
-        public ComponentInfo(System.Reflection.Assembly assembly, Autofac.Module apiModule) { }
-        public Autofac.Module ApiModule { get; }
+        public ComponentInfo(System.Reflection.Assembly assembly) { }
         public System.Reflection.Assembly Assembly { get; }
     }
     public static class ConfigFileSettingsReader<T>

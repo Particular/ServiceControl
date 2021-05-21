@@ -48,11 +48,6 @@ namespace ServiceControl.CustomChecks
         public CustomCheckDeleted() { }
         public System.Guid Id { get; set; }
     }
-    public class CustomChecksApisModule : Autofac.Module
-    {
-        public CustomChecksApisModule() { }
-        protected override void Load(Autofac.ContainerBuilder builder) { }
-    }
     public class CustomChecksFeature : NServiceBus.Features.Feature
     {
         public CustomChecksFeature() { }

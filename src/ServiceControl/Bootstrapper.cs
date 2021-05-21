@@ -106,7 +106,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(notifier).ExternallyOwned();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.Register(c => HttpClientFactory);
-            containerBuilder.RegisterModule<ApisModule>();
+            containerBuilder.RegisterModule(new ApisModule());
             containerBuilder.Register(c => bus.Bus);
 
             containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
@@ -117,7 +117,7 @@ namespace Particular.ServiceControl
 
             settings.Components.ForEach(ci =>
             {
-                containerBuilder.RegisterModule(ci.ApiModule);
+                containerBuilder.RegisterModule(new ApisModule(ci.Assembly));
                 containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == ci.Assembly && type.GetInterfaces().Any() == false));
 
                 RegisterAssemblyInternalWebApiControllers(containerBuilder, ci.Assembly);
