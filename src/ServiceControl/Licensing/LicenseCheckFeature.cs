@@ -23,16 +23,17 @@
 
     class LicenseCheckFeatureStartup : FeatureStartupTask
     {
-        public LicenseCheckFeatureStartup(ActiveLicense activeLicense)
+        public LicenseCheckFeatureStartup(ActiveLicense activeLicense, IAsyncTimer scheduler)
         {
             this.activeLicense = activeLicense;
+            this.scheduler = scheduler;
             ScheduleNextExecutionTask = Task.FromResult(TimerJobExecutionResult.ScheduleNextExecution);
         }
 
         protected override Task OnStart(IMessageSession session)
         {
             var due = TimeSpan.FromHours(8);
-            timer = new AsyncTimer(_ =>
+            timer = scheduler.Schedule(_ =>
             {
                 activeLicense.Refresh();
                 return ScheduleNextExecutionTask;
@@ -40,13 +41,11 @@
             return Task.FromResult(0);
         }
 
-        protected override Task OnStop(IMessageSession session)
-        {
-            return timer.Stop();
-        }
+        protected override Task OnStop(IMessageSession session) => timer.Stop();
 
         ActiveLicense activeLicense;
-        AsyncTimer timer;
+        IAsyncTimer scheduler;
+        TimerJob timer;
 
         static ILog log = LogManager.GetLogger<LicenseCheckFeature>();
         static Task<TimerJobExecutionResult> ScheduleNextExecutionTask;

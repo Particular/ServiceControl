@@ -148,10 +148,11 @@ namespace ServiceControl.Hosting
 }
 namespace ServiceControl.Infrastructure
 {
-    public class AsyncTimer
+    public class AsyncTimer : ServiceControl.Infrastructure.IAsyncTimer
     {
-        public AsyncTimer(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
-        public System.Threading.Tasks.Task Stop() { }
+        public AsyncTimer() { }
+        public ServiceControl.Infrastructure.TimerJob Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
+        public void Start() { }
     }
     public static class DeterministicGuid
     {
@@ -162,6 +163,15 @@ namespace ServiceControl.Infrastructure
     public static class DictionaryExtensions
     {
         public static void CheckIfKeyExists(string key, System.Collections.Generic.IReadOnlyDictionary<string, string> headers, System.Action<string> actionToInvokeWhenKeyIsFound) { }
+    }
+    public interface IAsyncTimer
+    {
+        ServiceControl.Infrastructure.TimerJob Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback);
+    }
+    public class TimerJob
+    {
+        public TimerJob(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback, System.Threading.Tasks.Task initialized) { }
+        public System.Threading.Tasks.Task Stop() { }
     }
     public enum TimerJobExecutionResult
     {

@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.Operations;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
@@ -11,10 +12,11 @@
 
     class InternalCustomChecksStartup : FeatureStartupTask
     {
-        public InternalCustomChecksStartup(IList<ICustomCheck> customChecks, CustomChecksStorage store, HostInformation hostInfo, string endpointName)
+        public InternalCustomChecksStartup(IList<ICustomCheck> customChecks, CustomChecksStorage store, HostInformation hostInfo, IAsyncTimer scheduler, string endpointName)
         {
             this.customChecks = customChecks;
             this.store = store;
+            this.scheduler = scheduler;
             localEndpointDetails = new EndpointDetails
             {
                 Host = hostInfo.DisplayName,
@@ -27,7 +29,7 @@
         {
             foreach (var check in customChecks)
             {
-                var checkManager = new InternalCustomCheckManager(store, check, localEndpointDetails);
+                var checkManager = new InternalCustomCheckManager(store, check, localEndpointDetails, scheduler);
                 checkManager.Start();
 
                 managers.Add(checkManager);
@@ -49,5 +51,6 @@
         readonly CustomChecksStorage store;
         readonly EndpointDetails localEndpointDetails;
         IList<InternalCustomCheckManager> managers = new List<InternalCustomCheckManager>();
+        IAsyncTimer scheduler;
     }
 }

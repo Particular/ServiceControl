@@ -61,11 +61,11 @@
                 logger.Info("Retention period for audits and saga history is {0}", RavenBootstrapper.Settings.AuditRetentionPeriod);
             }
 
-            timer = new AsyncTimer(
-                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.ErrorException("Error when trying to find expired documents", e); });
+            timer = new TimerJob(
+                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.ErrorException("Error when trying to find expired documents", e); }, Task.CompletedTask);
         }
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
-        AsyncTimer timer;
+        TimerJob timer;
     }
 }

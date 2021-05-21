@@ -100,6 +100,9 @@ namespace Particular.ServiceControl
             reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
             containerBuilder.RegisterInstance(metrics).ExternallyOwned();
 
+            scheduler = new AsyncTimer();
+            containerBuilder.RegisterInstance(scheduler).As<IAsyncTimer>();
+
             containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
             containerBuilder.RegisterInstance(loggingSettings);
             containerBuilder.RegisterInstance(settings);
@@ -165,6 +168,9 @@ namespace Particular.ServiceControl
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
             reporter.Start();
+
+            scheduler.Start();
+
             return bus;
         }
 
@@ -307,6 +313,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         TransportCustomization transportCustomization;
         static HttpClient httpClient;
         MetricsReporter reporter;
+        AsyncTimer scheduler;
         static ILog metricsLog = LogManager.GetLogger("Metrics");
 
         class AllConstructorFinder : IConstructorFinder

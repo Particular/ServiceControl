@@ -10,16 +10,17 @@
 
     class InternalCustomCheckManager
     {
-        public InternalCustomCheckManager(CustomChecksStorage store, ICustomCheck check, EndpointDetails localEndpointDetails)
+        public InternalCustomCheckManager(CustomChecksStorage store, ICustomCheck check, EndpointDetails localEndpointDetails, IAsyncTimer scheduler)
         {
             this.store = store;
             this.check = check;
             this.localEndpointDetails = localEndpointDetails;
+            this.scheduler = scheduler;
         }
 
         public void Start()
         {
-            timer = new AsyncTimer(
+            timer = scheduler.Schedule(
                 Run,
                 TimeSpan.Zero,
                 check.Interval ?? TimeSpan.MaxValue,
@@ -66,10 +67,11 @@
 
         public Task Stop() => timer?.Stop() ?? Task.CompletedTask;
 
-        AsyncTimer timer;
+        TimerJob timer;
         readonly CustomChecksStorage store;
         readonly ICustomCheck check;
         readonly EndpointDetails localEndpointDetails;
+        readonly IAsyncTimer scheduler;
 
         static ILog Logger = LogManager.GetLogger<InternalCustomCheckManager>();
     }

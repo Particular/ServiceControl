@@ -11,14 +11,9 @@
         DoNotContinueExecuting
     }
 
-    public class AsyncTimer
+    public class TimerJob
     {
-        public AsyncTimer(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback)
-        {
-            Start(callback, due, interval, errorCallback);
-        }
-
-        void Start(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback)
+        public TimerJob(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback, Task initialized)
         {
             tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
@@ -27,6 +22,8 @@
             {
                 try
                 {
+                    await initialized.ConfigureAwait(false);
+
                     await Task.Delay(due, token).ConfigureAwait(false);
 
                     while (!token.IsCancellationRequested)
@@ -77,5 +74,19 @@
 
         Task task;
         CancellationTokenSource tokenSource;
+    }
+
+    public interface IAsyncTimer
+    {
+        TimerJob Schedule(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback);
+    }
+
+    public class AsyncTimer : IAsyncTimer
+    {
+        TaskCompletionSource<bool> started = new TaskCompletionSource<bool>();
+
+        public void Start() => started.SetResult(true);
+
+        public TimerJob Schedule(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback) => new TimerJob(callback, due, interval, errorCallback, started.Task);
     }
 }

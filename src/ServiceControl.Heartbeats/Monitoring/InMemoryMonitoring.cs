@@ -35,10 +35,11 @@
 
         class MonitorEndpointInstances : FeatureStartupTask
         {
-            public MonitorEndpointInstances(EndpointInstanceMonitoring monitor, MonitoringDataPersister persistence)
+            public MonitorEndpointInstances(EndpointInstanceMonitoring monitor, MonitoringDataPersister persistence, IAsyncTimer scheduler)
             {
                 this.monitor = monitor;
                 this.persistence = persistence;
+                this.scheduler = scheduler;
             }
 
             public TimeSpan GracePeriod { get; set; }
@@ -46,7 +47,7 @@
             protected override async Task OnStart(IMessageSession session)
             {
                 await persistence.WarmupMonitoringFromPersistence().ConfigureAwait(false);
-                timer = new AsyncTimer(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e => { log.Error("Exception occurred when monitoring endpoint instances", e); });
+                timer = scheduler.Schedule(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e => { log.Error("Exception occurred when monitoring endpoint instances", e); });
             }
 
             async Task<TimerJobExecutionResult> CheckEndpoints()
@@ -68,7 +69,8 @@
 
             EndpointInstanceMonitoring monitor;
             MonitoringDataPersister persistence;
-            AsyncTimer timer;
+            IAsyncTimer scheduler;
+            TimerJob timer;
         }
     }
 }
