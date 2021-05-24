@@ -1,8 +1,17 @@
 namespace ServiceControl.Monitoring
 {
-    using System;
-    using System.ServiceProcess;
+    //using System;
+    //using System.ServiceProcess;
+    using System.Linq;
     using System.Threading.Tasks;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Autofac.Features.ResolveAnything;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using NServiceBus;
+    using QueueLength;
+    using Transports;
 
     class RunCommand : AbstractCommand
     {
@@ -10,75 +19,103 @@ namespace ServiceControl.Monitoring
         {
             //RunAsWindowsService can't be a property on Settings class because it
             //would be exposed as app.config configurable option and break ATT approvals
-            var runAsWindowsService = !Environment.UserInteractive && !settings.Portable;
+            //var runAsWindowsService = !Environment.UserInteractive && !settings.Portable;
 
-            if (runAsWindowsService)
-            {
-                using (var service = new Host { Settings = settings, ServiceName = settings.ServiceName })
-                {
-                    //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
-                    //      until service reports it has stopped.
-                    //      SCM takes over and calls OnStart and OnStop on the service instance. 
-                    ServiceBase.Run(service);
-                }
-            }
-            else
-            {
-                return RunAsConsoleApp(settings);
-            }
+            var transportCustomization = settings.LoadTransportCustomization();
+            var buildQueueLengthProvider = Bootstrapper.QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
 
-            return Task.CompletedTask;
+            var host = new HostBuilder();
+            host
+                .UseServiceProviderFactory(
+                    new AutofacServiceProviderFactory(containerBuilder =>
+                    {
+                        containerBuilder.RegisterModule<ApplicationModule>();
+                        containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
+                        containerBuilder.RegisterInstance(settings);
+                        containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
+
+                    }))
+                .UseNServiceBus(builder =>
+            {
+                var configuration = new EndpointConfiguration(settings.ServiceName);
+
+                var bootstrapper = new Bootstrapper(ctx => { },
+                    settings,
+                    configuration);
+
+                return configuration;
+
+            });
+            return host.RunConsoleAsync();
+
+            //if (runAsWindowsService)
+            //{
+            //    host.RunAsService();
+
+            //    using (var service = new Host { Settings = settings, ServiceName = settings.ServiceName })
+            //    {
+            //        //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
+            //        //      until service reports it has stopped.
+            //        //      SCM takes over and calls OnStart and OnStop on the service instance. 
+            //        ServiceBase.Run(service);
+            //    }
+            //}
+            //else
+            //{
+            //}
+
+            //return Task.CompletedTask;
         }
 
-        async Task RunAsConsoleApp(Settings settings)
-        {
-            using (var service = new Host
-            {
-                Settings = settings,
-                ServiceName = settings.ServiceName
-            })
-            {
-                var tcs = new TaskCompletionSource<bool>();
+        //async Task RunAsConsoleApp(Settings settings)
+        //{
+        //    using (var service = new Host
+        //    {
+        //        Settings = settings,
+        //        ServiceName = settings.ServiceName
+        //    })
+        //    {
+        //        var tcs = new TaskCompletionSource<bool>();
 
-                Action done = () =>
-                {
-                    service.OnStopping = () => { };
-                    tcs.SetResult(true);
-                };
+        //        Action done = () =>
+        //        {
+        //            service.OnStopping = () => { };
+        //            tcs.SetResult(true);
+        //        };
 
-                service.OnStopping = done;
+        //        service.OnStopping = done;
 
-                OnConsoleCancel.Run(done);
+        //        OnConsoleCancel.Run(done);
 
-                service.Start();
+        //        service.Start();
 
-                Console.WriteLine("Press Ctrl+C to exit");
+        //        Console.WriteLine("Press Ctrl+C to exit");
 
-                await tcs.Task.ConfigureAwait(false);
-            }
-        }
+        //        await tcs.Task.ConfigureAwait(false);
+        //    }
+        //}
 
-        class OnConsoleCancel
-        {
-            OnConsoleCancel(Action action)
-            {
-                this.action = action;
-            }
+        //class OnConsoleCancel
+        //{
+        //    OnConsoleCancel(Action action)
+        //    {
+        //        this.action = action;
+        //    }
 
-            public static void Run(Action action)
-            {
-                var onCancelAction = new OnConsoleCancel(action);
-                Console.CancelKeyPress += onCancelAction.ConsoleOnCancelKeyPress;
-            }
+        //    public static void Run(Action action)
+        //    {
+        //        var onCancelAction = new OnConsoleCancel(action);
+        //        Console.CancelKeyPress += onCancelAction.ConsoleOnCancelKeyPress;
+        //    }
 
-            void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
-            {
-                action();
-                e.Cancel = true;
-                Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
-            }
+        //    void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        //    {
+        //        action();
+        //        e.Cancel = true;
+        //        Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
+        //    }
 
-            Action action;
-        }
+        //    Action action;
+        //}
     }
 }
