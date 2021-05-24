@@ -42,6 +42,11 @@
 
         void TryAddKnownEndpointsPutCommand(EndpointDetails endpointDetails, List<PutCommandData> commands)
         {
+            if (endpointDetails == null)
+            {
+                return;
+            }
+
             if (monitor.IsNewInstance(endpointDetails))
             {
                 var knownEndpoint = CreateKnownEndpoints(endpointDetails);
