@@ -7,8 +7,9 @@ namespace ServiceControl.Monitoring
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Autofac.Features.ResolveAnything;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using NLog.Extensions.Logging;
     using NServiceBus;
     using QueueLength;
     using Transports;
@@ -35,6 +36,12 @@ namespace ServiceControl.Monitoring
                         containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
 
                     }))
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    //HINT: configuration used by NLog comes from MonitorLog.cs
+                    builder.AddNLog();
+                })
                 .UseNServiceBus(builder =>
             {
                 var configuration = new EndpointConfiguration(settings.ServiceName);
