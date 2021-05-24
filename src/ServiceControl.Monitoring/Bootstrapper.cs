@@ -12,7 +12,6 @@
     using Infrastructure;
     using Licensing;
     using Messaging;
-    using Microsoft.Owin.Hosting;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
@@ -98,7 +97,6 @@
             //                c => c.ExistingLifetimeScope(container)
             //            );
 
-            //Startup = new Startup(container);
         }
 
         //static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
@@ -155,16 +153,7 @@
         {
             bus = await Endpoint.Start(configuration);
 
-            StartWebApi();
-
             return new BusInstance(bus);
-        }
-
-        void StartWebApi()
-        {
-            var startOptions = new StartOptions(settings.RootUrl);
-
-            WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
         }
 
         public async Task Stop()
