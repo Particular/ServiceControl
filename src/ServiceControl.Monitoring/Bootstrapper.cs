@@ -5,10 +5,10 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using System.Web.Http.Controllers;
+    //using System.Web.Http.Controllers;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
-    using Autofac.Features.ResolveAnything;
+    //using Autofac.Features.ResolveAnything;
     using Infrastructure;
     using Licensing;
     using Messaging;
@@ -45,9 +45,9 @@
                 config.License(settings.LicenseFileText);
             }
 
-            var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
+            //var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
 
-            var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
+            //var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
 
             var transportSettings = new TransportSettings
             {
@@ -85,34 +85,34 @@
 
             config.EnableFeature<LicenseCheckFeature>();
 
-            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-            containerBuilder.RegisterInstance(settings);
+            //containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
+            //containerBuilder.RegisterInstance(settings);
 
-            RegisterInternalWebApiControllers(containerBuilder);
+            //RegisterInternalWebApiControllers(containerBuilder);
 
-            container = containerBuilder.Build();
+            //container = containerBuilder.Build();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            config.UseContainer<AutofacBuilder>(
-#pragma warning restore CS0618 // Type or member is obsolete
-                c => c.ExistingLifetimeScope(container)
-            );
+            //#pragma warning disable CS0618 // Type or member is obsolete
+            //            config.UseContainer<AutofacBuilder>(
+            //#pragma warning restore CS0618 // Type or member is obsolete
+            //                c => c.ExistingLifetimeScope(container)
+            //            );
 
-            Startup = new Startup(container);
+            //Startup = new Startup(container);
         }
 
-        static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
-        {
-            var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
+        //static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
+        //{
+        //    var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
+        //        .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
 
-            foreach (var controllerType in controllerTypes)
-            {
-                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
-            }
-        }
+        //    foreach (var controllerType in controllerTypes)
+        //    {
+        //        containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
+        //    }
+        //}
 
-        static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
+        public static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
         {
             return qls =>
             {
@@ -140,16 +140,16 @@
             };
         }
 
-        static ContainerBuilder CreateContainer(Settings settings, Func<QueueLengthStore, IProvideQueueLength> buildQueueLengthProvider)
-        {
-            var containerBuilder = new ContainerBuilder();
+        //static ContainerBuilder CreateContainer(Settings settings, Func<QueueLengthStore, IProvideQueueLength> buildQueueLengthProvider)
+        //{
+        //    var containerBuilder = new ContainerBuilder();
 
-            containerBuilder.RegisterModule<ApplicationModule>();
-            containerBuilder.RegisterInstance(settings).As<Settings>().SingleInstance();
-            containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
+        //    containerBuilder.RegisterModule<ApplicationModule>();
+        //    //containerBuilder.RegisterInstance(settings).As<Settings>().SingleInstance();
+        //    containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
 
-            return containerBuilder;
-        }
+        //    return containerBuilder;
+        //}
 
         public async Task<BusInstance> Start()
         {
@@ -175,14 +175,14 @@
             }
 
             WebApp?.Dispose();
-            container.Dispose();
+            //container.Dispose();
         }
 
         public IDisposable WebApp;
         Action<ICriticalErrorContext> onCriticalError;
         Settings settings;
         EndpointConfiguration configuration;
-        IContainer container;
+        //IContainer container;
         IEndpointInstance bus;
     }
 
