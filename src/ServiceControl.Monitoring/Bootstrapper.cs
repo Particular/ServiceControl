@@ -8,8 +8,10 @@
     //using System.Web.Http.Controllers;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
+    using Http.Diagrams;
     //using Autofac.Features.ResolveAnything;
     using Infrastructure;
+    using Infrastructure.OWIN;
     using Licensing;
     using Messaging;
     using NServiceBus;
@@ -233,6 +235,15 @@
             }
 
             if (IsMessageHandler(type))
+            {
+                return false;
+            }
+
+            //HINT: DiagramApiController needs per-scope registration and hosted services should have
+            //      explicit registration
+
+            if (type == typeof(DiagramApiController) ||
+                type == typeof(WebApiHostedService))
             {
                 return false;
             }
