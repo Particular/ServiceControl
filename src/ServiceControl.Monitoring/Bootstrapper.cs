@@ -8,11 +8,16 @@
     using System.Web.Http.Controllers;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
-    using Http.Diagrams;
+    using Autofac.Extensions.DependencyInjection;
+    using Autofac.Features.ResolveAnything;
     using Infrastructure;
     using Infrastructure.OWIN;
     using Licensing;
     using Messaging;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using NLog.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
@@ -25,17 +30,56 @@
     public class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration endpointConfiguration)
         {
             this.onCriticalError = onCriticalError;
             this.settings = settings;
-            this.configuration = configuration;
+            this.endpointConfiguration = endpointConfiguration;
 
-            Initialize(configuration);
+            CreateHost();
         }
 
-        internal Startup Startup { get; set; }
+        internal IContainer Container { get; set; }
+        public IHostBuilder HostBuilder { get; set; }
 
+        void CreateHost()
+        {
+            var transportCustomization = settings.LoadTransportCustomization();
+            var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
+
+            HostBuilder = new HostBuilder();
+            HostBuilder
+                .UseServiceProviderFactory(
+                    new AutofacServiceProviderFactory(containerBuilder =>
+                    {
+                        //HINT: Application module needs to precede controllers registration. Otherwise controllers get registered as singletons. 
+                        containerBuilder.RegisterModule<ApplicationModule>();
+                        containerBuilder.RegisterModule<ApiControllerModule>();
+
+                        containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
+                        containerBuilder.RegisterInstance(settings);
+                        containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
+
+                        containerBuilder.RegisterBuildCallback(c => Container = c);
+                        containerBuilder.Register(cc => new Startup(Container));
+                    }))
+                .ConfigureServices(services =>
+                {
+                    services.AddHostedService<WebApiHostedService>();
+                })
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    //HINT: configuration used by NLog comes from MonitorLog.cs
+                    builder.AddNLog();
+                })
+                .UseNServiceBus(builder =>
+                {
+                    Initialize(endpointConfiguration);
+
+                    return endpointConfiguration;
+                });
+        }
         void Initialize(EndpointConfiguration config)
         {
             var transportCustomization = settings.LoadTransportCustomization();
@@ -110,28 +154,10 @@
             };
         }
 
-        public async Task<BusInstance> Start()
-        {
-            bus = await Endpoint.Start(configuration);
-
-            return new BusInstance(bus);
-        }
-
-        public async Task Stop()
-        {
-            if (bus != null)
-            {
-                await bus.Stop().ConfigureAwait(false);
-            }
-
-            WebApp?.Dispose();
-        }
-
-        public IDisposable WebApp;
         Action<ICriticalErrorContext> onCriticalError;
         Settings settings;
-        EndpointConfiguration configuration;
-        IEndpointInstance bus;
+
+        readonly EndpointConfiguration endpointConfiguration;
     }
 
     class AllConstructorFinder : IConstructorFinder
@@ -206,11 +232,7 @@
                 return false;
             }
 
-            //HINT: DiagramApiController needs per-scope registration and hosted services should have
-            //      explicit registration
-
-            if (type == typeof(DiagramApiController) ||
-                type == typeof(WebApiHostedService))
+            if (type.IsAssignableTo<IHostedService>())
             {
                 return false;
             }

@@ -8,7 +8,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     using System.Net;
     using System.Net.Http;
     using AcceptanceTesting;
-    using Infrastructure;
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -35,7 +34,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
         public string Port => Settings.HttpPort;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
         public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
-        public BusInstance Bus => serviceControlRunnerBehavior.Bus;
 
         [OneTimeSetUp]
         public void OneTimeSetup()
