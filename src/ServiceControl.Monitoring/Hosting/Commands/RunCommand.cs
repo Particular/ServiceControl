@@ -7,7 +7,6 @@ namespace ServiceControl.Monitoring
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Autofac.Features.ResolveAnything;
-    using Http.Diagrams;
     using Infrastructure.OWIN;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -38,8 +37,8 @@ namespace ServiceControl.Monitoring
                         containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
                         containerBuilder.RegisterInstance(settings);
                         containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
-                        
-                        containerBuilder.RegisterType<DiagramApiController>().InstancePerLifetimeScope();
+
+                        containerBuilder.RegisterModule<ApiControllerModule>();
 
                         IContainer container = null;
                         containerBuilder.RegisterBuildCallback(c => container = c);
