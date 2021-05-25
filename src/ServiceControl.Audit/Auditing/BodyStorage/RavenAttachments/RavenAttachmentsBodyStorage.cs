@@ -7,7 +7,9 @@
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
-        public IDocumentStore DocumentStore { get; set; }
+        public IDocumentStore DocumentStore { get; }
+
+        public RavenAttachmentsBodyStorage(IDocumentStore documentStore) => DocumentStore = documentStore;
 
         public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
