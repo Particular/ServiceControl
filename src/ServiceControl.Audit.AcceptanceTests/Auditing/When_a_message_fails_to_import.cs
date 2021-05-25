@@ -60,11 +60,13 @@
 
         class FailOnceEnricher : IEnrichImportedAuditMessages
         {
-            public MyContext Context { get; set; }
+            MyContext testContext;
+
+            public FailOnceEnricher(MyContext context) => testContext = context;
 
             public void Enrich(AuditEnricherContext context)
             {
-                if (!Context.FailedImport)
+                if (!testContext.FailedImport)
                 {
                     TestContext.WriteLine("Simulating message processing failure");
                     throw new MessageDeserializationException("ID", null);
