@@ -16,8 +16,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Auditing;
     using Autofac;
     using Infrastructure;
+    using Infrastructure.OWIN;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -117,6 +119,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 }
             };
 
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                await setupBootstrapper.Run(null);
+            }
+
             setSettings(settings);
             Settings = settings;
             var configuration = new EndpointConfiguration(instanceName);
@@ -144,7 +152,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
+
+
+            using (new DiagnosticTimer($"Starting host for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
@@ -165,12 +175,17 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 {
                     HttpClientFactory = HttpClientFactory
                 };
+
+                host = bootstrapper.HostBuilder;
+
+                await host.StartAsync().ConfigureAwait(false);
             }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
             {
                 var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app, typeof(FailedAuditsController).Assembly);
+                var startup = new Startup(bootstrapper.Container);
+                startup.Configuration(app, typeof(FailedAuditsController).Assembly);
                 var appFunc = app.Build();
 
                 Handler = new OwinHttpMessageHandler(appFunc)
@@ -181,17 +196,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 var httpClient = new HttpClient(Handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClient = httpClient;
-            }
-
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
-                await setupBootstrapper.Run(null);
-            }
-
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
             }
         }
 
@@ -265,5 +269,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        IHostBuilder host;
     }
 }

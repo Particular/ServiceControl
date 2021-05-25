@@ -16,10 +16,15 @@ namespace ServiceControl.Audit.Infrastructure
     using Auditing.MessagesView;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
+    using Autofac.Extensions.DependencyInjection;
     using Autofac.Features.ResolveAnything;
     using ByteSizeLib;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Owin.Hosting;
     using Monitoring;
+    using NLog.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -29,6 +34,7 @@ namespace ServiceControl.Audit.Infrastructure
     using ServiceControl.Infrastructure.Metrics;
     using Settings;
     using Transports;
+    using WebApi;
 
     class Bootstrapper
     {
@@ -40,10 +46,86 @@ namespace ServiceControl.Audit.Infrastructure
             this.loggingSettings = loggingSettings;
             this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
-            Initialize();
+
+            CreateHost();
+        }
+
+        void CreateHost()
+        {
+            RecordStartup(loggingSettings, configuration);
+
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                configuration.License(settings.LicenseFileText);
+            }
+
+            // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
+            ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
+
+            transportSettings = MapSettings(settings);
+            transportCustomization = settings.LoadTransportCustomization();
+
+            HostBuilder = new HostBuilder();
+            HostBuilder
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
+                {
+                    containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type =>
+                        type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
+
+
+                    containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+
+                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+                    containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
+
+                    var metrics = new Metrics
+                    {
+                        Enabled = settings.PrintMetrics
+                    };
+                    reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
+
+                    RegisterInternalWebApiControllers(containerBuilder);
+
+                    additionalRegistrationActions?.Invoke(containerBuilder);
+
+                    containerBuilder.RegisterInstance(metrics).ExternallyOwned();
+
+                    containerBuilder.RegisterInstance(loggingSettings);
+                    containerBuilder.RegisterInstance(settings);
+                    containerBuilder.RegisterInstance(notifier).ExternallyOwned();
+                    containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
+                    containerBuilder.Register(c => HttpClientFactory);
+                    containerBuilder.RegisterModule<ApisModule>();
+                    containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
+                    containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
+
+                    containerBuilder.RegisterBuildCallback(c => Container = c);
+                    containerBuilder.Register(cc => new Startup(Container));
+
+                }))
+                .ConfigureServices(services =>
+                {
+                    services.AddHostedService<WebApiHostedService>();
+                })
+                .UseNServiceBus(context =>
+                {
+                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, documentStore, configuration, false);
+
+                    return configuration;
+                })
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    //HINT: configuration used by NLog comes from LoggingConfigurator.cs
+                    builder.AddNLog();
+                });
         }
 
         public Startup Startup { get; private set; }
+
+        public IHostBuilder HostBuilder { get; set; }
+
+        public IContainer Container { get; set; }
 
         public Func<HttpClient> HttpClientFactory { get; set; } = () =>
         {
@@ -59,54 +141,6 @@ namespace ServiceControl.Audit.Infrastructure
 
             return httpClient;
         };
-
-        void Initialize()
-        {
-            RecordStartup(loggingSettings, configuration);
-
-            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
-            {
-                configuration.License(settings.LicenseFileText);
-            }
-
-            // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
-            ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
-
-            transportCustomization = settings.LoadTransportCustomization();
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-
-            transportSettings = MapSettings(settings);
-
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-            var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
-            containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
-
-            var metrics = new Metrics
-            {
-                Enabled = settings.PrintMetrics
-            };
-            reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
-            containerBuilder.RegisterInstance(metrics).ExternallyOwned();
-
-            containerBuilder.RegisterInstance(loggingSettings);
-            containerBuilder.RegisterInstance(settings);
-            containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.Register(c => HttpClientFactory);
-            containerBuilder.RegisterModule<ApisModule>();
-            containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
-            containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
-
-            RegisterInternalWebApiControllers(containerBuilder);
-
-            additionalRegistrationActions?.Invoke(containerBuilder);
-
-            container = containerBuilder.Build();
-            Startup = new Startup(container);
-        }
 
         static TransportSettings MapSettings(Settings.Settings settings)
         {
@@ -134,7 +168,7 @@ namespace ServiceControl.Audit.Infrastructure
         {
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
 
-            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             if (!isRunningAcceptanceTests)
@@ -163,7 +197,6 @@ namespace ServiceControl.Audit.Infrastructure
 
             documentStore.Dispose();
             WebApp?.Dispose();
-            container.Dispose();
         }
 
         long DataSize()
@@ -265,7 +298,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         Action<ICriticalErrorContext> onCriticalError;
         ShutdownNotifier notifier = new ShutdownNotifier();
         Settings.Settings settings;
-        IContainer container;
         BusInstance bus;
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
