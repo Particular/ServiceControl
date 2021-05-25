@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using System.Web.Http.Controllers;
     //using System.Web.Http.Controllers;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
@@ -213,6 +214,16 @@
         {
             RawMessage.Pool<T>.Default.Release((T)instance);
         }
+    }
+
+    class ApiControllerModule : Module
+    {
+        protected override void Load(ContainerBuilder builder) =>
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal))
+                .AsSelf()
+                .InstancePerLifetimeScope()
+                .FindConstructorsWith(new AllConstructorFinder());
     }
 
     class ApplicationModule : Module
