@@ -17,7 +17,14 @@ namespace ServiceControl.Audit.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        {
+            Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
+
+            return Endpoint.Create(configuration);
+        }
+
+        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -59,10 +66,6 @@ namespace ServiceControl.Audit.Infrastructure
                 configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
             }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-#pragma warning restore CS0618 // Type or member is obsolete
-
             configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {
                 onCriticalError(criticalErrorContext);
@@ -73,13 +76,11 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 configuration.EnableInstallers();
             }
-
-            return Endpoint.Create(configuration);
         }
 
-        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
-            var startableEndpoint = await Create(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
+            var startableEndpoint = await Create(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
                 .ConfigureAwait(false);
 
             var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
@@ -88,11 +89,11 @@ namespace ServiceControl.Audit.Infrastructure
 
             builder.RegisterInstance(endpointInstance).As<IMessageSession>();
 
-            builder.Update(container.ComponentRegistry);
+            //builder.Update(container.ComponentRegistry);
 
-            var auditIngestion = container.Resolve<AuditIngestionComponent>();
+            //var auditIngestion = container.Resolve<AuditIngestionComponent>();
 
-            return new BusInstance(endpointInstance, auditIngestion);
+            return new BusInstance(endpointInstance, null);
         }
 
         static bool IsExternalContract(Type t)
