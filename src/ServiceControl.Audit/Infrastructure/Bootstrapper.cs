@@ -90,7 +90,6 @@ namespace ServiceControl.Audit.Infrastructure
 
                     containerBuilder.RegisterInstance(loggingSettings);
                     containerBuilder.RegisterInstance(settings);
-                    containerBuilder.RegisterInstance(notifier).ExternallyOwned();
                     containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
                     containerBuilder.RegisterModule<ApisModule>();
                     containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
@@ -152,7 +151,6 @@ namespace ServiceControl.Audit.Infrastructure
 
         public Task Stop()
         {
-            notifier.Dispose();
             documentStore.Dispose();
 
             return Task.CompletedTask;
@@ -255,7 +253,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         LoggingSettings loggingSettings;
         EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         Action<ICriticalErrorContext> onCriticalError;
-        ShutdownNotifier notifier = new ShutdownNotifier();
         Settings.Settings settings;
         //BusInstance bus;
         TransportSettings transportSettings;
