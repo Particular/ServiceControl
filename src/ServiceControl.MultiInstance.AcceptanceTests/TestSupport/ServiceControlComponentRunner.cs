@@ -323,7 +323,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { });
+                }, settings, configuration, loggingSettings, builder => { },
+                    true);
 
                 var host = bootstrapper.HostBuilder.Build();
 
@@ -352,12 +353,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClients[instanceName] = httpClient;
             }
-
-
-            //using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            //{
-            //    Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
-            //}
         }
 
         public override async Task Stop()
