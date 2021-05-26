@@ -3,6 +3,8 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
+    using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -14,17 +16,30 @@
         [Test]
         public async Task Should_raise_integration_event()
         {
+            var uniqueMessageIdHeaderName = "ServiceControl.Retry.UniqueMessageId";
+
             var failedMessageId = Guid.NewGuid().ToString();
             var context = await Define<InterceptedMessagesScenarioContext>()
                 .WithEndpoint<Receiver>(b => b.When(s =>
                 {
                     var options = new SendOptions();
 
-                    options.SetHeader("ServiceControl.Retry.UniqueMessageId", failedMessageId);
+                    options.SetHeader(uniqueMessageIdHeaderName, failedMessageId);
                     options.RouteToThisEndpoint();
                     return s.Send(new MyMessage(), options);
                 }))
-                .Done(c => c.SentMarkMessageFailureResolvedByRetriesCommands.Any())
+                .Done(async c =>
+                {
+                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m =>
+                    {
+                        var storedMessageId = m.Headers.Select(kv => kv.Value.ToString())
+                            .FirstOrDefault(v => v == failedMessageId);
+
+                        return storedMessageId == failedMessageId;
+                    });
+
+                    return result.HasResult;
+                })
                 .Run();
 
             var command = context.SentMarkMessageFailureResolvedByRetriesCommands.Single();
