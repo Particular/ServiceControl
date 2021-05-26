@@ -84,17 +84,12 @@ namespace ServiceControl.Audit.Infrastructure
                     var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
                     containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
-                    var metrics = new Metrics
-                    {
-                        Enabled = settings.PrintMetrics
-                    };
-                    reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
 
                     RegisterInternalWebApiControllers(containerBuilder);
 
                     additionalRegistrationActions?.Invoke(containerBuilder);
 
-                    containerBuilder.RegisterInstance(metrics).ExternallyOwned();
+                    containerBuilder.RegisterInstance(new Metrics { Enabled = settings.PrintMetrics }).ExternallyOwned();
 
                     containerBuilder.RegisterInstance(loggingSettings);
                     containerBuilder.RegisterInstance(settings);
@@ -116,6 +111,7 @@ namespace ServiceControl.Audit.Infrastructure
                 .ConfigureServices(services =>
                 {
                     services.AddHostedService<WebApiHostedService>();
+                    services.AddHostedService<MetricsReporterHostedService>();
                 })
                 .UseNServiceBus(context =>
                 {
@@ -168,16 +164,11 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
-            reporter.Start();
             return bus;
         }
 
         public async Task Stop()
         {
-            if (reporter != null)
-            {
-                await reporter.Stop().ConfigureAwait(false);
-            }
             notifier.Dispose();
             if (bus != null)
             {
@@ -290,8 +281,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         BusInstance bus;
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
-        static ILog metricsLog = LogManager.GetLogger("Metrics");
-        MetricsReporter reporter;
 
         class AllConstructorFinder : IConstructorFinder
         {
