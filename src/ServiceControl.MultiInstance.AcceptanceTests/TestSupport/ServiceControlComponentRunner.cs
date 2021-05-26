@@ -49,8 +49,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public Dictionary<string, dynamic> SettingsPerInstance { get; } = new Dictionary<string, dynamic>();
-        public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
-        public Dictionary<string, dynamic> Busses { get; } = new Dictionary<string, dynamic>();
 
         public async Task Initialize(RunDescriptor run)
         {
@@ -199,7 +197,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     UseCookies = false,
                     AllowAutoRedirect = false
                 };
-                Handlers[instanceName] = handler;
+                handlers[instanceName] = handler;
                 portToHandler[settings.Port] = handler; // port should be unique enough
                 var httpClient = new HttpClient(handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -215,7 +213,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
-                Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
+                await bootstrapper.Start(true).ConfigureAwait(false);
             }
         }
 
@@ -312,14 +310,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customAuditEndpointConfiguration(configuration);
 
-            Audit.Infrastructure.Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
+                var bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -354,7 +351,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     UseCookies = false,
                     AllowAutoRedirect = false
                 };
-                Handlers[instanceName] = handler;
+                handlers[instanceName] = handler;
                 portToHandler[settings.Port] = handler; // port should be unique enough
                 var httpClient = new HttpClient(handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -378,17 +375,16 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
                     await bootstrappers[instanceName].Stop().ConfigureAwait(false);
                     HttpClients[instanceName].Dispose();
-                    Handlers[instanceName].Dispose();
+                    handlers[instanceName].Dispose();
                     DeleteFolder(settings.DbPath);
                 }
             }
 
             hosts.Clear();
             bootstrappers.Clear();
-            Busses.Clear();
             HttpClients.Clear();
             portToHandler.Clear();
-            Handlers.Clear();
+            handlers.Clear();
         }
 
         static void DeleteFolder(string path)
@@ -443,6 +439,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Dictionary<string, IHost> hosts = new Dictionary<string, IHost>();
 
         Dictionary<string, dynamic> bootstrappers = new Dictionary<string, dynamic>();
+        Dictionary<string, OwinHttpMessageHandler> handlers = new Dictionary<string, OwinHttpMessageHandler>();
         Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customEndpointConfiguration;

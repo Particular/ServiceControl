@@ -28,12 +28,9 @@ namespace ServiceControl.Audit.AcceptanceTests
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
         }
 
-
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
         public string Port => serviceControlRunnerBehavior.Port;
-        public Settings Settings => serviceControlRunnerBehavior.Settings;
-        public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
 
         [OneTimeSetUp]
         public void OneTimeSetup()

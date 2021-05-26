@@ -38,12 +38,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-
-        public HttpClient HttpClient { get; set; }
+        public HttpClient HttpClient { get; private set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
-        public string Port => Settings.Port.ToString();
-        public Settings Settings { get; set; }
-        public OwinHttpMessageHandler Handler { get; set; }
+        public string Port => settings.Port.ToString();
+
         public Task Initialize(RunDescriptor run)
         {
             return InitializeServiceControl(run.ScenarioContext);
@@ -74,7 +72,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
-            var settings = new Settings(instanceName)
+            settings = new Settings(instanceName)
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
@@ -123,7 +121,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             }
 
             setSettings(settings);
-            Settings = settings;
+
             var configuration = new EndpointConfiguration(instanceName);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
@@ -148,8 +146,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             configuration.AssemblyScanner().ExcludeAssemblies(typeof(ServiceControlComponentRunner).Assembly.GetName().Name);
 
             customConfiguration(configuration);
-
-
 
             using (new DiagnosticTimer($"Starting host for {instanceName}"))
             {
@@ -181,12 +177,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 startup.Configuration(app, typeof(FailedAuditsController).Assembly);
                 var appFunc = app.Build();
 
-                Handler = new OwinHttpMessageHandler(appFunc)
+                handler = new OwinHttpMessageHandler(appFunc)
                 {
                     UseCookies = false,
                     AllowAutoRedirect = false
                 };
-                var httpClient = new HttpClient(Handler);
+                var httpClient = new HttpClient(handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClient = httpClient;
             }
@@ -199,13 +195,13 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 await host.StopAsync().ConfigureAwait(false);
                 await bootstrapper.Stop().ConfigureAwait(false);
                 HttpClient.Dispose();
-                Handler.Dispose();
-                DeleteFolder(Settings.DbPath);
+                handler.Dispose();
+                DeleteFolder(settings.DbPath);
             }
 
             bootstrapper = null;
             HttpClient = null;
-            Handler = null;
+            handler = null;
         }
 
         static void DeleteFolder(string path)
@@ -256,5 +252,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
         IHost host;
+        Settings settings;
+        OwinHttpMessageHandler handler;
     }
 }
