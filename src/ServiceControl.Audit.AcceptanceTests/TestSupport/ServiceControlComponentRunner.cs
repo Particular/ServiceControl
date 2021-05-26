@@ -39,14 +39,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
 
-
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.Port.ToString();
         public Settings Settings { get; set; }
         public OwinHttpMessageHandler Handler { get; set; }
-        public BusInstance Bus { get; set; }
-
         public Task Initialize(RunDescriptor run)
         {
             return InitializeServiceControl(run.ScenarioContext);
@@ -207,7 +204,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             }
 
             bootstrapper = null;
-            Bus = null;
             HttpClient = null;
             Handler = null;
         }
