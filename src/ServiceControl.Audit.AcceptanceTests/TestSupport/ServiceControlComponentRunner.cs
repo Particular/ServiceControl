@@ -176,9 +176,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     HttpClientFactory = HttpClientFactory
                 };
 
-                host = bootstrapper.HostBuilder;
-
-                await host.StartAsync().ConfigureAwait(false);
+                host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
             }
 
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
@@ -203,6 +201,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
+                await host.StopAsync().ConfigureAwait(false);
                 await bootstrapper.Stop().ConfigureAwait(false);
                 HttpClient.Dispose();
                 Handler.Dispose();
@@ -269,6 +268,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
-        IHostBuilder host;
+        IHost host;
     }
 }
