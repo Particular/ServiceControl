@@ -3,7 +3,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using Auditing;
     using Autofac;
     using Contracts.EndpointControl;
     using Contracts.MessageFailures;

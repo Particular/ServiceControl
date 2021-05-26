@@ -338,7 +338,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
                 hosts[instanceName] = host;
                 bootstrappers[instanceName] = bootstrapper;
-                bootstrapper.HttpClientFactory = HttpClientFactory;
             }
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
