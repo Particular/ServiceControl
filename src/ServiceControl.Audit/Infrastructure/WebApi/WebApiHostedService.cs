@@ -8,7 +8,7 @@
     using OWIN;
     using Settings;
 
-    public class WebApiHostedService : IHostedService
+    class WebApiHostedService : IHostedService
     {
         string rootUrl;
         Startup startup;

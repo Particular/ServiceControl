@@ -10,7 +10,7 @@
     using Owin;
     using WebApi;
 
-    public class Startup
+    class Startup
     {
         public Startup(IContainer container)
         {

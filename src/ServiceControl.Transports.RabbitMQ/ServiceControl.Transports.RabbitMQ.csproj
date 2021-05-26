@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.RabbitMQ" Version="6.1.0" />
+    <PackageReference Update="System.Runtime.CompilerServices.Unsafe" Version="4.7.1" />
   </ItemGroup>
 
 </Project>
