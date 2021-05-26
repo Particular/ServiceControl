@@ -11,7 +11,5 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         JsonSerializerSettings SerializerSettings { get; }
 
         Dictionary<string, dynamic> SettingsPerInstance { get; }
-        Dictionary<string, OwinHttpMessageHandler> Handlers { get; }
-        Dictionary<string, dynamic> Busses { get; }
     }
 }
