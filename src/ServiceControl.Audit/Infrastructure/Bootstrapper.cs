@@ -7,8 +7,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Reflection;
     using System.Threading.Tasks;
     using System.Web.Http.Controllers;
@@ -94,7 +92,6 @@ namespace ServiceControl.Audit.Infrastructure
                     containerBuilder.RegisterInstance(settings);
                     containerBuilder.RegisterInstance(notifier).ExternallyOwned();
                     containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-                    containerBuilder.Register(c => HttpClientFactory);
                     containerBuilder.RegisterModule<ApisModule>();
                     containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
                     containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
@@ -126,21 +123,6 @@ namespace ServiceControl.Audit.Infrastructure
         public IHostBuilder HostBuilder { get; set; }
 
         public IContainer Container { get; set; }
-
-        public Func<HttpClient> HttpClientFactory { get; set; } = () =>
-        {
-            if (httpClient == null)
-            {
-                var handler = new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-                };
-                httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            }
-
-            return httpClient;
-        };
 
         static TransportSettings MapSettings(Settings.Settings settings)
         {
@@ -301,7 +283,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         BusInstance bus;
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
-        static HttpClient httpClient;
         static ILog metricsLog = LogManager.GetLogger("Metrics");
         MetricsReporter reporter;
 

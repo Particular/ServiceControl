@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts.MessageFailures;

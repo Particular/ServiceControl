@@ -171,10 +171,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); })
-                {
-                    HttpClientFactory = HttpClientFactory
-                };
+                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); });
 
                 host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
             }
@@ -254,13 +251,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             {
                 emptyTempDirectory?.Delete();
             }
-        }
-
-        HttpClient HttpClientFactory()
-        {
-            var httpClient = new HttpClient(Handler);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return httpClient;
         }
 
         Bootstrapper bootstrapper;
