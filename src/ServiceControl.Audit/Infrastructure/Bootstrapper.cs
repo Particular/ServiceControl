@@ -36,6 +36,14 @@ namespace ServiceControl.Audit.Infrastructure
 
     class Bootstrapper
     {
+        public Startup Startup { get; private set; }
+
+        public IHostBuilder HostBuilder { get; set; }
+
+        public IContainer Container { get; set; }
+
+        public AuditIngestionComponent AuditIngestionComponent { get; set; }
+
         // Windows Service
         public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
         {
@@ -96,7 +104,12 @@ namespace ServiceControl.Audit.Infrastructure
                     containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
                     containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
 
-                    containerBuilder.RegisterBuildCallback(c => Container = c);
+                    containerBuilder.RegisterBuildCallback(c =>
+                    {
+                        Container = c;
+                        AuditIngestionComponent = c.Resolve<AuditIngestionComponent>();
+                    });
+
                     containerBuilder.Register(cc => new Startup(Container));
 
                 }))
@@ -117,12 +130,6 @@ namespace ServiceControl.Audit.Infrastructure
                     builder.AddNLog();
                 });
         }
-
-        public Startup Startup { get; private set; }
-
-        public IHostBuilder HostBuilder { get; set; }
-
-        public IContainer Container { get; set; }
 
         static TransportSettings MapSettings(Settings.Settings settings)
         {
