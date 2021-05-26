@@ -20,7 +20,6 @@ namespace ServiceControl.Audit.Infrastructure
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Owin.Hosting;
     using Monitoring;
     using NLog.Extensions.Logging;
     using NServiceBus;
@@ -36,21 +35,20 @@ namespace ServiceControl.Audit.Infrastructure
 
     class Bootstrapper
     {
-        public Startup Startup { get; private set; }
+        public IHostBuilder HostBuilder { get; private set; }
 
-        public IHostBuilder HostBuilder { get; set; }
+        public IContainer Container { get; private set; }
 
-        public IContainer Container { get; set; }
-
-        public AuditIngestionComponent AuditIngestionComponent { get; set; }
+        public AuditIngestionComponent AuditIngestionComponent { get; private set; }
 
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null, bool isRunningInAcceptanceTests = false)
         {
             this.onCriticalError = onCriticalError;
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
             this.additionalRegistrationActions = additionalRegistrationActions;
+            this.isRunningInAcceptanceTests = isRunningInAcceptanceTests;
             this.settings = settings;
 
             CreateHost();
@@ -84,7 +82,6 @@ namespace ServiceControl.Audit.Infrastructure
                     var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
                     containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
 
-
                     RegisterInternalWebApiControllers(containerBuilder);
 
                     additionalRegistrationActions?.Invoke(containerBuilder);
@@ -110,7 +107,11 @@ namespace ServiceControl.Audit.Infrastructure
                 }))
                 .ConfigureServices(services =>
                 {
-                    services.AddHostedService<WebApiHostedService>();
+                    if (isRunningInAcceptanceTests == false)
+                    {
+                        services.AddHostedService<WebApiHostedService>();
+                    }
+
                     services.AddHostedService<MetricsReporterHostedService>();
                 })
                 .UseNServiceBus(context =>
@@ -149,34 +150,12 @@ namespace ServiceControl.Audit.Infrastructure
             }
         }
 
-        public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
-        {
-            var logger = LogManager.GetLogger(typeof(Bootstrapper));
-
-            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
-                .ConfigureAwait(false);
-
-            if (!isRunningAcceptanceTests)
-            {
-                var startOptions = new StartOptions(settings.RootUrl);
-
-                WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
-            }
-
-            logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
-            return bus;
-        }
-
-        public async Task Stop()
+        public Task Stop()
         {
             notifier.Dispose();
-            if (bus != null)
-            {
-                await bus.Stop().ConfigureAwait(false);
-            }
-
             documentStore.Dispose();
-            WebApp?.Dispose();
+
+            return Task.CompletedTask;
         }
 
         long DataSize()
@@ -270,15 +249,15 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
             });
         }
 
-        public IDisposable WebApp;
         readonly Action<ContainerBuilder> additionalRegistrationActions;
+        readonly bool isRunningInAcceptanceTests;
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
         EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         Action<ICriticalErrorContext> onCriticalError;
         ShutdownNotifier notifier = new ShutdownNotifier();
         Settings.Settings settings;
-        BusInstance bus;
+        //BusInstance bus;
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
 

@@ -3,7 +3,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using Autofac;
     using Contracts.EndpointControl;
     using Contracts.MessageFailures;
     using NServiceBus;
@@ -75,24 +74,6 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 configuration.EnableInstallers();
             }
-        }
-
-        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
-        {
-            var startableEndpoint = await Create(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
-                .ConfigureAwait(false);
-
-            var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
-
-            var builder = new ContainerBuilder();
-
-            builder.RegisterInstance(endpointInstance).As<IMessageSession>();
-
-            //builder.Update(container.ComponentRegistry);
-
-            //var auditIngestion = container.Resolve<AuditIngestionComponent>();
-
-            return new BusInstance(endpointInstance, null);
         }
 
         static bool IsExternalContract(Type t)
