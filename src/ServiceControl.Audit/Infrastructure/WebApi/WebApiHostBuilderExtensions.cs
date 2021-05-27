@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.OWIN
+﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
     using System;
     using System.Collections.Concurrent;
@@ -11,21 +11,28 @@
     using Autofac.Core.Activators.Reflection;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using WebApi;
+    using OWIN;
 
-    public static class WebApiHostBuilderExtensions
+    static class WebApiHostBuilderExtensions
     {
         public static IHostBuilder UseWebApi(this IHostBuilder hostBuilder,
-            List<Action<ContainerBuilder>> registrations, bool startOwinHost)
+            List<Action<ContainerBuilder>> registrations, string rootUrl, bool startOwinHost)
         {
             registrations.Add(RegisterInternalWebApiControllers);
             registrations.Add(cb => cb.RegisterModule<ApisModule>());
+
+            Startup startup = null;
+
+            registrations.Add(cb =>
+            {
+                cb.RegisterBuildCallback(c => { startup = new Startup(c); });
+            });
 
             if (startOwinHost)
             {
                 hostBuilder.ConfigureServices((ctx, serviceCollection) =>
                 {
-                    serviceCollection.AddHostedService<WebApiHostedService>();
+                    serviceCollection.AddHostedService(sp => new WebApiHostedService(rootUrl, startup));
                 });
             }
 

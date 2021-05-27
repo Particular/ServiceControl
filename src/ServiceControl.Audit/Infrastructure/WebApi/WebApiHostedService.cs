@@ -14,11 +14,12 @@
         Startup startup;
         IDisposable webApp;
 
-        public WebApiHostedService(Settings settings, Startup startup)
+        public WebApiHostedService(string rootUrl, Startup startup)
         {
-            rootUrl = settings.RootUrl;
+            this.rootUrl = rootUrl;
             this.startup = startup;
         }
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             var startOptions = new StartOptions(rootUrl);

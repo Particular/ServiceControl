@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure
+﻿namespace ServiceControl.Audit.Infrastructure.Metrics
 {
     using System;
     using System.Threading;
