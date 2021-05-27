@@ -27,6 +27,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Microsoft.Owin.Hosting;
+    using NLog.Targets;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -176,19 +177,37 @@ namespace Particular.ServiceControl
 
         public async Task Stop()
         {
-            if (reporter != null)
+            try
             {
-                await reporter.Stop().ConfigureAwait(false);
-            }
-            notifier.Dispose();
-            if (bus != null)
-            {
-                await bus.Stop().ConfigureAwait(false);
-            }
+                Console.WriteLine("Beginning of stop");
 
-            documentStore.Dispose();
-            WebApp?.Dispose();
-            container.Dispose();
+                if (reporter != null)
+                {
+                    await reporter.Stop().ConfigureAwait(false);
+                }
+                Console.WriteLine("After reporter stopped");
+
+
+                notifier.Dispose();
+
+                Console.WriteLine("After notifier stopped");
+
+                if (bus != null)
+                {
+                    await bus.Stop().ConfigureAwait(false);
+                }
+
+                Console.WriteLine("After bus stopped");
+
+                documentStore.Dispose();
+                WebApp?.Dispose();
+                container.Dispose();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         TransportSettings MapSettings(Settings settings)
