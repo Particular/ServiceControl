@@ -4,40 +4,17 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Runtime.Serialization;
-    using NServiceBus;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceControl.SagaAudit;
     using Settings;
 
-    class RavenBootstrapper : INeedInitialization
+    class RavenBootstrapper
     {
-        public static Settings Settings { get; set; }
+        public static Settings Settings { get; private set; }
 
-        public bool RunCleanup { get; set; }
-
-        public void Customize(EndpointConfiguration configuration)
-        {
-            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStoreHolder>().DocumentStore;
-            var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
-
-            Settings = settings;
-
-            StartRaven(documentStore, settings, false);
-        }
-
-        public static string ReadLicense()
-        {
-            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Audit.Infrastructure.RavenDB.RavenLicense.xml"))
-            using (var reader = new StreamReader(resourceStream))
-            {
-                return reader.ReadToEnd();
-            }
-        }
-
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
+        public static void ConfigureAndStart(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode = false)
         {
             Settings = settings;
 
@@ -68,11 +45,11 @@
                 documentStore.Configuration.Settings["Raven/License"] = ReadLicense();
             }
 
-            //This is affects only remote access to the database in maintenace mode and enables access without authentication
+            //This is affects only remote access to the database in maintenance mode and enables access without authentication
             documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
             documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
 
-            if (Settings.RunCleanupBundle)
+            if (settings.RunCleanupBundle)
             {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }
@@ -86,7 +63,7 @@
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Conventions.CustomizeJsonSerializer = serializer => serializer.Binder = MigratedTypeAwareBinder;
 
-            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(typeof(RavenBootstrapper).Assembly));
 
             documentStore.Initialize();
 
@@ -94,6 +71,15 @@
 
             IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
             IndexCreation.CreateIndexes(typeof(SagaSnapshot).Assembly, documentStore);
+        }
+
+        static string ReadLicense()
+        {
+            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Audit.Infrastructure.RavenDB.RavenLicense.xml"))
+            using (var reader = new StreamReader(resourceStream))
+            {
+                return reader.ReadToEnd();
+            }
         }
 
         static string ReadAllTextWithoutLocking(string path)
@@ -107,6 +93,6 @@
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
 
-        static SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
+        static readonly SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
     }
 }

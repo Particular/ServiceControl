@@ -42,7 +42,7 @@
                 }
                 finally
                 {
-                    await bootstrapper.Stop().ConfigureAwait(false);
+                    await host.StopAsync(CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }

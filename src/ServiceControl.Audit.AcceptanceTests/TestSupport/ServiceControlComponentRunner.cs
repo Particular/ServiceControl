@@ -193,7 +193,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
                 await host.StopAsync().ConfigureAwait(false);
-                await bootstrapper.Stop().ConfigureAwait(false);
                 HttpClient.Dispose();
                 handler.Dispose();
                 DeleteFolder(settings.DbPath);

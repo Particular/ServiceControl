@@ -8,21 +8,19 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using Raven.Client.Embedded;
-    using RavenDB;
     using Settings;
     using Transports;
 
     static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
-            Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, documentStore, configuration, isRunningAcceptanceTests);
+            Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, isRunningAcceptanceTests);
 
             return Endpoint.Create(configuration);
         }
 
-        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -34,9 +32,6 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.Pipeline.Register(typeof(FullTypeNameOnlyBehavior), "Remove asm qualified name from the message type header");
 
-            // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            // wrapping it in a non-disposable type to make sure settings clear doesn't dispose
-            configuration.GetSettings().Set(new EmbeddableDocumentStoreHolder(documentStore));
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
             configuration.SendOnly();
