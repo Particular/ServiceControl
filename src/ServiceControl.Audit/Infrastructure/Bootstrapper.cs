@@ -12,7 +12,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Autofac.Extensions.DependencyInjection;
     using Autofac.Features.ResolveAnything;
     using ByteSizeLib;
-    using Microsoft.Extensions.DependencyInjection;
+    using Metrics;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Monitoring;
@@ -20,12 +20,11 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using OWIN;
     using Raven.Client.Embedded;
     using RavenDB;
-    using ServiceControl.Infrastructure.Metrics;
     using Settings;
     using Transports;
+    using WebApi;
 
     class Bootstrapper
     {
@@ -75,10 +74,7 @@ namespace ServiceControl.Audit.Infrastructure
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
-                .ConfigureServices(services =>
-                {
-                    services.AddHostedService<MetricsReporterHostedService>();
-                })
+                .UseMetrics(registrationActions, settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
                     var documentStore = new EmbeddableDocumentStore();
@@ -93,7 +89,7 @@ namespace ServiceControl.Audit.Infrastructure
 
                     return configuration;
                 })
-                .UseWebApi(registrationActions, !isRunningInAcceptanceTests);
+                .UseWebApi(registrationActions, settings.RootUrl, !isRunningInAcceptanceTests);
 
             //This needs to go last so that all additional registrations have been already made
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
@@ -108,8 +104,6 @@ namespace ServiceControl.Audit.Infrastructure
 
                 registrationActions.ForEach(ra => ra.Invoke(containerBuilder));
 
-                containerBuilder.RegisterInstance(new Metrics { Enabled = settings.PrintMetrics }).ExternallyOwned();
-
                 containerBuilder.RegisterInstance(loggingSettings);
                 containerBuilder.RegisterInstance(settings);
                 containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
@@ -120,8 +114,6 @@ namespace ServiceControl.Audit.Infrastructure
                     Container = c;
                     AuditIngestionComponent = c.Resolve<AuditIngestionComponent>();
                 });
-
-                containerBuilder.Register(cc => new Startup(Container));
             }));
         }
 
