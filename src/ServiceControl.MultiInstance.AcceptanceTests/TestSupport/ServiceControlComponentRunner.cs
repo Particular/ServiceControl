@@ -310,13 +310,15 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customAuditEndpointConfiguration(configuration);
 
+            Audit.Infrastructure.Bootstrapper bootstrapper;
+
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-                var bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
+                bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -335,13 +337,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 await host.StartAsync().ConfigureAwait(false);
 
                 hosts[instanceName] = host;
-                bootstrappers[instanceName] = bootstrapper;
             }
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
                 var app = new AppBuilder();
-                var startup = new Startup(bootstrappers[instanceName].Container);
+                var startup = new Startup(bootstrapper.Container);
 
                 startup.Configuration(app);
                 var appFunc = app.Build();
@@ -372,8 +373,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     {
                         await hosts[instanceName].StopAsync().ConfigureAwait(false);
                     }
-
-                    await bootstrappers[instanceName].Stop().ConfigureAwait(false);
+                    //HINT: audit instances don't need their bootstrapper stopped as their lifecycle in managed in the host
+                    if (bootstrappers.TryGetValue(instanceName, out var bootstrapper))
+                    {
+                        await bootstrapper.Stop().ConfigureAwait(false);
+                    }
                     HttpClients[instanceName].Dispose();
                     handlers[instanceName].Dispose();
                     DeleteFolder(settings.DbPath);
