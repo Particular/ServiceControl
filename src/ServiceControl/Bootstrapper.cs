@@ -179,26 +179,15 @@ namespace Particular.ServiceControl
         {
             try
             {
-                Console.WriteLine("Beginning of stop");
-
                 if (reporter != null)
                 {
                     await reporter.Stop().ConfigureAwait(false);
                 }
-                Console.WriteLine("After reporter stopped");
-
-
                 notifier.Dispose();
-
-                Console.WriteLine("After notifier stopped");
-
                 if (bus != null)
                 {
                     await bus.Stop().ConfigureAwait(false);
                 }
-
-                Console.WriteLine("After bus stopped");
-
                 documentStore.Dispose();
                 WebApp?.Dispose();
                 container.Dispose();
