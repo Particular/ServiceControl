@@ -177,26 +177,21 @@ namespace Particular.ServiceControl
 
         public async Task Stop()
         {
-            try
+            if (reporter != null)
             {
-                if (reporter != null)
-                {
-                    await reporter.Stop().ConfigureAwait(false);
-                }
-                notifier.Dispose();
-                if (bus != null)
-                {
-                    await bus.Stop().ConfigureAwait(false);
-                }
-                documentStore.Dispose();
-                WebApp?.Dispose();
-                container.Dispose();
+                await reporter.Stop().ConfigureAwait(false);
             }
-            catch (Exception e)
+
+            notifier.Dispose();
+
+            if (bus != null)
             {
-                Console.WriteLine(e);
-                throw;
+                await bus.Stop().ConfigureAwait(false);
             }
+
+            documentStore.Dispose();
+            WebApp?.Dispose();
+            container.Dispose();
         }
 
         TransportSettings MapSettings(Settings settings)
