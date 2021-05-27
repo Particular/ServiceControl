@@ -1,18 +1,14 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System;
-    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Reflection;
-    using System.Web.Http.Controllers;
     using Auditing;
-    using Auditing.MessagesView;
     using Autofac;
-    using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
     using Autofac.Features.ResolveAnything;
     using ByteSizeLib;
@@ -30,7 +26,6 @@ namespace ServiceControl.Audit.Infrastructure
     using ServiceControl.Infrastructure.Metrics;
     using Settings;
     using Transports;
-    using WebApi;
 
     class Bootstrapper
     {
@@ -40,15 +35,19 @@ namespace ServiceControl.Audit.Infrastructure
 
         public AuditIngestionComponent AuditIngestionComponent { get; private set; }
 
-        // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null, bool isRunningInAcceptanceTests = false)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> registrationAction = null, bool isRunningInAcceptanceTests = false)
         {
             this.onCriticalError = onCriticalError;
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
-            this.additionalRegistrationActions = additionalRegistrationActions;
-            this.isRunningInAcceptanceTests = isRunningInAcceptanceTests;
             this.settings = settings;
+
+            if (registrationAction != null)
+            {
+                registrationActions.Add(registrationAction);
+            }
+
+            this.isRunningInAcceptanceTests = isRunningInAcceptanceTests;
 
             CreateHost();
         }
@@ -70,45 +69,14 @@ namespace ServiceControl.Audit.Infrastructure
 
             HostBuilder = new HostBuilder();
             HostBuilder
-                .UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
+                .ConfigureLogging(builder =>
                 {
-                    containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type =>
-                        type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-
-
-                    containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
-                    containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
-
-                    RegisterInternalWebApiControllers(containerBuilder);
-
-                    additionalRegistrationActions?.Invoke(containerBuilder);
-
-                    containerBuilder.RegisterInstance(new Metrics { Enabled = settings.PrintMetrics }).ExternallyOwned();
-
-                    containerBuilder.RegisterInstance(loggingSettings);
-                    containerBuilder.RegisterInstance(settings);
-                    containerBuilder.RegisterModule<ApisModule>();
-                    containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
-                    containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
-
-                    containerBuilder.RegisterBuildCallback(c =>
-                    {
-                        Container = c;
-                        AuditIngestionComponent = c.Resolve<AuditIngestionComponent>();
-                    });
-
-                    containerBuilder.Register(cc => new Startup(Container));
-
-                }))
+                    builder.ClearProviders();
+                    //HINT: configuration used by NLog comes from LoggingConfigurator.cs
+                    builder.AddNLog();
+                })
                 .ConfigureServices(services =>
                 {
-                    if (isRunningInAcceptanceTests == false)
-                    {
-                        services.AddHostedService<WebApiHostedService>();
-                    }
-
                     services.AddHostedService<MetricsReporterHostedService>();
                 })
                 .UseEmbeddedRavenDb(context =>
@@ -125,12 +93,36 @@ namespace ServiceControl.Audit.Infrastructure
 
                     return configuration;
                 })
-                .ConfigureLogging(builder =>
+                .UseWebApi(registrationActions, !isRunningInAcceptanceTests);
+
+            //This needs to go last so that all additional registrations have been already made
+            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
+            {
+                containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type =>
+                    type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
+
+                containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+
+                var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+                containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
+
+                registrationActions.ForEach(ra => ra.Invoke(containerBuilder));
+
+                containerBuilder.RegisterInstance(new Metrics { Enabled = settings.PrintMetrics }).ExternallyOwned();
+
+                containerBuilder.RegisterInstance(loggingSettings);
+                containerBuilder.RegisterInstance(settings);
+                containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
+                containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
+
+                containerBuilder.RegisterBuildCallback(c =>
                 {
-                    builder.ClearProviders();
-                    //HINT: configuration used by NLog comes from LoggingConfigurator.cs
-                    builder.AddNLog();
+                    Container = c;
+                    AuditIngestionComponent = c.Resolve<AuditIngestionComponent>();
                 });
+
+                containerBuilder.Register(cc => new Startup(Container));
+            }));
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)
@@ -142,17 +134,6 @@ namespace ServiceControl.Audit.Infrastructure
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
             return transportSettings;
-        }
-
-        static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
-        {
-            var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
-
-            foreach (var controllerType in controllerTypes)
-            {
-                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
-            }
         }
 
         long DataSize()
@@ -246,26 +227,13 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
             });
         }
 
-        readonly Action<ContainerBuilder> additionalRegistrationActions;
+        readonly List<Action<ContainerBuilder>> registrationActions = new List<Action<ContainerBuilder>>();
         readonly bool isRunningInAcceptanceTests;
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
         Action<ICriticalErrorContext> onCriticalError;
         Settings.Settings settings;
-        //BusInstance bus;
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
-
-        class AllConstructorFinder : IConstructorFinder
-        {
-            public ConstructorInfo[] FindConstructors(Type targetType)
-            {
-                var result = Cache.GetOrAdd(targetType, t => t.GetTypeInfo().DeclaredConstructors.ToArray());
-
-                return result.Length > 0 ? result : throw new Exception($"No constructor found for type {targetType.FullName}");
-            }
-
-            static readonly ConcurrentDictionary<Type, ConstructorInfo[]> Cache = new ConcurrentDictionary<Type, ConstructorInfo[]>();
-        }
     }
 }
