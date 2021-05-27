@@ -90,8 +90,10 @@ namespace ServiceControl.Audit.Infrastructure
 
             using (documentStore)
             {
+                RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+
                 NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                    ctx => { }, documentStore, configuration, false);
+                    ctx => { }, configuration, false);
 
                 var container = containerBuilder.Build();
 
@@ -99,7 +101,7 @@ namespace ServiceControl.Audit.Infrastructure
                 configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
 #pragma warning restore CS0618 // Type or member is obsolete
 
-                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, ctx => { }, documentStore, configuration, false)
+                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, ctx => { }, configuration, false)
                     .ConfigureAwait(false);
             }
         }

@@ -8,7 +8,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Linq;
     using System.Net;
     using System.Reflection;
-    using System.Threading.Tasks;
     using System.Web.Http.Controllers;
     using Auditing;
     using Auditing.MessagesView;
@@ -26,8 +25,8 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using OWIN;
-    using Raven.Client;
     using Raven.Client.Embedded;
+    using RavenDB;
     using ServiceControl.Infrastructure.Metrics;
     using Settings;
     using Transports;
@@ -90,7 +89,6 @@ namespace ServiceControl.Audit.Infrastructure
 
                     containerBuilder.RegisterInstance(loggingSettings);
                     containerBuilder.RegisterInstance(settings);
-                    containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
                     containerBuilder.RegisterModule<ApisModule>();
                     containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
                     containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
@@ -113,9 +111,17 @@ namespace ServiceControl.Audit.Infrastructure
 
                     services.AddHostedService<MetricsReporterHostedService>();
                 })
+                .UseEmbeddedRavenDb(context =>
+                {
+                    var documentStore = new EmbeddableDocumentStore();
+
+                    RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+
+                    return documentStore;
+                })
                 .UseNServiceBus(context =>
                 {
-                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, documentStore, configuration, false);
+                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, false);
 
                     return configuration;
                 })
@@ -147,13 +153,6 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
             }
-        }
-
-        public Task Stop()
-        {
-            documentStore.Dispose();
-
-            return Task.CompletedTask;
         }
 
         long DataSize()
@@ -251,7 +250,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         readonly bool isRunningInAcceptanceTests;
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
-        EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         Action<ICriticalErrorContext> onCriticalError;
         Settings.Settings settings;
         //BusInstance bus;
