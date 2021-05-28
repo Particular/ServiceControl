@@ -13,13 +13,6 @@ namespace ServiceControl.Audit.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
-        {
-            Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, isRunningAcceptanceTests);
-
-            return Endpoint.Create(configuration);
-        }
-
         public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;

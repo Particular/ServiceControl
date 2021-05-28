@@ -92,16 +92,17 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 RavenBootstrapper.ConfigureAndStart(documentStore, settings);
 
-                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                    ctx => { }, configuration, false);
-
                 var container = containerBuilder.Build();
 
 #pragma warning disable CS0618 // Type or member is obsolete
                 configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
 #pragma warning restore CS0618 // Type or member is obsolete
 
-                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, ctx => { }, configuration, false)
+                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
+                    ctx => { }, configuration, false);
+
+
+                await Endpoint.Create(configuration)
                     .ConfigureAwait(false);
             }
         }
