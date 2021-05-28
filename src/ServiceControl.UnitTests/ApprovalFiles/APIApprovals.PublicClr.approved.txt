@@ -1390,6 +1390,10 @@ namespace ServiceControl.Recoverability
     {
         public FailureGroupsViewIndex() { }
     }
+    public class GroupCommentIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.GroupComment>
+    {
+        public GroupCommentIndex() { }
+    }
     public class HistoricRetryOperation
     {
         public HistoricRetryOperation() { }

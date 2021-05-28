@@ -45,7 +45,7 @@
         async Task GetComments(IAsyncDocumentSession session, IList<FailureGroupView> dbGroups)
         {
             var commentIds = dbGroups.Select(x => GroupComment.MakeId(x.Id)).ToArray();
-            var comments = await session.Query<GroupComment>().Where(x => x.Id.In(commentIds))
+            var comments = await session.Query<GroupComment, GroupCommentIndex>().Where(x => x.Id.In(commentIds))
                 .ToListAsync(CancellationToken.None).ConfigureAwait(false);
 
             foreach (var group in dbGroups)
