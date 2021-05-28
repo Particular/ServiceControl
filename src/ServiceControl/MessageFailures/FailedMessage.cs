@@ -57,6 +57,17 @@
         }
     }
 
+    public class GroupComment
+    {
+        public string Id { get; set; }
+        public string Comment { get; set; }
+
+        public static string MakeId(string groupId)
+        {
+            return $"GroupComment/{groupId}";
+        }
+    }
+
     public enum FailedMessageStatus
     {
         Unresolved = 1,

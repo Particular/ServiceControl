@@ -6,6 +6,7 @@
 public class GroupOperation
 {
     public GroupOperation() { }
+    public string Comment { get; set; }
     public int Count { get; set; }
     public System.DateTime? First { get; set; }
     public string Id { get; set; }
@@ -891,6 +892,13 @@ namespace ServiceControl.MessageFailures
         RetryIssued = 3,
         Archived = 4,
     }
+    public class GroupComment
+    {
+        public GroupComment() { }
+        public string Comment { get; set; }
+        public string Id { get; set; }
+        public static string MakeId(string groupId) { }
+    }
     public interface IHaveStatus
     {
         ServiceControl.MessageFailures.FailedMessageStatus Status { get; }
@@ -1140,6 +1148,12 @@ namespace ServiceControl.Recoverability.API
     }
     public class FailureGroupsController : System.Web.Http.ApiController
     {
+        [System.Web.Http.HttpDelete]
+        [System.Web.Http.Route("recoverability/groups/{groupid}/comment")]
+        public System.Threading.Tasks.Task<System.Web.Http.IHttpActionResult> DeleteComment(string groupId) { }
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("recoverability/groups/{groupid}/comment")]
+        public System.Threading.Tasks.Task<System.Web.Http.IHttpActionResult> EditComment(string groupId, string comment) { }
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("recoverability/groups/{classifier?}")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAllGroups([System.Web.Http.FromUri] string classifierFilter = null, string classifier = "Exception Type and Stack Trace") { }
@@ -1364,6 +1378,7 @@ namespace ServiceControl.Recoverability
     public class FailureGroupView
     {
         public FailureGroupView() { }
+        public string Comment { get; set; }
         public int Count { get; set; }
         public System.DateTime First { get; set; }
         public string Id { get; set; }
@@ -1374,6 +1389,10 @@ namespace ServiceControl.Recoverability
     public class FailureGroupsViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupView>
     {
         public FailureGroupsViewIndex() { }
+    }
+    public class GroupCommentIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.GroupComment>
+    {
+        public GroupCommentIndex() { }
     }
     public class HistoricRetryOperation
     {

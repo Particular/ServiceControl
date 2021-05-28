@@ -9,7 +9,7 @@ static class EtagHelper
         var data = new StringBuilder();
         foreach (var g in groups)
         {
-            data.Append($"{g.Id}.{g.Count}.{g.OperationStatus}.{g.OperationProgress}.{g.OperationStartTime}.{g.OperationCompletionTime}.{g.NeedUserAcknowledgement}");
+            data.Append($"{g.Id}.{g.Count}.{g.OperationStatus}.{g.OperationProgress}.{g.OperationStartTime}.{g.OperationCompletionTime}.{g.NeedUserAcknowledgement}.{g.Comment}");
         }
 
         return data.ToString();

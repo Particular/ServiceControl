@@ -2,8 +2,11 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
+    using MessageFailures;
     using Raven.Client;
+    using Raven.Client.Linq;
 
     class GroupFetcher
     {
@@ -16,6 +19,8 @@
         public async Task<GroupOperation[]> GetGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
         {
             var dbGroups = await GetDBGroups(session, classifier, classifierFilter).ConfigureAwait(false);
+
+            await GetComments(session, dbGroups).ConfigureAwait(false);
 
             var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ?? RetryHistory.CreateNew();
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
@@ -35,6 +40,18 @@
             var groups = openGroups.Union(closedGroups);
 
             return groups.OrderByDescending(g => g.Last).ToArray();
+        }
+
+        async Task GetComments(IAsyncDocumentSession session, IList<FailureGroupView> dbGroups)
+        {
+            var commentIds = dbGroups.Select(x => GroupComment.MakeId(x.Id)).ToArray();
+            var comments = await session.Query<GroupComment, GroupCommentIndex>().Where(x => x.Id.In(commentIds))
+                .ToListAsync(CancellationToken.None).ConfigureAwait(false);
+
+            foreach (var group in dbGroups)
+            {
+                group.Comment = comments.FirstOrDefault(x => x.Id == GroupComment.MakeId(group.Id))?.Comment;
+            }
         }
 
         void MakeSureForwardingBatchIsIncludedAsOpen(string classifier, RetryBatch forwardingBatch, List<GroupOperation> open)
@@ -62,8 +79,7 @@
 
         static Task<IList<FailureGroupView>> GetDBGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
         {
-            var groups = session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                .Where(v => v.Type == classifier);
+            var groups = Queryable.Where(session.Query<FailureGroupView, FailureGroupsViewIndex>(), v => v.Type == classifier);
 
             if (!string.IsNullOrWhiteSpace(classifierFilter))
             {
@@ -189,6 +205,7 @@
                     Count = failureGroup.Count,
                     First = failureGroup.First,
                     Last = failureGroup.Last,
+                    Comment = failureGroup.Comment,
                     OperationStatus = summary?.RetryState.ToString() ?? "None",
                     OperationFailed = summary?.Failed,
                     OperationProgress = summary?.GetProgress().Percentage ?? 0.0,

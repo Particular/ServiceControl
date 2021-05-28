@@ -5,10 +5,12 @@
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.Extensions;
     using Infrastructure.WebApi;
+    using MessageFailures;
     using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
@@ -45,6 +47,39 @@
             {
                 Force = true
             }).ConfigureAwait(false);
+
+            return Content(HttpStatusCode.Accepted, string.Empty);
+        }
+
+        [Route("recoverability/groups/{groupid}/comment")]
+        [HttpPost]
+        public async Task<IHttpActionResult> EditComment(string groupId, string comment)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var groupComment =
+                    await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId)).ConfigureAwait(false)
+                    ?? new GroupComment { Id = GroupComment.MakeId(groupId) };
+
+                groupComment.Comment = comment;
+
+                await session.StoreAsync(groupComment).ConfigureAwait(false);
+
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+
+            return Content(HttpStatusCode.Accepted, string.Empty);
+        }
+
+        [Route("recoverability/groups/{groupid}/comment")]
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteComment(string groupId)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                session.Delete(GroupComment.MakeId(groupId));
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
 
             return Content(HttpStatusCode.Accepted, string.Empty);
         }
