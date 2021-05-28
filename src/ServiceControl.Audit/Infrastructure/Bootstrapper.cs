@@ -74,7 +74,7 @@ namespace ServiceControl.Audit.Infrastructure
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
-                .UseMetrics(registrationActions, settings.PrintMetrics)
+                .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
                     var documentStore = new EmbeddableDocumentStore();
