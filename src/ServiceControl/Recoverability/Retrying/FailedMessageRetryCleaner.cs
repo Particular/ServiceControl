@@ -6,13 +6,18 @@ namespace ServiceControl.Recoverability
 
     class FailedMessageRetryCleaner : IDomainHandler<MessageFailed>
     {
-        public RetryDocumentManager RetryDocumentManager { get; set; }
+        readonly RetryDocumentManager retryDocumentManager;
+
+        public FailedMessageRetryCleaner(RetryDocumentManager retryDocumentManager)
+        {
+            this.retryDocumentManager = retryDocumentManager;
+        }
 
         public Task Handle(MessageFailed message)
         {
             if (message.RepeatedFailure)
             {
-                return RetryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+                return retryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
             }
 
             return Task.FromResult(0);

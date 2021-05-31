@@ -7,13 +7,18 @@
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
-        public IDocumentStore DocumentStore { get; set; }
+        public RavenAttachmentsBodyStorage(IDocumentStore documentStore)
+        {
+            this.documentStore = documentStore;
+        }
+
+        IDocumentStore documentStore;
 
         public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            return DocumentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream,
+            return documentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream,
                 new RavenJObject
 #pragma warning restore 618
                 {
@@ -26,7 +31,7 @@
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = await DocumentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
+            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
 #pragma warning restore 618
 
             return attachment == null

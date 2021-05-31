@@ -7,7 +7,6 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.Settings;
     using NUnit.Framework;
     using TestSupport.EndpointTemplates;
 
@@ -106,11 +105,16 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext scenarioContext;
+
+                public MyMessageHandler(MyContext scenarioContext)
+                {
+                    this.scenarioContext = scenarioContext;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.MessageId = context.MessageId;
+                    scenarioContext.MessageId = context.MessageId;
                     throw new Exception("Simulated exception");
                 }
             }

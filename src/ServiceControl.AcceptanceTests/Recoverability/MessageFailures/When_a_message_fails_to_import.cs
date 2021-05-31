@@ -75,22 +75,31 @@
 
         class MessageFailedHandler : IDomainHandler<MessageFailed>
         {
-            public MyContext Context { get; set; }
+            public MessageFailedHandler(MyContext scenarioContext)
+            {
+                this.scenarioContext = scenarioContext;
+            }
+            readonly MyContext scenarioContext;
 
             public Task Handle(MessageFailed domainEvent)
             {
-                Context.MessageFailedEventPublished = true;
+                scenarioContext.MessageFailedEventPublished = true;
                 return Task.CompletedTask;
             }
         }
 
         class FailOnceEnricher : IEnrichImportedErrorMessages
         {
-            public MyContext Context { get; set; }
+            readonly MyContext scenarioContext;
+
+            public FailOnceEnricher(MyContext scenarioContext)
+            {
+                this.scenarioContext = scenarioContext;
+            }
 
             public void Enrich(ErrorEnricherContext context)
             {
-                if (!Context.FailedImport)
+                if (!scenarioContext.FailedImport)
                 {
                     TestContext.WriteLine("Simulating message processing failure");
                     throw new MessageDeserializationException("ID", null);
@@ -109,11 +118,16 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext scenarioContext;
+
+                public MyMessageHandler(MyContext scenarioContext)
+                {
+                    this.scenarioContext = scenarioContext;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.ErrorForwarded = true;
+                    scenarioContext.ErrorForwarded = true;
                     return Task.CompletedTask;
                 }
             }
@@ -145,13 +159,17 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
-
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
+                    scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
                     throw new Exception("Simulated");
                 }
             }

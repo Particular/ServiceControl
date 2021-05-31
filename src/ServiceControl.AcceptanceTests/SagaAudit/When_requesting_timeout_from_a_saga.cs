@@ -49,17 +49,22 @@
             IAmStartedByMessages<StartSagaMessage>,
             IHandleTimeouts<TimeoutMessage>
         {
-            public MyContext Context { get; set; }
+            readonly MyContext scenarioContext;
+
+            public MySaga(MyContext scenarioContext)
+            {
+                this.scenarioContext = scenarioContext;
+            }
 
             public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
-                Context.SagaId = Data.Id;
+                scenarioContext.SagaId = Data.Id;
                 return RequestTimeout<TimeoutMessage>(context, TimeSpan.FromMilliseconds(10));
             }
 
             public Task Timeout(TimeoutMessage stat, IMessageHandlerContext context)
             {
-                Context.ReceivedTimeoutMessage = true;
+                scenarioContext.ReceivedTimeoutMessage = true;
                 return Task.FromResult(0);
             }
 
