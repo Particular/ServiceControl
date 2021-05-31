@@ -13,6 +13,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Autofac.Features.ResolveAnything;
     using ByteSizeLib;
     using Metrics;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Monitoring;
@@ -74,6 +75,9 @@ namespace ServiceControl.Audit.Infrastructure
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
+                .ConfigureServices(services
+                    => services.Configure<HostOptions>(options
+                        => options.ShutdownTimeout = TimeSpan.FromSeconds(30)))
                 .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
