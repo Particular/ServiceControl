@@ -101,24 +101,29 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, settings.EndpointName()).ToString();
 
                     if (message.IsFirst)
                     {
-                        Context.FirstDone = true;
-                        Context.FirstMessageId = uniqueMessageId;
+                        scenarioContext.FirstDone = true;
+                        scenarioContext.FirstMessageId = uniqueMessageId;
                     }
                     else
                     {
-                        Context.SecondDone = true;
-                        Context.SecondMessageId = uniqueMessageId;
+                        scenarioContext.SecondDone = true;
+                        scenarioContext.SecondMessageId = uniqueMessageId;
                     }
 
                     throw new Exception("Simulated exception");

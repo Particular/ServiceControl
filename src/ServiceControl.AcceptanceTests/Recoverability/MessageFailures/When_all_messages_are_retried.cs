@@ -98,26 +98,31 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, settings.EndpointName()).ToString();
 
                     if (message.MessageNumber == 1)
                     {
-                        Context.MessageToBeRetriedAsPartOfRetryAllId = uniqueMessageId;
+                        scenarioContext.MessageToBeRetriedAsPartOfRetryAllId = uniqueMessageId;
                     }
                     else
                     {
-                        Context.MessageToBeArchivedId = uniqueMessageId;
+                        scenarioContext.MessageToBeArchivedId = uniqueMessageId;
                     }
 
-                    if (!Context.RetryAllIssued)
+                    if (!scenarioContext.RetryAllIssued)
                     {
                         throw new Exception("Simulated exception");
                     }

@@ -92,19 +92,25 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public Context Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
+
+                readonly Context scenarioContext;
+                readonly ReadOnlySettings settings;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.AboutToSendRetry)
+                    if (scenarioContext.AboutToSendRetry)
                     {
-                        Context.Retried = true;
+                        scenarioContext.Retried = true;
                     }
                     else
                     {
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
+                        scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
 

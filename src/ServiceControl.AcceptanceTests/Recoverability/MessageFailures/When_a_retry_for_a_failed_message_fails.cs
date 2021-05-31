@@ -111,17 +111,23 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
+
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Attempting to process message");
 
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    scenarioContext.MessageId = context.MessageId.Replace(@"\", "-");
 
-                    if (!Context.Succeed) //simulate that the exception will be resolved with the retry
+                    if (!scenarioContext.Succeed) //simulate that the exception will be resolved with the retry
                     {
                         Console.WriteLine("Message processing failure");
                         throw new Exception("Simulated exception");

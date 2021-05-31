@@ -109,14 +109,19 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = context.MessageId;
+                    scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    scenarioContext.MessageId = context.MessageId;
                     throw new Exception("Simulated exception");
                 }
             }

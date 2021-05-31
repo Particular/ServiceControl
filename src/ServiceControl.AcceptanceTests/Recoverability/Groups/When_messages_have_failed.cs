@@ -104,20 +104,26 @@
                 IHandleMessages<MyMessageA>,
                 IHandleMessages<MyMessageB>
             {
-                public MyContext Context { get; set; }
 
-                public ReadOnlySettings Settings { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
+
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessageA message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageIdA = context.MessageId.Replace(@"\", "-");
+                    scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    scenarioContext.MessageIdA = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
 
                 public Task Handle(MyMessageB message, IMessageHandlerContext context)
                 {
-                    Context.MessageIdB = context.MessageId.Replace(@"\", "-");
+                    scenarioContext.MessageIdB = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }

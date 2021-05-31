@@ -85,17 +85,23 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 
             public class FailingMessageHandler : IHandleMessages<Meow>
             {
-                public MeowContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                public FailingMessageHandler(MeowContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
+
+                readonly MeowContext scenarioContext;
+                readonly ReadOnlySettings settings;
 
                 public Task Handle(Meow message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
-                    Context.UniqueMessageId = uniqueMessageId;
+                    var uniqueMessageId = DeterministicGuid.MakeId(messageId, settings.EndpointName()).ToString();
+                    scenarioContext.UniqueMessageId = uniqueMessageId;
 
-                    if (Context.Retrying)
+                    if (scenarioContext.Retrying)
                     {
                         throw new IOException("The disk is full");
                     }

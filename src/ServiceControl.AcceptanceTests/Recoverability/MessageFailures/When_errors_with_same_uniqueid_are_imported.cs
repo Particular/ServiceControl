@@ -64,13 +64,18 @@
 
         class CounterEnricher : IEnrichImportedErrorMessages
         {
-            public MyContext Context { get; set; }
+            readonly MyContext scenarioContext;
+
+            public CounterEnricher(MyContext scenarioContext)
+            {
+                this.scenarioContext = scenarioContext;
+            }
 
             public void Enrich(ErrorEnricherContext context)
             {
                 if (context.Headers.TryGetValue("Counter", out var counter))
                 {
-                    Context.OnMessage(counter);
+                    scenarioContext.OnMessage(counter);
                 }
                 else
                 {
