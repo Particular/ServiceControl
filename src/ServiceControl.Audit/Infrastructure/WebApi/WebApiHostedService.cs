@@ -6,7 +6,6 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Hosting;
     using OWIN;
-    using Settings;
 
     class WebApiHostedService : IHostedService
     {
