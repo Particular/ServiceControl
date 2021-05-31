@@ -19,7 +19,7 @@
 
     public class FailedErrorsController : ApiController
     {
-        internal FailedErrorsController(IDocumentStore store, Lazy<ErrorIngestionComponent> importFailedAudits)
+        internal FailedErrorsController(IDocumentStore store, ErrorIngestionComponent importFailedAudits)
         {
             this.store = store;
             this.importFailedAudits = importFailedAudits;
@@ -49,7 +49,7 @@
         public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken cancellationToken = default)
         {
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            await importFailedAudits.Value.ImportFailedErrors(tokenSource.Token);
+            await importFailedAudits.ImportFailedErrors(tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
@@ -72,6 +72,6 @@
         }
 
         readonly IDocumentStore store;
-        readonly Lazy<ErrorIngestionComponent> importFailedAudits;
+        readonly ErrorIngestionComponent importFailedAudits;
     }
 }

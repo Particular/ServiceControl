@@ -3,8 +3,10 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NLog;
     using NServiceBus;
+    using Operations;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
@@ -28,8 +30,10 @@
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
-            var instance = await bootstrapper.Start().ConfigureAwait(false);
-            var errorIngestion = instance.ErrorIngestion;
+            var host = bootstrapper.HostBuilder.Build();
+            await host.StartAsync(CancellationToken.None).ConfigureAwait(false);
+
+            var errorIngestion = host.Services.GetRequiredService<ErrorIngestionComponent>();
 
             Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
@@ -43,7 +47,7 @@
             }
             finally
             {
-                await bootstrapper.Stop().ConfigureAwait(false);
+                await host.StopAsync(CancellationToken.None).ConfigureAwait(false);
             }
         }
     }

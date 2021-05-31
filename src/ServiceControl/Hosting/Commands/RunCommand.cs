@@ -1,69 +1,40 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
-    using System;
-    using System.ServiceProcess;
     using System.Threading.Tasks;
     using Hosting;
+    using Microsoft.Extensions.Hosting;
+    using NServiceBus;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class RunCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args)
+        public override Task Execute(HostArguments args)
         {
+            var endpointConfiguration = new EndpointConfiguration(args.ServiceName);
+            var assemblyScanner = endpointConfiguration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+
+            var settings = new Settings(args.ServiceName)
+            {
+                RunCleanupBundle = true,
+                Components = Components.All
+            };
+
+            var loggingSettings = new LoggingSettings(args.ServiceName);
+
+            var bootstrapper = new Bootstrapper(settings, endpointConfiguration, loggingSettings);
+            var hostBuilder = bootstrapper.HostBuilder;
+
             if (args.RunAsWindowsService)
             {
-                using (var service = new Host { ServiceName = args.ServiceName })
-                {
-                    //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
-                    //      until service reports it has stopped.
-                    //      SCM takes over and calls OnStart and OnStop on the instance. 
-                    ServiceBase.Run(service);
-                }
+                hostBuilder.UseWindowsService();
             }
             else
             {
-                await RunAsConsoleApp(args).ConfigureAwait(false);
-            }
-        }
-
-        static async Task RunAsConsoleApp(HostArguments args)
-        {
-            using (var service = new Host { ServiceName = args.ServiceName })
-            {
-                var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                service.OnStopping = () =>
-                {
-                    service.OnStopping = () => { };
-                    completionSource.TrySetResult(true);
-                };
-
-                service.Start();
-
-                var r = new CancelWrapper(completionSource, service);
-                Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;
-
-                Console.WriteLine("Press Ctrl+C to exit");
-                await completionSource.Task.ConfigureAwait(false);
-            }
-        }
-
-        class CancelWrapper
-        {
-            public CancelWrapper(TaskCompletionSource<bool> syncEvent, Host host)
-            {
-                this.syncEvent = syncEvent;
-                this.host = host;
+                hostBuilder.UseConsoleLifetime();
             }
 
-            public void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
-            {
-                host.OnStopping = () => { };
-                e.Cancel = true;
-                syncEvent.TrySetResult(true);
-                Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
-            }
-
-            readonly TaskCompletionSource<bool> syncEvent;
-            readonly Host host;
+            return hostBuilder.Build().RunAsync();
         }
     }
 }

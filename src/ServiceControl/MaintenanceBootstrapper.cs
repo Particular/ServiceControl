@@ -18,7 +18,7 @@ namespace Particular.ServiceControl
 
             using (var documentStore = new EmbeddableDocumentStore())
             {
-                new RavenBootstrapper().StartRaven(documentStore, settings, true);
+                RavenBootstrapper.ConfigureAndStart(documentStore, settings, true);
 
                 if (args.RunAsWindowsService)
                 {

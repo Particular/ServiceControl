@@ -8,7 +8,6 @@
     using Audit.Monitoring;
     using Monitoring;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using Particular.Licensing;
     using Raven.Abstractions.Extensions;
@@ -26,13 +25,6 @@
 
         public void Customize(EndpointConfiguration configuration)
         {
-            var documentStore = configuration.GetSettings().Get<EmbeddableDocumentStoreHolder>().DocumentStore;
-            var settings = configuration.GetSettings().Get<Settings>("ServiceControl.Settings");
-
-            Settings = settings;
-
-            StartRaven(documentStore, settings, false);
-
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
         }
 
@@ -45,7 +37,7 @@
             }
         }
 
-        public void StartRaven(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode)
+        public static void ConfigureAndStart(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode = false)
         {
             Settings = settings;
 
@@ -96,7 +88,7 @@
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Conventions.CustomizeJsonSerializer = serializer => serializer.Binder = MigratedTypeAwareBinder;
 
-            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(GetType().Assembly));
+            documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(typeof(RavenBootstrapper).Assembly));
 
             documentStore.Initialize();
 

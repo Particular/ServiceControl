@@ -5,9 +5,6 @@
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
-    using Raven.Client.Document;
-    using Raven.Client.Embedded;
 
     class SubscriptionStorage : Feature
     {
@@ -23,29 +20,30 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var store = context.Settings.Get<EmbeddableDocumentStoreHolder>().DocumentStore;
+            // TODO: Sort this out. Do we even still need it?
+            //var store = context.Settings.Get<EmbeddableDocumentStoreHolder>().DocumentStore;
 
-            store.Conventions.FindClrType = (id, doc, metadata) =>
-            {
-                var clrtype = metadata.Value<string>(Constants.RavenClrType);
+            //store.Conventions.FindClrType = (id, doc, metadata) =>
+            //{
+            //    var clrtype = metadata.Value<string>(Constants.RavenClrType);
 
-                // The CLR type cannot be assumed to be always there
-                if (clrtype == null)
-                {
-                    return null;
-                }
+            //    // The CLR type cannot be assumed to be always there
+            //    if (clrtype == null)
+            //    {
+            //        return null;
+            //    }
 
-                if (clrtype.EndsWith(".Subscription, NServiceBus.Core"))
-                {
-                    clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
-                }
-                else if (clrtype.EndsWith(".Subscription, NServiceBus.RavenDB"))
-                {
-                    clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
-                }
+            //    if (clrtype.EndsWith(".Subscription, NServiceBus.Core"))
+            //    {
+            //        clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
+            //    }
+            //    else if (clrtype.EndsWith(".Subscription, NServiceBus.RavenDB"))
+            //    {
+            //        clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
+            //    }
 
-                return clrtype;
-            };
+            //    return clrtype;
+            //};
 
             context.Container.ConfigureComponent<SubscriptionPersister>(DependencyLifecycle.SingleInstance);
             context.Container.ConfigureComponent<PrimeSubscriptions>(DependencyLifecycle.SingleInstance);

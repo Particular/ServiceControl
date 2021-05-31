@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -16,7 +15,12 @@
 
     public class FailureGroupsController : ApiController
     {
-        internal FailureGroupsController(IEnumerable<IFailureClassifier> classifiers, Lazy<IEndpointInstance> bus, IDocumentStore store, GroupFetcher groupFetcher)
+        internal FailureGroupsController(
+            IEnumerable<IFailureClassifier> classifiers,
+            IMessageSession bus,
+            IDocumentStore store,
+            GroupFetcher groupFetcher
+            )
         {
             this.classifiers = classifiers;
             this.bus = bus;
@@ -41,7 +45,7 @@
         [HttpPost]
         public async Task<IHttpActionResult> ReclassifyErrors()
         {
-            await bus.Value.SendLocal(new ReclassifyErrors
+            await bus.SendLocal(new ReclassifyErrors
             {
                 Force = true
             }).ConfigureAwait(false);
@@ -152,7 +156,7 @@
         }
 
         readonly IEnumerable<IFailureClassifier> classifiers;
-        readonly Lazy<IEndpointInstance> bus;
+        readonly IMessageSession bus;
         readonly IDocumentStore store;
         readonly GroupFetcher groupFetcher;
     }

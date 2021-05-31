@@ -3,21 +3,21 @@ namespace ServiceControl.Recoverability
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Infrastructure.DomainEvents;
     using MessageFailures.InternalMessages;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using Raven.Client;
 
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
-        public ReclassifyErrorsHandler(IDocumentStore store, IDomainEvents domainEvents, ShutdownNotifier notifier, IEnumerable<IFailureClassifier> classifiers)
+        public ReclassifyErrorsHandler(IDocumentStore store, IDomainEvents domainEvents, IHostApplicationLifetime lifetime, IEnumerable<IFailureClassifier> classifiers)
         {
             this.store = store;
             this.classifiers = classifiers;
             this.domainEvents = domainEvents;
 
-            reclassifier = new Reclassifier(notifier);
+            reclassifier = new Reclassifier(lifetime);
         }
 
         public async Task Handle(ReclassifyErrors message, IMessageHandlerContext context)

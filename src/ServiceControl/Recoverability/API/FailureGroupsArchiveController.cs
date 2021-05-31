@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
-    using System;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -9,7 +8,7 @@
 
     public class FailureGroupsArchiveController : ApiController
     {
-        internal FailureGroupsArchiveController(Lazy<IEndpointInstance> bus, ArchivingManager archivingManager)
+        internal FailureGroupsArchiveController(IMessageSession bus, ArchivingManager archivingManager)
         {
             this.bus = bus;
             this.archivingManager = archivingManager;
@@ -30,13 +29,13 @@
                 await archivingManager.StartArchiving(groupId, ArchiveType.FailureGroup)
                     .ConfigureAwait(false);
 
-                await bus.Value.SendLocal<ArchiveAllInGroup>(m => { m.GroupId = groupId; }).ConfigureAwait(false);
+                await bus.SendLocal<ArchiveAllInGroup>(m => { m.GroupId = groupId; }).ConfigureAwait(false);
             }
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
 
-        readonly Lazy<IEndpointInstance> bus;
+        readonly IMessageSession bus;
         readonly ArchivingManager archivingManager;
     }
 }
