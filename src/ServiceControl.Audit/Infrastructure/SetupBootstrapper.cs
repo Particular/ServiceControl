@@ -101,7 +101,6 @@ namespace ServiceControl.Audit.Infrastructure
                 NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
                     ctx => { }, configuration, false);
 
-
                 await Endpoint.Create(configuration)
                     .ConfigureAwait(false);
             }
