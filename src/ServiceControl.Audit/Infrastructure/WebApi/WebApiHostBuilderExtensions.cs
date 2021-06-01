@@ -21,18 +21,15 @@
             registrations.Add(RegisterInternalWebApiControllers);
             registrations.Add(cb => cb.RegisterModule<ApisModule>());
 
-            Startup startup = null;
-
-            registrations.Add(cb =>
-            {
-                cb.RegisterBuildCallback(c => { startup = new Startup(c); });
-            });
-
             if (startOwinHost)
             {
                 hostBuilder.ConfigureServices((ctx, serviceCollection) =>
                 {
-                    serviceCollection.AddHostedService(sp => new WebApiHostedService(rootUrl, startup));
+                    serviceCollection.AddHostedService(sp =>
+                    {
+                        var startup = new Startup(sp.GetRequiredService<ILifetimeScope>());
+                        return new WebApiHostedService(rootUrl, startup);
+                    });
                 });
             }
 
