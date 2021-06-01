@@ -71,9 +71,17 @@ namespace ServiceControl.Audit.Infrastructure
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
-                .ConfigureServices(services
-                    => services.Configure<HostOptions>(options
-                        => options.ShutdownTimeout = TimeSpan.FromSeconds(30)))
+                .ConfigureServices(services =>
+                {
+                    services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
+                    services.AddSingleton(transportSettings);
+                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+                    services.AddSingleton(rawEndpointFactory);
+                    services.AddSingleton(loggingSettings);
+                    services.AddSingleton(settings);
+                    services.AddSingleton<EndpointInstanceMonitoring>();
+                    services.AddSingleton<AuditIngestionComponent>();
+                })
                 .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
@@ -97,17 +105,7 @@ namespace ServiceControl.Audit.Infrastructure
                 containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type =>
                     type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
 
-                containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-                var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
-                containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
-
                 registrationActions.ForEach(ra => ra.Invoke(containerBuilder));
-
-                containerBuilder.RegisterInstance(loggingSettings);
-                containerBuilder.RegisterInstance(settings);
-                containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
-                containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
             }));
         }
 
