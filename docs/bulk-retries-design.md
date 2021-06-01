@@ -34,8 +34,6 @@ When ServiceControl starts it will look for documents marked with a retry batch 
 When we "adopt" and orphaned batch, we take over the processing of it. We find all of the messages with the same missing retry batch id and create a retry batch with that id for them. This new retry batch document will then get picked up and processed like any other.
 TODO: How is selected which message is part of a retry batch? If that done before the retry batch is created (try to add 1,000 messages, if some are part of another retry batch just skip? Or b, the retry batch itself tried to create FailedMessageRetry documents until either no more messages or it reaches 1,000? Based on line 23 I think the last? )
 
-TODO: Not very clear what "adoption" does and what unmarked message are being ignored means.
-
 ### Staging
 
 Staging ensures transactional exactly-once processing. Transports that do not support `SendsAtomicWithReceive` strictly would not need staging to prevent more-than-once delivery.
