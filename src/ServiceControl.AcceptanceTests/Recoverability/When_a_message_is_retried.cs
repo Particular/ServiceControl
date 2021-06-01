@@ -38,10 +38,17 @@
         }
 
         [Theory]
-        [TestCase(false)]
-        [TestCase(true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
-        public async Task Should_work_with_various_body_size(bool largeMessageBodies)
+        [TestCase(false, false)]
+        [TestCase(true, false)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        [TestCase(false, true)]
+        [TestCase(true, true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        public async Task Should_work_with_various_body_size(bool largeMessageBodies, bool enableFullTextSearch)
         {
+            SetSettings = settings =>
+            {
+                settings.EnableFullTextSearchOnBodies = enableFullTextSearch;
+            };
+
             string content = $"{{\"Content\":\"{(largeMessageBodies ? new string('a', 86 * 1024) : "Small")}\"}}";
             byte[] buffer = Encoding.UTF8.GetBytes(content);
 
