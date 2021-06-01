@@ -39,14 +39,10 @@ namespace Particular.ServiceControl
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null, bool isRunningInAcceptanceTests = false)
+        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, bool isRunningInAcceptanceTests = false)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
-            if (additionalRegistrationActions != null)
-            {
-                registrationActions.Add(additionalRegistrationActions);
-            }
             this.settings = settings;
             this.isRunningInAcceptanceTests = isRunningInAcceptanceTests;
 
@@ -129,14 +125,12 @@ namespace Particular.ServiceControl
 
                     return configuration;
                 })
-                .UseWebApi(registrationActions, ApiAssemblies, settings.RootUrl, !isRunningInAcceptanceTests)
+                .UseWebApi(ApiAssemblies, settings.RootUrl, !isRunningInAcceptanceTests)
                 .UseAsyncTimer()
                 ;
 
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
             {
-                registrationActions.ForEach(ra => ra.Invoke(containerBuilder));
-
                 // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
                 containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
             }));
@@ -251,7 +245,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
             });
         }
 
-        readonly List<Action<ContainerBuilder>> registrationActions = new List<Action<ContainerBuilder>>();
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
         Settings settings;

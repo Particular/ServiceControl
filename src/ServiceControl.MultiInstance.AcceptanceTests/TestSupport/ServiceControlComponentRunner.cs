@@ -189,7 +189,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder => { }, isRunningInAcceptanceTests: true)
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, isRunningInAcceptanceTests: true)
                 {
                     HttpClientFactory = HttpClientFactory
                 };
@@ -331,8 +331,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { },
-                true);
+                }, settings, configuration, loggingSettings, true);
 
                 host = bootstrapper.HostBuilder.Build();
 

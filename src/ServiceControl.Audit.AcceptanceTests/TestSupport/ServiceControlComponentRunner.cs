@@ -165,8 +165,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); },
-                    true);
+                }, settings, configuration, loggingSettings, true);
+
+                bootstrapper.HostBuilder
+                    .ConfigureContainer<ContainerBuilder>(builder =>
+                        builder.RegisterType<FailedAuditsController>()
+                            .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()));
 
                 host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
             }

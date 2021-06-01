@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Web.Http.Controllers;
@@ -15,11 +14,10 @@
 
     static class WebApiHostBuilderExtensions
     {
-        public static IHostBuilder UseWebApi(this IHostBuilder hostBuilder,
-            List<Action<ContainerBuilder>> registrations, string rootUrl, bool startOwinHost)
+        public static IHostBuilder UseWebApi(this IHostBuilder hostBuilder, string rootUrl, bool startOwinHost)
         {
-            registrations.Add(RegisterInternalWebApiControllers);
-            registrations.Add(cb => cb.RegisterModule<ApisModule>());
+            hostBuilder.ConfigureContainer<ContainerBuilder>(RegisterInternalWebApiControllers);
+            hostBuilder.ConfigureContainer<ContainerBuilder>(cb => cb.RegisterModule<ApisModule>());
 
             if (startOwinHost)
             {

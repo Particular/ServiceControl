@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -31,17 +30,12 @@ namespace ServiceControl.Audit.Infrastructure
     {
         public IHostBuilder HostBuilder { get; private set; }
 
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> registrationAction = null, bool isRunningInAcceptanceTests = false)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, bool isRunningInAcceptanceTests = false)
         {
             this.onCriticalError = onCriticalError;
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
             this.settings = settings;
-
-            if (registrationAction != null)
-            {
-                registrationActions.Add(registrationAction);
-            }
 
             this.isRunningInAcceptanceTests = isRunningInAcceptanceTests;
 
@@ -97,15 +91,12 @@ namespace ServiceControl.Audit.Infrastructure
 
                     return configuration;
                 })
-                .UseWebApi(registrationActions, settings.RootUrl, !isRunningInAcceptanceTests);
+                .UseWebApi(settings.RootUrl, !isRunningInAcceptanceTests);
 
-            //This needs to go last so that all additional registrations have been already made
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
             {
                 containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type =>
                     type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-
-                registrationActions.ForEach(ra => ra.Invoke(containerBuilder));
             }));
         }
 
@@ -211,7 +202,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
             });
         }
 
-        readonly List<Action<ContainerBuilder>> registrationActions = new List<Action<ContainerBuilder>>();
         readonly bool isRunningInAcceptanceTests;
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;

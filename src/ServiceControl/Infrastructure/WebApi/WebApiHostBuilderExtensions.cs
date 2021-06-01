@@ -16,14 +16,17 @@
 
     static class WebApiHostBuilderExtensions
     {
-        public static IHostBuilder UseWebApi(this IHostBuilder hostBuilder,
-            List<Action<ContainerBuilder>> registrations, List<Assembly> apiAssemblies, string rootUrl, bool startOwinHost)
+        public static IHostBuilder UseWebApi(this IHostBuilder hostBuilder, List<Assembly> apiAssemblies, string rootUrl, bool startOwinHost)
         {
             foreach (var apiAssembly in apiAssemblies)
             {
-                registrations.Add(cb => RegisterAssemblyInternalWebApiControllers(cb, apiAssembly));
-                registrations.Add(cb => cb.RegisterModule(new ApisModule(apiAssembly)));
-                registrations.Add(cb => cb.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == apiAssembly && type.GetInterfaces().Any() == false)));
+                hostBuilder.ConfigureContainer<ContainerBuilder>(cb =>
+                {
+                    RegisterAssemblyInternalWebApiControllers(cb, apiAssembly);
+                    cb.RegisterModule(new ApisModule(apiAssembly));
+                    cb.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type =>
+                        type.Assembly == apiAssembly && type.GetInterfaces().Any() == false));
+                });
             }
 
             if (startOwinHost)
