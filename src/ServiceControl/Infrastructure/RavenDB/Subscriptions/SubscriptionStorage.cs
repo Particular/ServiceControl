@@ -52,11 +52,16 @@
 
         class PrimeSubscriptions : FeatureStartupTask
         {
-            public IPrimableSubscriptionStorage Persister { get; set; }
+            public IPrimableSubscriptionStorage persister;
+
+            public PrimeSubscriptions(IPrimableSubscriptionStorage persister)
+            {
+                this.persister = persister;
+            }
 
             protected override Task OnStart(IMessageSession session)
             {
-                return Persister?.Prime() ?? Task.FromResult(0);
+                return persister?.Prime() ?? Task.FromResult(0);
             }
 
             protected override Task OnStop(IMessageSession session)
