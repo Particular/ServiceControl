@@ -26,18 +26,15 @@
                 registrations.Add(cb => cb.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == apiAssembly && type.GetInterfaces().Any() == false)));
             }
 
-            Startup startup = null;
-
-            registrations.Add(cb =>
-            {
-                cb.RegisterBuildCallback(c => { startup = new Startup(c, apiAssemblies); });
-            });
-
             if (startOwinHost)
             {
                 hostBuilder.ConfigureServices((ctx, serviceCollection) =>
                 {
-                    serviceCollection.AddHostedService(sp => new WebApiHostedService(rootUrl, startup));
+                    serviceCollection.AddHostedService(sp =>
+                    {
+                        var startup = new Startup(sp.GetRequiredService<ILifetimeScope>(), apiAssemblies);
+                        return new WebApiHostedService(rootUrl, startup);
+                    });
                 });
             }
 
