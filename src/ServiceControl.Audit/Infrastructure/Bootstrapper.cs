@@ -31,10 +31,6 @@ namespace ServiceControl.Audit.Infrastructure
     {
         public IHostBuilder HostBuilder { get; private set; }
 
-        public IContainer Container { get; private set; }
-
-        public AuditIngestionComponent AuditIngestionComponent { get; private set; }
-
         public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> registrationAction = null, bool isRunningInAcceptanceTests = false)
         {
             this.onCriticalError = onCriticalError;
@@ -112,12 +108,6 @@ namespace ServiceControl.Audit.Infrastructure
                 containerBuilder.RegisterInstance(settings);
                 containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
                 containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
-
-                containerBuilder.RegisterBuildCallback(c =>
-                {
-                    Container = c;
-                    AuditIngestionComponent = c.Resolve<AuditIngestionComponent>();
-                });
             }));
         }
 

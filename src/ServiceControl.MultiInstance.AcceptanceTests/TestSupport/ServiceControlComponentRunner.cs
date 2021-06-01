@@ -308,15 +308,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customAuditEndpointConfiguration(configuration);
 
-            Audit.Infrastructure.Bootstrapper bootstrapper;
-
+            IHost host;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
+                var bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -328,9 +327,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
                 }, settings, configuration, loggingSettings, builder => { },
-                    true);
+                true);
 
-                var host = bootstrapper.HostBuilder.Build();
+                host = bootstrapper.HostBuilder.Build();
 
                 await host.StartAsync().ConfigureAwait(false);
 
@@ -340,7 +339,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
                 var app = new AppBuilder();
-                var startup = new Startup(bootstrapper.Container);
+                var lifetime = host.Services.GetRequiredService<ILifetimeScope>();
+                var startup = new Startup(lifetime);
 
                 startup.Configuration(app);
                 var appFunc = app.Build();
