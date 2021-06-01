@@ -34,7 +34,6 @@ namespace Particular.ServiceControl
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
-    using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class Bootstrapper
@@ -58,8 +57,6 @@ namespace Particular.ServiceControl
 
             CreateHost();
         }
-
-        public Startup Startup { get; }
 
         public Func<HttpClient> HttpClientFactory { get; set; } = () =>
         {
@@ -102,9 +99,20 @@ namespace Particular.ServiceControl
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
-                .ConfigureServices(services
-                    => services.Configure<HostOptions>(options
-                        => options.ShutdownTimeout = TimeSpan.FromSeconds(30)))
+                .ConfigureServices(services =>
+                {
+                    services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
+                    services.AddSingleton<IDomainEvents, DomainEvents>();
+                    services.AddSingleton(transportSettings);
+                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+                    services.AddSingleton(rawEndpointFactory);
+                    services.AddSingleton<MessageStreamerConnection>();
+                    services.AddSingleton(loggingSettings);
+                    services.AddSingleton(settings);
+                    services.AddSingleton(sp => HttpClientFactory);
+                    services.AddSingleton<EndpointInstanceMonitoring>();
+                    services.AddSingleton<ErrorIngestionComponent>();
+                })
                 .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
@@ -126,24 +134,10 @@ namespace Particular.ServiceControl
 
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
             {
-                containerBuilder.RegisterType<DomainEvents>().As<IDomainEvents>().SingleInstance();
-
-                containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-                var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
-                containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
-
-                containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
-                containerBuilder.RegisterInstance(loggingSettings);
-                containerBuilder.RegisterInstance(settings);
-                containerBuilder.Register(c => HttpClientFactory);
-
-                containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
-                containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
-                containerBuilder.RegisterType<ErrorIngestionComponent>().SingleInstance();
-
                 registrationActions.ForEach(ra => ra.Invoke(containerBuilder));
 
+                // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
+                containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
             }));
         }
 
