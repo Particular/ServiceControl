@@ -166,7 +166,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                         .AssignableTo<ApiController>()
                         .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
                         .AsSelf();
-                })
+                }, isRunningInAcceptanceTests: true)
                 {
                     HttpClientFactory = HttpClientFactory
                 };

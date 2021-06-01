@@ -117,7 +117,7 @@ namespace Particular.ServiceControl
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                        configuration, false);
+                        configuration, isRunningInAcceptanceTests);
 
                     return configuration;
                 })
