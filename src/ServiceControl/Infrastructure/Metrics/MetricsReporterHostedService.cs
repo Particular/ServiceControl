@@ -24,6 +24,16 @@
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) => reporter.Stop();
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await reporter.Stop().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                //NOOP
+            }
+        }
     }
 }

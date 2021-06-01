@@ -51,7 +51,7 @@
 
             foreach (var controllerType in controllerTypes)
             {
-                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
+                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder()).ExternallyOwned();
             }
         }
 
