@@ -93,11 +93,7 @@ namespace ServiceControl.Audit.Infrastructure
                 })
                 .UseWebApi(settings.RootUrl, !isRunningInAcceptanceTests);
 
-            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
-            {
-                containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type =>
-                    type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-            }));
+            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)
