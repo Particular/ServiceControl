@@ -186,7 +186,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder => { })
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder => { }, isRunningInAcceptanceTests: true)
                 {
                     HttpClientFactory = HttpClientFactory
                 };
