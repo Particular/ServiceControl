@@ -12,7 +12,7 @@
 
     class Startup
     {
-        public Startup(IContainer container)
+        public Startup(ILifetimeScope container)
         {
             this.container = container;
         }
@@ -44,7 +44,7 @@
             });
         }
 
-        IContainer container;
+        ILifetimeScope container;
     }
 
     class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver

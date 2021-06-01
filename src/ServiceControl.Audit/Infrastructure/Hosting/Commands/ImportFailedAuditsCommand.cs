@@ -3,6 +3,8 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Auditing;
+    using Microsoft.Extensions.DependencyInjection;
     using NLog;
     using NServiceBus;
     using Settings;
@@ -28,7 +30,7 @@
 
                 await host.StartAsync(tokenSource.Token).ConfigureAwait(false);
 
-                var importer = bootstrapper.AuditIngestionComponent;
+                var importer = host.Services.GetRequiredService<AuditIngestionComponent>();
 
                 Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
