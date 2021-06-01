@@ -67,14 +67,19 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.SentLocalMessageId = context.MessageId;
+                    scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    scenarioContext.SentLocalMessageId = context.MessageId;
                     return Task.FromResult(0);
                 }
             }
@@ -89,14 +94,19 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.SentMessageId = context.MessageId;
+                    scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    scenarioContext.SentMessageId = context.MessageId;
                     return Task.FromResult(0);
                 }
             }
