@@ -184,10 +184,9 @@ namespace ServiceControl.Infrastructure.DomainEvents
 {
     public class DomainEvents : ServiceControl.Infrastructure.DomainEvents.IDomainEvents
     {
-        public DomainEvents() { }
+        public DomainEvents(Autofac.IComponentContext container) { }
         public System.Threading.Tasks.Task Raise<T>(T domainEvent)
             where T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent { }
-        public void SetContainer(Autofac.IContainer container) { }
     }
     public interface IDomainEvent { }
     public interface IDomainEvents

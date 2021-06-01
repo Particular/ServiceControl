@@ -48,8 +48,7 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
 
-            var domainEvents = new DomainEvents();
-            containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
+            containerBuilder.RegisterType<DomainEvents>().As<IDomainEvents>().SingleInstance();
 
             var transportSettings = MapSettings(settings);
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();

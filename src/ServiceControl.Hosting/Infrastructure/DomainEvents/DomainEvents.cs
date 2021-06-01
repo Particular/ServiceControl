@@ -6,13 +6,11 @@
 
     public class DomainEvents : IDomainEvents
     {
+        readonly IComponentContext container;
+        public DomainEvents(IComponentContext container) => this.container = container;
+
         public async Task Raise<T>(T domainEvent) where T : IDomainEvent
         {
-            if (container == null)
-            {
-                return;
-            }
-
             container.TryResolve(out IEnumerable<IDomainHandler<T>> handlers);
             foreach (var handler in handlers)
             {
@@ -27,12 +25,5 @@
                     .ConfigureAwait(false);
             }
         }
-
-        public void SetContainer(IContainer container)
-        {
-            this.container = container;
-        }
-
-        IContainer container;
     }
 }

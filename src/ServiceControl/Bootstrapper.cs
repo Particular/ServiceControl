@@ -127,12 +127,7 @@ namespace Particular.ServiceControl
 
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
             {
-                var domainEvents = new DomainEvents();
-                containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
-                containerBuilder.RegisterBuildCallback(c =>
-                {
-                    domainEvents.SetContainer(c);
-                });
+                containerBuilder.RegisterType<DomainEvents>().As<IDomainEvents>().SingleInstance();
 
                 containerBuilder.RegisterInstance(transportSettings).SingleInstance();
 
