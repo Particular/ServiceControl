@@ -19,6 +19,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Infrastructure.OWIN;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
@@ -173,7 +174,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
             {
                 var app = new AppBuilder();
-                var startup = new Startup(bootstrapper.Container);
+                var lifetime = host.Services.GetRequiredService<ILifetimeScope>();
+                var startup = new Startup(lifetime);
                 startup.Configuration(app, typeof(FailedAuditsController).Assembly);
                 var appFunc = app.Build();
 
