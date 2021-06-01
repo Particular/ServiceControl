@@ -22,21 +22,28 @@ To do this, a new document is created for each failed message. Each one has an i
 
 When all messages have been marked, a list of the `FailedMessageRetry` ids is appended to the batch and the batch changes status to `Staging`. The list inside of the Batch may contain failed messages which do not belong to this batch (because another batch claimed them in parallel). These will get filtered out during staging (below).
 
-When ServiceControl starts up it will attempt to adopt (what does adopt mean?) any batches that it finds in this status and move them to `Staging`. This can only happen if the ServiceControl process stops during the above process. Any documents that were already marked will be added to the batch. Any documents that had not yet been marked are ignored and will have to be retried again by the user. (<- what does this mean?) When ServiceControl starts up, it will generate a `Session ID` GUID. This GUID is stamped onto each new batch as it is created. This is how ServiceControl can tell if a batch is from a previous session and adopt it. Only Batches with a non-current session Id will be adopted by the orphan batch process.
+When ServiceControl starts up it will attempt to adopt any batches that it finds in this status and move them to `Staging`. This can only happen if the ServiceControl process stops during the above process. Any documents that were already marked will be added to the batch. Any documents that had not yet been marked are ignored and will have to be retried again by the user.
 
+When a bulk retry is issued a background process is started that looks for all of the messages that match its criteria and assign them to a retry batch id (in lots of 1,000). If the process is killed before it is done, the details of what you were trying to retry are gone. Any documents that had already marked for retry will be retried. Any that were not marked for retry will require manual intervention to retry
+
+When ServiceControl starts up, it will generate a `Session ID` GUID. This GUID is stamped onto each new batch as it is created. This is how ServiceControl can tell if a batch is from a previous session and adopt it. Only Batches with a non-current session Id will be adopted by the orphan batch process.
+## Recovering retry batches
+
+When ServiceControl starts it will look for documents marked with a retry batch id, without a matching retry batch document (i.e. We started making the batch but we never completed it). Retry batches in this state as called "orphaned" because the process that was assembling them has been lost.
+
+When we "adopt" and orphaned batch, we take over the processing of it. We find all of the messages with the same missing retry batch id and create a retry batch with that id for them. This new retry batch document will then get picked up and processed like any other.
 TODO: How is selected which message is part of a retry batch? If that done before the retry batch is created (try to add 1,000 messages, if some are part of another retry batch just skip? Or b, the retry batch itself tried to create FailedMessageRetry documents until either no more messages or it reaches 1,000? Based on line 23 I think the last? )
 
 TODO: Not very clear what "adoption" does and what unmarked message are being ignored means.
 
 ### Staging
 
+Staging ensures transactional exactly-once processing. Transports that do not support `SendsAtomicWithReceive` strictly would not need staging to prevent more-than-once delivery.
 When a batch enters this state, it means that failed messages belonging to the batch are being added to a special `staging` queue. This queue is used during `Forwarding` to ensure that messages are sent back to their original destination transactionally (using the transports recieve transaction).
 
 NOTE: Although multiple batches may be in `Staging` or `Forwarding` at a time, these are processed by a single thread ensuring that the rest of the process is serialized. This is important to ensure that only one batch at a time has access to the `staging` queue. Batches in `Staging` will only be processed if there are no batches in `Forwarding`.
 
-TODO: What value does the staging queue have when transaction mode is ReceiveOnly?
-
-TODO: What happens might forwarding a specific batch always keep failing?
+If a message fails to be forwarded it is removed from the batch. If the batch contains no messages, then it is marked as complete.
 
 When a batch is selected for staging a new `Staging Id` is generated for it and the list of failed messages belonging to the batch is loaded. At this time, if a message had been snagged by another batch, it gets filtered out.
 
@@ -44,7 +51,7 @@ TODO: Aren't messages selected during the Marking stage?
 
 Each message, one at a time, is dispatched to the `staging` queue. As each message is dispatched:
 
-1. It's Raven document (which document, FailedMessageRetry?) is updated to reflect that it has entered `RetryIssued` mode.
+1. It's Raven `Failedmessage` document is updated to reflect that it has entered `RetryIssued` mode.
 2. Error headers are stripped from the copy sent to `staging`
 3. A header is added to the copy sent to `staging` to stamp it with the `Staging Id`
 4. A header is added to the copy sent to `staging` to indicate the messages final destination
@@ -65,7 +72,11 @@ Because each message send is done in the context of a Satellite Receive operatio
 
 If there is a message in the `Forwarding` status when ServiceControl starts, then we don't know how many messages there are still in the staging queue to send. To counter this we turn on the satellite in Non-Counting mode. The idea for this is that the satellite will run until the queue is empty. Unfortunately there is nothing built into the Transport abstraction that allows us to query this so SC assumes that if it does not see any new messages from the `staging` queue within 45 seconds then it is empty.
 
-TODO: What happend when forwarding fails? Transport error, network error? What happens in the edge case then forwarding completes and we crash? Restart and finds an empty stating queue and times out?
+If forwarding a specific message fail, then we count it, mark it as unresolved, and remove it from the batch. You should see warnings in the log that look like this with the error information attached:
+
+> Failed to send UNIQUE-MESSAGE-ID message to DESTINATION for retry. Attempting to revert message status to unresoved so it can be tried again.
+
+Might SC run in the edge case that forwarding completes and immediately crash then after restart it finds an empty staging queue and times out.
 
 ### Done
 
