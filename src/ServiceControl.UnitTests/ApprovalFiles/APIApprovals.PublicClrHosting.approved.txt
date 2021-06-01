@@ -28,6 +28,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
         public bool DisableExternalIntegrationsPublishing { get; set; }
+        public bool DisableHealthChecks { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public string EmailDropFolder { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
@@ -37,6 +38,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public System.TimeSpan EventsRetentionPeriod { get; }
         public int ExpirationProcessBatchSize { get; }
         public int ExpirationProcessTimerInSeconds { get; }
+        public bool ExposeApi { get; set; }
         public bool ExposeRavenDB { get; }
         public int ExternalIntegrationsDispatchingBatchSize { get; }
         public bool ForwardErrorMessages { get; set; }

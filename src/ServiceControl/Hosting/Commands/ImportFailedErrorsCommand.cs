@@ -20,6 +20,7 @@
             {
                 IngestErrorMessages = false,
                 RunRetryProcessor = false,
+                DisableHealthChecks = true,
                 Components = Components.All
             };
 
