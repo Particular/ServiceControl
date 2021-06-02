@@ -44,5 +44,6 @@
   "DataSpaceRemainingThreshold": 20,
   "ServiceControlQueueAddress": "Particular.ServiceControl",
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
-  "EnableFullTextSearchOnBodies": true
+  "EnableFullTextSearchOnBodies": true,
+  "ExposeApi": true
 }
