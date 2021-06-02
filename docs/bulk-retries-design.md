@@ -45,8 +45,6 @@ If a message fails to be forwarded it is removed from the batch. If the batch co
 
 When a batch is selected for staging a new `Staging Id` is generated for it and the list of failed messages belonging to the batch is loaded. At this time, if a message had been snagged by another batch, it gets filtered out.
 
-TODO: Aren't messages selected during the Marking stage?
-
 Each message, one at a time, is dispatched to the `staging` queue. As each message is dispatched:
 
 1. It's Raven `Failedmessage` document is updated to reflect that it has entered `RetryIssued` mode.
