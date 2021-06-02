@@ -19,7 +19,6 @@ namespace Particular.ServiceControl
         {
             this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
-
         }
 
         public async Task Run(string username)

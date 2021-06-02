@@ -16,7 +16,6 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Particular.ServiceControl;
-    using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
 

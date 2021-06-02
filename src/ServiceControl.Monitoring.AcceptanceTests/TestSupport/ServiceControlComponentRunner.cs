@@ -34,7 +34,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
 
-
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.HttpPort;
@@ -77,9 +76,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
-                //MaximumConcurrencyLevel = 2,
-                //HttpDefaultConnectionLimit = int.MaxValue,
-                //RunInMemory = true,
                 OnMessage = (id, headers, body, @continue) =>
                     {
                         var log = LogManager.GetLogger<ServiceControlComponentRunner>();
@@ -142,11 +138,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
-
-                //TODO: move in the logging settings
-                /*var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-
-                bootstrapper = new Bootstrapper(configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); }); */
 
                 bootstrapper = new Bootstrapper(ctx =>
                 {

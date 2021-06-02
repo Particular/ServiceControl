@@ -1,19 +1,15 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using System.Web.Http.Controllers;
     using Audit.Infrastructure.WebApi;
     using Autofac;
-    using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
-    using Autofac.Features.ResolveAnything;
     using Infrastructure;
     using Licensing;
     using Messaging;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
@@ -22,8 +18,8 @@
     using NServiceBus.Features;
     using NServiceBus.Pipeline;
     using QueueLength;
+    using Timings;
     using Transports;
-    using Module = Autofac.Module;
 
     public class Bootstrapper
     {
@@ -52,17 +48,15 @@
                     //HINT: configuration used by NLog comes from MonitorLog.cs
                     builder.AddNLog();
                 })
-                .UseServiceProviderFactory(
-                    new AutofacServiceProviderFactory(containerBuilder =>
-                    {
-                        //HINT: Application module needs to precede controllers registration. Otherwise controllers get registered as singletons. 
-                        containerBuilder.RegisterModule<ApplicationModule>();
-                        containerBuilder.RegisterModule<ApiControllerModule>();
-
-                        containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-                        containerBuilder.RegisterInstance(settings);
-                        containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
-                    }))
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton(settings);
+                    services.AddSingleton<LicenseCheckFeatureStartup>();
+                    services.AddSingleton<EndpointRegistry>();
+                    services.AddSingleton<MessageTypeRegistry>();
+                    services.AddSingleton<EndpointInstanceActivityTracker>();
+                    services.AddSingleton(sp => buildQueueLengthProvider(sp.GetRequiredService<QueueLengthStore>()));
+                })
                 .UseNServiceBus(builder =>
                 {
                     Initialize(endpointConfiguration);
@@ -70,6 +64,15 @@
                     return endpointConfiguration;
                 })
                 .UseWebApi(settings.RootUrl, true);
+
+            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
+                {
+                    // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
+                    containerBuilder.RegisterType<RetriesStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
+                    containerBuilder.RegisterType<CriticalTimeStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
+                    containerBuilder.RegisterType<ProcessingTimeStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
+                    containerBuilder.RegisterType<QueueLengthStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
+                }));
         }
 
         void Initialize(EndpointConfiguration config)
@@ -118,7 +121,7 @@
             config.EnableFeature<LicenseCheckFeature>();
         }
 
-        public static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
+        static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
         {
             return qls =>
             {
@@ -152,18 +155,6 @@
         readonly EndpointConfiguration endpointConfiguration;
     }
 
-    class AllConstructorFinder : IConstructorFinder
-    {
-        public ConstructorInfo[] FindConstructors(Type targetType)
-        {
-            var result = Cache.GetOrAdd(targetType, t => t.GetTypeInfo().DeclaredConstructors.ToArray());
-
-            return result.Length > 0 ? result : throw new Exception($"No constructor found for type {targetType.FullName}");
-        }
-
-        static readonly ConcurrentDictionary<Type, ConstructorInfo[]> Cache = new ConcurrentDictionary<Type, ConstructorInfo[]>();
-    }
-
     class MessagePoolReleasingBehavior : Behavior<IIncomingLogicalMessageContext>
     {
         public override async Task Invoke(IIncomingLogicalMessageContext context, Func<Task> next)
@@ -187,63 +178,6 @@
         static void ReleaseMessage<T>(object instance) where T : RawMessage, new()
         {
             RawMessage.Pool<T>.Default.Release((T)instance);
-        }
-    }
-
-    class ApiControllerModule : Module
-    {
-        protected override void Load(ContainerBuilder builder) =>
-            builder.RegisterAssemblyTypes(ThisAssembly)
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal))
-                .AsSelf()
-                .InstancePerLifetimeScope()
-                .FindConstructorsWith(new AllConstructorFinder());
-    }
-
-    class ApplicationModule : Module
-    {
-        protected override void Load(ContainerBuilder builder)
-        {
-            base.Load(builder);
-            builder.RegisterAssemblyTypes(ThisAssembly)
-                .Where(Include)
-                .AsSelf()
-                .AsImplementedInterfaces()
-                .SingleInstance();
-        }
-
-        static bool Include(Type type)
-        {
-            if (IsMessageType(type))
-            {
-                return false;
-            }
-
-            if (IsMessageHandler(type))
-            {
-                return false;
-            }
-
-            if (type.IsAssignableTo<IHostedService>())
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        static bool IsMessageType(Type type)
-        {
-            return typeof(IMessage).IsAssignableFrom(type);
-        }
-
-
-        static bool IsMessageHandler(Type type)
-        {
-            return type.GetInterfaces()
-                .Where(@interface => @interface.IsGenericType)
-                .Select(@interface => @interface.GetGenericTypeDefinition())
-                .Any(genericTypeDef => genericTypeDef == typeof(IHandleMessages<>));
         }
     }
 }
