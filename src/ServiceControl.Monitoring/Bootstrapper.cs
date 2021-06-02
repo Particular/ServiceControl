@@ -63,7 +63,7 @@
 
                     return endpointConfiguration;
                 })
-                .UseWebApi(settings.RootUrl, true);
+                .UseWebApi(settings.RootUrl, settings.ExposeApi);
 
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
                 {

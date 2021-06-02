@@ -76,6 +76,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
+                ExposeApi = false,
                 OnMessage = (id, headers, body, @continue) =>
                     {
                         var log = LogManager.GetLogger<ServiceControlComponentRunner>();

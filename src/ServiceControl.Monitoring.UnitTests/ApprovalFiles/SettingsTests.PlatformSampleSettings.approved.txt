@@ -16,6 +16,7 @@
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": 32,
   "LicenseFileText": null,
+  "ExposeApi": true,
   "OnMessage": {
     "Method": {
       "Name": "<.ctor>b__0_0",
