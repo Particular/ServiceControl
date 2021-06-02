@@ -7,11 +7,14 @@ namespace ServiceControl.Monitoring
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Autofac.Features.ResolveAnything;
+    using Infrastructure.OWIN;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
     using NServiceBus;
     using QueueLength;
+    using ServiceBus.Management.Infrastructure.OWIN;
     using Transports;
 
     class RunCommand : AbstractCommand
@@ -35,7 +38,14 @@ namespace ServiceControl.Monitoring
                         containerBuilder.RegisterInstance(settings);
                         containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
 
+                        IContainer container = null;
+                        containerBuilder.RegisterBuildCallback(c => container = c);
+                        containerBuilder.Register(cc => new Startup(container));
                     }))
+                .ConfigureServices(services =>
+                {
+                    services.AddHostedService<WebApiHostedService>();
+                })
                 .ConfigureLogging(builder =>
                 {
                     builder.ClearProviders();
@@ -43,16 +53,16 @@ namespace ServiceControl.Monitoring
                     builder.AddNLog();
                 })
                 .UseNServiceBus(builder =>
-            {
-                var configuration = new EndpointConfiguration(settings.ServiceName);
+                {
+                    var configuration = new EndpointConfiguration(settings.ServiceName);
 
-                var bootstrapper = new Bootstrapper(ctx => { },
-                    settings,
-                    configuration);
+                    var bootstrapper = new Bootstrapper(ctx => { },
+                        settings,
+                        configuration);
 
-                return configuration;
+                    return configuration;
 
-            });
+                });
             return host.RunConsoleAsync();
 
             //if (runAsWindowsService)
