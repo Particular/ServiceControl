@@ -13,7 +13,7 @@
     using NUnit.Framework;
     using Operations;
     using Raven.Client;
-    using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
     using ServiceControl.Recoverability;
@@ -53,7 +53,7 @@
 
                 var documentManager = new CustomRetryDocumentManager(false, documentStore, retryManager);
 
-                var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, documentStore);
+                var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, documentStore, new AsyncTimer());
                 await orphanage.AdoptOrphanedBatchesAsync();
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);

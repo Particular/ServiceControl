@@ -2,7 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
-    using global::ServiceControl.Infrastructure;
+    using global::ServiceControl.Infrastructure.BackgroundTasks;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
@@ -23,16 +23,17 @@
 
     class LicenseCheckFeatureStartup : FeatureStartupTask
     {
-        public LicenseCheckFeatureStartup(ActiveLicense activeLicense)
+        public LicenseCheckFeatureStartup(ActiveLicense activeLicense, IAsyncTimer scheduler)
         {
             this.activeLicense = activeLicense;
+            this.scheduler = scheduler;
             ScheduleNextExecutionTask = Task.FromResult(TimerJobExecutionResult.ScheduleNextExecution);
         }
 
         protected override Task OnStart(IMessageSession session)
         {
             var due = TimeSpan.FromHours(8);
-            timer = new AsyncTimer(_ =>
+            timer = scheduler.Schedule(_ =>
             {
                 activeLicense.Refresh();
                 return ScheduleNextExecutionTask;
@@ -46,7 +47,8 @@
         }
 
         ActiveLicense activeLicense;
-        AsyncTimer timer;
+        readonly IAsyncTimer scheduler;
+        TimerJob timer;
 
         static ILog log = LogManager.GetLogger<LicenseCheckFeature>();
         static Task<TimerJobExecutionResult> ScheduleNextExecutionTask;

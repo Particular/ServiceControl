@@ -10,7 +10,6 @@
             {
                 var asyncTimer = new AsyncTimer();
                 services.AddSingleton<IAsyncTimer>(asyncTimer);
-                services.AddHostedService(sp => new AsyncTimerHostedService(asyncTimer));
             });
     }
 }

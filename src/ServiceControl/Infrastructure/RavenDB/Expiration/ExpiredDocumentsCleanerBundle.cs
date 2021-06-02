@@ -3,6 +3,7 @@
     using System;
     using System.ComponentModel.Composition;
     using System.Threading.Tasks;
+    using BackgroundTasks;
     using Raven.Abstractions.Logging;
     using Raven.Database;
     using Raven.Database.Plugins;
@@ -61,11 +62,11 @@
                 logger.Info("Retention period for audits and saga history is {0}", RavenBootstrapper.Settings.AuditRetentionPeriod);
             }
 
-            timer = new AsyncTimer(
+            timer = new TimerJob(
                 token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.ErrorException("Error when trying to find expired documents", e); });
         }
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
-        AsyncTimer timer;
+        TimerJob timer;
     }
 }
