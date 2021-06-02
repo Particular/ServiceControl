@@ -6,15 +6,14 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using System.Web.Http.Controllers;
+    using Audit.Infrastructure.WebApi;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
     using Autofac.Features.ResolveAnything;
     using Infrastructure;
-    using Infrastructure.OWIN;
     using Licensing;
     using Messaging;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
@@ -23,7 +22,6 @@
     using NServiceBus.Features;
     using NServiceBus.Pipeline;
     using QueueLength;
-    using ServiceBus.Management.Infrastructure.OWIN;
     using Transports;
     using Module = Autofac.Module;
 
@@ -39,8 +37,7 @@
             CreateHost();
         }
 
-        internal IContainer Container { get; set; }
-        public IHostBuilder HostBuilder { get; set; }
+        public IHostBuilder HostBuilder { get; private set; }
 
         void CreateHost()
         {
@@ -49,6 +46,12 @@
 
             HostBuilder = new HostBuilder();
             HostBuilder
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    //HINT: configuration used by NLog comes from MonitorLog.cs
+                    builder.AddNLog();
+                })
                 .UseServiceProviderFactory(
                     new AutofacServiceProviderFactory(containerBuilder =>
                     {
@@ -59,27 +62,16 @@
                         containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
                         containerBuilder.RegisterInstance(settings);
                         containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
-
-                        containerBuilder.RegisterBuildCallback(c => Container = c);
-                        containerBuilder.Register(cc => new Startup(Container));
                     }))
-                .ConfigureServices(services =>
-                {
-                    services.AddHostedService<WebApiHostedService>();
-                })
-                .ConfigureLogging(builder =>
-                {
-                    builder.ClearProviders();
-                    //HINT: configuration used by NLog comes from MonitorLog.cs
-                    builder.AddNLog();
-                })
                 .UseNServiceBus(builder =>
                 {
                     Initialize(endpointConfiguration);
 
                     return endpointConfiguration;
-                });
+                })
+                .UseWebApi(settings.RootUrl, true);
         }
+
         void Initialize(EndpointConfiguration config)
         {
             var transportCustomization = settings.LoadTransportCustomization();

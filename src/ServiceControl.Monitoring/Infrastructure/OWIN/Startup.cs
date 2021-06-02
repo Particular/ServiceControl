@@ -9,7 +9,7 @@
 
     public class Startup
     {
-        public Startup(IContainer container)
+        public Startup(ILifetimeScope container)
         {
             this.container = container;
         }
@@ -33,6 +33,6 @@
             app.UseWebApi(config);
         }
 
-        readonly IContainer container;
+        readonly ILifetimeScope container;
     }
 }

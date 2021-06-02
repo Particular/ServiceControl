@@ -9,7 +9,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Autofac;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Monitoring;
@@ -166,7 +168,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
                 var app = new AppBuilder();
-                var startup = new Startup(bootstrapper.Container);
+                var lifetime = host.Services.GetRequiredService<ILifetimeScope>();
+                var startup = new Startup(lifetime);
                 startup.Configuration(app);
                 var appFunc = app.Build();
 

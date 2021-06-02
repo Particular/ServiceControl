@@ -6,17 +6,16 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Hosting;
     using ServiceBus.Management.Infrastructure.OWIN;
-    using Settings = Monitoring.Settings;
 
-    public class WebApiHostedService : IHostedService
+    class WebApiHostedService : IHostedService
     {
-        readonly string rootUrl;
-        readonly Startup startup;
+        string rootUrl;
+        Startup startup;
         IDisposable webApp;
 
-        public WebApiHostedService(Settings settings, Startup startup)
+        public WebApiHostedService(string rootUrl, Startup startup)
         {
-            rootUrl = settings.RootUrl;
+            this.rootUrl = rootUrl;
             this.startup = startup;
         }
 
@@ -31,7 +30,7 @@
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            webApp.Dispose();
+            webApp?.Dispose();
 
             return Task.CompletedTask;
         }
