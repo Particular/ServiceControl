@@ -1,48 +1,48 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.Features;
+    using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Raven.Client;
 
-    class CustomChecksFeature : Feature
+    static class CustomChecks
     {
-        public CustomChecksFeature()
+        public static IHostBuilder UseCustomChecks(this IHostBuilder hostBuilder)
         {
-            EnableByDefault();
+            hostBuilder.ConfigureServices((ctx, serviceCollection) =>
+            {
+                serviceCollection.AddHostedService<CustomChecksHostedService>();
+                serviceCollection.AddSingleton<CustomChecksStorage>();
+            });
+            return hostBuilder;
+        }
+    }
+
+    class CustomChecksHostedService : IHostedService
+    {
+        IDocumentStore store;
+        CustomCheckNotifications notifications;
+        IDisposable subscription;
+
+        public CustomChecksHostedService(IDocumentStore store, IDomainEvents domainEvents)
+        {
+            this.store = store;
+            notifications = new CustomCheckNotifications(store, domainEvents);
         }
 
-        protected override void Setup(FeatureConfigurationContext context)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            context.Container.ConfigureComponent<CustomCheckNotifications>(DependencyLifecycle.SingleInstance);
-
-            context.RegisterStartupTask(b => b.Build<WireUpCustomCheckNotifications>());
+            subscription = store.Changes().ForIndex(new CustomChecksIndex().IndexName).Subscribe(notifications);
+            return Task.FromResult(0);
         }
 
-        class WireUpCustomCheckNotifications : FeatureStartupTask
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            public WireUpCustomCheckNotifications(CustomCheckNotifications notifications, IDocumentStore store)
-            {
-                this.notifications = notifications;
-                this.store = store;
-            }
-
-            protected override Task OnStart(IMessageSession session)
-            {
-                subscription = store.Changes().ForIndex(new CustomChecksIndex().IndexName).Subscribe(notifications);
-                return Task.FromResult(0);
-            }
-
-            protected override Task OnStop(IMessageSession session)
-            {
-                subscription.Dispose();
-                return Task.FromResult(0);
-            }
-
-            CustomCheckNotifications notifications;
-            IDocumentStore store;
-            IDisposable subscription;
+            subscription.Dispose();
+            return Task.FromResult(0);
         }
     }
 }

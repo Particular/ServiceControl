@@ -5,6 +5,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
@@ -12,9 +13,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
         {
             this.customConfiguration = customConfiguration;
+            this.hostBuilderCustomization = hostBuilderCustomization;
             this.setSettings = setSettings;
             transportIntegration = transportToUse;
         }
@@ -28,7 +30,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, setSettings, customConfiguration);
+            runner = new ServiceControlComponentRunner(transportIntegration, setSettings, customConfiguration, hostBuilderCustomization);
             await runner.Initialize(run).ConfigureAwait(false);
             return runner;
         }
@@ -36,6 +38,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         ITransportIntegration transportIntegration;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
+        Action<IHostBuilder> hostBuilderCustomization;
         ServiceControlComponentRunner runner;
     }
 }

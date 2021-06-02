@@ -33,10 +33,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
             this.customConfiguration = customConfiguration;
+            this.hostBuilderCustomization = hostBuilderCustomization;
             this.setSettings = setSettings;
         }
 
@@ -175,6 +176,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                         .AsSelf();
                 });
 
+                hostBuilderCustomization(bootstrapper.HostBuilder);
+
                 host = bootstrapper.HostBuilder.Build();
                 await host.StartAsync().ConfigureAwait(false);
                 DomainEvents = host.Services.GetService<IDomainEvents>();
@@ -269,6 +272,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         ITransportIntegration transportToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
+        Action<IHostBuilder> hostBuilderCustomization;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
     }
 }

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using CustomChecks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Raven.Client;
@@ -20,6 +21,9 @@
                 serviceCollection.AddSingleton<IHostedService>(
                     serviceProvider => new EmbeddedRavenDbHostedService(embeddedDocumentStore, storeInitializer)
                 );
+
+                serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
+                serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
             });
 
             return hostBuilder;

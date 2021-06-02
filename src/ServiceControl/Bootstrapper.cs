@@ -15,6 +15,7 @@ namespace Particular.ServiceControl
     using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
+    using global::ServiceControl.CustomChecks;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
@@ -125,6 +126,8 @@ namespace Particular.ServiceControl
                 })
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
                 .UseAsyncTimer()
+                .UseCustomChecks()
+                .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
                 ;
 
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>

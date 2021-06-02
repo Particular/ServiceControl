@@ -27,10 +27,9 @@
         [Test]
         public async Task Service_control_is_not_killed_and_error_is_reported_via_custom_check()
         {
-            CustomConfiguration = config =>
+            SetSettings = settings =>
             {
-                config.EnableFeature<InternalCustomChecks>();
-                config.TypesToIncludeInScan(typesToScan);
+                settings.DisableHealthChecks = false;
             };
             EventLogItem entry = null;
 
@@ -46,7 +45,7 @@
                         return false;
                     }
 
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(Contracts.CustomChecks.CustomCheckFailed));
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(CustomCheckFailed) && e.Description.Contains("ServiceControl Primary Instance"));
                     entry = result;
                     return result;
                 })

@@ -5,7 +5,6 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using ServiceControl.CustomChecks;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Notifications.Email;
     using ServiceControl.Operations;
@@ -57,11 +56,6 @@ namespace ServiceBus.Management.Infrastructure
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-
-            if (!settings.DisableHealthChecks)
-            {
-                configuration.EnableFeature<InternalCustomChecks>();
-            }
 
             configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
 

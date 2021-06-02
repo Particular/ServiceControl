@@ -3,14 +3,11 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Contracts.CustomChecks;
     using EventLog;
-    using NServiceBus;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using ServiceControl.CustomChecks;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     [TestFixture]
@@ -32,21 +29,25 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var allServiceControlTypes = typeof(InternalCustomChecks).Assembly.GetTypes();
-            var allTypesExcludingBuiltInCustomChecks = allServiceControlTypes.Where(t => !t.GetInterfaces().Contains(typeof(ICustomCheck)));
-            var customChecksUnderTest = new[] { typeof(FailingCustomCheck) };
-
-            CustomConfiguration = config =>
+            SetSettings = settings =>
             {
-                config.EnableFeature<InternalCustomChecks>();
-                config.TypesToIncludeInScan(allTypesExcludingBuiltInCustomChecks.Concat(customChecksUnderTest));
+                settings.DisableHealthChecks = false;
             };
+
+            CustomizeHostBuilder = builder =>
+            {
+                builder.ConfigureServices((context, collection) =>
+                {
+                    collection.AddTransient<ICustomCheck, FailingCustomCheck>();
+                });
+            };
+
             EventLogItem entry = null;
 
             await Define<MyContext>()
                 .Done(async c =>
                 {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(Contracts.CustomChecks.CustomCheckFailed));
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(Contracts.CustomChecks.CustomCheckFailed) && e.Description.Contains("MyCustomCheckId"));
                     entry = result;
                     return result;
                 })

@@ -2,17 +2,17 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using Infrastructure.BackgroundTasks;
-    using NServiceBus;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Features;
     using NServiceBus.Hosting;
 
-    class InternalCustomChecksStartup : FeatureStartupTask
+    class InternalCustomChecksHostedService : IHostedService
     {
-        public InternalCustomChecksStartup(IList<ICustomCheck> customChecks, CustomChecksStorage store, HostInformation hostInfo, IAsyncTimer scheduler, string endpointName)
+        public InternalCustomChecksHostedService(IList<ICustomCheck> customChecks, CustomChecksStorage store, HostInformation hostInfo, IAsyncTimer scheduler, string endpointName)
         {
             this.customChecks = customChecks;
             this.store = store;
@@ -25,7 +25,7 @@
             };
         }
 
-        protected override Task OnStart(IMessageSession session)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
             foreach (var check in customChecks)
             {
@@ -38,7 +38,7 @@
             return Task.CompletedTask;
         }
 
-        protected override async Task OnStop(IMessageSession session)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             if (managers.Any())
             {
