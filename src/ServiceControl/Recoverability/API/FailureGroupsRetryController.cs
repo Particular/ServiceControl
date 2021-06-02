@@ -9,7 +9,7 @@ namespace ServiceControl.Recoverability.API
 
     public class FailureGroupsRetryController : ApiController
     {
-        internal FailureGroupsRetryController(Lazy<IEndpointInstance> bus, RetryingManager retryingManager)
+        internal FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager)
         {
             this.bus = bus;
             this.retryingManager = retryingManager;
@@ -32,7 +32,7 @@ namespace ServiceControl.Recoverability.API
                 await retryingManager.Wait(groupId, RetryType.FailureGroup, started)
                     .ConfigureAwait(false);
 
-                await bus.Value.SendLocal(new RetryAllInGroup
+                await bus.SendLocal(new RetryAllInGroup
                 {
                     GroupId = groupId,
                     Started = started
@@ -42,7 +42,7 @@ namespace ServiceControl.Recoverability.API
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
 
-        readonly Lazy<IEndpointInstance> bus;
+        readonly IMessageSession bus;
         readonly RetryingManager retryingManager;
     }
 }

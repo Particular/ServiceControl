@@ -208,7 +208,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
-                await bootstrapper.Start(true).ConfigureAwait(false);
+                //await bootstrapper.Start(true).ConfigureAwait(false);
             }
         }
 

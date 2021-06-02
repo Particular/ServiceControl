@@ -4,10 +4,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Infrastructure.DomainEvents;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
@@ -23,8 +23,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
         public Settings Settings => runner.Settings;
         public OwinHttpMessageHandler Handler => runner.Handler;
-        public BusInstance Bus => runner.Bus;
         public string Port => runner.Port;
+        public IDomainEvents DomainEvents => runner.DomainEvents;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {

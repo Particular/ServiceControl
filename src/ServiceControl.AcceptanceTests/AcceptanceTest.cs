@@ -16,7 +16,6 @@ namespace ServiceControl.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport;
 
@@ -32,12 +31,11 @@ namespace ServiceControl.AcceptanceTests
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
         }
 
-
+        public IDomainEvents DomainEvents => serviceControlRunnerBehavior.DomainEvents;
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
         public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
-        public BusInstance Bus => serviceControlRunnerBehavior.Bus;
         public string Port => serviceControlRunnerBehavior.Port;
 
         [OneTimeSetUp]
@@ -116,7 +114,7 @@ namespace ServiceControl.AcceptanceTests
                 {
                 }
 
-                await action(Bus.DomainEvents);
+                await action(DomainEvents);
             });
         }
 

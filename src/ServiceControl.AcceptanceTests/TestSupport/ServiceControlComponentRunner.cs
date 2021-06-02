@@ -15,7 +15,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Web.Http;
     using AcceptanceTesting;
     using Autofac;
+    using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -25,7 +28,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using Recoverability.MessageFailures;
-    using ServiceBus.Management.Infrastructure;
+    using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
@@ -40,12 +43,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public Settings Settings { get; set; }
         public OwinHttpMessageHandler Handler { get; set; }
-        public BusInstance Bus { get; set; }
-
-
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.Port.ToString();
+        public IDomainEvents DomainEvents { get; set; }
 
         public Task Initialize(RunDescriptor run)
         {
@@ -147,7 +148,13 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                await setupBootstrapper.Run(null);
+            }
+
+            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
@@ -163,12 +170,18 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 {
                     HttpClientFactory = HttpClientFactory
                 };
+
+                host = bootstrapper.HostBuilder.Build();
+                await host.StartAsync().ConfigureAwait(false);
+                DomainEvents = host.Services.GetService<IDomainEvents>();
             }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
             {
+                var lifetimeScope = host.Services.GetRequiredService<ILifetimeScope>();
                 var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app, typeof(FailedErrorsController).Assembly);
+                var startup = new Startup(lifetimeScope, bootstrapper.ApiAssemblies);
+                startup.Configuration(app, typeof(FailedErrorsController).Assembly);
                 var appFunc = app.Build();
 
                 Handler = new OwinHttpMessageHandler(appFunc)
@@ -176,20 +189,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                     UseCookies = false,
                     AllowAutoRedirect = false
                 };
+
                 var httpClient = new HttpClient(Handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClient = httpClient;
-            }
-
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
-                await setupBootstrapper.Run(null);
-            }
-
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
             }
         }
 
@@ -197,14 +200,13 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await bootstrapper.Stop().ConfigureAwait(false);
+                await host.StopAsync().ConfigureAwait(false);
                 HttpClient.Dispose();
                 Handler.Dispose();
                 DeleteFolder(Settings.DbPath);
             }
 
             bootstrapper = null;
-            Bus = null;
             HttpClient = null;
             Handler = null;
         }
@@ -258,6 +260,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             return httpClient;
         }
 
+        IHost host;
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
         Action<Settings> setSettings;
