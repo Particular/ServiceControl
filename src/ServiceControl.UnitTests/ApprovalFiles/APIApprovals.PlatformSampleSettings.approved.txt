@@ -67,5 +67,7 @@
   "RemoteInstances": [],
   "DataSpaceRemainingThreshold": 20,
   "EnableFullTextSearchOnBodies": true,
-  "Components": null
+  "Components": null,
+  "DisableHealthChecks": false,
+  "ExposeApi": true
 }
