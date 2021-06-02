@@ -63,7 +63,7 @@
             }
 
             timer = new TimerJob(
-                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.ErrorException("Error when trying to find expired documents", e); });
+                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.ErrorException("Error when trying to find expired documents", e); }, Task.CompletedTask);
         }
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
