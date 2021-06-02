@@ -39,12 +39,11 @@ namespace Particular.ServiceControl
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, bool isRunningInAcceptanceTests = false)
+        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
             this.settings = settings;
-            this.isRunningInAcceptanceTests = isRunningInAcceptanceTests;
 
             ApiAssemblies = new List<Assembly>
             {
@@ -120,12 +119,11 @@ namespace Particular.ServiceControl
                 }, settings.StoreInitializer)
                 .UseNServiceBus(context =>
                 {
-                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                        configuration, isRunningInAcceptanceTests);
+                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
 
                     return configuration;
                 })
-                .UseWebApi(ApiAssemblies, settings.RootUrl, !isRunningInAcceptanceTests)
+                .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
                 .UseAsyncTimer()
                 ;
 
@@ -251,7 +249,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
         static HttpClient httpClient;
-        readonly bool isRunningInAcceptanceTests;
 
         class AllConstructorFinder : IConstructorFinder
         {

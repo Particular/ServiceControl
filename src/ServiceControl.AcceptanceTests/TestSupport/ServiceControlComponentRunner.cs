@@ -91,6 +91,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                DisableHealthChecks = true,
+                ExposeApi = true,
                 OnMessage = (id, headers, body, @continue) =>
                 {
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();
@@ -160,7 +162,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, isRunningInAcceptanceTests: true)
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
                 {
                     HttpClientFactory = HttpClientFactory
                 };

@@ -14,7 +14,7 @@ namespace ServiceBus.Management.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -58,7 +58,7 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
-            if (!isRunningAcceptanceTests)
+            if (!settings.DisableHealthChecks)
             {
                 configuration.EnableFeature<InternalCustomChecks>();
             }

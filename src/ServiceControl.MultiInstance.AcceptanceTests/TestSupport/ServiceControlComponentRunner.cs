@@ -101,6 +101,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                DisableHealthChecks = true,
+                ExposeApi = false,
                 RemoteInstances = new[]
                 {
                     new RemoteInstanceSetting
@@ -186,7 +188,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, isRunningInAcceptanceTests: true)
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
                 {
                     HttpClientFactory = HttpClientFactory
                 };
@@ -234,6 +236,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                ExposeApi = false,
                 ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,
                 OnMessage = (id, headers, body, @continue) =>
                 {
@@ -326,7 +329,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, true);
+                }, settings, configuration, loggingSettings);
 
                 host = bootstrapper.HostBuilder.Build();
 

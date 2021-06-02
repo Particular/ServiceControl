@@ -4,12 +4,9 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Net;
     using Auditing;
-    using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Autofac.Features.ResolveAnything;
     using ByteSizeLib;
     using Metrics;
     using Microsoft.Extensions.DependencyInjection;
@@ -30,14 +27,12 @@ namespace ServiceControl.Audit.Infrastructure
     {
         public IHostBuilder HostBuilder { get; private set; }
 
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, bool isRunningInAcceptanceTests = false)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
             this.onCriticalError = onCriticalError;
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
             this.settings = settings;
-
-            this.isRunningInAcceptanceTests = isRunningInAcceptanceTests;
 
             CreateHost();
         }
@@ -91,7 +86,7 @@ namespace ServiceControl.Audit.Infrastructure
 
                     return configuration;
                 })
-                .UseWebApi(settings.RootUrl, !isRunningInAcceptanceTests);
+                .UseWebApi(settings.RootUrl, settings.ExposeApi);
 
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
         }
@@ -198,7 +193,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
             });
         }
 
-        readonly bool isRunningInAcceptanceTests;
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
         Action<ICriticalErrorContext> onCriticalError;

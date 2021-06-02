@@ -68,7 +68,7 @@ namespace Particular.ServiceControl
                 configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
 #pragma warning restore 618
 
-                NServiceBusFactory.Configure(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, configuration, false);
+                NServiceBusFactory.Configure(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, configuration);
 
                 await Endpoint.Create(configuration)
                     .ConfigureAwait(false);

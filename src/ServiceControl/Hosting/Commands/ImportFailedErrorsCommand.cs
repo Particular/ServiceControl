@@ -19,7 +19,8 @@
             var settings = new Settings(args.ServiceName)
             {
                 IngestErrorMessages = false,
-                RunRetryProcessor = false
+                RunRetryProcessor = false,
+                DisableHealthChecks = true
             };
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);

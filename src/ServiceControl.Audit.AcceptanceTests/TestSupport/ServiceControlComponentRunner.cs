@@ -83,6 +83,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                ExposeApi = false,
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
                 OnMessage = (id, headers, body, @continue) =>
                 {
@@ -165,7 +166,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, true);
+                }, settings, configuration, loggingSettings);
 
                 bootstrapper.HostBuilder
                     .ConfigureContainer<ContainerBuilder>(builder =>
