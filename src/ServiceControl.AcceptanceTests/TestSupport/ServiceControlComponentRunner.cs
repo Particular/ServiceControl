@@ -160,16 +160,18 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder =>
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, isRunningInAcceptanceTests: true)
+                {
+                    HttpClientFactory = HttpClientFactory
+                };
+
+                bootstrapper.HostBuilder.ConfigureContainer<ContainerBuilder>(builder =>
                 {
                     builder.RegisterAssemblyTypes(typeof(FailedErrorsController).Assembly)
                         .AssignableTo<ApiController>()
                         .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
                         .AsSelf();
-                }, isRunningInAcceptanceTests: true)
-                {
-                    HttpClientFactory = HttpClientFactory
-                };
+                });
 
                 host = bootstrapper.HostBuilder.Build();
                 await host.StartAsync().ConfigureAwait(false);

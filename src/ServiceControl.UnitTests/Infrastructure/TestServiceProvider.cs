@@ -9,6 +9,7 @@
     using Autofac;
     using Autofac.Core;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.ObjectBuilder;
@@ -32,7 +33,8 @@
             };
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
             var loggingSettings = new LoggingSettings(settings.ServiceName);
-            var bootstrapper = new Bootstrapper(settings, endpointConfiguration, loggingSettings, containerBuilder =>
+            var bootstrapper = new Bootstrapper(settings, endpointConfiguration, loggingSettings);
+            bootstrapper.HostBuilder.ConfigureContainer<ContainerBuilder>(containerBuilder =>
             {
                 // HINT: We can't resolve this without creating the endpoint but in this case we can assume NSB will give it to us
                 containerBuilder.RegisterInstance<IDispatchMessages>(new FakeMessageDispatcher());
