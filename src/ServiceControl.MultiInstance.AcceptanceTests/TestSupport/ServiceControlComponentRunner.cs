@@ -15,6 +15,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Audit.Infrastructure.OWIN;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -28,7 +30,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {
             this.customServiceControlSettings = customServiceControlSettings;
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
@@ -144,7 +146,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var scanner = configuration.AssemblyScanner();
             var excludedAssemblies = new[]
             {
-                Path.GetFileName(typeof(ServiceControl.Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
+                Path.GetFileName(typeof(Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
             scanner.ExcludeAssemblies(excludedAssemblies);
@@ -219,7 +221,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
-            var settings = new ServiceControl.Audit.Infrastructure.Settings.Settings(instanceName)
+            var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
@@ -261,17 +263,26 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 }
             };
 
+            var excludedAssemblies = new[]
+            {
+                Path.GetFileName(typeof(Settings).Assembly.CodeBase),
+                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
+            };
+
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                    .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
+                await setupBootstrapper.Run(null);
+            }
+
             customServiceControlAuditSettings(settings);
             SettingsPerInstance[instanceName] = settings;
 
             var configuration = new EndpointConfiguration(instanceName);
             configuration.EnableInstallers();
             var scanner = configuration.AssemblyScanner();
-            var excludedAssemblies = new[]
-            {
-                Path.GetFileName(typeof(Settings).Assembly.CodeBase),
-                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
-            };
+
             scanner.ExcludeAssemblies(excludedAssemblies);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
@@ -294,14 +305,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customAuditEndpointConfiguration(configuration);
 
-            ServiceControl.Audit.Infrastructure.Bootstrapper bootstrapper;
+            Audit.Infrastructure.Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new ServiceControl.Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new ServiceControl.Audit.Infrastructure.Bootstrapper(ctx =>
+                var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
+                bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -313,6 +324,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
                 }, settings, configuration, loggingSettings, builder => { });
+
+                var host = bootstrapper.HostBuilder.Build();
+
+                await host.StartAsync().ConfigureAwait(false);
+
+                hosts[instanceName] = host;
                 bootstrappers[instanceName] = bootstrapper;
                 bootstrapper.HttpClientFactory = HttpClientFactory;
             }
@@ -320,7 +337,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
                 var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app);
+                var startup = new Startup(bootstrappers[instanceName].Container);
+
+                startup.Configuration(app);
                 var appFunc = app.Build();
 
                 var handler = new OwinHttpMessageHandler(appFunc)
@@ -335,17 +354,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 HttpClients[instanceName] = httpClient;
             }
 
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new ServiceControl.Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
-                    .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
-                await setupBootstrapper.Run(null);
-            }
 
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
-            }
+            //using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+            //{
+            //    Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
+            //}
         }
 
         public override async Task Stop()
@@ -356,6 +369,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 var settings = instanceAndSettings.Value;
                 using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
                 {
+                    //HINT: we need this until we migrate Service Control to the generic host as well
+                    if (hosts.ContainsKey(instanceName))
+                    {
+                        await hosts[instanceName].StopAsync().ConfigureAwait(false);
+                    }
+
                     await bootstrappers[instanceName].Stop().ConfigureAwait(false);
                     HttpClients[instanceName].Dispose();
                     Handlers[instanceName].Dispose();
@@ -363,6 +382,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 }
             }
 
+            hosts.Clear();
             bootstrappers.Clear();
             Busses.Clear();
             HttpClients.Clear();
@@ -419,12 +439,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             return httpClient;
         }
 
+        Dictionary<string, IHost> hosts = new Dictionary<string, IHost>();
+
         Dictionary<string, dynamic> bootstrappers = new Dictionary<string, dynamic>();
         Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
-        Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
 
         class ForwardingHandler : DelegatingHandler
