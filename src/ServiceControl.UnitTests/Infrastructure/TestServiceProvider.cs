@@ -29,7 +29,6 @@
             var settings = new ServiceBus.Management.Infrastructure.Settings.Settings
             {
                 TransportConnectionString = Path.GetTempPath(),
-                Components = Components.All,
                 DisableHealthChecks = true
             };
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);

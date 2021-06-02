@@ -17,8 +17,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using AcceptanceTesting;
     using Audit.Infrastructure.OWIN;
     using Autofac;
-    using CustomChecks;
-    using Heartbeats;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
