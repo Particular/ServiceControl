@@ -127,6 +127,7 @@ namespace Particular.ServiceControl
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
                 .UseAsyncTimer()
                 .UseCustomChecks()
+                .UseHeartbeatMonitoring()
                 .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
                 ;
 

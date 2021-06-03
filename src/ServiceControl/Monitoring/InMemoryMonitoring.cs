@@ -1,73 +1,74 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.BackgroundTasks;
-    using NServiceBus;
-    using NServiceBus.Features;
+    using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class InMemoryMonitoring : Feature
+    static class HeartbeatsHostBuilderExtensions
     {
-        public InMemoryMonitoring()
+        public static IHostBuilder UseHeartbeatMonitoring(this IHostBuilder hostBuilder)
         {
-            EnableByDefault();
-        }
-
-        protected override void Setup(FeatureConfigurationContext context)
-        {
-            var settings = context.Settings.Get<Settings>("ServiceControl.Settings");
-
-            context.RegisterStartupTask(b =>
+            hostBuilder.ConfigureServices(collection =>
             {
-                var instances = b.Build<MonitorEndpointInstances>();
-                instances.GracePeriod = settings.HeartbeatGracePeriod;
-                return instances;
+                collection.AddHostedService<HeartbeatMonitoringHostedService>();
+                collection.AddSingleton<MonitoringDataStore>();
+                collection.AddDomainEventHandler<MonitoringDataPersister>();
             });
+            return hostBuilder;
         }
+    }
 
-        static ILog log = LogManager.GetLogger<MonitorEndpointInstances>();
-
-
-        class MonitorEndpointInstances : FeatureStartupTask
+    class HeartbeatMonitoringHostedService : IHostedService
+    {
+        public HeartbeatMonitoringHostedService(EndpointInstanceMonitoring monitor, MonitoringDataStore persistence, IAsyncTimer scheduler, Settings settings)
         {
-            public MonitorEndpointInstances(EndpointInstanceMonitoring monitor, MonitoringDataPersister persistence, IAsyncTimer scheduler)
-            {
-                this.monitor = monitor;
-                this.persistence = persistence;
-                this.scheduler = scheduler;
-            }
-
-            public TimeSpan GracePeriod { get; set; }
-
-            protected override async Task OnStart(IMessageSession session)
-            {
-                await persistence.WarmupMonitoringFromPersistence().ConfigureAwait(false);
-                timer = scheduler.Schedule(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e => { log.Error("Exception occurred when monitoring endpoint instances", e); });
-            }
-
-            async Task<TimerJobExecutionResult> CheckEndpoints()
-            {
-                var inactivityThreshold = DateTime.UtcNow - GracePeriod;
-                if (log.IsDebugEnabled)
-                {
-                    log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
-                }
-
-                await monitor.CheckEndpoints(inactivityThreshold).ConfigureAwait(false);
-                return TimerJobExecutionResult.ScheduleNextExecution;
-            }
-
-            protected override Task OnStop(IMessageSession session)
-            {
-                return timer.Stop();
-            }
-
-            EndpointInstanceMonitoring monitor;
-            MonitoringDataPersister persistence;
-            readonly IAsyncTimer scheduler;
-            TimerJob timer;
+            this.monitor = monitor;
+            this.persistence = persistence;
+            this.scheduler = scheduler;
+            gracePeriod = settings.HeartbeatGracePeriod;
         }
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            await persistence.WarmupMonitoringFromPersistence().ConfigureAwait(false);
+            timer = scheduler.Schedule(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e => { log.Error("Exception occurred when monitoring endpoint instances", e); });
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await timer.Stop().ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                //NOOP
+            }
+        }
+
+        async Task<TimerJobExecutionResult> CheckEndpoints()
+        {
+            var inactivityThreshold = DateTime.UtcNow - gracePeriod;
+            if (log.IsDebugEnabled)
+            {
+                log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
+            }
+
+            await monitor.CheckEndpoints(inactivityThreshold).ConfigureAwait(false);
+            return TimerJobExecutionResult.ScheduleNextExecution;
+        }
+
+        EndpointInstanceMonitoring monitor;
+        MonitoringDataStore persistence;
+        IAsyncTimer scheduler;
+        TimerJob timer;
+        TimeSpan gracePeriod;
+
+        static ILog log = LogManager.GetLogger<HeartbeatMonitoringHostedService>();
     }
 }
