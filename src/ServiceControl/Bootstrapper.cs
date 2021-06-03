@@ -23,6 +23,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Monitoring;
+    using global::ServiceControl.Notifications.Email;
     using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
@@ -125,6 +126,8 @@ namespace Particular.ServiceControl
                     return configuration;
                 })
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
+                .UseServicePulseSignalRNotifier()
+                .UseEmailNotifications()
                 .UseAsyncTimer()
                 .UseCustomChecks()
                 .UseHeartbeatMonitoring()

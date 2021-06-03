@@ -4,25 +4,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.BackgroundTasks;
-    using Infrastructure.DomainEvents;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
-
-    static class HeartbeatsHostBuilderExtensions
-    {
-        public static IHostBuilder UseHeartbeatMonitoring(this IHostBuilder hostBuilder)
-        {
-            hostBuilder.ConfigureServices(collection =>
-            {
-                collection.AddHostedService<HeartbeatMonitoringHostedService>();
-                collection.AddSingleton<MonitoringDataStore>();
-                collection.AddDomainEventHandler<MonitoringDataPersister>();
-            });
-            return hostBuilder;
-        }
-    }
 
     class HeartbeatMonitoringHostedService : IHostedService
     {
