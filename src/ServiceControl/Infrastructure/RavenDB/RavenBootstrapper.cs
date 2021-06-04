@@ -3,11 +3,7 @@
     using System;
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
-    using System.Linq;
     using System.Runtime.Serialization;
-    using Audit.Monitoring;
-    using Monitoring;
-    using NServiceBus;
     using NServiceBus.Logging;
     using Particular.Licensing;
     using Raven.Abstractions.Data;
@@ -15,20 +11,12 @@
     using Raven.Client;
     using Raven.Client.Document;
     using Raven.Client.Embedded;
-    using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
     using Subscriptions;
 
-    class RavenBootstrapper : INeedInitialization
+    class RavenBootstrapper
     {
         public static Settings Settings { get; set; }
-
-        public bool RunCleanup { get; set; }
-
-        public void Customize(EndpointConfiguration configuration)
-        {
-            configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
-        }
 
         public static string ReadLicense()
         {
@@ -39,7 +27,7 @@
             }
         }
 
-        public static void ConfigureAndStart(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode = false)
+        public static void Configure(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode = false)
         {
             Settings = settings;
 
@@ -92,7 +80,7 @@
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(typeof(RavenBootstrapper).Assembly));
 
-            documentStore.Conventions.FindClrType = (id, doc, metadata) =>
+			documentStore.Conventions.FindClrType = (id, doc, metadata) =>
             {
                 var clrtype = metadata.Value<string>(Constants.RavenClrType);
 
@@ -113,38 +101,6 @@
 
                 return clrtype;
             };
-
-            documentStore.Initialize();
-
-            Logger.Info("Index creation started");
-
-            IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
-            IndexCreation.CreateIndexes(typeof(SagaAudit.SagaSnapshot).Assembly, documentStore);
-
-            if (!maintenanceMode)
-            {
-                // Only purge endpoints when not in maintenance mode
-                PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(documentStore);
-            }
-        }
-
-        static void PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicate(IDocumentStore documentStore)
-        {
-            using (var session = documentStore.OpenSession())
-            {
-                var endpoints = session.Query<KnownEndpoint, KnownEndpointIndex>().ToList();
-
-                foreach (var knownEndpoints in endpoints.GroupBy(e => e.EndpointDetails.Host + e.EndpointDetails.Name))
-                {
-                    var fixedIdsCount = knownEndpoints.Count(e => !e.HasTemporaryId);
-
-                    //If we have knowEndpoints with non temp ids, we should delete all temp ids ones.
-                    if (fixedIdsCount > 0)
-                    {
-                        knownEndpoints.Where(e => e.HasTemporaryId).ForEach(k => { documentStore.DatabaseCommands.Delete(documentStore.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(k.Id, typeof(KnownEndpoint), false), null); });
-                    }
-                }
-            }
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));

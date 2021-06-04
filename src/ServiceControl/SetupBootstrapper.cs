@@ -66,7 +66,7 @@ namespace Particular.ServiceControl
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+                RavenBootstrapper.Configure(documentStore, settings);
 
 #pragma warning disable 618
                 configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));

@@ -13,18 +13,6 @@
     },
     "Target": {}
   },
-  "StoreInitializer": {
-    "Method": {
-      "Name": "<.ctor>b__0_1",
-      "AssemblyName": "ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null",
-      "ClassName": "ServiceBus.Management.Infrastructure.Settings.Settings+<>c",
-      "Signature": "System.Threading.Tasks.Task <.ctor>b__0_1(Raven.Client.IDocumentStore)",
-      "Signature2": "System.Threading.Tasks.Task <.ctor>b__0_1(Raven.Client.IDocumentStore)",
-      "MemberType": 8,
-      "GenericArguments": null
-    },
-    "Target": {}
-  },
   "RunInMemory": false,
   "EmailDropFolder": null,
   "ValidateConfiguration": true,

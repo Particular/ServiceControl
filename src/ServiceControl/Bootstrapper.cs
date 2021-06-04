@@ -11,8 +11,6 @@ namespace Particular.ServiceControl
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Reflection;
-    using System.Threading.Tasks;
-    using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
@@ -132,16 +130,22 @@ namespace Particular.ServiceControl
                     services.AddSingleton(settings);
                     services.AddSingleton(sp => HttpClientFactory);
                     services.AddSingleton<ErrorIngestionComponent>();
+
+                    services.Configure<RavenStartup>(database =>
+                    {
+                        database.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
+                        database.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
+                    });
                 })
                 .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
                     var documentStore = new EmbeddableDocumentStore();
 
-                    RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+                    RavenBootstrapper.Configure(documentStore, settings);
 
                     return documentStore;
-                }, settings.StoreInitializer)
+                })
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
