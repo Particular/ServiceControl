@@ -13,6 +13,7 @@
             hostBuilder.ConfigureServices(collection =>
             {
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
+                collection.AddSingleton<EndpointInstanceMonitoring>();
                 collection.AddSingleton<MonitoringDataStore>();
                 collection.AddSingleton<IEnrichImportedErrorMessages, DetectNewEndpointsFromErrorImportsEnricher>();
                 collection.AddDomainEventHandler<MonitoringDataPersister>();

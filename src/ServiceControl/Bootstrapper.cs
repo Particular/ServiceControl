@@ -107,7 +107,6 @@ namespace Particular.ServiceControl
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);
                     services.AddSingleton(sp => HttpClientFactory);
-                    services.AddSingleton<EndpointInstanceMonitoring>();
                     services.AddSingleton<ErrorIngestionComponent>();
                 })
                 .UseMetrics(settings.PrintMetrics)
@@ -136,8 +135,6 @@ namespace Particular.ServiceControl
 
             HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
             {
-                // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
-                containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
             }));
         }
 
