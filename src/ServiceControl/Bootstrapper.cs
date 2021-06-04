@@ -96,6 +96,7 @@ namespace Particular.ServiceControl
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>
                 {
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
@@ -132,10 +133,6 @@ namespace Particular.ServiceControl
                 .UseHeartbeatMonitoring()
                 .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
                 ;
-
-            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
-            {
-            }));
         }
 
         TransportSettings MapSettings(Settings settings)

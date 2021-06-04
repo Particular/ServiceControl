@@ -60,6 +60,7 @@ namespace ServiceControl.Audit.Infrastructure
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>
                 {
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
@@ -87,8 +88,6 @@ namespace ServiceControl.Audit.Infrastructure
                     return configuration;
                 })
                 .UseWebApi(settings.RootUrl, settings.ExposeApi);
-
-            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)
