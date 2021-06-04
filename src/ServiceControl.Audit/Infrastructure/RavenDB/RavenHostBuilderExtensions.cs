@@ -16,9 +16,7 @@
                 var embeddedDocumentStore = documentStoreBuilder(ctx);
 
                 serviceCollection.AddSingleton<IDocumentStore>(embeddedDocumentStore);
-                serviceCollection.AddSingleton<IHostedService>(
-                    serviceProvider => new EmbeddedRavenDbHostedService(embeddedDocumentStore)
-                );
+                serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
             });
 
             return hostBuilder;

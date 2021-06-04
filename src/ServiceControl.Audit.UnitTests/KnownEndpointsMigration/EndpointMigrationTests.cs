@@ -42,9 +42,9 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints(store);
+                var migrator = new MigrateKnownEndpoints();
 
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
 
                 var dbStatistics = await store.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
                 var indexStats = dbStatistics.Indexes.First(index => index.Name == "EndpointsIndex");
@@ -81,10 +81,10 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints(store);
+                var migrator = new MigrateKnownEndpoints();
 
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
 
                 var knownEndpointsIndex = await store.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
                 Assert.IsNull(knownEndpointsIndex);
@@ -120,9 +120,9 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints(store);
+                var migrator = new MigrateKnownEndpoints();
 
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
 
                 using (var session = store.OpenAsyncSession())
                 {
@@ -164,18 +164,18 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints(store);
+                var migrator = new MigrateKnownEndpoints();
 
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
 
                 store.ExecuteIndex(new EndpointsIndex());
                 store.WaitForIndexing();
 
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
-                await migrator.MigrateEndpoints().ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store).ConfigureAwait(false);
 
                 using (var session = store.OpenAsyncSession())
                 {
@@ -217,9 +217,9 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints(store);
+                var migrator = new MigrateKnownEndpoints();
 
-                await migrator.MigrateEndpoints(pageSize: 1).ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store, pageSize: 1).ConfigureAwait(false);
 
                 using (var session = store.OpenAsyncSession())
                 {
@@ -259,9 +259,9 @@
 
                 store.WaitForIndexing();
 
-                var migrator = new MigrateKnownEndpoints(store);
+                var migrator = new MigrateKnownEndpoints();
 
-                await migrator.MigrateEndpoints(pageSize: 1).ConfigureAwait(false);
+                await migrator.MigrateEndpoints(store, pageSize: 1).ConfigureAwait(false);
 
                 using (var session = store.OpenAsyncSession())
                 {

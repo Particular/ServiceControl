@@ -6,15 +6,13 @@
     using System.Runtime.Serialization;
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
-    using Raven.Client.Indexes;
-    using ServiceControl.SagaAudit;
     using Settings;
 
     class RavenBootstrapper
     {
         public static Settings Settings { get; private set; }
 
-        public static void ConfigureAndStart(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode = false)
+        public static void Configure(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode = false)
         {
             Settings = settings;
 
@@ -64,13 +62,6 @@
             documentStore.Conventions.CustomizeJsonSerializer = serializer => serializer.Binder = MigratedTypeAwareBinder;
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(typeof(RavenBootstrapper).Assembly));
-
-            documentStore.Initialize();
-
-            Logger.Info("Index creation started");
-
-            IndexCreation.CreateIndexes(typeof(RavenBootstrapper).Assembly, documentStore);
-            IndexCreation.CreateIndexes(typeof(SagaSnapshot).Assembly, documentStore);
         }
 
         static string ReadLicense()

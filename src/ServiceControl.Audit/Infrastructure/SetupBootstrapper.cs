@@ -4,7 +4,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Threading.Tasks;
     using Autofac;
     using NServiceBus;
-    using NServiceBus.Installation;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using Raven.Client;
@@ -86,11 +85,11 @@ namespace ServiceControl.Audit.Infrastructure
             var documentStore = new EmbeddableDocumentStore();
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
-            containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
+            containerBuilder.RegisterType<MigrateKnownEndpoints>().As<IDataMigration>();
 
             using (documentStore)
             {
-                RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+                RavenBootstrapper.Configure(documentStore, settings);
 
                 var container = containerBuilder.Build();
 

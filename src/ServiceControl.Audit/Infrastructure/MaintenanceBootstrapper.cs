@@ -18,7 +18,7 @@ namespace ServiceControl.Audit.Infrastructure
                 {
                     var documentStore = new EmbeddableDocumentStore();
 
-                    RavenBootstrapper.ConfigureAndStart(documentStore, settings, true);
+                    RavenBootstrapper.Configure(documentStore, settings, true);
 
                     return documentStore;
                 });

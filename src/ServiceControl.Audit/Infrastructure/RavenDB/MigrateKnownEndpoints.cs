@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
 {
-    using NServiceBus.Installation;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -9,21 +8,11 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    class MigrateKnownEndpoints : INeedToInstallSomething
+    class MigrateKnownEndpoints : IDataMigration
     {
-        IDocumentStore store;
+        public Task Migrate(IDocumentStore store) => MigrateEndpoints(store);
 
-        public MigrateKnownEndpoints(IDocumentStore store)
-        {
-            this.store = store;
-        }
-
-        public Task Install(string identity)
-        {
-            return MigrateEndpoints();
-        }
-
-        internal async Task MigrateEndpoints(int pageSize = 1024)
+        internal async Task MigrateEndpoints(IDocumentStore store, int pageSize = 1024)
         {
             var knownEndpointsIndex = await store.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
             if (knownEndpointsIndex == null)
