@@ -57,17 +57,27 @@
             }, CancellationToken.None);
         }
 
-        public Task Stop()
+        public async Task Stop()
         {
             if (tokenSource == null)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             tokenSource.Cancel();
             tokenSource.Dispose();
 
-            return task ?? Task.CompletedTask;
+            if (task != null)
+            {
+                try
+                {
+                    await task.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    //NOOP
+                }
+            }
         }
 
         Task task;

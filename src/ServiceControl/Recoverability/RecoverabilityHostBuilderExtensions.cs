@@ -1,60 +1,82 @@
-﻿namespace ServiceControl.Recoverability
+﻿// unset
+
+namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.BackgroundTasks;
-    using NServiceBus;
-    using NServiceBus.Features;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Client;
+    using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class FailedMessageRetries : Feature
+    static class RecoverabilityHostBuilderExtensions
     {
-        public FailedMessageRetries()
+        public static IHostBuilder UseRecoverability(this IHostBuilder hostBuilder, bool runRetryProcessor)
         {
-            Prerequisite(c =>
+            hostBuilder.ConfigureServices(collection =>
             {
-                var settings = c.Settings.Get<Settings>("ServiceControl.Settings");
-                return settings.RunRetryProcessor;
-            }, "Failed message retry processing is disabled.");
-            EnableByDefault();
+                //Archiving
+                collection.AddSingleton<ArchivingManager>();
+                collection.AddSingleton<ArchiveDocumentManager>();
+
+                collection.AddSingleton<OperationsManager>();
+                collection.AddSingleton<UnarchivingManager>();
+                collection.AddSingleton<UnarchiveDocumentManager>();
+
+                //Grouping
+                collection.AddSingleton<ExceptionTypeAndStackTraceFailureClassifier>();
+                collection.AddSingleton<MessageTypeFailureClassifier>();
+                collection.AddSingleton<ClassifyFailedMessageEnricher>();
+                collection.AddSingleton<AddressOfFailingEndpointClassifier>();
+                collection.AddSingleton<EndpointInstanceClassifier>();
+                collection.AddSingleton<EndpointNameClassifier>();
+
+                //Retrying
+                collection.AddSingleton<RetryingManager>();
+                collection.AddSingleton<GroupFetcher>();
+                collection.AddSingleton<StoreHistoryHandler>();
+                collection.AddSingleton<FailedMessageRetryCleaner>();
+
+                //Retries
+                if (runRetryProcessor)
+                {
+                    collection.AddSingleton<RetryDocumentManager>();
+                    collection.AddSingleton<RetriesGateway>();
+                    collection.AddSingleton<RetryProcessor>();
+
+                    collection.AddHostedService<RebuildRetryGroupStatusesHostedService>();
+                    collection.AddHostedService<BulkRetryBatchCreationHostedService>();
+                    collection.AddHostedService<AdoptOrphanBatchesFromPreviousSessionHostedService>();
+                    collection.AddHostedService<ProcessRetryBatchesHostedService>();
+                }
+            });
+
+            return hostBuilder;
         }
 
-        protected override void Setup(FeatureConfigurationContext context)
+        class BulkRetryBatchCreationHostedService : IHostedService
         {
-            context.Container.ConfigureComponent<RetryDocumentManager>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<RetriesGateway>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<RetryProcessor>(DependencyLifecycle.SingleInstance);
-
-            context.RegisterStartupTask(b => b.Build<RebuildRetryGroupStatuses>());
-            context.RegisterStartupTask(b => b.Build<BulkRetryBatchCreation>());
-            context.RegisterStartupTask(b => b.Build<AdoptOrphanBatchesFromPreviousSession>());
-            context.RegisterStartupTask(b => b.Build<ProcessRetryBatches>());
-        }
-
-        static ILog log = LogManager.GetLogger<FailedMessageRetries>();
-
-        class BulkRetryBatchCreation : FeatureStartupTask
-        {
-            public BulkRetryBatchCreation(RetriesGateway retries, IAsyncTimer scheduler)
+            public BulkRetryBatchCreationHostedService(RetriesGateway retries, IAsyncTimer scheduler)
             {
                 this.retries = retries;
                 this.scheduler = scheduler;
             }
 
-            protected override Task OnStart(IMessageSession session)
+            public Task StartAsync(CancellationToken cancellationToken)
             {
                 if (retries != null)
                 {
                     timer = scheduler.Schedule(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e => { log.Error("Unhandled exception while processing bulk retry operations", e); });
                 }
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
-            protected override Task OnStop(IMessageSession session)
+            public Task StopAsync(CancellationToken cancellationToken)
             {
                 return timer?.Stop() ?? Task.CompletedTask;
             }
@@ -69,17 +91,18 @@
             IAsyncTimer scheduler;
             TimerJob timer;
             static TimeSpan interval = TimeSpan.FromSeconds(5);
+            static ILog log = LogManager.GetLogger<BulkRetryBatchCreationHostedService>();
         }
 
-        class RebuildRetryGroupStatuses : FeatureStartupTask
+        class RebuildRetryGroupStatusesHostedService : IHostedService
         {
-            public RebuildRetryGroupStatuses(RetryDocumentManager retryDocumentManager, IDocumentStore store)
+            public RebuildRetryGroupStatusesHostedService(RetryDocumentManager retryDocumentManager, IDocumentStore store)
             {
                 this.store = store;
                 this.retryDocumentManager = retryDocumentManager;
             }
 
-            protected override async Task OnStart(IMessageSession session)
+            public async Task StartAsync(CancellationToken cancellationToken)
             {
                 using (var storageSession = store.OpenAsyncSession())
                 {
@@ -87,18 +110,18 @@
                 }
             }
 
-            protected override Task OnStop(IMessageSession session)
+            public Task StopAsync(CancellationToken cancellationToken)
             {
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             RetryDocumentManager retryDocumentManager;
             IDocumentStore store;
         }
 
-        internal class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
+        internal class AdoptOrphanBatchesFromPreviousSessionHostedService : IHostedService
         {
-            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, IDocumentStore store, IAsyncTimer scheduler)
+            public AdoptOrphanBatchesFromPreviousSessionHostedService(RetryDocumentManager retryDocumentManager, IDocumentStore store, IAsyncTimer scheduler)
             {
                 this.retryDocumentManager = retryDocumentManager;
                 this.store = store;
@@ -116,18 +139,17 @@
 
                 return hasMoreWorkToDo;
             }
-
-            protected override Task OnStart(IMessageSession session)
+            public Task StartAsync(CancellationToken cancellationToken)
             {
                 timer = scheduler.Schedule(async _ =>
                 {
                     var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
                     return hasMoreWork ? TimerJobExecutionResult.ScheduleNextExecution : TimerJobExecutionResult.DoNotContinueExecuting;
                 }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e => { log.Error("Unhandled exception while trying to adopt orphaned batches", e); });
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
-            protected override Task OnStop(IMessageSession session)
+            public Task StopAsync(CancellationToken cancellationToken)
             {
                 return timer.Stop();
             }
@@ -137,11 +159,12 @@
             IDocumentStore store;
             readonly IAsyncTimer scheduler;
             RetryDocumentManager retryDocumentManager;
+            static ILog log = LogManager.GetLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>();
         }
 
-        class ProcessRetryBatches : FeatureStartupTask
+        class ProcessRetryBatchesHostedService : IHostedService
         {
-            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, Settings settings, IAsyncTimer scheduler)
+            public ProcessRetryBatchesHostedService(IDocumentStore store, RetryProcessor processor, Settings settings, IAsyncTimer scheduler)
             {
                 this.processor = processor;
                 this.store = store;
@@ -149,13 +172,13 @@
                 this.scheduler = scheduler;
             }
 
-            protected override Task OnStart(IMessageSession session)
+            public Task StartAsync(CancellationToken cancellationToken)
             {
                 timer = scheduler.Schedule(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
-            protected override Task OnStop(IMessageSession session)
+            public Task StopAsync(CancellationToken cancellationToken)
             {
                 return timer.Stop();
             }
@@ -176,7 +199,7 @@
 
             IDocumentStore store;
             RetryProcessor processor;
-            static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatches));
+            static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatchesHostedService));
         }
     }
 }

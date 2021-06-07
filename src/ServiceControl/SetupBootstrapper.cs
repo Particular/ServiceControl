@@ -58,6 +58,11 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
 
+            foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
+            {
+                component.Setup(settings, null);
+            }
+
             using (documentStore)
             using (var container = containerBuilder.Build())
             {

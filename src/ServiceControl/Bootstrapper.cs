@@ -11,6 +11,7 @@ namespace Particular.ServiceControl
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Notifications.Email;
     using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
+    using global::ServiceControl.SagaAudit;
     using global::ServiceControl.Transports;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -37,6 +39,27 @@ namespace Particular.ServiceControl
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
+
+    class ServiceControlMainInstance
+    {
+        public static readonly ServiceControlComponent[] Components = new[]
+        {
+            new MetricsComponent()
+            ,
+        };
+    }
+
+    abstract class ServiceControlComponent
+    {
+        public abstract void Configure(Settings settings, IHostBuilder hostBuilder);
+        public abstract void Setup(Settings settings, IComponentSetupContext context);
+    }
+
+    interface IComponentSetupContext
+    {
+        void CreateQueue(string queueName);
+        void Execute(Func<Task> callback);
+    }
 
     class Bootstrapper
     {
@@ -129,10 +152,23 @@ namespace Particular.ServiceControl
                 .UseServicePulseSignalRNotifier()
                 .UseEmailNotifications()
                 .UseAsyncTimer()
+                .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
                 .UseCustomChecks()
                 .UseHeartbeatMonitoring()
-                .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
+                .UseSagaAudit()
+                .UseRecoverability(settings.RunRetryProcessor)
                 ;
+
+            foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
+            {
+                component.Configure(settings, HostBuilder);
+            }
+
+            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
+            {
+                // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
+                containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
+            }));
         }
 
         TransportSettings MapSettings(Settings settings)
