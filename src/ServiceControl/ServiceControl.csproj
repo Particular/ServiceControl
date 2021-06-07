@@ -39,7 +39,7 @@
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.3.0" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Raw" Version="3.2.2" />
-    <PackageReference Include="Microsoft.Owin.Hosting" Version="4.1.1" />
+    <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.2" />
     <PackageReference Include="ServiceControl.Contracts" Version="3.0.0" />
     <PackageReference Include="Lucene.Net" Version="3.0.3" />
