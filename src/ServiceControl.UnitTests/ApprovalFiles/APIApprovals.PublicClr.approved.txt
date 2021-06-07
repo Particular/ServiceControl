@@ -578,7 +578,6 @@ namespace ServiceControl.Infrastructure.BackgroundTasks
     {
         public AsyncTimer() { }
         public ServiceControl.Infrastructure.BackgroundTasks.TimerJob Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
-        public void Start() { }
     }
     public interface IAsyncTimer
     {
@@ -586,7 +585,7 @@ namespace ServiceControl.Infrastructure.BackgroundTasks
     }
     public class TimerJob
     {
-        public TimerJob(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback, System.Threading.Tasks.Task initialized) { }
+        public TimerJob(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
         public System.Threading.Tasks.Task Stop() { }
     }
     public enum TimerJobExecutionResult
