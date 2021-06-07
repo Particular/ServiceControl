@@ -36,7 +36,7 @@ When an instance of ServiceControl "adopts" an orphaned batch, it takes over the
 
 ### Staging
 
-Staging ensures transactional exactly-once processing. Transports that do not support `SendsAtomicWithReceive` strictly would not need staging to prevent more-than-once delivery.
+Staging reduces the chance of sending a message for retry more than once. Transports that do not support `SendsAtomicWithReceive` strictly would not need staging to prevent more-than-once delivery.
 When a batch enters this state, it means that failed messages belonging to the batch are being added to a special `staging` queue. This queue is used during `Forwarding` to ensure that messages are sent back to their original destination transactionally (using the transports recieve transaction).
 
 NOTE: Although multiple batches may be in `Staging` or `Forwarding` at a time, these are processed by a single thread ensuring that the rest of the process is serialized. This is important to ensure that only one batch at a time has access to the `staging` queue. Batches in `Staging` will only be processed if there are no batches in `Forwarding`.
@@ -47,7 +47,7 @@ When a batch is selected for staging a new `Staging Id` is generated for it and 
 
 Each message, one at a time, is dispatched to the `staging` queue. As each message is dispatched:
 
-1. It's Raven `Failedmessage` document is updated to reflect that it has entered `RetryIssued` mode.
+1. The corresponding `Failedmessage` document is updated to reflect that it has entered `RetryIssued` mode.
 2. Error headers are stripped from the copy sent to `staging`
 3. A header is added to the copy sent to `staging` to stamp it with the `Staging Id`
 4. A header is added to the copy sent to `staging` to indicate the messages final destination
@@ -78,7 +78,7 @@ Might SC run in the edge case that forwarding completes and immediately crash th
 
 There is no status to indicate that a batch is `Done`. When the `Forwarding` status is completed, the batch is deleted as it is no longer relevant. Note that each message that was retried as a part of the batch still have a corresponding `FailedMessageRetry/{messageId}` document. This will prevent the message from being retried again.
 
-Once all batches for a retry operation complete, we add two enties into a retry history document. An "unacknowledged" entry is kept until a user acknowledges the completion of the operation, while the other is used to show users the historic retry operations.
+Once all batches for a retry operation complete, we add two entries into a retry history document. An "unacknowledged" entry is kept until a user acknowledges the completion of the operation, while the other is used to show users the historic retry operations.
 
 ## Other notes
 
