@@ -163,12 +163,6 @@ namespace Particular.ServiceControl
             {
                 component.Configure(settings, HostBuilder);
             }
-
-            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
-            {
-                // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
-                containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
-            }));
         }
 
         TransportSettings MapSettings(Settings settings)
