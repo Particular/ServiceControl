@@ -1,6 +1,4 @@
-﻿// unset
-
-namespace ServiceControl.Recoverability
+﻿namespace ServiceControl.Recoverability
 {
     using System;
     using System.Threading;
@@ -214,10 +212,10 @@ namespace ServiceControl.Recoverability
                 this.scheduler = scheduler;
             }
 
-            public Task StartAsync(CancellationToken cancellationToken)
+            public async Task StartAsync(CancellationToken cancellationToken)
             {
+                await processor.Initialize().ConfigureAwait(false);
                 timer = scheduler.Schedule(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
-                return Task.CompletedTask;
             }
 
             public Task StopAsync(CancellationToken cancellationToken)

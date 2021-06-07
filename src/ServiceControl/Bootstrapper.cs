@@ -136,7 +136,7 @@ namespace Particular.ServiceControl
                 })
                 .UseNServiceBus(context =>
                 {
-                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
+                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, componentContext, configuration);
 
                     return configuration;
                 })
@@ -152,7 +152,7 @@ namespace Particular.ServiceControl
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
-                component.Setup(settings, null);
+                component.Setup(settings, componentContext);
                 component.Configure(settings, HostBuilder);
             }
         }

@@ -58,10 +58,7 @@ namespace Particular.ServiceControl
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
 
-            foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
-            {
-                component.Setup(settings, null);
-            }
+            var componentSetupContext = new ComponentSetupContext();
 
             using (documentStore)
             using (var container = containerBuilder.Build())
@@ -72,7 +69,12 @@ namespace Particular.ServiceControl
                 configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
 #pragma warning restore 618
 
-                NServiceBusFactory.Configure(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, configuration);
+                NServiceBusFactory.Configure(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, componentSetupContext, configuration);
+
+                foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
+                {
+                    component.Setup(settings, componentSetupContext);
+                }
 
                 await Endpoint.Create(configuration)
                     .ConfigureAwait(false);

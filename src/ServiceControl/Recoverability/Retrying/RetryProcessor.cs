@@ -10,6 +10,7 @@ namespace ServiceControl.Recoverability
     using MessageRedirects;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Raw;
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
@@ -20,14 +21,25 @@ namespace ServiceControl.Recoverability
 
     class RetryProcessor
     {
-        public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
+        public RetryProcessor(IDocumentStore store, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager, RawEndpointFactory rawEndpointFactory)
         {
             this.store = store;
-            this.sender = sender;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
+            this.rawEndpointFactory = rawEndpointFactory;
             this.domainEvents = domainEvents;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
+        }
+
+        public async Task Initialize()
+        {
+            var senderConfig = rawEndpointFactory.CreateSendOnly("RetryProcessor");
+            sender = await RawEndpoint.Start(senderConfig).ConfigureAwait(false);
+        }
+
+        public Task Enqueue(TransportOperations outgoingMessages)
+        {
+            return sender.Dispatch(outgoingMessages, new TransportTransaction(), new ContextBag());
         }
 
         public async Task<bool> ProcessBatches(IAsyncDocumentSession session, CancellationToken cancellationToken = default)
@@ -270,7 +282,7 @@ namespace ServiceControl.Recoverability
         {
             try
             {
-                await sender.Dispatch(new TransportOperations(transportOperations), transaction, contextBag).ConfigureAwait(false);
+                await Enqueue(new TransportOperations(transportOperations)).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -316,7 +328,7 @@ namespace ServiceControl.Recoverability
         {
             try
             {
-                await sender.Dispatch(new TransportOperations(transportOperation), transaction, contextBag).ConfigureAwait(false);
+                await Enqueue(new TransportOperations(transportOperation)).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -399,18 +411,17 @@ namespace ServiceControl.Recoverability
             return new TransportOperation(transportMessage, new UnicastAddressTag(returnToSender.InputAddress));
         }
 
-        TransportTransaction transaction = new TransportTransaction();
-        ContextBag contextBag = new ContextBag();
         IDocumentStore store;
-        IDispatchMessages sender;
         IDomainEvents domainEvents;
         ReturnToSenderDequeuer returnToSender;
         RetryingManager retryingManager;
+        readonly RawEndpointFactory rawEndpointFactory;
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
         CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
         protected internal const int MaxStagingAttempts = 5;
 
         static ILog Log = LogManager.GetLogger(typeof(RetryProcessor));
+        IReceivingRawEndpoint sender;
     }
 }

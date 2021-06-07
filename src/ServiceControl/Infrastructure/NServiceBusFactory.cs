@@ -2,9 +2,11 @@ namespace ServiceBus.Management.Infrastructure
 {
     using System;
     using System.Diagnostics;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
+    using Particular.ServiceControl;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
     using ServiceControl.Notifications.Email;
@@ -12,17 +14,9 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Transports;
     using Settings;
 
-    class QueueCreationFeature : Feature
-    {
-        protected override void Setup(FeatureConfigurationContext context)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     static class NServiceBusFactory
     {
-        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
+        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, ComponentSetupContext componentSetupContext, EndpointConfiguration configuration)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -35,6 +29,7 @@ namespace ServiceBus.Management.Infrastructure
             // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
             // wrapping it in a non-disposable type to make sure settings clear doesn't dispose
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
+            configuration.GetSettings().Set(componentSetupContext);
 
             transportCustomization.CustomizeServiceControlEndpoint(configuration, transportSettings);
 
