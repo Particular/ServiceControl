@@ -27,6 +27,7 @@ When ServiceControl starts up it will attempt to adopt any batches that it finds
 When a bulk retry is issued a background process is started that looks for all of the messages that match its criteria and assign them to a retry batch id (in lots of 1,000). If the process is killed before it is done, the details of what you were trying to retry are gone. Any documents that had already marked for retry will be retried. Any that were not marked for retry will require manual intervention to retry
 
 When ServiceControl starts up, it will generate a `Session ID` GUID. This GUID is stamped onto each new batch as it is created. This is how ServiceControl can tell if a batch is from a previous session and adopt it. Only Batches with a non-current session Id will be adopted by the orphan batch process.
+
 ## Recovering retry batches
 
 When ServiceControl starts it will look for documents marked with a retry batch id, without a matching retry batch document (i.e. We started making the batch but we never completed it). Retry batches in this state as called "orphaned" because the process that was assembling them has been lost.
