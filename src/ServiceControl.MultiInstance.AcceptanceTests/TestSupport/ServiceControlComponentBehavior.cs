@@ -24,8 +24,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         public Dictionary<string, HttpClient> HttpClients => runner.HttpClients;
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
         public Dictionary<string, dynamic> SettingsPerInstance => runner.SettingsPerInstance;
-        public Dictionary<string, OwinHttpMessageHandler> Handlers => runner.Handlers;
-        public Dictionary<string, dynamic> Busses => runner.Busses;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {

@@ -72,7 +72,12 @@
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                public MyContext TestContext { get; set; }
+                readonly MyContext testContext;
+
+                public MySaga(MyContext testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public async Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
@@ -84,7 +89,7 @@
                         .ConfigureAwait(false);
                     await context.Publish(new MessagePublishedBySaga())
                         .ConfigureAwait(false);
-                    TestContext.SagaId = Data.Id;
+                    testContext.SagaId = Data.Id;
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System.Linq;
+    using Infrastructure.BackgroundTasks;
     using NServiceBus;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
@@ -21,6 +22,7 @@
                 b.BuildAll<ICustomCheck>().ToList(),
                 b.Build<CustomChecksStorage>(),
                 b.Build<HostInformation>(),
+                b.Build<IAsyncTimer>(),
                 context.Settings.EndpointName())
             );
         }

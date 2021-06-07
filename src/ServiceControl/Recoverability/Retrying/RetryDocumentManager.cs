@@ -3,8 +3,8 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Infrastructure;
     using MessageFailures;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -15,13 +15,12 @@ namespace ServiceControl.Recoverability
 
     class RetryDocumentManager
     {
-        public RetryDocumentManager(ShutdownNotifier notifier, IDocumentStore store)
+        public RetryDocumentManager(IHostApplicationLifetime applicationLifetime, IDocumentStore store, RetryingManager operationManager)
         {
             this.store = store;
-            notifier.Register(() => { abort = true; });
+            applicationLifetime?.ApplicationStopping.Register(() => { abort = true; });
+            this.operationManager = operationManager;
         }
-
-        public RetryingManager OperationManager { get; set; }
 
         public async Task<string> CreateBatchDocument(string requestId, RetryType retryType, string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
         {
@@ -123,7 +122,7 @@ namespace ServiceControl.Recoverability
             {
                 if (batch.RetryType != RetryType.MultipleMessages)
                 {
-                    OperationManager.Fail(batch.RetryType, batch.RequestId);
+                    operationManager.Fail(batch.RetryType, batch.RequestId);
                 }
             }
 
@@ -151,12 +150,13 @@ namespace ServiceControl.Recoverability
                         log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
                     }
 
-                    await OperationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last)
+                    await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last)
                         .ConfigureAwait(false);
                 }
             }
         }
 
+        RetryingManager operationManager;
         IDocumentStore store;
         bool abort;
         protected static string RetrySessionId = Guid.NewGuid().ToString();

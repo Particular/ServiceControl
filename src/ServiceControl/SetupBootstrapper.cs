@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System.Threading.Tasks;
     using Autofac;
     using global::ServiceControl.Infrastructure.DomainEvents;
+    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Transports;
     using NServiceBus;
@@ -46,8 +47,7 @@ namespace Particular.ServiceControl
 
             var containerBuilder = new ContainerBuilder();
 
-            var domainEvents = new DomainEvents();
-            containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
+            containerBuilder.RegisterType<DomainEvents>().As<IDomainEvents>().SingleInstance();
 
             var transportSettings = MapSettings(settings);
             containerBuilder.RegisterInstance(transportSettings).SingleInstance();
@@ -61,7 +61,15 @@ namespace Particular.ServiceControl
             using (documentStore)
             using (var container = containerBuilder.Build())
             {
-                await NServiceBusFactory.Create(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, container, documentStore, configuration, false)
+                RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+
+#pragma warning disable 618
+                configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
+#pragma warning restore 618
+
+                NServiceBusFactory.Configure(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, configuration);
+
+                await Endpoint.Create(configuration)
                     .ConfigureAwait(false);
             }
         }

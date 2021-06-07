@@ -20,19 +20,6 @@ namespace ServiceControl.CompositeViews.Messages
     {
     }
 
-    class ApisModule : Module
-    {
-        protected override void Load(ContainerBuilder builder)
-        {
-            builder.RegisterAssemblyTypes(ThisAssembly)
-                .AssignableTo<IApi>()
-                .AsSelf()
-                .AsImplementedInterfaces()
-                .PropertiesAutowired();
-        }
-    }
-
-
     // used to hoist the static jsonSerializer field across the generic instances
     abstract class ScatterGatherApiBase
     {

@@ -55,19 +55,25 @@
 
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {
-                public MyContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
+
+                public MessageThatWillFailHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MessageThatWillFail message, IMessageHandlerContext context)
                 {
-                    if (!Context.ExceptionThrown) //simulate that the exception will be resolved with the retry
+                    if (!scenarioContext.ExceptionThrown) //simulate that the exception will be resolved with the retry
                     {
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
-                        Context.ExceptionThrown = Context.IssueRetry = true;
+                        scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
+                        scenarioContext.ExceptionThrown = scenarioContext.IssueRetry = true;
                         throw new Exception("Simulated exception");
                     }
 
-                    Context.Done = true;
+                    scenarioContext.Done = true;
                     return Task.FromResult(0);
                 }
             }

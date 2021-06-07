@@ -8,6 +8,7 @@
     using Infrastructure;
     using MessageFailures;
     using MessageFailures.Api;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
@@ -16,10 +17,8 @@
 
     public class Reclassifier
     {
-        internal Reclassifier(ShutdownNotifier notifier)
-        {
-            notifier?.Register(() => { abort = true; });
-        }
+        internal Reclassifier(IHostApplicationLifetime applicationLifetime)
+            => applicationLifetime?.ApplicationStopping.Register(() => { abort = true; });
 
         internal async Task<int> ReclassifyFailedMessages(IDocumentStore store, bool force, IEnumerable<IFailureClassifier> classifiers)
         {

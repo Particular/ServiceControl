@@ -51,12 +51,17 @@
         public class MySaga : Saga<MySagaData>,
             IAmStartedByMessages<StartSagaMessage>
         {
-            public MyContext Context { get; set; }
+            readonly MyContext scenarioContext;
+
+            public MySaga(MyContext scenarioContext)
+            {
+                this.scenarioContext = scenarioContext;
+            }
 
             public Task Handle(StartSagaMessage message, IMessageHandlerContext context)
             {
-                Context.SagaId = Data.Id;
-                Context.InitiatingMessageReceived = true;
+                scenarioContext.SagaId = Data.Id;
+                scenarioContext.InitiatingMessageReceived = true;
                 return Task.FromResult(0);
             }
 

@@ -5,6 +5,7 @@
     using System.Net.Http.Headers;
     using System.Reflection;
     using System.Web.Http;
+    using System.Web.Http.Dependencies;
     using System.Web.Http.Dispatcher;
     using Autofac;
     using Autofac.Integration.WebApi;
@@ -18,13 +19,19 @@
 
     class Startup
     {
-        public Startup(IContainer container)
+        public Startup(ILifetimeScope lifetimeScope, List<Assembly> assemblies)
         {
-            this.container = container;
+            this.lifetimeScope = lifetimeScope;
+            this.assemblies = assemblies;
         }
 
         public void Configuration(IAppBuilder app, Assembly additionalAssembly = null)
         {
+            if (additionalAssembly != null)
+            {
+                assemblies.Add(additionalAssembly);
+            }
+
             app.Map("/api", b =>
             {
                 b.Use<BodyUrlRouteFix>();
@@ -45,7 +52,7 @@
                 jsonMediaTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.particular.1+json"));
                 config.Formatters.Remove(config.Formatters.XmlFormatter);
 
-                config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
+                config.DependencyResolver = new ExternallyOwnedContainerDependencyResolver(new AutofacWebApiDependencyResolver(lifetimeScope));
 
                 config.MessageHandlers.Add(new XParticularVersionHttpHandler());
                 config.MessageHandlers.Add(new CompressionEncodingHttpHandler());
@@ -58,7 +65,7 @@
 
         void ConfigureSignalR(IAppBuilder app)
         {
-            var resolver = new AutofacDependencyResolver(container);
+            var resolver = new AutofacDependencyResolver(lifetimeScope);
 
             app.Map("/messagestream", map =>
             {
@@ -77,7 +84,29 @@
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
         }
 
-        readonly IContainer container;
+        readonly ILifetimeScope lifetimeScope;
+        readonly List<Assembly> assemblies;
+    }
+
+    class ExternallyOwnedContainerDependencyResolver : System.Web.Http.Dependencies.IDependencyResolver
+    {
+        System.Web.Http.Dependencies.IDependencyResolver impl;
+
+        public ExternallyOwnedContainerDependencyResolver(System.Web.Http.Dependencies.IDependencyResolver impl)
+        {
+            this.impl = impl;
+        }
+
+        public void Dispose()
+        {
+            //NOOP We don't dispose the underlying container
+        }
+
+        public object GetService(Type serviceType) => impl.GetService(serviceType);
+
+        public IEnumerable<object> GetServices(Type serviceType) => impl.GetServices(serviceType);
+
+        public IDependencyScope BeginScope() => impl.BeginScope();
     }
 
     class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
@@ -102,14 +131,14 @@
 
     class AutofacDependencyResolver : DefaultDependencyResolver
     {
-        public AutofacDependencyResolver(IContainer container)
+        public AutofacDependencyResolver(ILifetimeScope lifetimeScope)
         {
-            this.container = container;
+            this.lifetimeScope = lifetimeScope;
         }
 
         public override object GetService(Type serviceType)
         {
-            if (container.TryResolve(serviceType, out var service))
+            if (lifetimeScope.TryResolve(serviceType, out var service))
             {
                 return service;
             }
@@ -119,7 +148,7 @@
 
         public override IEnumerable<object> GetServices(Type serviceType)
         {
-            if (container.TryResolve(IEnumerableType.MakeGenericType(serviceType), out var services))
+            if (lifetimeScope.TryResolve(IEnumerableType.MakeGenericType(serviceType), out var services))
             {
                 return (IEnumerable<object>)services;
             }
@@ -127,7 +156,7 @@
             return base.GetServices(serviceType);
         }
 
-        readonly IContainer container;
+        readonly ILifetimeScope lifetimeScope;
         static Type IEnumerableType = typeof(IEnumerable<>);
     }
 }

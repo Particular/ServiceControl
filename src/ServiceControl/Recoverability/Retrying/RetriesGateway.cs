@@ -11,20 +11,18 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
-    using Raven.Abstractions.Util;
     using Raven.Client;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
 
     class RetriesGateway
     {
-        public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager)
+        public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager, RetryingManager operationManager)
         {
             this.store = store;
             retryDocumentManager = documentManager;
+            this.operationManager = operationManager;
         }
-
-        public RetryingManager OperationManager { get; set; }
 
         async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IBulkRetryRequest request)
         {
@@ -82,11 +80,11 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.SingleMessage;
             var numberOfMessages = 1;
 
-            await OperationManager.Prepairing(requestId, retryType, numberOfMessages)
+            await operationManager.Prepairing(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
             await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow)
                 .ConfigureAwait(false);
-            await OperationManager.PreparedBatch(requestId, retryType, numberOfMessages)
+            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
         }
 
@@ -98,11 +96,11 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.MultipleMessages;
             var numberOfMessages = uniqueMessageIds.Length;
 
-            await OperationManager.Prepairing(requestId, retryType, numberOfMessages)
+            await operationManager.Prepairing(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
             await StageRetryByUniqueMessageIds(requestId, retryType, uniqueMessageIds, DateTime.UtcNow)
                 .ConfigureAwait(false);
-            await OperationManager.PreparedBatch(requestId, retryType, numberOfMessages)
+            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
         }
 
@@ -153,11 +151,11 @@ namespace ServiceControl.Recoverability
             var latestAttempt = batchesWithLastAttempt.Item2;
             var totalMessages = batches.Sum(b => b.Length);
 
-            if (!OperationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
+            if (!operationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
             {
                 var numberOfMessagesAdded = 0;
 
-                await OperationManager.Prepairing(request.RequestId, request.RetryType, totalMessages)
+                await operationManager.Prepairing(request.RequestId, request.RetryType, totalMessages)
                     .ConfigureAwait(false);
 
                 for (var i = 0; i < batches.Count; i++)
@@ -166,7 +164,7 @@ namespace ServiceControl.Recoverability
                         .ConfigureAwait(false);
                     numberOfMessagesAdded += batches[i].Length;
 
-                    await OperationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded)
+                    await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded)
                         .ConfigureAwait(false);
                 }
             }
@@ -184,6 +182,7 @@ namespace ServiceControl.Recoverability
 
         IDocumentStore store;
         RetryDocumentManager retryDocumentManager;
+        RetryingManager operationManager;
         ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
         const int BatchSize = 1000;
 
@@ -196,7 +195,7 @@ namespace ServiceControl.Recoverability
             string Originator { get; set; }
             string Classifier { get; set; }
             DateTime StartTime { get; set; }
-            Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session);
+            Task<Raven.Abstractions.Util.IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session);
         }
 
         class IndexBasedBulkRetryRequest<TType, TIndex> : IBulkRetryRequest
@@ -219,7 +218,7 @@ namespace ServiceControl.Recoverability
             public string Classifier { get; set; }
             public DateTime StartTime { get; set; }
 
-            public Task<IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
+            public Task<Raven.Abstractions.Util.IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
             {
                 var query = session.Query<TType, TIndex>();
 

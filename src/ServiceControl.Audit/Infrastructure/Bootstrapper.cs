@@ -1,66 +1,43 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Reflection;
-    using System.Threading.Tasks;
-    using System.Web.Http.Controllers;
     using Auditing;
-    using Auditing.MessagesView;
-    using Autofac;
-    using Autofac.Core.Activators.Reflection;
-    using Autofac.Features.ResolveAnything;
+    using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
-    using Microsoft.Owin.Hosting;
+    using Metrics;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using Monitoring;
+    using NLog.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using OWIN;
-    using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceControl.Infrastructure.Metrics;
+    using RavenDB;
     using Settings;
     using Transports;
+    using WebApi;
 
     class Bootstrapper
     {
-        // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public IHostBuilder HostBuilder { get; private set; }
+
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
             this.onCriticalError = onCriticalError;
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
-            this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
-            Initialize();
+
+            CreateHost();
         }
 
-        public Startup Startup { get; private set; }
-
-        public Func<HttpClient> HttpClientFactory { get; set; } = () =>
-        {
-            if (httpClient == null)
-            {
-                var handler = new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-                };
-                httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            }
-
-            return httpClient;
-        };
-
-        void Initialize()
+        void CreateHost()
         {
             RecordStartup(loggingSettings, configuration);
 
@@ -72,40 +49,46 @@ namespace ServiceControl.Audit.Infrastructure
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
 
-            transportCustomization = settings.LoadTransportCustomization();
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-
             transportSettings = MapSettings(settings);
+            transportCustomization = settings.LoadTransportCustomization();
 
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+            HostBuilder = new HostBuilder();
+            HostBuilder
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    //HINT: configuration used by NLog comes from LoggingConfigurator.cs
+                    builder.AddNLog();
+                })
+                .ConfigureServices(services =>
+                {
+                    services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
+                    services.AddSingleton(transportSettings);
+                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+                    services.AddSingleton(rawEndpointFactory);
+                    services.AddSingleton(loggingSettings);
+                    services.AddSingleton(settings);
+                    services.AddSingleton<EndpointInstanceMonitoring>();
+                    services.AddSingleton<AuditIngestionComponent>();
+                })
+                .UseMetrics(settings.PrintMetrics)
+                .UseEmbeddedRavenDb(context =>
+                {
+                    var documentStore = new EmbeddableDocumentStore();
 
-            var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
-            containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
+                    RavenBootstrapper.ConfigureAndStart(documentStore, settings);
 
-            var metrics = new Metrics
-            {
-                Enabled = settings.PrintMetrics
-            };
-            reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
-            containerBuilder.RegisterInstance(metrics).ExternallyOwned();
+                    return documentStore;
+                })
+                .UseNServiceBus(context =>
+                {
+                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, false);
 
-            containerBuilder.RegisterInstance(loggingSettings);
-            containerBuilder.RegisterInstance(settings);
-            containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.Register(c => HttpClientFactory);
-            containerBuilder.RegisterModule<ApisModule>();
-            containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
-            containerBuilder.RegisterType<AuditIngestionComponent>().SingleInstance();
+                    return configuration;
+                })
+                .UseWebApi(settings.RootUrl, settings.ExposeApi);
 
-            RegisterInternalWebApiControllers(containerBuilder);
-
-            additionalRegistrationActions?.Invoke(containerBuilder);
-
-            container = containerBuilder.Build();
-            Startup = new Startup(container);
+            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)
@@ -117,53 +100,6 @@ namespace ServiceControl.Audit.Infrastructure
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
             return transportSettings;
-        }
-
-        static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
-        {
-            var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
-
-            foreach (var controllerType in controllerTypes)
-            {
-                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
-            }
-        }
-
-        public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
-        {
-            var logger = LogManager.GetLogger(typeof(Bootstrapper));
-
-            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
-                .ConfigureAwait(false);
-
-            if (!isRunningAcceptanceTests)
-            {
-                var startOptions = new StartOptions(settings.RootUrl);
-
-                WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
-            }
-
-            logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
-            reporter.Start();
-            return bus;
-        }
-
-        public async Task Stop()
-        {
-            if (reporter != null)
-            {
-                await reporter.Stop().ConfigureAwait(false);
-            }
-            notifier.Dispose();
-            if (bus != null)
-            {
-                await bus.Stop().ConfigureAwait(false);
-            }
-
-            documentStore.Dispose();
-            WebApp?.Dispose();
-            container.Dispose();
         }
 
         long DataSize()
@@ -257,32 +193,11 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
             });
         }
 
-        public IDisposable WebApp;
-        readonly Action<ContainerBuilder> additionalRegistrationActions;
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
-        EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
         Action<ICriticalErrorContext> onCriticalError;
-        ShutdownNotifier notifier = new ShutdownNotifier();
         Settings.Settings settings;
-        IContainer container;
-        BusInstance bus;
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
-        static HttpClient httpClient;
-        static ILog metricsLog = LogManager.GetLogger("Metrics");
-        MetricsReporter reporter;
-
-        class AllConstructorFinder : IConstructorFinder
-        {
-            public ConstructorInfo[] FindConstructors(Type targetType)
-            {
-                var result = Cache.GetOrAdd(targetType, t => t.GetTypeInfo().DeclaredConstructors.ToArray());
-
-                return result.Length > 0 ? result : throw new Exception($"No constructor found for type {targetType.FullName}");
-            }
-
-            static readonly ConcurrentDictionary<Type, ConstructorInfo[]> Cache = new ConcurrentDictionary<Type, ConstructorInfo[]>();
-        }
     }
 }

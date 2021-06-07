@@ -9,8 +9,8 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Raw;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceControl.Audit.Infrastructure.RavenDB;
-    using ServiceControl.LicenseManagement;
+    using RavenDB;
+    using LicenseManagement;
     using Settings;
     using Transports;
 
@@ -89,9 +89,19 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterType<MigrateKnownEndpoints>().As<INeedToInstallSomething>();
 
             using (documentStore)
-            using (var container = containerBuilder.Build())
             {
-                await NServiceBusFactory.Create(settings, transportCustomization, transportSettings, loggingSettings, container, ctx => { }, documentStore, configuration, false)
+                RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+
+                var container = containerBuilder.Build();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+                configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
+#pragma warning restore CS0618 // Type or member is obsolete
+
+                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
+                    ctx => { }, configuration, false);
+
+                await Endpoint.Create(configuration)
                     .ConfigureAwait(false);
             }
         }

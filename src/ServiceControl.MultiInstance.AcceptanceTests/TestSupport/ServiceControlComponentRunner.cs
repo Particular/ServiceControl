@@ -15,6 +15,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Audit.Infrastructure.OWIN;
+    using Autofac;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -28,7 +32,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {
             this.customServiceControlSettings = customServiceControlSettings;
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
@@ -38,13 +42,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-
-
         public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public Dictionary<string, dynamic> SettingsPerInstance { get; } = new Dictionary<string, dynamic>();
-        public Dictionary<string, OwinHttpMessageHandler> Handlers { get; } = new Dictionary<string, OwinHttpMessageHandler>();
-        public Dictionary<string, dynamic> Busses { get; } = new Dictionary<string, dynamic>();
 
         public async Task Initialize(RunDescriptor run)
         {
@@ -99,6 +99,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                DisableHealthChecks = true,
+                ExposeApi = false,
                 RemoteInstances = new[]
                 {
                     new RemoteInstanceSetting
@@ -144,7 +146,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var scanner = configuration.AssemblyScanner();
             var excludedAssemblies = new[]
             {
-                Path.GetFileName(typeof(ServiceControl.Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
+                Path.GetFileName(typeof(Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
             scanner.ExcludeAssemblies(excludedAssemblies);
@@ -169,36 +171,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customEndpointConfiguration(configuration);
 
-            Bootstrapper bootstrapper;
-            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder => { });
-                bootstrappers[instanceName] = bootstrapper;
-                bootstrapper.HttpClientFactory = HttpClientFactory;
-            }
-
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app);
-                var appFunc = app.Build();
-
-                var handler = new OwinHttpMessageHandler(appFunc)
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                Handlers[instanceName] = handler;
-                portToHandler[settings.Port] = handler; // port should be unique enough
-                var httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClients[instanceName] = httpClient;
-            }
-
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
@@ -206,9 +178,42 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 await setupBootstrapper.Run(null);
             }
 
+            IHost host;
+            Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
-                Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
+                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                Directory.CreateDirectory(logPath);
+
+                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
+                {
+                    HttpClientFactory = HttpClientFactory
+                };
+
+                host = bootstrapper.HostBuilder.Build();
+                await host.StartAsync().ConfigureAwait(false);
+                hosts[instanceName] = host;
+            }
+
+            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            {
+                var app = new AppBuilder();
+                var lifetimeScope = host.Services.GetRequiredService<ILifetimeScope>();
+                var startup = new ServiceBus.Management.Infrastructure.OWIN.Startup(lifetimeScope, bootstrapper.ApiAssemblies);
+                startup.Configuration(app);
+                var appFunc = app.Build();
+
+                var handler = new OwinHttpMessageHandler(appFunc)
+                {
+                    UseCookies = false,
+                    AllowAutoRedirect = false
+                };
+                handlers[instanceName] = handler;
+                portToHandler[settings.Port] = handler; // port should be unique enough
+                var httpClient = new HttpClient(handler);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                HttpClients[instanceName] = httpClient;
             }
         }
 
@@ -219,7 +224,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
-            var settings = new ServiceControl.Audit.Infrastructure.Settings.Settings(instanceName)
+            var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
@@ -229,6 +234,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                ExposeApi = false,
                 ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,
                 OnMessage = (id, headers, body, @continue) =>
                 {
@@ -261,17 +267,26 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 }
             };
 
+            var excludedAssemblies = new[]
+            {
+                Path.GetFileName(typeof(Settings).Assembly.CodeBase),
+                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
+            };
+
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                    .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
+                await setupBootstrapper.Run(null);
+            }
+
             customServiceControlAuditSettings(settings);
             SettingsPerInstance[instanceName] = settings;
 
             var configuration = new EndpointConfiguration(instanceName);
             configuration.EnableInstallers();
             var scanner = configuration.AssemblyScanner();
-            var excludedAssemblies = new[]
-            {
-                Path.GetFileName(typeof(Settings).Assembly.CodeBase),
-                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
-            };
+
             scanner.ExcludeAssemblies(excludedAssemblies);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
@@ -294,14 +309,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             customAuditEndpointConfiguration(configuration);
 
-            ServiceControl.Audit.Infrastructure.Bootstrapper bootstrapper;
+            IHost host;
             using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new ServiceControl.Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new ServiceControl.Audit.Infrastructure.Bootstrapper(ctx =>
+                var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
+                var bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -312,15 +327,22 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { });
-                bootstrappers[instanceName] = bootstrapper;
-                bootstrapper.HttpClientFactory = HttpClientFactory;
+                }, settings, configuration, loggingSettings);
+
+                host = bootstrapper.HostBuilder.Build();
+
+                await host.StartAsync().ConfigureAwait(false);
+
+                hosts[instanceName] = host;
             }
 
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
                 var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app);
+                var lifetime = host.Services.GetRequiredService<ILifetimeScope>();
+                var startup = new Startup(lifetime);
+
+                startup.Configuration(app);
                 var appFunc = app.Build();
 
                 var handler = new OwinHttpMessageHandler(appFunc)
@@ -328,23 +350,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     UseCookies = false,
                     AllowAutoRedirect = false
                 };
-                Handlers[instanceName] = handler;
+                handlers[instanceName] = handler;
                 portToHandler[settings.Port] = handler; // port should be unique enough
                 var httpClient = new HttpClient(handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClients[instanceName] = httpClient;
-            }
-
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new ServiceControl.Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
-                    .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
-                await setupBootstrapper.Run(null);
-            }
-
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                Busses[instanceName] = await bootstrapper.Start(true).ConfigureAwait(false);
             }
         }
 
@@ -356,18 +366,20 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 var settings = instanceAndSettings.Value;
                 using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
                 {
-                    await bootstrappers[instanceName].Stop().ConfigureAwait(false);
+                    if (hosts.ContainsKey(instanceName))
+                    {
+                        await hosts[instanceName].StopAsync().ConfigureAwait(false);
+                    }
                     HttpClients[instanceName].Dispose();
-                    Handlers[instanceName].Dispose();
+                    handlers[instanceName].Dispose();
                     DeleteFolder(settings.DbPath);
                 }
             }
 
-            bootstrappers.Clear();
-            Busses.Clear();
+            hosts.Clear();
             HttpClients.Clear();
             portToHandler.Clear();
-            Handlers.Clear();
+            handlers.Clear();
         }
 
         static void DeleteFolder(string path)
@@ -419,12 +431,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             return httpClient;
         }
 
-        Dictionary<string, dynamic> bootstrappers = new Dictionary<string, dynamic>();
+        Dictionary<string, IHost> hosts = new Dictionary<string, IHost>();
+
+        Dictionary<string, OwinHttpMessageHandler> handlers = new Dictionary<string, OwinHttpMessageHandler>();
         Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
-        Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
 
         class ForwardingHandler : DelegatingHandler

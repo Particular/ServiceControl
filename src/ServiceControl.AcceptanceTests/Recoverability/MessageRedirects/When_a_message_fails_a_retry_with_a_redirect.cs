@@ -75,13 +75,19 @@
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
-                public Context Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                readonly Context scenarioContext;
+                readonly ReadOnlySettings settings;
+
+                public MessageToRetryHandler(Context scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
-                    Context.FromAddress = Settings.LocalAddress();
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), Settings.EndpointName()).ToString();
+                    scenarioContext.FromAddress = settings.LocalAddress();
+                    scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), settings.EndpointName()).ToString();
                     throw new Exception("Message Failed");
                 }
             }

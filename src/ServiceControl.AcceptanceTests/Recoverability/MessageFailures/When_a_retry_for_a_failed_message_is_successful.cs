@@ -206,18 +206,23 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext scenarioContext;
+                readonly ReadOnlySettings settings;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.Out.WriteLine("Handling message");
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress();
-                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    scenarioContext.LocalAddress = settings.LocalAddress();
+                    scenarioContext.MessageId = context.MessageId.Replace(@"\", "-");
 
-                    if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
+                    if (!scenarioContext.RetryIssued) //simulate that the exception will be resolved with the retry
                     {
                         throw new Exception("Simulated exception");
                     }

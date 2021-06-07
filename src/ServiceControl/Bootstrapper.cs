@@ -2,6 +2,7 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -10,44 +11,47 @@ namespace Particular.ServiceControl
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Reflection;
-    using System.Threading.Tasks;
-    using System.Web.Http.Controllers;
     using Autofac;
     using Autofac.Core.Activators.Reflection;
-    using Autofac.Features.ResolveAnything;
+    using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
-    using global::ServiceControl.CompositeViews.Messages;
-    using global::ServiceControl.Infrastructure;
+    using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
+    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
+    using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
-    using Microsoft.Owin.Hosting;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using NLog.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
-    using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings, Action<ContainerBuilder> additionalRegistrationActions = null)
+        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
-            this.additionalRegistrationActions = additionalRegistrationActions;
             this.settings = settings;
-            Initialize();
-        }
 
-        public Startup Startup { get; private set; }
+            ApiAssemblies = new List<Assembly>
+            {
+                Assembly.GetExecutingAssembly()
+            };
+
+            CreateHost();
+        }
 
         public Func<HttpClient> HttpClientFactory { get; set; } = () =>
         {
@@ -64,7 +68,10 @@ namespace Particular.ServiceControl
             return httpClient;
         };
 
-        void Initialize()
+        public IHostBuilder HostBuilder { get; private set; }
+        public List<Assembly> ApiAssemblies { get; }
+
+        void CreateHost()
         {
             RecordStartup(loggingSettings, configuration);
 
@@ -77,95 +84,54 @@ namespace Particular.ServiceControl
             ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
 
             transportCustomization = settings.LoadTransportCustomization();
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-
-            var domainEvents = new DomainEvents();
-            containerBuilder.RegisterInstance(domainEvents).As<IDomainEvents>();
-
             transportSettings = MapSettings(settings);
 
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
+            HostBuilder = new HostBuilder();
+            HostBuilder
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    //HINT: configuration used by NLog comes from LoggingConfigurator.cs
+                    builder.AddNLog();
+                })
+                .ConfigureServices(services =>
+                {
+                    services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
+                    services.AddSingleton<IDomainEvents, DomainEvents>();
+                    services.AddSingleton(transportSettings);
+                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+                    services.AddSingleton(rawEndpointFactory);
+                    services.AddSingleton<MessageStreamerConnection>();
+                    services.AddSingleton(loggingSettings);
+                    services.AddSingleton(settings);
+                    services.AddSingleton(sp => HttpClientFactory);
+                    services.AddSingleton<EndpointInstanceMonitoring>();
+                    services.AddSingleton<ErrorIngestionComponent>();
+                })
+                .UseMetrics(settings.PrintMetrics)
+                .UseEmbeddedRavenDb(context =>
+                {
+                    var documentStore = new EmbeddableDocumentStore();
 
-            var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
-            containerBuilder.RegisterInstance(rawEndpointFactory).AsSelf();
+                    RavenBootstrapper.ConfigureAndStart(documentStore, settings);
 
-            var metrics = new Metrics
+                    return documentStore;
+                }, settings.StoreInitializer)
+                .UseNServiceBus(context =>
+                {
+                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
+
+                    return configuration;
+                })
+                .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
+                .UseAsyncTimer()
+                ;
+
+            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
             {
-                Enabled = settings.PrintMetrics
-            };
-            reporter = new MetricsReporter(metrics, x => metricsLog.Info(x), TimeSpan.FromSeconds(5));
-            containerBuilder.RegisterInstance(metrics).ExternallyOwned();
-
-            containerBuilder.RegisterType<MessageStreamerConnection>().SingleInstance();
-            containerBuilder.RegisterInstance(loggingSettings);
-            containerBuilder.RegisterInstance(settings);
-            containerBuilder.RegisterInstance(notifier).ExternallyOwned();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.Register(c => HttpClientFactory);
-            containerBuilder.RegisterModule<ApisModule>();
-            containerBuilder.Register(c => bus.Bus);
-
-            containerBuilder.RegisterType<EndpointInstanceMonitoring>().SingleInstance();
-            containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
-            containerBuilder.RegisterType<ErrorIngestionComponent>().SingleInstance();
-
-            RegisterInternalWebApiControllers(containerBuilder);
-
-            additionalRegistrationActions?.Invoke(containerBuilder);
-
-            container = containerBuilder.Build();
-            Startup = new Startup(container);
-
-            domainEvents.SetContainer(container);
-        }
-
-        static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
-        {
-            var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
-
-            foreach (var controllerType in controllerTypes)
-            {
-                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
-            }
-        }
-
-        public async Task<BusInstance> Start(bool isRunningAcceptanceTests = false)
-        {
-            var logger = LogManager.GetLogger(typeof(Bootstrapper));
-
-            bus = await NServiceBusFactory.CreateAndStart(settings, transportCustomization, transportSettings, loggingSettings, container, documentStore, configuration, isRunningAcceptanceTests)
-                .ConfigureAwait(false);
-
-            if (!isRunningAcceptanceTests)
-            {
-                var startOptions = new StartOptions(settings.RootUrl);
-
-                WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
-            }
-
-            logger.InfoFormat("Api is now accepting requests on {0}", settings.ApiUrl);
-            reporter.Start();
-            return bus;
-        }
-
-        public async Task Stop()
-        {
-            if (reporter != null)
-            {
-                await reporter.Stop().ConfigureAwait(false);
-            }
-            notifier.Dispose();
-            if (bus != null)
-            {
-                await bus.Stop().ConfigureAwait(false);
-            }
-
-            documentStore.Dispose();
-            WebApp?.Dispose();
-            container.Dispose();
+                // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
+                containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
+            }));
         }
 
         TransportSettings MapSettings(Settings settings)
@@ -277,20 +243,12 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
             });
         }
 
-        public IDisposable WebApp;
-        readonly Action<ContainerBuilder> additionalRegistrationActions;
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
-        EmbeddableDocumentStore documentStore = new EmbeddableDocumentStore();
-        ShutdownNotifier notifier = new ShutdownNotifier();
         Settings settings;
-        IContainer container;
-        BusInstance bus;
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
         static HttpClient httpClient;
-        MetricsReporter reporter;
-        static ILog metricsLog = LogManager.GetLogger("Metrics");
 
         class AllConstructorFinder : IConstructorFinder
         {

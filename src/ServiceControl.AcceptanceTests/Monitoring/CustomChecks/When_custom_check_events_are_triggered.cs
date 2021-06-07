@@ -5,7 +5,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Contracts.CustomChecks;
     using EventLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;

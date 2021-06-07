@@ -14,7 +14,7 @@
             EnableByDefault();
         }
 
-        protected override void Setup(FeatureConfigurationContext context) => context.RegisterStartupTask(b => b.Build<DeprecatedConfigurationCheck>());
+        protected override void Setup(FeatureConfigurationContext context) => context.RegisterStartupTask(b => new DeprecatedConfigurationCheck());
 
         class DeprecatedConfigurationCheck : FeatureStartupTask
         {

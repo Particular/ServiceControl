@@ -15,7 +15,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Web.Http;
     using AcceptanceTesting;
     using Autofac;
+    using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -25,7 +28,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using Recoverability.MessageFailures;
-    using ServiceBus.Management.Infrastructure;
+    using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
@@ -40,12 +43,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public Settings Settings { get; set; }
         public OwinHttpMessageHandler Handler { get; set; }
-        public BusInstance Bus { get; set; }
-
-
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.Port.ToString();
+        public IDomainEvents DomainEvents { get; set; }
 
         public Task Initialize(RunDescriptor run)
         {
@@ -90,6 +91,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                DisableHealthChecks = true,
+                ExposeApi = true,
                 OnMessage = (id, headers, body, @continue) =>
                 {
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();
@@ -147,40 +150,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings, builder =>
-                {
-                    builder.RegisterAssemblyTypes(typeof(FailedErrorsController).Assembly)
-                        .AssignableTo<ApiController>()
-                        .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
-                        .AsSelf();
-                })
-                {
-                    HttpClientFactory = HttpClientFactory
-                };
-            }
-
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app, typeof(FailedErrorsController).Assembly);
-                var appFunc = app.Build();
-
-                Handler = new OwinHttpMessageHandler(appFunc)
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                var httpClient = new HttpClient(Handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
-            }
-
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
@@ -189,7 +158,45 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
-                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
+                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                Directory.CreateDirectory(logPath);
+
+                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
+                {
+                    HttpClientFactory = HttpClientFactory
+                };
+
+                bootstrapper.HostBuilder.ConfigureContainer<ContainerBuilder>(builder =>
+                {
+                    builder.RegisterAssemblyTypes(typeof(FailedErrorsController).Assembly)
+                        .AssignableTo<ApiController>()
+                        .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
+                        .AsSelf();
+                });
+
+                host = bootstrapper.HostBuilder.Build();
+                await host.StartAsync().ConfigureAwait(false);
+                DomainEvents = host.Services.GetService<IDomainEvents>();
+            }
+
+            using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
+            {
+                var lifetimeScope = host.Services.GetRequiredService<ILifetimeScope>();
+                var app = new AppBuilder();
+                var startup = new Startup(lifetimeScope, bootstrapper.ApiAssemblies);
+                startup.Configuration(app, typeof(FailedErrorsController).Assembly);
+                var appFunc = app.Build();
+
+                Handler = new OwinHttpMessageHandler(appFunc)
+                {
+                    UseCookies = false,
+                    AllowAutoRedirect = false
+                };
+
+                var httpClient = new HttpClient(Handler);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                HttpClient = httpClient;
             }
         }
 
@@ -197,14 +204,13 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await bootstrapper.Stop().ConfigureAwait(false);
+                await host.StopAsync().ConfigureAwait(false);
                 HttpClient.Dispose();
                 Handler.Dispose();
                 DeleteFolder(Settings.DbPath);
             }
 
             bootstrapper = null;
-            Bus = null;
             HttpClient = null;
             Handler = null;
         }
@@ -258,6 +264,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             return httpClient;
         }
 
+        IHost host;
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
         Action<Settings> setSettings;

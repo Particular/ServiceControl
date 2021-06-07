@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using Setting = ServiceControl.Monitoring.Settings;
+    using Setting = Monitoring.Settings;
 
     public class EndpointInstanceActivityTracker
     {

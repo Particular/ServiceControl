@@ -58,21 +58,27 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public Context Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                {
+                    this.scenarioContext = scenarioContext;
+                    this.settings = settings;
+                }
+
+                readonly Context scenarioContext;
+                readonly ReadOnlySettings settings;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
-                    if (Context.Step == 0)
+                    if (scenarioContext.Step == 0)
                     {
-                        Context.FromAddress = Settings.LocalAddress();
-                        Context.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, Settings.EndpointName()).ToString();
+                        scenarioContext.FromAddress = settings.LocalAddress();
+                        scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
 
-                    Context.RetryCount++;
-                    Context.Retried = true;
+                    scenarioContext.RetryCount++;
+                    scenarioContext.Retried = true;
                     return Task.FromResult(0);
                 }
             }

@@ -72,7 +72,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
         class FaultyPublisher : IEventPublisher
         {
-            public MyContext Context { get; set; }
+            public FaultyPublisher(MyContext context)
+            {
+                this.context = context;
+            }
+
+            readonly MyContext context;
 
             public bool Handles(IDomainEvent @event)
             {
@@ -89,7 +94,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 if (!failed)
                 {
                     failed = true;
-                    Context.Failed = true;
+                    context.Failed = true;
                     throw new Exception("Simulated exception");
                 }
 

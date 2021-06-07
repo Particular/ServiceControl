@@ -58,6 +58,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
         public bool DisableExternalIntegrationsPublishing { get; set; }
+        public bool DisableHealthChecks { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public string EmailDropFolder { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
@@ -67,6 +68,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public System.TimeSpan EventsRetentionPeriod { get; }
         public int ExpirationProcessBatchSize { get; }
         public int ExpirationProcessTimerInSeconds { get; }
+        public bool ExposeApi { get; set; }
         public bool ExposeRavenDB { get; }
         public int ExternalIntegrationsDispatchingBatchSize { get; }
         public bool ForwardErrorMessages { get; set; }
@@ -570,6 +572,29 @@ namespace ServiceControl.HeartbeatMonitoring
         Dead = 1,
     }
 }
+namespace ServiceControl.Infrastructure.BackgroundTasks
+{
+    public class AsyncTimer : ServiceControl.Infrastructure.BackgroundTasks.IAsyncTimer
+    {
+        public AsyncTimer() { }
+        public ServiceControl.Infrastructure.BackgroundTasks.TimerJob Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
+    }
+    public interface IAsyncTimer
+    {
+        ServiceControl.Infrastructure.BackgroundTasks.TimerJob Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback);
+    }
+    public class TimerJob
+    {
+        public TimerJob(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
+        public System.Threading.Tasks.Task Stop() { }
+    }
+    public enum TimerJobExecutionResult
+    {
+        ScheduleNextExecution = 0,
+        ExecuteImmediately = 1,
+        DoNotContinueExecuting = 2,
+    }
+}
 namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     [System.ComponentModel.Composition.ExportMetadata("Bundle", "customDocumentExpiration")]
@@ -673,6 +698,11 @@ namespace ServiceControl.MessageAuditing
 }
 namespace ServiceControl.MessageFailures.Api
 {
+    public class ApisModule : Autofac.Module
+    {
+        public ApisModule(System.Reflection.Assembly assembly = null) { }
+        protected override void Load(Autofac.ContainerBuilder builder) { }
+    }
     public class ArchiveMessagesController : System.Web.Http.ApiController
     {
         public ArchiveMessagesController(NServiceBus.IMessageSession session, Raven.Client.IDocumentStore store) { }

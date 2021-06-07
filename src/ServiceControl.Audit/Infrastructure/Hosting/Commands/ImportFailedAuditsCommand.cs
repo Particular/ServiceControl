@@ -3,6 +3,8 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Auditing;
+    using Microsoft.Extensions.DependencyInjection;
     using NLog;
     using NServiceBus;
     using Settings;
@@ -24,8 +26,11 @@
             {
                 var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
                 var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
-                var busInstance = await bootstrapper.Start().ConfigureAwait(false);
-                var importer = busInstance.AuditIngestion;
+                var host = bootstrapper.HostBuilder.Build();
+
+                await host.StartAsync(tokenSource.Token).ConfigureAwait(false);
+
+                var importer = host.Services.GetRequiredService<AuditIngestionComponent>();
 
                 Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
@@ -39,7 +44,7 @@
                 }
                 finally
                 {
-                    await bootstrapper.Stop().ConfigureAwait(false);
+                    await host.StopAsync(CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }

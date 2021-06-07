@@ -3,21 +3,17 @@ namespace ServiceControl.Audit.Infrastructure
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using Auditing;
-    using Autofac;
     using Contracts.EndpointControl;
     using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using Raven.Client.Embedded;
-    using RavenDB;
     using Settings;
     using Transports;
 
     static class NServiceBusFactory
     {
-        public static Task<IStartableEndpoint> Create(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -29,9 +25,6 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.Pipeline.Register(typeof(FullTypeNameOnlyBehavior), "Remove asm qualified name from the message type header");
 
-            // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            // wrapping it in a non-disposable type to make sure settings clear doesn't dispose
-            configuration.GetSettings().Set(new EmbeddableDocumentStoreHolder(documentStore));
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
             configuration.SendOnly();
@@ -59,10 +52,6 @@ namespace ServiceControl.Audit.Infrastructure
                 configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
             }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-#pragma warning restore CS0618 // Type or member is obsolete
-
             configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {
                 onCriticalError(criticalErrorContext);
@@ -73,26 +62,6 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 configuration.EnableInstallers();
             }
-
-            return Endpoint.Create(configuration);
-        }
-
-        public static async Task<BusInstance> CreateAndStart(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, IContainer container, Action<ICriticalErrorContext> onCriticalError, EmbeddableDocumentStore documentStore, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
-        {
-            var startableEndpoint = await Create(settings, transportCustomization, transportSettings, loggingSettings, container, onCriticalError, documentStore, configuration, isRunningAcceptanceTests)
-                .ConfigureAwait(false);
-
-            var endpointInstance = await startableEndpoint.Start().ConfigureAwait(false);
-
-            var builder = new ContainerBuilder();
-
-            builder.RegisterInstance(endpointInstance).As<IMessageSession>();
-
-            builder.Update(container.ComponentRegistry);
-
-            var auditIngestion = container.Resolve<AuditIngestionComponent>();
-
-            return new BusInstance(endpointInstance, auditIngestion);
         }
 
         static bool IsExternalContract(Type t)

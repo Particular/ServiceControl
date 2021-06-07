@@ -1,40 +1,79 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using System.Web.Http.Controllers;
+    using Audit.Infrastructure.WebApi;
     using Autofac;
-    using Autofac.Core.Activators.Reflection;
-    using Autofac.Features.ResolveAnything;
+    using Autofac.Extensions.DependencyInjection;
     using Infrastructure;
     using Licensing;
     using Messaging;
-    using Microsoft.Owin.Hosting;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using NLog.Extensions.Logging;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Pipeline;
     using QueueLength;
-    using ServiceBus.Management.Infrastructure.OWIN;
+    using Timings;
     using Transports;
-    using Module = Autofac.Module;
 
     public class Bootstrapper
     {
         // Windows Service
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration configuration)
+        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration endpointConfiguration)
         {
             this.onCriticalError = onCriticalError;
             this.settings = settings;
-            this.configuration = configuration;
+            this.endpointConfiguration = endpointConfiguration;
 
-            Initialize(configuration);
+            CreateHost();
         }
 
-        internal Startup Startup { get; set; }
+        public IHostBuilder HostBuilder { get; private set; }
+
+        void CreateHost()
+        {
+            var transportCustomization = settings.LoadTransportCustomization();
+            var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
+
+            HostBuilder = new HostBuilder();
+            HostBuilder
+                .ConfigureLogging(builder =>
+                {
+                    builder.ClearProviders();
+                    //HINT: configuration used by NLog comes from MonitorLog.cs
+                    builder.AddNLog();
+                })
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton(settings);
+                    services.AddSingleton<LicenseCheckFeatureStartup>();
+                    services.AddSingleton<EndpointRegistry>();
+                    services.AddSingleton<MessageTypeRegistry>();
+                    services.AddSingleton<EndpointInstanceActivityTracker>();
+                    services.AddSingleton(sp => buildQueueLengthProvider(sp.GetRequiredService<QueueLengthStore>()));
+                })
+                .UseNServiceBus(builder =>
+                {
+                    Initialize(endpointConfiguration);
+
+                    return endpointConfiguration;
+                })
+                .UseWebApi(settings.RootUrl, settings.ExposeApi);
+
+            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
+                {
+                    // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
+                    containerBuilder.RegisterType<RetriesStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
+                    containerBuilder.RegisterType<CriticalTimeStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
+                    containerBuilder.RegisterType<ProcessingTimeStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
+                    containerBuilder.RegisterType<QueueLengthStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
+                }));
+        }
 
         void Initialize(EndpointConfiguration config)
         {
@@ -44,10 +83,6 @@
             {
                 config.License(settings.LicenseFileText);
             }
-
-            var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
-
-            var containerBuilder = CreateContainer(settings, buildQueueLengthProvider);
 
             var transportSettings = new TransportSettings
             {
@@ -84,32 +119,6 @@
             config.EnableFeature<QueueLength.QueueLength>();
 
             config.EnableFeature<LicenseCheckFeature>();
-
-            containerBuilder.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type => type.Assembly == typeof(Bootstrapper).Assembly && type.GetInterfaces().Any() == false));
-            containerBuilder.RegisterInstance(settings);
-
-            RegisterInternalWebApiControllers(containerBuilder);
-
-            container = containerBuilder.Build();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            config.UseContainer<AutofacBuilder>(
-#pragma warning restore CS0618 // Type or member is obsolete
-                c => c.ExistingLifetimeScope(container)
-            );
-
-            Startup = new Startup(container);
-        }
-
-        static void RegisterInternalWebApiControllers(ContainerBuilder containerBuilder)
-        {
-            var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
-
-            foreach (var controllerType in controllerTypes)
-            {
-                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder());
-            }
         }
 
         static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
@@ -140,62 +149,10 @@
             };
         }
 
-        static ContainerBuilder CreateContainer(Settings settings, Func<QueueLengthStore, IProvideQueueLength> buildQueueLengthProvider)
-        {
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterModule<ApplicationModule>();
-            containerBuilder.RegisterInstance(settings).As<Settings>().SingleInstance();
-            containerBuilder.Register(c => buildQueueLengthProvider(c.Resolve<QueueLengthStore>())).As<IProvideQueueLength>().SingleInstance();
-
-            return containerBuilder;
-        }
-
-        public async Task<BusInstance> Start()
-        {
-            bus = await Endpoint.Start(configuration);
-
-            StartWebApi();
-
-            return new BusInstance(bus);
-        }
-
-        void StartWebApi()
-        {
-            var startOptions = new StartOptions(settings.RootUrl);
-
-            WebApp = Microsoft.Owin.Hosting.WebApp.Start(startOptions, b => Startup.Configuration(b));
-        }
-
-        public async Task Stop()
-        {
-            if (bus != null)
-            {
-                await bus.Stop().ConfigureAwait(false);
-            }
-
-            WebApp?.Dispose();
-            container.Dispose();
-        }
-
-        public IDisposable WebApp;
         Action<ICriticalErrorContext> onCriticalError;
         Settings settings;
-        EndpointConfiguration configuration;
-        IContainer container;
-        IEndpointInstance bus;
-    }
 
-    class AllConstructorFinder : IConstructorFinder
-    {
-        public ConstructorInfo[] FindConstructors(Type targetType)
-        {
-            var result = Cache.GetOrAdd(targetType, t => t.GetTypeInfo().DeclaredConstructors.ToArray());
-
-            return result.Length > 0 ? result : throw new Exception($"No constructor found for type {targetType.FullName}");
-        }
-
-        static readonly ConcurrentDictionary<Type, ConstructorInfo[]> Cache = new ConcurrentDictionary<Type, ConstructorInfo[]>();
+        readonly EndpointConfiguration endpointConfiguration;
     }
 
     class MessagePoolReleasingBehavior : Behavior<IIncomingLogicalMessageContext>
@@ -221,48 +178,6 @@
         static void ReleaseMessage<T>(object instance) where T : RawMessage, new()
         {
             RawMessage.Pool<T>.Default.Release((T)instance);
-        }
-    }
-
-    class ApplicationModule : Module
-    {
-        protected override void Load(ContainerBuilder builder)
-        {
-            base.Load(builder);
-            builder.RegisterAssemblyTypes(ThisAssembly)
-                .Where(Include)
-                .AsSelf()
-                .AsImplementedInterfaces()
-                .SingleInstance();
-        }
-
-        static bool Include(Type type)
-        {
-            if (IsMessageType(type))
-            {
-                return false;
-            }
-
-            if (IsMessageHandler(type))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        static bool IsMessageType(Type type)
-        {
-            return typeof(IMessage).IsAssignableFrom(type);
-        }
-
-
-        static bool IsMessageHandler(Type type)
-        {
-            return type.GetInterfaces()
-                .Where(@interface => @interface.IsGenericType)
-                .Select(@interface => @interface.GetGenericTypeDefinition())
-                .Any(genericTypeDef => genericTypeDef == typeof(IHandleMessages<>));
         }
     }
 }

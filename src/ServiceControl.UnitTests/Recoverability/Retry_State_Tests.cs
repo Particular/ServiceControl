@@ -7,12 +7,13 @@
     using System.Threading.Tasks;
     using Contracts.Operations;
     using MessageFailures;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Operations;
     using Raven.Client;
-    using ServiceControl.Infrastructure;
+    using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
     using ServiceControl.Recoverability;
@@ -50,12 +51,9 @@
 
                 documentStore.WaitForIndexing();
 
-                var documentManager = new CustomRetryDocumentManager(false, documentStore)
-                {
-                    OperationManager = retryManager
-                };
+                var documentManager = new CustomRetryDocumentManager(false, documentStore, retryManager);
 
-                var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, documentStore);
+                var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, documentStore, new AsyncTimer());
                 await orphanage.AdoptOrphanedBatchesAsync();
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -77,10 +75,7 @@
 
                 var sender = new TestSender();
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
+                var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
 
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
@@ -95,10 +90,8 @@
                     // Simulate SC restart
                     retryManager = new RetryingManager(domainEvents);
 
-                    var documentManager = new CustomRetryDocumentManager(false, documentStore)
-                    {
-                        OperationManager = retryManager
-                    };
+                    var documentManager = new CustomRetryDocumentManager(false, documentStore, retryManager);
+
                     await documentManager.RebuildRetryOperationState(session);
 
                     processor = new RetryProcessor(documentStore, sender, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
@@ -124,10 +117,7 @@
 
                 var sender = new TestSender();
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
+                var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
 
                 var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
@@ -168,10 +158,7 @@
                     }
                 };
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
+                var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
 
                 var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(documentStore, sender, domainEvents, returnToSender, retryManager);
@@ -214,10 +201,7 @@
             {
                 await CreateAFailedMessageAndMarkAsPartOfRetryBatch(documentStore, retryManager, "Test-group", true, 1001);
 
-                var bodyStorage = new RavenAttachmentsBodyStorage
-                {
-                    DocumentStore = documentStore
-                };
+                var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
 
                 var returnToSender = new ReturnToSender(bodyStorage, documentStore);
 
@@ -289,12 +273,8 @@
 
             documentStore.WaitForIndexing();
 
-            var documentManager = new CustomRetryDocumentManager(progressToStaged, documentStore);
-            var gateway = new RetriesGateway(documentStore, documentManager);
-
-            documentManager.OperationManager = retryManager;
-
-            gateway.OperationManager = retryManager;
+            var documentManager = new CustomRetryDocumentManager(progressToStaged, documentStore, retryManager);
+            var gateway = new RetriesGateway(documentStore, documentManager, retryManager);
 
             gateway.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>("Test-group", RetryType.FailureGroup, DateTime.UtcNow, x => x.FailureGroupId == "Test-group", "Test-Context");
 
@@ -304,10 +284,19 @@
         }
     }
 
+    class FakeApplicationLifetime : IHostApplicationLifetime
+    {
+        public void StopApplication() => throw new NotImplementedException();
+
+        public CancellationToken ApplicationStarted { get; } = new CancellationToken();
+        public CancellationToken ApplicationStopping { get; } = new CancellationToken();
+        public CancellationToken ApplicationStopped { get; } = new CancellationToken();
+    }
+
     class CustomRetryDocumentManager : RetryDocumentManager
     {
-        public CustomRetryDocumentManager(bool progressToStaged, IDocumentStore documentStore)
-            : base(new ShutdownNotifier(), documentStore)
+        public CustomRetryDocumentManager(bool progressToStaged, IDocumentStore documentStore, RetryingManager retryManager)
+            : base(new FakeApplicationLifetime(), documentStore, retryManager)
         {
             RetrySessionId = Guid.NewGuid().ToString();
             this.progressToStaged = progressToStaged;

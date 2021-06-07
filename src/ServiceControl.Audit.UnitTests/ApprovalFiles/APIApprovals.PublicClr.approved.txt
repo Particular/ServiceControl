@@ -178,6 +178,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public bool EnableFullTextSearchOnBodies { get; set; }
         public int ExpirationProcessBatchSize { get; }
         public int ExpirationProcessTimerInSeconds { get; }
+        public bool ExposeApi { get; set; }
         public bool ExposeRavenDB { get; }
         public bool ForwardAuditMessages { get; set; }
         public string Hostname { get; }

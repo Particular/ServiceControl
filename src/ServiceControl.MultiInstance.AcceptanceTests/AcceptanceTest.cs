@@ -35,8 +35,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
         public Dictionary<string, dynamic> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
-        public Dictionary<string, OwinHttpMessageHandler> Handlers => serviceControlRunnerBehavior.Handlers;
-        public Dictionary<string, dynamic> Busses => serviceControlRunnerBehavior.Busses;
 
         [OneTimeSetUp]
         public void OneTimeSetup()

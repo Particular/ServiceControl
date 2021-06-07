@@ -3,7 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
+    using Infrastructure.BackgroundTasks;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
@@ -38,16 +38,17 @@
 
         class BulkRetryBatchCreation : FeatureStartupTask
         {
-            public BulkRetryBatchCreation(RetriesGateway retries)
+            public BulkRetryBatchCreation(RetriesGateway retries, IAsyncTimer scheduler)
             {
                 this.retries = retries;
+                this.scheduler = scheduler;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
                 if (retries != null)
                 {
-                    timer = new AsyncTimer(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e => { log.Error("Unhandled exception while processing bulk retry operations", e); });
+                    timer = scheduler.Schedule(_ => ProcessRequestedBulkRetryOperations(), interval, interval, e => { log.Error("Unhandled exception while processing bulk retry operations", e); });
                 }
 
                 return Task.FromResult(0);
@@ -65,7 +66,8 @@
             }
 
             RetriesGateway retries;
-            AsyncTimer timer;
+            IAsyncTimer scheduler;
+            TimerJob timer;
             static TimeSpan interval = TimeSpan.FromSeconds(5);
         }
 
@@ -96,10 +98,11 @@
 
         internal class AdoptOrphanBatchesFromPreviousSession : FeatureStartupTask
         {
-            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, IDocumentStore store)
+            public AdoptOrphanBatchesFromPreviousSession(RetryDocumentManager retryDocumentManager, IDocumentStore store, IAsyncTimer scheduler)
             {
                 this.retryDocumentManager = retryDocumentManager;
                 this.store = store;
+                this.scheduler = scheduler;
                 startTime = DateTime.UtcNow;
             }
 
@@ -116,7 +119,7 @@
 
             protected override Task OnStart(IMessageSession session)
             {
-                timer = new AsyncTimer(async _ =>
+                timer = scheduler.Schedule(async _ =>
                 {
                     var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
                     return hasMoreWork ? TimerJobExecutionResult.ScheduleNextExecution : TimerJobExecutionResult.DoNotContinueExecuting;
@@ -129,24 +132,26 @@
                 return timer.Stop();
             }
 
-            AsyncTimer timer;
+            TimerJob timer;
             DateTime startTime;
             IDocumentStore store;
+            readonly IAsyncTimer scheduler;
             RetryDocumentManager retryDocumentManager;
         }
 
         class ProcessRetryBatches : FeatureStartupTask
         {
-            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, Settings settings)
+            public ProcessRetryBatches(IDocumentStore store, RetryProcessor processor, Settings settings, IAsyncTimer scheduler)
             {
                 this.processor = processor;
                 this.store = store;
                 this.settings = settings;
+                this.scheduler = scheduler;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
-                timer = new AsyncTimer(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
+                timer = scheduler.Schedule(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
                 return Task.FromResult(0);
             }
 
@@ -166,7 +171,8 @@
             }
 
             readonly Settings settings;
-            AsyncTimer timer;
+            readonly IAsyncTimer scheduler;
+            TimerJob timer;
 
             IDocumentStore store;
             RetryProcessor processor;

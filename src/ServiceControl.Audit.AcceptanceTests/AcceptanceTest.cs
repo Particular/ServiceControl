@@ -8,7 +8,6 @@ namespace ServiceControl.Audit.AcceptanceTests
     using System.Net;
     using System.Net.Http;
     using AcceptanceTesting;
-    using Infrastructure;
     using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -29,13 +28,9 @@ namespace ServiceControl.Audit.AcceptanceTests
             ServicePointManager.SetTcpKeepAlive(true, 5000, 1000); // This is good for Azure because it reuses connections
         }
 
-
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
         public string Port => serviceControlRunnerBehavior.Port;
-        public Settings Settings => serviceControlRunnerBehavior.Settings;
-        public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
-        public BusInstance Bus => serviceControlRunnerBehavior.Bus;
 
         [OneTimeSetUp]
         public void OneTimeSetup()

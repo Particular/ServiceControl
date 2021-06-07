@@ -24,12 +24,19 @@
             tokenSource = new CancellationTokenSource();
             task = Task.Run(async () =>
             {
-                while (!tokenSource.IsCancellationRequested)
+                try
                 {
-                    Print();
-                    await Task.Delay(interval).ConfigureAwait(false);
+                    while (!tokenSource.IsCancellationRequested)
+                    {
+                        Print();
+                        await Task.Delay(interval, tokenSource.Token).ConfigureAwait(false);
+                    }
                 }
-            }, tokenSource.Token);
+                catch (OperationCanceledException)
+                {
+                    //no-op
+                }
+            }, CancellationToken.None);
         }
 
         void Print()

@@ -1,68 +1,40 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
-    using System;
-    using System.ServiceProcess;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Hosting;
+    using NServiceBus;
+    using Settings;
 
     class RunCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args)
+        public override Task Execute(HostArguments args)
         {
-            if (args.RunAsWindowsService)
+            var runAsWindowsService = args.RunAsWindowsService;
+            var busConfiguration = new EndpointConfiguration(args.ServiceName);
+            var assemblyScanner = busConfiguration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+
+            var loggingSettings = new LoggingSettings(args.ServiceName);
+
+            var settings = new Settings(args.ServiceName)
             {
-                using (var service = new Host { ServiceName = args.ServiceName })
-                {
-                    //HINT: this calls-back to Windows Service Control Manager (SCM) and hangs
-                    //      until service reports it has stopped.
-                    //      SCM takes over and calls OnStart and OnStop on the service instance. 
-                    ServiceBase.Run(service);
-                }
+                RunCleanupBundle = true
+            };
+
+            var host = new Bootstrapper(
+                ctx => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
+                settings, busConfiguration, loggingSettings).HostBuilder;
+
+            if (runAsWindowsService)
+            {
+                host.UseWindowsService();
             }
             else
             {
-                await RunAsConsoleApp(args).ConfigureAwait(false);
-            }
-        }
-
-        static async Task RunAsConsoleApp(HostArguments args)
-        {
-            using (var service = new Host { ServiceName = args.ServiceName })
-            {
-                var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                service.OnStopping = () =>
-                {
-                    service.OnStopping = () => { };
-                    completionSource.TrySetResult(true);
-                };
-
-                service.Start();
-
-                var r = new CancelWrapper(completionSource, service);
-                Console.CancelKeyPress += r.ConsoleOnCancelKeyPress;
-
-                Console.WriteLine("Press Ctrl+C to exit");
-                await completionSource.Task.ConfigureAwait(false);
-            }
-        }
-
-        class CancelWrapper
-        {
-            public CancelWrapper(TaskCompletionSource<bool> syncEvent, Host host)
-            {
-                this.syncEvent = syncEvent;
-                this.host = host;
+                host.UseConsoleLifetime();
             }
 
-            public void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
-            {
-                host.OnStopping = () => { };
-                e.Cancel = true;
-                syncEvent.TrySetResult(true);
-                Console.CancelKeyPress -= ConsoleOnCancelKeyPress;
-            }
-
-            readonly TaskCompletionSource<bool> syncEvent;
-            readonly Host host;
+            return host.Build().RunAsync();
         }
     }
 }

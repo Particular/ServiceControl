@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using NServiceBus.Testing;
     using NUnit.Framework;
-    using Operations;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Recoverability;
 
@@ -45,7 +44,7 @@
                         .ConfigureAwait(false);
                 }
 
-                var domainEvents = new DomainEvents();
+                var domainEvents = new FakeDomainEvents();
                 var handler = new UnarchiveAllInGroupHandler(documentStore,
                     new FakeDomainEvents(),
                     new UnarchiveDocumentManager(),
@@ -105,7 +104,7 @@
                         .ConfigureAwait(false);
                 }
 
-                var domainEvents = new DomainEvents();
+                var domainEvents = new FakeDomainEvents();
                 var handler = new UnarchiveAllInGroupHandler(documentStore,
                     new FakeDomainEvents(),
                     new UnarchiveDocumentManager(),
@@ -123,6 +122,11 @@
                     await handler.Handle(message, context).ConfigureAwait(false);
                 });
             }
+        }
+
+        class FakeDomainEvents : IDomainEvents
+        {
+            public Task Raise<T>(T domainEvent) where T : IDomainEvent => Task.CompletedTask;
         }
     }
 }

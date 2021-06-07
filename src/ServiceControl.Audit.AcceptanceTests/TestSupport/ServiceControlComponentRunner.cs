@@ -16,8 +16,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Auditing;
     using Autofac;
     using Infrastructure;
+    using Infrastructure.OWIN;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -36,14 +39,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-
-
-        public HttpClient HttpClient { get; set; }
+        public HttpClient HttpClient { get; private set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
-        public string Port => Settings.Port.ToString();
-        public Settings Settings { get; set; }
-        public OwinHttpMessageHandler Handler { get; set; }
-        public BusInstance Bus { get; set; }
+        public string Port => settings.Port.ToString();
 
         public Task Initialize(RunDescriptor run)
         {
@@ -75,7 +73,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
 
-            var settings = new Settings(instanceName)
+            settings = new Settings(instanceName)
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
@@ -85,6 +83,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
+                ExposeApi = false,
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
                 OnMessage = (id, headers, body, @continue) =>
                 {
@@ -117,8 +116,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 }
             };
 
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                await setupBootstrapper.Run(null);
+            }
+
             setSettings(settings);
-            Settings = settings;
+
             var configuration = new EndpointConfiguration(instanceName);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
@@ -144,7 +149,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
+            using (new DiagnosticTimer($"Starting host for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
@@ -161,37 +166,32 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings, builder => { builder.RegisterType<FailedAuditsController>().FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()); })
-                {
-                    HttpClientFactory = HttpClientFactory
-                };
+                }, settings, configuration, loggingSettings);
+
+                bootstrapper.HostBuilder
+                    .ConfigureContainer<ContainerBuilder>(builder =>
+                        builder.RegisterType<FailedAuditsController>()
+                            .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()));
+
+                host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
             }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
             {
                 var app = new AppBuilder();
-                bootstrapper.Startup.Configuration(app, typeof(FailedAuditsController).Assembly);
+                var lifetime = host.Services.GetRequiredService<ILifetimeScope>();
+                var startup = new Startup(lifetime);
+                startup.Configuration(app, typeof(FailedAuditsController).Assembly);
                 var appFunc = app.Build();
 
-                Handler = new OwinHttpMessageHandler(appFunc)
+                handler = new OwinHttpMessageHandler(appFunc)
                 {
                     UseCookies = false,
                     AllowAutoRedirect = false
                 };
-                var httpClient = new HttpClient(Handler);
+                var httpClient = new HttpClient(handler);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClient = httpClient;
-            }
-
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
-                await setupBootstrapper.Run(null);
-            }
-
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                Bus = await bootstrapper.Start(true).ConfigureAwait(false);
             }
         }
 
@@ -199,16 +199,15 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await bootstrapper.Stop().ConfigureAwait(false);
+                await host.StopAsync().ConfigureAwait(false);
                 HttpClient.Dispose();
-                Handler.Dispose();
-                DeleteFolder(Settings.DbPath);
+                handler.Dispose();
+                DeleteFolder(settings.DbPath);
             }
 
             bootstrapper = null;
-            Bus = null;
             HttpClient = null;
-            Handler = null;
+            handler = null;
         }
 
         static void DeleteFolder(string path)
@@ -253,17 +252,13 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             }
         }
 
-        HttpClient HttpClientFactory()
-        {
-            var httpClient = new HttpClient(Handler);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return httpClient;
-        }
-
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        IHost host;
+        Settings settings;
+        OwinHttpMessageHandler handler;
     }
 }

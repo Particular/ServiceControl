@@ -4,7 +4,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Infrastructure;
     using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -22,9 +21,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
         public string Port => runner.Port;
-        public Settings Settings => runner.Settings;
-        public OwinHttpMessageHandler Handler => runner.Handler;
-        public BusInstance Bus => runner.Bus;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {

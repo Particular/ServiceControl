@@ -1,24 +1,19 @@
-﻿namespace ServiceControl.Infrastructure
+﻿namespace ServiceControl.Infrastructure.BackgroundTasks
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
 
-    enum TimerJobExecutionResult
+    public enum TimerJobExecutionResult
     {
         ScheduleNextExecution,
         ExecuteImmediately,
         DoNotContinueExecuting
     }
 
-    class AsyncTimer
+    public class TimerJob
     {
-        public AsyncTimer(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback)
-        {
-            Start(callback, due, interval, errorCallback);
-        }
-
-        void Start(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback)
+        public TimerJob(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback)
         {
             tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
@@ -77,5 +72,15 @@
 
         Task task;
         CancellationTokenSource tokenSource;
+    }
+
+    public interface IAsyncTimer
+    {
+        TimerJob Schedule(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback);
+    }
+
+    public class AsyncTimer : IAsyncTimer
+    {
+        public TimerJob Schedule(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback) => new TimerJob(callback, due, interval, errorCallback);
     }
 }
