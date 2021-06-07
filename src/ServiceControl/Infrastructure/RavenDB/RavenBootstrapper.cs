@@ -10,8 +10,10 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using Particular.Licensing;
+    using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
+    using Raven.Client.Document;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -89,6 +91,28 @@
             documentStore.Conventions.CustomizeJsonSerializer = serializer => serializer.Binder = MigratedTypeAwareBinder;
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(typeof(RavenBootstrapper).Assembly));
+
+            documentStore.Conventions.FindClrType = (id, doc, metadata) =>
+            {
+                var clrtype = metadata.Value<string>(Constants.RavenClrType);
+
+                // The CLR type cannot be assumed to be always there
+                if (clrtype == null)
+                {
+                    return null;
+                }
+
+                if (clrtype.EndsWith(".Subscription, NServiceBus.Core"))
+                {
+                    clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
+                }
+                else if (clrtype.EndsWith(".Subscription, NServiceBus.RavenDB"))
+                {
+                    clrtype = ReflectionUtil.GetFullNameWithoutVersionInformation(typeof(Subscription));
+                }
+
+                return clrtype;
+            };
 
             documentStore.Initialize();
 
