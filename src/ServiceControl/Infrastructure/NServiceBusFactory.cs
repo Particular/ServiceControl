@@ -12,6 +12,14 @@ namespace ServiceBus.Management.Infrastructure
     using ServiceControl.Transports;
     using Settings;
 
+    class QueueCreationFeature : Feature
+    {
+        protected override void Setup(FeatureConfigurationContext context)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     static class NServiceBusFactory
     {
         public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
@@ -60,7 +68,6 @@ namespace ServiceBus.Management.Infrastructure
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
             configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
-
             if (Environment.UserInteractive && Debugger.IsAttached)
             {
                 configuration.EnableInstallers();

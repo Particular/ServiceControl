@@ -6,16 +6,20 @@ namespace ServiceControl.Recoverability
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.BackgroundTasks;
+    using Infrastructure.DomainEvents;
+    using Infrastructure.RavenDB;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
+    using Particular.ServiceControl;
     using Raven.Client;
     using Retrying;
+    using SagaAudit;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    static class RecoverabilityHostBuilderExtensions
+    class RecoverabilityComponent : ServiceControlComponent
     {
-        public static IHostBuilder UseRecoverability(this IHostBuilder hostBuilder, bool runRetryProcessor)
+        public override void Configure(Settings settings, IHostBuilder hostBuilder)
         {
             hostBuilder.ConfigureServices(collection =>
             {
@@ -41,8 +45,19 @@ namespace ServiceControl.Recoverability
                 collection.AddSingleton<StoreHistoryHandler>();
                 collection.AddSingleton<FailedMessageRetryCleaner>();
 
+                //Return to sender
+
+                var stagingQueue = $"{settings.ServiceName}.staging";
+                collection.AddSingleton(
+                    b => new ReturnToSenderDequeuer(b.GetRequiredService<ReturnToSender>(),
+                        b.GetRequiredService<IDocumentStore>(),
+                        b.GetRequiredService<IDomainEvents>(),
+                        stagingQueue,
+                        b.GetRequiredService<RawEndpointFactory>()));
+                collection.AddHostedService<ReturnToSenderDequeuerHostedService>();
+
                 //Retries
-                if (runRetryProcessor)
+                if (settings.RunRetryProcessor)
                 {
                     collection.AddSingleton<RetryDocumentManager>();
                     collection.AddSingleton<RetriesGateway>();
@@ -54,8 +69,35 @@ namespace ServiceControl.Recoverability
                     collection.AddHostedService<ProcessRetryBatchesHostedService>();
                 }
             });
+        }
 
-            return hostBuilder;
+        public override void Setup(Settings settings, IComponentSetupContext context)
+        {
+            var stagingQueue = $"{settings.ServiceName}.staging";
+            context.CreateQueue(stagingQueue);
+
+            context.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
+            context.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
+        }
+
+        class ReturnToSenderDequeuerHostedService : IHostedService
+        {
+            public ReturnToSenderDequeuerHostedService(ReturnToSenderDequeuer returnToSenderDequeuer)
+            {
+                this.returnToSenderDequeuer = returnToSenderDequeuer;
+            }
+
+            public Task StartAsync(CancellationToken cancellationToken)
+            {
+                return Task.CompletedTask;
+            }
+
+            public Task StopAsync(CancellationToken cancellationToken)
+            {
+                return returnToSenderDequeuer.Stop();
+            }
+
+            ReturnToSenderDequeuer returnToSenderDequeuer;
         }
 
         class BulkRetryBatchCreationHostedService : IHostedService

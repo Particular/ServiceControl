@@ -1,10 +1,14 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System.Collections.Generic;
+    using System.ComponentModel.Composition.Hosting;
+    using System.Linq;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Options;
+    using Particular.ServiceControl;
     using Raven.Client;
     using Raven.Client.Indexes;
 
@@ -12,20 +16,20 @@
     {
         readonly IDocumentStore documentStore;
         readonly IEnumerable<IDataMigration> dataMigrations;
-        readonly RavenStartup ravenStartup;
+        readonly ComponentSetupContext setupContext;
 
-        public EmbeddedRavenDbHostedService(IDocumentStore documentStore, IEnumerable<IDataMigration> dataMigrations, IOptions<RavenStartup> ravenStartup)
+        public EmbeddedRavenDbHostedService(IDocumentStore documentStore, IEnumerable<IDataMigration> dataMigrations, ComponentSetupContext setupContext)
         {
             this.documentStore = documentStore;
             this.dataMigrations = dataMigrations;
-            this.ravenStartup = ravenStartup.Value;
+            this.setupContext = setupContext;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             documentStore.Initialize();
 
-            var indexProvider = ravenStartup.CreateIndexProvider();
+            var indexProvider = CreateIndexProvider(setupContext.IndexAssemblies);
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
                 .ConfigureAwait(false);
 
@@ -41,5 +45,12 @@
             documentStore.Dispose();
             return Task.CompletedTask;
         }
+
+        internal ExportProvider CreateIndexProvider(List<Assembly> indexAssemblies) =>
+            new CompositionContainer(
+                new AggregateCatalog(
+                    from indexAssembly in indexAssemblies select new AssemblyCatalog(indexAssembly)
+                )
+            );
     }
 }

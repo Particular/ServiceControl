@@ -40,10 +40,9 @@ namespace Particular.ServiceControl
 
     class ServiceControlMainInstance
     {
-        public static readonly ServiceControlComponent[] Components = new[]
-        {
-            new MetricsComponent()
-            ,
+        public static readonly ServiceControlComponent[] Components = {
+            new MetricsComponent(),
+            new RecoverabilityComponent()
         };
     }
 
@@ -51,12 +50,6 @@ namespace Particular.ServiceControl
     {
         public abstract void Configure(Settings settings, IHostBuilder hostBuilder);
         public abstract void Setup(Settings settings, IComponentSetupContext context);
-    }
-
-    interface IComponentSetupContext
-    {
-        void CreateQueue(string queueName);
-        void Execute(Func<Task> callback);
     }
 
     class Bootstrapper
@@ -109,6 +102,8 @@ namespace Particular.ServiceControl
             transportCustomization = settings.LoadTransportCustomization();
             transportSettings = MapSettings(settings);
 
+            var componentContext = new ComponentSetupContext();
+
             HostBuilder = new HostBuilder();
             HostBuilder
                 .ConfigureLogging(builder =>
@@ -120,6 +115,7 @@ namespace Particular.ServiceControl
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>
                 {
+                    services.AddSingleton(componentContext);
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
                     services.AddSingleton<IDomainEvents, DomainEvents>();
                     services.AddSingleton(transportSettings);
@@ -130,20 +126,12 @@ namespace Particular.ServiceControl
                     services.AddSingleton(settings);
                     services.AddSingleton(sp => HttpClientFactory);
                     services.AddSingleton<ErrorIngestionComponent>();
-
-                    services.Configure<RavenStartup>(database =>
-                    {
-                        database.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
-                        database.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
-                    });
                 })
                 .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
                     var documentStore = new EmbeddableDocumentStore();
-
                     RavenBootstrapper.Configure(documentStore, settings);
-
                     return documentStore;
                 })
                 .UseNServiceBus(context =>
@@ -160,11 +148,11 @@ namespace Particular.ServiceControl
                 .UseCustomChecks()
                 .UseHeartbeatMonitoring()
                 .UseSagaAudit()
-                .UseRecoverability(settings.RunRetryProcessor)
                 ;
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
+                component.Setup(settings, null);
                 component.Configure(settings, HostBuilder);
             }
         }
