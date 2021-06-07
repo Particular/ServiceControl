@@ -33,7 +33,6 @@ When ServiceControl starts up, it will generate a `Session ID` GUID. This GUID i
 When ServiceControl starts it will look for documents marked with a retry batch id, without a matching retry batch document (i.e. We started making the batch but we never completed it). Retry batches in this state as called "orphaned" because the process that was assembling them has been lost.
 
 When an instance of ServiceControl "adopts" an orphaned batch, it takes over the processing of it. That instance will find all of the messages with the same missing retry batch id and create a retry batch with that id for them. This new retry batch document will then get picked up and processed like any other.
-TODO: How is selected which message is part of a retry batch? If that done before the retry batch is created (try to add 1,000 messages, if some are part of another retry batch just skip? Or b, the retry batch itself tried to create FailedMessageRetry documents until either no more messages or it reaches 1,000? Based on line 23 I think the last? )
 
 ### Staging
 
