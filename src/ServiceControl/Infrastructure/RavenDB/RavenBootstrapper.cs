@@ -79,8 +79,7 @@
             documentStore.Conventions.CustomizeJsonSerializer = serializer => serializer.Binder = MigratedTypeAwareBinder;
 
             documentStore.Configuration.Catalog.Catalogs.Add(new AssemblyCatalog(typeof(RavenBootstrapper).Assembly));
-
-			documentStore.Conventions.FindClrType = (id, doc, metadata) =>
+            documentStore.Conventions.FindClrType = (id, doc, metadata) =>
             {
                 var clrtype = metadata.Value<string>(Constants.RavenClrType);
 
