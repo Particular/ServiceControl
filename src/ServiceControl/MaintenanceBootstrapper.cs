@@ -4,6 +4,8 @@ namespace Particular.ServiceControl
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using Hosting;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -12,39 +14,35 @@ namespace Particular.ServiceControl
         public static async Task Run(HostArguments args)
         {
             var settings = new Settings(args.ServiceName);
-            using (var documentStore = new EmbeddableDocumentStore())
+
+            var hostBuilder = new HostBuilder()
+                .ConfigureServices(services =>
+                {
+                    var documentStore = new EmbeddableDocumentStore();
+
+                    RavenBootstrapper.Configure(documentStore, settings, true);
+
+                    services.AddHostedService(sp => new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], new ComponentSetupContext()));
+                });
+
+            if (args.RunAsWindowsService)
             {
-                RavenBootstrapper.Configure(documentStore, settings, true);
+                hostBuilder.UseWindowsService();
 
-                if (args.RunAsWindowsService)
-                {
-                    using (var service = new MaintenanceHost(settings))
-                    {
-                        service.Run();
-                    }
-                }
-                else
-                {
-                    await Console.Out.WriteLineAsync($"RavenDB is now accepting requests on {settings.StorageUrl}").ConfigureAwait(false);
-                    await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit").ConfigureAwait(false);
-
-                    var taskCompletionSource =
-                        new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-                    Console.CancelKeyPress += (sender, eventArgs) =>
-                    {
-                        eventArgs.Cancel = true;
-                        taskCompletionSource.TrySetResult(true);
-                    };
-
-                    await taskCompletionSource.Task.ConfigureAwait(false);
-
-                    await Console.Out.WriteLineAsync("Disposing RavenDB document store (this might take a while)...").ConfigureAwait(false);
-
-                }
+                await hostBuilder.Build().RunAsync().ConfigureAwait(false);
             }
+            else
+            {
+                await Console.Out.WriteLineAsync($"RavenDB is now accepting requests on {settings.DatabaseMaintenanceUrl}").ConfigureAwait(false);
+                await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit").ConfigureAwait(false);
 
-            await Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
+                hostBuilder.UseConsoleLifetime();
+
+                await hostBuilder.Build().RunAsync().ConfigureAwait(false);
+
+                await Console.Out.WriteLineAsync("Disposing RavenDB document store (this might take a while)...").ConfigureAwait(false);
+                await Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
+            }
         }
     }
 }

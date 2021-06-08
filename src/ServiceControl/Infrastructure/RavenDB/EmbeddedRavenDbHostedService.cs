@@ -45,7 +45,7 @@
             return Task.CompletedTask;
         }
 
-        internal ExportProvider CreateIndexProvider(List<Assembly> indexAssemblies) =>
+        ExportProvider CreateIndexProvider(List<Assembly> indexAssemblies) =>
             new CompositionContainer(
                 new AggregateCatalog(
                     from indexAssembly in indexAssemblies select new AssemblyCatalog(indexAssembly)

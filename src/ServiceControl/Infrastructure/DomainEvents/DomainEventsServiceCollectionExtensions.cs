@@ -2,6 +2,7 @@
 
 namespace ServiceControl.Infrastructure.DomainEvents
 {
+    using System;
     using System.Linq;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -15,7 +16,13 @@ namespace ServiceControl.Infrastructure.DomainEvents
         public static void AddDomainEventHandler<T>(this IServiceCollection serviceCollection)
         {
             serviceCollection.Add(new ServiceDescriptor(typeof(T), typeof(T), ServiceLifetime.Transient));
-            var interfaces = typeof(T).GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDomainHandler<>));
+            var interfaces = typeof(T).GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDomainHandler<>)).ToArray();
+
+            if (!interfaces.Any())
+            {
+                throw new Exception($"{nameof(AddDomainEventHandler)} requires registered type to implement at lest one {typeof(IDomainHandler<>).Name} interface.");
+            }
+
             foreach (var serviceType in interfaces)
             {
                 serviceCollection.Add(new ServiceDescriptor(serviceType, sp => sp.GetService(typeof(T)), ServiceLifetime.Transient));

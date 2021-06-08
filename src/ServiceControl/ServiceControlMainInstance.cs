@@ -5,7 +5,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.SagaAudit;
 
-    class ServiceControlMainInstance
+    static class ServiceControlMainInstance
     {
         public static readonly ServiceControlComponent[] Components = {
             new HostingComponent(),
