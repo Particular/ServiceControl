@@ -30,18 +30,18 @@
                 collection.AddSingleton<UnarchiveDocumentManager>();
 
                 //Grouping
-                collection.AddSingleton<ExceptionTypeAndStackTraceFailureClassifier>();
-                collection.AddSingleton<MessageTypeFailureClassifier>();
-                collection.AddSingleton<ClassifyFailedMessageEnricher>();
-                collection.AddSingleton<AddressOfFailingEndpointClassifier>();
-                collection.AddSingleton<EndpointInstanceClassifier>();
-                collection.AddSingleton<EndpointNameClassifier>();
+                collection.AddSingleton<IFailureClassifier, ExceptionTypeAndStackTraceFailureClassifier>();
+                collection.AddSingleton<IFailureClassifier, MessageTypeFailureClassifier>();
+                collection.AddSingleton<IFailureClassifier, AddressOfFailingEndpointClassifier>();
+                collection.AddSingleton<IFailureClassifier, EndpointInstanceClassifier>();
+                collection.AddSingleton<IFailureClassifier, EndpointNameClassifier>();
+                collection.AddSingleton<IFailedMessageEnricher, ClassifyFailedMessageEnricher>();
 
                 //Retrying
                 collection.AddSingleton<RetryingManager>();
                 collection.AddSingleton<GroupFetcher>();
-                collection.AddSingleton<StoreHistoryHandler>();
-                collection.AddSingleton<FailedMessageRetryCleaner>();
+                collection.AddDomainEventHandler<StoreHistoryHandler>();
+                collection.AddDomainEventHandler<FailedMessageRetryCleaner>();
 
                 //Return to sender
 
