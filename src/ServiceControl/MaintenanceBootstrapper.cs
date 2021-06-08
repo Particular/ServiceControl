@@ -1,11 +1,9 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using System.Threading;
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using Hosting;
-    using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
 

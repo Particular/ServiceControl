@@ -99,7 +99,7 @@
                 collection.AddCustomCheck<ErrorIngestionCustomCheck>();
                 collection.AddCustomCheck<FailedErrorImportCustomCheck>();
 
-                //External integtatyion
+                //External integration
                 collection.AddIntegrationEventPublisher<FailedMessageArchivedPublisher>();
                 collection.AddIntegrationEventPublisher<FailedMessageGroupBatchArchivedPublisher>();
                 collection.AddIntegrationEventPublisher<FailedMessageGroupBatchUnarchivedPublisher>();

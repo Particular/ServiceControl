@@ -7,7 +7,7 @@ namespace Particular.ServiceControl
     class ComponentSetupContext : IComponentSetupContext
     {
         Action<string> queueCreationRequestedCallback;
-        List<string> queues = new List<string>();
+        public List<string> Queues { get; } = new List<string>();
 
         public List<Assembly> IndexAssemblies { get; } = new List<Assembly>();
 
@@ -19,18 +19,18 @@ namespace Particular.ServiceControl
             }
 
             queueCreationRequestedCallback = callback;
-            foreach (string queue in queues)
+            foreach (string queue in Queues)
             {
                 queueCreationRequestedCallback(queue);
             }
-            queues.Clear();
+            Queues.Clear();
         }
 
         public void CreateQueue(string queueName)
         {
             if (queueCreationRequestedCallback == null)
             {
-                queues.Add(queueName);
+                Queues.Add(queueName);
             }
             else
             {

@@ -35,6 +35,7 @@ namespace Particular.ServiceControl
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
+    using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class Bootstrapper
@@ -79,6 +80,11 @@ namespace Particular.ServiceControl
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
             {
                 configuration.License(settings.LicenseFileText);
+            }
+
+            if (Environment.UserInteractive && Debugger.IsAttached)
+            {
+                EventSourceCreator.Create();
             }
 
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.

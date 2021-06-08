@@ -1,23 +1,19 @@
 namespace Particular.ServiceControl
 {
+    using System.Threading;
     using System.Threading.Tasks;
-    using Autofac;
-    using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Transports;
-    using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure;
+    using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings settings)
         {
-            this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
         }
 
@@ -29,55 +25,33 @@ namespace Particular.ServiceControl
                 return;
             }
 
-            var configuration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = configuration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-            if (excludeAssemblies != null)
+            var componentSetupContext = new ComponentSetupContext();
+
+            foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
-                assemblyScanner.ExcludeAssemblies(excludeAssemblies);
+                component.Setup(settings, componentSetupContext);
             }
 
-            configuration.EnableInstallers(username);
+            using (var documentStore = new EmbeddableDocumentStore())
+            {
+                RavenBootstrapper.Configure(documentStore, settings);
+                var service = new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], componentSetupContext);
+                await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
+                await service.StopAsync(CancellationToken.None).ConfigureAwait(false);
+            }
+
+            EventSourceCreator.Create();
 
             if (settings.SkipQueueCreation)
             {
                 log.Info("Skipping queue creation");
-                configuration.DoNotCreateQueues();
             }
-
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterType<DomainEvents>().As<IDomainEvents>().SingleInstance();
-
-            var transportSettings = MapSettings(settings);
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
-            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = new EmbeddableDocumentStore();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings).SingleInstance();
-
-            var componentSetupContext = new ComponentSetupContext();
-
-            using (documentStore)
-            using (var container = containerBuilder.Build())
+            else
             {
-                RavenBootstrapper.Configure(documentStore, settings);
+                var transportSettings = MapSettings(settings);
+                var transportCustomization = settings.LoadTransportCustomization();
 
-#pragma warning disable 618
-                configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-#pragma warning restore 618
-
-                NServiceBusFactory.Configure(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, componentSetupContext, configuration);
-
-                foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
-                {
-                    component.Setup(settings, componentSetupContext);
-                }
-
-                await Endpoint.Create(configuration)
-                    .ConfigureAwait(false);
+                await QueueCreator.CreateQueues(transportSettings, transportCustomization.CustomizeServiceControlEndpoint, username, componentSetupContext.Queues.ToArray()).ConfigureAwait(false);
             }
         }
 
@@ -122,8 +96,6 @@ namespace Particular.ServiceControl
         }
 
         readonly Settings settings;
-
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
-        string[] excludeAssemblies;
     }
 }

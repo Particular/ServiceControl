@@ -7,7 +7,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Options;
     using Particular.ServiceControl;
     using Raven.Client;
     using Raven.Client.Indexes;

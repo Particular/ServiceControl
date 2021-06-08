@@ -8,6 +8,7 @@ namespace Particular.ServiceControl
     class ServiceControlMainInstance
     {
         public static readonly ServiceControlComponent[] Components = {
+            new HostingComponent(),
             new RecoverabilityComponent(),
             new SagaAuditComponent(),
             new HeartbeatMonitoringComponent(),

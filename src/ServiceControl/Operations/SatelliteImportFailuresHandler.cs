@@ -75,24 +75,20 @@
             File.WriteAllText(filePath, exception.ToFriendlyString());
 
             // Write to Event Log
-            await WriteEvent("A message import has failed. A log file has been written to " + filePath)
-                .ConfigureAwait(false);
+            WriteEvent("A message import has failed. A log file has been written to " + filePath);
         }
 
 #if DEBUG
-        async Task WriteEvent(string message)
+        void WriteEvent(string message)
         {
-            await new CreateEventSource().Install(null)
-                .ConfigureAwait(false);
+            EventSourceCreator.Create();
 
-            EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
+            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 #else
-        Task WriteEvent(string message)
+        void WriteEvent(string message)
         {
-            EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
-
-            return Task.FromResult(0);
+            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 #endif
     }

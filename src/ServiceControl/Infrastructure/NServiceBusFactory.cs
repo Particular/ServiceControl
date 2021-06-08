@@ -1,8 +1,6 @@
 namespace ServiceBus.Management.Infrastructure
 {
     using System;
-    using System.Diagnostics;
-    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
@@ -63,10 +61,6 @@ namespace ServiceBus.Management.Infrastructure
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
             configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
-            if (Environment.UserInteractive && Debugger.IsAttached)
-            {
-                configuration.EnableInstallers();
-            }
         }
 
         static bool IsExternalContract(Type t)
