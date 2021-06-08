@@ -1,48 +1,23 @@
 ﻿namespace ServiceControl.CustomChecks
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Raven.Client;
+    using Particular.ServiceControl;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    static class CustomChecks
+    class CustomChecksComponent : ServiceControlComponent
     {
-        public static IHostBuilder UseCustomChecks(this IHostBuilder hostBuilder)
+        public override void Configure(Settings settings, IHostBuilder hostBuilder)
         {
             hostBuilder.ConfigureServices((ctx, serviceCollection) =>
             {
                 serviceCollection.AddHostedService<CustomChecksHostedService>();
                 serviceCollection.AddSingleton<CustomChecksStorage>();
             });
-            return hostBuilder;
-        }
-    }
-
-    class CustomChecksHostedService : IHostedService
-    {
-        IDocumentStore store;
-        CustomCheckNotifications notifications;
-        IDisposable subscription;
-
-        public CustomChecksHostedService(IDocumentStore store, IDomainEvents domainEvents)
-        {
-            this.store = store;
-            notifications = new CustomCheckNotifications(store, domainEvents);
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public override void Setup(Settings settings, IComponentSetupContext context)
         {
-            subscription = store.Changes().ForIndex(new CustomChecksIndex().IndexName).Subscribe(notifications);
-            return Task.FromResult(0);
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            subscription.Dispose();
-            return Task.FromResult(0);
         }
     }
 }

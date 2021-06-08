@@ -3,17 +3,23 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Operations;
+    using Particular.ServiceControl;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    static class SagaAuditingHostBuilderExtensions
+    class SagaAuditComponent : ServiceControlComponent
     {
-        public static IHostBuilder UseSagaAudit(this IHostBuilder hostBuilder)
+        public override void Configure(Settings settings, IHostBuilder hostBuilder)
         {
             hostBuilder.ConfigureServices(collection =>
             {
                 collection.AddSingleton<SagaRelationshipsEnricher>();
             });
-            return hostBuilder;
         }
+
+        public override void Setup(Settings settings, IComponentSetupContext context)
+        {
+        }
+
         internal class SagaRelationshipsEnricher : IEnrichImportedErrorMessages
         {
             public void Enrich(ErrorEnricherContext context) => InvokedSagasParser.Parse(context.Headers, context.Metadata);

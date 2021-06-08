@@ -6,10 +6,12 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Operations;
+    using Particular.ServiceControl;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    static class HeartbeatMonitoringHostBuilderExtensions
+    class HeartbeatMonitoringComponent : ServiceControlComponent
     {
-        public static IHostBuilder UseHeartbeatMonitoring(this IHostBuilder hostBuilder)
+        public override void Configure(Settings settings, IHostBuilder hostBuilder)
         {
             hostBuilder.ConfigureServices(collection =>
             {
@@ -20,7 +22,10 @@
                 collection.AddSingleton<IEnrichImportedErrorMessages, DetectNewEndpointsFromErrorImportsEnricher>();
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
             });
-            return hostBuilder;
+        }
+
+        public override void Setup(Settings settings, IComponentSetupContext context)
+        {
         }
     }
 }

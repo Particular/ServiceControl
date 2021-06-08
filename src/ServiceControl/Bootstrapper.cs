@@ -42,7 +42,10 @@ namespace Particular.ServiceControl
     {
         public static readonly ServiceControlComponent[] Components = {
             new MetricsComponent(),
-            new RecoverabilityComponent()
+            new RecoverabilityComponent(),
+            new SagaAuditComponent(),
+            new HeartbeatMonitoringComponent(),
+            new CustomChecksComponent()
         };
     }
 
@@ -137,7 +140,6 @@ namespace Particular.ServiceControl
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, componentContext, configuration);
-
                     return configuration;
                 })
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
@@ -145,9 +147,6 @@ namespace Particular.ServiceControl
                 .UseEmailNotifications()
                 .UseAsyncTimer()
                 .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
-                .UseCustomChecks()
-                .UseHeartbeatMonitoring()
-                .UseSagaAudit()
                 ;
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)

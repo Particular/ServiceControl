@@ -53,7 +53,7 @@
 
                 var documentManager = new CustomRetryDocumentManager(false, documentStore, retryManager);
 
-                var orphanage = new FailedMessageRetries.AdoptOrphanBatchesFromPreviousSession(documentManager, documentStore, new AsyncTimer());
+                var orphanage = new RecoverabilityComponent.AdoptOrphanBatchesFromPreviousSessionHostedService(documentManager, documentStore, new AsyncTimer());
                 await orphanage.AdoptOrphanedBatchesAsync();
 
                 var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
@@ -83,7 +83,7 @@
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    await processor.ProcessBatches(session); // mark ready
+                    await processor.ProcessBatches(session, sender); // mark ready
                     await session.SaveChangesAsync();
 
 
@@ -96,7 +96,7 @@
 
                     processor = new RetryProcessor(documentStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
-                    await processor.ProcessBatches(session);
+                    await processor.ProcessBatches(session, sender);
                     await session.SaveChangesAsync();
                 }
 
@@ -124,10 +124,10 @@
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    await processor.ProcessBatches(session); // mark ready
+                    await processor.ProcessBatches(session, sender); // mark ready
                     await session.SaveChangesAsync();
 
-                    await processor.ProcessBatches(session);
+                    await processor.ProcessBatches(session, sender);
                     await session.SaveChangesAsync();
                 }
 
@@ -170,7 +170,7 @@
                     {
                         using (var session = documentStore.OpenAsyncSession())
                         {
-                            c = await processor.ProcessBatches(session);
+                            c = await processor.ProcessBatches(session, sender);
                             await session.SaveChangesAsync();
                         }
                     }
@@ -213,10 +213,10 @@
 
                 using (var session = documentStore.OpenAsyncSession())
                 {
-                    await processor.ProcessBatches(session); // mark ready
+                    await processor.ProcessBatches(session, sender); // mark ready
                     await session.SaveChangesAsync();
 
-                    await processor.ProcessBatches(session);
+                    await processor.ProcessBatches(session, sender);
                     await session.SaveChangesAsync();
                 }
 

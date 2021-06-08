@@ -27,8 +27,6 @@
                 collection.AddCustomCheck<CriticalErrorCustomCheck>();
                 collection.AddCustomCheck<CheckRemotes>();
                 collection.AddCustomCheck<CheckFreeDiskSpace>();
-                collection.AddCustomCheck<ErrorIngestionCustomCheck>();
-                collection.AddCustomCheck<FailedErrorImportCustomCheck>();
                 collection.AddCustomCheck<FailedAuditImportCustomCheck>();
 
                 collection.AddHostedService(provider => new InternalCustomChecksHostedService(
