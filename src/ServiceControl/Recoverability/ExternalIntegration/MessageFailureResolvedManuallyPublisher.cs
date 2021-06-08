@@ -1,14 +1,15 @@
-namespace ServiceControl.ExternalIntegrations
+namespace ServiceControl.Recoverability.ExternalIntegration
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using ExternalIntegrations;
     using Raven.Client;
 
-    class MessageFailureResolvedByRetryPublisher : EventPublisher<MessageFailureResolvedByRetry, MessageFailureResolvedByRetryPublisher.DispatchContext>
+    class MessageFailureResolvedManuallyPublisher : EventPublisher<MessageFailureResolvedManually, MessageFailureResolvedManuallyPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(MessageFailureResolvedByRetry @event)
+        protected override DispatchContext CreateDispatchRequest(MessageFailureResolvedManually @event)
         {
             return new DispatchContext
             {
@@ -18,17 +19,15 @@ namespace ServiceControl.ExternalIntegrations
 
         protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return Task.FromResult(contexts.Select(r => (object)new Contracts.MessageFailureResolvedByRetry
+            return Task.FromResult(contexts.Select(r => (object)new Contracts.MessageFailureResolvedManually
             {
-                FailedMessageId = r.FailedMessageId,
-                AlternativeFailedMessageIds = r.AlternativeFailedMessageIds
+                FailedMessageId = r.FailedMessageId
             }));
         }
 
         public class DispatchContext
         {
             public string FailedMessageId { get; set; }
-            public string[] AlternativeFailedMessageIds { get; set; }
         }
     }
 }

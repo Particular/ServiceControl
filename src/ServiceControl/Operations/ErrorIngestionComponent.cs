@@ -38,7 +38,7 @@
             IDomainEvents domainEvents,
             RawEndpointFactory rawEndpointFactory,
             LoggingSettings loggingSettings,
-            BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher,
+            BodyStorageEnricher bodyStorageEnricher,
             IEnrichImportedErrorMessages[] enrichers,
             IFailedMessageEnricher[] failedMessageEnrichers,
             ErrorIngestionCustomCheck.State ingestionState

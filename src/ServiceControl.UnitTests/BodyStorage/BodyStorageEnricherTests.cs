@@ -14,8 +14,8 @@ namespace ServiceControl.UnitTests.BodyStorage
     [TestFixture]
     public class BodyStorageEnricherTests
     {
-        const int MinBodySizeAboveLOHThreshold = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
-        const int MaxBodySizeBelowLOHThreshold = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold - 1;
+        const int MinBodySizeAboveLOHThreshold = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+        const int MaxBodySizeBelowLOHThreshold = BodyStorageEnricher.LargeObjectHeapThreshold - 1;
 
         [Test]
         public async Task Should_store_body_in_storage_when_binary_and_below_LOH_threshold()
@@ -23,7 +23,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var fakeStorage = new FakeBodyStorage();
             var settings = new Settings();
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var expectedBodySize = MinBodySizeAboveLOHThreshold;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
@@ -44,7 +44,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var fakeStorage = new FakeBodyStorage();
             var settings = new Settings();
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var expectedBodySize = MaxBodySizeBelowLOHThreshold;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
@@ -67,7 +67,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = false,
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var expectedBodySize = MaxBodySizeBelowLOHThreshold;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
@@ -87,7 +87,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var fakeStorage = new FakeBodyStorage();
             var settings = new Settings();
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var expectedBodySize = MinBodySizeAboveLOHThreshold;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();

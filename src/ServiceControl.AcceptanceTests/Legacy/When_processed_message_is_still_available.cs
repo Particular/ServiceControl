@@ -74,7 +74,7 @@
                         {
                             {"Body", "Some Content"},
                             {"ContentLength", 11},
-                            {"BodyUrl", string.Format(BodyStorageFeature.BodyStorageEnricher.BodyUrlFormatString, messageId)},
+                            {"BodyUrl", string.Format(BodyStorageEnricher.BodyUrlFormatString, messageId)},
                             {"BodyNotStored", false},
                             {"ContentType", "text/plain" },
                             {"MessageIntent", (int)MessageIntentEnum.Send},

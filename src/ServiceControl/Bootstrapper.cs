@@ -15,18 +15,17 @@ namespace Particular.ServiceControl
     using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
     using global::ServiceControl.CustomChecks;
+    using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
-    using global::ServiceControl.Monitoring;
     using global::ServiceControl.Notifications.Email;
-    using global::ServiceControl.Operations;
     using global::ServiceControl.Recoverability;
-    using global::ServiceControl.SagaAudit;
     using global::ServiceControl.Transports;
+    using Licensing;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -37,23 +36,6 @@ namespace Particular.ServiceControl
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
-
-    class ServiceControlMainInstance
-    {
-        public static readonly ServiceControlComponent[] Components = {
-            new MetricsComponent(),
-            new RecoverabilityComponent(),
-            new SagaAuditComponent(),
-            new HeartbeatMonitoringComponent(),
-            new CustomChecksComponent()
-        };
-    }
-
-    abstract class ServiceControlComponent
-    {
-        public abstract void Configure(Settings settings, IHostBuilder hostBuilder);
-        public abstract void Setup(Settings settings, IComponentSetupContext context);
-    }
 
     class Bootstrapper
     {
@@ -128,8 +110,8 @@ namespace Particular.ServiceControl
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);
                     services.AddSingleton(sp => HttpClientFactory);
-                    services.AddSingleton<ErrorIngestionComponent>();
                 })
+                .UseLicenseCheck()
                 .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
@@ -142,6 +124,7 @@ namespace Particular.ServiceControl
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, componentContext, configuration);
                     return configuration;
                 })
+                .UseExternalIntegrationEvents()
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
                 .UseServicePulseSignalRNotifier()
                 .UseEmailNotifications()

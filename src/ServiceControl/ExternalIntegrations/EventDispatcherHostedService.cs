@@ -7,26 +7,27 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
-    using NServiceBus.Features;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class EventDispatcher : FeatureStartupTask
+    class EventDispatcherHostedService : IHostedService
     {
-        public EventDispatcher(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers)
+        public EventDispatcherHostedService(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers, IMessageSession messageSession)
         {
             this.store = store;
             this.criticalError = criticalError;
             this.settings = settings;
             this.eventPublishers = eventPublishers;
             this.domainEvents = domainEvents;
+            this.messageSession = messageSession;
         }
 
-        protected override Task OnStart(IMessageSession session)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
             subscription = store.Changes().ForDocumentsStartingWith("ExternalIntegrationDispatchRequests").Where(c => c.Type == DocumentChangeTypes.Put).Subscribe(OnNext);
 
@@ -35,8 +36,6 @@
                 TimeSpan.FromMinutes(5),
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
                 TimeSpan.FromSeconds(20));
-
-            bus = session;
 
             StartDispatcher();
             return Task.FromResult(0);
@@ -150,7 +149,7 @@
 
                     try
                     {
-                        await bus.Publish(eventToBePublished)
+                        await messageSession.Publish(eventToBePublished)
                             .ConfigureAwait(false);
                     }
                     catch (Exception e)
@@ -187,7 +186,7 @@
             return true;
         }
 
-        protected override async Task OnStop(IMessageSession session)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             subscription.Dispose();
             tokenSource.Cancel();
@@ -201,7 +200,7 @@
             circuitBreaker.Dispose();
         }
 
-        IMessageSession bus;
+        IMessageSession messageSession;
         CriticalError criticalError;
         IEnumerable<IEventPublisher> eventPublishers;
         Settings settings;
@@ -213,6 +212,6 @@
         Task task;
         CancellationTokenSource tokenSource;
         Etag latestEtag = Etag.Empty;
-        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcher));
+        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcherHostedService));
     }
 }

@@ -4,14 +4,21 @@
     using System.Threading;
     using System.Threading.Tasks;
     using CustomChecks;
+    using ExternalIntegration;
+    using ExternalIntegrations;
     using Infrastructure.BackgroundTasks;
     using Infrastructure.DomainEvents;
     using Infrastructure.RavenDB;
+    using MessageFailures;
+    using MessageFailures.Api;
+    using MessageFailures.Handlers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using Operations;
+    using Operations.BodyStorage;
+    using Operations.BodyStorage.RavenAttachments;
     using Particular.ServiceControl;
     using Raven.Client;
     using Retrying;
@@ -57,6 +64,15 @@
                         b.GetRequiredService<RawEndpointFactory>()));
                 collection.AddHostedService<ReturnToSenderDequeuerHostedService>();
 
+                //Error importer
+
+                collection.AddSingleton<ErrorIngestionComponent>();
+                collection.AddSingleton<ErrorIngestionCustomCheck.State>();
+                if (settings.IngestErrorMessages)
+                {
+                    collection.AddHostedService<ErrorIngestionHostedService>();
+                }
+
                 //Retries
                 if (settings.RunRetryProcessor)
                 {
@@ -70,9 +86,27 @@
                     collection.AddHostedService<ProcessRetryBatchesHostedService>();
                 }
 
+                //Failed messages
+                collection.AddSingleton<FailedMessageViewIndexNotifications>();
+                collection.AddHostedService<FailedMessageNotificationsHostedService>();
+                collection.AddDomainEventHandler<MessageFailureResolvedDomainHandler>();
+
+                //Body storage
+                collection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+                collection.AddSingleton<BodyStorageEnricher>();
+
                 //Health checks
                 collection.AddCustomCheck<ErrorIngestionCustomCheck>();
                 collection.AddCustomCheck<FailedErrorImportCustomCheck>();
+
+                //External integtatyion
+                collection.AddIntegrationEventPublisher<FailedMessageArchivedPublisher>();
+                collection.AddIntegrationEventPublisher<FailedMessageGroupBatchArchivedPublisher>();
+                collection.AddIntegrationEventPublisher<FailedMessageGroupBatchUnarchivedPublisher>();
+                collection.AddIntegrationEventPublisher<FailedMessagesUnarchivedPublisher>();
+                collection.AddIntegrationEventPublisher<MessageFailedPublisher>();
+                collection.AddIntegrationEventPublisher<MessageFailureResolvedByRetryPublisher>();
+                collection.AddIntegrationEventPublisher<MessageFailureResolvedManuallyPublisher>();
             });
         }
 
@@ -81,8 +115,63 @@
             var stagingQueue = $"{settings.ServiceName}.staging";
             context.CreateQueue(stagingQueue);
 
+            if (settings.IngestErrorMessages)
+            {
+                context.CreateQueue(settings.ErrorQueue);
+            }
+
+            if (settings.ForwardErrorMessages && settings.ErrorLogQueue != null)
+            {
+                context.CreateQueue(settings.ErrorLogQueue);
+            }
+
             context.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
             context.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
+        }
+
+        class FailedMessageNotificationsHostedService : IHostedService
+        {
+            public FailedMessageNotificationsHostedService(FailedMessageViewIndexNotifications notifications, IDocumentStore store)
+            {
+                this.notifications = notifications;
+                this.store = store;
+            }
+
+            public Task StartAsync(CancellationToken cancellationToken)
+            {
+                subscription = store.Changes().ForIndex(new FailedMessageViewIndex().IndexName).Subscribe(notifications);
+                return Task.FromResult(true);
+            }
+
+            public Task StopAsync(CancellationToken cancellationToken)
+            {
+                subscription.Dispose();
+                return Task.FromResult(true);
+            }
+
+            FailedMessageViewIndexNotifications notifications;
+            IDocumentStore store;
+            IDisposable subscription;
+        }
+
+        class ErrorIngestionHostedService : IHostedService
+        {
+            readonly ErrorIngestionComponent errorIngestion;
+
+            public ErrorIngestionHostedService(ErrorIngestionComponent errorIngestion)
+            {
+                this.errorIngestion = errorIngestion;
+            }
+
+            public Task StartAsync(CancellationToken cancellationToken)
+            {
+                return errorIngestion.Start();
+            }
+
+            public Task StopAsync(CancellationToken cancellationToken)
+            {
+                return errorIngestion.Stop();
+            }
         }
 
         class ReturnToSenderDequeuerHostedService : IHostedService

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
+    using ExternalIntegrations;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
@@ -13,6 +14,9 @@
             {
                 serviceCollection.AddHostedService<CustomChecksHostedService>();
                 serviceCollection.AddSingleton<CustomChecksStorage>();
+
+                serviceCollection.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
+                serviceCollection.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
             });
         }
 

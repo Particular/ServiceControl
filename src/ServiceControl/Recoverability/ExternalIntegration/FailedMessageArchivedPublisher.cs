@@ -1,14 +1,15 @@
-namespace ServiceControl.ExternalIntegrations
+namespace ServiceControl.Recoverability.ExternalIntegration
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using ExternalIntegrations;
     using Raven.Client;
 
-    class MessageFailureResolvedManuallyPublisher : EventPublisher<MessageFailureResolvedManually, MessageFailureResolvedManuallyPublisher.DispatchContext>
+    class FailedMessageArchivedPublisher : EventPublisher<FailedMessageArchived, FailedMessageArchivedPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(MessageFailureResolvedManually @event)
+        protected override DispatchContext CreateDispatchRequest(FailedMessageArchived @event)
         {
             return new DispatchContext
             {
@@ -18,9 +19,9 @@ namespace ServiceControl.ExternalIntegrations
 
         protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return Task.FromResult(contexts.Select(r => (object)new Contracts.MessageFailureResolvedManually
+            return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessagesArchived
             {
-                FailedMessageId = r.FailedMessageId
+                FailedMessagesIds = new[] { r.FailedMessageId }
             }));
         }
 

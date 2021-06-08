@@ -1,10 +1,11 @@
-namespace ServiceControl.ExternalIntegrations
+namespace ServiceControl.Recoverability.ExternalIntegration
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using ExternalIntegrations;
     using MessageFailures;
     using Raven.Client;
 

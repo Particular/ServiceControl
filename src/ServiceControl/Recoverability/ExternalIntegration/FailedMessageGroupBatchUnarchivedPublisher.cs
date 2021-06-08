@@ -1,10 +1,11 @@
 // unset
 
-namespace ServiceControl.ExternalIntegrations
+namespace ServiceControl.Recoverability.ExternalIntegration
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using ExternalIntegrations;
     using Raven.Client;
     using Recoverability;
 

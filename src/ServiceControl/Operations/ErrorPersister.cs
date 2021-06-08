@@ -42,7 +42,7 @@
                                     }}");
         }
 
-        public ErrorPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers,
+        public ErrorPersister(IDocumentStore store, BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers,
             Counter ingestedCounter, Meter bulkInsertDurationMeter)
         {
             this.store = store;
@@ -264,7 +264,7 @@
         IEnrichImportedErrorMessages[] enrichers;
         readonly Counter ingestedCounter;
         readonly Meter bulkInsertDurationMeter;
-        BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
         IDocumentStore store;
         static RavenJObject FailedMessageMetadata;

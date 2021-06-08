@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using EndpointControl.Handlers;
+    using ExternalIntegrations;
     using Infrastructure.DomainEvents;
     using Infrastructure.RavenDB;
     using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,9 @@
                 collection.AddSingleton<MonitoringDataStore>();
                 collection.AddSingleton<IEnrichImportedErrorMessages, DetectNewEndpointsFromErrorImportsEnricher>();
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
+
+                collection.AddIntegrationEventPublisher<HeartbeatRestoredPublisher>();
+                collection.AddIntegrationEventPublisher<HeartbeatStoppedPublisher>();
             });
         }
 

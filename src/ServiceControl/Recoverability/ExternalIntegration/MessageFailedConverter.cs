@@ -1,4 +1,4 @@
-namespace ServiceControl.ExternalIntegrations
+namespace ServiceControl.Recoverability.ExternalIntegration
 {
     using System.Collections.Generic;
     using System.Linq;

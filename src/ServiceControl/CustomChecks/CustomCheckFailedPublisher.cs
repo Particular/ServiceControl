@@ -1,10 +1,11 @@
-namespace ServiceControl.ExternalIntegrations
+namespace ServiceControl.CustomChecks
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
+    using ExternalIntegrations;
     using Raven.Client;
 
     class CustomCheckFailedPublisher : EventPublisher<CustomCheckFailed, CustomCheckFailedPublisher.DispatchContext>

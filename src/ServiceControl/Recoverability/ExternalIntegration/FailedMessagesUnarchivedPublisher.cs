@@ -1,12 +1,13 @@
-namespace ServiceControl.ExternalIntegrations
+namespace ServiceControl.Recoverability.ExternalIntegration
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using ExternalIntegrations;
     using Raven.Client;
 
-    class FailedMessagesUnArchivedPublisher : EventPublisher<FailedMessagesUnArchived, FailedMessagesUnArchivedPublisher.DispatchContext>
+    class FailedMessagesUnarchivedPublisher : EventPublisher<FailedMessagesUnArchived, FailedMessagesUnarchivedPublisher.DispatchContext>
     {
         protected override DispatchContext CreateDispatchRequest(FailedMessagesUnArchived @event)
         {

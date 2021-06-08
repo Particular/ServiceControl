@@ -1,4 +1,4 @@
-namespace ServiceControl.ExternalIntegrations
+namespace ServiceControl.Monitoring
 {
     using System;
     using System.Collections.Generic;
@@ -6,26 +6,29 @@ namespace ServiceControl.ExternalIntegrations
     using System.Threading.Tasks;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
+    using ExternalIntegrations;
     using Raven.Client;
 
-    class HeartbeatRestoredPublisher : EventPublisher<EndpointHeartbeatRestored, HeartbeatRestoredPublisher.DispatchContext>
+    class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(EndpointHeartbeatRestored @event)
+        protected override DispatchContext CreateDispatchRequest(EndpointFailedToHeartbeat @event)
         {
             return new DispatchContext
             {
                 EndpointHost = @event.Endpoint.Host,
                 EndpointHostId = @event.Endpoint.HostId,
                 EndpointName = @event.Endpoint.Name,
-                RestoredAt = @event.RestoredAt
+                DetectedAt = @event.DetectedAt,
+                LastReceivedAt = @event.LastReceivedAt
             };
         }
 
         protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
         {
-            return Task.FromResult(contexts.Select(r => (object)new HeartbeatRestored
+            return Task.FromResult(contexts.Select(r => (object)new HeartbeatStopped
             {
-                RestoredAt = r.RestoredAt,
+                DetectedAt = r.DetectedAt,
+                LastReceivedAt = r.LastReceivedAt,
                 Host = r.EndpointHost,
                 HostId = r.EndpointHostId,
                 EndpointName = r.EndpointName
@@ -37,7 +40,8 @@ namespace ServiceControl.ExternalIntegrations
             public string EndpointName { get; set; }
             public Guid EndpointHostId { get; set; }
             public string EndpointHost { get; set; }
-            public DateTime RestoredAt { get; set; }
+            public DateTime LastReceivedAt { get; set; }
+            public DateTime DetectedAt { get; set; }
         }
     }
 }
