@@ -1,0 +1,16 @@
+ServiceControl.SagaAudit.SagaListIndex+Result, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.MessageFailures.FailedMessage, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Recoverability.FailureGroupView, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Recoverability.FailureGroupMessageView, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.MessageFailures.GroupComment, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Recoverability.FailedMessageRetry, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Recoverability.RetryBatch, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Recoverability.RetryBatchGroup, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Monitoring.KnownEndpoint, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.MessageFailures.QueueAddress, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Operations.FailedErrorImport, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Operations.FailedAuditImport, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.EventLog.EventLogItem, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.MessageAuditing.ProcessedMessage, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.CustomChecks.CustomCheck, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.CompositeViews.Messages.MessagesViewIndex+SortAndFilterOptions, ServiceControl, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
