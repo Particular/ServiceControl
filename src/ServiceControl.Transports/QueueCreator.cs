@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports
 {
+    using System;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -29,7 +30,23 @@
                 queueBindings.BindSending(queue);
             }
 
-            return queueCreator.CreateQueueIfNecessary(queueBindings, userName);
+            return queueCreator.CreateQueueIfNecessary(queueBindings, GetInstallationUserName(userName));
+        }
+
+        //HINT: this is recreating NServiceBus core behavior which makes sure we never pass a null user identity to transport queue creation
+        static string GetInstallationUserName(string userName)
+        {
+            if (userName != null)
+            {
+                return userName;
+            }
+
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                return $"{Environment.UserDomainName}\\{Environment.UserName}";
+            }
+
+            return Environment.UserName;
         }
     }
 }
