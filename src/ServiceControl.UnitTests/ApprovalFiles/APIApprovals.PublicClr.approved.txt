@@ -24,16 +24,10 @@ public class GroupOperation
 }
 namespace ServiceBus.Management.Infrastructure.Installers
 {
-    public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething
+    public static class EventSourceCreator
     {
         public const string SourceName = "ServiceControl";
-        public CreateEventSource() { }
-        public System.Threading.Tasks.Task Install(string identity) { }
-    }
-    public class ErrorLoqQueue : NServiceBus.Features.Feature
-    {
-        public ErrorLoqQueue() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+        public static void Create() { }
     }
 }
 namespace ServiceBus.Management.Infrastructure.Settings
@@ -1330,11 +1324,6 @@ namespace ServiceControl.Recoverability
             public string ToMethodIdentifier() { }
         }
     }
-    public class FailedMessageClassification : NServiceBus.Features.Feature
-    {
-        public FailedMessageClassification() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
     public class FailedMessageGroupArchived : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
         public FailedMessageGroupArchived() { }
@@ -1358,11 +1347,6 @@ namespace ServiceControl.Recoverability
         public string GroupId { get; set; }
         public string GroupName { get; set; }
         public int MessagesCount { get; set; }
-    }
-    public class FailedMessageRetries : NServiceBus.Features.Feature
-    {
-        public FailedMessageRetries() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
     }
     public class FailedMessageRetries_ByBatch : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.FailedMessageRetry>
     {
@@ -1643,16 +1627,6 @@ namespace ServiceControl.Recoverability
         All = 5,
         ByQueueAddress = 6,
     }
-    public class RetryingFeature : NServiceBus.Features.Feature
-    {
-        public RetryingFeature() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
-    public class ReturnToSenderDequeuerFeature : NServiceBus.Features.Feature
-    {
-        public ReturnToSenderDequeuerFeature() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
     public class UnacknowledgedRetryOperation
     {
         public UnacknowledgedRetryOperation() { }
@@ -1722,11 +1696,6 @@ namespace ServiceControl.Recoverability.Retrying
 }
 namespace ServiceControl.SagaAudit
 {
-    public class SagaAuditing : NServiceBus.Features.Feature
-    {
-        public SagaAuditing() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
     public class SagaListIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.SagaAudit.SagaListIndex.Result>
     {
         public SagaListIndex() { }

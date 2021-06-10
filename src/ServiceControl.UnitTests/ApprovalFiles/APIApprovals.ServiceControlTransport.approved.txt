@@ -17,6 +17,10 @@ namespace ServiceControl.Transports
         System.Threading.Tasks.Task Stop();
         void TrackEndpointInputQueue(ServiceControl.Transports.EndpointToQueueMapping queueToTrack);
     }
+    public static class QueueCreator
+    {
+        public static System.Threading.Tasks.Task CreateQueues(ServiceControl.Transports.TransportSettings transportSettings, System.Action<NServiceBus.EndpointConfiguration, ServiceControl.Transports.TransportSettings> customization, string userName, params string[] queues) { }
+    }
     public class QueueLengthEntry
     {
         public QueueLengthEntry() { }
