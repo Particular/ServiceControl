@@ -19,7 +19,11 @@
 
             var settings = endpointConfiguration.GetSettings();
             var transportDefinition = settings.Get<TransportDefinition>();
-            var transportInfrastructure = transportDefinition.Initialize(settings, transportSettings.ConnectionString);
+            var connectionString = transportDefinition.RequiresConnectionString
+                ? transportSettings.ConnectionString
+                : string.Empty;
+
+            var transportInfrastructure = transportDefinition.Initialize(settings, connectionString);
 
             var receiveInfrastructure = transportInfrastructure.ConfigureReceiveInfrastructure();
             var queueCreator = receiveInfrastructure.QueueCreatorFactory();
