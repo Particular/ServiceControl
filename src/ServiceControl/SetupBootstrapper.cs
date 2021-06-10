@@ -32,14 +32,16 @@ namespace Particular.ServiceControl
                 component.Setup(settings, componentSetupContext);
             }
 
-            using (var documentStore = new EmbeddableDocumentStore())
+            if (!settings.RunInMemory) //RunInMemory is used in acceptance tests
             {
-                RavenBootstrapper.Configure(documentStore, settings);
-                var service = new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], componentSetupContext);
-                await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
-                await service.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                using (var documentStore = new EmbeddableDocumentStore())
+                {
+                    RavenBootstrapper.Configure(documentStore, settings);
+                    var service = new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], componentSetupContext);
+                    await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
+                    await service.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                }
             }
-
             EventSourceCreator.Create();
 
             if (settings.SkipQueueCreation)
