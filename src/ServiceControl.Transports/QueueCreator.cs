@@ -13,14 +13,18 @@
         /// </summary>
         public static Task CreateQueues(TransportSettings transportSettings, Action<EndpointConfiguration, TransportSettings> customization, string userName, params string[] queues)
         {
-            var endpointConfiguration = new EndpointConfiguration("QueueCreator");
+            var endpointConfiguration = new EndpointConfiguration(transportSettings.EndpointName);
 
             customization(endpointConfiguration, transportSettings);
 
             var settings = endpointConfiguration.GetSettings();
             var transportDefinition = settings.Get<TransportDefinition>();
 
-            var transportInfrastructure = transportDefinition.Initialize(settings, transportSettings.ConnectionString);
+            var connectionString = transportDefinition.GetType().Name.Contains("SqsTransport")
+                ? string.Empty
+                : transportSettings.ConnectionString;
+
+            var transportInfrastructure = transportDefinition.Initialize(settings, connectionString);
 
             var receiveInfrastructure = transportInfrastructure.ConfigureReceiveInfrastructure();
             var queueCreator = receiveInfrastructure.QueueCreatorFactory();
