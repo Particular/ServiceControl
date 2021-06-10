@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Transports
 {
-    using System;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;

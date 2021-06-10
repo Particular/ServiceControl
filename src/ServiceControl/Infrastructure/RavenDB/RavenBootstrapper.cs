@@ -7,8 +7,6 @@
     using NServiceBus.Logging;
     using Particular.Licensing;
     using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
-    using Raven.Client;
     using Raven.Client.Document;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
