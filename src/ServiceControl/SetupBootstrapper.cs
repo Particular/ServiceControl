@@ -1,11 +1,18 @@
 namespace Particular.ServiceControl
 {
+    using System;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Transports;
+    using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Serialization;
+    using NServiceBus.Settings;
+    using NServiceBus.Unicast.Messages;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -53,7 +60,13 @@ namespace Particular.ServiceControl
                 var transportSettings = MapSettings(settings);
                 var transportCustomization = settings.LoadTransportCustomization();
 
-                await QueueCreator.CreateQueues(transportSettings, transportCustomization.CustomizeServiceControlEndpoint, username, componentSetupContext.Queues.ToArray()).ConfigureAwait(false);
+                void Customize(EndpointConfiguration ec, TransportSettings ts)
+                {
+                    SetTransportSpecificFlags(ec.GetSettings(), $"{settings.ServiceName}.Errors");
+                    transportCustomization.CustomizeServiceControlEndpoint(ec, ts);
+                }
+
+                await QueueCreator.CreateQueues(transportSettings, Customize, username, componentSetupContext.Queues.ToArray()).ConfigureAwait(false);
             }
         }
 
@@ -95,6 +108,36 @@ namespace Particular.ServiceControl
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
             return transportSettings;
+        }
+
+        static void SetTransportSpecificFlags(SettingsHolder settings, string poisonQueue)
+        {
+            //To satisfy requirements of various transports
+
+            //MSMQ
+            settings.Set("errorQueue", poisonQueue); //Not SetDefault Because MSMQ transport verifies if that value has been explicitly set
+
+            //RabbitMQ
+            settings.SetDefault("RabbitMQ.RoutingTopologySupportsDelayedDelivery", true);
+
+            //SQS
+            settings.SetDefault("NServiceBus.AmazonSQS.DisableSubscribeBatchingOnStart", true);
+
+            //ASB
+            var builder = new ConventionsBuilder(settings);
+            builder.DefiningEventsAs(type => true);
+            settings.Set(builder.Conventions);
+
+            //ASQ and ASB
+            var serializer = Tuple.Create(new NewtonsoftSerializer() as SerializationDefinition, new SettingsHolder());
+            settings.SetDefault("MainSerializer", serializer);
+
+            //SQS and ASQ
+            bool IsMessageType(Type t) => true;
+            var ctor = typeof(MessageMetadataRegistry).GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(Func<Type, bool>) }, null);
+#pragma warning disable CS0618 // Type or member is obsolete
+            settings.SetDefault<MessageMetadataRegistry>(ctor.Invoke(new object[] { (Func<Type, bool>)IsMessageType }));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         readonly Settings settings;
