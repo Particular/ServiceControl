@@ -12,7 +12,7 @@
         {
             hostBuilder.ConfigureServices(collection =>
             {
-                collection.AddSingleton<SagaRelationshipsEnricher>();
+                collection.AddSingleton<IEnrichImportedErrorMessages, SagaRelationshipsEnricher>();
             });
         }
 
