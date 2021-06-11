@@ -18,6 +18,7 @@
 
         public override void Setup(Settings settings, IComponentSetupContext context)
         {
+            context.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
         }
 
         internal class SagaRelationshipsEnricher : IEnrichImportedErrorMessages

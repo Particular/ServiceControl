@@ -22,7 +22,6 @@
     using Particular.ServiceControl;
     using Raven.Client;
     using Retrying;
-    using SagaAudit;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class RecoverabilityComponent : ServiceControlComponent
@@ -126,7 +125,6 @@
             }
 
             context.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
-            context.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
         }
 
         class FailedMessageNotificationsHostedService : IHostedService
