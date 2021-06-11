@@ -72,7 +72,7 @@ If forwarding a specific message fail, then we count it, mark it as unresolved, 
 
 > Failed to send UNIQUE-MESSAGE-ID message to DESTINATION for retry. Attempting to revert message status to unresoved so it can be tried again.
 
-Might SC run in the edge case that forwarding completes and immediately crash then after restart it finds an empty staging queue and times out.
+If forwarding completes and ServiceControl immediately crashes then after restart it finds an empty staging queue and times out.
 
 ### Done
 
