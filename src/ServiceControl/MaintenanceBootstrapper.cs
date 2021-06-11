@@ -39,9 +39,6 @@ namespace Particular.ServiceControl
                 hostBuilder.UseConsoleLifetime();
 
                 await hostBuilder.Build().RunAsync().ConfigureAwait(false);
-
-                await Console.Out.WriteLineAsync("Disposing RavenDB document store (this might take a while)...").ConfigureAwait(false);
-                await Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
             }
         }
     }
