@@ -93,8 +93,6 @@ namespace Particular.ServiceControl
             transportCustomization = settings.LoadTransportCustomization();
             transportSettings = MapSettings(settings);
 
-            var componentContext = new ComponentSetupContext();
-
             HostBuilder = new HostBuilder();
             HostBuilder
                 .ConfigureLogging(builder =>
@@ -106,7 +104,6 @@ namespace Particular.ServiceControl
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>
                 {
-                    services.AddSingleton(componentContext);
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
                     services.AddSingleton<IDomainEvents, DomainEvents>();
                     services.AddSingleton(transportSettings);
@@ -136,13 +133,8 @@ namespace Particular.ServiceControl
                 .UseEmailNotifications()
                 .UseAsyncTimer()
                 .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
+                .UseServiceControlComponents(settings, ServiceControlMainInstance.Components)
                 ;
-
-            foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
-            {
-                component.Setup(settings, componentContext);
-                component.Configure(settings, HostBuilder);
-            }
         }
 
         TransportSettings MapSettings(Settings settings)
