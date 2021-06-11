@@ -23,8 +23,6 @@ namespace ServiceBus.Management.Infrastructure
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
 
-            // HACK: Yes I know, I am hacking it to pass it to RavenBootstrapper!
-            // wrapping it in a non-disposable type to make sure settings clear doesn't dispose
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
             transportCustomization.CustomizeServiceControlEndpoint(configuration, transportSettings);
