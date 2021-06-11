@@ -1,5 +1,3 @@
-// unset
-
 namespace ServiceControl.Recoverability
 {
     using Infrastructure.DomainEvents;

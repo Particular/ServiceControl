@@ -1,6 +1,4 @@
-﻿// unset
-
-namespace ServiceControl.Infrastructure.DomainEvents
+﻿namespace ServiceControl.Infrastructure.DomainEvents
 {
     using System;
     using System.Linq;

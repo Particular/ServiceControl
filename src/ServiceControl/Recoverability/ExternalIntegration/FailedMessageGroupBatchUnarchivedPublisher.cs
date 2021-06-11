@@ -1,5 +1,3 @@
-// unset
-
 namespace ServiceControl.Recoverability.ExternalIntegration
 {
     using System.Collections.Generic;

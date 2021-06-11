@@ -1,5 +1,3 @@
-// unset
-
 namespace ServiceControl.ExternalIntegrations
 {
     using Microsoft.Extensions.DependencyInjection;
