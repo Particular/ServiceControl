@@ -127,7 +127,7 @@ namespace Particular.ServiceControl
                 })
                 .UseNServiceBus(context =>
                 {
-                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, componentContext, configuration);
+                    NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
                     return configuration;
                 })
                 .UseExternalIntegrationEvents()
