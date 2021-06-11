@@ -28,6 +28,7 @@ namespace ServiceControl.Recoverability
 
             faultManager = new CaptureIfMessageSendingFails(store, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
+
         }
 
         public string InputAddress { get; }

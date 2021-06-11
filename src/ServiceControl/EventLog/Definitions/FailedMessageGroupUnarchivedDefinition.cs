@@ -1,5 +1,3 @@
-// unset
-
 namespace ServiceControl.EventLog.Definitions
 {
     using Recoverability;

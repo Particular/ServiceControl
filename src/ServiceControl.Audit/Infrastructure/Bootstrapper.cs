@@ -19,6 +19,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using RavenDB;
+    using ServiceControl.SagaAudit;
     using Settings;
     using Transports;
     using WebApi;
@@ -60,6 +61,7 @@ namespace ServiceControl.Audit.Infrastructure
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>
                 {
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
@@ -70,13 +72,19 @@ namespace ServiceControl.Audit.Infrastructure
                     services.AddSingleton(settings);
                     services.AddSingleton<EndpointInstanceMonitoring>();
                     services.AddSingleton<AuditIngestionComponent>();
+
+                    services.Configure<RavenStartup>(database =>
+                    {
+                        database.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
+                        database.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
+                    });
                 })
                 .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
                     var documentStore = new EmbeddableDocumentStore();
 
-                    RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+                    RavenBootstrapper.Configure(documentStore, settings);
 
                     return documentStore;
                 })
@@ -87,8 +95,6 @@ namespace ServiceControl.Audit.Infrastructure
                     return configuration;
                 })
                 .UseWebApi(settings.RootUrl, settings.ExposeApi);
-
-            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
         }
 
         static TransportSettings MapSettings(Settings.Settings settings)

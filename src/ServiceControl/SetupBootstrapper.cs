@@ -1,24 +1,26 @@
 namespace Particular.ServiceControl
 {
+    using System;
+    using System.Threading;
     using System.Threading.Tasks;
-    using Autofac;
-    using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Transports;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using NServiceBus.Transport;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
+    using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings settings, string[] excludedAssemblies = null)
         {
-            this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
+            this.excludedAssemblies = excludedAssemblies ?? Array.Empty<string>();
         }
 
         public async Task Run(string username)
@@ -29,47 +31,51 @@ namespace Particular.ServiceControl
                 return;
             }
 
-            var configuration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = configuration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-            if (excludeAssemblies != null)
+            var componentSetupContext = new ComponentSetupContext();
+
+            foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
-                assemblyScanner.ExcludeAssemblies(excludeAssemblies);
+                component.Setup(settings, componentSetupContext);
             }
 
-            configuration.EnableInstallers(username);
+            if (!settings.RunInMemory) //RunInMemory is used in acceptance tests
+            {
+                using (var documentStore = new EmbeddableDocumentStore())
+                {
+                    RavenBootstrapper.Configure(documentStore, settings);
+                    var service = new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], componentSetupContext);
+                    await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
+                    await service.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                }
+            }
+            EventSourceCreator.Create();
 
             if (settings.SkipQueueCreation)
             {
                 log.Info("Skipping queue creation");
-                configuration.DoNotCreateQueues();
             }
-
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterType<DomainEvents>().As<IDomainEvents>().SingleInstance();
-
-            var transportSettings = MapSettings(settings);
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
-            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = new EmbeddableDocumentStore();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings).SingleInstance();
-
-            using (documentStore)
-            using (var container = containerBuilder.Build())
+            else
             {
-                RavenBootstrapper.ConfigureAndStart(documentStore, settings);
+                var transportSettings = MapSettings(settings);
+                var transportCustomization = settings.LoadTransportCustomization();
 
-#pragma warning disable 618
-                configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-#pragma warning restore 618
+                var endpointConfig = new EndpointConfiguration(settings.ServiceName);
+                endpointConfig.AssemblyScanner().ExcludeAssemblies(excludedAssemblies);
 
-                NServiceBusFactory.Configure(settings, settings.LoadTransportCustomization(), transportSettings, loggingSettings, configuration);
+                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings,
+                    new LoggingSettings(settings.ServiceName), endpointConfig);
 
-                await Endpoint.Create(configuration)
+                endpointConfig.EnableInstallers(username);
+                var queueBindings = endpointConfig.GetSettings().Get<QueueBindings>();
+                foreach (var componentBinding in componentSetupContext.Queues)
+                {
+                    queueBindings.BindSending(componentBinding);
+                }
+
+                // HACK: Do not need the raven persistence to create queues
+                endpointConfig.UsePersistence<InMemoryPersistence, StorageType.Subscriptions>();
+
+                await Endpoint.Create(endpointConfig)
                     .ConfigureAwait(false);
             }
         }
@@ -115,8 +121,7 @@ namespace Particular.ServiceControl
         }
 
         readonly Settings settings;
-
+        readonly string[] excludedAssemblies;
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
-        string[] excludeAssemblies;
     }
 }

@@ -8,6 +8,7 @@
     using MessageFailures;
     using NUnit.Framework;
     using ServiceControl.ExternalIntegrations;
+    using ServiceControl.Recoverability.ExternalIntegration;
 
     [TestFixture]
     public class MessageFailedConverterTests

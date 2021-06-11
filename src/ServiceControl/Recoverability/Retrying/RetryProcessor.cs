@@ -20,22 +20,26 @@ namespace ServiceControl.Recoverability
 
     class RetryProcessor
     {
-        public RetryProcessor(IDocumentStore store, IDispatchMessages sender, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
+        public RetryProcessor(IDocumentStore store, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
             this.store = store;
-            this.sender = sender;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
             this.domainEvents = domainEvents;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
 
-        public async Task<bool> ProcessBatches(IAsyncDocumentSession session, CancellationToken cancellationToken = default)
+        Task Enqueue(IDispatchMessages sender, TransportOperations outgoingMessages)
         {
-            return await ForwardCurrentBatch(session, cancellationToken).ConfigureAwait(false) || await MoveStagedBatchesToForwardingBatch(session).ConfigureAwait(false);
+            return sender.Dispatch(outgoingMessages, new TransportTransaction(), new ContextBag());
         }
 
-        async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session)
+        public async Task<bool> ProcessBatches(IAsyncDocumentSession session, IDispatchMessages sender, CancellationToken cancellationToken = default)
+        {
+            return await ForwardCurrentBatch(session, cancellationToken).ConfigureAwait(false) || await MoveStagedBatchesToForwardingBatch(session, sender).ConfigureAwait(false);
+        }
+
+        async Task<bool> MoveStagedBatchesToForwardingBatch(IAsyncDocumentSession session, IDispatchMessages sender)
         {
             try
             {
@@ -55,7 +59,7 @@ namespace ServiceControl.Recoverability
                 {
                     Log.Info($"Staging batch {stagingBatch.Id}.");
                     redirects = await MessageRedirectsCollection.GetOrCreate(session).ConfigureAwait(false);
-                    var stagedMessages = await Stage(stagingBatch, session).ConfigureAwait(false);
+                    var stagedMessages = await Stage(stagingBatch, session, sender).ConfigureAwait(false);
                     var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
                     await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
                         .ConfigureAwait(false);
@@ -181,7 +185,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        async Task<int> Stage(RetryBatch stagingBatch, IAsyncDocumentSession session)
+        async Task<int> Stage(RetryBatch stagingBatch, IAsyncDocumentSession session, IDispatchMessages sender)
         {
             var stagingId = Guid.NewGuid().ToString();
 
@@ -228,7 +232,7 @@ namespace ServiceControl.Recoverability
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
             }
 
-            await TryDispatch(transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
+            await TryDispatch(sender, transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
@@ -250,27 +254,27 @@ namespace ServiceControl.Recoverability
             return messages.Length;
         }
 
-        Task TryDispatch(TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId, bool previousAttemptFailed)
+        Task TryDispatch(IDispatchMessages sender, TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId, bool previousAttemptFailed)
         {
-            return previousAttemptFailed ? ConcurrentDispatchToTransport(transportOperations, failedMessageRetriesById) :
-                BatchDispatchToTransport(transportOperations, messages, failedMessageRetriesById, stagingId);
+            return previousAttemptFailed ? ConcurrentDispatchToTransport(sender, transportOperations, failedMessageRetriesById) :
+                BatchDispatchToTransport(sender, transportOperations, messages, failedMessageRetriesById, stagingId);
         }
 
-        Task ConcurrentDispatchToTransport(IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById)
+        Task ConcurrentDispatchToTransport(IDispatchMessages sender, IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById)
         {
             var tasks = new List<Task>(transportOperations.Count);
             foreach (var transportOperation in transportOperations)
             {
-                tasks.Add(TryStageMessage(transportOperation, failedMessageRetriesById[transportOperation.Message.MessageId]));
+                tasks.Add(TryStageMessage(sender, transportOperation, failedMessageRetriesById[transportOperation.Message.MessageId]));
             }
             return Task.WhenAll(tasks);
         }
 
-        async Task BatchDispatchToTransport(TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId)
+        async Task BatchDispatchToTransport(IDispatchMessages sender, TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId)
         {
             try
             {
-                await sender.Dispatch(new TransportOperations(transportOperations), transaction, contextBag).ConfigureAwait(false);
+                await Enqueue(sender, new TransportOperations(transportOperations)).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -312,11 +316,11 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        async Task TryStageMessage(TransportOperation transportOperation, FailedMessageRetry failedMessageRetry)
+        async Task TryStageMessage(IDispatchMessages sender, TransportOperation transportOperation, FailedMessageRetry failedMessageRetry)
         {
             try
             {
-                await sender.Dispatch(new TransportOperations(transportOperation), transaction, contextBag).ConfigureAwait(false);
+                await Enqueue(sender, new TransportOperations(transportOperation)).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -399,10 +403,7 @@ namespace ServiceControl.Recoverability
             return new TransportOperation(transportMessage, new UnicastAddressTag(returnToSender.InputAddress));
         }
 
-        TransportTransaction transaction = new TransportTransaction();
-        ContextBag contextBag = new ContextBag();
         IDocumentStore store;
-        IDispatchMessages sender;
         IDomainEvents domainEvents;
         ReturnToSenderDequeuer returnToSender;
         RetryingManager retryingManager;

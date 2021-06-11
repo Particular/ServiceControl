@@ -4,11 +4,14 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure.RavenDB;
+    using Microsoft.Extensions.DependencyInjection;
     using Notifications;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
+    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
 
@@ -26,29 +29,11 @@
             {
                 settings.NotificationsFilter = "MyCustomCheckId#Other custom check";
                 settings.EmailDropFolder = emailDropPath;
-                settings.StoreInitializer = store =>
-                {
-                    using (var session = store.OpenSession())
-                    {
-                        var notificationsSettings = new NotificationsSettings
-                        {
-                            Id = NotificationsSettings.SingleDocumentId,
-                            Email = new EmailNotifications
-                            {
-                                Enabled = true,
-                                From = "YouServiceControl@particular.net",
-                                To = "WhoeverMightBeConcerned@particular.net",
-                            }
-                        };
-
-                        session.Store(notificationsSettings);
-
-                        session.SaveChanges();
-                    }
-
-                    return Task.CompletedTask;
-                };
             };
+
+            CustomizeHostBuilder = hostBuilder =>
+                hostBuilder.ConfigureServices((hostBuilderContext, services) =>
+                    services.AddSingleton<IDataMigration, CreateNotificationsDataMigration>());
 
             await Define<MyContext>(c =>
                 {
@@ -71,6 +56,33 @@
             Assert.AreEqual("From: YouServiceControl@particular.net", emailText[3]);
             Assert.AreEqual("To: WhoeverMightBeConcerned@particular.net", emailText[4]);
             Assert.AreEqual("Subject: [Particular.ServiceControl] health check failed", emailText[6]);
+        }
+
+        class CreateNotificationsDataMigration : IDataMigration
+        {
+            public Task Migrate(IDocumentStore store)
+            {
+                using (var session = store.OpenSession())
+                {
+                    var notificationsSettings = new NotificationsSettings
+                    {
+                        Id = NotificationsSettings.SingleDocumentId,
+                        Email = new EmailNotifications
+                        {
+                            Enabled = true,
+                            From = "YouServiceControl@particular.net",
+                            To = "WhoeverMightBeConcerned@particular.net",
+                        }
+                    };
+
+                    session.Store(notificationsSettings);
+
+                    session.SaveChanges();
+                }
+
+                return Task.CompletedTask;
+
+            }
         }
 
         public class MyContext : ScenarioContext

@@ -33,10 +33,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
             this.customConfiguration = customConfiguration;
+            this.hostBuilderCustomization = hostBuilderCustomization;
             this.setSettings = setSettings;
         }
 
@@ -152,7 +153,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                var setupBootstrapper = new SetupBootstrapper(settings);
                 await setupBootstrapper.Run(null);
             }
 
@@ -174,6 +175,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                         .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
                         .AsSelf();
                 });
+
+                hostBuilderCustomization(bootstrapper.HostBuilder);
 
                 host = bootstrapper.HostBuilder.Build();
                 await host.StartAsync().ConfigureAwait(false);
@@ -269,6 +272,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         ITransportIntegration transportToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
+        Action<IHostBuilder> hostBuilderCustomization;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
     }
 }

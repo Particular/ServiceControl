@@ -10,7 +10,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus.Logging;
-    using Raven.Client;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Transports;
 
@@ -61,8 +60,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool AllowMessageEditing { get; set; }
 
         public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
-
-        public Func<IDocumentStore, Task> StoreInitializer { get; set; } = _ => Task.CompletedTask;
 
         public bool RunInMemory { get; set; }
 

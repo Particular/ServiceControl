@@ -9,11 +9,14 @@
     using AcceptanceTests;
     using CompositeViews.Messages;
     using Contracts.Operations;
+    using Infrastructure.RavenDB;
     using MessageAuditing;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using Operations.BodyStorage;
+    using Raven.Client;
     using TestSupport.EndpointTemplates;
 
     class When_processed_message_is_still_available : AcceptanceTest
@@ -23,35 +26,9 @@
         {
             var messageId = Guid.NewGuid().ToString();
 
-            SetSettings = settings =>
-            {
-                settings.StoreInitializer = async store =>
-                {
-                    using (var documentSession = store.OpenAsyncSession())
-                    {
-                        var processedMessage = new ProcessedMessage
-                        {
-                            MessageMetadata = new Dictionary<string, object>
-                            {
-                                {"Body", "Some Content"},
-                                {"ContentLength", 11},
-                                {"BodyUrl", string.Format(BodyStorageFeature.BodyStorageEnricher.BodyUrlFormatString, messageId)},
-                                {"BodyNotStored", false},
-                                {"ContentType", "text/plain" },
-                                {"MessageIntent", (int)MessageIntentEnum.Send},
-                                {"MessageId", messageId},
-                            },
-                            UniqueMessageId = messageId,
-                            ProcessedAt = DateTime.UtcNow
-                        };
-
-                        await documentSession.StoreAsync(processedMessage);
-                        await documentSession.SaveChangesAsync();
-                    }
-
-                    SpinWait.SpinUntil(() => store.DatabaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
-                };
-            };
+            CustomizeHostBuilder = hostBuilder
+                => hostBuilder.ConfigureServices((hostBuilderContext, services)
+                    => services.AddSingleton<IDataMigration>(new CreateMessageDataMigration(messageId)));
 
             MessagesView auditedMessage = null;
             byte[] body = null;
@@ -79,6 +56,41 @@
             var bodyAsString = Encoding.UTF8.GetString(body);
 
             Assert.AreEqual("Some Content", bodyAsString);
+        }
+
+        class CreateMessageDataMigration : IDataMigration
+        {
+            readonly string messageId;
+
+            public CreateMessageDataMigration(string messageId) => this.messageId = messageId;
+
+            public async Task Migrate(IDocumentStore store)
+            {
+                using (var documentSession = store.OpenAsyncSession())
+                {
+                    var processedMessage = new ProcessedMessage
+                    {
+                        MessageMetadata = new Dictionary<string, object>
+                        {
+                            {"Body", "Some Content"},
+                            {"ContentLength", 11},
+                            {"BodyUrl", string.Format(BodyStorageEnricher.BodyUrlFormatString, messageId)},
+                            {"BodyNotStored", false},
+                            {"ContentType", "text/plain" },
+                            {"MessageIntent", (int)MessageIntentEnum.Send},
+                            {"MessageId", messageId},
+                        },
+                        UniqueMessageId = messageId,
+                        ProcessedAt = DateTime.UtcNow
+                    };
+
+                    await documentSession.StoreAsync(processedMessage);
+                    await documentSession.SaveChangesAsync();
+                }
+
+                SpinWait.SpinUntil(() => store.DatabaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
+
+            }
         }
 
         public class Endpoint : EndpointConfigurationBuilder

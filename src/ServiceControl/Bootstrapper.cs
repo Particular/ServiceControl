@@ -11,20 +11,21 @@ namespace Particular.ServiceControl
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Reflection;
-    using Autofac;
     using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
+    using global::ServiceControl.CustomChecks;
+    using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
-    using global::ServiceControl.Monitoring;
-    using global::ServiceControl.Operations;
+    using global::ServiceControl.Notifications.Email;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
+    using Licensing;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -34,6 +35,7 @@ namespace Particular.ServiceControl
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
+    using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class Bootstrapper
@@ -80,6 +82,11 @@ namespace Particular.ServiceControl
                 configuration.License(settings.LicenseFileText);
             }
 
+            if (Environment.UserInteractive && Debugger.IsAttached)
+            {
+                EventSourceCreator.Create();
+            }
+
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
 
@@ -94,6 +101,7 @@ namespace Particular.ServiceControl
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
                 })
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>
                 {
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
@@ -105,33 +113,28 @@ namespace Particular.ServiceControl
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);
                     services.AddSingleton(sp => HttpClientFactory);
-                    services.AddSingleton<EndpointInstanceMonitoring>();
-                    services.AddSingleton<ErrorIngestionComponent>();
                 })
+                .UseLicenseCheck()
                 .UseMetrics(settings.PrintMetrics)
                 .UseEmbeddedRavenDb(context =>
                 {
                     var documentStore = new EmbeddableDocumentStore();
-
-                    RavenBootstrapper.ConfigureAndStart(documentStore, settings);
-
+                    RavenBootstrapper.Configure(documentStore, settings);
                     return documentStore;
-                }, settings.StoreInitializer)
+                })
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
-
                     return configuration;
                 })
+                .UseExternalIntegrationEvents()
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
+                .UseServicePulseSignalRNotifier()
+                .UseEmailNotifications()
                 .UseAsyncTimer()
+                .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
+                .UseServiceControlComponents(settings, ServiceControlMainInstance.Components)
                 ;
-
-            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
-            {
-                // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
-                containerBuilder.RegisterType<MonitoringDataPersister>().AsImplementedInterfaces().AsSelf().SingleInstance();
-            }));
         }
 
         TransportSettings MapSettings(Settings settings)

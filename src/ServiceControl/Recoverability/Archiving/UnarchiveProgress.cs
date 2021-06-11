@@ -1,5 +1,3 @@
-// unset
-
 namespace ServiceControl.Recoverability
 {
     public struct UnarchiveProgress

@@ -11,6 +11,7 @@ namespace ServiceControl.AcceptanceTests
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -74,7 +75,7 @@ namespace ServiceControl.AcceptanceTests
             }
 
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), s => CustomConfiguration(s));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
@@ -131,6 +132,7 @@ namespace ServiceControl.AcceptanceTests
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
+        protected Action<IHostBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;

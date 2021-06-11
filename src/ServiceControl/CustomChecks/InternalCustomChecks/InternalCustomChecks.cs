@@ -2,29 +2,32 @@
 {
     using System.Linq;
     using Infrastructure.BackgroundTasks;
-    using NServiceBus;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Features;
     using NServiceBus.Hosting;
+    using Operations;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    class InternalCustomChecks : Feature
+    static class InternalCustomChecks
     {
-        protected override void Setup(FeatureConfigurationContext context)
+        public static IHostBuilder UseInternalCustomChecks(this IHostBuilder hostBuilder)
         {
-            // Register all of the ICustomCheck instances
-            context.Settings.GetAvailableTypes()
-                .Where(t => typeof(ICustomCheck).IsAssignableFrom(t) && !(t.IsAbstract || t.IsInterface))
-                .ToList()
-                .ForEach(t => context.Container.ConfigureComponent(t, DependencyLifecycle.InstancePerCall));
+            hostBuilder.ConfigureServices(collection =>
+            {
+                collection.AddCustomCheck<CriticalErrorCustomCheck>();
+                collection.AddCustomCheck<CheckRemotes>();
+                collection.AddCustomCheck<CheckFreeDiskSpace>();
+                collection.AddCustomCheck<FailedAuditImportCustomCheck>();
 
-            // Register a startup task with all of the ICustomCheck instances in it
-            context.RegisterStartupTask(b => new InternalCustomChecksStartup(
-                b.BuildAll<ICustomCheck>().ToList(),
-                b.Build<CustomChecksStorage>(),
-                b.Build<HostInformation>(),
-                b.Build<IAsyncTimer>(),
-                context.Settings.EndpointName())
-            );
+                collection.AddHostedService(provider => new InternalCustomChecksHostedService(
+                    provider.GetServices<ICustomCheck>().ToList(),
+                    provider.GetRequiredService<CustomChecksStorage>(),
+                    provider.GetRequiredService<HostInformation>(),
+                    provider.GetRequiredService<IAsyncTimer>(),
+                    provider.GetRequiredService<Settings>().ServiceName));
+            });
+            return hostBuilder;
         }
     }
 }

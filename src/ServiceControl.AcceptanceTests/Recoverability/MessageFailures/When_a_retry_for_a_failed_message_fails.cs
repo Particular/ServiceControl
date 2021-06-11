@@ -65,7 +65,7 @@
                     await this.Post<object>($"/api/errors/{ctx.UniqueMessageId}/retry");
                     return true;
                 })
-                .Do("DetectThirdFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 2))
+                .Do("DetectThirdFailure", async ctx => await CheckProcessingAttemptsIs(ctx, 3))
                 .Do("RetryThirdTime", async ctx =>
                 {
                     ctx.Succeed = true;
@@ -85,7 +85,7 @@
 
         Task<SingleResult<FailedMessage>> CheckProcessingAttemptsIs(MyContext ctx, int count)
         {
-            return GetFailedMessage(ctx, f => f.ProcessingAttempts.Count == count);
+            return GetFailedMessage(ctx, f => f.ProcessingAttempts.Count == count && f.Status == FailedMessageStatus.Unresolved);
         }
 
         async Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, Predicate<FailedMessage> condition)
