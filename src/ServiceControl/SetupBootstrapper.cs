@@ -1,5 +1,6 @@
 namespace Particular.ServiceControl
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
@@ -16,9 +17,10 @@ namespace Particular.ServiceControl
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings settings)
+        public SetupBootstrapper(Settings settings, string[] excludedAssemblies = null)
         {
             this.settings = settings;
+            this.excludedAssemblies = excludedAssemblies ?? Array.Empty<string>();
         }
 
         public async Task Run(string username)
@@ -58,6 +60,7 @@ namespace Particular.ServiceControl
                 var transportCustomization = settings.LoadTransportCustomization();
 
                 var endpointConfig = new EndpointConfiguration(settings.ServiceName);
+                endpointConfig.AssemblyScanner().ExcludeAssemblies(excludedAssemblies);
 
                 NServiceBusFactory.Configure(settings, transportCustomization, transportSettings,
                     new LoggingSettings(settings.ServiceName), endpointConfig);
@@ -118,6 +121,7 @@ namespace Particular.ServiceControl
         }
 
         readonly Settings settings;
+        readonly string[] excludedAssemblies;
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }
 }
