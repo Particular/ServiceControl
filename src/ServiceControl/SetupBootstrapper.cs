@@ -1,7 +1,5 @@
 namespace Particular.ServiceControl
 {
-    using System;
-    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
@@ -10,10 +8,9 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using NServiceBus.Serialization;
-    using NServiceBus.Settings;
-    using NServiceBus.Unicast.Messages;
+    using NServiceBus.Transport;
     using Raven.Client.Embedded;
+    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -60,13 +57,23 @@ namespace Particular.ServiceControl
                 var transportSettings = MapSettings(settings);
                 var transportCustomization = settings.LoadTransportCustomization();
 
-                void Customize(EndpointConfiguration ec, TransportSettings ts)
+                var endpointConfig = new EndpointConfiguration(settings.ServiceName);
+
+                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings,
+                    new LoggingSettings(settings.ServiceName), endpointConfig);
+
+                endpointConfig.EnableInstallers(username);
+                var queueBindings = endpointConfig.GetSettings().Get<QueueBindings>();
+                foreach (var componentBinding in componentSetupContext.Queues)
                 {
-                    SetTransportSpecificFlags(ec.GetSettings(), $"{settings.ServiceName}.Errors");
-                    transportCustomization.CustomizeServiceControlEndpoint(ec, ts);
+                    queueBindings.BindSending(componentBinding);
                 }
 
-                await QueueCreator.CreateQueues(transportSettings, Customize, username, componentSetupContext.Queues.ToArray()).ConfigureAwait(false);
+                // HACK: Do not need the raven persistence to create queues
+                endpointConfig.UsePersistence<InMemoryPersistence, StorageType.Subscriptions>();
+
+                await Endpoint.Create(endpointConfig)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -108,36 +115,6 @@ namespace Particular.ServiceControl
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
             return transportSettings;
-        }
-
-        static void SetTransportSpecificFlags(SettingsHolder settings, string poisonQueue)
-        {
-            //To satisfy requirements of various transports
-
-            //MSMQ
-            settings.Set("errorQueue", poisonQueue); //Not SetDefault Because MSMQ transport verifies if that value has been explicitly set
-
-            //RabbitMQ
-            settings.SetDefault("RabbitMQ.RoutingTopologySupportsDelayedDelivery", true);
-
-            //SQS
-            settings.SetDefault("NServiceBus.AmazonSQS.DisableSubscribeBatchingOnStart", true);
-
-            //ASB
-            var builder = new ConventionsBuilder(settings);
-            builder.DefiningEventsAs(type => true);
-            settings.Set(builder.Conventions);
-
-            //ASQ and ASB
-            var serializer = Tuple.Create(new NewtonsoftSerializer() as SerializationDefinition, new SettingsHolder());
-            settings.SetDefault("MainSerializer", serializer);
-
-            //SQS and ASQ
-            bool IsMessageType(Type t) => true;
-            var ctor = typeof(MessageMetadataRegistry).GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(Func<Type, bool>) }, null);
-#pragma warning disable CS0618 // Type or member is obsolete
-            settings.SetDefault<MessageMetadataRegistry>(ctor.Invoke(new object[] { (Func<Type, bool>)IsMessageType }));
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         readonly Settings settings;
