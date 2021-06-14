@@ -59,7 +59,7 @@
                 })
                 .UseNServiceBus(builder =>
                 {
-                    Initialize(endpointConfiguration);
+                    ConfigureEndpoint(endpointConfiguration);
 
                     return endpointConfiguration;
                 })
@@ -75,7 +75,7 @@
                 }));
         }
 
-        void Initialize(EndpointConfiguration config)
+        internal void ConfigureEndpoint(EndpointConfiguration config)
         {
             var transportCustomization = settings.LoadTransportCustomization();
 
