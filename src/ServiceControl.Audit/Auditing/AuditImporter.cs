@@ -25,7 +25,6 @@
             var queueBindings = context.Settings.Get<QueueBindings>();
             queueBindings.BindReceiving(settings.AuditQueue);
 
-            context.Container.ConfigureComponent<AuditIngestionCustomCheck.State>(DependencyLifecycle.SingleInstance);
             context.RegisterStartupTask(b => new StartupTask(b.Build<AuditIngestionComponent>()));
         }
 

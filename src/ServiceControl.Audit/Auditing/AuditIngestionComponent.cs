@@ -155,8 +155,9 @@
             // will fall out here when writer is completed
         }
 
-        public Task ImportFailedAudits(CancellationToken cancellationToken = default)
+        public Task ImportFailedAudits(IMessageSession session, CancellationToken cancellationToken = default)
         {
+            auditPersister.Initialize(session);
             return failedImporter.Run(cancellationToken);
         }
     }
