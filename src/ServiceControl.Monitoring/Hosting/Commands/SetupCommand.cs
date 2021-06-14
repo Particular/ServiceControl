@@ -4,7 +4,7 @@ namespace ServiceControl.Monitoring
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
-    using ServiceControl.LicenseManagement;
+    using LicenseManagement;
 
     class SetupCommand : AbstractCommand
     {
@@ -14,10 +14,12 @@ namespace ServiceControl.Monitoring
             {
                 var endpointConfig = new EndpointConfiguration(settings.EndpointName);
 
-                new Bootstrapper(
+                var bootstrapper = new Bootstrapper(
                     c => Environment.FailFast("NServiceBus Critical Error", c.Exception),
                     settings,
                     endpointConfig);
+
+                bootstrapper.ConfigureEndpoint(endpointConfig);
 
                 endpointConfig.EnableInstallers(settings.Username);
 
