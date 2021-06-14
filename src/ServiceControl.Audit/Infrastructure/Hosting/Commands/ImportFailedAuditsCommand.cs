@@ -26,6 +26,7 @@
                 var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
                 var busInstance = await bootstrapper.Start().ConfigureAwait(false);
                 var importer = busInstance.AuditIngestion;
+                importer.InitializeSession(busInstance.Bus);
 
                 Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 

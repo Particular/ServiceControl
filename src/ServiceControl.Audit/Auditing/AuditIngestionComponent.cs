@@ -100,6 +100,11 @@
             return watchdog.OnFailure(failure);
         }
 
+        public void InitializeSession(IMessageSession session)
+        {
+            auditPersister.Initialize(session);
+        }
+
         public Task Start(IMessageSession session)
         {
             auditPersister.Initialize(session);

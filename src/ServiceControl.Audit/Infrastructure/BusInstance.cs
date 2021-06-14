@@ -9,16 +9,14 @@ namespace ServiceControl.Audit.Infrastructure
         public BusInstance(IEndpointInstance bus, AuditIngestionComponent auditIngestion)
         {
             AuditIngestion = auditIngestion;
-            this.bus = bus;
+            Bus = bus;
         }
-
+        public IEndpointInstance Bus { get; }
         public AuditIngestionComponent AuditIngestion { get; }
 
         public Task Stop()
         {
-            return bus.Stop();
+            return Bus.Stop();
         }
-
-        IEndpointInstance bus;
     }
 }
