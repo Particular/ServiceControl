@@ -7,12 +7,14 @@
     using System.Web.Http;
     using Audit.Auditing;
     using Infrastructure.WebApi;
+    using NServiceBus;
     using Raven.Client;
 
     public class FailedAuditsController : ApiController
     {
-        internal FailedAuditsController(IDocumentStore store, AuditIngestionComponent auditIngestion)
+        internal FailedAuditsController(IMessageSession bus, IDocumentStore store, AuditIngestionComponent auditIngestion)
         {
+            this.bus = bus;
             this.store = store;
             this.auditIngestion = auditIngestion;
         }
@@ -41,10 +43,11 @@
         public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken cancellationToken = default)
         {
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            await auditIngestion.ImportFailedAudits(tokenSource.Token);
+            await auditIngestion.ImportFailedAudits(bus, tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
+        readonly IMessageSession bus;
         readonly IDocumentStore store;
         readonly AuditIngestionComponent auditIngestion;
     }
