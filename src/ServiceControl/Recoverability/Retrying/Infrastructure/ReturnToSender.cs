@@ -27,6 +27,7 @@ namespace ServiceControl.Recoverability
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
+            outgoingHeaders["ServiceControl.Version"] = GitVersionInformation.MajorMinorPatch;
 
             byte[] body = null;
             var messageId = message.MessageId;
