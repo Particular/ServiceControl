@@ -5,14 +5,21 @@
 
     public class LicenseManager
     {
+        readonly Settings settings;
         internal License Details { get; set; }
         internal bool IsValid { get; set; }
+
+        public LicenseManager(Settings settings) => this.settings = settings;
 
         public void Refresh()
         {
             Logger.Debug("Checking License Status");
 
             var sources = LicenseSource.GetStandardLicenseSources();
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                sources.Add(new LicenseSourceUserProvided(settings.LicenseFileText));
+            }
             var result = ActiveLicense.Find("ServiceControl", sources.ToArray());
 
             if (result.License.HasExpired())

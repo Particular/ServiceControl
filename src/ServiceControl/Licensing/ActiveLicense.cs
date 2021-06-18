@@ -2,11 +2,15 @@
 {
     using NServiceBus.Logging;
     using Particular.Licensing;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class ActiveLicense
     {
-        public ActiveLicense()
+        readonly Settings settings;
+
+        public ActiveLicense(Settings settings)
         {
+            this.settings = settings;
             Refresh();
         }
 
@@ -19,6 +23,11 @@
             Logger.Debug("Refreshing ActiveLicense");
 
             var sources = LicenseSource.GetStandardLicenseSources();
+            if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
+            {
+                sources.Add(new LicenseSourceUserProvided(settings.LicenseFileText));
+            }
+
             var result = Particular.Licensing.ActiveLicense.Find("ServiceControl", sources.ToArray());
 
             IsValid = !result.License.HasExpired();
