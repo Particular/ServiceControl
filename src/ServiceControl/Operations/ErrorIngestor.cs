@@ -2,26 +2,31 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using Contracts.Operations;
+    using Infrastructure.Metrics;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
+    using Raven.Client;
 
     class ErrorIngestor
     {
-        public ErrorIngestor(ErrorPersister errorPersister, FailedMessageAnnouncer failedMessageAnnouncer, bool forwardErrorMessages, string errorLogQueue)
+        public ErrorIngestor(ErrorPersister errorPersister, FailedMessageAnnouncer failedMessageAnnouncer, IDocumentStore store, Meter bulkInsertDurationMeter, bool forwardErrorMessages, string errorLogQueue)
         {
             this.errorPersister = errorPersister;
             this.failedMessageAnnouncer = failedMessageAnnouncer;
+            this.store = store;
+            this.bulkInsertDurationMeter = bulkInsertDurationMeter;
             this.forwardErrorMessages = forwardErrorMessages;
             this.errorLogQueue = errorLogQueue;
         }
 
         public async Task Ingest(List<MessageContext> contexts)
         {
-            var stored = await errorPersister.Persist(contexts)
+            var stored = await Persist(contexts)
                 .ConfigureAwait(false);
 
             try
@@ -61,6 +66,48 @@
 
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
+            }
+        }
+
+        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            if (log.IsDebugEnabled)
+            {
+                log.Debug($"Batch size {contexts.Count}");
+            }
+
+            try
+            {
+                var (storedContexts, commands) = await errorPersister.Persist(contexts).ConfigureAwait(false);
+
+                using (bulkInsertDurationMeter.Measure())
+                {
+                    // not really interested in the batch results since a batch is atomic
+                    await store.AsyncDatabaseCommands.BatchAsync(commands)
+                        .ConfigureAwait(false);
+                }
+
+                return storedContexts;
+            }
+            catch (Exception e)
+            {
+                if (log.IsDebugEnabled)
+                {
+                    log.Debug("Bulk insertion failed", e);
+                }
+
+                // making sure to rethrow so that all messages get marked as failed
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+                if (log.IsDebugEnabled)
+                {
+                    log.Debug($"Batch size {contexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
         }
 
@@ -128,6 +175,8 @@
         IDispatchMessages dispatcher;
         string errorLogQueue;
         FailedMessageAnnouncer failedMessageAnnouncer;
+        readonly IDocumentStore store;
+        readonly Meter bulkInsertDurationMeter;
         ErrorPersister errorPersister;
         static ILog log = LogManager.GetLogger<ErrorIngestor>();
     }

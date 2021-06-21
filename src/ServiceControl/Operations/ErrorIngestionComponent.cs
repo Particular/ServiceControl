@@ -53,7 +53,7 @@
             this.settings = settings;
             var announcer = new FailedMessageAnnouncer(domainEvents);
             persister = new ErrorPersister(documentStore, bodyStorageEnricher, enrichers, failedMessageEnrichers, ingestedMeter, bulkInsertDurationMeter);
-            ingestor = new ErrorIngestor(persister, announcer, settings.ForwardErrorMessages, settings.ErrorLogQueue);
+            ingestor = new ErrorIngestor(persister, announcer, documentStore, bulkInsertDurationMeter, settings.ForwardErrorMessages, settings.ErrorLogQueue);
 
             var ingestion = new ErrorIngestion(async messageContext =>
                 {

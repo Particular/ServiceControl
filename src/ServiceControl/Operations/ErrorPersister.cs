@@ -53,82 +53,47 @@
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts)
+        public async Task<(IReadOnlyList<MessageContext>, IReadOnlyCollection<ICommandData>)> Persist(List<MessageContext> contexts)
         {
-            var stopwatch = Stopwatch.StartNew();
-
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Debug($"Batch size {contexts.Count}");
-            }
-
             var storedContexts = new List<MessageContext>(contexts.Count);
-            try
+            var tasks = new List<Task>(contexts.Count);
+            foreach (var context in contexts)
             {
-                var tasks = new List<Task>(contexts.Count);
-                foreach (var context in contexts)
+                tasks.Add(ProcessMessage(context));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            var commands = new List<ICommandData>(contexts.Count);
+            var knownEndpoints = new Dictionary<string, KnownEndpoint>();
+            foreach (var context in contexts)
+            {
+                if (!context.Extensions.TryGet<ICommandData>(out var command))
                 {
-                    tasks.Add(ProcessMessage(context));
+                    continue;
                 }
 
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                commands.Add(command);
+                storedContexts.Add(context);
+                ingestedCounter.Mark();
 
-                var commands = new List<ICommandData>(contexts.Count);
-                var knownEndpoints = new Dictionary<string, KnownEndpoint>();
-                foreach (var context in contexts)
+                foreach (var endpointDetail in context.Extensions.Get<IEnumerable<EndpointDetails>>())
                 {
-                    if (!context.Extensions.TryGet<ICommandData>(out var command))
-                    {
-                        continue;
-                    }
-
-                    commands.Add(command);
-                    storedContexts.Add(context);
-                    ingestedCounter.Mark();
-
-                    foreach (var endpointDetail in context.Extensions.Get<IEnumerable<EndpointDetails>>())
-                    {
-                        RecordKnownEndpoints(endpointDetail, knownEndpoints);
-                    }
-                }
-
-                foreach (var endpoint in knownEndpoints.Values)
-                {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
-                    }
-
-                    commands.Add(CreateKnownEndpointsPutCommand(endpoint));
-                }
-
-                using (bulkInsertDurationMeter.Measure())
-                {
-                    // not really interested in the batch results since a batch is atomic
-                    await store.AsyncDatabaseCommands.BatchAsync(commands)
-                        .ConfigureAwait(false);
+                    RecordKnownEndpoints(endpointDetail, knownEndpoints);
                 }
             }
-            catch (Exception e)
+
+            foreach (var endpoint in knownEndpoints.Values)
             {
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.Debug("Bulk insertion failed", e);
+                    Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
                 }
 
-                // making sure to rethrow so that all messages get marked as failed
-                throw;
-            }
-            finally
-            {
-                stopwatch.Stop();
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"Batch size {contexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
-                }
+                commands.Add(CreateKnownEndpointsPutCommand(endpoint));
             }
 
-            return storedContexts;
+            return (storedContexts, commands);
         }
 
         static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) =>
