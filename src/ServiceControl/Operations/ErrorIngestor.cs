@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading.Tasks;
-    using Contracts.Operations;
     using Infrastructure.Metrics;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
@@ -14,10 +14,10 @@
 
     class ErrorIngestor
     {
-        public ErrorIngestor(ErrorPersister errorPersister, FailedMessageAnnouncer failedMessageAnnouncer, IDocumentStore store, Meter bulkInsertDurationMeter, bool forwardErrorMessages, string errorLogQueue)
+        public ErrorIngestor(ErrorProcessor errorProcessor, RetryConfirmationProcessor retryConfirmationProcessor, IDocumentStore store, Meter bulkInsertDurationMeter, bool forwardErrorMessages, string errorLogQueue)
         {
-            this.errorPersister = errorPersister;
-            this.failedMessageAnnouncer = failedMessageAnnouncer;
+            this.errorProcessor = errorProcessor;
+            this.retryConfirmationProcessor = retryConfirmationProcessor;
             this.store = store;
             this.bulkInsertDurationMeter = bulkInsertDurationMeter;
             this.forwardErrorMessages = forwardErrorMessages;
@@ -26,15 +26,35 @@
 
         public async Task Ingest(List<MessageContext> contexts)
         {
-            var stored = await Persist(contexts)
+            var failedMessages = new List<MessageContext>(contexts.Count);
+            var retriedMessages = new List<MessageContext>(contexts.Count);
+
+            foreach (MessageContext context in contexts)
+            {
+                if (context.Headers.ContainsKey(RetryConfirmationProcessor.SuccessfulRetryHeader))
+                {
+                    retriedMessages.Add(context);
+                }
+                else
+                {
+                    failedMessages.Add(context);
+                }
+            }
+
+
+            var (storedFailed, storedRetried) = await PersistFailedMessages(failedMessages, retriedMessages)
                 .ConfigureAwait(false);
 
             try
             {
-                var announcerTasks = new List<Task>(stored.Count);
-                foreach (var context in stored)
+                var announcerTasks = new List<Task>(contexts.Count);
+                foreach (var context in storedFailed)
                 {
-                    announcerTasks.Add(failedMessageAnnouncer.Announce(context.Headers, context.Extensions.Get<FailureDetails>()));
+                    announcerTasks.Add(errorProcessor.Announce(context));
+                }
+                foreach (var context in storedRetried)
+                {
+                    announcerTasks.Add(retryConfirmationProcessor.Announce(context));
                 }
 
                 await Task.WhenAll(announcerTasks).ConfigureAwait(false);
@@ -45,14 +65,14 @@
                     {
                         log.Debug($"Forwarding {contexts.Count} messages");
                     }
-                    await Forward(stored).ConfigureAwait(false);
+                    await Forward(storedFailed).ConfigureAwait(false);
                     if (log.IsDebugEnabled)
                     {
-                        log.Debug($"Forwarded messages");
+                        log.Debug("Forwarded messages");
                     }
                 }
 
-                foreach (var context in stored)
+                foreach (var context in storedFailed.Concat(storedRetried))
                 {
                     context.GetTaskCompletionSource().TrySetResult(true);
                 }
@@ -69,27 +89,29 @@
             }
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts)
+        async Task<(IReadOnlyList<MessageContext>, IReadOnlyList<MessageContext>)> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts)
         {
             var stopwatch = Stopwatch.StartNew();
 
             if (log.IsDebugEnabled)
             {
-                log.Debug($"Batch size {contexts.Count}");
+                log.Debug($"Batch size {failedMessageContexts.Count}");
             }
 
             try
             {
-                var (storedContexts, commands) = await errorPersister.Persist(contexts).ConfigureAwait(false);
+                var (storedFailedMessageContexts, storeCommands) = await errorProcessor.Process(failedMessageContexts).ConfigureAwait(false);
+                var (storedRetriedMessageContexts, markRetriedCommands) = retryConfirmationProcessor.Process(retriedMessageContexts);
 
                 using (bulkInsertDurationMeter.Measure())
                 {
                     // not really interested in the batch results since a batch is atomic
-                    await store.AsyncDatabaseCommands.BatchAsync(commands)
+                    var allCommands = storeCommands.Concat(markRetriedCommands);
+                    await store.AsyncDatabaseCommands.BatchAsync(allCommands)
                         .ConfigureAwait(false);
                 }
 
-                return storedContexts;
+                return (storedFailedMessageContexts, storedRetriedMessageContexts);
             }
             catch (Exception e)
             {
@@ -106,7 +128,7 @@
                 stopwatch.Stop();
                 if (log.IsDebugEnabled)
                 {
-                    log.Debug($"Batch size {contexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
+                    log.Debug($"Batch size {failedMessageContexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
                 }
             }
         }
@@ -174,10 +196,10 @@
         bool forwardErrorMessages;
         IDispatchMessages dispatcher;
         string errorLogQueue;
-        FailedMessageAnnouncer failedMessageAnnouncer;
         readonly IDocumentStore store;
         readonly Meter bulkInsertDurationMeter;
-        ErrorPersister errorPersister;
+        ErrorProcessor errorProcessor;
+        readonly RetryConfirmationProcessor retryConfirmationProcessor;
         static ILog log = LogManager.GetLogger<ErrorIngestor>();
     }
 }

@@ -2,11 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading.Tasks;
     using BodyStorage;
+    using Contracts.MessageFailures;
     using Contracts.Operations;
     using Infrastructure;
+    using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
     using MessageFailures;
     using Monitoring;
@@ -16,15 +17,14 @@
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
-    using Raven.Client;
     using Raven.Imports.Newtonsoft.Json;
     using Raven.Json.Linq;
     using Recoverability;
     using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
-    class ErrorPersister
+    class ErrorProcessor
     {
-        static ErrorPersister()
+        static ErrorProcessor()
         {
             Serializer = JsonExtensions.CreateDefaultJsonSerializer();
             Serializer.TypeNameHandling = TypeNameHandling.Auto;
@@ -42,18 +42,17 @@
                                     }}");
         }
 
-        public ErrorPersister(IDocumentStore store, BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers,
-            Counter ingestedCounter, Meter bulkInsertDurationMeter)
+        public ErrorProcessor(BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers, IDomainEvents domainEvents,
+            Counter ingestedCounter)
         {
-            this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
+            this.domainEvents = domainEvents;
             this.ingestedCounter = ingestedCounter;
-            this.bulkInsertDurationMeter = bulkInsertDurationMeter;
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
-        public async Task<(IReadOnlyList<MessageContext>, IReadOnlyCollection<ICommandData>)> Persist(List<MessageContext> contexts)
+        public async Task<(IReadOnlyList<MessageContext>, IReadOnlyCollection<ICommandData>)> Process(List<MessageContext> contexts)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
             var tasks = new List<Task>(contexts.Count);
@@ -94,6 +93,32 @@
             }
 
             return (storedContexts, commands);
+        }
+
+        public Task Announce(MessageContext messageContext)
+        {
+            var failureDetails = messageContext.Extensions.Get<FailureDetails>();
+            var headers = messageContext.Headers;
+
+            var failingEndpointId = headers.ProcessingEndpointName();
+
+            if (headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var failedMessageId))
+            {
+                return domainEvents.Raise(new MessageFailed
+                {
+                    FailureDetails = failureDetails,
+                    EndpointId = failingEndpointId,
+                    FailedMessageId = failedMessageId,
+                    RepeatedFailure = true
+                });
+            }
+
+            return domainEvents.Raise(new MessageFailed
+            {
+                FailureDetails = failureDetails,
+                EndpointId = failingEndpointId,
+                FailedMessageId = headers.UniqueId()
+            });
         }
 
         static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) =>
@@ -155,7 +180,7 @@
             {
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.Debug($"Processing of message '{messageId}' failed.", e);
+                    Logger.Debug($"Processing of message '{context.MessageId}' failed.", e);
                 }
 
                 context.GetTaskCompletionSource().TrySetException(e);
@@ -226,15 +251,14 @@
             }
         }
 
-        IEnrichImportedErrorMessages[] enrichers;
+        readonly IEnrichImportedErrorMessages[] enrichers;
+        readonly IDomainEvents domainEvents;
         readonly Counter ingestedCounter;
-        readonly Meter bulkInsertDurationMeter;
         BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
-        IDocumentStore store;
-        static RavenJObject FailedMessageMetadata;
-        static RavenJObject KnownEndpointMetadata;
-        static JsonSerializer Serializer;
-        static ILog Logger = LogManager.GetLogger<ErrorPersister>();
+        static readonly RavenJObject FailedMessageMetadata;
+        static readonly RavenJObject KnownEndpointMetadata;
+        static readonly JsonSerializer Serializer;
+        static readonly ILog Logger = LogManager.GetLogger<ErrorProcessor>();
     }
 }

@@ -26,8 +26,6 @@
         Settings settings;
         Channel<MessageContext> channel;
         ErrorIngestor ingestor;
-        ErrorPersister persister;
-        Counter receivedMeter;
         Meter batchSizeMeter;
         Meter batchDurationMeter;
 
@@ -44,16 +42,17 @@
             ErrorIngestionCustomCheck.State ingestionState
         )
         {
-            receivedMeter = metrics.GetCounter("Error ingestion - received");
+            var receivedMeter = metrics.GetCounter("Error ingestion - received");
             batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
             var ingestedMeter = metrics.GetCounter("Error ingestion - ingested");
             var bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
             batchDurationMeter = metrics.GetMeter("Error ingestion - batch processing duration", FrequencyInMilliseconds);
 
             this.settings = settings;
-            var announcer = new FailedMessageAnnouncer(domainEvents);
-            persister = new ErrorPersister(documentStore, bodyStorageEnricher, enrichers, failedMessageEnrichers, ingestedMeter, bulkInsertDurationMeter);
-            ingestor = new ErrorIngestor(persister, announcer, documentStore, bulkInsertDurationMeter, settings.ForwardErrorMessages, settings.ErrorLogQueue);
+            var errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers, domainEvents, ingestedMeter);
+            var retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
+
+            ingestor = new ErrorIngestor(errorProcessor, retryConfirmationProcessor, documentStore, bulkInsertDurationMeter, settings.ForwardErrorMessages, settings.ErrorLogQueue);
 
             var ingestion = new ErrorIngestion(async messageContext =>
                 {
