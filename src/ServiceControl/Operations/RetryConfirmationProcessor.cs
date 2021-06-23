@@ -14,7 +14,8 @@
 
     class RetryConfirmationProcessor
     {
-        public const string SuccessfulRetryHeader = "ServiceControl.Retry.SuccessfulRetryUniqueMessageId";
+        public const string SuccessfulRetryHeader = "ServiceControl.Retry.Successful";
+        const string RetryUniqueMessageIdHeader = "ServiceControl.Retry.UniqueMessageId";
 
         public RetryConfirmationProcessor(IDomainEvents domainEvents)
         {
@@ -52,13 +53,13 @@
         {
             return domainEvents.Raise(new MessageFailureResolvedByRetry
             {
-                FailedMessageId = messageContext.Headers[SuccessfulRetryHeader]
+                FailedMessageId = messageContext.Headers[RetryUniqueMessageIdHeader]
             });
         }
 
         static IEnumerable<ICommandData> ProcessOne(MessageContext context)
         {
-            var retriedMessageUniqueId = context.Headers[SuccessfulRetryHeader];
+            var retriedMessageUniqueId = context.Headers[RetryUniqueMessageIdHeader];
             var failedMessageDocumentId = FailedMessage.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
 
