@@ -53,7 +53,8 @@
         {
             return domainEvents.Raise(new MessageFailureResolvedByRetry
             {
-                FailedMessageId = messageContext.Headers[RetryUniqueMessageIdHeader]
+                FailedMessageId = messageContext.Headers[RetryUniqueMessageIdHeader],
+                StateUpdated = true
             });
         }
 
