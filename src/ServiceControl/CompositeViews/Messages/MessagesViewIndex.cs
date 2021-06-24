@@ -31,7 +31,6 @@ namespace ServiceControl.CompositeViews.Messages
                                                  });
 
             AddMap<FailedMessage>(messages => from message in messages
-                                              where message.Status != FailedMessageStatus.Resolved
                                               let last = message.ProcessingAttempts.Last()
                                               select new SortAndFilterOptions
                                               {
