@@ -1,29 +1,24 @@
-ServiceControl ![Current Version](https://img.shields.io/github/release/particular/servicecontrol.svg?style=flat&label=current%20version)
-=====================
+# ServiceControl ![Current Version](https://img.shields.io/github/release/particular/servicecontrol.svg?style=flat&label=current%20version)
 
 ServiceControl is the monitoring brain in the Particular Service Platform. It collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API and SignalR notifications.
 
-Where to Download
-=====================
+## Where to Download
 
 The current version of ServiceControl can be downloaded from https://particular.net/downloads.
 
-User Documentation
-=====================
+## User Documentation
 
 Documentation for ServiceControl is located on the Particular Docs website at following address:
 
 https://docs.particular.net/servicecontrol/
 
-How to build
-============
+## How to build
 
 - Enable Windows Feature .NET Framework 3.5 support, which is needed to support the Wix components in the ServiceControl installer.
 - If not using Visual Studio, you may need to install .NET 4.0 SDK according to https://stackoverflow.com/a/45509430
 - Follow the [Coding and design guidelines](/docs/coding-and-design-guidelines.md)
 
-How to build and run Docker images
-====================================
+## How to build and run Docker images
 
 NOTE: The following scripts are provided to ease development stages only. To run container images in production refer to the ones available on Docker Hub.
 
