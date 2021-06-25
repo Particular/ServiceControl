@@ -39,9 +39,11 @@ namespace ServiceControl.CompositeViews.Messages
                                                   IsSystemMessage = (bool)last.MessageMetadata["IsSystemMessage"],
                                                   Status = message.Status == FailedMessageStatus.Archived
                                                       ? MessageStatus.ArchivedFailure
-                                                      : message.ProcessingAttempts.Count == 1
-                                                          ? MessageStatus.Failed
-                                                          : MessageStatus.RepeatedFailure,
+                                                        : message.Status == FailedMessageStatus.Resolved
+                                                            ? MessageStatus.ResolvedSuccessfully
+                                                              : message.ProcessingAttempts.Count == 1
+                                                                  ? MessageStatus.Failed
+                                                                  : MessageStatus.RepeatedFailure,
                                                   TimeSent = (DateTime)last.MessageMetadata["TimeSent"],
                                                   ProcessedAt = last.AttemptedAt,
                                                   ReceivingEndpointName = ((EndpointDetails)last.MessageMetadata["ReceivingEndpoint"]).Name,
