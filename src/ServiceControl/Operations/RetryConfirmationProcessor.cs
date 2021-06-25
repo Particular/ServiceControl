@@ -69,7 +69,7 @@
                 Key = failedMessageDocumentId,
                 Patches = new[]
                 {
-                    new PatchRequest {Type = PatchCommandType.Set, Name = "status", Value = (int)FailedMessageStatus.Resolved}
+                    new PatchRequest {Type = PatchCommandType.Set, Name = "Status", Value = (int)FailedMessageStatus.Resolved}
                 }
             };
 
