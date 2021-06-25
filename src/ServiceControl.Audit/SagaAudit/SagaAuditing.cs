@@ -17,7 +17,7 @@
             context.Container.ConfigureComponent<SagaRelationshipsEnricher>(DependencyLifecycle.SingleInstance);
         }
 
-        class SagaRelationshipsEnricher : IEnrichImportedAuditMessages
+        internal class SagaRelationshipsEnricher : IEnrichImportedAuditMessages
         {
             public void Enrich(AuditEnricherContext context)
             {
