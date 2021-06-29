@@ -7,9 +7,9 @@ namespace ServiceControl.Recoverability.ExternalIntegration
     using ExternalIntegrations;
     using Raven.Client;
 
-    class MessageFailureResolvedByRetryPublisher : EventPublisher<MessageFailureResolvedByRetry, MessageFailureResolvedByRetryPublisher.DispatchContext>
+    class MessageFailureResolvedByRetryPublisher : EventPublisher<MessageFailureResolvedByRetryDomainEvent, MessageFailureResolvedByRetryPublisher.DispatchContext>
     {
-        protected override DispatchContext CreateDispatchRequest(MessageFailureResolvedByRetry @event)
+        protected override DispatchContext CreateDispatchRequest(MessageFailureResolvedByRetryDomainEvent @event)
         {
             return new DispatchContext
             {

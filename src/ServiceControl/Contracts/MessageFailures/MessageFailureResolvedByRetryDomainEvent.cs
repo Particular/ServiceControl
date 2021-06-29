@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Contracts.MessageFailures
 {
-    using NServiceBus;
+    using Infrastructure.DomainEvents;
+    using Infrastructure.SignalR;
 
-    // Comes from unconverted legacy instances
-    public class MessageFailureResolvedByRetry : IMessage
+    public class MessageFailureResolvedByRetryDomainEvent : IDomainEvent, IUserInterfaceEvent
     {
         public string FailedMessageId { get; set; }
         public string[] AlternativeFailedMessageIds { get; set; }
