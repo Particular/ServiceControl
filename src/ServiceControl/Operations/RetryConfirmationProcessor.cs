@@ -31,7 +31,7 @@
             {
                 try
                 {
-                    var commands = ProcessOne(context);
+                    var commands = CreateDatabaseCommands(context);
                     allCommands.AddRange(commands);
                     storedContexts.Add(context);
                 }
@@ -57,7 +57,7 @@
             });
         }
 
-        static IEnumerable<ICommandData> ProcessOne(MessageContext context)
+        static IEnumerable<ICommandData> CreateDatabaseCommands(MessageContext context)
         {
             var retriedMessageUniqueId = context.Headers[RetryUniqueMessageIdHeader];
             var failedMessageDocumentId = FailedMessage.MakeDocumentId(retriedMessageUniqueId);
@@ -68,7 +68,7 @@
                 Key = failedMessageDocumentId,
                 Patches = new[]
                 {
-                    new PatchRequest {Type = PatchCommandType.Set, Name = "Status", Value = (int)FailedMessageStatus.Resolved}
+                    new PatchRequest {Type = PatchCommandType.Set, Name = nameof(FailedMessage.Status), Value = (int)FailedMessageStatus.Resolved}
                 }
             };
 

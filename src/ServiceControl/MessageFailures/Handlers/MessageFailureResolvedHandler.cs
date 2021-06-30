@@ -26,10 +26,7 @@
 
         public async Task Handle(MarkMessageFailureResolvedByRetry message, IMessageHandlerContext context)
         {
-            var primaryId = message.FailedMessageId;
-            var messageAlternativeFailedMessageIds = message.AlternativeFailedMessageIds;
-
-            await MarkAsResolvedByRetry(primaryId, messageAlternativeFailedMessageIds)
+            await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds)
                 .ConfigureAwait(false);
             await domainEvents.Raise(new MessageFailureResolvedByRetryDomainEvent
             {
@@ -41,10 +38,7 @@
         // This is only needed because we might get this from legacy not yet converted instances
         public async Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
         {
-            var primaryId = message.FailedMessageId;
-            var messageAlternativeFailedMessageIds = message.AlternativeFailedMessageIds;
-
-            await MarkAsResolvedByRetry(primaryId, messageAlternativeFailedMessageIds)
+            await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds)
                 .ConfigureAwait(false);
             await domainEvents.Raise(new MessageFailureResolvedByRetryDomainEvent
             {

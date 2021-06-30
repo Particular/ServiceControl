@@ -29,7 +29,7 @@
             var failedMessages = new List<MessageContext>(contexts.Count);
             var retriedMessages = new List<MessageContext>(contexts.Count);
 
-            foreach (MessageContext context in contexts)
+            foreach (var context in contexts)
             {
                 if (context.Headers.ContainsKey(RetryConfirmationProcessor.SuccessfulRetryHeader))
                 {
