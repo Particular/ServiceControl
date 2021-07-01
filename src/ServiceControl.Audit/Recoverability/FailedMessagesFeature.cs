@@ -28,12 +28,13 @@
                 var headers = context.Headers;
                 var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out _);
                 var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var newRetryMessageId);
+                var isAckHandled = headers.ContainsKey("ServiceControl.Retry.AcknowledgementSent");
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
 
                 context.Metadata.Add("IsRetried", hasBeenRetried);
 
-                if (!hasBeenRetried)
+                if (!hasBeenRetried || isAckHandled)
                 {
                     return;
                 }
