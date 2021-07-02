@@ -46,7 +46,8 @@
                 {
                     var ackMessage = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                     {
-                        ["ServiceControl.Retry.Successful"] = "true"
+                        ["ServiceControl.Retry.Successful"] = "true",
+                        ["ServiceControl.Retry.UniqueMessageId"] = newRetryMessageId
                     }, new byte[0]);
                     var ackOperation = new TransportOperation(ackMessage, new UnicastAddressTag(ackQueue));
                     context.AddForSend(ackOperation);
