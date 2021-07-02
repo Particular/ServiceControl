@@ -34,7 +34,8 @@
                     //trigger retry
                     await this.Post<object>("/api/errors/retry/all");
                 })
-                .Do("Wait for retry confirmation", async c => {
+                .Do("Wait for retry confirmation", async c =>
+                {
                     if (!c.ReceivedRetry)
                     {
                         // wait till endpoint processed the retried message

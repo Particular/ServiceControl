@@ -8,6 +8,8 @@
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Routing;
+    using NServiceBus.Transport;
 
     class FailedMessagesFeature : Feature
     {
@@ -29,6 +31,7 @@
                 var isOldRetry = headers.TryGetValue("ServiceControl.RetryId", out _);
                 var isNewRetry = headers.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var newRetryMessageId);
                 var isAckHandled = headers.ContainsKey("ServiceControl.Retry.AcknowledgementSent");
+                var hasAckQueue = headers.TryGetValue("ServiceControl.Retry.AcknowledgementQueue", out var ackQueue);
 
                 var hasBeenRetried = isOldRetry || isNewRetry;
 
@@ -39,11 +42,23 @@
                     return;
                 }
 
-                context.AddForSend(new MarkMessageFailureResolvedByRetry
+                if (hasAckQueue && isNewRetry)
                 {
-                    FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
-                    AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()
-                });
+                    var ackMessage = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
+                    {
+                        ["ServiceControl.Retry.Successful"] = "true"
+                    }, new byte[0]);
+                    var ackOperation = new TransportOperation(ackMessage, new UnicastAddressTag(ackQueue));
+                    context.AddForSend(ackOperation);
+                }
+                else
+                {
+                    context.AddForSend(new MarkMessageFailureResolvedByRetry
+                    {
+                        FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
+                        AlternativeFailedMessageIds = GetAlternativeUniqueMessageId(headers).ToArray()
+                    });
+                }
             }
 
             IEnumerable<string> GetAlternativeUniqueMessageId(IReadOnlyDictionary<string, string> headers)

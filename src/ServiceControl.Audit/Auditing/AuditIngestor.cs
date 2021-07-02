@@ -24,7 +24,7 @@
                 log.Debug($"Ingesting {contexts.Count} message contexts");
             }
 
-            var stored = await auditPersister.Persist(contexts).ConfigureAwait(false);
+            var stored = await auditPersister.Persist(contexts, dispatcher).ConfigureAwait(false);
 
             try
             {
