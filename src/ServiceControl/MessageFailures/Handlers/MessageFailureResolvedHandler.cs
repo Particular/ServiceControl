@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
     using Api;
     using Contracts.MessageFailures;
@@ -9,67 +8,15 @@
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
-    using Recoverability;
 
     class MessageFailureResolvedHandler :
-        IHandleMessages<MarkMessageFailureResolvedByRetry>,
-        IHandleMessages<MessageFailureResolvedByRetry>,
         IHandleMessages<MarkPendingRetryAsResolved>,
         IHandleMessages<MarkPendingRetriesAsResolved>
     {
-        public MessageFailureResolvedHandler(IDocumentStore store, IDomainEvents domainEvents, RetryDocumentManager retryDocumentManager)
+        public MessageFailureResolvedHandler(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
             this.domainEvents = domainEvents;
-            this.retryDocumentManager = retryDocumentManager;
-        }
-
-        public async Task Handle(MarkMessageFailureResolvedByRetry message, IMessageHandlerContext context)
-        {
-            await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds)
-                .ConfigureAwait(false);
-            await domainEvents.Raise(new MessageFailureResolvedByRetryDomainEvent
-            {
-                AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
-                FailedMessageId = message.FailedMessageId
-            }).ConfigureAwait(false);
-        }
-
-        // This is only needed because we might get this from legacy not yet converted instances
-        public async Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
-        {
-            await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds)
-                .ConfigureAwait(false);
-            await domainEvents.Raise(new MessageFailureResolvedByRetryDomainEvent
-            {
-                AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
-                FailedMessageId = message.FailedMessageId
-            }).ConfigureAwait(false);
-        }
-
-        async Task MarkAsResolvedByRetry(string primaryId, string[] messageAlternativeFailedMessageIds)
-        {
-            await retryDocumentManager.RemoveFailedMessageRetryDocument(primaryId).ConfigureAwait(false);
-            if (await MarkMessageAsResolved(primaryId)
-                .ConfigureAwait(false))
-            {
-                return;
-            }
-
-            if (messageAlternativeFailedMessageIds == null)
-            {
-                return;
-            }
-
-            foreach (var alternative in messageAlternativeFailedMessageIds.Where(x => x != primaryId))
-            {
-                await retryDocumentManager.RemoveFailedMessageRetryDocument(alternative).ConfigureAwait(false);
-                if (await MarkMessageAsResolved(alternative)
-                    .ConfigureAwait(false))
-                {
-                    return;
-                }
-            }
         }
 
         public async Task Handle(MarkPendingRetriesAsResolved message, IMessageHandlerContext context)
@@ -114,7 +61,7 @@
             }).ConfigureAwait(false);
         }
 
-        async Task<bool> MarkMessageAsResolved(string failedMessageId)
+        async Task MarkMessageAsResolved(string failedMessageId)
         {
 
             using (var session = store.OpenAsyncSession())
@@ -126,19 +73,16 @@
 
                 if (failedMessage == null)
                 {
-                    return false;
+                    return;
                 }
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
-
-                return true;
             }
         }
 
         IDocumentStore store;
         IDomainEvents domainEvents;
-        RetryDocumentManager retryDocumentManager;
     }
 }
