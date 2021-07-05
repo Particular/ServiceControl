@@ -39,11 +39,15 @@
 
                 if (!hasBeenRetried || isAckHandled)
                 {
+                    //The message has not been sent for retry from ServiceControl or the endpoint indicated that is already has sent a retry acknowledgement to the 
+                    //ServiceControl main instance. Nothing to do.
                     return;
                 }
 
                 if (hasAckQueue && isNewRetry)
                 {
+                    //The message has been sent for retry from ServiceControl 4.20 or higher (has the ACK queue header) but the endpoint did not recognized the header
+                    //and did not sent the acknowledgement. We send it here to the error queue of the main instance.
                     var ackMessage = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                     {
                         ["ServiceControl.Retry.Successful"] = "true",
@@ -54,6 +58,8 @@
                 }
                 else
                 {
+                    //The message has been sent for retry from ServiceControl older than 4.20. Regardless which version the endpoint was, we need to send a legacy confirmation
+                    //message because the main instance of ServiceControl may still be on version lower than 4.19.
                     context.AddForSend(new MarkMessageFailureResolvedByRetry
                     {
                         FailedMessageId = isOldRetry ? headers.UniqueId() : newRetryMessageId,
