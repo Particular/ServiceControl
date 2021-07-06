@@ -50,7 +50,7 @@
                     //and did not sent the acknowledgement. We send it here to the error queue of the main instance.
                     var ackMessage = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                     {
-                        ["ServiceControl.Retry.Successful"] = "true",
+                        ["ServiceControl.Retry.Successful"] = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow),
                         ["ServiceControl.Retry.UniqueMessageId"] = newRetryMessageId
                     }, new byte[0]);
                     var ackOperation = new TransportOperation(ackMessage, new UnicastAddressTag(ackQueue));
