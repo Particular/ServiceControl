@@ -30,14 +30,13 @@ namespace ServiceControl.CompositeViews.Messages
                     {
                         result.BodyUrl += $"?instance_id={queryResult.InstanceId}";
                     }
-                }
 
-                //HINT: De-duplicate the results as some messages might be present in multiple instances (e.g. when they initially failed and later were successfully processed)
-                foreach (MessagesView messagesView in messagesViews)
-                {
-                    if (!deduplicated.ContainsKey(messagesView.MessageId))
+                    //HINT: De-duplicate the results as some messages might be present in multiple instances (e.g. when they initially failed and later were successfully processed)
+                    //The Execute method guarantees that the first item in the results collection comes from the main SC instance so the data fetched from failed messages has
+                    //precedence over the data from the audit instances.
+                    if (!deduplicated.ContainsKey(result.MessageId))
                     {
-                        deduplicated.Add(messagesView.Id, messagesView);
+                        deduplicated.Add(result.Id, result);
                     }
                 }
             }
