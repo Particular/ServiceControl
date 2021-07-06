@@ -51,7 +51,7 @@
 
         public Task Announce(MessageContext messageContext)
         {
-            return domainEvents.Raise(new MessageFailureResolvedByRetryDomainEvent
+            return domainEvents.Raise(new MessageFailureResolvedByRetry
             {
                 FailedMessageId = messageContext.Headers[RetryUniqueMessageIdHeader],
             });

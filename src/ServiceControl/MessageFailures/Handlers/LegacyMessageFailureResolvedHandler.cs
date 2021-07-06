@@ -27,7 +27,7 @@
         {
             await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds)
                 .ConfigureAwait(false);
-            await domainEvents.Raise(new MessageFailureResolvedByRetryDomainEvent
+            await domainEvents.Raise(new MessageFailureResolvedByRetry
             {
                 AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
                 FailedMessageId = message.FailedMessageId
@@ -39,7 +39,7 @@
         {
             await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds)
                 .ConfigureAwait(false);
-            await domainEvents.Raise(new MessageFailureResolvedByRetryDomainEvent
+            await domainEvents.Raise(new MessageFailureResolvedByRetry
             {
                 AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
                 FailedMessageId = message.FailedMessageId

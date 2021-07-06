@@ -2,7 +2,7 @@
 {
     using Contracts.MessageFailures;
 
-    class MessageFailureResolvedByRetryDefinition : EventLogMappingDefinition<MessageFailureResolvedByRetryDomainEvent>
+    class MessageFailureResolvedByRetryDefinition : EventLogMappingDefinition<MessageFailureResolvedByRetry>
     {
         public MessageFailureResolvedByRetryDefinition()
         {
