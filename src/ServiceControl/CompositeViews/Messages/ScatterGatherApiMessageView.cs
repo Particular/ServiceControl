@@ -36,7 +36,7 @@ namespace ServiceControl.CompositeViews.Messages
                     //precedence over the data from the audit instances.
                     if (!deduplicated.ContainsKey(result.MessageId))
                     {
-                        deduplicated.Add(result.Id, result);
+                        deduplicated.Add(result.MessageId, result);
                     }
                 }
             }
