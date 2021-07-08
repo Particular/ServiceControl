@@ -8,7 +8,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Autofac;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
     using Newtonsoft.Json;

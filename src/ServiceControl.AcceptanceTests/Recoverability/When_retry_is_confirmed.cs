@@ -15,7 +15,6 @@
     [RunOnAllTransports]
     class When_retry_is_confirmed : AcceptanceTest
     {
-        [Ignore("Needs to target NSB 7.5 to pass")]
         [Test]
         public async Task Should_mark_message_as_successfully_resolved()
         {
