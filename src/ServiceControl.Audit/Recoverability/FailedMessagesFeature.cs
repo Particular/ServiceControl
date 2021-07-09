@@ -46,8 +46,8 @@
 
                 if (hasAckQueue && isNewRetry)
                 {
-                    //The message has been sent for retry from ServiceControl 4.20 or higher (has the ACK queue header) but the endpoint did not recognized the header
-                    //and did not sent the acknowledgement. We send it here to the error queue of the main instance.
+                    //The message has been sent for retry from ServiceControl 4.20 or higher (has the ACK queue header) but the endpoint did not recognize the header
+                    //and did not send the acknowledgment. We send it here to the acknowledgment queue.
                     var ackMessage = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                     {
                         ["ServiceControl.Retry.Successful"] = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow),
