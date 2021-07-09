@@ -49,7 +49,7 @@
         {
             for (var i = 0; i < 200; i++)
             {
-                yield return new MessagesView();
+                yield return new MessagesView { MessageId = Guid.NewGuid().ToString() };
             }
         }
 
@@ -57,7 +57,7 @@
         {
             for (var i = 0; i < 55; i++)
             {
-                yield return new MessagesView();
+                yield return new MessagesView { MessageId = Guid.NewGuid().ToString() };
             }
         }
 
