@@ -17,6 +17,7 @@
       <AdvancedInstallerPath>$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Caphyon\Advanced Installer@Advanced Installer Path)</AdvancedInstallerPath>
       <AdvancedInstallerExe>"$(AdvancedInstallerPath)bin\x86\AdvancedInstaller.com"</AdvancedInstallerExe>
       <AIPFile>ServiceControl.aip</AIPFile>
+      <CommandFile>commands.aic</CommandFile>
     </PropertyGroup>
     <ItemGroup>
       <ResourceFiles Include="Res\**\*.*" />
@@ -32,6 +33,7 @@
     </ItemGroup>
     <Delete Files="@(ExistingExes)" />
     <Copy SourceFiles="$(AIPFile)" DestinationFolder="$(IntermediateOutputPath)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(CommandFile)" DestinationFolder="$(IntermediateOutputPath)" />
     <Copy SourceFiles="@(ResourceFiles)" DestinationFolder="$(IntermediateOutputPath)Res\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(Prerequisites)" DestinationFolder="$(IntermediateOutputPath)Prerequisites\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name PROJECT_PATH -value $(SolutionDir)Setup -valuetype Folder" />
@@ -40,7 +42,7 @@
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name CUSTOMACTIONS_PATH -value $(SolutionDir)ServiceControlInstaller.CustomActions\bin\$(Configuration)\$(TargetFramework) -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /SetVersion $(GitVersion_MajorMinorPatch)" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /SetPackageName $(SetupExeOutputFolder)$(SetupExeName) -buildname DefaultBuild" />
-    <Exec Command="$(AdvancedInstallerExe) /rebuild $(IntermediateOutputPath)$(AIPFile)" />
+    <Exec Command="$(AdvancedInstallerExe) /execute $(IntermediateOutputPath)$(AIPFile) $(IntermediateOutputPath)$(CommandFile)" />
   </Target>
 
 </Project>
