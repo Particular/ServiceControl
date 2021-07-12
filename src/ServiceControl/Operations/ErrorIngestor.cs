@@ -42,7 +42,7 @@
             }
 
 
-            var (storedFailed, storedRetried) = await PersistFailedMessages(failedMessages, retriedMessages)
+            var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages)
                 .ConfigureAwait(false);
 
             try
@@ -52,7 +52,7 @@
                 {
                     announcerTasks.Add(errorProcessor.Announce(context));
                 }
-                foreach (var context in storedRetried)
+                foreach (var context in retriedMessages)
                 {
                     announcerTasks.Add(retryConfirmationProcessor.Announce(context));
                 }
@@ -72,7 +72,7 @@
                     }
                 }
 
-                foreach (var context in storedFailed.Concat(storedRetried))
+                foreach (var context in storedFailed.Concat(retriedMessages))
                 {
                     context.GetTaskCompletionSource().TrySetResult(true);
                 }
@@ -89,7 +89,7 @@
             }
         }
 
-        async Task<(IReadOnlyList<MessageContext>, IReadOnlyList<MessageContext>)> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts)
+        async Task<IReadOnlyList<MessageContext>> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -101,7 +101,7 @@
             try
             {
                 var (storedFailedMessageContexts, storeCommands) = await errorProcessor.Process(failedMessageContexts).ConfigureAwait(false);
-                var (storedRetriedMessageContexts, markRetriedCommands) = retryConfirmationProcessor.Process(retriedMessageContexts);
+                var markRetriedCommands = retryConfirmationProcessor.Process(retriedMessageContexts);
 
                 using (bulkInsertDurationMeter.Measure())
                 {
@@ -111,7 +111,7 @@
                         .ConfigureAwait(false);
                 }
 
-                return (storedFailedMessageContexts, storedRetriedMessageContexts);
+                return storedFailedMessageContexts;
             }
             catch (Exception e)
             {

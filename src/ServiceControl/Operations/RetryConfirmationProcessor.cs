@@ -1,12 +1,10 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using MessageFailures;
-    using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -22,31 +20,17 @@
             this.domainEvents = domainEvents;
         }
 
-        public (IReadOnlyList<MessageContext>, IReadOnlyCollection<ICommandData>) Process(List<MessageContext> contexts)
+        public IReadOnlyCollection<ICommandData> Process(List<MessageContext> contexts)
         {
-            var storedContexts = new List<MessageContext>(contexts.Count);
             var allCommands = new List<ICommandData>(contexts.Count);
 
             foreach (var context in contexts)
             {
-                try
-                {
-                    var commands = CreateDatabaseCommands(context);
-                    allCommands.AddRange(commands);
-                    storedContexts.Add(context);
-                }
-                catch (Exception e)
-                {
-                    if (Logger.IsDebugEnabled)
-                    {
-                        Logger.Debug($"Processing of message '{context.MessageId}' failed.", e);
-                    }
-
-                    context.GetTaskCompletionSource().TrySetException(e);
-                }
+                var commands = CreateDatabaseCommands(context);
+                allCommands.AddRange(commands);
             }
 
-            return (storedContexts, allCommands);
+            return allCommands;
         }
 
         public Task Announce(MessageContext messageContext)
@@ -77,7 +61,6 @@
             yield return deleteCommand;
         }
 
-        static readonly ILog Logger = LogManager.GetLogger<RetryConfirmationProcessor>();
         readonly IDomainEvents domainEvents;
     }
 }
