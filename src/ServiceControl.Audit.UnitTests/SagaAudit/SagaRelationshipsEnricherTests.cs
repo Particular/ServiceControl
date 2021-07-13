@@ -1,8 +1,10 @@
-﻿namespace ServiceControl.UnitTests.SagaAudit
+﻿namespace ServiceControl.Audit.UnitTests.SagaAudit
 {
     using System.Collections.Generic;
+    using Audit.Auditing;
+    using Audit.SagaAudit;
+    using NServiceBus;
     using NUnit.Framework;
-    using ServiceControl.Operations;
     using ServiceControl.SagaAudit;
 
     [TestFixture]
@@ -11,7 +13,7 @@
         [Test]
         public void New_overrides_Updated_state()
         {
-            var enricher = new SagaAuditComponent.SagaRelationshipsEnricher();
+            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -20,8 +22,9 @@
             };
 
             var metadata = new Dictionary<string, object>();
+            var commandsToEmit = new List<ICommand>();
 
-            enricher.Enrich(new ErrorEnricherContext(headers, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -32,7 +35,7 @@
         [Test]
         public void Updated_does_not_override_new()
         {
-            var enricher = new SagaAuditComponent.SagaRelationshipsEnricher();
+            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -41,8 +44,9 @@
             };
 
             var metadata = new Dictionary<string, object>();
+            var commandsToEmit = new List<ICommand>();
 
-            enricher.Enrich(new ErrorEnricherContext(headers, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -53,7 +57,7 @@
         [Test]
         public void Updated_does_not_override_completed()
         {
-            var enricher = new SagaAuditComponent.SagaRelationshipsEnricher();
+            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -62,8 +66,9 @@
             };
 
             var metadata = new Dictionary<string, object>();
+            var commandsToEmit = new List<ICommand>();
 
-            enricher.Enrich(new ErrorEnricherContext(headers, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -74,7 +79,7 @@
         [Test]
         public void Completed_overrides_new()
         {
-            var enricher = new SagaAuditComponent.SagaRelationshipsEnricher();
+            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -83,8 +88,9 @@
             };
 
             var metadata = new Dictionary<string, object>();
+            var commandsToEmit = new List<ICommand>();
 
-            enricher.Enrich(new ErrorEnricherContext(headers, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -95,7 +101,7 @@
         [Test]
         public void New_does_not_override_completed()
         {
-            var enricher = new SagaAuditComponent.SagaRelationshipsEnricher();
+            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -104,8 +110,9 @@
             };
 
             var metadata = new Dictionary<string, object>();
+            var commandsToEmit = new List<ICommand>();
 
-            enricher.Enrich(new ErrorEnricherContext(headers, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -116,7 +123,7 @@
         [Test]
         public void It_can_parse_malformed_headers_of_three_sagas()
         {
-            var enricher = new SagaAuditComponent.SagaRelationshipsEnricher();
+            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -125,8 +132,9 @@
             };
 
             var metadata = new Dictionary<string, object>();
+            var commandsToEmit = new List<ICommand>();
 
-            enricher.Enrich(new ErrorEnricherContext(headers, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
