@@ -93,7 +93,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
                     //Do not filter out CC, SA and HB messages as they can't be stamped
                     if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
-                        && messageTypes.StartsWith("ServiceControl."))
+                        && (messageTypes.StartsWith("ServiceControl.Contracts") || messageTypes.StartsWith("ServiceControl.EndpointPlugin")))
                     {
                         return @continue();
                     }
