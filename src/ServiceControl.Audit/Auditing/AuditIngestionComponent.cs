@@ -57,16 +57,21 @@
             ingestor = new AuditIngestor(auditPersister, settings);
 
             var ingestion = new AuditIngestion(
-                async (messageContext, dispatcher) =>
-                {
-                    var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    messageContext.SetTaskCompletionSource(taskCompletionSource);
+                 (messageContext, dispatcher) =>
+                 {
+                     async Task Process()
+                     {
+                         var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                         messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                    receivedMeter.Mark();
+                         receivedMeter.Mark();
 
-                    await channel.Writer.WriteAsync(messageContext).ConfigureAwait(false);
-                    await taskCompletionSource.Task.ConfigureAwait(false);
-                },
+                         await channel.Writer.WriteAsync(messageContext).ConfigureAwait(false);
+                         await taskCompletionSource.Task.ConfigureAwait(false);
+                     }
+
+                     return settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, Process);
+                 },
                 dispatcher => ingestor.Initialize(dispatcher),
                 settings.AuditQueue, rawEndpointFactory, errorHandlingPolicy, OnCriticalError);
 
