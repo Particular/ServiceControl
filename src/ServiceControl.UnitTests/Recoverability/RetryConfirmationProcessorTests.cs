@@ -14,7 +14,6 @@
     using Raven.Client;
     using Raven.Tests.Helpers;
     using MessageFailures;
-    using Raven.Abstractions.Commands;
     using ServiceControl.Operations;
     using ServiceControl.Recoverability;
 
@@ -54,6 +53,66 @@
         [Test]
         public void Should_handle_multiple_retry_confirmations_in_the_error_ingestion()
         {
+            var messageContexts = new List<MessageContext>
+            {
+                CreateRetryAcknowledgementMessage(),
+                CreateRetryAcknowledgementMessage()
+            };
+
+            var commands = Processor.Process(messageContexts);
+
+            Assert.DoesNotThrowAsync(() => Store.AsyncDatabaseCommands.BatchAsync(commands));
+        }
+
+        [Test]
+        public async Task Should_handle_multiple_legacy_audit_instance_retry_confirmations()
+        {
+            await Handler.Handle(CreateLegacyRetryConfirmationCommand(), new TestableMessageHandlerContext());
+
+            Assert.DoesNotThrowAsync(
+                () => Handler.Handle(CreateLegacyRetryConfirmationCommand(), new TestableInvokeHandlerContext()));
+        }
+
+        [Test]
+        public async Task Should_handle_retry_confirmation_followed_by_legacy_command()
+        {
+            var messageContexts = new List<MessageContext>
+            {
+                CreateRetryAcknowledgementMessage()
+            };
+
+            var commands = Processor.Process(messageContexts);
+            await Store.AsyncDatabaseCommands.BatchAsync(commands);
+
+            Assert.DoesNotThrowAsync(
+                () => Handler.Handle(CreateLegacyRetryConfirmationCommand(), new TestableInvokeHandlerContext()));
+        }
+
+        [Test]
+        public async Task Should_handle_legacy_retry_confirmation_command_followed_by_new_acknowledgement()
+        {
+            await Handler.Handle(CreateLegacyRetryConfirmationCommand(), new TestableMessageHandlerContext());
+
+            var messageContexts = new List<MessageContext>
+            {
+                CreateRetryAcknowledgementMessage()
+            };
+
+            var commands = Processor.Process(messageContexts);
+            Assert.DoesNotThrowAsync(() => Store.AsyncDatabaseCommands.BatchAsync(commands));
+        }
+
+        static MarkMessageFailureResolvedByRetry CreateLegacyRetryConfirmationCommand()
+        {
+            var retryConfirmation = new MarkMessageFailureResolvedByRetry
+            {
+                FailedMessageId = MessageId
+            };
+            return retryConfirmation;
+        }
+
+        static MessageContext CreateRetryAcknowledgementMessage()
+        {
             var headers = new Dictionary<string, string>
             {
                 {"ServiceControl.Retry.Successful", string.Empty},
@@ -66,29 +125,7 @@
                 new TransportTransaction(),
                 new CancellationTokenSource(),
                 new ContextBag());
-
-            var messageContexts = new List<MessageContext>
-            {
-                messageContext,
-                messageContext
-            };
-
-            var commands = Processor.Process(messageContexts);
-
-            Assert.DoesNotThrowAsync(() => Store.AsyncDatabaseCommands.BatchAsync(commands));
-        }
-
-        [Test]
-        public async Task Should_handle_multiple_legacy_audit_instance_retry_confirmations()
-        {
-            var retryConfirmation = new MarkMessageFailureResolvedByRetry
-            {
-                FailedMessageId = MessageId
-            };
-
-            await Handler.Handle(retryConfirmation, new TestableMessageHandlerContext());
-
-            Assert.DoesNotThrowAsync(() => Handler.Handle(retryConfirmation, new TestableInvokeHandlerContext()));
+            return messageContext;
         }
 
         const string MessageId = "83C73A86-A45E-4FDF-8C95-E292526166F5";
