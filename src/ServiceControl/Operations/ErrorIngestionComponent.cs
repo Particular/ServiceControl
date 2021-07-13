@@ -54,17 +54,25 @@
 
             ingestor = new ErrorIngestor(errorProcessor, retryConfirmationProcessor, documentStore, bulkInsertDurationMeter, settings.ForwardErrorMessages, settings.ErrorLogQueue);
 
-            var ingestion = new ErrorIngestion(async messageContext =>
-                {
-                    var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    messageContext.SetTaskCompletionSource(taskCompletionSource);
+            async Task Process(MessageContext messageContext)
+            {
+                var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                    receivedMeter.Mark();
+                receivedMeter.Mark();
 
-                    await channel.Writer.WriteAsync(messageContext).ConfigureAwait(false);
-                    await taskCompletionSource.Task.ConfigureAwait(false);
-                },
-                dispatcher => ingestor.Initialize(dispatcher), settings.ErrorQueue, rawEndpointFactory, documentStore, loggingSettings, OnCriticalError);
+                await channel.Writer.WriteAsync(messageContext).ConfigureAwait(false);
+                await taskCompletionSource.Task.ConfigureAwait(false);
+            }
+
+            var ingestion = new ErrorIngestion(
+                messageContext => settings.OnMessage(messageContext.MessageId, messageContext.Headers, messageContext.Body, () => Process(messageContext)),
+                dispatcher => ingestor.Initialize(dispatcher),
+                settings.ErrorQueue,
+                rawEndpointFactory,
+                documentStore,
+                loggingSettings,
+                OnCriticalError);
 
             failedImporter = new ImportFailedErrors(documentStore, ingestor, rawEndpointFactory);
 
