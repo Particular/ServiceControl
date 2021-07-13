@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.Auditing.MessagesView;
+    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
@@ -36,6 +37,7 @@
                         messages = result;
                         if (result)
                         {
+                            c.Messages = JsonConvert.SerializeObject(messages);
                             return messages.Count == 5;
                         }
                     }
@@ -198,6 +200,7 @@
             public bool Saga2Complete { get; set; }
             public Guid Saga1Id { get; set; }
             public Guid Saga2Id { get; set; }
+            public string Messages { get; set; }
         }
     }
 }
