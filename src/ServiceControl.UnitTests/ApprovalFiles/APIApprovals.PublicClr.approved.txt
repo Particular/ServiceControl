@@ -72,8 +72,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool IngestErrorMessages { get; set; }
         public string LicenseFileText { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
+        public System.Func<NServiceBus.Transport.MessageContext, bool> MessageFilter { get; set; }
         public string NotificationsFilter { get; set; }
-        public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
         public int Port { get; set; }
         public bool PrintMetrics { get; }
         public System.TimeSpan ProcessRetryBatchesFrequency { get; set; }

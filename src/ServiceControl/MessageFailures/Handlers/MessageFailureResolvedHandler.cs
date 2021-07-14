@@ -10,7 +10,6 @@
     using Raven.Client;
 
     class MessageFailureResolvedHandler :
-        IHandleMessages<MarkMessageFailureResolvedByRetry>,
         IHandleMessages<MarkPendingRetryAsResolved>,
         IHandleMessages<MarkPendingRetriesAsResolved>
     {
@@ -18,15 +17,6 @@
         {
             this.store = store;
             this.domainEvents = domainEvents;
-        }
-
-        public Task Handle(MarkMessageFailureResolvedByRetry message, IMessageHandlerContext context)
-        {
-            return domainEvents.Raise(new MessageFailureResolvedByRetry
-            {
-                AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
-                FailedMessageId = message.FailedMessageId
-            });
         }
 
         public async Task Handle(MarkPendingRetriesAsResolved message, IMessageHandlerContext context)
@@ -73,6 +63,7 @@
 
         async Task MarkMessageAsResolved(string failedMessageId)
         {
+
             using (var session = store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
@@ -92,7 +83,6 @@
         }
 
         IDocumentStore store;
-
         IDomainEvents domainEvents;
     }
 }

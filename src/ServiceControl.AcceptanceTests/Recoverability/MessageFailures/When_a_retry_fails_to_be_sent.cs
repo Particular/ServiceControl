@@ -153,14 +153,14 @@
                 this.myContext = myContext;
             }
 
-            public override Task HandleMessage(MessageContext message, IDispatchMessages sender)
+            public override Task HandleMessage(MessageContext message, IDispatchMessages sender, string errorQueueTransportAddress)
             {
                 if (message.Headers[Headers.MessageId] == myContext.DecommissionedEndpointMessageId)
                 {
                     throw new Exception("This endpoint is unreachable");
                 }
 
-                return base.HandleMessage(message, sender);
+                return base.HandleMessage(message, sender, "error");
             }
 
             MyContext myContext;

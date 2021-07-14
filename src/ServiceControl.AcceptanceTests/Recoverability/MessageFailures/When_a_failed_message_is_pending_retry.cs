@@ -57,7 +57,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableFeature<Outbox>();
-
+                    c.DisableFeature<PlatformRetryNotifications>();
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(1));
                     recoverability.Delayed(s => s.NumberOfRetries(0));

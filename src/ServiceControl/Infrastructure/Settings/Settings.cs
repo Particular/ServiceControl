@@ -1,15 +1,14 @@
 namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Threading.Tasks;
     using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus.Logging;
+    using NServiceBus.Transport;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Transports;
 
@@ -59,10 +58,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool AllowMessageEditing { get; set; }
 
-        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
+        //HINT: acceptance tests only
+        public Func<MessageContext, bool> MessageFilter { get; set; }
 
+        //HINT: acceptance tests only
         public bool RunInMemory { get; set; }
 
+        //HINT: acceptance tests only
         public string EmailDropFolder { get; set; }
 
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);

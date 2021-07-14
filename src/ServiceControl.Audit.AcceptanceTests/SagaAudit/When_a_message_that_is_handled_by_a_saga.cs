@@ -198,6 +198,7 @@
             public bool Saga2Complete { get; set; }
             public Guid Saga1Id { get; set; }
             public Guid Saga2Id { get; set; }
+            public string Messages { get; set; }
         }
     }
 }

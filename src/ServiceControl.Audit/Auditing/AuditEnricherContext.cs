@@ -2,13 +2,15 @@
 {
     using System.Collections.Generic;
     using NServiceBus;
+    using NServiceBus.Transport;
 
     class AuditEnricherContext
     {
-        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IList<ICommand> outgoingCommands, IDictionary<string, object> metadata)
+        public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IList<ICommand> outgoingCommands, IList<TransportOperation> outgoingSends, IDictionary<string, object> metadata)
         {
             Headers = headers;
             this.outgoingCommands = outgoingCommands;
+            this.outgoingSends = outgoingSends;
             Metadata = metadata;
         }
 
@@ -21,6 +23,12 @@
             outgoingCommands.Add(command);
         }
 
-        IList<ICommand> outgoingCommands;
+        public void AddForSend(TransportOperation transportOperation)
+        {
+            outgoingSends.Add(transportOperation);
+        }
+
+        readonly IList<ICommand> outgoingCommands;
+        readonly IList<TransportOperation> outgoingSends;
     }
 }

@@ -7,6 +7,7 @@
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Features;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
@@ -51,6 +52,8 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    //Do not inform SC that the message has been already successfully handled
+                    c.DisableFeature<PlatformRetryNotifications>();
                     c.NoRetries();
                     c.NoOutbox();
                 });

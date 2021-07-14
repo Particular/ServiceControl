@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35307" />
-    <PackageReference Include="NServiceBus" Version="7.4.6" />
+    <PackageReference Include="NServiceBus" Version="7.5.0" />
   </ItemGroup>
 
 </Project>

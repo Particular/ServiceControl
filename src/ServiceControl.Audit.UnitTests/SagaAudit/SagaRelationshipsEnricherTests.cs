@@ -4,6 +4,7 @@
     using Audit.Auditing;
     using Audit.SagaAudit;
     using NServiceBus;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
 
@@ -23,8 +24,9 @@
 
             var metadata = new Dictionary<string, object>();
             var commandsToEmit = new List<ICommand>();
+            var transportOperations = new List<TransportOperation>();
 
-            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, transportOperations, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -45,8 +47,9 @@
 
             var metadata = new Dictionary<string, object>();
             var commandsToEmit = new List<ICommand>();
+            var transportOperations = new List<TransportOperation>();
 
-            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, transportOperations, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -67,8 +70,9 @@
 
             var metadata = new Dictionary<string, object>();
             var commandsToEmit = new List<ICommand>();
+            var transportOperations = new List<TransportOperation>();
 
-            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, transportOperations, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -89,8 +93,9 @@
 
             var metadata = new Dictionary<string, object>();
             var commandsToEmit = new List<ICommand>();
+            var transportOperations = new List<TransportOperation>();
 
-            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, transportOperations, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -111,8 +116,9 @@
 
             var metadata = new Dictionary<string, object>();
             var commandsToEmit = new List<ICommand>();
+            var transportOperations = new List<TransportOperation>();
 
-            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, transportOperations, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 
@@ -133,8 +139,9 @@
 
             var metadata = new Dictionary<string, object>();
             var commandsToEmit = new List<ICommand>();
+            var transportOperations = new List<TransportOperation>();
 
-            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, metadata));
+            enricher.Enrich(new AuditEnricherContext(headers, commandsToEmit, transportOperations, metadata));
 
             var sagaData = (List<SagaInfo>)metadata["InvokedSagas"];
 

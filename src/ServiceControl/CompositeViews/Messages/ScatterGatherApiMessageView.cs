@@ -2,6 +2,7 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -14,7 +15,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected override IList<MessagesView> ProcessResults(HttpRequestMessage request, QueryResult<IList<MessagesView>>[] results)
         {
-            var combined = new List<MessagesView>();
+            var deduplicated = new Dictionary<string, MessagesView>();
             foreach (var queryResult in results)
             {
                 var messagesViews = queryResult?.Results ?? new List<MessagesView>();
@@ -29,11 +30,18 @@ namespace ServiceControl.CompositeViews.Messages
                     {
                         result.BodyUrl += $"?instance_id={queryResult.InstanceId}";
                     }
-                }
 
-                combined.AddRange(messagesViews);
+                    //HINT: De-duplicate the results as some messages might be present in multiple instances (e.g. when they initially failed and later were successfully processed)
+                    //The Execute method guarantees that the first item in the results collection comes from the main SC instance so the data fetched from failed messages has
+                    //precedence over the data from the audit instances.
+                    if (!deduplicated.ContainsKey(result.MessageId))
+                    {
+                        deduplicated.Add(result.MessageId, result);
+                    }
+                }
             }
 
+            var combined = deduplicated.Values.ToList();
             var comparer = FinalOrder(request);
             if (comparer != null)
             {

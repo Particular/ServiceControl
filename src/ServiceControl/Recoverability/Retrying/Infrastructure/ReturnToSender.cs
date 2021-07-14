@@ -22,11 +22,12 @@ namespace ServiceControl.Recoverability
             this.bodyStorage = bodyStorage;
         }
 
-        public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender)
+        public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender, string errorQueueTransportAddress)
         {
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
+            outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueTransportAddress;
 
             byte[] body = null;
             var messageId = message.MessageId;
@@ -145,7 +146,7 @@ namespace ServiceControl.Recoverability
 
         static readonly byte[] EmptyBody = new byte[0];
         readonly IBodyStorage bodyStorage;
-        static ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
+        static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
         readonly IDocumentStore documentStore;
     }
 }

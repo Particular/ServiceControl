@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using NLog.Common;
     using NServiceBus.Logging;
+    using NServiceBus.Transport;
     using Transports;
 
     public class Settings
@@ -46,8 +47,10 @@
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
         }
 
-        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
+        //HINT: acceptance tests only
+        public Func<MessageContext, bool> MessageFilter { get; set; }
 
+        //HINT: acceptance tests only
         public bool RunInMemory { get; set; }
 
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);

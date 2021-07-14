@@ -4,14 +4,14 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
-    class When_a_successful_retry_is_detected : AcceptanceTest
+    [RunOnAllTransports]
+    class When_a_successful_retry_from_old_SC_is_detected : AcceptanceTest
     {
         [Test]
         public async Task Should_raise_integration_event()
@@ -28,18 +28,7 @@
                     options.RouteToThisEndpoint();
                     return s.Send(new MyMessage(), options);
                 }))
-                .Done(async c =>
-                {
-                    var result = await this.TryGetSingle<MessagesView>("/api/messages", m =>
-                    {
-                        var storedMessageId = m.Headers.Select(kv => kv.Value.ToString())
-                            .FirstOrDefault(v => v == failedMessageId);
-
-                        return storedMessageId == failedMessageId;
-                    });
-
-                    return result.HasResult;
-                })
+                .Done(c => c.SentMarkMessageFailureResolvedByRetriesCommands.Any())
                 .Run();
 
             var command = context.SentMarkMessageFailureResolvedByRetriesCommands.Single();

@@ -11,7 +11,6 @@
     using Infrastructure.RavenDB;
     using MessageFailures;
     using MessageFailures.Api;
-    using MessageFailures.Handlers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
@@ -60,7 +59,8 @@
                         b.GetRequiredService<IDocumentStore>(),
                         b.GetRequiredService<IDomainEvents>(),
                         stagingQueue,
-                        b.GetRequiredService<RawEndpointFactory>()));
+                        b.GetRequiredService<RawEndpointFactory>(),
+                        settings.ErrorQueue));
                 collection.AddHostedService<ReturnToSenderDequeuerHostedService>();
 
                 //Error importer
@@ -88,7 +88,6 @@
                 //Failed messages
                 collection.AddSingleton<FailedMessageViewIndexNotifications>();
                 collection.AddHostedService<FailedMessageNotificationsHostedService>();
-                collection.AddDomainEventHandler<MessageFailureResolvedDomainHandler>();
 
                 //Body storage
                 collection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();

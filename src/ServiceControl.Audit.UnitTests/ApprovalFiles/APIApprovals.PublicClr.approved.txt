@@ -187,7 +187,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string LicenseFileText { get; set; }
         public int MaxBodySizeToStore { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
-        public System.Func<string, System.Collections.Generic.Dictionary<string, string>, byte[], System.Func<System.Threading.Tasks.Task>, System.Threading.Tasks.Task> OnMessage { get; set; }
+        public System.Func<NServiceBus.Transport.MessageContext, bool> MessageFilter { get; set; }
         public int Port { get; set; }
         public bool PrintMetrics { get; }
         public string RootUrl { get; }

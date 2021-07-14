@@ -13,9 +13,9 @@ namespace ServiceControl.CompositeViews.Messages
         {
             TransformResults = messages => from message in messages
                                            let metadata =
-                                               message.ProcessingAttempts != null
-                                                   ? message.ProcessingAttempts.Last().MessageMetadata
-                                                   : message.MessageMetadata
+                    message.ProcessingAttempts != null
+                        ? message.ProcessingAttempts.Last().MessageMetadata
+                        : message.MessageMetadata
                                            let headers =
                                                message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().Headers : message.Headers
                                            let processedAt =
@@ -24,14 +24,18 @@ namespace ServiceControl.CompositeViews.Messages
                                                    : message.ProcessedAt
                                            let status =
                                                message.ProcessingAttempts == null
-                                                   ? !(bool)message.MessageMetadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully
-                                                   : message.Status == FailedMessageStatus.RetryIssued
-                                                       ? MessageStatus.RetryIssued
-                                                       : message.Status == FailedMessageStatus.Archived
-                                                           ? MessageStatus.ArchivedFailure
-                                                           : message.ProcessingAttempts.Count == 1
-                                                               ? MessageStatus.Failed
-                                                               : MessageStatus.RepeatedFailure
+                                                   ? !(bool)message.MessageMetadata["IsRetried"]
+                                                       ? MessageStatus.Successful
+                                                       : MessageStatus.ResolvedSuccessfully
+                                                   : message.Status == FailedMessageStatus.Resolved
+                                                       ? MessageStatus.ResolvedSuccessfully
+                                                       : message.Status == FailedMessageStatus.RetryIssued
+                                                           ? MessageStatus.RetryIssued
+                                                           : message.Status == FailedMessageStatus.Archived
+                                                               ? MessageStatus.ArchivedFailure
+                                                               : message.ProcessingAttempts.Count == 1
+                                                                   ? MessageStatus.Failed
+                                                                   : MessageStatus.RepeatedFailure
                                            select new
                                            {
                                                Id = message.UniqueMessageId,

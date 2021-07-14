@@ -11,6 +11,7 @@
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
+    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
@@ -41,7 +42,7 @@
             this.messageSession = messageSession;
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts)
+        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts, IDispatchMessages dispatcher)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -64,7 +65,7 @@
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
-                    inserts.Add(ProcessMessage(context));
+                    inserts.Add(ProcessMessage(context, dispatcher));
                 }
 
                 await Task.WhenAll(inserts).ConfigureAwait(false);
@@ -87,7 +88,7 @@
 
                         if (Logger.IsDebugEnabled)
                         {
-                            Logger.Debug($"Adding audit message for bulk storage");
+                            Logger.Debug("Adding audit message for bulk storage");
                         }
 
                         using (auditBulkInsertDurationMeter.Measure())
@@ -196,7 +197,7 @@
             knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
-        async Task ProcessMessage(MessageContext context)
+        async Task ProcessMessage(MessageContext context, IDispatchMessages dispatcher)
         {
             if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
                 && messageType == typeof(SagaUpdatedMessage).FullName)
@@ -205,7 +206,7 @@
             }
             else
             {
-                await ProcessAuditMessage(context).ConfigureAwait(false);
+                await ProcessAuditMessage(context, dispatcher).ConfigureAwait(false);
             }
         }
 
@@ -237,7 +238,7 @@
             }
         }
 
-        async Task ProcessAuditMessage(MessageContext context)
+        async Task ProcessAuditMessage(MessageContext context, IDispatchMessages dispatcher)
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
@@ -253,7 +254,8 @@
                 };
 
                 var commandsToEmit = new List<ICommand>();
-                var enricherContext = new AuditEnricherContext(context.Headers, commandsToEmit, metadata);
+                var messagesToEmit = new List<TransportOperation>();
+                var enricherContext = new AuditEnricherContext(context.Headers, commandsToEmit, messagesToEmit, metadata);
 
                 foreach (var enricher in enrichers)
                 {
@@ -277,16 +279,21 @@
 
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.Debug($"Emitting {commandsToEmit.Count} commands");
+                    Logger.Debug($"Emitting {commandsToEmit.Count} commands and {messagesToEmit.Count} control messages.");
                 }
                 foreach (var commandToEmit in commandsToEmit)
                 {
                     await messageSession.Send(commandToEmit)
                         .ConfigureAwait(false);
                 }
+
+                await dispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
+                    new TransportTransaction(), //Do not hook into the incoming transaction
+                    new ContextBag()).ConfigureAwait(false);
+
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.Debug($"{commandsToEmit.Count} commands emitted.");
+                    Logger.Debug($"{commandsToEmit.Count} commands and {messagesToEmit.Count} control messages emitted.");
                 }
 
                 if (metadata.TryGetValue("SendingEndpoint", out var sendingEndpoint))
@@ -324,6 +331,6 @@
         readonly IDocumentStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         IMessageSession messageSession;
-        static ILog Logger = LogManager.GetLogger<AuditPersister>();
+        static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }
 }

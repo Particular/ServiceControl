@@ -2,34 +2,59 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
     using System.Threading.Tasks;
-    using Contracts.Operations;
+    using Infrastructure.Metrics;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
+    using Raven.Client;
 
     class ErrorIngestor
     {
-        public ErrorIngestor(ErrorPersister errorPersister, FailedMessageAnnouncer failedMessageAnnouncer, bool forwardErrorMessages, string errorLogQueue)
+        public ErrorIngestor(ErrorProcessor errorProcessor, RetryConfirmationProcessor retryConfirmationProcessor, IDocumentStore store, Meter bulkInsertDurationMeter, bool forwardErrorMessages, string errorLogQueue)
         {
-            this.errorPersister = errorPersister;
-            this.failedMessageAnnouncer = failedMessageAnnouncer;
+            this.errorProcessor = errorProcessor;
+            this.retryConfirmationProcessor = retryConfirmationProcessor;
+            this.store = store;
+            this.bulkInsertDurationMeter = bulkInsertDurationMeter;
             this.forwardErrorMessages = forwardErrorMessages;
             this.errorLogQueue = errorLogQueue;
         }
 
         public async Task Ingest(List<MessageContext> contexts)
         {
-            var stored = await errorPersister.Persist(contexts)
+            var failedMessages = new List<MessageContext>(contexts.Count);
+            var retriedMessages = new List<MessageContext>(contexts.Count);
+
+            foreach (var context in contexts)
+            {
+                if (context.Headers.ContainsKey(RetryConfirmationProcessor.SuccessfulRetryHeader))
+                {
+                    retriedMessages.Add(context);
+                }
+                else
+                {
+                    failedMessages.Add(context);
+                }
+            }
+
+
+            var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages)
                 .ConfigureAwait(false);
 
             try
             {
-                var announcerTasks = new List<Task>(stored.Count);
-                foreach (var context in stored)
+                var announcerTasks = new List<Task>(contexts.Count);
+                foreach (var context in storedFailed)
                 {
-                    announcerTasks.Add(failedMessageAnnouncer.Announce(context.Headers, context.Extensions.Get<FailureDetails>()));
+                    announcerTasks.Add(errorProcessor.Announce(context));
+                }
+                foreach (var context in retriedMessages)
+                {
+                    announcerTasks.Add(retryConfirmationProcessor.Announce(context));
                 }
 
                 await Task.WhenAll(announcerTasks).ConfigureAwait(false);
@@ -40,14 +65,14 @@
                     {
                         log.Debug($"Forwarding {contexts.Count} messages");
                     }
-                    await Forward(stored).ConfigureAwait(false);
+                    await Forward(storedFailed).ConfigureAwait(false);
                     if (log.IsDebugEnabled)
                     {
-                        log.Debug($"Forwarded messages");
+                        log.Debug("Forwarded messages");
                     }
                 }
 
-                foreach (var context in stored)
+                foreach (var context in storedFailed.Concat(retriedMessages))
                 {
                     context.GetTaskCompletionSource().TrySetResult(true);
                 }
@@ -61,6 +86,50 @@
 
                 // making sure to rethrow so that all messages get marked as failed
                 throw;
+            }
+        }
+
+        async Task<IReadOnlyList<MessageContext>> PersistFailedMessages(List<MessageContext> failedMessageContexts, List<MessageContext> retriedMessageContexts)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            if (log.IsDebugEnabled)
+            {
+                log.Debug($"Batch size {failedMessageContexts.Count}");
+            }
+
+            try
+            {
+                var (storedFailedMessageContexts, storeCommands) = await errorProcessor.Process(failedMessageContexts).ConfigureAwait(false);
+                var markRetriedCommands = retryConfirmationProcessor.Process(retriedMessageContexts);
+
+                using (bulkInsertDurationMeter.Measure())
+                {
+                    // not really interested in the batch results since a batch is atomic
+                    var allCommands = storeCommands.Concat(markRetriedCommands);
+                    await store.AsyncDatabaseCommands.BatchAsync(allCommands)
+                        .ConfigureAwait(false);
+                }
+
+                return storedFailedMessageContexts;
+            }
+            catch (Exception e)
+            {
+                if (log.IsDebugEnabled)
+                {
+                    log.Debug("Bulk insertion failed", e);
+                }
+
+                // making sure to rethrow so that all messages get marked as failed
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+                if (log.IsDebugEnabled)
+                {
+                    log.Debug($"Batch size {failedMessageContexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
         }
 
@@ -127,8 +196,10 @@
         bool forwardErrorMessages;
         IDispatchMessages dispatcher;
         string errorLogQueue;
-        FailedMessageAnnouncer failedMessageAnnouncer;
-        ErrorPersister errorPersister;
+        readonly IDocumentStore store;
+        readonly Meter bulkInsertDurationMeter;
+        ErrorProcessor errorProcessor;
+        readonly RetryConfirmationProcessor retryConfirmationProcessor;
         static ILog log = LogManager.GetLogger<ErrorIngestor>();
     }
 }

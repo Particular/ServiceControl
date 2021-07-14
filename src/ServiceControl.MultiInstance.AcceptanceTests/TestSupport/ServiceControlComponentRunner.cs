@@ -108,8 +108,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                         ApiUri = $"http://localhost:{auditInstanceApiPort}/api" // evil assumption for now
                     }
                 },
-                OnMessage = (id, headers, body, @continue) =>
+                MessageFilter = messageContext =>
                 {
+                    var headers = messageContext.Headers;
+                    var id = messageContext.MessageId;
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
@@ -118,24 +120,24 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
                         && messageTypes.StartsWith("ServiceControl."))
                     {
-                        return @continue();
+                        return false;
                     }
 
                     //Do not filter out subscribe messages as they can't be stamped
                     if (headers.TryGetValue(Headers.MessageIntent, out var intent)
                         && intent == MessageIntentEnum.Subscribe.ToString())
                     {
-                        return @continue();
+                        return false;
                     }
 
                     var currentSession = context.TestRunId.ToString();
                     if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                     {
                         log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                        return Task.FromResult(0);
+                        return true;
                     }
 
-                    return @continue();
+                    return false;
                 }
             };
 
@@ -235,8 +237,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 RunInMemory = true,
                 ExposeApi = false,
                 ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,
-                OnMessage = (id, headers, body, @continue) =>
+                MessageFilter = messageContext =>
                 {
+                    var id = messageContext.MessageId;
+                    var headers = messageContext.Headers;
+
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
@@ -245,24 +250,24 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
                         && messageTypes.StartsWith("ServiceControl."))
                     {
-                        return @continue();
+                        return false;
                     }
 
                     //Do not filter out subscribe messages as they can't be stamped
                     if (headers.TryGetValue(Headers.MessageIntent, out var intent)
                         && intent == MessageIntentEnum.Subscribe.ToString())
                     {
-                        return @continue();
+                        return false;
                     }
 
                     var currentSession = context.TestRunId.ToString();
                     if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                     {
                         log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                        return Task.FromResult(0);
+                        return true;
                     }
 
-                    return @continue();
+                    return false;
                 }
             };
 

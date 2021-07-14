@@ -203,6 +203,44 @@
             }
         }
 
+        [TestCase(FailedMessageStatus.Archived, MessageStatus.ArchivedFailure)]
+        [TestCase(FailedMessageStatus.Resolved, MessageStatus.ResolvedSuccessfully)]
+        [TestCase(FailedMessageStatus.RetryIssued, MessageStatus.RetryIssued)]
+        [TestCase(FailedMessageStatus.Unresolved, MessageStatus.Failed)]
+        public void Correct_status_for_failed_messages(FailedMessageStatus failedMessageStatus, MessageStatus expecteMessageStatus)
+        {
+            using (var session = documentStore.OpenSession())
+            {
+                session.Store(new FailedMessage
+                {
+                    Id = "1",
+                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    {
+                        new FailedMessage.ProcessingAttempt
+                        {
+                            AttemptedAt = DateTime.Today,
+                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                        }
+                    },
+                    Status = failedMessageStatus
+                });
+
+                session.SaveChanges();
+            }
+
+            documentStore.WaitForIndexing();
+
+            using (var session = documentStore.OpenSession())
+            {
+                var message = session.Query<FailedMessage>()
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .Customize(x => x.WaitForNonStaleResults())
+                    .Single();
+
+                Assert.AreEqual(expecteMessageStatus, message.Status);
+            }
+        }
+
         [Test]
         public void Correct_status_for_repeated_errors()
         {
@@ -241,7 +279,6 @@
                 Assert.AreEqual(MessageStatus.RepeatedFailure, message.Status);
             }
         }
-
 
         [SetUp]
         public void SetUp()
