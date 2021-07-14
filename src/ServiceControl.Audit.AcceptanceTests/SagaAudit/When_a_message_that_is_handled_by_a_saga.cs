@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.Auditing.MessagesView;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
