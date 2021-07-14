@@ -22,7 +22,7 @@
 
         public IReadOnlyCollection<ICommandData> Process(List<MessageContext> contexts)
         {
-            var allCommands = new List<ICommandData>(contexts.Count);
+            var allCommands = new List<ICommandData>(contexts.Count * 2);
 
             foreach (var context in contexts)
             {
