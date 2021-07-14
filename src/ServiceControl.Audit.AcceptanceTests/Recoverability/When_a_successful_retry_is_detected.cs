@@ -14,7 +14,7 @@
     class When_a_successful_retry_is_detected : AcceptanceTest
     {
         [Test]
-        public async Task Should_sent_acknowledgement()
+        public async Task Should_send_acknowledgement()
         {
             var failedMessageId = Guid.NewGuid().ToString();
             var context = await Define<Context>()

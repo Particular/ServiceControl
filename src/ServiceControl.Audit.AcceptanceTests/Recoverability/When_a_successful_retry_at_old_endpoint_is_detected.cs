@@ -15,7 +15,7 @@
     class When_a_successful_retry_at_old_endpoint_is_detected : AcceptanceTest
     {
         [Test]
-        public async Task Should_sent_acknowledgement()
+        public async Task Should_send_acknowledgement()
         {
             var failedMessageId = Guid.NewGuid().ToString();
             var context = await Define<Context>()
@@ -77,6 +77,7 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(cfg =>
                 {
+                    // disable retry notifications feature to emulate an NServiceBus endpoint older than version 7.5
                     cfg.DisableFeature<PlatformRetryNotifications>();
                 });
             }
