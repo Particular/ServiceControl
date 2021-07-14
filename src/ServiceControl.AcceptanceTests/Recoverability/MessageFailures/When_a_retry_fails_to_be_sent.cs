@@ -13,7 +13,6 @@
     using NUnit.Framework;
     using Operations.BodyStorage;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
@@ -27,7 +26,7 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IBodyStorage>(), b.Build<IDocumentStore>(), b.Build<Settings>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
+            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IBodyStorage>(), b.Build<IDocumentStore>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
 
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
@@ -149,19 +148,19 @@
 
         public class FakeReturnToSender : ReturnToSender
         {
-            public FakeReturnToSender(IBodyStorage bodyStorage, IDocumentStore documentStore, Settings settings, MyContext myContext) : base(bodyStorage, documentStore, settings)
+            public FakeReturnToSender(IBodyStorage bodyStorage, IDocumentStore documentStore, MyContext myContext) : base(bodyStorage, documentStore)
             {
                 this.myContext = myContext;
             }
 
-            public override Task HandleMessage(MessageContext message, IDispatchMessages sender)
+            public override Task HandleMessage(MessageContext message, IDispatchMessages sender, string errorQueueTransportAddress)
             {
                 if (message.Headers[Headers.MessageId] == myContext.DecommissionedEndpointMessageId)
                 {
                     throw new Exception("This endpoint is unreachable");
                 }
 
-                return base.HandleMessage(message, sender);
+                return base.HandleMessage(message, sender, "error");
             }
 
             MyContext myContext;

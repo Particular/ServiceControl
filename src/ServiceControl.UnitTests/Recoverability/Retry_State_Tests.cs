@@ -13,7 +13,6 @@
     using NUnit.Framework;
     using Operations;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
@@ -78,7 +77,7 @@
 
                 var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
 
-                var processor = new RetryProcessor(documentStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore, new Settings()), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                var processor = new RetryProcessor(documentStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                 documentStore.WaitForIndexing();
 
@@ -95,7 +94,7 @@
 
                     await documentManager.RebuildRetryOperationState(session);
 
-                    processor = new RetryProcessor(documentStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore, new Settings()), documentStore, domainEvents, "TestEndpoint"), retryManager);
+                    processor = new RetryProcessor(documentStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint"), retryManager);
 
                     await processor.ProcessBatches(session, sender);
                     await session.SaveChangesAsync();
@@ -120,7 +119,7 @@
 
                 var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
 
-                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore, new Settings()), documentStore, domainEvents, "TestEndpoint");
+                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(documentStore, domainEvents, returnToSender, retryManager);
 
                 using (var session = documentStore.OpenAsyncSession())
@@ -161,7 +160,7 @@
 
                 var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
 
-                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore, new Settings()), documentStore, domainEvents, "TestEndpoint");
+                var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(bodyStorage, documentStore), documentStore, domainEvents, "TestEndpoint");
                 var processor = new RetryProcessor(documentStore, domainEvents, returnToSender, retryManager);
 
                 bool c;
@@ -204,7 +203,7 @@
 
                 var bodyStorage = new RavenAttachmentsBodyStorage(documentStore);
 
-                var returnToSender = new ReturnToSender(bodyStorage, documentStore, new Settings());
+                var returnToSender = new ReturnToSender(bodyStorage, documentStore);
 
                 var sender = new TestSender();
 
@@ -319,7 +318,7 @@
     class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
         public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName)
-            : base(returnToSender, store, domainEvents, endpointName, null /* rawEndpointFactory */)
+            : base(returnToSender, store, domainEvents, endpointName, null /* rawEndpointFactory */, "error")
         {
         }
 

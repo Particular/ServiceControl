@@ -59,7 +59,8 @@
                         b.GetRequiredService<IDocumentStore>(),
                         b.GetRequiredService<IDomainEvents>(),
                         stagingQueue,
-                        b.GetRequiredService<RawEndpointFactory>()));
+                        b.GetRequiredService<RawEndpointFactory>(),
+                        settings.ErrorQueue));
                 collection.AddHostedService<ReturnToSenderDequeuerHostedService>();
 
                 //Error importer

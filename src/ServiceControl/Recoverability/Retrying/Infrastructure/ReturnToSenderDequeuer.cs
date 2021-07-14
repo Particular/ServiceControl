@@ -5,17 +5,20 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using MessageFailures;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Raven.Client;
 
     class ReturnToSenderDequeuer
     {
-        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string inputAddress, RawEndpointFactory rawEndpointFactory)
+        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string inputAddress, RawEndpointFactory rawEndpointFactory, string errorQueue)
         {
             InputAddress = inputAddress;
             this.returnToSender = returnToSender;
+            this.errorQueue = errorQueue;
 
             createEndpointConfiguration = () =>
             {
@@ -45,7 +48,7 @@ namespace ServiceControl.Recoverability
 
             if (shouldProcess(message))
             {
-                await returnToSender.HandleMessage(message, sender).ConfigureAwait(false);
+                await returnToSender.HandleMessage(message, sender, errorQueueTransportAddress).ConfigureAwait(false);
                 IncrementCounterOrProlongTimer();
             }
             else
@@ -117,7 +120,11 @@ namespace ServiceControl.Recoverability
                 stopCompletionSource = new TaskCompletionSource<bool>();
                 registration = cancellationToken.Register(() => _ = Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None));
 
-                processor = await RawEndpoint.Start(config).ConfigureAwait(false);
+                var startable = await RawEndpoint.Create(config).ConfigureAwait(false);
+
+                errorQueueTransportAddress = GetErrorQueueTransportAddress(startable);
+
+                processor = await startable.Start().ConfigureAwait(false);
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
 
@@ -156,6 +163,13 @@ namespace ServiceControl.Recoverability
             }
         }
 
+        string GetErrorQueueTransportAddress(IStartableRawEndpoint startable)
+        {
+            var transportInfra = startable.Settings.Get<TransportInfrastructure>();
+            var localInstance = transportInfra.BindToLocalEndpoint(new EndpointInstance(errorQueue));
+            return transportInfra.ToTransportAddress(LogicalAddress.CreateRemoteAddress(localInstance));
+        }
+
         public Task Stop()
         {
             timer.Dispose();
@@ -188,6 +202,9 @@ namespace ServiceControl.Recoverability
         CaptureIfMessageSendingFails faultManager;
         Func<RawEndpointConfiguration> createEndpointConfiguration;
         ReturnToSender returnToSender;
+        readonly string errorQueue;
+        string errorQueueTransportAddress;
+
         static ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
 
         class CaptureIfMessageSendingFails : IErrorHandlingPolicy

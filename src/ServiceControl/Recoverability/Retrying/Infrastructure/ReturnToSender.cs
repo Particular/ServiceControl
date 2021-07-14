@@ -13,23 +13,21 @@ namespace ServiceControl.Recoverability
     using Operations.BodyStorage;
     using Raven.Client;
     using Raven.Json.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class ReturnToSender
     {
-        public ReturnToSender(IBodyStorage bodyStorage, IDocumentStore documentStore, Settings settings)
+        public ReturnToSender(IBodyStorage bodyStorage, IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
-            this.settings = settings;
             this.bodyStorage = bodyStorage;
         }
 
-        public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender)
+        public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender, string errorQueueTransportAddress)
         {
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
             outgoingHeaders.Remove("ServiceControl.Retry.StagingId");
-            outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = settings.ErrorQueue;
+            outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueTransportAddress;
 
             byte[] body = null;
             var messageId = message.MessageId;
@@ -150,6 +148,5 @@ namespace ServiceControl.Recoverability
         readonly IBodyStorage bodyStorage;
         static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
         readonly IDocumentStore documentStore;
-        readonly Settings settings;
     }
 }
