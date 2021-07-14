@@ -153,6 +153,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     ctx.Stop().GetAwaiter().GetResult();
                 }, settings, configuration);
 
+                bootstrapper.HostBuilder.ConfigureLogging(logging => logging.AddScenarioContextLogging());
+
                 host = bootstrapper.HostBuilder.Build();
                 await host.StartAsync();
             }
