@@ -37,7 +37,6 @@
                         messages = result;
                         if (result)
                         {
-                            c.Messages = JsonConvert.SerializeObject(messages);
                             return messages.Count == 5;
                         }
                     }
