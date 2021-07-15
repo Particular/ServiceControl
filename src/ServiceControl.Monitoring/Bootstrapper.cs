@@ -56,6 +56,7 @@
                     services.AddSingleton<MessageTypeRegistry>();
                     services.AddSingleton<EndpointInstanceActivityTracker>();
                     services.AddSingleton(sp => buildQueueLengthProvider(sp.GetRequiredService<QueueLengthStore>()));
+                    services.AddSingleton<LegacyQueueLengthReportHandler.LegacyQueueLengthEndpoints>();
                 })
                 .UseNServiceBus(builder =>
                 {
