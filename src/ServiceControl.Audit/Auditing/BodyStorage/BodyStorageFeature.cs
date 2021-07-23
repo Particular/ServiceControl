@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
+    using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
@@ -7,6 +8,7 @@
     using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.Features;
+    using NServiceBus.Logging;
     using RavenAttachments;
 
     class BodyStorageFeature : Feature
@@ -73,22 +75,37 @@
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-                if (isBelowMaxSize && avoidsLargeObjectHeap && !isBinary)
+                if (isBelowMaxSize)
                 {
-                    if (settings.EnableFullTextSearchOnBodies)
+                    var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
+                    var useBodyStore = !useEmbeddedBody;
+
+                    if (useEmbeddedBody)
                     {
-                        processedMessage.MessageMetadata.Add("Body", Encoding.UTF8.GetString(body));
+                        try
+                        {
+                            if (settings.EnableFullTextSearchOnBodies)
+                            {
+                                processedMessage.MessageMetadata.Add("Body", enc.GetString(body));
+                            }
+                            else
+                            {
+                                processedMessage.Body = enc.GetString(body);
+                            }
+                        }
+                        catch (DecoderFallbackException e)
+                        {
+                            useBodyStore = true;
+                            log.Info("Body for {bodyId} could not be stored embedded, fallback to body storage", e);
+                        }
                     }
-                    else
+
+                    if (useBodyStore)
                     {
-                        processedMessage.Body = Encoding.UTF8.GetString(body);
+                        await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
+                            .ConfigureAwait(false);
+                        storedInBodyStorage = true;
                     }
-                }
-                else if (isBelowMaxSize)
-                {
-                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                        .ConfigureAwait(false);
-                    storedInBodyStorage = true;
                 }
 
                 processedMessage.MessageMetadata.Add("BodyUrl", bodyUrl);
@@ -104,6 +121,8 @@
                 }
             }
 
+            static readonly Encoding enc = new UTF8Encoding(true, true);
+            static readonly ILog log = LogManager.GetLogger<BodyStorageFeature>();
             IBodyStorage bodyStorage;
             Settings settings;
 

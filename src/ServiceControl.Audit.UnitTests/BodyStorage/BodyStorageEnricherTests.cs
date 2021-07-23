@@ -236,6 +236,34 @@ namespace ServiceControl.UnitTests.BodyStorage
             Assert.AreEqual("/messages/someid/body", metadata["BodyUrl"]);
         }
 
+        [Test]
+        public async Task Should_store_body_in_storage_when_encoding_fails()
+        {
+            var fakeStorage = new FakeBodyStorage();
+            var maxBodySizeToStore = 100000;
+            var settings = new Settings
+            {
+                MaxBodySizeToStore = maxBodySizeToStore,
+                EnableFullTextSearchOnBodies = true
+            };
+
+            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var body = new byte[] { 0x00, 0xDE };
+            var metadata = new Dictionary<string, object>();
+
+            var headers = new Dictionary<string, string>
+            {
+                { Headers.MessageId, "someid" },
+                { "ServiceControl.Retry.UniqueMessageId", "someid" }
+            };
+
+            var message = new ProcessedMessage(headers, metadata);
+
+            await enricher.StoreAuditMessageBody(body, message);
+
+            Assert.IsTrue(fakeStorage.StoredBodySize > 0);
+        }
+
         class FakeBodyStorage : IBodyStorage
         {
             public int StoredBodySize { get; set; }

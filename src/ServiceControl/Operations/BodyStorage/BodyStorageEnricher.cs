@@ -5,6 +5,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
     using ProcessingAttempt = MessageFailures.FailedMessage.ProcessingAttempt;
 
@@ -49,18 +50,30 @@
             var isBinary = contentType.Contains("binary");
             var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-            if (avoidsLargeObjectHeap && !isBinary)
+            var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
+            var useBodyStore = !useEmbeddedBody;
+
+            if (useEmbeddedBody)
             {
-                if (settings.EnableFullTextSearchOnBodies)
+                try
                 {
-                    processingAttempt.MessageMetadata.Add("Body", Encoding.UTF8.GetString(body));
+                    if (settings.EnableFullTextSearchOnBodies)
+                    {
+                        processingAttempt.MessageMetadata.Add("Body", enc.GetString(body));
+                    }
+                    else
+                    {
+                        processingAttempt.Body = enc.GetString(body);
+                    }
                 }
-                else
+                catch (DecoderFallbackException e)
                 {
-                    processingAttempt.Body = Encoding.UTF8.GetString(body);
+                    useBodyStore = true;
+                    log.Info("Body for {bodyId} could not be stored embedded, fallback to body storage", e);
                 }
             }
-            else
+
+            if (useBodyStore)
             {
                 await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
                     .ConfigureAwait(false);
@@ -78,6 +91,8 @@
             }
         }
 
+        static readonly Encoding enc = new UTF8Encoding(true, true);
+        static readonly ILog log = LogManager.GetLogger<BodyStorageEnricher>();
         readonly IBodyStorage bodyStorage;
         readonly Settings settings;
 
