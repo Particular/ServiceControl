@@ -101,6 +101,23 @@ namespace ServiceControl.UnitTests.BodyStorage
             Assert.IsFalse(metadata.ContainsKey("Body"));
         }
 
+        [Test]
+        public async Task Should_store_body_in_storage_when_encoding_fails()
+        {
+            var fakeStorage = new FakeBodyStorage();
+            var settings = new Settings();
+
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var body = new byte[] { 0x00, 0xDE };
+            var metadata = new Dictionary<string, object>();
+
+            var attempt = new FailedMessage.ProcessingAttempt { MessageMetadata = metadata, Headers = new Dictionary<string, string>() };
+
+            await enricher.StoreErrorMessageBody(body, attempt);
+
+            Assert.IsTrue(fakeStorage.StoredBodySize > 0);
+        }
+
         class FakeBodyStorage : IBodyStorage
         {
             public int StoredBodySize { get; set; }
