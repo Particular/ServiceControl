@@ -33,9 +33,15 @@ namespace ServiceControl.Audit.Infrastructure
             //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
             configuration.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
 
+            var serviceControlLogicalQueue = settings.ServiceControlQueueAddress;
+            if (serviceControlLogicalQueue.IndexOf("@") >= 0)
+            {
+                serviceControlLogicalQueue = serviceControlLogicalQueue.Substring(0, serviceControlLogicalQueue.IndexOf("@"));
+            }
+
             var routing = new RoutingSettings(configuration.GetSettings());
-            routing.RouteToEndpoint(typeof(RegisterNewEndpoint), settings.ServiceControlQueueAddress);
-            routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), settings.ServiceControlQueueAddress);
+            routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
+            routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
 
             configuration.GetSettings().Set(loggingSettings);
             configuration.SetDiagnosticsPath(loggingSettings.LogPath);
